@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -37,19 +38,26 @@ export function CommandCircle({
   disabled = false,
   onPress,
   testID,
+  selected,
 }: {
   readonly label: string;
-  readonly icon: "create" | "sort" | "filter";
+  /**
+   * `list-plus` / `list-plus-selected` : « Ajouter des mouvements » des Bibliothèques personnelles (Figma 12214:26122
+   * normal, 12230:26277 sélectionné — export SVG `Icône — list-plus`).
+   */
+  readonly icon: "create" | "sort" | "filter" | "list-plus" | "list-plus-selected";
   readonly disabled?: boolean;
   readonly onPress?: () => void;
   readonly testID: string;
+  /** Commande à bascule (`list-plus`) : état annoncé. */
+  readonly selected?: boolean;
 }) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      accessibilityState={selected === undefined ? { disabled } : { disabled, selected }}
       accessibilityLabel={label}
       hitSlop={HIT_SLOP}
       style={[styles.circle, disabled ? styles.circleDisabled : null]}
@@ -58,6 +66,8 @@ export function CommandCircle({
       {icon === "create" ? <PlusGlyph color={disabled ? colors.disabled : colors.primary} testID={`${testID}-icon`} /> : null}
       {icon === "filter" ? <FilterGlyph color={disabled ? colors.disabled : colors.primary} testID={`${testID}-icon`} /> : null}
       {icon === "sort" ? <SortGlyph testID={`${testID}-icon`} /> : null}
+      {icon === "list-plus" ? <KodjoIcon name="library-list-plus" testID={`${testID}-icon`} /> : null}
+      {icon === "list-plus-selected" ? <KodjoIcon name="library-list-plus-selected" testID={`${testID}-icon`} /> : null}
     </Pressable>
   );
 }

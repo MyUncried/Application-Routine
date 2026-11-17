@@ -47,3 +47,10 @@ example
 
 # Obsidian local workspace
 **/.obsidian/
+# Administration locale du catalogue (W1/W2, 11/11/2026) : domaine transpilé, appareils appairés
+# (empreintes de jetons) et boîte d'arrivée des Mouvements reçus du téléphone — jamais versionnés.
+/tools/catalogue-admin/generated/
+/catalogue/admin/appareils.json
+/catalogue/admin/inbox/
+# Identité « Utilisateur local » de cette installation PC (décision du 12/11/2026) : propre au poste.
+/catalogue/admin/installation.json

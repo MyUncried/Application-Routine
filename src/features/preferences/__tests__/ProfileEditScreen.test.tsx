@@ -7,6 +7,8 @@ import { ProfileEditScreen } from "@/features/preferences/ProfileEditScreen";
 import type { SaveIdentityResult, ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { strings } from "@/shared/i18n";
+import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 
 /**
  * Écran Modifier le profil (V2-PRE-2, plan §6.5, CE-UI-01 L1965-2051).
@@ -40,6 +42,7 @@ function fakeProfileService(overrides: Partial<ProfileService> = {}): ProfileSer
   return {
     getProfile: jest.fn(async () => aProfile()),
     saveIdentity: jest.fn(async (): Promise<SaveIdentityResult> => ({ ok: true, value: aProfile() })),
+    saveAppearance: jest.fn(async () => aProfile()),
     ...overrides,
   } as unknown as ProfileService;
 }
@@ -48,6 +51,7 @@ function renderProfileEditRouter(service: ProfileService) {
   return renderRouter(
     {
       index: () => <Text>index-screen</Text>,
+      profile: () => <Text>profile-screen</Text>,
       "profile-edit": () => (
         <ProfileServiceContext.Provider value={service}>
           <ProfileEditScreen />
@@ -68,24 +72,17 @@ async function renderScreen(service: ProfileService = fakeProfileService()) {
 
 const t = strings.screens.profileEdit;
 
-/** PRE-6 story 7.10 (D-444) : « Enregistrer » dans la zone d'action principale fixe. */
-describe("ProfileEditScreen — zone d'action principale (PRE-6 story 7.10)", () => {
-  it("« Enregistrer » is out of the scroll, in the fixed action zone, with the format of « Terminer »; the body reserves the zone height", async () => {
+/** Demande de Hermann du 13/11/2026 : « Retirer le bouton enregistrer de l'écran d'accueil du profil ». */
+describe("ProfileEditScreen — sans « Enregistrer » (13/11/2026)", () => {
+  it("has neither « Enregistrer » nor a fixed action zone; the body keeps a bottom margin", async () => {
     await renderScreen();
-    const body = screen.getByTestId("profile-edit-body");
-    const zone = screen.getByTestId("profile-edit-action-zone");
-    expect(StyleSheet.flatten(zone.props.style)).toMatchObject({ position: "absolute", bottom: 0 });
-    const save = screen.getByTestId("profile-edit-save-action");
-    expect(within(body).queryByTestId("profile-edit-save-action")).toBeNull();
-    expect(within(zone).getByTestId("profile-edit-save-action")).toBe(save);
-    expect(StyleSheet.flatten(save.props.style)).toMatchObject({ minHeight: 48, borderRadius: 24, shadowColor: "#1A1A26" });
-    expect(save.props.accessibilityLabel).toBe(t.saveAction);
-    // Réserve de défilement : 24 + 48 + marge basse (encart du routeur de test).
-    const reserve = StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom as number;
-    expect(reserve).toBeGreaterThanOrEqual(24 + 48 + 16);
-    // Correctif J6f : bouton centré — réserve = marge haute + 48 + marge basse.
-    const zoneStyle = StyleSheet.flatten(zone.props.style);
-    expect(reserve).toBe((zoneStyle.paddingTop as number) + 48 + (zoneStyle.paddingBottom as number));
+    expect(screen.queryByTestId("profile-edit-save-action")).toBeNull();
+    expect(screen.queryByTestId("profile-edit-action-zone")).toBeNull();
+    expect(screen.queryByText(t.saveAction)).toBeNull();
+    const reserve = StyleSheet.flatten(screen.getByTestId("profile-edit-body").props.contentContainerStyle)
+      .paddingBottom as number;
+    // 14/11 : la liste se termine au-dessus de la barre de navigation KODJO (même réserve que l'écran Préférences).
+    expect(reserve).toBe(navigationBarTotalHeight() + 16);
   });
 });
 
@@ -110,27 +107,27 @@ describe("ProfileEditScreen", () => {
     expect(screen.getByTestId("profile-edit-name-input").props.value).toBe("Ada Lovelace");
     expect(screen.getByTestId("profile-edit-avatar-initials").props.children).toBe("AL");
     expect(screen.queryByTestId("profile-edit-avatar-image")).toBeNull();
-    expect(
-      screen.getByTestId("profile-edit-silhouette-homme").props.accessibilityState.selected,
-    ).toBe(true);
-    expect(
-      screen.getByTestId("profile-edit-silhouette-femme").props.accessibilityState.selected,
-    ).toBe(false);
+    expect(screen.getByTestId("profile-edit-silhouette").props.accessibilityLabel).toBe(t.silhouette.homme);
+    expect(screen.getByTestId("profile-edit-silhouette-homme-icon")).toBeTruthy();
   });
 
-  it("announces Silhouette homme et Silhouette femme with their selected state, switching on tap (CE-UI-01 L2037)", async () => {
+  it("shows one silhouette circle, the chosen one; a tap switches it, with an accessible name and hint (Figma 12116:25028)", async () => {
     await renderScreen();
+    const circle = screen.getByTestId("profile-edit-silhouette");
+    expect(circle.props.accessibilityRole).toBe("button");
+    expect(circle.props.accessibilityHint).toBe(t.silhouette.toggleHint);
 
-    fireEvent.press(screen.getByTestId("profile-edit-silhouette-femme"));
+    await act(async () => {
+      fireEvent.press(circle);
+    });
+    expect(screen.getByTestId("profile-edit-silhouette").props.accessibilityLabel).toBe(t.silhouette.femme);
+    expect(screen.getByTestId("profile-edit-silhouette-femme-icon")).toBeTruthy();
+    expect(screen.queryByTestId("profile-edit-silhouette-homme-icon")).toBeNull();
 
-    expect(
-      screen.getByTestId("profile-edit-silhouette-femme").props.accessibilityState.selected,
-    ).toBe(true);
-    expect(
-      screen.getByTestId("profile-edit-silhouette-homme").props.accessibilityState.selected,
-    ).toBe(false);
-    expect(screen.getByLabelText(t.silhouette.femme)).toBeTruthy();
-    expect(screen.getByLabelText(t.silhouette.homme)).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-edit-silhouette"));
+    });
+    expect(screen.getByTestId("profile-edit-silhouette").props.accessibilityLabel).toBe(t.silhouette.homme);
   });
 
   it("opens only the gallery to add a photo; a cancellation never modifies the draft (D-258)", async () => {
@@ -176,102 +173,107 @@ describe("ProfileEditScreen", () => {
     expect(screen.queryByTestId("profile-edit-avatar-image")).toBeNull();
   });
 
-  it("accepts a 1-character name and saves, returning to Profil", async () => {
-    const saveIdentity = jest.fn<ProfileService["saveIdentity"]>().mockResolvedValue({
-      ok: true,
-      value: aProfile(),
-    });
+  it("saves a 1-character and an 80-character name at the end of typing, without leaving the screen", async () => {
+    const saveIdentity = jest.fn<ProfileService["saveIdentity"]>().mockResolvedValue({ ok: true, value: aProfile() });
     const router = await renderScreen(fakeProfileService({ saveIdentity }));
+    const input = screen.getByTestId("profile-edit-name-input");
 
-    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "A");
+    fireEvent.changeText(input, "A");
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-save-action"));
+      fireEvent(input, "endEditing", { nativeEvent: { text: "A" } });
     });
+    expect(saveIdentity).toHaveBeenLastCalledWith({ displayName: "A", photoUri: null, silhouette: null });
+
+    fireEvent.changeText(input, "B".repeat(80));
+    await act(async () => {
+      fireEvent(input, "endEditing", { nativeEvent: { text: "B".repeat(80) } });
+    });
+    expect(saveIdentity).toHaveBeenLastCalledWith({ displayName: "B".repeat(80), photoUri: null, silhouette: null });
     expect(screen.queryByTestId("profile-edit-name-error")).toBeNull();
-    expect(router.getPathname()).toBe("/");
+    expect(router.getPathname()).toBe("/profile-edit");
   });
 
-  it("accepts an 80-character name and saves, returning to Profil", async () => {
-    const saveIdentity = jest.fn<ProfileService["saveIdentity"]>().mockResolvedValue({
-      ok: true,
-      value: aProfile(),
-    });
-    const router = await renderScreen(fakeProfileService({ saveIdentity }));
+  it("does not write when the name did not change", async () => {
+    const saveIdentity = jest.fn<ProfileService["saveIdentity"]>();
+    await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Ada" })), saveIdentity }));
 
-    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "A".repeat(80));
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-save-action"));
+      fireEvent(screen.getByTestId("profile-edit-name-input"), "endEditing", { nativeEvent: { text: "Ada" } });
     });
-    expect(screen.queryByTestId("profile-edit-name-error")).toBeNull();
-    expect(router.getPathname()).toBe("/");
+    expect(saveIdentity).not.toHaveBeenCalled();
   });
 
-  it("shows a field error and keeps the screen open for an empty name or an 81-character name (CE-UI-01 L2021, L2033)", async () => {
+  it("shows a field error for an empty or an 81-character name; the saved name stays (CE-UI-01 L2021, L2033)", async () => {
     const saveIdentity = jest
       .fn<ProfileService["saveIdentity"]>()
       .mockResolvedValueOnce({ ok: false, code: "REQUIRED" })
       .mockResolvedValueOnce({ ok: false, code: "TOO_LONG" });
-    const router = await renderScreen(fakeProfileService({ saveIdentity }));
+    const service = fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Ada" })), saveIdentity });
+    await renderScreen(service);
+    const input = screen.getByTestId("profile-edit-name-input");
 
-    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "");
+    fireEvent.changeText(input, "");
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-save-action"));
+      fireEvent(input, "endEditing", { nativeEvent: { text: "" } });
     });
     expect(screen.getByTestId("profile-edit-name-error").props.children).toBe(t.name.errorRequired);
-    expect(router.getPathname()).toBe("/profile-edit");
 
-    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "A".repeat(81));
+    fireEvent.changeText(input, "A".repeat(81));
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-save-action"));
+      fireEvent(input, "endEditing", { nativeEvent: { text: "A".repeat(81) } });
     });
     expect(screen.getByTestId("profile-edit-name-error").props.children).toBe(t.name.errorTooLong);
-    expect(router.getPathname()).toBe("/profile-edit");
+
+    // Un choix de silhouette pendant l'erreur repart du nom ENREGISTRÉ, jamais de la saisie invalide.
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-edit-silhouette"));
+    });
+    expect(service.saveAppearance).toHaveBeenCalledWith({ photoUri: null, silhouette: "femme" });
   });
 
-  it("saves name, photo and silhouette together, and deletes the previous photo copy only after success (D3)", async () => {
-    mockPickAndCopyProfilePhoto.mockResolvedValueOnce({
-      status: "PICKED",
-      uri: "file:///document/profile-photo-new.jpg",
+  it("saves the silhouette as soon as it is chosen", async () => {
+    const saveAppearance = jest.fn<ProfileService["saveAppearance"]>().mockResolvedValue(aProfile({ silhouette: "femme" }));
+    await renderScreen(fakeProfileService({ saveAppearance }));
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-edit-silhouette"));
     });
-    const saveIdentity = jest.fn<ProfileService["saveIdentity"]>().mockResolvedValue({
-      ok: true,
-      value: aProfile(),
-    });
-    const router = await renderScreen(
+    expect(saveAppearance).toHaveBeenCalledWith({ photoUri: null, silhouette: "femme" });
+  });
+
+  it("saves a chosen photo at once, and deletes the previous photo copy only after success (D3)", async () => {
+    mockPickAndCopyProfilePhoto.mockResolvedValueOnce({ status: "PICKED", uri: "file:///document/profile-photo-new.jpg" });
+    let release: (profile: Profile) => void = () => undefined;
+    const saveAppearance = jest.fn<ProfileService["saveAppearance"]>(
+      () => new Promise<Profile>((resolve) => (release = resolve)),
+    );
+    await renderScreen(
       fakeProfileService({
-        getProfile: jest.fn(async () => aProfile({ photoUri: "file:///document/profile-photo-old.jpg" })),
-        saveIdentity,
+        getProfile: jest.fn(async () => aProfile({ photoUri: "file:///document/profile-photo-old.jpg", silhouette: "homme" })),
+        saveAppearance,
       }),
     );
 
     await act(async () => {
       fireEvent.press(screen.getByTestId("profile-edit-photo-action"));
     });
-    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "Grace Hopper");
-    fireEvent.press(screen.getByTestId("profile-edit-silhouette-femme"));
-
+    expect(saveAppearance).toHaveBeenCalledWith({ photoUri: "file:///document/profile-photo-new.jpg", silhouette: "homme" });
     expect(mockDeletePreviousProfilePhoto).not.toHaveBeenCalled();
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-save-action"));
-    });
-
-    expect(saveIdentity).toHaveBeenCalledWith({
-      displayName: "Grace Hopper",
-      photoUri: "file:///document/profile-photo-new.jpg",
-      silhouette: "femme",
+      release(aProfile({ photoUri: "file:///document/profile-photo-new.jpg", silhouette: "homme" }));
     });
     expect(mockDeletePreviousProfilePhoto).toHaveBeenCalledWith("file:///document/profile-photo-old.jpg");
-    expect(router.getPathname()).toBe("/");
   });
 
-  it("shows a message and keeps the draft when saving fails technically — never navigates away", async () => {
+  it("shows a message when saving fails technically and keeps the typed name", async () => {
     const saveIdentity = jest.fn<ProfileService["saveIdentity"]>().mockRejectedValue(new Error("boom"));
     const router = await renderScreen(fakeProfileService({ saveIdentity }));
+    const input = screen.getByTestId("profile-edit-name-input");
 
-    fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "Ada");
+    fireEvent.changeText(input, "Ada");
     await act(async () => {
-      fireEvent.press(screen.getByTestId("profile-edit-save-action"));
+      fireEvent(input, "endEditing", { nativeEvent: { text: "Ada" } });
     });
 
     expect(screen.getByTestId("profile-edit-save-error")).toBeTruthy();
@@ -279,67 +281,143 @@ describe("ProfileEditScreen", () => {
     expect(screen.getByTestId("profile-edit-name-input").props.value).toBe("Ada");
   });
 
-  /**
-   * Revue 5976315331 : la VRAIE garde (`usePreventRemove`, non simulée) doit
-   * intercepter un retour avec brouillon modifié ; Annuler ferme le
-   * dialogue et conserve l'écran/le brouillon ; Confirmer restaure le
-   * brouillon aux valeurs ENREGISTRÉES (jamais persistées — `saveIdentity`
-   * n'est jamais appelé) puis rejoue la navigation vers Profil. Rouvrir
-   * Modifier le profil après Confirmer prouve, de bout en bout, que rien de
-   * l'édition abandonnée n'a survécu : le nom relu est à nouveau celui
-   * ENREGISTRÉ, jamais "Changed".
-   */
-  it("intercepts a modified-draft exit with the real guard: Annuler stays on the screen, Confirmer restores saved values and returns to Profil (CE-UI-01 L1981)", async () => {
-    const saveIdentity = jest.fn<ProfileService["saveIdentity"]>();
-    const service = fakeProfileService({
-      getProfile: jest.fn(async () => aProfile({ displayName: "Ada Lovelace" })),
-      saveIdentity,
-    });
-    const router = await renderScreen(service);
-
+  it("leaves to Profil without any « Abandonner » dialog, even after a change (13/11/2026)", async () => {
+    const router = await renderScreen();
     fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "Changed");
 
-    testRouter.back();
-    expect(router.getPathname()).toBe("/profile-edit");
-    expect(screen.getByText(t.abandonModal.title)).toBeTruthy();
-    expect(screen.getByTestId("profile-edit-name-input").props.value).toBe("Changed");
-
-    // Annuler : dialogue fermé, écran et brouillon modifié conservés.
     act(() => {
-      fireEvent.press(screen.getByLabelText(t.abandonModal.continueEditing));
+      testRouter.back();
     });
-    expect(screen.queryByText(t.abandonModal.title)).toBeNull();
-    expect(router.getPathname()).toBe("/profile-edit");
-    expect(screen.getByTestId("profile-edit-name-input").props.value).toBe("Changed");
-
-    // Confirmer : restaure le brouillon aux valeurs enregistrées, jamais persisté, puis revient au Profil.
-    testRouter.back();
-    act(() => {
-      fireEvent.press(screen.getByLabelText(t.abandonModal.abandon));
-    });
-
     expect(router.getPathname()).toBe("/");
-    expect(screen.getByText("index-screen")).toBeTruthy();
-    expect(saveIdentity).not.toHaveBeenCalled();
+    expect(screen.queryByText(t.abandonModal.title)).toBeNull();
+  });
+});
 
-    testRouter.push("/profile-edit");
-    await screen.findByTestId("profile-edit-body");
-    expect(screen.getByTestId("profile-edit-name-input").props.value).toBe("Ada Lovelace");
+/**
+ * Écran Profil aligné sur Figma 12119:25611 (11/11/2026) : en-tête à trois onglets à la place du titre et du
+ * Retour, carte « Profil » (avatar 64 + pastille appareil photo, ligne « Nom », silhouettes 40), fond #F7F7FF.
+ */
+describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
+  beforeEach(() => {
+    mockPickAndCopyProfilePhoto.mockReset();
+    mockPhotoExists = false;
   });
 
-  it("lets Retour navigate directly to Profil without any dialog when the draft is unmodified, and intercepts it once the name changes", async () => {
+  it("shows the three tabs: Profil selected, Préférences returns to the Profil screen, Communauté disabled", async () => {
     const router = await renderScreen();
 
-    testRouter.back();
-    expect(router.getPathname()).toBe("/");
-    expect(screen.queryByText(t.abandonModal.title)).toBeNull();
+    expect(screen.queryByTestId("screen-header-back")).toBeNull();
+    const profileTab = screen.getByTestId("profile-edit-tabs-profile");
+    expect(profileTab.props.accessibilityState).toMatchObject({ selected: true, disabled: false });
+    expect(screen.getByTestId("profile-edit-tabs-profile-shape", { includeHiddenElements: true })).toBeTruthy();
+    const community = screen.getByTestId("profile-edit-tabs-community");
+    expect(community.props.accessibilityState).toMatchObject({ selected: false, disabled: true });
+    expect(community.props.accessibilityLabel).toBe(t.tabs.communityUnavailableAccessibilityLabel);
 
-    testRouter.push("/profile-edit");
-    await screen.findByTestId("profile-edit-body");
+    fireEvent.press(community);
+    expect(router.getPathname()).toBe("/profile-edit");
+
+    act(() => {
+      fireEvent.press(screen.getByTestId("profile-edit-tabs-preferences"));
+    });
+    await waitFor(() => expect(router.getPathname()).toBe("/profile"));
+  });
+
+  it("leaves through the Préférences tab without any dialog, even after a change (13/11/2026)", async () => {
+    const router = await renderScreen();
     fireEvent.changeText(screen.getByTestId("profile-edit-name-input"), "Changed");
 
-    testRouter.back();
-    expect(router.getPathname()).toBe("/profile-edit");
-    expect(screen.getByText(t.abandonModal.title)).toBeTruthy();
+    act(() => {
+      fireEvent.press(screen.getByTestId("profile-edit-tabs-preferences"));
+    });
+    await waitFor(() => expect(router.getPathname()).toBe("/profile"));
+    expect(screen.queryByText(t.abandonModal.title)).toBeNull();
+  });
+
+  it("lays out the Profil zone: no section label, initials on the dark avatar, camera badge (no label, no frame), name without « Nom »", async () => {
+    await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Hermann Adjo" })) }));
+
+    // Recette c2 du 12/11 : plus d'intitulé « Profil » ni de libellé « Nom ».
+    // Seul l'onglet porte « Profil » : plus d'intitulé de section.
+    expect(screen.getAllByText(t.sectionLabel)).toHaveLength(1);
+    expect(screen.getByTestId("profile-edit-avatar-background")).toBeTruthy();
+    const initials = screen.getByTestId("profile-edit-avatar-initials");
+    expect(initials.props.children).toBe("HA");
+    expect(StyleSheet.flatten(initials.props.style)).toMatchObject({ fontSize: 22, color: "#FFFFFF" });
+    // Recette c2 du 11/11 : pastille réduite (22), seule commande de la photo ; plus de libellé « Modifier la photo ».
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-photo-action").props.style)).toMatchObject({
+      width: 22,
+      height: 22,
+      backgroundColor: "#0508E5",
+    });
+    expect(screen.queryByText(t.photo.editLabel)).toBeNull();
+    expect(screen.getByTestId("profile-edit-photo-action").props.accessibilityLabel).toBe(t.photo.addAccessibilityLabel);
+    expect(screen.queryByText(t.name.label)).toBeNull();
+    expect(screen.getByTestId("profile-edit-name-input").props.accessibilityLabel).toBe(t.name.label);
+    // Aucune donnée « pseudo » ni « type de compte » dans le Profil : rien n'est inventé.
+    expect(screen.queryByText("Pseudo")).toBeNull();
+    expect(screen.queryByText("Compte gratuit")).toBeNull();
+  });
+
+  it("opens the photo picker from the camera badge", async () => {
+    mockPickAndCopyProfilePhoto.mockResolvedValue({ status: "CANCELED" });
+    await renderScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-edit-photo-action"));
+    });
+    expect(mockPickAndCopyProfilePhoto).toHaveBeenCalledTimes(1);
+  });
+
+  it("draws the silhouette in a transparent circle the size of the photo (64), outlined blue, icon filled blue with a margin", async () => {
+    await renderScreen();
+
+    expect(StyleSheet.flatten(screen.getByTestId("profile-edit-silhouette").props.style)).toMatchObject({
+      width: 64,
+      height: 64,
+      borderWidth: 1.25,
+      borderColor: "#0508E5",
+      backgroundColor: "transparent",
+    });
+    const icon = screen.getByTestId("profile-edit-silhouette-homme-icon");
+    // Silhouette pleine bleue (icône « plein » des Zones corporelles), 48 dans le rond de 64 (8 de marge), contain.
+    expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 48, height: 48 });
+    expect(icon.props.source).toEqual([require("../../../../assets/icons/body-zone-homme-plein.svg")]);
+    expect(icon.props.contentFit).toBe("contain");
+  });
+
+  it("paints the screen #F7F7FF", async () => {
+    await renderScreen();
+
+    expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style)).toMatchObject({ backgroundColor: "#F7F7FF" });
+    expect(screen.getByTestId("screen-context-band")).toBeTruthy();
+  });
+
+  it("recette c2 du 13/11 (Figma 12116:25015) : photo, nom et silhouette sur une ligne dans la zone de contexte standard ; Bibliothèques dessous", async () => {
+    await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Hermann" })) }));
+
+    // Zone de contexte canonique des Catalogues (`ContextBand`, hauteur 115, fondu par couches), couleur de l'onglet.
+    const band = screen.getByTestId("screen-context-band");
+    expect(StyleSheet.flatten(band.props.style)).toMatchObject({ height: 115, paddingTop: 21, paddingBottom: 22, backgroundColor: "transparent" });
+    expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", { includeHiddenElements: true }).props.style)).toMatchObject({ backgroundColor: "#EAEAFF" });
+    expect(screen.getByTestId("screen-context-band-fade", { includeHiddenElements: true })).toBeTruthy();
+
+    const identity = within(band).getByTestId("profile-edit-identity");
+    expect(StyleSheet.flatten(identity.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center", paddingLeft: 8 });
+    expect(within(identity).getByTestId("profile-edit-avatar")).toBeTruthy();
+    expect(within(identity).getByTestId("profile-edit-photo-action")).toBeTruthy();
+    expect(within(identity).getByTestId("profile-edit-name-input").props.value).toBe("Hermann");
+    expect(StyleSheet.flatten(within(identity).getByTestId("profile-edit-name-input").props.style)).toMatchObject({ fontSize: 14, marginLeft: 24 });
+    expect(within(identity).getByTestId("profile-edit-silhouette")).toBeTruthy();
+
+    // Le corps ne porte plus la photo ni le nom ; il commence par les Bibliothèques, sous la part fondue.
+    const body = screen.getByTestId("profile-edit-body");
+    expect(within(body).queryByTestId("profile-edit-name-input")).toBeNull();
+    expect(within(body).queryByTestId("profile-edit-avatar")).toBeNull();
+    expect(StyleSheet.flatten(body.props.contentContainerStyle)).toMatchObject({ paddingTop: 8 + CONTEXT_BAND_FADE_HEIGHT });
+    expect(StyleSheet.flatten(body.props.style)).toMatchObject({ marginTop: -CONTEXT_BAND_FADE_HEIGHT });
+    // Ni pseudo (après la fusion de PRE-10) ni « Compte gratuit » (retiré de la maquette).
+    expect(screen.queryByText(/^@/)).toBeNull();
+    expect(screen.queryByText("Compte gratuit")).toBeNull();
   });
 });

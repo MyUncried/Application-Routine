@@ -88,6 +88,9 @@ export default function TabsLayout() {
             ),
           }}
         />
+        {/* « Modifier le profil » : écran de l'onglet Profil, sans destination propre dans la barre (demande de Hermann
+            du 14/11/2026 : « Ajoute la barre de navigation Kodjo à la page d'accueil du Profil »). */}
+        <Tabs.Screen name="profile-edit" options={{ href: null }} />
       </Tabs>
     </View>
   );
@@ -95,6 +98,12 @@ export default function TabsLayout() {
 
 /** Route devant laquelle la destination désactivée Communauté est rendue (ordre Figma). */
 const COMMUNITY_BEFORE_ROUTE = "profile";
+
+/**
+ * Écrans d'onglet sans destination propre dans la barre, et la destination qui reste active pendant qu'ils sont
+ * affichés (14/11/2026 : « Modifier le profil » garde Profil actif).
+ */
+const ROUTES_SHOWN_AS: Readonly<Record<string, string>> = { "profile-edit": "profile" };
 
 /**
  * Cadre actif de navigation (V2-CAT-01) : un unique `Animated.View`, centré
@@ -107,7 +116,9 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   // `useState` : instance `Animated.Value` stable, jamais lue via un ref pendant le rendu.
   const [indicatorX] = useState(() => new Animated.Value(0));
   const [isIndicatorReady, setIsIndicatorReady] = useState(false);
-  const activeRouteKey = state.routes[state.index]?.key;
+  const focusedName = state.routes[state.index]?.name;
+  const activeName = focusedName === undefined ? undefined : (ROUTES_SHOWN_AS[focusedName] ?? focusedName);
+  const activeRouteKey = state.routes.find((route) => route.name === activeName)?.key;
 
   useEffect(() => {
     if (!activeRouteKey || !isIndicatorReady) {
@@ -131,12 +142,15 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   }
 
   const items: ReactNode[] = [];
-  state.routes.forEach((route, index) => {
+  state.routes.forEach((route) => {
+    if (route.name in ROUTES_SHOWN_AS) {
+      return;
+    }
     if (route.name === COMMUNITY_BEFORE_ROUTE) {
       items.push(<CommunityDestination key="community" />);
     }
     const { options } = descriptors[route.key];
-    const isFocused = state.index === index;
+    const isFocused = route.key === activeRouteKey;
     const label = typeof options.title === "string" ? options.title : route.name;
 
     function onPress() {

@@ -137,3 +137,18 @@ describe("ProfileService.saveIdentity (T8)", () => {
     });
   });
 });
+
+/** Demande de Hermann du 13/11/2026 : photo et silhouette enregistrées dès le choix, sans « Enregistrer ». */
+describe("ProfileService.saveAppearance", () => {
+  it("keeps the saved name, even when there is none yet, and writes photo and silhouette", async () => {
+    const repository = new FakeProfileRepository();
+    const service = new ProfileService(repository);
+
+    await service.saveAppearance({ photoUri: "file:///p.jpg", silhouette: "femme" });
+    expect(repository.updateIdentity).toHaveBeenLastCalledWith({ displayName: null, photoUri: "file:///p.jpg", silhouette: "femme" });
+
+    repository.profile = aProfile({ displayName: "Ada" });
+    await service.saveAppearance({ photoUri: null, silhouette: "homme" });
+    expect(repository.updateIdentity).toHaveBeenLastCalledWith({ displayName: "Ada", photoUri: null, silhouette: "homme" });
+  });
+});

@@ -72,4 +72,21 @@ export class ProfileService {
     });
     return { ok: true, value: profile };
   }
+
+  /**
+   * Enregistrement immédiat de la photo et de la silhouette (demande de Hermann du 13/11/2026, « Enregistrer »
+   * retiré du Profil) : le nom enregistré est repris tel quel, même absent — choisir une photo ou une silhouette
+   * n'exige pas d'avoir déjà un nom.
+   */
+  async saveAppearance(input: {
+    readonly photoUri: string | null;
+    readonly silhouette: Silhouette | null;
+  }): Promise<Profile> {
+    const current = await this.repository.get();
+    return this.repository.updateIdentity({
+      displayName: current.displayName,
+      photoUri: input.photoUri,
+      silhouette: input.silhouette,
+    });
+  }
 }

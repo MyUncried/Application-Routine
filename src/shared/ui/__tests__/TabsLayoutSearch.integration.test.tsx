@@ -1,4 +1,5 @@
-import { fireEvent, renderRouter, screen } from "expo-router/testing-library";
+import { router } from "expo-router";
+import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
 import { describe, expect, it } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
@@ -32,6 +33,9 @@ function HistoryRoute() {
 function ProfileRoute() {
   return <Text>profile-screen</Text>;
 }
+function ProfileEditRoute() {
+  return <Text>profile-edit-screen</Text>;
+}
 
 function renderTabsLayout() {
   return renderRouter(
@@ -42,6 +46,7 @@ function renderTabsLayout() {
       "(tabs)/calendar": CalendarRoute,
       "(tabs)/history": HistoryRoute,
       "(tabs)/profile": ProfileRoute,
+      "(tabs)/profile-edit": ProfileEditRoute,
     },
     { initialUrl: "/" },
   );
@@ -105,6 +110,25 @@ describe("Navigation basse — cinq destinations (PRE-8 E01)", () => {
 
     fireEvent.press(screen.getByTestId("navigation-tab-profile"));
     expect(screen.getByText("profile-screen")).toBeTruthy();
+  });
+
+  // Demande de Hermann du 14/11/2026 : « Ajoute la barre de navigation Kodjo à la page d'accueil du Profil ».
+  it("keeps the bar on « Modifier le profil », Profil active, without any sixth destination", () => {
+    renderTabsLayout();
+
+    fireEvent.press(screen.getByTestId("navigation-tab-profile"));
+    act(() => {
+      router.push("/profile-edit");
+    });
+    expect(screen.getByText("profile-edit-screen")).toBeTruthy();
+    expect(screen.queryByTestId("navigation-tab-profile-edit")).toBeNull();
+    expect(screen.getAllByTestId(/^navigation-tab-(index|calendar|history|community|profile|profile-edit)$/)).toHaveLength(DESTINATIONS.length);
+    expect(screen.getByTestId("navigation-tab-profile").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByTestId("navigation-tab-label-profile")).toHaveTextContent(strings.nav.profile);
+    expect(screen.getByTestId("navigation-tab-index").props.accessibilityState).toMatchObject({ selected: false });
+
+    fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
+    expect(screen.getByText("calendar-screen")).toBeTruthy();
   });
 
   it("gives every destination the same 32 icon box and a touch target of at least 48", () => {

@@ -280,8 +280,16 @@ export function ContextBand({
   fadeToTransparent = false,
   padding,
   color = colors.contextBand,
+  backHalo,
 }: {
   children: ReactNode;
+  /**
+   * Recette du Catalogue connecté, 15/11/2026 (bp-zone-contexte, Hermann : « il manque le halo et la courbure sous le
+   * bouton Annuler (UTILISER LE COMPOSANT STANDARD) ») : halo de l’action de gauche de l’en-tête (« Halo blanc — bouton
+   * Annuler », Ø 59,28, D-348), dessiné dans la bande sous le contenu, de la couleur de l’en-tête passée ici. Absent :
+   * aucun halo (rendu inchangé des autres écrans ; la Composition et l’éditeur gardent leur dessin propre).
+   */
+  backHalo?: string;
   /**
    * D-509 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §8) : couleur de la zone de
    * contexte. Défaut `colors.contextBand` (#EAEAFF, chapitre 06) pour la Composition, la sélection d'un
@@ -345,10 +353,24 @@ export function ContextBand({
           </View>
         </View>
       ) : null}
+      {backHalo !== undefined ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.contextBandEffects}
+          testID="screen-context-band-effects"
+        >
+          <View style={[styles.contextBandHalo, { backgroundColor: backHalo }]} testID="screen-context-band-halo" />
+        </View>
+      ) : null}
       {children}
     </View>
   );
 }
+
+/** D-348 : diamètre du halo de l’action de gauche (« Halo blanc — bouton Annuler », 5752:4044). */
+export const BACK_ACTION_HALO_DIAMETER = 59.28;
 
 /** D-224 : part fondue de la zone de contexte (20 % inférieurs), en points. */
 export const CONTEXT_BAND_FADE_HEIGHT = Math.round(dimensions.contextBand.height * 0.2);
@@ -371,6 +393,24 @@ export const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_L
 });
 
 const styles = StyleSheet.create({
+  contextBandEffects: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflow: "hidden",
+  },
+  contextBandHalo: {
+    position: "absolute",
+    width: BACK_ACTION_HALO_DIAMETER,
+    height: BACK_ACTION_HALO_DIAMETER,
+    borderRadius: BACK_ACTION_HALO_DIAMETER / 2,
+    // Centre = centre de l’action de gauche de l’en-tête (marge `layout.screenGutter`, cercle 38 centré dans la hauteur
+    // de contenu 48, juste au-dessus de la bande) — même géométrie que la Composition.
+    left: layout.screenGutter + dimensions.backAction.visualCircle / 2 - BACK_ACTION_HALO_DIAMETER / 2,
+    top: -dimensions.header.contentHeight / 2 - BACK_ACTION_HALO_DIAMETER / 2,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
