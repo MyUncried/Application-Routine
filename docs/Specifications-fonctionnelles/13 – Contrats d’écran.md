@@ -6267,3 +6267,9 @@ La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et point
   - Le lien technique « Diagnostic des sons (développement) » n’apparaît plus dans les Préférences.]
 - Mi-temps : réglage enregistré et affiché ; À CLARIFIER : aucun signal de mi-temps n’existe encore dans l’Exécution (moment non défini). [Résolu le 11/11/2026 — retour de Hermann (cahier, y5) : « Le signal de mi temps est réservé aux exercice en durée définie, uniquement. On exclut les le compte à rebours, la fin de seance, les pauses et récupérations. » Le signal de mi-temps est joué à la moitié d’un exercice en Durée définie, sauf pendant ses trois dernières secondes ; à l’instant d’un clic de cadence, il le remplace.]
 - Composition : l’élément Guidage ajouté le 11/11/2026 au-dessus du Compte à rebours initial est retiré avec son espace ; bouton Guidage sonore dans l’en-tête, symbole plein seulement pendant l’ouverture de la modale. [La description du composant Figma « Activé = réglages propres à la séance, ou modale ouverte » n’est pas suivie : la décision de Hermann et le registre limitent l’état plein à l’ouverture.]]
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+Le champ saisi de texte alternatif d'une photo est supprimé de la cible éditoriale et administrative. Les libellés accessibles de vignettes dérivés du nom restent applicables. La couverture du bouton Livre et les écrans de partage personnalisé restent à vérifier ou à concevoir dans Figma ; aucune nouvelle maquette n'est certifiée par cette mise à jour.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
