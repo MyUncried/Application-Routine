@@ -1,0 +1,2653 @@
+{
+  "schemaVersion": "0.1.0",
+  "kind": "KODJO_EDITORIAL_CANDIDATE_CORPUS",
+  "publicationAllowed": false,
+  "sourceWorkbook": "KODJO_Catalogue_reeducation_fitness_60_fiches.xlsx",
+  "sourceReferenceDate": "2026-10-27",
+  "notes": [
+    "Transcription des fiches pilotes; les classifications et indications ne sont pas considérées validées.",
+    "Les champs catégorie KODJO et zones KODJO ne sont pas mappés; aucune insertion directe dans SQLite n'est autorisée.",
+    "Aucun auteur, propriétaire ou droit d'exploitation n'est attribué par déduction."
+  ],
+  "records": [
+    {
+      "candidateId": "pilot:REED-001",
+      "originalId": "REED-001",
+      "name": "Élévation de jambe tendue",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Déficit de force / douleur articulaire",
+        "anatomicalZone": "Genou",
+        "clinicalOrSportContext": "Déficit de quadriceps au cours d'une rééducation du genou",
+        "categoryOrObjective": "Renforcement musculaire",
+        "primaryTarget": "Quadriceps"
+      },
+      "description": {
+        "startingPosition": "Allongé, buste soutenu sur les coudes",
+        "equipment": "Tapis (facultatif)",
+        "steps": [
+          "Pliez une jambe, gardez l’autre tendue.",
+          "Contractez le quadriceps de la jambe tendue.",
+          "Soulevez-la de 15 à 25 cm sans plier le genou.",
+          "Tenez 5 s, puis reposez lentement."
+        ],
+        "safetyNotes": "Détendez la nuque et les épaules."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "3 séries × 10 ; maintien 5 s",
+        "frequencyOrCue": "4–5 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-GEN",
+        "section": "8. Straight-Leg Raises",
+        "url": "https://www.orthoinfo.org/recovery/knee-conditioning-program/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-002",
+      "originalId": "REED-002",
+      "name": "Demi-squat",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Déficit de force / douleur articulaire",
+        "anatomicalZone": "Genou",
+        "clinicalOrSportContext": "Renforcement fonctionnel des membres inférieurs",
+        "categoryOrObjective": "Renforcement fonctionnel",
+        "primaryTarget": "Quadriceps, fessiers, ischio-jambiers"
+      },
+      "description": {
+        "startingPosition": "Debout, pieds largeur d’épaules",
+        "equipment": "Chaise ou mur (appui facultatif)",
+        "steps": [
+          "Reculez les hanches comme pour vous asseoir.",
+          "Descendez d’environ 25 cm, buste relevé.",
+          "Gardez le poids sur les talons pendant 5 s.",
+          "Poussez dans les talons pour vous relever."
+        ],
+        "safetyNotes": "Évitez de vous pencher en avant à la taille."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "3 séries × 10 ; maintien 5 s",
+        "frequencyOrCue": "4–5 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-GEN",
+        "section": "4. Half Squats",
+        "url": "https://www.orthoinfo.org/recovery/knee-conditioning-program/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-003",
+      "originalId": "REED-003",
+      "name": "Pendulaire d’épaule",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Raideur / limitation de mobilité",
+        "anatomicalZone": "Épaule",
+        "clinicalOrSportContext": "Mobilisation douce de l’épaule dans un protocole adapté",
+        "categoryOrObjective": "Mobilité articulaire",
+        "primaryTarget": "Articulation de l’épaule"
+      },
+      "description": {
+        "startingPosition": "Buste incliné, une main sur une table",
+        "equipment": "Table ou plan de travail",
+        "steps": [
+          "Laissez l’autre bras pendre, bien détendu.",
+          "Balancez-le doucement d’avant en arrière.",
+          "Poursuivez de droite à gauche.",
+          "Terminez par de petits cercles."
+        ],
+        "safetyNotes": "Gardez le dos stable et les genoux souples."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "2 séries × 10",
+        "frequencyOrCue": "5–6 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-EPA",
+        "section": "1. Pendulum",
+        "url": "https://www.orthoinfo.org/recovery/rotator-cuff-and-shoulder-conditioning-program/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-004",
+      "originalId": "REED-004",
+      "name": "Placement des omoplates",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Déficit de stabilisation",
+        "anatomicalZone": "Épaule",
+        "clinicalOrSportContext": "Travail de contrôle scapulaire",
+        "categoryOrObjective": "Contrôle moteur",
+        "primaryTarget": "Trapèze moyen, dentelé antérieur"
+      },
+      "description": {
+        "startingPosition": "Sur le ventre, bras le long du corps",
+        "equipment": "Petit coussin (facultatif)",
+        "steps": [
+          "Rapprochez doucement les omoplates vers le bas.",
+          "Relâchez légèrement, à mi-course.",
+          "Maintenez cette position 10 s.",
+          "Relâchez complètement."
+        ],
+        "safetyNotes": "Ne crispez pas la nuque."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "10 répétitions ; maintien 10 s",
+        "frequencyOrCue": "3 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-EPA",
+        "section": "13. Scapula Setting",
+        "url": "https://www.orthoinfo.org/recovery/rotator-cuff-and-shoulder-conditioning-program/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-005",
+      "originalId": "REED-005",
+      "name": "Étirement des extenseurs du poignet",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Tendinopathie / douleur de surcharge",
+        "anatomicalZone": "Coude / avant-bras",
+        "clinicalOrSportContext": "Épicondylalgie latérale : étirement des extenseurs",
+        "categoryOrObjective": "Souplesse musculotendineuse",
+        "primaryTarget": "Extenseurs du poignet"
+      },
+      "description": {
+        "startingPosition": "Bras devant soi, paume vers le bas",
+        "equipment": "Aucun",
+        "steps": [
+          "Tendez le bras sans bloquer le coude.",
+          "Pliez le poignet, doigts vers le sol.",
+          "De l’autre main, tirez doucement vers vous.",
+          "Tenez 15 s, puis relâchez."
+        ],
+        "safetyNotes": "Recherchez un étirement doux, non forcé."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "5 répétitions ; maintien 15 s",
+        "frequencyOrCue": "4 fois/jour, 5–7 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-COU",
+        "section": "2. Wrist Flexion Stretch",
+        "url": "https://orthoinfo.aaos.org/globalassets/pdfs/2022-therapeutic-exercise-program-for-epicondylitis.pdf"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-006",
+      "originalId": "REED-006",
+      "name": "Descente excentrique du poignet",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Tendinopathie / douleur de surcharge",
+        "anatomicalZone": "Coude / avant-bras",
+        "clinicalOrSportContext": "Épicondylalgie latérale : renforcement progressif",
+        "categoryOrObjective": "Renforcement excentrique",
+        "primaryTarget": "Extenseurs du poignet"
+      },
+      "description": {
+        "startingPosition": "Avant-bras sur une table, paume vers le bas",
+        "equipment": "Table ; charge légère seulement si indiquée",
+        "steps": [
+          "Placez le poignet juste au bord de la table.",
+          "Aidez sa remontée avec l’autre main.",
+          "Sans aide, descendez lentement sur 3 s.",
+          "Recommencez sans charge au départ."
+        ],
+        "safetyNotes": "Augmentez la charge seulement si les symptômes le permettent et selon le protocole."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Progression jusqu’à 30 répétitions",
+        "frequencyOrCue": "1 fois/jour, 5–7 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-COU",
+        "section": "3. Wrist Extension (Strengthening), stage 1",
+        "url": "https://orthoinfo.aaos.org/globalassets/pdfs/2022-therapeutic-exercise-program-for-epicondylitis.pdf"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-007",
+      "originalId": "REED-007",
+      "name": "Flexion dorsale de cheville à l’élastique",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Déficit de force / contrôle de cheville",
+        "anatomicalZone": "Cheville / pied",
+        "clinicalOrSportContext": "Renforcement des muscles qui relèvent le pied",
+        "categoryOrObjective": "Renforcement musculaire",
+        "primaryTarget": "Tibial antérieur"
+      },
+      "description": {
+        "startingPosition": "Assis, jambe tendue",
+        "equipment": "Élastique fixé devant le pied",
+        "steps": [
+          "Passez l’élastique autour de l’avant-pied.",
+          "Ramenez les orteils vers le tibia.",
+          "Revenez lentement à la position initiale."
+        ],
+        "safetyNotes": "Fixez l’élastique solidement ; gardez le talon au sol."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "3 séries × 10",
+        "frequencyOrCue": "3 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-CHE",
+        "section": "9. Ankle Dorsiflexion/Plantar Flexion (dorsiflexion)",
+        "url": "https://orthoinfo.aaos.org/globalassets/pdfs/2022-rehab_foot-and-ankle_final.pdf"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-008",
+      "originalId": "REED-008",
+      "name": "Équilibre sur un pied",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Instabilité / déficit proprioceptif",
+        "anatomicalZone": "Cheville / pied",
+        "clinicalOrSportContext": "Rééducation de l’équilibre après atteinte de cheville, si appui autorisé",
+        "categoryOrObjective": "Proprioception / équilibre",
+        "primaryTarget": "Musculature stabilisatrice du pied et de la cheville"
+      },
+      "description": {
+        "startingPosition": "Debout près d’un appui stable",
+        "equipment": "Chaise stable ou plan de travail",
+        "steps": [
+          "Posez d’abord les mains sur le support.",
+          "Levez un pied et tenez sur l’autre jambe.",
+          "Retirez les mains si l’équilibre le permet.",
+          "Restez jusqu’à 30 s, puis reposez le pied."
+        ],
+        "safetyNotes": "Gardez l’appui à portée de main ; chaussures stables."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "3 à 5 répétitions ; jusqu’à 30 s",
+        "frequencyOrCue": "6–7 jours/semaine"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-CHE",
+        "section": "10. Single Leg Balance",
+        "url": "https://orthoinfo.aaos.org/globalassets/pdfs/2022-rehab_foot-and-ankle_final.pdf"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-009",
+      "originalId": "REED-009",
+      "name": "Genou vers poitrine",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Douleurs lombaires / raideur",
+        "anatomicalZone": "Dos / lombaires",
+        "clinicalOrSportContext": "Mobilité lombaire dans un programme adapté",
+        "categoryOrObjective": "Mobilité / étirement",
+        "primaryTarget": "Région lombaire, carré des lombes"
+      },
+      "description": {
+        "startingPosition": "Allongé sur le dos",
+        "equipment": "Tapis (facultatif)",
+        "steps": [
+          "Ramenez un genou vers la poitrine.",
+          "Tenez le genou ou le tibia avec les mains.",
+          "Contractez le ventre et maintenez 5 s.",
+          "Changez de jambe, puis essayez les deux ensemble."
+        ],
+        "safetyNotes": "Gardez le dos soutenu ; n’insistez pas si les symptômes augmentent."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "3 séries × 10 ; maintien 5 s",
+        "frequencyOrCue": "Quotidien"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-DOS",
+        "section": "5. Knee to Chest",
+        "url": "https://www.orthoinfo.org/recovery/spine-conditioning-program/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:REED-010",
+      "originalId": "REED-010",
+      "name": "Bird-dog (bras-jambe opposés)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Rééducation"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Douleurs lombaires / déficit de contrôle",
+        "anatomicalZone": "Dos / lombaires",
+        "clinicalOrSportContext": "Contrôle du tronc et renforcement des stabilisateurs",
+        "categoryOrObjective": "Stabilité / contrôle moteur",
+        "primaryTarget": "Extenseurs du dos, fessiers"
+      },
+      "description": {
+        "startingPosition": "À quatre pattes",
+        "equipment": "Tapis (facultatif)",
+        "steps": [
+          "Placez les mains sous les épaules et les genoux sous les hanches.",
+          "Contractez le ventre et tendez un bras devant vous.",
+          "Tendez la jambe opposée sans cambrer le dos.",
+          "Tenez 15 s, revenez et changez de diagonale."
+        ],
+        "safetyNotes": "Gardez le dos neutre et le bassin stable."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "5 répétitions ; maintien 15 s",
+        "frequencyOrCue": "Quotidien"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — validation clinique et droits à vérifier",
+        "sourceId": "AAOS-DOS",
+        "section": "6. Bird Dog",
+        "url": "https://www.orthoinfo.org/recovery/spine-conditioning-program/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "PENDING",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-001",
+      "originalId": "FIT-CRO-001",
+      "name": "Air squat",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Membres inférieurs",
+        "clinicalOrSportContext": "Mouvement fondamental CrossFit",
+        "categoryOrObjective": "Squat / poids du corps — Force / technique",
+        "primaryTarget": "Quadriceps, fessiers"
+      },
+      "description": {
+        "startingPosition": "Debout, pieds largeur d’épaules",
+        "equipment": "Aucun",
+        "steps": [
+          "Écartez les pieds et engagez le tronc.",
+          "Reculez les hanches, pliez genoux et chevilles.",
+          "Descendez sans perdre l’appui sur tout le pied.",
+          "Remontez en poussant le sol."
+        ],
+        "safetyNotes": "Gardez les genoux alignés avec les pieds."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Air Squat",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-002",
+      "originalId": "FIT-CRO-002",
+      "name": "Front squat",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Jambes / tronc",
+        "clinicalOrSportContext": "Mouvement fondamental CrossFit",
+        "categoryOrObjective": "Squat / charge antérieure — Force / technique",
+        "primaryTarget": "Quadriceps, tronc"
+      },
+      "description": {
+        "startingPosition": "Debout, barre sur les épaules",
+        "equipment": "Barre, disques",
+        "steps": [
+          "Posez la barre devant les épaules, coudes hauts.",
+          "Gardez le buste droit et descendez en squat.",
+          "Conservez les talons au sol.",
+          "Remontez sans laisser tomber les coudes."
+        ],
+        "safetyNotes": "Adapter la charge ; conserver le dos neutre."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Front Squat",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-003",
+      "originalId": "FIT-CRO-003",
+      "name": "Deadlift (soulevé de terre)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Chaîne postérieure",
+        "clinicalOrSportContext": "Mouvement fondamental CrossFit",
+        "categoryOrObjective": "Charnière de hanche — Force / technique",
+        "primaryTarget": "Fessiers, ischio-jambiers, dos"
+      },
+      "description": {
+        "startingPosition": "Debout, barre devant les tibias",
+        "equipment": "Barre, disques",
+        "steps": [
+          "Placez la barre au-dessus du milieu des pieds.",
+          "Fléchissez les hanches, saisissez la barre.",
+          "Tendez hanches et genoux, barre près du corps.",
+          "Reposez la barre en reculant les hanches."
+        ],
+        "safetyNotes": "Évitez l’arrondi lombaire et les charges excessives."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Deadlift",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-004",
+      "originalId": "FIT-CRO-004",
+      "name": "Shoulder press",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Épaules / bras",
+        "clinicalOrSportContext": "Mouvement fondamental CrossFit",
+        "categoryOrObjective": "Poussée verticale stricte — Renforcement / contrôle",
+        "primaryTarget": "Deltoïdes, triceps"
+      },
+      "description": {
+        "startingPosition": "Debout, charge aux épaules",
+        "equipment": "Barre ou haltères",
+        "steps": [
+          "Placez la charge devant les épaules.",
+          "Serrez le tronc et les fessiers.",
+          "Poussez verticalement sans élan des jambes.",
+          "Ramenez la charge avec contrôle."
+        ],
+        "safetyNotes": "Évitez de cambrer pour contourner le visage."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Shoulder Press",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-005",
+      "originalId": "FIT-CRO-005",
+      "name": "Push press",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Mouvement fondamental CrossFit",
+        "categoryOrObjective": "Poussée verticale dynamique — Puissance / coordination",
+        "primaryTarget": "Jambes, épaules, triceps"
+      },
+      "description": {
+        "startingPosition": "Debout, charge aux épaules",
+        "equipment": "Barre ou haltères",
+        "steps": [
+          "Gardez la charge devant les épaules.",
+          "Fléchissez brièvement les genoux, buste droit.",
+          "Poussez sur les jambes puis sur les bras.",
+          "Stabilisez la charge avant de redescendre."
+        ],
+        "safetyNotes": "Maintenez les talons au sol durant l’impulsion."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Push Press",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-006",
+      "originalId": "FIT-CRO-006",
+      "name": "Thruster",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Mouvement combiné CrossFit",
+        "categoryOrObjective": "Squat + poussée — Puissance / endurance",
+        "primaryTarget": "Jambes, tronc, épaules"
+      },
+      "description": {
+        "startingPosition": "Debout, charge en position frontale",
+        "equipment": "Barre ou haltères",
+        "steps": [
+          "Placez la charge sur l’avant des épaules.",
+          "Réalisez un squat complet et contrôlé.",
+          "Remontez et poussez la charge au-dessus.",
+          "Revenez en position frontale avant le squat."
+        ],
+        "safetyNotes": "Coordonnez squat et poussée, sans forcer le dos."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Thruster",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-007",
+      "originalId": "FIT-CRO-007",
+      "name": "Burpee",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Exercice de conditionnement CrossFit",
+        "categoryOrObjective": "Conditionnement / poids du corps — Cardio / coordination",
+        "primaryTarget": "Jambes, tronc, poitrine"
+      },
+      "description": {
+        "startingPosition": "Debout, espace libre",
+        "equipment": "Tapis facultatif",
+        "steps": [
+          "Accroupissez-vous et posez les mains au sol.",
+          "Envoyez les pieds derrière en position allongée.",
+          "Ramenez les pieds près des mains.",
+          "Redressez-vous et sautez si possible."
+        ],
+        "safetyNotes": "Option sans saut en cas de contrainte articulaire."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Burpee",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-008",
+      "originalId": "FIT-CRO-008",
+      "name": "Box jump",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Jambes",
+        "clinicalOrSportContext": "Exercice pliométrique CrossFit",
+        "categoryOrObjective": "Saut sur caisse — Puissance / réception",
+        "primaryTarget": "Quadriceps, mollets, fessiers"
+      },
+      "description": {
+        "startingPosition": "Face à une caisse stable",
+        "equipment": "Box / plateforme stable",
+        "steps": [
+          "Placez-vous face à la caisse, pieds stables.",
+          "Fléchissez légèrement hanches et genoux.",
+          "Sautez et réceptionnez avec les deux pieds.",
+          "Redressez-vous puis redescendez avec contrôle."
+        ],
+        "safetyNotes": "Préférez une hauteur maîtrisée ; descendez en marchant."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Box Jump",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-009",
+      "originalId": "FIT-CRO-009",
+      "name": "Kettlebell swing",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Exercice balistique CrossFit",
+        "categoryOrObjective": "Extension explosive de hanche — Puissance / charnière de hanche",
+        "primaryTarget": "Fessiers, ischio-jambiers, tronc"
+      },
+      "description": {
+        "startingPosition": "Debout, kettlebell entre les pieds",
+        "equipment": "Kettlebell",
+        "steps": [
+          "Saisissez la kettlebell, dos neutre.",
+          "Ramenez-la entre les jambes, hanches en arrière.",
+          "Étendez vivement les hanches pour la propulser.",
+          "Laissez revenir la charge et répétez."
+        ],
+        "safetyNotes": "Ne soulevez pas la charge avec les lombaires."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Kettlebell Swing",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-CRO-010",
+      "originalId": "FIT-CRO-010",
+      "name": "Strict pull-up (traction stricte)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "CrossFit"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "CrossFit",
+        "anatomicalZone": "Dos / bras",
+        "clinicalOrSportContext": "Exercice de gymnastique CrossFit",
+        "categoryOrObjective": "Tirage vertical — Force / tirage",
+        "primaryTarget": "Grand dorsal, biceps"
+      },
+      "description": {
+        "startingPosition": "Suspendu à une barre fixe",
+        "equipment": "Barre de traction",
+        "steps": [
+          "Suspendez-vous à la barre, mains en pronation.",
+          "Engagez les épaules et gainez le tronc.",
+          "Tirez jusqu’à passer le menton au-dessus.",
+          "Redescendez avec contrôle, bras tendus."
+        ],
+        "safetyNotes": "Évitez les à-coups ; assistance possible."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "CF-MVT",
+        "section": "The Strict Pull-up",
+        "url": "https://www.crossfit.com/crossfit-movements"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-001",
+      "originalId": "FIT-HYR-001",
+      "name": "SkiErg",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 1 / ergomètre — Endurance / tirage",
+        "primaryTarget": "Dos, bras, tronc"
+      },
+      "description": {
+        "startingPosition": "Debout face à l’ergomètre",
+        "equipment": "SkiErg",
+        "steps": [
+          "Saisissez les poignées, bras élevés.",
+          "Engagez le tronc et tirez vers les hanches.",
+          "Fléchissez légèrement les genoux.",
+          "Revenez vers le haut de façon fluide."
+        ],
+        "safetyNotes": "Évitez de tirer uniquement avec les bras."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 1 000 m (format individuel)",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "SkiErg — station 1",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-002",
+      "originalId": "FIT-HYR-002",
+      "name": "Sled push",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Jambes / tronc",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 2 / traîneau — Puissance / poussée",
+        "primaryTarget": "Quadriceps, fessiers, tronc"
+      },
+      "description": {
+        "startingPosition": "Face au traîneau, mains sur les poignées",
+        "equipment": "Traîneau lesté",
+        "steps": [
+          "Posez les mains sur le traîneau.",
+          "Inclinez le corps sans arrondir le dos.",
+          "Poussez avec de petits pas continus.",
+          "Arrêtez après la distance prévue."
+        ],
+        "safetyNotes": "Adaptez la charge au sol et au niveau."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 50 m ; charges variables",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Sled Push — station 2",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-003",
+      "originalId": "FIT-HYR-003",
+      "name": "Sled pull",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Dos / jambes",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 3 / traîneau — Force / tirage",
+        "primaryTarget": "Dos, bras, jambes"
+      },
+      "description": {
+        "startingPosition": "Face à la corde du traîneau",
+        "equipment": "Traîneau, corde",
+        "steps": [
+          "Saisissez fermement la corde.",
+          "Reculez ou tirez en gardant le tronc engagé.",
+          "Ramenez la corde sans à-coups.",
+          "Progressez jusqu’à la distance ciblée."
+        ],
+        "safetyNotes": "Surveillez les appuis et l’espace derrière."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 50 m ; charges variables",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Sled Pull — station 3",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-004",
+      "originalId": "FIT-HYR-004",
+      "name": "Burpee broad jump",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 4 / déplacement — Cardio / puissance",
+        "primaryTarget": "Jambes, tronc, poitrine"
+      },
+      "description": {
+        "startingPosition": "Debout, couloir dégagé",
+        "equipment": "Sol antidérapant",
+        "steps": [
+          "Accroupissez-vous puis placez-vous au sol.",
+          "Ramenez les pieds près des mains.",
+          "Sautez vers l’avant avec les deux pieds.",
+          "Réceptionnez puis recommencez."
+        ],
+        "safetyNotes": "Maîtrisez la réception et l’espace de saut."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 80 m",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Burpee Broad Jump — station 4",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-005",
+      "originalId": "FIT-HYR-005",
+      "name": "Rowing (rameur)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 5 / ergomètre — Endurance / coordination",
+        "primaryTarget": "Jambes, dos, bras"
+      },
+      "description": {
+        "startingPosition": "Assis sur un rameur, pieds sanglés",
+        "equipment": "Rameur",
+        "steps": [
+          "Prenez la poignée, tibias presque verticaux.",
+          "Poussez d’abord avec les jambes.",
+          "Ouvrez le buste puis tirez vers les côtes.",
+          "Revenez bras, buste puis jambes."
+        ],
+        "safetyNotes": "Gardez une amplitude maîtrisée, sans arrondir le dos."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 1 000 m",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Rowing — station 5",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-006",
+      "originalId": "FIT-HYR-006",
+      "name": "Farmers carry",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 6 / portage — Portage / endurance de force",
+        "primaryTarget": "Avant-bras, tronc, jambes"
+      },
+      "description": {
+        "startingPosition": "Debout, une charge dans chaque main",
+        "equipment": "2 kettlebells",
+        "steps": [
+          "Saisissez une kettlebell dans chaque main.",
+          "Redressez-vous, épaules basses et tronc gainé.",
+          "Marchez avec des pas réguliers.",
+          "Posez les charges en contrôlant les hanches."
+        ],
+        "safetyNotes": "Ne penchez pas le buste sur un côté."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 200 m ; charges variables",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Farmers Carry — station 6",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-007",
+      "originalId": "FIT-HYR-007",
+      "name": "Sandbag walking lunges",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Jambes / tronc",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 7 / fentes marchées — Force / déplacement",
+        "primaryTarget": "Quadriceps, fessiers"
+      },
+      "description": {
+        "startingPosition": "Debout, sac posé sur les épaules",
+        "equipment": "Sandbag",
+        "steps": [
+          "Stabilisez le sac sur les épaules.",
+          "Avancez un pied et fléchissez les deux jambes.",
+          "Poussez sur le pied avant pour avancer.",
+          "Alternez les jambes à chaque pas."
+        ],
+        "safetyNotes": "Gardez le genou avant aligné avec le pied."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 100 m ; charges variables",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Sandbag Lunges — station 7",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-008",
+      "originalId": "FIT-HYR-008",
+      "name": "Wall balls",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Station HYROX officielle",
+        "categoryOrObjective": "Atelier officiel 8 / lancer — Endurance de force",
+        "primaryTarget": "Quadriceps, fessiers, épaules"
+      },
+      "description": {
+        "startingPosition": "Debout face à une cible murale",
+        "equipment": "Médecine-ball, cible",
+        "steps": [
+          "Tenez le ballon devant la poitrine.",
+          "Descendez en squat avec contrôle.",
+          "Redressez-vous et lancez vers la cible.",
+          "Rattrapez le ballon pour repartir."
+        ],
+        "safetyNotes": "Adapter poids et hauteur ; respecter l’espace autour."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 100 répétitions (individuel)",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "Wall Balls — station 8",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-009",
+      "originalId": "FIT-HYR-009",
+      "name": "Course à pied (segment 1 km)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Jambes / cardio",
+        "clinicalOrSportContext": "Huit segments de course alternés aux stations",
+        "categoryOrObjective": "Segment de course officiel — Endurance / transition",
+        "primaryTarget": "Système cardio-respiratoire"
+      },
+      "description": {
+        "startingPosition": "Debout, départ en course",
+        "equipment": "Chaussures de course",
+        "steps": [
+          "Partez sur une allure maîtrisée.",
+          "Gardez une foulée régulière et respirable.",
+          "Adaptez l’allure après chaque atelier.",
+          "Terminez le segment avant la station suivante."
+        ],
+        "safetyNotes": "Adapter l’effort ; arrêter en cas de malaise."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Course : 8 × 1 km entre ateliers",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "HYR-COURSE",
+        "section": "1 km Run — entre les stations",
+        "url": "https://hyrox.com/the-fitness-race/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-HYR-010",
+      "originalId": "FIT-HYR-010",
+      "name": "Step-up sur plateforme",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "HYROX"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "HYROX",
+        "anatomicalZone": "Jambes / équilibre",
+        "clinicalOrSportContext": "Préparation possible aux efforts de déplacement",
+        "categoryOrObjective": "Préparation fonctionnelle non officielle — Force / stabilité",
+        "primaryTarget": "Quadriceps, fessiers"
+      },
+      "description": {
+        "startingPosition": "Debout face à une marche stable",
+        "equipment": "Marche ou box basse",
+        "steps": [
+          "Posez entièrement un pied sur la marche.",
+          "Poussez sur ce pied pour monter.",
+          "Stabilisez-vous sans basculer le bassin.",
+          "Redescendez lentement puis alternez."
+        ],
+        "safetyNotes": "Aligner le genou et éviter une marche trop haute."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "ACE-STEP",
+        "section": "Step-up — préparation, pas station HYROX",
+        "url": "https://www.acefitness.org/resources/everyone/exercise-library/28/step-up/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-001",
+      "originalId": "FIT-PIL-001",
+      "name": "The Hundred",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Tronc / bras",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Respiration / gainage — Endurance du centre",
+        "primaryTarget": "Abdominaux profonds"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, jambes en tablette",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez-vous, jambes relevées si possible.",
+          "Soulevez tête et épaules sans tirer la nuque.",
+          "Tendez les bras et effectuez de petits battements.",
+          "Inspirez puis expirez sur des cycles réguliers."
+        ],
+        "safetyNotes": "Gardez la nuque détendue ; tête au sol en variante."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Classique : 100 battements",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "The Hundred",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-002",
+      "originalId": "FIT-PIL-002",
+      "name": "Roll Up",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Tronc / dos",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Articulation vertébrale — Contrôle du tronc",
+        "primaryTarget": "Abdominaux, fléchisseurs de hanche"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, jambes allongées",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez les bras derrière la tête.",
+          "Montez les bras puis décollez le buste lentement.",
+          "Enroulez-vous vers les jambes sans élan.",
+          "Redéroulez le dos sur le tapis avec contrôle."
+        ],
+        "safetyNotes": "Amplitude réduite si perte du contrôle lombaire."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Roll Up",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-003",
+      "originalId": "FIT-PIL-003",
+      "name": "Single Leg Circle",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Hanche / tronc",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Mobilité de hanche / stabilité — Stabilité pelvienne",
+        "primaryTarget": "Fléchisseurs de hanche, tronc"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, une jambe vers le plafond",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez-vous, une jambe levée, l’autre au sol.",
+          "Tracez un petit cercle avec la jambe levée.",
+          "Gardez le bassin immobile.",
+          "Inversez le sens puis changez de jambe."
+        ],
+        "safetyNotes": "Réduisez l’amplitude si le bassin bouge."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Single Leg Circle",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-004",
+      "originalId": "FIT-PIL-004",
+      "name": "Rolling Like a Ball",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Tronc / dos",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Enroulement / équilibre — Contrôle / coordination",
+        "primaryTarget": "Abdominaux"
+      },
+      "description": {
+        "startingPosition": "Assis, genoux vers le buste",
+        "equipment": "Tapis",
+        "steps": [
+          "Asseyez-vous, genoux près de la poitrine.",
+          "Arrondissez doucement le dos, pieds décollés.",
+          "Roulez vers les omoplates sans aller sur la nuque.",
+          "Revenez en équilibre sans poser les pieds."
+        ],
+        "safetyNotes": "Évitez l’appui sur la tête et la colonne cervicale."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Rolling Back (Rolling Like a Ball)",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-005",
+      "originalId": "FIT-PIL-005",
+      "name": "Single Leg Stretch",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Tronc / hanches",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Coordination abdominale — Gainage dynamique",
+        "primaryTarget": "Abdominaux, fléchisseurs de hanche"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, genoux fléchis",
+        "equipment": "Tapis",
+        "steps": [
+          "Ramenez un genou vers la poitrine.",
+          "Allongez l’autre jambe en diagonale.",
+          "Changez de jambe en gardant le tronc stable.",
+          "Coordonnez l’alternance avec la respiration."
+        ],
+        "safetyNotes": "Posez la tête au sol si la nuque fatigue."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Single Leg Stretch",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-006",
+      "originalId": "FIT-PIL-006",
+      "name": "Double Leg Stretch",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Tronc / hanches",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Extension coordonnée — Gainage dynamique",
+        "primaryTarget": "Abdominaux, fléchisseurs de hanche"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, genoux repliés",
+        "equipment": "Tapis",
+        "steps": [
+          "Ramenez les genoux et les bras près du buste.",
+          "Allongez bras et jambes sans creuser le dos.",
+          "Écartez les bras puis ramenez les genoux.",
+          "Répétez en gardant le ventre engagé."
+        ],
+        "safetyNotes": "Réduisez l’extension si le dos se cambre."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Double Leg Stretch",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-007",
+      "originalId": "FIT-PIL-007",
+      "name": "Spine Stretch Forward",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Colonne / tronc",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Flexion contrôlée assise — Mobilité / respiration",
+        "primaryTarget": "Muscles paravertébraux, abdominaux"
+      },
+      "description": {
+        "startingPosition": "Assis, jambes ouvertes devant soi",
+        "equipment": "Tapis",
+        "steps": [
+          "Asseyez-vous grand, jambes allongées et écartées.",
+          "Tendez les bras devant, épaules relâchées.",
+          "Enroulez le dos vers l’avant à l’expiration.",
+          "Redressez-vous lentement à l’inspiration."
+        ],
+        "safetyNotes": "Ne tirez pas sur les jambes pour aller plus loin."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Spine Stretch Forward",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-008",
+      "originalId": "FIT-PIL-008",
+      "name": "Shoulder Bridge",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Fessiers / tronc",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Pont / contrôle pelvien — Renforcement / stabilité",
+        "primaryTarget": "Fessiers, ischio-jambiers"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, genoux fléchis",
+        "equipment": "Tapis",
+        "steps": [
+          "Placez les pieds au sol, largeur du bassin.",
+          "Soulevez progressivement le bassin.",
+          "Gardez les genoux parallèles et le tronc stable.",
+          "Reposez le dos lentement sur le tapis."
+        ],
+        "safetyNotes": "Ne poussez pas sur la nuque ; évitez l’hyperextension."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Shoulder Bridge",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-009",
+      "originalId": "FIT-PIL-009",
+      "name": "Swimming",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Dos / fessiers",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Extension alternée — Stabilité dorsale",
+        "primaryTarget": "Extenseurs du dos, fessiers"
+      },
+      "description": {
+        "startingPosition": "Sur le ventre, bras tendus devant",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez-vous sur le ventre, bras devant.",
+          "Soulevez légèrement un bras et la jambe opposée.",
+          "Alternez bras et jambes sans basculer le bassin.",
+          "Respirez régulièrement puis reposez-vous."
+        ],
+        "safetyNotes": "Gardez la nuque longue ; amplitude modérée."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-ANY",
+        "section": "Swimming",
+        "url": "https://www.pilatesanytime.com/blog/mat/mat-sequences-for-every-level"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-PIL-010",
+      "originalId": "FIT-PIL-010",
+      "name": "Side Kick",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Pilates"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Pilates",
+        "anatomicalZone": "Hanches / tronc",
+        "clinicalOrSportContext": "Pilates classique au sol",
+        "categoryOrObjective": "Stabilité latérale — Contrôle de hanche",
+        "primaryTarget": "Moyen fessier, abdominaux"
+      },
+      "description": {
+        "startingPosition": "Couché sur le côté, jambes allongées",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez-vous sur le côté, bassin empilé.",
+          "Soulevez légèrement la jambe supérieure.",
+          "Avancez puis reculez la jambe sans bouger le dos.",
+          "Répétez avant de changer de côté."
+        ],
+        "safetyNotes": "Évitez de tourner le bassin ou d’arquer le dos."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "PIL-BASI",
+        "section": "Side Kick",
+        "url": "https://www.basipilates.com/fitness/the-classical-pilates-mat-exercises-listed/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-001",
+      "originalId": "FIT-YOG-001",
+      "name": "Tadasana (montagne)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Asana de base debout",
+        "categoryOrObjective": "Posture debout / ancrage — Posture / conscience corporelle",
+        "primaryTarget": "Pieds, jambes, tronc"
+      },
+      "description": {
+        "startingPosition": "Debout, pieds parallèles",
+        "equipment": "Tapis facultatif",
+        "steps": [
+          "Placez les pieds parallèles, poids réparti.",
+          "Allongez les jambes sans bloquer les genoux.",
+          "Grandissez le sommet du crâne.",
+          "Laissez les bras détendus et respirez."
+        ],
+        "safetyNotes": "Évitez les genoux verrouillés et le dos cambré."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Mountain Pose (Tadasana)",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-002",
+      "originalId": "FIT-YOG-002",
+      "name": "Adho Mukha Svanasana (chien tête en bas)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Corps entier",
+        "clinicalOrSportContext": "Asana de yoga debout inversé",
+        "categoryOrObjective": "Appui mains-pieds — Mobilité / renforcement",
+        "primaryTarget": "Épaules, tronc, chaîne postérieure"
+      },
+      "description": {
+        "startingPosition": "À quatre pattes",
+        "equipment": "Tapis",
+        "steps": [
+          "Posez les mains au sol, écartées aux épaules.",
+          "Levez les genoux, poussez les hanches en haut.",
+          "Allongez le dos et fléchissez les genoux si besoin.",
+          "Respirez avant de revenir à quatre pattes."
+        ],
+        "safetyNotes": "Ne forcez pas les talons au sol ni les poignets."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Downward-Facing Dog",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-003",
+      "originalId": "FIT-YOG-003",
+      "name": "Balasana (posture de l’enfant)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Dos / hanches",
+        "clinicalOrSportContext": "Posture de récupération en yoga",
+        "categoryOrObjective": "Repos / flexion — Détente / mobilité",
+        "primaryTarget": "Dos, hanches"
+      },
+      "description": {
+        "startingPosition": "À genoux sur le tapis",
+        "equipment": "Tapis, coussin facultatif",
+        "steps": [
+          "Asseyez les hanches vers les talons.",
+          "Inclinez le buste entre ou sur les cuisses.",
+          "Allongez les bras devant ou le long du corps.",
+          "Respirez puis redressez-vous lentement."
+        ],
+        "safetyNotes": "Placez un support si genoux ou hanches gênent."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Child’s Pose",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-004",
+      "originalId": "FIT-YOG-004",
+      "name": "Marjaryasana (chat)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Colonne vertébrale",
+        "clinicalOrSportContext": "Asana de mobilité en yoga",
+        "categoryOrObjective": "Flexion de colonne — Mobilité du rachis",
+        "primaryTarget": "Dos, abdominaux"
+      },
+      "description": {
+        "startingPosition": "À quatre pattes",
+        "equipment": "Tapis",
+        "steps": [
+          "Placez mains sous épaules, genoux sous hanches.",
+          "Expirez en arrondissant doucement le dos.",
+          "Rentrez le menton sans forcer la nuque.",
+          "Revenez vers une position neutre."
+        ],
+        "safetyNotes": "Répartissez l’appui entre mains et genoux."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Cat Pose",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-005",
+      "originalId": "FIT-YOG-005",
+      "name": "Bitilasana (vache)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Colonne vertébrale",
+        "clinicalOrSportContext": "Asana de mobilité en yoga",
+        "categoryOrObjective": "Extension de colonne — Mobilité du rachis",
+        "primaryTarget": "Dos, poitrine"
+      },
+      "description": {
+        "startingPosition": "À quatre pattes",
+        "equipment": "Tapis",
+        "steps": [
+          "Placez mains sous épaules, genoux sous hanches.",
+          "Inspirez en ouvrant doucement la poitrine.",
+          "Orientez le coccyx vers le haut.",
+          "Revenez au dos neutre à l’expiration."
+        ],
+        "safetyNotes": "Évitez de comprimer les lombaires."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Cow Pose",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-006",
+      "originalId": "FIT-YOG-006",
+      "name": "Bhujangasana (cobra)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Dos / thorax",
+        "clinicalOrSportContext": "Asana sur le ventre",
+        "categoryOrObjective": "Extension douce — Mobilité / ouverture thoracique",
+        "primaryTarget": "Extenseurs du dos, poitrine"
+      },
+      "description": {
+        "startingPosition": "Sur le ventre, mains près des côtes",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez-vous sur le ventre, jambes détendues.",
+          "Placez les paumes près de la poitrine.",
+          "Levez doucement le sternum, coudes près du corps.",
+          "Reposez le buste sans forcer la cambrure."
+        ],
+        "safetyNotes": "Ne poussez pas au-delà d’une extension confortable."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Cobra Pose",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-007",
+      "originalId": "FIT-YOG-007",
+      "name": "Virabhadrasana II (guerrier II)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Jambes / tronc",
+        "clinicalOrSportContext": "Asana debout en fente",
+        "categoryOrObjective": "Posture debout asymétrique — Endurance / équilibre",
+        "primaryTarget": "Quadriceps, adducteurs, tronc"
+      },
+      "description": {
+        "startingPosition": "Debout, jambes écartées",
+        "equipment": "Tapis facultatif",
+        "steps": [
+          "Écartez largement les pieds.",
+          "Tournez un pied dehors et fléchissez ce genou.",
+          "Étendez les bras à hauteur des épaules.",
+          "Regardez vers l’avant puis changez de côté."
+        ],
+        "safetyNotes": "Alignez le genou plié avec la direction du pied."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Warrior II Pose",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-008",
+      "originalId": "FIT-YOG-008",
+      "name": "Vrksasana (arbre)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Jambes / équilibre",
+        "clinicalOrSportContext": "Asana debout sur une jambe",
+        "categoryOrObjective": "Équilibre monopodal — Équilibre / concentration",
+        "primaryTarget": "Pied, hanche, tronc"
+      },
+      "description": {
+        "startingPosition": "Debout près d’un appui",
+        "equipment": "Mur facultatif",
+        "steps": [
+          "Placez le poids sur un pied.",
+          "Posez l’autre pied sur le mollet ou la cuisse.",
+          "Joignez les mains devant le buste.",
+          "Regardez un point fixe puis changez de jambe."
+        ],
+        "safetyNotes": "Ne posez pas le pied directement contre le genou."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-YJ",
+        "section": "Tree Pose",
+        "url": "https://www.yogajournal.com/practice/beginners/foundational-beginner-yoga-poses"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-009",
+      "originalId": "FIT-YOG-009",
+      "name": "Trikonasana (triangle)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Hanches / tronc",
+        "clinicalOrSportContext": "Asana debout, jambes écartées",
+        "categoryOrObjective": "Inclinaison latérale — Mobilité / équilibre",
+        "primaryTarget": "Ischio-jambiers, flancs"
+      },
+      "description": {
+        "startingPosition": "Debout, jambes largement écartées",
+        "equipment": "Brique facultative",
+        "steps": [
+          "Écartez les pieds, tournez un pied vers l’extérieur.",
+          "Étendez les bras à hauteur des épaules.",
+          "Inclinez le buste vers la jambe tournée.",
+          "Posez la main sur la jambe ou une brique."
+        ],
+        "safetyNotes": "Gardez de la longueur dans les deux côtés du buste."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-LIB",
+        "section": "Triangle Pose",
+        "url": "https://www.yogajournal.com/poses/library"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-YOG-010",
+      "originalId": "FIT-YOG-010",
+      "name": "Setu Bandha (pont)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Yoga"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Yoga",
+        "anatomicalZone": "Dos / bassin",
+        "clinicalOrSportContext": "Asana allongé",
+        "categoryOrObjective": "Extension contrôlée — Ouverture / force douce",
+        "primaryTarget": "Fessiers, dos, poitrine"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, pieds près du bassin",
+        "equipment": "Tapis",
+        "steps": [
+          "Fléchissez les genoux, pieds au sol.",
+          "Poussez dans les pieds pour lever les hanches.",
+          "Gardez les genoux parallèles.",
+          "Reposez lentement la colonne au sol."
+        ],
+        "safetyNotes": "Évitez toute pression sur la tête et la nuque."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "YOG-LIB",
+        "section": "Bridge Pose",
+        "url": "https://www.yogajournal.com/poses/library"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-001",
+      "originalId": "FIT-STR-001",
+      "name": "Étirement du mollet — gastrocnémien",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Mollet",
+        "clinicalOrSportContext": "Étirement statique après activité",
+        "categoryOrObjective": "Souplesse cheville / genou tendu — Souplesse",
+        "primaryTarget": "Gastrocnémien"
+      },
+      "description": {
+        "startingPosition": "Debout face à un mur",
+        "equipment": "Mur",
+        "steps": [
+          "Posez les mains contre un mur.",
+          "Reculez une jambe, talon au sol et genou tendu.",
+          "Fléchissez le genou avant vers le mur.",
+          "Maintenez, puis changez de jambe."
+        ],
+        "safetyNotes": "Ne décollez pas le talon arrière."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien indicatif NHS : 15–20 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-NHS",
+        "section": "Calf stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-002",
+      "originalId": "FIT-STR-002",
+      "name": "Étirement du soléaire",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Mollet profond",
+        "clinicalOrSportContext": "Étirement statique mollet profond",
+        "categoryOrObjective": "Souplesse cheville / genou fléchi — Souplesse",
+        "primaryTarget": "Soléaire"
+      },
+      "description": {
+        "startingPosition": "Debout face à un mur",
+        "equipment": "Mur",
+        "steps": [
+          "Placez un pied devant l’autre, mains au mur.",
+          "Fléchissez les deux genoux.",
+          "Gardez le talon arrière au sol.",
+          "Maintenez puis inversez les jambes."
+        ],
+        "safetyNotes": "Gardez l’étirement doux, sans rebond."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien de la source : 20–30 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-LEEDS",
+        "section": "Deep calf muscle stretch (soleus)",
+        "url": "https://leedscommunityhealthcare.nhs.uk/our-services-a-z/physiotherapy-ican/physiotherapy-exercises-ican-physio/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-003",
+      "originalId": "FIT-STR-003",
+      "name": "Étirement des ischio-jambiers allongé",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Cuisse postérieure",
+        "clinicalOrSportContext": "Étirement statique après activité",
+        "categoryOrObjective": "Souplesse arrière de cuisse — Souplesse",
+        "primaryTarget": "Ischio-jambiers"
+      },
+      "description": {
+        "startingPosition": "Sur le dos",
+        "equipment": "Tapis, sangle facultative",
+        "steps": [
+          "Allongez-vous, une jambe pliée au sol.",
+          "Levez l’autre jambe vers le plafond.",
+          "Tirez-la doucement vers vous sans à-coup.",
+          "Maintenez puis changez de jambe."
+        ],
+        "safetyNotes": "Gardez l’amplitude confortable, sans forcer le genou."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien indicatif NHS : 15–20 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-NHS",
+        "section": "Hamstring stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-004",
+      "originalId": "FIT-STR-004",
+      "name": "Étirement du quadriceps sur le côté",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Cuisse antérieure",
+        "clinicalOrSportContext": "Étirement statique après activité",
+        "categoryOrObjective": "Souplesse avant de cuisse — Souplesse",
+        "primaryTarget": "Quadriceps"
+      },
+      "description": {
+        "startingPosition": "Allongé sur le côté",
+        "equipment": "Tapis",
+        "steps": [
+          "Allongez-vous sur un côté, jambes superposées.",
+          "Attrapez le pied de la jambe du dessus.",
+          "Ramenez doucement le talon vers la fesse.",
+          "Maintenez puis changez de côté."
+        ],
+        "safetyNotes": "Gardez le bassin stable, sans cambrer."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien indicatif NHS : 15–20 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-NHS",
+        "section": "Thigh stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-005",
+      "originalId": "FIT-STR-005",
+      "name": "Étirement fessier en figure quatre",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Hanches / fessiers",
+        "clinicalOrSportContext": "Étirement statique après activité",
+        "categoryOrObjective": "Souplesse fessiers / hanche — Souplesse",
+        "primaryTarget": "Fessiers, rotateurs externes"
+      },
+      "description": {
+        "startingPosition": "Sur le dos, genoux fléchis",
+        "equipment": "Tapis",
+        "steps": [
+          "Croisez une cheville sur le genou opposé.",
+          "Attrapez l’arrière de la cuisse au sol.",
+          "Rapprochez doucement les jambes du buste.",
+          "Maintenez puis changez de côté."
+        ],
+        "safetyNotes": "N’exercez pas de pression directe sur le genou."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien indicatif NHS : 15–20 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-NHS",
+        "section": "Buttock stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-006",
+      "originalId": "FIT-STR-006",
+      "name": "Papillon (adducteurs)",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Hanches / adducteurs",
+        "clinicalOrSportContext": "Étirement statique après activité",
+        "categoryOrObjective": "Souplesse intérieur de cuisse — Souplesse",
+        "primaryTarget": "Adducteurs"
+      },
+      "description": {
+        "startingPosition": "Assis au sol, plantes de pieds jointes",
+        "equipment": "Tapis",
+        "steps": [
+          "Asseyez-vous, dos allongé.",
+          "Joignez les plantes des pieds.",
+          "Laissez les genoux descendre sans forcer.",
+          "Maintenez avec une respiration calme."
+        ],
+        "safetyNotes": "N’appuyez pas fortement sur les genoux."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien indicatif NHS : 15–20 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-NHS",
+        "section": "Inner thigh stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/how-to-stretch-after-exercising/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-007",
+      "originalId": "FIT-STR-007",
+      "name": "Ouverture des pectoraux assis",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Poitrine / épaules",
+        "clinicalOrSportContext": "Étirement du haut du corps",
+        "categoryOrObjective": "Souplesse thoracique — Souplesse / posture",
+        "primaryTarget": "Pectoraux"
+      },
+      "description": {
+        "startingPosition": "Assis au bord d’une chaise",
+        "equipment": "Chaise stable",
+        "steps": [
+          "Asseyez-vous droit, sans appui au dossier.",
+          "Abaissez les épaules et ouvrez les bras.",
+          "Avancez légèrement le sternum.",
+          "Maintenez puis relâchez."
+        ],
+        "safetyNotes": "Ne cambrez pas excessivement le bas du dos."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien NHS : 5–10 s",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-CHAIR",
+        "section": "Chest stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/sitting-exercises/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-008",
+      "originalId": "FIT-STR-008",
+      "name": "Étirement du haut du dos",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Haut du dos",
+        "clinicalOrSportContext": "Étirement doux du haut du corps",
+        "categoryOrObjective": "Souplesse thoracique / scapulaire — Souplesse / détente",
+        "primaryTarget": "Trapèzes, rhomboïdes"
+      },
+      "description": {
+        "startingPosition": "Assis ou debout",
+        "equipment": "Aucun",
+        "steps": [
+          "Croisez les doigts devant la poitrine.",
+          "Tendez les bras vers l’avant.",
+          "Arrondissez légèrement le haut du dos.",
+          "Respirez puis relâchez."
+        ],
+        "safetyNotes": "N’enfoncez pas la tête entre les épaules."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-UPPER",
+        "section": "NHS Strength and flexibility - upper back stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/strength-and-flex-exercise-plan-how-to-videos/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-009",
+      "originalId": "FIT-STR-009",
+      "name": "Étirement du triceps au-dessus de la tête",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Bras / épaules",
+        "clinicalOrSportContext": "Étirement statique du haut du corps",
+        "categoryOrObjective": "Souplesse bras / épaule — Souplesse",
+        "primaryTarget": "Triceps brachial"
+      },
+      "description": {
+        "startingPosition": "Assis ou debout, buste droit",
+        "equipment": "Aucun",
+        "steps": [
+          "Levez un bras puis pliez le coude derrière la tête.",
+          "Placez l’autre main sur le coude.",
+          "Accompagnez doucement le coude vers l’arrière.",
+          "Maintenez puis changez de bras."
+        ],
+        "safetyNotes": "Évitez toute traction douloureuse sur l’épaule."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Non fixé par le catalogue",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-TRI",
+        "section": "Tricep stretch",
+        "url": "https://www.torbayandsouthdevon.nhs.uk/services/pain-service/reconnect2life/improving-health-and-fitness/gentle-stretches/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    },
+    {
+      "candidateId": "pilot:FIT-STR-010",
+      "originalId": "FIT-STR-010",
+      "name": "Inclinaison latérale de la nuque",
+      "reviewStatus": "UNREVIEWED",
+      "proposedSpecialties": [
+        "Stretching"
+      ],
+      "kodjoCategoryId": null,
+      "kodjoBodyZoneIds": [],
+      "originalClassification": {
+        "typologyOrSpecialty": "Stretching",
+        "anatomicalZone": "Cou / nuque",
+        "clinicalOrSportContext": "Mobilité douce sans charge",
+        "categoryOrObjective": "Souplesse cervicale — Souplesse / détente",
+        "primaryTarget": "Muscles latéraux du cou"
+      },
+      "description": {
+        "startingPosition": "Assis droit ou debout",
+        "equipment": "Chaise facultative",
+        "steps": [
+          "Regardez devant vous, épaules abaissées.",
+          "Inclinez lentement l’oreille vers l’épaule.",
+          "Restez dans une amplitude confortable.",
+          "Revenez au centre puis changez de côté."
+        ],
+        "safetyNotes": "Ne tirez pas sur la tête ; stoppez en cas de vertige."
+      },
+      "originalPrescriptionContext": {
+        "doseOrFormat": "Maintien NHS : 5 s, répéter 3 fois",
+        "frequencyOrCue": "À définir selon la séance"
+      },
+      "evidence": {
+        "usageStatement": "Documentaire — relecture technique et droits des médias avant publication",
+        "sourceId": "STR-FLEX",
+        "section": "Neck stretch",
+        "url": "https://www.nhs.uk/live-well/exercise/flexibility-exercises/"
+      },
+      "validation": {
+        "classification": "PENDING",
+        "clinical": "NOT_ASSESSED",
+        "rights": "PENDING"
+      }
+    }
+  ]
+}

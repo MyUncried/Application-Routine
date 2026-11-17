@@ -11,7 +11,11 @@
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.ankusha.kodjo",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocalNetworkUsageDescription": "Routine se connecte à l’administration KODJO de votre PC, sur le même Wi-Fi, pour recevoir vos bibliothèques de mouvements et y envoyer vos mouvements.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
       }
     },
     "android": {
