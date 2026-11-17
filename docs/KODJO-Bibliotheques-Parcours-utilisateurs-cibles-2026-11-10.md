@@ -167,7 +167,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 
 ### PU-17 — Transmission individuelle d'un Mouvement dans un Espace en étoile
 
-**Acteurs :** utilisateur émetteur et destinataire lié individuellement. **Exemple d'usage :** kinésithérapeute transmettant un Mouvement à son patient, avec consignes d'exécution orales.  
+**Acteurs :** utilisateur émetteur et destinataire lié individuellement. **Exemple d'usage :** kinésithérapeute transmettant un Mouvement à son patient, avec texte facultatif au partage personnalisé (réconciliation du 17/11/2026).
 **Déroulement :** l'émetteur invite une autre personne dans une relation individuelle en étoile ; le destinataire accepte ou refuse et peut bloquer l'émetteur. L'émetteur sélectionne ensuite le destinataire et transmet un ou plusieurs Mouvements autorisés. Pour l'usage kiné-patient, les paramètres d'exécution sont donnés **oralement**, sans créer de prescription numérique d'Exercice, Séance ou programme.  
 **Résultat :** le patient reçoit et peut utiliser les Mouvements concernés dans son Catalogue, selon les permissions et le contrôle central de diffusion applicables aux fiches. La relation avec chaque patient est distincte ; cette topologie ne constitue ni un groupe de patients ni une Bibliothèque partagée. Le Mouvement peut ensuite être référencé dans les Bibliothèques personnelles du patient, sans copier la fiche.  
 **À CLARIFIER :** durée et fin de relation, notifications, conservation après fin du lien, contrôle d'accès, minimisation des données et obligations juridiques applicables au contexte d'utilisation. Aucun rôle professionnel, champ clinique ou prescription numérique dans le modèle cible de ce lot.
@@ -202,7 +202,7 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 12. Une suspension de modération bloque l'accès réseau et est prise en compte lors d'un contact ultérieur de l'application, sans attendre une mise à jour éditoriale.
 13. Les préférences ou paramètres d'Exercice ne deviennent pas verrouillés du seul fait qu'une fiche Mouvement est reçue/importée en lecture seule [texte d'origine : « est Protégée » — remplacé le 11/11/2026].
 14. Hors connexion, l'Exécution des données locales reste disponible sous réserve des restrictions déjà connues.
-15. Un utilisateur transmet un Mouvement dans une relation individuelle de l'Espace en étoile, sans prescription numérique ; dans l'usage kiné-patient, les consignes d'exécution restent orales.
+15. Un utilisateur transmet un Mouvement dans une relation individuelle de l'Espace en étoile, sans prescription numérique ; dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (réconciliation du 17/11/2026).
 16. Le patient A ne reçoit pas par cette transmission la liste ou les données du patient B relié au même kinésithérapeute.
 
 ## 5. À CLARIFIER — ne pas transformer en décisions
@@ -225,3 +225,9 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 ### Transmettre une progression de niveaux
 
 L’administrateur rattache les fiches à une même famille et en règle l’ordre. L’éditeur peut sélectionner ces fiches dans sa Bibliothèque et les présenter dans un autre ordre. Après import, l’utilisateur retrouve les niveaux des mouvements reçus dans la progression définie par l’administrateur. Voir la [conception du partage](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+## Réconciliation du 17 novembre 2026
+
+PU-17 est complété par le partage standard d'un mouvement avec ses médias communs et le parcours personnalisé décrit dans le modèle cible : mouvement → Partager → Partage personnalisé → photo/vidéo directe ou existante → texte facultatif → destinataire → envoi. La fréquence structurée, l'historique partagé et le regroupement des envois restent à arbitrer. Ce complément fonctionnel ne constitue pas une validation visuelle Figma.
+
+[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
