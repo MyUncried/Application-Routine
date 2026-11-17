@@ -1,5 +1,7 @@
 # Architecture technique
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
 ## Récupération de l’Exercice et défauts du Profil
@@ -2013,7 +2015,7 @@ Propriétés textuelles : nom, niveau, catégorie, prescription, zones, buy-in /
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation régie désormais par MOUV-ACC-20261117 ; adaptations locales interdites selon A-2, hors reprise historique CA-3. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## Architecture cible ultérieure — Bibliothèques distribuées et contrôle central
 
@@ -2080,8 +2082,8 @@ Classe B. Décisions de Hermann du 16/11/2026 (registre ch07, « Catalogue des M
 - Interface : `GuidanceSettingsForm` (mêmes contrôles dans Profil › Préférences et dans la modale), `SoundChoiceList` ; modale de Composition sur `FilterSheetFrame` en feuille native de hauteur fixe (en-tête fixe) ; « Choix d’un son » dans la même feuille (Composition) ou route `app/profile-sound.tsx` (Profil) ; `SecondaryActionButton` (« Bouton secondaire » 40 × 32) pour le bouton Guidage sonore ; l’action Édition de la fiche n’y est pas encore rebranchée.
 - Exécution : `ExecutionSignalAdapter.setGuidance` applique son et vibration par événement ; une Exécution reprise avec l’ancienne forme de guidage suit le Profil. Anneau du chrono animé en continu (Reanimated, `ringMotion`). Pause à l’arrière-plan (`AppState`).
 
-## Réconciliation de la fiche Mouvement — 17 novembre 2026
+## Décisions consolidées du 17 novembre 2026
 
-La séparation provisoire kodjo.db / kodjo-catalogue-registry.db est maintenue selon la décision CA-3. installed_sheets conserve les propriétés éditoriales liées au Mouvement. La suppression cible de media[].alt exige une correction technique du format, des validations et de leur compatibilité ; aucun transfert vers une nouvelle table n'est imposé par cette réconciliation.
+Conserver la séparation provisoire des bases prévue pour CA-3. Adapter les contrats et projections aux champs retenus, avec compatibilité des anciens formats et empreintes. La perte d’accès est un état fonctionnel : ne pas casser les références ni les instantanés historiques. Les médias privés du destinataire sont séparés des médias communs. Aucun choix supplémentaire de stockage serveur n’est imposé.
 
-[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+[Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
