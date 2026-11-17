@@ -193,7 +193,9 @@ Hermann a contesté les modalités 2 et 3 : « Si je partage une séance avec qu
 - les contenus déjà sur un téléphone restent utilisables, **figés** : aucune mise à jour, aucune redistribution, auteur « Compte supprimé » ;
 - c'est une exception à MOUV-ACC-20261117, annotée dans ce document et dans le document Conception Bibliothèques.
 
-**Encore en attente de validation :** modalités 1, 4 et 5 du §8, et la règle du §9 « aucune donnée d'Exécution ne quitte le téléphone ».
+**Validés ensuite par Hermann (« Je valide ces points ») :**
+- **CPT-10** : modalités 1, 4 et 5 du §8 ;
+- **CPT-11** : règle du §9, « aucune donnée d'Exécution ne quitte le téléphone ».
 
 ## Hypothèses non démontrées
 
@@ -211,7 +213,6 @@ Hermann a contesté les modalités 2 et 3 : « Si je partage une séance avec qu
 ## Éléments non corrigés ou hors périmètre
 
 - Vérification Supabase (CPT-05) : à faire avant le plan.
-- Modalités de suppression du compte (§8) : en attente de validation.
 - Index des identifiants (annexe) : CPT-01 à CPT-06 non encore référencés.
 - Plan d'implémentation : il suivra les arbitrages et sera soumis à revue avant tout code.
 
