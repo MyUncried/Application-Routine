@@ -1,0 +1,142 @@
+# Plan — Lot Compte (MVP)
+
+**Statut : PLAN_READY_FOR_REVIEW.** Aucun code avant `PLAN_APPROVED`.
+
+**Sources :**
+- décisions CPT-01 à CPT-12, chapitre 07, section « Gestion de compte — premier lot » ;
+- chapitre 12, §12.7 (Utilisateur / Compte / Fournisseur d'identité), §12.20 et §12.21 ;
+- MOUV-ACC-20261117 et l'exception CPT-09 ;
+- rapport de cadrage `.github/orchestration/reports/2026-11-17_CADRAGE-GESTION-COMPTE.md`, notamment §8, §9 et §11.
+
+**Base Git :** branche `claude/blissful-meitner-iauzaf`, `6a2d91c`. Elle contient `main` (`5ed7b5a`).
+
+---
+
+## TÂCHE
+
+Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Google. Rattachement de l'Utilisateur local. Catalogue de compte côté serveur. Suppression du compte. Backend Supabase.
+
+## COMPRÉHENSION
+
+- **Identité locale actuelle.** L'Utilisateur local est créé par `migrateDatabase` (`src/infrastructure/database/migrateDatabase.ts:100`). Son identifiant `usr_<32 hex>` est stocké dans `users`, une table singleton. Les agrégats y sont rattachés par `owner_id`.
+- **Ce que le lot ajoute.** Le **Compte** (identité Supabase), distinct de l'Utilisateur interne (§12.7). Les fournisseurs sont Apple et Google (CPT-03).
+- **Données envoyées au serveur.** Seuls l'identité et le lien Compte ↔ Utilisateur quittent le téléphone (CPT-11). Le contenu partagé arrivera avec le chantier partage.
+- **Fonctionnement hors ligne.** Le compte est obligatoire (CPT-02), mais l'app reste utilisable hors ligne après la première connexion.
+- **Suppression.** Suppression complète côté serveur, données locales conservées, retour à l'écran de connexion (CPT-08 à CPT-10).
+- **Modes de connexion :**
+
+| Fournisseur | iOS | Android |
+|---|---|---|
+| Apple | Natif (`expo-apple-authentication` puis `signInWithIdToken`) | Page web (`signInWithOAuth`), CPT-03 |
+| Google | Page web (`signInWithOAuth`), CPT-12 | Page web (`signInWithOAuth`), CPT-12 |
+
+## PÉRIMÈTRE / FICHIERS IMPACTÉS
+
+### A. Backend (nouveau dossier `supabase/`, versionné, sans secret)
+
+- `supabase/migrations/0001_accounts.sql`, avec RLS :
+  - table `accounts` (`auth_user_id` PK → `auth.users`, `local_user_id`, `created_at`) ;
+  - table `catalogues` (`id`, `owner_auth_user_id` unique, `created_at`) : un catalogue par compte, créé automatiquement.
+  - Aucune autre table. **Aucune table d'Exécution** (CPT-11).
+- `supabase/functions/delete-account/` (Edge Function, clé de service côté serveur uniquement). Dans l'ordre :
+  1. supprimer les objets Storage de l'utilisateur ;
+  2. supprimer le catalogue, puis `accounts` ;
+  3. révoquer le jeton Apple si le compte est Apple ;
+  4. appeler `auth.admin.deleteUser()`.
+- `supabase/config.toml` : fournisseurs Apple et Google, URLs de redirection par variante d'app.
+
+### B. Application
+
+- **Dépendances :** `@supabase/supabase-js` et `expo-apple-authentication@57.0.2`. `expo-web-browser`, `expo-linking` et `expo-sqlite` sont déjà présents.
+- **Configuration :**
+  - `app.json` et `app.config.js` : capacité Sign in with Apple (iOS), plugin `expo-apple-authentication`, identifiant Android `package` (**absent aujourd'hui**, nécessaire au client OAuth), schémas de retour par variante ;
+  - variables publiques `EXPO_PUBLIC_SUPABASE_URL` / `ANON_KEY` via EAS, hors dépôt.
+- **Infrastructure :**
+  - `src/infrastructure/account/supabaseClient.ts` : session persistée par `expo-sqlite/localStorage` (guide Expo) ;
+  - `src/infrastructure/account/SupabaseAccountGateway.ts` : connexion, déconnexion, appel `delete-account`, lecture et écriture de `accounts`.
+- **Migration locale 031 :** table singleton `account_link` (`auth_user_id`, `provider`, `catalogue_id`, `linked_at`). Test de migration associé.
+- **Domaine :** `src/domain/account/` avec `AccountService` :
+  - `signInWithApple`, `signInWithGoogle` ;
+  - `linkLocalUser` (règles de rattachement ci-dessous) ;
+  - `deleteAccount`, `currentAccountState`.
+  - Le service ne dépend ni de Supabase ni de SQLite directement (ports).
+- **Rattachement, proposition :**
+  - **Compte neuf :** le serveur enregistre `local_user_id` = Utilisateur local actuel.
+  - **Compte existant, téléphone vierge** (réinstallation, nouveau téléphone, aucun agrégat local) : l'Utilisateur local adopte `local_user_id` du compte avant toute donnée.
+  - **Compte existant, téléphone avec données d'un autre Utilisateur :** voir ambiguïté 2.
+- **Porte d'entrée :**
+  - `app/_layout.tsx` affiche l'écran de connexion tant que `account_link` est vide ;
+  - un lien local présent suffit pour ouvrir l'app **hors ligne**, même si le jeton n'est pas rafraîchissable faute de réseau.
+- **Écrans** (selon les maquettes, ambiguïté 1) :
+  - `app/sign-in.tsx` ;
+  - section Compte du Profil (`app/(tabs)/profile.tsx`) ;
+  - confirmation de suppression (texte CPT-10 : ce qui est supprimé, ce qui reste, mention des contenus partagés figés CPT-09).
+- **Lexique :** nouvelles clés de texte dans le lexique centralisé.
+
+### C. Documentation
+
+- Chapitres 06 et 13 : écrans et contrats d'écran Connexion et Compte (classe B, après maquettes).
+- Chapitre 12 : architecture compte (classe D).
+- Procédure d'exploitation : régénération de la clé secrète Apple tous les 6 mois (§11 du cadrage).
+
+**Hors périmètre :** sauvegarde, synchronisation, partage, publication, modération, e-mail et mot de passe.
+
+## PLAN D'IMPLÉMENTATION
+
+1. **Prérequis à la charge de Hermann**, sans code :
+   - créer le projet Supabase (région **Paris `eu-west-3`**, formule Pro 25 $/mois en production, Free pour le développement) ;
+   - Apple Developer : capacité Sign in with Apple, Services ID, clé `.p8` ;
+   - Google Cloud : client OAuth Web ;
+   - choisir l'identifiant Android ;
+   - saisir les secrets dans Supabase et EAS.
+
+   Je fournis la liste pas à pas.
+2. Backend : migration SQL, RLS, Edge Function `delete-account`, tests SQL et RLS (Supabase local ou base de test).
+3. App : client Supabase, port et passerelle, migration 031, `AccountService` et ses règles de rattachement, tests unitaires.
+4. Porte d'entrée et écran de connexion. Parcours iOS (Apple natif, Google web) et Android (Apple web, Google web), retour par lien profond.
+5. Section Compte du Profil et suppression du compte.
+6. Garde CPT-11 : test qui vérifie que le client n'écrit que dans `accounts` et `catalogues` et qu'aucune donnée d'Exécution n'est sérialisée vers le réseau. Revue des journaux.
+7. Documentation et synchronisation code / documentation. Rapport de livraison.
+
+## MIGRATION / DONNÉES
+
+- Migration locale **031**, additive : `account_link`. Aucune donnée métier modifiée.
+- **Installations existantes** (appareils de recette) : au premier lancement après mise à jour, l'écran de connexion s'affiche, puis l'Utilisateur local existant est rattaché au compte.
+- **Côté serveur :** migration 0001, deux tables.
+
+## TESTS PRÉVUS
+
+- **Jest :**
+  - migration 031 ;
+  - règles de rattachement (compte neuf, téléphone vierge, conflit) ;
+  - porte d'entrée en ligne et hors ligne ;
+  - suppression : ordre des appels, retour à la connexion, données locales intactes ;
+  - garde CPT-11.
+- **Backend :** RLS (un compte ne lit ni n'écrit les lignes d'un autre) et Edge Function.
+- **Recette sur appareils réels, iPhone et Android :**
+  - Apple natif iOS, Apple web Android, Google web sur les deux ;
+  - lancement hors ligne après connexion ;
+  - réinstallation et rattachement ;
+  - suppression du compte.
+
+  Pas de test visuel automatisé.
+
+## RISQUES / EFFETS DE BORD
+
+- Clé secrète Apple non régénérée : panne de la connexion Apple sur Android. Procédure et rappel nécessaires.
+- La révocation du jeton Apple suppose de conserver un jeton Apple (code d'autorisation natif ou jeton du fournisseur côté OAuth). Mécanisme exact **à vérifier en début d'étape 2**.
+- Liens profonds de retour à vérifier pour chaque variante (`routine`, `routine-bmad`, `routine-catalogue`, Dev).
+- Durée de validité de session Supabase et comportement hors ligne prolongé : à mesurer.
+- Le compte obligatoire impose le réseau au premier lancement. Risque de refus App Store jugé modéré.
+
+## AMBIGUÏTÉS (arbitrages de Hermann nécessaires avant `PLAN_APPROVED`)
+
+1. **Maquettes.** Aucune frame Figma pour l'écran de connexion, la section Compte du Profil et la confirmation de suppression. Faut-il les concevoir dans Figma d'abord, ou une proposition fondée sur les composants existants, validée ensuite ?
+2. **Changement de compte sur un même téléphone.** Le téléphone contient les données de l'Utilisateur du compte X, et l'on se connecte avec un compte Y déjà rattaché à un autre Utilisateur (y compris le cas d'un appareil de recette contenant des données). Faut-il refuser, ou remplacer les données locales après avertissement ?
+3. **Déconnexion.** Proposer « Se déconnecter » dans le Profil, en plus de la suppression ? Apple ne l'exige pas.
+4. **Informations affichées** dans la section Compte : fournisseur, nom, e-mail. Apple peut masquer l'e-mail.
+5. **Branche de développement :** branche dédiée `compte/lot-1` depuis `main`, ou poursuite sur la branche actuelle ?
+
+## STATUT
+
+PLAN_READY_FOR_REVIEW

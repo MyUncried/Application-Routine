@@ -259,6 +259,10 @@ La page de tarifs publique n'a pas été lue. Les prix viennent des fichiers de 
 - Le guide Expo stocke la session Supabase avec `expo-sqlite/localStorage`. KODJO utilise déjà `expo-sqlite`.
 - Variante possible : `expo-secure-store` (57.0.4 pour le SDK 57). Choix à faire dans le plan.
 
+## 12. Plan du lot Compte
+
+Rédigé dans `_bmad-output/compte/plan-lot-compte.md`. Statut : **PLAN_READY_FOR_REVIEW**. Cinq ambiguïtés sont à arbitrer avant `PLAN_APPROVED`. Aucun code n'a été écrit.
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
@@ -291,7 +295,8 @@ Aucun test applicable : mission documentaire, sans code modifié.
 
 - `.github/orchestration/reports/2026-11-17_CADRAGE-GESTION-COMPTE.md` (création)
 - `docs/Specifications-fonctionnelles/01 – Vision Générale.md`, `02 – Utilisateurs et besoins.md`, `05 – Versions du produit.md`, `07 – Registre des décisions de conception.md`, `12 – Architecture technique.md`
-- `docs/PRODUCT.md`, `docs/KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md`
+- `docs/PRODUCT.md`, `docs/KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md`, `docs/KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md`
+- `_bmad-output/compte/plan-lot-compte.md` (création)
 
 ## Commit final et état Git
 
