@@ -33,12 +33,17 @@ export function phaseCycleFit(targetSeconds: number, cycleSeconds: number): Phas
   return { status: "NOT_MULTIPLE", cycleSeconds, lowerSeconds, upperSeconds: upper > EXECUTION_BOUNDS.durationTarget.max ? null : upper };
 }
 
-export type PhaseCycleRounding = { readonly rank: number; readonly targetSeconds: number; readonly lowerSeconds: number; readonly upperSeconds: number | null };
+/** `lowerSeconds` : `null` pour une série plus courte que le motif (aucun multiple inférieur non nul). */
+export type PhaseCycleRounding = { readonly rank: number; readonly targetSeconds: number; readonly lowerSeconds: number | null; readonly upperSeconds: number | null };
 
 export type PhaseCycleIssues = {
   /** Durée du motif, `null` sans contrôle (pas de phases, motif incomplet ou hors bornes, autre mode). */
   readonly cycleSeconds: number | null;
-  /** Rangs (0-based) des séries plus courtes que le motif : enregistrement bloqué. */
+  /**
+   * Rangs (0-based) des séries plus courtes que le motif. Recette du 16/11/2026 (Autres constats a, Hermann : « Tours identiques : un objectif de durée qui est inférieur à la somme de la durée des phases affiche un texte en rouge, et bloque la validation. Retirer le texte rouge et afficher la même fenêtre de message qui propose un arrondi inférieur et supérieur lorsque l'objectif de durée est supérieur à la durée des phases sans être un arrondi. ») :
+   * toujours vide — une série plus courte que le motif demande l'arrondi (`notMultiple`, au motif). [Enregistrement bloqué,
+   * message rouge — remplacé le 16/11/2026.]
+   */
   readonly belowRanks: readonly number[];
   /** Séries non multiples du motif, avec leurs arrondis. */
   readonly notMultiple: readonly PhaseCycleRounding[];
@@ -55,7 +60,7 @@ export function phaseCycleIssues(parameters: ParametersLike): PhaseCycleIssues {
   seriesRowsOf(parameters).forEach((row, rank) => {
     if (row.target.kind !== "NUMBER") return;
     const fit = phaseCycleFit(row.target.value, cycleSeconds);
-    if (fit.status === "BELOW") belowRanks.push(rank);
+    if (fit.status === "BELOW") notMultiple.push({ rank, targetSeconds: row.target.value, lowerSeconds: null, upperSeconds: cycleSeconds });
     else if (fit.status === "NOT_MULTIPLE") notMultiple.push({ rank, targetSeconds: row.target.value, lowerSeconds: fit.lowerSeconds, upperSeconds: fit.upperSeconds });
   });
   return { cycleSeconds, belowRanks, notMultiple };

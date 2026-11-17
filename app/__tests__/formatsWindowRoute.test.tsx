@@ -52,14 +52,35 @@ describe("modale « Créer un exercice » (règle du 06/11/2026)", () => {
     takeFormatsWindowCloseRequest();
   });
 
-  it("Exercice libre : la fiche s'ouvre par-dessus la modale, sans la refermer ; un Format ouvre son questionnaire", () => {
+  // [« un Format ouvre son questionnaire » — remplacé le 15/11/2026 : écran unique de chaque Format (décision de Hermann, registre ch07).]
+  it("Exercice libre : la fiche s'ouvre par-dessus la modale, sans la refermer ; un Format ouvre son écran unique", () => {
     mockRoutes = FROM_CATALOGUE;
     render(<FormatsWindowRoute />);
     windowProps!.onFreeExercise();
     expect(mockBack).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement", params: { context: "session" } });
     windowProps!.onSelect("TABATA");
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-questionnaire", params: { model: "TABATA" } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model: "TABATA" } });
+  });
+
+  it("décision de Hermann du 15/11/2026 : For time sans questionnaire — la carte ouvre directement le récapitulatif (état vide)", () => {
+    mockRoutes = FROM_COMPOSITION;
+    render(<FormatsWindowRoute />);
+    windowProps!.onSelect("FOR_TIME");
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model: "FOR_TIME" } });
+    // [AMRAP vers son questionnaire — remplacé le 15/11/2026 (« Formats à tableau — écran unique, sans redondance »).]
+    windowProps!.onSelect("AMRAP");
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model: "AMRAP" } });
+  });
+
+  it("décision de Hermann du 15/11/2026 : les neuf Formats à tableau ouvrent leur écran unique, jamais un questionnaire", () => {
+    mockRoutes = FROM_COMPOSITION;
+    render(<FormatsWindowRoute />);
+    for (const model of ["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE", "PROGRESSION", "EMOM", "SUPERSET", "DEATH_BY", "AMRAP"] as const) {
+      windowProps!.onSelect(model);
+      expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model } });
+    }
+    expect(mockPush).not.toHaveBeenCalledWith(expect.objectContaining({ pathname: "/format-questionnaire" }));
   });
 
   it("croix : retour à l'écran qui a ouvert la modale (Catalogue ou Composition), sans autre écran", () => {

@@ -1655,6 +1655,62 @@
         "Exécution — Suivant mis en avant (Répétitions)"
       ],
       "note": "Recette du 13/11/2026 : fond bleu KODJO, symbole blanc."
+    },
+    {
+      "key": "execution.forTime.pause",
+      "file": "execution-pause-56",
+      "figmaNodeId": "8982:15852",
+      "figmaName": "Mettre en pause",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "8982:15849",
+      "width": 71.5556,
+      "height": 71.5556,
+      "usage": [
+        "Exécution For time — Pause (56, ombre comprise)"
+      ],
+      "note": "PRE-11, correction 3 du 14/11/2026 : export MCP Figma en lecture seule."
+    },
+    {
+      "key": "execution.forTime.resetInactive",
+      "file": "execution-reinitialiser-inactif",
+      "figmaNodeId": "8982:15859",
+      "figmaName": "Réinitialiser la séance — confirmation",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "8982:15849",
+      "width": 48,
+      "height": 48,
+      "usage": [
+        "Exécution For time — Réinitialiser inactif"
+      ],
+      "note": "PRE-11, correction 3 du 14/11/2026 : export MCP Figma en lecture seule."
+    },
+    {
+      "key": "execution.forTime.success",
+      "file": "execution-succes",
+      "figmaNodeId": "12327:26212",
+      "figmaName": "Succès — Exercice terminé",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "8982:15849",
+      "width": 72,
+      "height": 72,
+      "usage": [
+        "Exécution For time — ✓ valide l’étape sans saisie"
+      ],
+      "note": "PRE-11, correction 3 du 14/11/2026 : export MCP Figma en lecture seule."
+    },
+    {
+      "key": "execution.forTime.successInactive",
+      "file": "execution-succes-inactif",
+      "figmaNodeId": "12327:26212",
+      "figmaName": "Dérivé de « Succès — Exercice terminé » et de « Réinitialiser la séance — confirmation »",
+      "figmaStatus": "DERIVED_DRAWING",
+      "sourceComponentNodeId": "8982:15849",
+      "width": 48,
+      "height": 48,
+      "usage": [
+        "Exécution For time — ✓ inactif en Pause"
+      ],
+      "note": "PRE-11, correction 3 du 14/11/2026 : absent du Figma (l’écran « En pause » 12283:26364 montre « Activité suivante ») ; contour et symbole #B4B9C4."
     }
   ],
   "branding": {

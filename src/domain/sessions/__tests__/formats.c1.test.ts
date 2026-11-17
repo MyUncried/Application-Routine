@@ -53,7 +53,8 @@ describe("PRE-9 C.1 — registre des Formats (02/11/2026)", () => {
 
   it("Circuit porteur : nature fixée par le Format (§1) ; Death by alterné sans intervalle au Circuit (A2)", () => {
     expect(circuitFormatParametersOf("AMRAP", "SERIES")).toBeNull();
-    expect(circuitFormatParametersOf("FOR_TIME", "TOURS")).toBeNull();
+    // Décision de Hermann du 14/11/2026 (For time « À la suite », FT-20 à FT-23) : séries groupées admises. [Nature fixée « alternées » — remplacé.]
+    expect(circuitFormatParametersOf("FOR_TIME", "TOURS")!.map((parameter) => parameter.id)).toEqual(["timeCapSeconds", "restBetweenRoundsSeconds"]);
     expect(circuitFormatParametersOf("EMOM", "SERIES")).toBeNull();
     expect(circuitFormatParametersOf("DEATH_BY", "TOURS")!.map((parameter) => parameter.id)).toEqual(["windowSeconds"]);
     expect(circuitFormatParametersOf("DEATH_BY", "SERIES")).toEqual([]);

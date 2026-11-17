@@ -164,13 +164,14 @@ export const FORMAT_REGISTRY: Readonly<Record<ElementFormatKey, FormatDescriptor
     // « Durée maximum du For time » : temps limite facultatif, « Aucune » par défaut (§11).
     exercise: [{ id: "timeCapSeconds", unit: "SECONDS", min: 1, optional: true, sources: ["§11"] }],
     circuit: {
-      natures: ["SERIES"],
+      // Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out ») : « À la suite » = séries groupées (TOURS). [Nature fixée « alternées » — remplacé.]
+      natures: ["SERIES", "TOURS"],
       parameters: [
         { id: "timeCapSeconds", unit: "SECONDS", min: 1, optional: true, sources: ["§11"] },
         { id: "restBetweenRoundsSeconds", unit: "SECONDS", min: 0, initial: 0, sources: ["§11"] },
       ],
     },
-    member: { SERIES: [ROLE, LEGACY_PASSAGE] },
+    member: { SERIES: [ROLE, LEGACY_PASSAGE], TOURS: [ROLE, LEGACY_PASSAGE] },
     openRounds: false,
     inStandardCircuit: {
       TOURS: { status: "ADMITTED", sources: ["§6.1", "A5"] },

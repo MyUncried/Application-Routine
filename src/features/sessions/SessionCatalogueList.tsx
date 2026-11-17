@@ -65,7 +65,7 @@ export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjec
     projection.categories.map((category) => category.name).join(", "),
     // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices ». [Avant : format ou volume.]
     formatSessionStructureLine(projection),
-    formatCatalogueSessionDuration(projection.duration),
+    formatCatalogueSessionDuration(projection.duration, projection.forTimeBound),
     projection.status === "ARCHIVED" ? tCard.archivedAccessibility : null,
     expanded && projection.tree.length > 0 ? compositionAccessibilityText(projection.tree) : null,
   ]

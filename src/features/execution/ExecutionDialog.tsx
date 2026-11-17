@@ -15,9 +15,13 @@ export function ExecutionDialog({
   actions,
   testID,
   visible = true,
+  tallActions = false,
 }: {
   readonly title: string;
+  /** Texte sous le titre ; vide : aucun texte (Réinitialiser, recette du 13/11/2026). */
   readonly message: string;
+  /** Boutons d'action de double hauteur (Réinitialiser, recette du 13/11/2026). */
+  readonly tallActions?: boolean;
   readonly actions: readonly [ExecutionDialogAction, ExecutionDialogAction];
   readonly testID: string;
   /**
@@ -32,7 +36,7 @@ export function ExecutionDialog({
       <View style={styles.backdrop} testID={`${testID}-backdrop`}>
         <View style={styles.card} accessibilityRole="alert" accessibilityViewIsModal testID={testID}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
+          {message !== "" ? <Text style={styles.message}>{message}</Text> : null}
           <View style={styles.actions}>
             {actions.map((action) => (
               <Pressable
@@ -40,7 +44,7 @@ export function ExecutionDialog({
                 onPress={action.onPress}
                 accessibilityRole="button"
                 accessibilityLabel={action.label}
-                style={[styles.action, toneStyles[action.tone]]}
+                style={[styles.action, tallActions ? styles.tallAction : null, toneStyles[action.tone]]}
                 testID={action.testID}
               >
                 <Text style={[styles.actionLabel, action.tone === "neutral" ? styles.neutralLabel : styles.strongLabel]} numberOfLines={2}>
@@ -76,6 +80,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 8,
   },
+  tallAction: { minHeight: dimensions.decisionDialog.actionHeight * 2 },
   actionLabel: { ...type.button, textAlign: "center" },
   neutralLabel: { color: colors.dialogNeutralActionText },
   strongLabel: { color: colors.background },

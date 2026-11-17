@@ -11,7 +11,9 @@ export type ProfilePreference =
   | "announcePausesEnabled"
   | "announceSessionEnabled"
   | "announceSidesEnabled"
-  | "announcePhasesEnabled";
+  | "announcePhasesEnabled"
+  /** Catalogue des Mouvements présenté en grille (CE-MVT-03, Bascule, 16/11/2026). */
+  | "movementCatalogueGridEnabled";
 
 /**
  * Identité modifiable depuis Modifier le profil (CE-UI-01) — toujours les trois ensemble, atomiquement.

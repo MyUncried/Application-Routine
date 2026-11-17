@@ -135,9 +135,9 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
 
     const sheet = (name: string) => screenCalls.find((call) => call.name === name)?.options;
     expect(sheet("formats-window")).toMatchObject({ presentation: "formSheet", sheetAllowedDetents: "fitToContents", gestureEnabled: false });
-    for (const name of ["format-questionnaire", "format-summary"]) {
-      expect(sheet(name)).toMatchObject({ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false });
-    }
+    // [« format-questionnaire » — supprimé le 15/11/2026 : écran unique de chaque Format (décision de Hermann, registre ch07).]
+    expect(sheet("format-questionnaire")).toBeUndefined();
+    expect(sheet("format-summary")).toMatchObject({ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false });
     expect(sheet("movement-sheet")).toMatchObject({ presentation: "formSheet", gestureEnabled: false });
   });
 

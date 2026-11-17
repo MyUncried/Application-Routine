@@ -9,6 +9,7 @@ import {
 } from "@/features/activities/newMovementMarks";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { MovementCatalogueGrid } from "@/features/activities/MovementCatalogueGrid";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
@@ -38,6 +39,8 @@ import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
+import { ListGridToggle, type ListGridView } from "@/shared/ui/ListGridToggle";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
@@ -122,6 +125,35 @@ export function CatalogueScreen() {
   // l'Éditeur), jamais au blur : deux appuis rapprochés, même sur deux
   // points d'entrée différents, n'empilent qu'un seul Éditeur.
   const isOpeningEditorRef = useRef(false);
+  // Décision de Hermann du 16/11/2026 (ch07, « Catalogue des Mouvements — présentation en grille » ; CE-MVT-03, Bascule) :
+  // catalogue des Mouvements en liste ou en grille, choix mémorisé dans le Profil (`movementCatalogueGridEnabled`, migration030).
+  // Sans service de Profil (tests d'écran), la liste d'origine, sans mémorisation. `null` : choix pas encore lu (rien n'est
+  // rendu, pour ne pas montrer la liste avant la grille mémorisée).
+  const profileService = useContext(ProfileServiceContext);
+  const [movementView, setMovementView] = useState<ListGridView | null>(profileService === null ? "LIST" : null);
+  useEffect(() => {
+    if (profileService === null) return;
+    let active = true;
+    profileService
+      .getProfile()
+      .then((profile) => {
+        if (active) setMovementView((current) => current ?? (profile.movementCatalogueGridEnabled ? "GRID" : "LIST"));
+      })
+      .catch(() => {
+        if (active) setMovementView((current) => current ?? "LIST");
+      });
+    return () => {
+      active = false;
+    };
+  }, [profileService]);
+  const chooseMovementView = useCallback(
+    (view: ListGridView) => {
+      setMovementView(view);
+      // Échec d'écriture : la présentation choisie reste affichée pour cette session (aucun message inventé).
+      profileService?.setPreference("movementCatalogueGridEnabled", view === "GRID").catch(() => undefined);
+    },
+    [profileService],
+  );
   // PRE-8 (B.3) : relecture du Catalogue des Mouvements à chaque retour au premier plan.
   const [movementsReloadToken, setMovementsReloadToken] = useState(0);
   // PRE-8 (B.7, arbitrage Q2 du 27/10) : filtres des Mouvements conservés pendant la session (état de
@@ -388,6 +420,15 @@ export function CatalogueScreen() {
             sortLabel={t.sortAction}
             createLabel={t.createAction}
             onCreate={handleCreatePress}
+            summaryAccessory={
+              <ListGridToggle
+                value={movementView ?? "LIST"}
+                onChange={chooseMovementView}
+                listLabel={strings.screens.movement.catalogue.viewList}
+                gridLabel={strings.screens.movement.catalogue.viewGrid}
+                testID="movement-catalogue-view-toggle"
+              />
+            }
           />
         ) : null}
         {activeSegment === "sessions" ? (
@@ -461,7 +502,21 @@ export function CatalogueScreen() {
             ) : null}
           </>
         ) : null}
-        {activeSegment === "movements" ? (
+        {activeSegment === "movements" && movementView === "GRID" ? (
+          <MovementCatalogueGrid
+            reloadToken={movementsReloadToken}
+            topInset={LIST_TOP_INSET}
+            query={movementQuery}
+            filters={movementFilters}
+            counter={movementCounter}
+            onSummaryChange={handleMovementSummary}
+            onOpenMovement={openMovement}
+            newMovementIds={newMovementMarks.ids}
+            scrollTarget={newMovementMarks.scrollTarget}
+            onScrollTargetHandled={consumeNewMovementScrollTarget}
+          />
+        ) : null}
+        {activeSegment === "movements" && movementView === "LIST" ? (
           <MovementCatalogueList
             reloadToken={movementsReloadToken}
             topInset={LIST_TOP_INSET}
