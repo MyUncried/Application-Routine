@@ -46,7 +46,7 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
 | F4-F | Arrêter le partage d'une Bibliothèque bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
 | **F4-G — validé** | Une seule révision active par fiche source et par appareil : une mise à jour volontaire depuis une Bibliothèque actualise la même fiche partout où elle est référencée ; aucune autre composition n'est modifiée, l'utilisateur est averti de l'impact transversal. |
-| KIN-01 | L'Espace en étoile est une **relation individuelle générique** ; transmission de Mouvements sans rôle professionnel ou prescription numérique. Dans l'usage kiné-patient, les consignes d'exécution sont orales. Invitation acceptée et possibilité de refuser ou bloquer le partageur. |
+| KIN-01 | L'Espace en étoile est une **relation individuelle générique** ; transmission de Mouvements sans rôle professionnel ou prescription numérique. Dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (réconciliation du 17/11/2026). Invitation acceptée et possibilité de refuser ou bloquer le partageur. |
 
 **Arbitrages explicitement non faits :** détails des offres et paiements, expiration d'accès, retransmission d'une installation sur un nouvel appareil après arrêt du partage, modification postérieure de permissions, règles de groupe, gestion des conflits complexes et emplacement UX des commandes.
 
@@ -74,7 +74,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | PU-14 | Propriétaire | Arrêt de diffusion sans révocation des usages acquis ; plus de nouvelles mises à jour. |
 | PU-15 | Utilisateur / KODJO | Signalement et retrait de modération prioritaire. |
 | PU-16 | Utilisateur | Utilisation locale hors ligne, reprise après interruption d'installation. |
-| PU-17 | Utilisateur émetteur / destinataire | Transmission dans un Espace en étoile générique, sans rôle professionnel ni prescription numérique ; usage kiné-patient : consignes orales. |
+| PU-17 | Utilisateur émetteur / destinataire | Transmission dans un Espace en étoile générique, sans rôle professionnel ni prescription numérique ; usage kiné-patient : texte facultatif dans le partage personnalisé (17/11/2026). |
 
 ### Deux modes de partage sans rôles professionnels
 
@@ -434,3 +434,9 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 ---
 
 **Traçabilité documentaire :** ce dossier est une proposition de conception pour revue sur branche dédiée ; il ne supersède pas de lui-même les chapitres normatifs. Les décisions F4-A–F doivent être propagées au registre et aux chapitres après consolidation, sans laisser coexister de règles contradictoires. Les fichiers non concernés doivent rester inchangés.
+
+## Réconciliation du 17 novembre 2026
+
+La personnalisation du partage rattache un média et un texte facultatif au mouvement pour un destinataire, en complément des médias communs. Son schéma technique, le cycle de vie des médias et le suivi partagé restent à définir. Les règles de persistance conservent le lien entre fiche éditoriale et Mouvement local ; la suppression du champ éditorial alt est décidée.
+
+[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
