@@ -595,3 +595,28 @@ Recette iPhone de Hermann (cahier v34, base partagée) :
 
 - Intégration de `main` dans la branche : 183 commits de retard au 16/11. Un conflit touchant une règle métier sera soumis à Hermann.
 - Puis nouvelle suite complète, poussée de la branche et pull request vers `main`. La fusion revient à Hermann.
+
+## Synchronisation avec main du 17/11/2026 (PR #437 redevenue fusionnable)
+
+**Objectif** : la PR #437 n’était plus fusionnable. main avait avancé de 55 commits depuis la synchronisation `55b3f788` : PR #440 (formats PRE-11) et PR #441 (grille des Mouvements à 4 colonnes). Hermann a demandé que cette session fasse la fusion (« Vas y », 17/11).
+
+**Départ** : branche `catalogue/integration-pre10-20261111` à `55b3f788`, main à `12f5713c`.
+
+**Fait** : fusion de main dans la branche (pas dans main), commit `3740e93a`.
+- Seul conflit : `src/shared/ui/CatalogueContextZone.tsx`. main ajoute `summaryAccessory` (bascule liste / grille), la branche `trailingCommand` (« liste + » des Bibliothèques personnelles). Les deux options sont gardées.
+- Classe D : aucune règle métier n’est touchée.
+- Migrations : main apporte la 030, la branche n’en ajoute aucune. Pas de collision.
+- La grille n’est utilisée que dans l’écran Catalogue des séances (`src/features/sessions/CatalogueScreen.tsx`). Les écrans Bibliothèques ne l’utilisent pas.
+
+**Preuves** : vérifications dans un worktree temporaire au commit `3740e93a`, avec `npm ci` propre.
+- Jest (`--maxWorkers=2`, après un premier lancement arrêté pour mémoire insuffisante) : 390 suites vertes ; 6114 tests verts, 32 ignorés.
+- `tsc --noEmit` : 0 erreur.
+- ESLint sur tout le dépôt : 385 erreurs, toutes dans des fichiers identiques à main (`tests/kodjo/*.pilot.js` : `__dirname`, `Buffer`).
+- ESLint sur les 109 fichiers de la branche : seulement 3 erreurs `import/no-unresolved` sur `@expo-google-fonts/roboto-condensed`. Elles viennent du `node_modules` partagé de ce worktree, qui n’a pas cette dépendance de main ; le worktree de test installé avec `npm ci` n’a pas ces erreurs.
+
+**Hypothèse non démontrée** : les échecs de la vérification GitHub « KODJO VNext proof stability and architecture » (`VNEXT_EQ_EXECUTION_INCOMPLETE`) viennent de l’outillage de qualification du protocole, pas de l’application. Ils existaient déjà le 12/11. Ces suites n’ont pas été lancées en local (règle de CLAUDE.md).
+
+**Sur iPhone** : rien de nouveau pour les Bibliothèques. La grille relève de la recette de la PR #441.
+
+**Suite** : fusion de la PR #437 dans main par Hermann, puis build Routine BMAD (profil `development-bmad`) depuis main, avec son accord.
+
