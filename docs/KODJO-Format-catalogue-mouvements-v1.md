@@ -1,5 +1,7 @@
 # KODJO — Format de catalogue autonome de Mouvements `KODJO_MOVEMENT_CATALOGUE` v1
 
+> **Contrat historique livré et cible distincts :** les schémas v1/v2 ci-dessous décrivent les formats existants. Les retraits et ajouts du 17/11/2026 sont normatifs pour la prochaine évolution, détaillée en fin de document. Ne pas réintroduire un champ retiré parce qu'il figure dans un exemple historique.
+
 **Date :** 10 novembre 2026. **Statut :** format de données technique (tranche CA-1) ; aucun chargement dans l'application à ce stade (CA-3 à CA-6 non développés).
 **Décision :** Hermann, 10/11/2026 — catalogue autonome (option A), compatible avec un futur téléchargement depuis OVH (option B) sans changer le modèle de données ; plan `.github/orchestration/reports/2026-11-10_CATALOGUE-AUTONOME-PLAN.md` (révision 2).
 **[11/11/2026 — version courante : v2 `2.0.0`, voir § 10. La v1 décrite ci-dessous reste relue et convertie ; le nom du fichier de spécification est conservé pour préserver les liens.]**
@@ -94,7 +96,7 @@ Le validateur ne lit aucune base locale. La correspondance des Catégories et de
 - aucun média transporté ;
 - projection actuellement livrée : `phases: []`, `nextPhaseId: 1`, `levelGroup: null`. La cible pour les fiches portant une famille est décrite ci-dessous. [11/11/2026 : livrée ; la famille est appliquée après l'écriture du Mouvement, voir « Familles de niveaux des fiches — format retenu ».]
 
-Les autres propriétés restent dans la fiche éditoriale complète, conservée dans le registre local et reliée à `Movement.id` (§9.1). Les classifications supplémentaires sont structurées ; leurs usages en filtres et tris mobiles restent à arbitrer.
+Les autres propriétés restent dans la fiche éditoriale complète, conservée dans le registre local et reliée à `Movement.id` (§9.1). Les classifications conservées servent aux filtres mobiles validés ; le détail UX sera défini dans Figma.
 
 ## 6. Révisions et empreinte
 
@@ -424,6 +426,27 @@ La représentation sérialisée précise et le traitement des conflits entre une
 - Une fiche qui quitte sa famille fait sortir le Mouvement (`leaveFamily`, dissolution du dernier couple).
 - Limite connue : une interruption entre la confirmation de la fiche et le placement dans la famille laisse le Mouvement sans famille jusqu'à la révision suivante de la fiche.
 
-## Réconciliation du 17 novembre 2026
+## État de la suppression du texte alternatif au 17 novembre 2026
 
 La suppression du champ éditorial `media[].alt` est la règle cible et supersède son obligation historique. Le code à la baseline 91961aa4 conserve encore ce champ. La compatibilité des anciens fichiers, empreintes et révisions doit être traitée dans la correction technique. [Modèle, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+
+## Évolution cible validée le 17 novembre 2026
+
+[Inventaire exhaustif et règles métier](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Aucune nouvelle version de format n'est attribuée sans implémentation.
+
+| Porteur | Évolution du contrat |
+|---|---|
+| `content` | Retirer `startingPosition` après reprise dans `steps` sans doublon ; conserver nom, alias, étapes, matériel, sécurité ; notes internes non exposées au destinataire. |
+| `classification` | Retirer `basis`, `review`, `original`, `originalProposedSpecialties` ; conserver les identifiants des classifications courantes. |
+| `sources` | Retirer `documentary` et `prescriptionContext` et la section ; ne pas confondre avec `upstream`. |
+| `provenance` | Retirer `gestureId`, `publisher`, `reviewStatus`, `visibility` ; conserver propriétaire, auteur unique, origine, amont, ayant droit et licence. |
+| `media` | Retirer `alt` ; droits, licence et attribution des médias conservés. |
+| Fiche source | Ajouter la représentation des phases, leur ordre, libellé et durée par défaut facultative ; transfert à l'installation et aux mises à jour acceptées. La famille de niveaux reste conservée. |
+| Bibliothèque | Retirer `editor` distinct ; propriétaire, visibilité, composition et historique conservés. Publication : synthèse calculée des autorisations des révisions. |
+| Catalogue | Retirer `manager` et `publisher` distincts ; compte propriétaire, notes internes et identité conservés. Publication : synthèse calculée, non autorisation indépendante. |
+| Révision de fiche | Autorisation de publication gérée par le système lors du futur contrôle central ; distincte de la permission de redistribution du propriétaire. |
+| Installation / empreintes | Conserver les données techniques et mécanismes de révision ; installation retirée de la fiche administrative et empreinte/version lue dans le diagnostic. |
+
+Les validateurs historiques « visibilité de fiche non privée » ou « éditeur requis » doivent évoluer : la fiche n'a plus de visibilité saisie et la bibliothèque n'a plus d'éditeur distinct. Les contrôles de propriétaire identifié et de droits nécessaires à la diffusion restent applicables. Les anciennes descriptions de projection `phases: []` ne fixent pas la nouvelle cible.
+
+La compatibilité de lecture des anciens fichiers, le calcul d'empreinte après retrait de champs et la migration doivent être spécifiés et testés. Préserver les valeurs de position de départ par intégration aux étapes ; ne pas effacer d'autres contenus conservés. Aucune migration des données utilisateur n'est exécutée par cette mise à jour documentaire.
