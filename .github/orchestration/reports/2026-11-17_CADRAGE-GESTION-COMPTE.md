@@ -64,7 +64,7 @@ Aucune de ces propositions n'est une règle. Celle qui sera retenue relève de l
 | Patron | Applications | Points saillants |
 |---|---|---|
 | **1. Compte obligatoire, serveur éditeur comme source de vérité** | Hevy, Strong, Fitbod, Nike Training Club ; coach → client : TrainHeroic, TrueCoach, SugarWOD | Le compte sert à la fois de sauvegarde, de synchro et de passage iOS ↔ Android. Partage par lien ou flux côté serveur. Pas de chiffrement de bout en bout documenté. Problème récurrent : comptes en double quand l'utilisateur change de fournisseur, connexion Apple difficile sur Android (Hevy, Strong). |
-| **2. Local, sans compte, cloud de la plateforme** | Seconds (sauvegardes iCloud, export par fichier), minuteurs sans collecte | Aucun pont iOS ↔ Android. |
+| **2. Local, sans compte, cloud de la plateforme** | Seconds (sauvegardes iCloud, export par fichier), minuteurs sans collecte | Pas de récupération de ses propres données lors d'un changement de téléphone iOS ↔ Android (le partage entre utilisateurs par fichier ou lien reste possible). |
 | **3. Local, compte facultatif, sync propriétaire non chiffrée de bout en bout** | Things 3 | Apple uniquement, dernier état seulement. |
 | **4. Local, compte facultatif, serveur chiffré côté client** | Day One, Obsidian Sync | Partage possible (journaux et coffres partagés). Une clé perdue rend les données irrécupérables (Day One). |
 
@@ -83,7 +83,8 @@ Sources détaillées : help.hevyapp.com, help.strongapp.io, help.fitbod.me, manu
   - `expo-cloudkit` : iOS seulement ;
   - `expo-sqlite-cloudkit` 0.2.0 : très jeune.
 
-  Une sauvegarde par la plateforme imposerait **deux mécanismes**, sans passage iOS ↔ Android.
+  Une sauvegarde par la plateforme imposerait **deux mécanismes**, sans récupération des données lors d'un changement de téléphone iOS ↔ Android.
+- **Exception récente** : Android 16 QPR2 (API 36.1) permet un transfert de données d'application vers ou depuis iOS au changement d'appareil (`cross-platform-transfer`). Il est limité aux appareils récents et demande un développement des deux côtés : il n'est pas retenu comme solution à ce stade.
 
 ### 4.3 Données de santé (France)
 
