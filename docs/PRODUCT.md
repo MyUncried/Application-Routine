@@ -20,7 +20,7 @@ Les Bibliothèques se composent de **références**, non de copies : composition
 
 Le propriétaire habilité peut **publier initialement** son propre Mouvement, sans autoriser sa redistribution par les destinataires. La **redistribution** d'une fiche tierce requiert une autorisation distincte. Une fiche reçue/importée n'est **ni modifiable, ni copiable, ni duplicable**, même pour un usage personnel (MOUV-D3, A-2 du 11/11/2026) ; elle peut seulement être **redistribuée à l'identique** lorsque ce droit est explicitement accordé par la source (lot futur). Les anciennes permissions destinataires à quatre modes sont supersédées. La fiche originale reste modifiable par son créateur/propriétaire habilité et non redistribuable par des tiers par défaut jusqu'au choix des droits de partage ; les paramètres d'Exercice restent indépendants. L'archivage n'interrompt pas la distribution ; l'arrêt du partage ne retire pas les installations reçues.
 
-La transmission individuelle s'effectue via un **Espace en étoile générique**, sans rôle professionnel ni prescription numérique ; dans l'usage kiné-patient, les consignes d'exécution restent orales. Les médias et révisions doivent être contrôlés avant diffusion et peuvent être neutralisés ultérieurement par la modération. La gestion commerciale et les groupes restent différables sans perturber le MVP local.
+La transmission individuelle s'effectue via un **Espace en étoile générique**, sans rôle professionnel ni prescription numérique ; dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (réconciliation du 17/11/2026). Les médias et révisions doivent être contrôlés avant diffusion et peuvent être neutralisés ultérieurement par la modération. La gestion commerciale et les groupes restent différables sans perturber le MVP local.
 
 **Statut : cible future de partage, non livrée ; MOUV-D3 interdit l'édition et la duplication des fiches importées quel que soit l'ancien mode de permissions.** [Parcours PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) · [Conception fonctionnelle](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) · [Architecture et simplifications pour Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
 
@@ -636,3 +636,9 @@ Une collection unique de séances, une carte commune et deux vues désélectionn
 [Source finale validée](sources/formats-2026-11-05/KODJO-Complement-Parcours-creation-2026-11-05.md). Aucun code ni moteur développé dans cette mise à jour documentaire.
 
 **Composition, 06/11/2026 (D-511 à D-513, classe B)** : [carte d’exercice, en-tête de Circuit et placement](KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement). Placement réservé aux Points d’arrêt ; géométrie de la carte actualisée ; déploiement Figma des en-têtes partiel.
+
+## Réconciliation du 17 novembre 2026
+
+La fiche Mouvement complète associe les attributs d'usage et les informations éditoriales liées à sa source. Le partage individuel standard transmet les médias communs ; la cible de partage personnalisé ajoute un média propre au destinataire et un texte facultatif. La suppression du champ éditorial de texte alternatif est décidée. La fréquence structurée et le suivi partagé restent à arbitrer ; le partage appartient à un lot ultérieur.
+
+[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
