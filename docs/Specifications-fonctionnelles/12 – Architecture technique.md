@@ -2079,3 +2079,9 @@ Classe B. Décisions de Hermann du 16/11/2026 (registre ch07, « Catalogue des M
 - Stockage : `migration029`, version 29 : `guidance_preferences.events_json` (Profil, `NULL` = défauts du design) et `sessions.guidance_settings` (JSON, `NULL` = comme le Profil). Les colonnes `sessions.guidance_*` de `migration028` ne sont plus lues. Les six annonces restent dans leurs colonnes existantes.
 - Interface : `GuidanceSettingsForm` (mêmes contrôles dans Profil › Préférences et dans la modale), `SoundChoiceList` ; modale de Composition sur `FilterSheetFrame` en feuille native de hauteur fixe (en-tête fixe) ; « Choix d’un son » dans la même feuille (Composition) ou route `app/profile-sound.tsx` (Profil) ; `SecondaryActionButton` (« Bouton secondaire » 40 × 32) pour le bouton Guidage sonore ; l’action Édition de la fiche n’y est pas encore rebranchée.
 - Exécution : `ExecutionSignalAdapter.setGuidance` applique son et vibration par événement ; une Exécution reprise avec l’ancienne forme de guidage suit le Profil. Anneau du chrono animé en continu (Reanimated, `ringMotion`). Pause à l’arrière-plan (`AppState`).
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+La séparation provisoire kodjo.db / kodjo-catalogue-registry.db est maintenue selon la décision CA-3. installed_sheets conserve les propriétés éditoriales liées au Mouvement. La suppression cible de media[].alt exige une correction technique du format, des validations et de leur compatibilité ; aucun transfert vers une nouvelle table n'est imposé par cette réconciliation.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
