@@ -246,6 +246,8 @@ La page de tarifs publique n'a pas été lue. Les prix viennent des fichiers de 
   - **(b)** version Premium de la bibliothèque, sur abonnement payant ;
   - **(c)** connexion par page web `signInWithOAuth`, gratuite et sûre, mais moins fluide qu'un choix de compte natif.
 
+**Décision CPT-12 (Hermann, « option c) »)** : la connexion Google se fait par page web sur iOS et Android.
+
 ### Points utiles pour la suppression du compte (CPT-10)
 
 - Suppression côté serveur par `auth.admin.deleteUser()`, avec la clé de service, donc dans une fonction serveur et jamais dans l'app.
