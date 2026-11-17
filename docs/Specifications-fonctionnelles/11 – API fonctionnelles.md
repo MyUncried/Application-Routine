@@ -653,3 +653,9 @@ Les opérations ci-dessous sont **fonctionnelles et post-MVP** ; les endpoints e
 | Relation et transmission dans l'Espace | Invitation/acceptation/refus/blocage ; transfert individuel de fiches, sans rôle professionnel ni création de prescription numérique. |
 
 Les détails d'accès payant, les restrictions de droits ultérieures et les conflits locaux restent à arbitrer. Les requêtes doivent vérifier droits/permissions et approbation **côté serveur**, non via l'affichage des boutons. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+Les contrats de transfert et d'installation conservent la fiche éditoriale complète et son rattachement à Movement.id. La cible retire media[].alt ; la compatibilité des fichiers historiques et des révisions doit être traitée techniquement. Les paramètres d'un futur partage personnalisé sont définis fonctionnellement ; le contrat de service, la fréquence structurée et le suivi restent à préciser.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
