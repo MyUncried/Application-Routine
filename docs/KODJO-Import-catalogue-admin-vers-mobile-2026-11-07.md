@@ -1,5 +1,7 @@
 # KODJO — Passerelle de l'administration Web au Catalogue mobile (pilote)
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 **Statut :** outil de recette locale, hors MVP et non publié.  
 **Date :** 7 novembre 2026.  
 **Sources :** `tools/catalogue-admin/static-ovh/index.html` (branche de la PR #432, non reportée sur `main`), `catalogue/pilote/mouvements-60-candidats.json`, `catalogue/referentiels/preclassement-60-candidats-v0.json`, `src/features/activities/pilotMovementImport.ts`, `src/features/activities/PilotMovementImportCommand.tsx`.  
@@ -53,3 +55,9 @@ Aucun changement du site OVH n'est nécessaire pour cet import. La PR de raccord
 - Décisions : aucun nouvel arbitrage de taxonomie ni de publication ; l'import demeure une proposition technique provisoire.
 - Catalogue autonome (décision de Hermann du 10/11/2026) : ce mécanisme, qui embarque les 60 fiches dans le code, sera remplacé par le format `KODJO_MOVEMENT_CATALOGUE` v1 (`docs/KODJO-Format-catalogue-mouvements-v1.md`). Le fichier pilote converti `catalogue/catalogues/kodjo-pilote-60.catalogue.json` existe (CA-2) ; son chargement dans l'application (CA-3 à CA-6) n'est pas encore développé.
 - Évolutions ouvertes : import multimédia, résolution assistée des collisions, révisions différentielles avec historique, accès sécurisé/synchronisé au catalogue, validation éditoriale et clinique.
+
+## Décisions consolidées du 17 novembre 2026
+
+Ce document décrit le contrat historique d’import. La cible du 17/11 supprime les champs éditoriaux abandonnés ; conserve identité, origine, amont, droits, révisions et données techniques d’installation ; inclut phases source et classifications utiles aux filtres. La position de départ existante rejoint les étapes sans doublon. Le retrait d’accès ne doit pas détruire les références de séance ou l’historique. Versionnement et compatibilité des anciens fichiers sont à réaliser, sans réinitialiser les installations.
+
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
