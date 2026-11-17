@@ -1,5 +1,7 @@
 # Versions et périmètre
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 ## Composition — actualisation du 28/10/2026
 
 Les cycles visibles avec compte propre, exercices directs de cycle et circuits multiples entrent dans la cible MVP. Cette intégration documentaire ne prouve aucune réalisation et ne modifie aucune préparation figée. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -560,7 +562,7 @@ Le chantier suit la conception normative des fiches, la consolidation de donnée
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation régie désormais par MOUV-ACC-20261117 ; adaptations locales interdites selon A-2, hors reprise historique CA-3. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## Évolution ultérieure — Distribution des Bibliothèques de Mouvements
 
@@ -569,3 +571,8 @@ La cible prévoit des Bibliothèques personnelles constituées par références,
 Le partage en Bibliothèque attribue l'accès au niveau de la collection ; la publication initiale d'une fiche par son propriétaire est distincte de la redistribution par un destinataire. Les anciens quatre modes de modification/redistribution sont **supersédés** (MOUV-D3, A-2 du 11/11/2026) : les fiches reçues/importées sont non modifiables, non copiables et non duplicables ; leur redistribution à l'identique est autorisée seulement si la source accorde ce droit, dans un lot futur. L'Espace en étoile assure séparément la transmission individuelle de Mouvements, sans rôle professionnel ni prescription numérique ; dans l'usage kiné-patient un texte facultatif peut accompagner le partage personnalisé (17/11/2026).
 
 L'archivage est indépendant de la diffusion ; l'arrêt du partage ne supprime pas les installations reçues. La gestion des comptes, du partage réseau, de la modération et des offres commerciales reste **post-MVP** ; son ordonnancement exact entre versions futures n'est pas arrêté. L'import pilote des 60 fiches et le moteur d'Exécution local n'impliquent aucune livraison de ces fonctions. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+## Décisions consolidées du 17 novembre 2026
+
+Les champs validés mais reportés restent documentés. Partage interutilisateurs et contrôle central de publication : lot futur. Accès utilisateur au glossaire : chantier futur des aides. Ces décisions ne sont pas une preuve de livraison.
+
+[Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
