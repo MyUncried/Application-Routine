@@ -1692,7 +1692,7 @@ function MovementCatalogueCard({
 }
 
 /** D-510 : états « Nouveau » de la carte Mouvement. */
-type NewState = "NO" | "YES" | "IN_PILE";
+export type NewState = "NO" | "YES" | "IN_PILE";
 
 /**
  * D-510 (Figma `11762:2205`, `11765:2101`) : onglet vert `color/status/positive-text` de 32 de haut (corps de 24, raccord
@@ -1700,7 +1700,7 @@ type NewState = "NO" | "YES" | "IN_PILE";
  * du haut. Description arrêtée à 8 du corps de l'onglet (55 et 69 depuis le bord extérieur de la carte, moins les 4 de bord et
  * de marge intérieure).
  */
-const NEW_BADGES = {
+export const NEW_BADGES = {
   YES: {
     label: t.newBadge,
     width: 55,

@@ -163,7 +163,11 @@ export const DATABASE_NAME = "kodjo.db";
  * **Guidage sonore par événement (version 29, `migration029`)** : `guidance_preferences.events_json` et
  * `sessions.guidance_settings`, colonnes additives nullables. 001..028 inchangées.
  */
-export const DATABASE_VERSION = 29;
+/**
+ * **Catalogue des Mouvements en grille (version 30, `migration030`)** : table singleton `catalogue_preferences` (`movement_catalogue_grid` : 0 =
+ * liste, défaut ; 1 = grille), jointe au Profil ; aucune table existante modifiée. 001..029 inchangées.
+ */
+export const DATABASE_VERSION = 30;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

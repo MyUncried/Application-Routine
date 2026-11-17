@@ -22,6 +22,7 @@ const SELECT_COLUMNS = `
   p.exercise_countdown_seconds_default, p.exercise_end_seconds_default,
   p.session_initial_countdown_seconds_default, p.session_final_phase_seconds_default,
   p.sounds_enabled, p.voice_announcements_enabled, p.vibration_enabled, p.notifications_enabled,
+  COALESCE(c.movement_catalogue_grid, 0) AS movement_catalogue_grid,
   COALESCE(g.announce_objective_enabled, ${DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED ? 1 : 0}) AS announce_objective_enabled,
   COALESCE(g.announce_pauses_enabled, ${DEFAULT_ANNOUNCE_PAUSES_ENABLED ? 1 : 0}) AS announce_pauses_enabled,
   COALESCE(g.announce_session_enabled, ${DEFAULT_ANNOUNCE_SESSION_ENABLED ? 1 : 0}) AS announce_session_enabled,
@@ -32,7 +33,8 @@ const SELECT_COLUMNS = `
 `;
 
 /** Préférences de guidage (`migration025`), table singleton dédiée jointe au Profil. */
-const FROM_PROFILE = "profiles p LEFT JOIN guidance_preferences g ON g.singleton_key = p.singleton_key";
+const FROM_PROFILE =
+  "profiles p LEFT JOIN guidance_preferences g ON g.singleton_key = p.singleton_key LEFT JOIN catalogue_preferences c ON c.singleton_key = p.singleton_key";
 
 /** Colonne SQL de chaque réglage de durée — jamais une concaténation de nom d'origine utilisateur (clé fermée, `ProfileDurationSetting`). */
 const DURATION_SETTING_COLUMNS: Readonly<Record<ProfileDurationSetting, string>> = {
@@ -45,12 +47,22 @@ const DURATION_SETTING_COLUMNS: Readonly<Record<ProfileDurationSetting, string>>
 };
 
 /** Colonne SQL de chaque préférence de `profiles` — même garde que ci-dessus. */
-const PREFERENCE_COLUMNS: Readonly<Record<Exclude<ProfilePreference, GuidancePreference>, string>> = {
+const PREFERENCE_COLUMNS: Readonly<Record<Exclude<ProfilePreference, GuidancePreference | CataloguePreference>, string>> = {
   soundsEnabled: "sounds_enabled",
   voiceAnnouncementsEnabled: "voice_announcements_enabled",
   vibrationEnabled: "vibration_enabled",
   notificationsEnabled: "notifications_enabled",
 };
+
+/** Préférences de présentation des Catalogues (`migration030`), table singleton dédiée jointe au Profil. */
+type CataloguePreference = "movementCatalogueGridEnabled";
+const CATALOGUE_COLUMNS: Readonly<Record<CataloguePreference, string>> = {
+  movementCatalogueGridEnabled: "movement_catalogue_grid",
+};
+
+function isCataloguePreference(preference: ProfilePreference): preference is CataloguePreference {
+  return preference in CATALOGUE_COLUMNS;
+}
 
 /** Préférences rangées dans `guidance_preferences` (suite PRE-10 son et voix, `migration025`). */
 type GuidancePreference = "announceObjectiveEnabled" | "announcePausesEnabled" | "announceSessionEnabled" | "announceSidesEnabled" | "announcePhasesEnabled";
@@ -113,6 +125,15 @@ export class SqliteProfileRepository implements ProfileRepository {
       );
       return this.get();
     }
+    if (isCataloguePreference(preference)) {
+      const catalogueColumn = CATALOGUE_COLUMNS[preference];
+      await this.database.runAsync(
+        `INSERT INTO catalogue_preferences (singleton_key, ${catalogueColumn}, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT(singleton_key) DO UPDATE SET ${catalogueColumn} = excluded.${catalogueColumn}, updated_at = excluded.updated_at`,
+        [LOCAL_PROFILE_SINGLETON_KEY, value ? 1 : 0, timestamp],
+      );
+      return this.get();
+    }
     const column = PREFERENCE_COLUMNS[preference];
     await this.database.runAsync(
       `UPDATE profiles SET ${column} = ?, updated_at = ? WHERE singleton_key = ?`,
@@ -161,6 +182,7 @@ export function mapProfileRow(row: ProfileRow): Profile {
     announceSessionEnabled: row.announce_session_enabled === 1,
     announceSidesEnabled: row.announce_sides_enabled === 1,
     announcePhasesEnabled: row.announce_phases_enabled === 1,
+    movementCatalogueGridEnabled: row.movement_catalogue_grid === 1,
     guidanceEvents: parseGuidanceEvents(row.guidance_events_json),
     displayName: row.display_name,
     photoUri: row.photo_uri,

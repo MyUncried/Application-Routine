@@ -240,6 +240,8 @@ export type ProfileRow = {
   announce_session_enabled: 0 | 1;
   announce_sides_enabled: 0 | 1;
   announce_phases_enabled: 0 | 1;
+  /** `migration030` (`catalogue_preferences`, jointe) : catalogue des Mouvements en grille (1) ou en liste (0, ligne absente). */
+  movement_catalogue_grid: 0 | 1;
   /** `migration029` : son et vibration des neuf événements (JSON), `NULL` = valeurs par défaut. */
   guidance_events_json?: string | null;
   display_name: string | null;

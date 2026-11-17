@@ -224,6 +224,13 @@ Résultats relus dans le cahier en ligne (version 122). OK : `mp-rouge`, `mp-ble
 - **Tests sur le résultat de la fusion :** 366 suites, 5 867 réussis, 32 ignorés, 0 échec ; `tsc` propre.
 - **Reste à faire :** pousser `pre11-formats`, ouvrir la PR vers main et la fusionner (avec l’accord de Hermann).
 
+## Point 15 — Fusion dans main (17/11/2026)
+
+- **Validation de Hermann, recopiée :** « Je valide » (pousser, ouvrir la PR et la fusionner).
+- `pre11-formats` poussée ; PR #440 (https://github.com/MyUncried/Application-Routine/pull/440) ouverte, « MERGEABLE / CLEAN ».
+- Aucun contrôle GitHub ne s'est déclenché en 4 minutes d'attente (la PR #439 avait un contrôle `sync`).
+- PR fusionnée le 17/11/2026 à 00:19 UTC par commit de fusion : `main` = `7c0d2d21`. La documentation du lot (correctif `…-16f.patch` et résolutions du point 14) est donc sur `main`.
+
 ## Hypothèses non démontrées
 
 - La zone tactile du nom (toute la hauteur de la ligne, jusqu'au tableau) n'a pas été vérifiée au doigt. Seul un test sur iPhone peut le confirmer.
