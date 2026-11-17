@@ -224,7 +224,7 @@ L’architecture doit permettre :
 
 Le MVP ne nécessite pas :
 - de backend applicatif ;
-- de compte utilisateur ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.]
+- de compte utilisateur ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 - de connexion Internet pour les fonctions principales ;
 - de synchronisation multi-appareils ;
 - d’API réseau interne ;
@@ -238,7 +238,7 @@ Les principes suivants sont retenus :
 |---|---|
 | Plateformes | iOS et Android |
 | Fonctionnement hors ligne | Toutes les fonctions principales du MVP fonctionnent hors connexion |
-| Compte utilisateur | Aucun compte obligatoire dans le MVP [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.] |
+| Compte utilisateur | Aucun compte obligatoire dans le MVP [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).] |
 | Identité locale | Chaque installation dispose d’un identifiant Utilisateur interne unique et stable |
 | Stockage | Données métier stockées localement sur l’appareil |
 | Backend | Aucun backend requis pour le MVP |
@@ -425,7 +425,7 @@ L’impact est transversal mais additif : éditeur, calcul, données et moteur c
 
 ### MVP
 
-Le MVP ne nécessite pas de création de compte ni de connexion. [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.]
+Le MVP ne nécessite pas de création de compte ni de connexion. [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 
 Lors du premier lancement, l’application génère automatiquement un **identifiant Utilisateur interne unique et stable**, de type UUID ou équivalent.
 

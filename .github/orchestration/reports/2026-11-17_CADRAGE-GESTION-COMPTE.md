@@ -133,6 +133,56 @@ Le socle (compte et serveur de partage) précède la sauvegarde dans les deux ca
 5. **Backend :** étude comparative ou Supabase directement. La localisation des données en UE est un critère RGPD.
 6. **Avis juridique ou DPO** sur le statut des douleurs déclarées.
 
+## 7. Décisions complémentaires (17/11/2026)
+
+- **CPT-07** : le lot Compte fait partie du MVP.
+- **CPT-08** : en cas de suppression du compte, les données locales restent sur le téléphone. Les données du compte sur le serveur sont supprimées. Le principe est validé ; les modalités du §8 restent à valider.
+
+## 8. Suppression du compte — bonnes pratiques et modalités proposées
+
+**Obligations des plateformes et du RGPD.** Les éléments suivants sont cités de mémoire et sont à vérifier sur les textes en vigueur avant le plan :
+- **App Store** (règle 5.1.1(v)) : une app qui permet de créer un compte doit permettre de le supprimer depuis l'app. La suppression porte sur le compte et les données associées, pas sur une simple désactivation. Avec Sign in with Apple, les jetons doivent être révoqués auprès d'Apple.
+- **Google Play** : suppression depuis l'app, et aussi depuis une page web accessible sans réinstaller l'app.
+- **RGPD**, article 17 : effacement des données personnelles détenues par KODJO, sauf obligation légale de conservation.
+
+**Analyse de CPT-08.** Garder les données locales est conforme à ces obligations. Elles sont sur l'appareil de l'utilisateur, qui les contrôle, et non chez KODJO. Elles disparaissent si l'utilisateur supprime l'app.
+
+**Modalités proposées par Claude, à valider :**
+1. **Serveur** : suppression immédiate du compte, du lien avec l'identité Apple/Google et du catalogue de compte.
+2. **Contenu partagé ou publié par l'utilisateur** : retiré. Chez ses destinataires, on applique la règle déjà validée de **perte du dernier accès** (décisions du 17/11) : indisponibilité, séances à corriger, avertissement, historique conservé, médias personnalisés conservés. L'alternative serait de conserver ce contenu de manière anonyme. Elle n'est pas retenue, car l'utilisateur garde la maîtrise de ce qu'il a créé.
+3. **Fiches reçues d'autres comptes et Bibliothèques KODJO** : sans compte, les droits ne peuvent plus être vérifiés. On applique la même règle de perte d'accès.
+4. **Après la suppression** : comme le compte est obligatoire, l'app ramène à l'écran de connexion. À la création d'un nouveau compte, l'Utilisateur local existant y est rattaché (mécanisme du §12.7). Les données locales sont ainsi retrouvées.
+5. **Dialogue de confirmation** : il indique ce qui est supprimé du serveur et ce qui reste sur le téléphone. Pour tout effacer, il suffit de supprimer l'application. Aucune option d'effacement local n'est ajoutée au premier lot, par simplicité.
+
+## 9. Analyse — douleurs déclarées et maintien des données en local
+
+**Constat.** La douleur est déjà spécifiée (D-427 à D-429, ch. 04 et 09) pour une exécution lancée dans un Programme avec l'option active :
+- douleur initiale et finale de 0 à 10 ;
+- localisations par zones corporelles, avec la latéralité ;
+- effort perçu.
+
+Une douleur chiffrée et localisée décrit un état de santé physique. Il s'agit **très probablement d'une donnée de santé « par nature »** au sens de la CNIL et de l'article 9 du RGPD. Le benchmark ne trouve pas de source officielle qui tranche explicitement ce cas.
+
+**Lot Compte (CPT-01).** Le serveur ne reçoit que l'identité et le contenu partagé (fiches, Bibliothèques). Aucune Exécution, aucun Historique, aucune douleur. Les douleurs restent sur le téléphone, pour un usage personnel. La CNIL exclut ce cas du champ de la loi (« données conservées uniquement en local… à des fins exclusivement personnelles »). **Pour le lot Compte, KODJO ne traite donc pas de données de santé**, et les obligations de l'article 9 ne s'appliquent pas à ce lot.
+
+**Conditions pour que cela reste vrai :**
+- aucune remontée d'Historique ou de douleurs vers le serveur, ni par la télémétrie, ni par les rapports de plantage (Sentry), ni par des journaux ;
+- le contenu partagé ne transporte aucune donnée d'Exécution. C'est déjà le cas avec KIN-01 : « ne pas remonter les Exécutions, douleurs, résultats ».
+
+**Lot Sauvegarde (CPT-06).** Envoyer l'Historique sur le serveur fait sortir de l'exemption. Trois options pour y préparer :
+
+| Option | Article 9 pour KODJO | Contrepartie |
+|---|---|---|
+| A. Exclure douleurs, localisations et effort de la sauvegarde | Évité | Ces valeurs sont perdues lors d'un changement de téléphone |
+| B. Sauvegarde chiffrée côté téléphone (KODJO sans la clé) | Fortement réduit. KODJO héberge toutefois des données chiffrées : leur qualification reste à faire confirmer | Clé perdue = sauvegarde perdue |
+| C. Sauvegarde lisible avec consentement explicite | Applicable : consentement exprès, information, minimisation, AIPD probable, sécurité renforcée | Charge de conformité la plus lourde, mais restauration complète |
+
+L'hébergement certifié des données de santé (HDS) reste probablement non applicable : application grand public, sans activité de soins, de prévention ou de suivi par un professionnel. Le risque de bascule existe si le partage avec un kiné ou une finalité de prévention des blessures apparaît (cible KIN-01).
+
+**Recommandation.** Inscrire dès le lot Compte une règle technique : « aucune donnée d'Exécution ne quitte le téléphone », y compris dans les rapports de plantage. Choisir entre A, B et C au lot Sauvegarde, après avis juridique ou DPO sur l'option retenue.
+
+Cette analyse n'est pas un avis juridique.
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
@@ -149,6 +199,7 @@ Le socle (compte et serveur de partage) précède la sauvegarde dans les deux ca
 ## Éléments non corrigés ou hors périmètre
 
 - Vérification Supabase (CPT-05) : à faire avant le plan.
+- Modalités de suppression du compte (§8) : en attente de validation.
 - Index des identifiants (annexe) : CPT-01 à CPT-06 non encore référencés.
 - Plan d'implémentation : il suivra les arbitrages et sera soumis à revue avant tout code.
 

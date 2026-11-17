@@ -363,7 +363,7 @@ Le MVP s’adresse en priorité à une personne qui crée ses propres Séances e
 
 Il fonctionne :
 
-- sans compte utilisateur obligatoire ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.]
+- sans compte utilisateur obligatoire ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 - sans synchronisation entre appareils ;
 - sans partage avec un professionnel ou un groupe ;
 - uniquement en français à l’écran.

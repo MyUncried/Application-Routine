@@ -186,7 +186,7 @@ Les comptes, la synchronisation, les autorisations de partage et la confidential
 
 ## 6. Critère de réussite du MVP
 
-Une personne seule doit pouvoir, sans compte et sans aide professionnelle : [À revoir après le 17/11/2026 — CPT-02 rend le compte obligatoire dès sa livraison ; le critère reste valable tant que le rattachement du lot Compte au MVP n’est pas clarifié.]
+Une personne seule doit pouvoir, sans compte et sans aide professionnelle : [Remplacé le 17/11/2026 — CPT-02 et CPT-07 : le compte, obligatoire, fait partie du MVP ; le critère se lit « avec un compte Apple ou Google, sans aide professionnelle ».]
 
 1. créer une Séance exécutable ;
 2. la retrouver et la modifier ;

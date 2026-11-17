@@ -2830,7 +2830,9 @@ Décisions de Hermann du 17/11/2026, prises lors du cadrage du chantier (rapport
 | CPT-05 | Backend : **Supabase** retenu, sous réserve d’une vérification courte : région UE, coût, connexion Apple et Google avec Expo 57, y compris Apple sur Android. | « Oui » à « Supabase retenu sous réserve de cette vérification courte » | Validée sous réserve |
 | CPT-06 | Le lot **sauvegarde et restauration sur le serveur KODJO** des données privées est planifié juste après le lot compte. Le choix entre copie lisible par KODJO et copie chiffrée côté téléphone est reporté à ce lot. Le contenu partagé n’entre pas dans la sauvegarde : il est récupéré depuis le serveur avec ses droits. | « Oui » à « Lot sauvegarde planifié juste après le lot compte » | Validée |
 
+| CPT-07 | Le lot Compte fait partie du **MVP**. | « Dans le MVP » | Validée |
+| CPT-08 | Suppression du compte depuis l’application : les **données locales restent sur le téléphone**. Les données du compte sur le serveur sont supprimées. | « Je dirais que les données restent en local. » | Validée sur le principe ; modalités ci-dessous à valider |
+
 **À CLARIFIER (non décidé) :**
-- Rattachement du lot Compte à la version MVP publiée, qui était définie « sans compte ».
-- Suppression du compte depuis l’application (obligation App Store) : sort des données locales et du contenu partagé.
+- Modalités de CPT-08 proposées par Claude et non encore validées : sort du contenu que l’utilisateur a partagé ou publié, accès aux fiches reçues d’autres comptes après la suppression, rattachement des données locales à un nouveau compte, option d’effacement local.
 - Statut juridique d’un historique contenant des douleurs déclarées (RGPD art. 9), à soumettre à un avis juridique ou DPO avant le lot sauvegarde.
