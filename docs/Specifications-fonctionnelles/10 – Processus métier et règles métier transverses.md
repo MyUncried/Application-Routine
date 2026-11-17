@@ -2772,3 +2772,9 @@ La règle « présent dans les deux natures » et la grille des volumes (S1…Sn
 10. **Périmètre :** aucun changement imposé au moteur local MVP ; paiements et commerce restent séparés.
 
 **Restent À CLARIFIER :** conflits de données modifiées localement, restriction de droits ultérieure, expiration commerciale, groupes, gestion détaillée de l'Espace, migration de l'index global des noms et intégrité multi-bases. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+Le partage standard transmet les médias communs du mouvement ; le partage personnalisé ajoute un média propre au destinataire et un texte facultatif. Les nouvelles règles d'inactivation après suppression d'une Bibliothèque et d'accès aux exécutions restent à arbitrer. Les règles existantes de conservation ne sont pas remplacées sur la base d'une proposition.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
