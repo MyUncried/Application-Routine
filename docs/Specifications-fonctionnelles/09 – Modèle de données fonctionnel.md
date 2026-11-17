@@ -1582,3 +1582,9 @@ Le tableau représente la prescription effective des séries. L’EMOM n’a auc
 **Migration :** `movements.normalized_name UNIQUE` (migration 013) empêche aujourd'hui les homonymes. La nouvelle règle inter-sources exige une migration contrôlée de cet index, **sans modifier les `Movement.id` existants**. La forme de l'index et le contrôle des doublons créés localement restent à instruire. Le champ historique `authors[]` de CA-1 doit être remplacé par **`author: ActorRef | null`** selon MOUV-D1 ; conversion sans perte des anciennes fiches et refus explicite si plusieurs auteurs existent. La branche pilote sera adaptée lors du développement.
 
 **Choix de tables physiques non figés :** fusion ou séparation accès/preuve, soumission/modération, emplacement de l'état de suspension. [Conception à revoir par Claude](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+Le modèle conserve Movement et CatalogueSheet reliés par l'identité source. Le registre installed_sheets stocke la fiche éditoriale complète ; les Bibliothèques la référencent. Le champ éditorial media[].alt est supprimé de la cible. Les familles de niveaux sont portées par les fiches, indépendamment de l'ordre des Bibliothèques. Les phases importées et les usages de filtrage supplémentaires restent ouverts.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
