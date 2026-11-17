@@ -183,6 +183,18 @@ L'hébergement certifié des données de santé (HDS) reste probablement non app
 
 Cette analyse n'est pas un avis juridique.
 
+## 10. Révision des modalités 2 et 3 du §8 (CPT-09)
+
+Hermann a contesté les modalités 2 et 3 : « Si je partage une séance avec quelqu'un, puis que je supprime mon compte, pourquoi est ce que les mouvements et séances devraient être supprimées ? »
+
+**Analyse.** La règle de perte du dernier accès (MOUV-ACC-20261117) vise la révocation volontaire par un auteur. La suppression d'un compte est un cas différent. Bonne pratique, sur le modèle de WhatsApp : le serveur efface ce qu'il détient ; les copies déjà présentes chez les destinataires restent. Cette pratique est cohérente avec l'article 17 du RGPD, qui porte sur les données détenues par KODJO.
+
+**Décision CPT-09, validée par Hermann.** Les modalités 2 et 3 sont remplacées :
+- les contenus déjà sur un téléphone restent utilisables, **figés** : aucune mise à jour, aucune redistribution, auteur « Compte supprimé » ;
+- c'est une exception à MOUV-ACC-20261117, annotée dans ce document et dans le document Conception Bibliothèques.
+
+**Encore en attente de validation :** modalités 1, 4 et 5 du §8, et la règle du §9 « aucune donnée d'Exécution ne quitte le téléphone ».
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
