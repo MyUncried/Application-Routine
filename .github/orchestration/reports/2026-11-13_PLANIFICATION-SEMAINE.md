@@ -141,3 +141,12 @@ Communiqués dans le message de livraison (hash du commit contenant ce rapport, 
 - Correction (classe D, technique) : `app.config.js` retire `aps-environment` ; les rappels sont des notifications locales, sans push. Vérifié par `expo config --type introspect` : droits vides pour `development`, `bmad` et `production`.
 - Effet à vérifier sur iPhone : demande d'autorisation et réception du rappel (cahier, section « Rappel »).
 - Recette : Metro en réseau local `http://192.168.0.16:8083` (le tunnel Expo échoue au démarrage) ; cahier en ligne https://claude.ai/artifact/SbY2Ci9tcqVe3s9AiDBB84.
+
+## Complément du 17/11/2026 — mise à jour depuis main
+
+- Demande de Hermann (17/11) : faire entrer `main` dans la branche avant la recette, la planification n'entrant dans `main` qu'après la recette.
+- `origin/main` (417 commits d'avance) fusionné dans `planification/main-20261113` (merge, sans rebase).
+- `main` a pris la migration 030 (`catalogue_preferences`, grille du Catalogue des Mouvements, 16/11). La planification passe en **migration 031**, `DATABASE_VERSION = 31` ; tables et contraintes inchangées. Le catalogue connecté prendra la prochaine version libre.
+- Conflits résolus : `manifest.json` (icône Planifier + icônes d'Exécution gardées), `package.json` / `package-lock.json` (`expo-network` de `main` + `expo-notifications`), `constants.ts`, `migrateDatabase.ts`, `migration030.ts` (version de `main`). Assertions de version courante des tests de migration : 30 → 31.
+- Tests : `jest` 397 suites, 6 164 réussis, 32 ignorés ; `tsc` propre ; `eslint src app` : rien sur les fichiers de la branche (29 problèmes préexistants dans des fichiers de `main` non modifiés ici).
+- Conséquence recette : `expo-network` est un nouveau module natif et la base installée par la build f3600cd7 est numérotée selon l'ancienne 030. **Supprimer Routine Dev de l'iPhone et installer une nouvelle build** (données de test).

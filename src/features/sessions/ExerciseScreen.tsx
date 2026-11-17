@@ -26,7 +26,6 @@ import type { Category } from "@/domain/categories/Category";
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
-  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
@@ -57,6 +56,7 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
+import { isImportedMovement } from "@/features/catalogue/importedMovements";
 import type { ActivityDefinitionService, MovementLevels } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
@@ -142,15 +142,12 @@ export function useProfileDefaults() {
     readonly sideRecovery: number;
     readonly countdown: number;
     readonly end: number;
-    /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice de Séance. */
-    readonly recovery: number;
     readonly silhouette: Silhouette | null;
   }>({
     loaded: false,
     sideRecovery: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
     countdown: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
     end: DEFAULT_EXERCISE_END_SECONDS,
-    recovery: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
     silhouette: null,
   });
   useEffect(() => {
@@ -163,7 +160,6 @@ export function useProfileDefaults() {
             sideRecovery: profile.sideChangeRecoverySecondsDefault,
             countdown: profile.exerciseCountdownSecondsDefault,
             end: profile.exerciseEndSecondsDefault,
-            recovery: profile.postActivityRecoverySecondsDefault,
             silhouette: profile.silhouette,
           });
         }
@@ -649,9 +645,26 @@ function CompositionExerciseEditor() {
   // Service sans `MovementRepository` (doublures antérieures à MFN) : aucun crayon.
   // PRE-7 (R-6) : après un changement de niveau, plus de crayon jusqu'à `Terminer` — une correction
   // du mouvement choisi ne se mêle pas au remplacement de l'occurrence (option conservatrice).
+  // A-2 (11/11/2026) : Mouvement importé d'une Bibliothèque — ni correction ni copie depuis la Séance ;
+  // seuls les paramètres d'exécution de l'Exercice restent réglables (BIB-08).
+  const sourceMovementId = initialSnapshot.sourceMovementId ?? null;
+  const [importedSource, setImportedSource] = useState<{ readonly id: string; readonly imported: boolean } | null>(null);
+  useEffect(() => {
+    if (sourceMovementId === null) return;
+    let cancelled = false;
+    isImportedMovement(sourceMovementId).then(
+      (imported) => { if (!cancelled) setImportedSource({ id: sourceMovementId, imported }); },
+      // Registre illisible : prudence, le contenu reste verrouillé.
+      () => { if (!cancelled) setImportedSource({ id: sourceMovementId, imported: true }); },
+    );
+    return () => { cancelled = true; };
+  }, [sourceMovementId]);
+  const sourceIsImported = sourceMovementId !== null &&
+    (importedSource?.id !== sourceMovementId || importedSource.imported);
   const canUnlockMovement =
     isEditingExisting &&
     movementLocked &&
+    !sourceIsImported &&
     activityDefinitionService.supportsSharedCorrection === true &&
     (local?.sourceMovementId ?? "") === (initialSnapshot.sourceMovementId ?? "");
 
@@ -663,9 +676,9 @@ function CompositionExerciseEditor() {
       const created: SessionDraftExercise = {
         ...initialSnapshot,
         executionParameters: withProfilePhases(initialSnapshot.executionParameters, profile.countdown, profile.end),
-        // PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil ; défauts du
-        // Profil en attente du premier ✓ (fond orange dans la Feuille).
-        postActivityRecoverySeconds: profile.recovery,
+        // [PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil — remplacé le 14/11/2026.]
+        // Correction de Hermann du 14/11/2026 : « Retirer l'enregistrement par défaut de la valeur Récupération du Profil dans les paramètres d'exécution (plus de valeur par défaut pour la récupération) » : le nouvel Exercice naît sans Récupération (`null`, `createExerciseDraft`). Défauts du
+        // Profil (Compte à rebours, Fin) en attente du premier ✓ (fond orange dans la Feuille).
         profileDefaultsPending: true,
       };
       setInitialSnapshot(created);

@@ -129,7 +129,7 @@ export function SessionCard({
   const toVerify = !incomplete && projection.toVerify;
   const flagged = incomplete || toVerify;
   const id = projection.id;
-  const duration = formatCatalogueSessionDuration(projection.duration);
+  const duration = formatCatalogueSessionDuration(projection.duration, projection.forTimeBound);
   // D-504 : Démarrer masqué sur une carte archivée et dans les modales de planification.
   const showStart = !archived && context !== "planning";
   const startAvailable = onStart !== undefined;

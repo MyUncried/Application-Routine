@@ -15,6 +15,7 @@ import {
   type SessionDraft,
   type SessionDraftDefaults,
 } from "@/domain/sessions/SessionDraft";
+import { withForTimeSeries } from "@/domain/sessions/forTimeSeries";
 import { suggestedSessionNameAfter } from "@/domain/sessions/sessionNaming";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
@@ -97,7 +98,10 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
     // PRE-6 (story 3.1) : forme fonctionnelle — le correctif est calculé sur le brouillon courant.
     setDraft((current) => {
       const patch = typeof update === "function" ? update(current) : update;
-      const next = { ...current, ...patch };
+      // PRE-11, corrections 1 et 2 de Hermann du 14/11/2026 : toute écriture (modale de la Composition, changement de Rôle,
+      // récapitulatif) laisse les For time en règle — une valeur par tour, nombre de séries commun à chaque bloc.
+      // Demande du 14/11/2026 (soir) : le nombre de séries changé sur un exercice de buy-in ou de buy-out vaut pour son bloc.
+      const next = withForTimeSeries({ ...current, ...patch }, current);
       if (patch.name !== undefined && patch.name !== current.name) {
         nameSuggestedRef.current = false;
         return next;

@@ -121,12 +121,13 @@ describe("PRE-10 noyau — fins typées (T02)", () => {
     expect(sim.state.status).toBe("FINISHED");
   });
 
-  it("Suivant avant le terme d'une Durée : confirmation requise, puis Partielle avec la durée réellement exécutée", () => {
+  // Recette du 14/11/2026 (Hermann : « exercice en durée : appuyer sur suivant doit mener directement l'exercice suivant, sans
+  // message intermédiaire de confirmation »). [Confirmation requise — remplacé.]
+  it("Suivant avant le terme d'une Durée : passage direct, sans confirmation, Partielle avec la durée réellement exécutée", () => {
     const sim = Simulation.libre(planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("d", durationParameters(40)) }], stopPoints: [] })));
     sim.send({ type: "START" }, 0);
-    expect(sim.send({ type: "NEXT", target: sim.target }, 12 * S)).toMatchObject({ outcome: "REJECTED", reason: "CONFIRMATION_REQUIRED" });
     const key = sim.leafKey!;
-    sim.send({ type: "NEXT", target: sim.target, confirmed: true }, 12 * S);
+    expect(sim.send({ type: "NEXT", target: sim.target }, 12 * S).outcome).not.toBe("REJECTED");
     expect(sim.step(key)).toMatchObject({ completion: "PARTIAL", lastAttemptMs: 12 * S, plannedMs: 40 * S });
   });
 });

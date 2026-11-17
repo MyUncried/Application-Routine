@@ -20,7 +20,6 @@ import { ProfileServiceContext } from "@/features/preferences/ProfileServiceCont
 import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
-import { ExecutionDialog } from "../ExecutionDialog";
 import { ExecutionScreen, refreshDelayMs } from "../ExecutionScreen";
 import { ExecutionService } from "../ExecutionService";
 import { ExecutionServiceContext } from "../ExecutionServiceContext";
@@ -38,7 +37,7 @@ jest.mock("expo-router", () => ({
   // Écran toujours au premier plan dans ces tests.
   useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
 }));
-jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
+jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), selectionAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
 jest.mock("expo-crypto", () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   randomUUID: () => (require("node:crypto") as typeof import("node:crypto")).randomUUID(),
@@ -144,6 +143,13 @@ async function press(testID: string) {
   });
 }
 
+
+/** « À suivre » (Figma `1992:8132`, recette r6) : nom à gauche, cible ou durée à droite. */
+function nextShown(): string {
+  const name = screen.getByTestId("execution-next-name").props.children as string;
+  const value = screen.getByTestId("execution-next-value").props.children as string;
+  return [name, value].filter((part) => part !== "").join(" · ");
+}
 describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
   afterEach(() => {
     mockBack.mockReset();
@@ -155,24 +161,36 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // L'ouverture de l'écran ne démarre rien : aucune Exécution persistée.
     expect(await database.getAllAsync("SELECT id FROM executions")).toHaveLength(0);
     await press("execution-start");
-    expect(screen.getByTestId("execution-title").props.children).toBe("Compte à rebours");
+    expect(screen.getByTestId("execution-title").props.children).toBe("Préparez-vous");
+    // Recette e1 (b) : 3, 2, 1 sans 0 ; Série et Tour du premier exercice dès le Compte à rebours.
+    expect(screen.getByTestId("execution-timer").props.children).toBe("3");
+    expect(screen.getByTestId("execution-series").props.children).toBe("1/2");
 
     await at(3);
+    // Recette e1 (g) : pas de « Sur 00:20 » sous le compte à rebours.
+    expect(screen.queryByText(/^Sur /)).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 1/2");
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Pause · 00:05");
+    expect(screen.getByTestId("execution-series").props.children).toBe("1/2");
+    expect(nextShown()).toBe("Pause · 00:05");
 
     // Pause de 10 s pendant la Série 1 : temps restant conservé.
     await at(8);
     await press("execution-pause");
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    // Recette du 13/11/2026 : voile orange aussi en Pause.
+    expect(screen.getByTestId("execution-stop-veil")).toBeTruthy();
     await at(18);
-    await press("execution-pause-resume");
+    await press("execution-resume");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
 
     // Réinitialiser : confirmation, l'Exécution est suspendue pendant la modale, la Série recommence.
     await press("execution-reset");
     expect(screen.getByTestId("execution-reset-dialog")).toBeTruthy();
+    // Recette du 13/11/2026 (Hermann : « les boutons d'action ne doivent pas changer ») : pendant la confirmation, la barre
+    // garde Réinitialiser et Pause (ni Arrêt ni Démarrer).
+    expect(screen.getByTestId("execution-reset")).toBeTruthy();
+    expect(screen.getByTestId("execution-pause")).toBeTruthy();
+    expect(screen.queryByTestId("execution-stop")).toBeNull();
     await at(25);
     await press("execution-reset-confirm");
     expect(screen.getByTestId("execution-timer").props.children).toBe("00:20");
@@ -181,23 +199,41 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Point d'arrêt (aucune échéance).
     await at(74);
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
+    // Recette du 13/11/2026 : pendant la Pause, Série de l’exercice qui vient de s’exécuter (Squat, Série 2/2).
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
+    // Recette du 12/11/2026 (e1f) : le Point d'arrêt présente l'exercice qui suit (Fente, en Répétitions : 00:00), en
+    // attente de Démarrer ; Réinitialiser devient Arrêt, Suivant est désactivé.
     await at(75);
-    expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
-    await at(400);
-    expect(screen.getByTestId("execution-title").props.children).toBe("Point d'arrêt");
-    await press("execution-next-command"); // Continuer
     expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
-    expect(screen.getByTestId("execution-side").props.children).toBe("Côté 1");
-    expect(screen.getByTestId("execution-tour").props.children).toBe("Tour 1/2");
+    expect(screen.getByTestId("execution-timer").props.children).toBe("00:00");
+    expect(screen.getByTestId("execution-press-start")).toBeTruthy();
+    // Recette du 13/11/2026 : voile orange au Point d’arrêt, invitation sur deux lignes.
+    expect(screen.getByTestId("execution-stop-veil")).toBeTruthy();
+    expect(screen.getByTestId("execution-press-start").props.children).toBe("Appuyer sur\ndémarrer");
+    expect(screen.getByTestId("execution-wait")).toBeTruthy();
+    expect(screen.getByTestId("execution-stop")).toBeTruthy();
+    expect(screen.getByTestId("execution-next-command").props.accessibilityState).toMatchObject({ disabled: true });
+    await at(400);
+    // Recette du 13/11/2026 (Hermann : « Pour le point d’arrêt : exercice qui suit ») : Tour 1/2 de la Fente à venir.
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
+    // Recette du 13/11/2026 : Cycle toujours affiché, « – » en gris sans Cycle.
+    expect(screen.getByTestId("execution-cycle").props.children).toBe("–");
+    expect(screen.queryByTestId("execution-pause")).toBeNull();
+    await press("execution-continue");
+    // Le voile s’efface en fondu (250 ms) ; l’invitation et le chronomètre de l’attente disparaissent tout de suite.
+    expect(screen.queryByTestId("execution-press-start")).toBeNull();
+    expect(screen.queryByTestId("execution-wait")).toBeNull();
+    expect(screen.getByTestId("execution-title").props.children).toBe("Fente");
+    expect(screen.getByTestId("execution-side").props.accessibilityLabel).toBe("1er côté");
+    expect(screen.getByTestId("execution-tour").props.children).toBe("1/2");
 
     // Répétitions : Suivant sans confirmation, côté 2 puis Tour 2.
     for (let i = 0; i < 4; i += 1) await press("execution-next-command");
     expect(screen.getByTestId("execution-title").props.children).toBe("Gainage");
 
-    // Suivant avant le terme d'une Durée : confirmation, puis Partielle.
+    // Suivant avant le terme d'une Durée : passage direct, sans confirmation (recette du 14/11/2026), Partielle.
     await press("execution-next-command");
-    expect(screen.getByTestId("execution-next-dialog")).toBeTruthy();
-    await press("execution-next-confirm");
+    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance partiellement exécutée");
     const stored = await database.getFirstAsync<{ status: string; business_status: string }>("SELECT status, business_status FROM executions");
     expect(stored).toEqual({ status: "FINISHED", business_status: "PARTIAL" });
@@ -212,7 +248,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     await at(10);
     await press("execution-pause");
-    await press("execution-pause-stop");
+    await press("execution-stop");
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
     view.unmount();
@@ -257,7 +293,7 @@ describe("fin de PRE-10 — écran maintenu actif", () => {
     await at(10);
     await press("execution-pause");
     expect(awake).toEqual([true]);
-    await press("execution-pause-stop");
+    await press("execution-stop");
     expect(screen.getByTestId("execution-end-status")).toBeTruthy();
     expect(awake).toEqual([true, false]);
     view.unmount();
@@ -293,35 +329,24 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await at(9);
     expect(service.project()?.timer).toMatchObject({ kind: "COUNTDOWN", remainingMs: 14 * S });
     await press("execution-pause");
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
-    await press("execution-pause-resume");
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
+    await press("execution-resume");
     expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
     view.unmount();
   });
 
-  it("Suivant pendant une Durée : chrono suspendu pendant la confirmation ; Annuler reprend à la même valeur", async () => {
+  // Recette du 14/11/2026 (Hermann : « exercice en durée : appuyer sur suivant doit mener directement l'exercice suivant, sans
+  // message intermédiaire de confirmation »). [Chrono suspendu pendant la confirmation, Annuler / Confirmer — remplacé.]
+  it("Suivant pendant une Durée : passage direct à l'étape suivante, sans fenêtre de confirmation ; l'Exercice est Partiel", async () => {
     const { service, at, view } = await setup();
     await screen.findByTestId("execution-start");
     await press("execution-start");
     await at(8); // 15 s restantes
     await press("execution-next-command");
-    expect(screen.getByTestId("execution-next-dialog")).toBeTruthy();
-    expect(service.current()?.state.status).toBe("PAUSED");
-    await at(30);
-    await press("execution-next-cancel");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
-    expect(screen.queryByTestId("execution-pause-dialog")).toBeNull();
-    expect(screen.getByTestId("execution-timer").props.children).toBe("00:15");
-    // Confirmer : reprise puis passage, l'Exercice est Partiel.
-    await press("execution-next-command");
-    await press("execution-next-confirm");
-    expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
+    expect(service.current()?.state.status).toBe("RUNNING");
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    // Recette n° 2 du 09/11/2026 : pendant son fondu de fermeture, le Modal garde le contenu du dialogue Suivant
-    // (jamais celui de la Pause, « Reprendre la séance / Arrêter la séance »).
-    const closing = view.UNSAFE_getByType(ExecutionDialog);
-    expect(closing.props.visible).toBe(false);
-    expect(closing.props.testID).toBe("execution-next-dialog");
+    expect(service.occurrences()[0]?.status).toBe("PARTIAL");
     view.unmount();
   });
 
@@ -334,7 +359,7 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await press("execution-next-command");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
     expect(screen.getByTestId("execution-title").props.children).toBe("Squat");
-    expect(screen.getByTestId("execution-series").props.children).toBe("Série 2/2");
+    expect(screen.getByTestId("execution-series").props.children).toBe("2/2");
     view.unmount();
   });
 
@@ -343,10 +368,10 @@ describe("PRE-10 — corrections de la recette iPhone du 09/11/2026", () => {
     await screen.findByTestId("execution-start");
     await press("execution-start");
     await at(24); // Pause après S1 : à suivre Squat S2
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Squat · Série 2/2 · 00:20");
+    expect(nextShown()).toBe("Squat · 00:20");
     await at(50); // Pause finale : à suivre le Point d'arrêt
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    expect(screen.getByTestId("execution-next").props.children[1].props.children).toBe("Arrêt de la séance, redémarrage manuel");
+    expect(nextShown()).toBe("Arrêt de la séance, redémarrage manuel");
     view.unmount();
   });
 
@@ -380,7 +405,7 @@ describe("recette du 11/11/2026 — interruption de la séance à l'arrière-pla
     await act(async () => {
       for (const listener of listeners) listener("active");
     });
-    expect(screen.getByTestId("execution-pause-dialog")).toBeTruthy();
+    expect(screen.getByTestId("execution-resume")).toBeTruthy(); // recette e1 : Démarrer remplace la modale de Pause
     spy.mockRestore();
     view.unmount();
   });

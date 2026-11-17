@@ -26,7 +26,6 @@ import type { ExecutionRepository } from "@/domain/execution/ExecutionRepository
 import {
   createInitialState,
   ENGINE_STATE_VERSION,
-  libreEnv,
   nextDueAtMs,
   restoreWithoutContinuity,
   transition,
@@ -38,8 +37,9 @@ import {
   type StepResult,
   type TransitionResult,
 } from "@/domain/execution/kernel";
-import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
+import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, guidedPhases, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
+import { executionEnv } from "@/domain/execution/policies";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
 import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
 import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
@@ -77,6 +77,10 @@ export type ExecutionSignal = {
   readonly objective?: SignalObjective;
   /** Phase du mouvement qui commence (signal `PHASE`, recette du 10/11/2026, constat B). */
   readonly phaseLabel?: string | null;
+  /** Bip des dernières secondes qui tombe sur un changement de phase : la phase est annoncée (recette du 13/11/2026). */
+  readonly phaseChange?: boolean;
+  /** Série de l'étape courante (annonce « Deuxième série », recette du 13/11/2026). */
+  readonly series?: { readonly current: number; readonly total: number } | null;
   /** Nombre d'Exercices de la Séance (recette du 11/11/2026, constat b : « Premier exercice » s'il y en a plus d'un). */
   readonly exerciseCount?: number;
 };
@@ -88,6 +92,14 @@ export type ExecutionServiceDeps = {
   readonly newId: () => string;
   readonly loadSession: (sessionId: string) => Promise<StructuredSession | null>;
   readonly onSignal?: (signal: ExecutionSignal) => void;
+  /**
+   * Fin de PRE-10, sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3 ; Hermann, 12/11/2026 :
+   * « Sons programmés à l’avance ») : signal de l'étape en cours qui tombera dans `delayMs`, à programmer sur l'horloge
+   * audio. Le même signal est encore remis à `onSignal` à son instant (vibration, annonce).
+   */
+  readonly onScheduleSignal?: (signal: ExecutionSignal, delayMs: number) => void;
+  /** Les signaux programmés d'avance ne tomberont plus (Pause, changement d'étape, Suivant, Réinitialiser, fin). */
+  readonly onCancelScheduled?: () => void;
 };
 
 export type PreparedExecution =
@@ -112,6 +124,8 @@ export type DispatchOutcome = { readonly outcome: TransitionResult["outcome"] | 
 const CONTINUITY_TOLERANCE_MS = 2000;
 /** Signaux joués seulement s'ils sont récents (aucun rattrapage après suspension). */
 const SIGNAL_FRESHNESS_MS = 1500;
+/** Horizon des signaux de l'étape programmés à l'avance (§8, étape 3). */
+export const SIGNAL_LOOKAHEAD_MS = 1500;
 
 export class ExecutionBlockedError extends Error {}
 
@@ -125,6 +139,8 @@ export class ExecutionService {
   private wakeup: { handle: unknown; generation: number } | null = null;
   private pending: Pending | null = null;
   private lastSignalCheckMs: number | null = null;
+  /** Génération de l'état pour laquelle des signaux sont programmés, et jusqu'à quel instant. */
+  private ahead: { generation: number; untilMs: number } | null = null;
   private commandCounter = 0;
 
   constructor(private readonly deps: ExecutionServiceDeps) {}
@@ -156,6 +172,22 @@ export class ExecutionService {
     return occurrenceResults([...this.active.results.values()].flatMap((change) => (change.type === "STEP" ? [change.result as StepResult] : [])));
   }
 
+  /**
+   * Répétitions saisies pour une série interrompue (Durée maximum atteinte ou Arrêt d'un For time), par clé d'étape. Recette du
+   * 15/11/2026 (Hermann, g7 : « La feuille « séance partiellement exécuté » ne présente pas la valeur saisie dans la modale de
+   * résultat »).
+   */
+  partialRepetitions(): ReadonlyMap<string, number> {
+    const found = new Map<string, number>();
+    if (this.active === null) return found;
+    for (const change of this.active.results.values()) {
+      if (change.type !== "SCOPE") continue;
+      const result = change.result as { readonly format?: string; readonly interruptedKey?: string | null; readonly partialRepetitions?: number | null };
+      if (result.format === "FOR_TIME" && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+    }
+    return found;
+  }
+
   // —————————————————————————————————————————— préparation et lancement
 
   /** Fige la Séance et compile son plan sans rien persister : l'Exécution n'existe qu'au démarrage (ch09). */
@@ -175,7 +207,7 @@ export class ExecutionService {
       if (this.active !== null && this.active.state.status !== "FINISHED") throw new ExecutionBlockedError("An execution is already active.");
       if ((await this.deps.repository.findUnfinished()) !== null) throw new ExecutionBlockedError("An unfinished execution must be resumed or stopped first.");
       const executionId = this.deps.newId();
-      const env = libreEnv(prepared.plan);
+      const env = executionEnv(prepared.plan);
       const reading = this.now();
       const started = transition(env, createInitialState(executionId), { type: "START" }, reading);
       const startedAt = new Date(reading).toISOString();
@@ -234,7 +266,32 @@ export class ExecutionService {
     if (from === null || atMs - from > SIGNAL_FRESHNESS_MS) return [];
     const signals = stepSignalsBetween(active.state, from, atMs, phasePatternOf(active.plan, active.state));
     for (const signal of signals) this.emitSignal(signal);
+    this.scheduleAhead(atMs);
     return signals;
+  }
+
+  /**
+   * Programme d'avance les signaux de l'étape en cours jusqu'à `atMs + SIGNAL_LOOKAHEAD_MS` (§8, étape 3) : cadence,
+   * bips des dernières secondes, minute, mi-temps, phases. Chacun n'est programmé qu'une fois ; tout changement de
+   * génération (Pause, étape suivante, Réinitialiser…) annule ceux qui ne sont pas encore tombés.
+   */
+  private scheduleAhead(atMs: number) {
+    const active = this.active;
+    if (this.deps.onScheduleSignal === undefined || active === null) return;
+    this.cancelStaleAhead();
+    if (active.state.status !== "RUNNING") return;
+    const from = Math.max(this.ahead?.untilMs ?? atMs, atMs);
+    const until = atMs + SIGNAL_LOOKAHEAD_MS;
+    this.ahead = { generation: active.state.generation, untilMs: Math.max(until, this.ahead?.untilMs ?? until) };
+    const signals = [...stepSignalsBetween(active.state, from, until, phasePatternOf(active.plan, active.state))].sort((a, b) => a.atMs - b.atMs);
+    for (const signal of signals) this.deps.onScheduleSignal(this.signalOf(signal), signal.atMs - atMs);
+  }
+
+  /** Annule les signaux programmés pour une génération dépassée. */
+  private cancelStaleAhead() {
+    if (this.ahead === null || this.active?.state.generation === this.ahead.generation) return;
+    this.ahead = null;
+    this.deps.onCancelScheduled?.();
   }
 
   // —————————————————————————————————————————— reprise après interruption du processus
@@ -305,7 +362,7 @@ export class ExecutionService {
     const results = new Map<string, ResultChange>();
     for (const change of await this.deps.repository.listResults(executionId)) results.set(`${change.type}:${change.key}`, change);
     this.lastReadingMs = Math.max(this.lastReadingMs, record.state.evaluatedAtMs ?? 0);
-    this.active = { executionId, plan, env: libreEnv(plan), state: record.state, revision: record.revision, saveError: false, businessStatus: record.businessStatus, results };
+    this.active = { executionId, plan, env: executionEnv(plan), state: record.state, revision: record.revision, saveError: false, businessStatus: record.businessStatus, results };
   }
 
   private enqueue<T>(task: () => Promise<T>): Promise<T> {
@@ -374,13 +431,19 @@ export class ExecutionService {
       if (effect.type === "FINISHED" && effect.reason === "COMPLETED" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "FINISH", atMs: effect.atMs });
       if (effect.type === "PAUSED" && effect.reason === "USER" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "PAUSE", atMs: effect.atMs });
     }
+    this.cancelStaleAhead();
+    if (this.lastSignalCheckMs !== null) this.scheduleAhead(now);
     this.schedule();
     this.notify();
   }
 
   private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }) {
+    this.deps.onSignal?.(this.signalOf(signal));
+  }
+
+  private signalOf(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }): ExecutionSignal {
     const projection = this.project(signal.atMs);
-    this.deps.onSignal?.({
+    return {
       kind: signal.kind,
       atMs: signal.atMs,
       phase: projection?.phase ?? null,
@@ -390,8 +453,10 @@ export class ExecutionService {
       next: projection?.next == null ? null : { phase: projection.next.kind, exerciseName: projection.next.name, objective: objectiveOf(projection.next.mode, projection.next.target) },
       objective: projection === null ? undefined : objectiveOf(projection.mode, projection.seriesTarget),
       phaseLabel: projection?.guidance?.label ?? null,
+      phaseChange: "phaseChange" in signal && signal.phaseChange === true,
+      series: projection?.series ?? null,
       exerciseCount: this.active === null ? 0 : Object.keys(this.active.plan.exercises).length,
-    });
+    };
   }
 
   private clearWakeup() {
@@ -428,8 +493,12 @@ function objectiveOf(mode: ExecutionMode | null | undefined, seriesTarget: Serie
 function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern | null {
   const spec = state.leaf?.spec;
   if (spec === undefined || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return null;
-  const phases = plan.exercises[spec.exerciseId]?.workPhases ?? [];
+  // PRE-11 (13/11/2026) : Rôle Tour d'un For time, aucun bip ni annonce de phase (`guidedPhases`).
+  const phases = guidedPhases(plan, spec);
   if (workPhasesCycleSeconds(phases) === null) return null;
-  const limit = spec.target === undefined ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
+  // Recette du 13/11/2026 (Hermann : « Oui il faut continuer le guidage, c'est à l'utilisateur d'arrêter ») : en
+  // Répétitions, les phases continuent au-delà du nombre prévu, jusqu'à Suivant ; seule une étape chronométrée borne le
+  // guidage. [D-446 Q4 « après le nombre cible, plus de signal » — remplacé pour les Répétitions.]
+  const limit = spec.target === undefined || spec.end !== "TIMED" ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
   return { durationsMs: phases.map((phase) => phase.durationSeconds * 1000), limitMs: limit === null ? null : limit * 1000 };
 }

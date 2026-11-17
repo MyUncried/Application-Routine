@@ -55,6 +55,7 @@ import {
   undoRemoval,
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
+import { loadToFill } from "@/domain/activities/exerciseLoad";
 
 function parameters(series: ExecutionParametersInput["series"], overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
@@ -1825,17 +1826,22 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       }
     });
 
-    it("✓ réussi : ni identité volatile, ni lastNumberById, ni pendingRemoval ; normalizeLoad appliqué", () => {
+    // Décision de Hermann du 16/11/2026 : « Avec » sans charge saisie — à renseigner (« — » sur fond rouge), ✓ indisponible ; plus de
+    // 0,25 kg posé, plus de passage à Sans quand tout est à 0.
+    it("✓ réussi : ni identité volatile, ni lastNumberById, ni pendingRemoval ; charge Avec vide : ✓ indisponible (16/11/2026)", () => {
       let draft = removeWorkPhase(setWorkPhaseCount(withPhases([6, 3]), 3), 3);
       draft = setLoadValue(setLoadEnabled(draft, true), "uniform", null);
       expect(draft.loadEnabled).toBe(true);
-      const result = sheetDraftResult(draft, phaseLabel);
+      const pending = sheetDraftResult(draft, phaseLabel);
+      expect(pending.ok).toBe(false);
+      if (!pending.ok) expect(pending.violations).toContainEqual({ code: "REQUIRED", field: "loadKg", level: "INPUT" });
+      const result = sheetDraftResult(setLoadValue(draft, "uniform", 5), phaseLabel);
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(Object.keys(result.value).sort()).toEqual(Object.keys(durationParent()).sort());
         expect(result.value).not.toHaveProperty("lastNumberById");
         expect(result.value).not.toHaveProperty("pendingRemoval");
-        expect(result.value.loadEnabled).toBe(false);
+        expect(result.value.loadEnabled).toBe(true);
       }
     });
 
@@ -1859,23 +1865,28 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
     const variableLoads = (...loads: number[]) =>
       parameters(variable(...loads.map((loadKg) => ({ ...row(30, 10), loadKg }))), { loadEnabled: false });
 
-    it("1re activation sans valeur : 0,25 kg (commune, ou chaque ligne, retirées et réservées comprises)", () => {
-      expect(setLoadEnabled(openSheetDraft(durationParent()), true).uniform.loadKg).toBe(0.25);
+    // Décision de Hermann du 16/11/2026 : « Avec » sans charge saisie — à renseigner (« — » sur fond rouge), ✓ indisponible ; plus de
+    // 0,25 kg posé, plus de passage à Sans quand tout est à 0. [0,25 kg sur la commune et sur chaque ligne — remplacé.]
+    it("1re activation sans valeur : charge à renseigner, valeurs à 0 gardées (commune, ou chaque ligne, retirées et réservées comprises)", () => {
+      const common = setLoadEnabled(openSheetDraft(durationParent()), true);
+      expect(common.loadEnabled).toBe(true);
+      expect(common.uniform.loadKg).toBe(0);
+      expect(loadToFill(requestedParameters(common))).toBe(true);
       const shrunk = setSeriesCount(openSheetDraft(variableLoads(0, 0, 0)), 2);
       const activated = setLoadEnabled(shrunk, true);
       expect(activated.loadEnabled).toBe(true);
-      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0.25, 0.25]);
-      expect(activated.hiddenRows.map((entry) => entry.loadKg)).toEqual([0.25]);
-      expect(activated.uniform.loadKg).toBe(0.25);
+      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0, 0]);
+      expect(activated.hiddenRows.map((entry) => entry.loadKg)).toEqual([0]);
+      expect(activated.uniform.loadKg).toBe(0);
     });
 
-    it("lignes actives à 0 : 0,25 sur les zéros seulement ; la charge positive d'une ligne retirée par N est conservée", () => {
+    it("lignes actives à 0 : aucune valeur posée ; la charge positive d'une ligne retirée par N est conservée", () => {
       const shrunk = setSeriesCount(openSheetDraft(variableLoads(0, 0, 5)), 2);
       expect(shrunk.hiddenRows.map((entry) => entry.loadKg)).toEqual([5]);
       const activated = setLoadEnabled(shrunk, true);
-      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0.25, 0.25]);
+      expect(activated.rows.map((entry) => entry.loadKg)).toEqual([0, 0]);
       expect(activated.hiddenRows.map((entry) => entry.loadKg)).toEqual([5]);
-      expect(setSeriesCount(activated, 3).rows.map((entry) => entry.loadKg)).toEqual([0.25, 0.25, 5]);
+      expect(setSeriesCount(activated, 3).rows.map((entry) => entry.loadKg)).toEqual([0, 0, 5]);
     });
 
     it("N = 1 en état variable demandé : l'Inversion du total et la Condition d'arrêt ne passent pas la charge à Sans", () => {
@@ -1913,25 +1924,32 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       expect(setLoadValue(rows, "uniform", 3)).toBe(rows);
     });
 
-    it("normalizeLoad jamais pendant la saisie ; à la fermeture du clavier (normalizeDraftLoad) et au ✓", () => {
+    // Décision de Hermann du 16/11/2026 : « Avec » sans charge saisie — à renseigner (« — » sur fond rouge), ✓ indisponible ; plus de
+    // 0,25 kg posé, plus de passage à Sans quand tout est à 0. [Tout à 0 → Sans à la fermeture du clavier et au ✓ — remplacé.]
+    it("charge vidée : reste Avec, à renseigner, à la fermeture du clavier (normalizeDraftLoad) ; ✓ indisponible", () => {
       const common = setLoadValue(setLoadEnabled(openSheetDraft(durationParent()), true), "uniform", null);
       expect(common.loadEnabled).toBe(true);
-      expect(normalizeDraftLoad(common).loadEnabled).toBe(false);
-      expect(committed(common).loadEnabled).toBe(false);
+      expect(normalizeDraftLoad(common)).toBe(common);
+      expect(sheetDraftResult(common, phaseLabel).ok).toBe(false);
       const rows = setLoadEnabled(openSheetDraft(variableLoads(4, 5)), true);
       const oneZero = setLoadValue(rows, { rowId: rows.rowIds[0]! }, 0);
       expect(normalizeDraftLoad(oneZero)).toBe(oneZero);
+      expect(committed(oneZero).loadEnabled).toBe(true);
       const allZero = setLoadValue(oneZero, { rowId: rows.rowIds[1]! }, null);
       expect(allZero.loadEnabled).toBe(true);
       const closed = normalizeDraftLoad(allZero);
-      expect(closed.loadEnabled).toBe(false);
+      expect(closed.loadEnabled).toBe(true);
       expect(closed.rows.map((entry) => entry.loadKg)).toEqual([0, 0]);
+      expect(loadToFill(requestedParameters(closed))).toBe(true);
     });
 
-    it("Variables → Identiques : l'uniforme reprend la première ligne, puis normalizeLoad (§9-9)", () => {
+    // Décision de Hermann du 16/11/2026 : « Avec » sans charge saisie — à renseigner (« — » sur fond rouge), ✓ indisponible ; plus de
+    // 0,25 kg posé, plus de passage à Sans quand tout est à 0. [Première ligne à 0 → Sans — remplacé.]
+    it("Variables → Identiques : l'uniforme reprend la première ligne ; à 0, la charge reste Avec, à renseigner (§9-9, 16/11/2026)", () => {
       const zeroFirst = setVariable(setLoadEnabled(openSheetDraft(variableLoads(0, 5)), true), false);
       expect(zeroFirst.uniform.loadKg).toBe(0);
-      expect(zeroFirst.loadEnabled).toBe(false);
+      expect(zeroFirst.loadEnabled).toBe(true);
+      expect(loadToFill(requestedParameters(zeroFirst))).toBe(true);
       const positiveFirst = setVariable(setLoadEnabled(openSheetDraft(variableLoads(5, 0)), true), false);
       expect(positiveFirst.uniform.loadKg).toBe(5);
       expect(positiveFirst.loadEnabled).toBe(true);
@@ -1962,8 +1980,9 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
         const typed = draft.variable ? setLoadValue(draft, { rowId: draft.rowIds[0]! }, 1.3) : setLoadValue(draft, "uniform", 1.3);
         const value = committed(typed);
         expect(value.loadEnabled).toBe(true);
+        // 16/11/2026 : la seconde ligne, sans charge saisie, reste à 0 (sans charge pour cette série). [0,25 — remplacé.]
         expect(value.series.kind === "UNIFORM" ? value.series.loadKg : value.series.rows.map((entry) => entry.loadKg)).toEqual(
-          draft.variable ? [1.5, 0.25] : 1.5,
+          draft.variable ? [1.5, 0] : 1.5,
         );
         // La charge ne change aucune Cible.
         expect(value.series.kind === "UNIFORM" ? value.series.target : value.series.rows.map((entry) => entry.target)).toEqual(
@@ -2038,6 +2057,8 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
     it("une valeur LEFT_RIGHT existante n'est jamais réécrite par les autres transitions ; côté non renseigné → Sans au ✓", () => {
       let draft = openSheetDraft(parameters(uniform(3, 30, 10), { sideMode: "LEFT_RIGHT" }));
       draft = setLoadEnabled(setWorkPhaseCount(setWorkPhasesEnabled(draft, true), 3), true);
+      // 16/11/2026 : charge Avec saisie (sans valeur, ✓ indisponible).
+      draft = setLoadValue(draft, "uniform", 5);
       draft = setStopCondition(setWorkPhasesEnabled(draft, false), "FAILURE");
       expect(draft.sideMode).toBe("LEFT_RIGHT");
       expect(committed(draft).sideMode).toBe("LEFT_RIGHT");

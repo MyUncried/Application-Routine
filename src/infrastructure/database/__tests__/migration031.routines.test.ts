@@ -11,7 +11,7 @@ import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
- * Planification — migration 030 et persistance des Routines : tables additives, écriture entière, liste ordonnée,
+ * Planification — migration 031 et persistance des Routines : tables additives, écriture entière, liste ordonnée,
  * retraits, suppression en cascade des entrées, conservation après fermeture et réouverture de la base.
  */
 
@@ -30,14 +30,14 @@ const weekly: Routine = {
   updatedAt: "2026-08-01T10:00:00.000Z",
 };
 
-describe("migration030 — Routines", () => {
-  it("depuis la version 29 : trois tables additives, version 30", async () => {
+describe("migration031 — Routines", () => {
+  it("depuis la version 30 : trois tables additives, version 31", async () => {
     const database = NodeSqliteDatabase.openInMemory();
-    await migrateDatabase(database, undefined, 29);
+    await migrateDatabase(database, undefined, 30);
     const before = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(30);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 30 });
+    expect(DATABASE_VERSION).toBe(31);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 31 });
     const after = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
     expect(after.map((row) => row.name).filter((name) => !before.some((row) => row.name === name))).toEqual([
       "routine_entries",

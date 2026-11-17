@@ -11,7 +11,6 @@ import {
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
-  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
 } from "@/domain/preferences/Profile";
 import { exitCircuit } from "@/domain/sessions/circuit";
@@ -27,35 +26,31 @@ import {
   withMovementExercises,
 } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
-import { formatSheetContextOf } from "@/features/sessions/formatSheetContext";
+import { formatSheetContextOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 
 type ProfileDefaults = {
   readonly countdownSeconds: number;
   readonly endSeconds: number;
   readonly sideRecoverySeconds: number;
-  /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice. */
-  readonly recoverySeconds: number;
+  /** [PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice — retiré le 14/11/2026.] */
 };
 
 export const DOMAIN_DEFAULTS: ProfileDefaults = {
   countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   endSeconds: DEFAULT_EXERCISE_END_SECONDS,
   sideRecoverySeconds: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
-  recoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
 };
 
 export function profileDefaultsOf(profile: {
   readonly exerciseCountdownSecondsDefault: number;
   readonly exerciseEndSecondsDefault: number;
   readonly sideChangeRecoverySecondsDefault: number;
-  readonly postActivityRecoverySecondsDefault: number;
 }): ProfileDefaults {
   return {
     countdownSeconds: profile.exerciseCountdownSecondsDefault,
     endSeconds: profile.exerciseEndSecondsDefault,
     sideRecoverySeconds: profile.sideChangeRecoverySecondsDefault,
-    recoverySeconds: profile.postActivityRecoverySecondsDefault,
   };
 }
 
@@ -88,7 +83,8 @@ export type MovementExerciseIntake = {
  * Profil.
  *
  * PRE-9 (ordre de Hermann du 01/11/2026, point 2 ; ch07 « Récupération de l'Exercice et défauts du
- * Profil ») : un nouvel Exercice reprend « Récupération après un exercice » du Profil ; la feuille
+ * Profil ») : un nouvel Exercice reprend « Récupération après un exercice » du Profil [remplacé le 14/11/2026 — Correction de Hermann du 14/11/2026 : « Retirer l'enregistrement par défaut de la valeur Récupération du Profil dans les paramètres d'exécution (plus de valeur par défaut pour la récupération) » :
+ * il naît sans Récupération, la ligne Récupération n'est plus un défaut du Profil (pas de fond orange)] ; la feuille
  * porte le bloc Récupération (valeur de l'Exercice, 0 s sans récupération antérieure) et rend les
  * défauts du Profil sur fond orange jusqu'au premier ✓ (`profileDefaultsPending`). ✓ applique la
  * Récupération et l'état validé au brouillon ; ✕ ne change rien.
@@ -200,6 +196,7 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
         profileSideRecoverySecondsDefault={defaults.sideRecoverySeconds}
         exerciseSignals="absent"
         inheritedSeriesCount={inheritsCircuitSeriesCount(draft, exercise)}
+        seriesWording={seriesWordingOf(draft, exercise.id)}
         phaseStructureLocked={isPersistedMovementOccurrence(exercise, draft.movements)}
         {...(nextPhaseId !== undefined ? { nextPhaseId } : {})}
         // Recette iPhone n° 2 du 31/10/2026 (constat d) : ouverture plus lente et fermeture animée.

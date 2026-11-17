@@ -1,0 +1,49 @@
+name: KODJO catalogue import recette
+
+# Recette du chargement des 60 Mouvements pilotes (variante « Routine Catalogue »).
+# Limité à la branche d'intégration de recette : aucune exigence ajoutée à main.
+on:
+  push:
+    branches:
+      - catalogue/integration-60-main-20261109
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  import-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Import, SQLite, collisions, interruption and command tests
+        run: >-
+          npx jest --runInBand
+          src/features/activities/__tests__/pilotMovementImport.test.ts
+          src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts
+          src/features/activities/__tests__/PilotMovementImportCommand.test.tsx
+      - name: Autonomous catalogue format, initial conversion and loading (CA-1, CA-2, CA-3)
+        run: >-
+          npx jest --runInBand
+          src/domain/catalogue
+          src/features/catalogue
+          tools/catalogue
+      - name: Catalogue non-regression
+        run: >-
+          npx jest --runInBand
+          src/features/sessions/__tests__/Catalogue
+          src/features/activities/__tests__/MovementCatalogue
+          src/infrastructure/database/__tests__/SqliteMovementRepository.test.ts
+          src/infrastructure/database/__tests__/migrateDatabase.test.ts
+          src/infrastructure/database/__tests__/targetSchema.test.ts

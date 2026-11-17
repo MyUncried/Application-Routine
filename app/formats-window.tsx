@@ -30,7 +30,10 @@ export default function FormatsWindowRoute() {
   return (
     <FormatsWindow
       onClose={() => router.back()}
-      onSelect={(model) => router.push({ pathname: "/format-questionnaire", params: { model } })}
+      // Décisions de Hermann du 15/11/2026 (registre ch07, « For time — tableau unique, sans questionnaire » et « Formats à tableau —
+      // écran unique, sans redondance ») : chaque Format ouvre directement son écran unique. [Questionnaire des autres Formats
+      // (`/format-questionnaire`) — remplacé.]
+      onSelect={(model) => router.push({ pathname: "/format-summary", params: { model } })}
       onFreeExercise={() => router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } })}
     />
   );

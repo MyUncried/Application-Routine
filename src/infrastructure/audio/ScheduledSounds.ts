@@ -37,6 +37,10 @@ export class ScheduledSounds {
   private policy: SessionPolicy = "LIBRARY_DUCK";
   private released = false;
   private readonly buffers = new Map<BeepTone, Promise<Buffer>>();
+  /** Sons programmés pas encore partis, avec leur instant sur l'horloge audio. */
+  private readonly pending = new Set<{ readonly stop: () => void; readonly at: number }>();
+  /** Incrémenté à chaque annulation : un son dont le décodage finit après l'annulation n'est pas programmé. */
+  private epoch = 0;
 
   /** Session audio de l'application, réglée par la bibliothèque : lecture, mode silencieux ignoré, autres sons atténués ou mélangés. */
   async start(policy: SessionPolicy = "LIBRARY_DUCK"): Promise<void> {
@@ -99,6 +103,50 @@ export class ScheduledSounds {
     source.connect(gain);
     gain.connect(context.destination);
     source.start(Math.max(atSeconds ?? 0, context.currentTime));
+  }
+
+  /**
+   * Fin de PRE-10, sons programmés à l'avance (spec `spec-guidage-reglages` §8, étape 3) : joue `tone` dans
+   * `delaySeconds`, compté depuis l'appel sur l'horloge audio (lu avant tout décodage). Faux sans contexte.
+   */
+  scheduleIn(tone: BeepTone, volume: number, delaySeconds: number): boolean {
+    const context = this.context;
+    if (context === null) return false;
+    const at = context.currentTime + Math.max(0, delaySeconds);
+    const epoch = this.epoch;
+    void this.buffer(tone)
+      .then((buffer) => {
+        if (this.context !== context || this.epoch !== epoch) return;
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        const gain = context.createGain();
+        gain.gain.value = volume;
+        source.connect(gain);
+        gain.connect(context.destination);
+        const start = Math.max(at, context.currentTime);
+        source.start(start);
+        const entry = { stop: () => source.stop(0), at: start };
+        for (const old of this.pending) if (old.at < context.currentTime - 5) this.pending.delete(old);
+        this.pending.add(entry);
+      })
+      .catch(() => undefined);
+    return true;
+  }
+
+  /** Annule les sons programmés qui ne sont pas encore partis ; un son déjà commencé finit normalement. */
+  cancelScheduled(): void {
+    this.epoch += 1;
+    const now = this.context?.currentTime ?? Number.POSITIVE_INFINITY;
+    for (const entry of this.pending) {
+      if (entry.at > now) {
+        try {
+          entry.stop();
+        } catch {
+          // Source déjà arrêtée.
+        }
+      }
+    }
+    this.pending.clear();
   }
 
   async stop(): Promise<void> {

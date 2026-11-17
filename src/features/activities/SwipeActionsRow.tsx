@@ -13,6 +13,7 @@ import {
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe } from "@/features/sessions/compositionGesture";
+import { useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { colors, fixedRadii, type } from "@/shared/ui/tokens";
 
@@ -153,6 +154,8 @@ export function SwipeActionsRow({
   });
   const [isSettling, setIsSettling] = useState(false);
   const settleTokenRef = useRef(0);
+  // Recette du 16/11/2026 (constats e et f) : la liste reste immobile pendant le glissement.
+  const scrollLock = useSwipeScrollLock();
 
   const moveTo = useCallback(
     (target: number) => {
@@ -187,13 +190,14 @@ export function SwipeActionsRow({
   const follow = useCallback(
     (dx: number) => {
       isSwipingRef.current = true;
+      scrollLock.hold();
       const x = clampSwipeTranslateX(baseRef.current + dx, offset);
       translateXRef.current = x;
       setTranslateX(x);
       settleTokenRef.current += 1;
       swipeX.setValue(x);
     },
-    [offset, swipeX],
+    [offset, swipeX, scrollLock],
   );
 
   const delta = (event: GestureResponderEvent) => {
@@ -205,6 +209,7 @@ export function SwipeActionsRow({
 
   const end = () => {
     originRef.current = null;
+    scrollLock.release();
     if (!isSwipingRef.current) return;
     isSwipingRef.current = false;
     const open = shouldRevealAfterSwipe(translateXRef.current, offset);
@@ -237,6 +242,7 @@ export function SwipeActionsRow({
       onTouchCancel={() => {
         originRef.current = null;
         isSwipingRef.current = false;
+        scrollLock.release();
         moveTo(revealed ? -offset : 0);
       }}
       onMoveShouldSetResponderCapture={(event) => {
@@ -277,6 +283,7 @@ export function SwipeActionsRow({
                 // Recette du 04/11 : le geste est clos — la fin du toucher ne réévalue pas l'ouverture.
                 originRef.current = null;
                 isSwipingRef.current = false;
+                scrollLock.release();
                 action.onPress();
               }}
               disabled={action.disabled === true}

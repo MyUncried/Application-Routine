@@ -11,11 +11,17 @@ export type ProfilePreference =
   | "announcePausesEnabled"
   | "announceSessionEnabled"
   | "announceSidesEnabled"
-  | "announcePhasesEnabled";
+  | "announcePhasesEnabled"
+  /** Catalogue des Mouvements présenté en grille (CE-MVT-03, Bascule, 16/11/2026). */
+  | "movementCatalogueGridEnabled";
 
-/** Identité modifiable depuis Modifier le profil (CE-UI-01) — toujours les trois ensemble, atomiquement. */
+/**
+ * Identité modifiable depuis Modifier le profil (CE-UI-01) — toujours les trois ensemble, atomiquement.
+ * 13/11/2026 : `displayName` peut rester `null` quand seules la photo ou la silhouette sont enregistrées
+ * (`ProfileService.saveAppearance`) ; un nom saisi reste validé par `saveIdentity`.
+ */
 export type ProfileIdentityInput = {
-  readonly displayName: string;
+  readonly displayName: string | null;
   readonly photoUri: string | null;
   readonly silhouette: Silhouette | null;
 };

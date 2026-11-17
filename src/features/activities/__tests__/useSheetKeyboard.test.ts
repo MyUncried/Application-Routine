@@ -115,9 +115,11 @@ describe("PRE5-2.2 — sortie d'un champ de charge (AD-19, §9-10)", () => {
     expect([loadEditText(20), loadEditText(1.25), loadEditText(0.5), loadEditText(0), loadEditText(null)]).toEqual(["20", "1,25", "0,5", "", ""]);
   });
 
-  it("PRE5-2.2/AC5 — première activation : 0,25 kg sur la charge commune (transition 2.1 réutilisée)", () => {
+  // Décision de Hermann du 16/11/2026 : charge à renseigner. [0,25 kg sur la charge commune — remplacé le 16/11/2026.]
+  it("PRE5-2.2/AC5 — première activation : charge commune à renseigner (0, aucune valeur inventée ; transition 2.1 réutilisée)", () => {
     const draft = setLoadEnabled(openSheetDraft(params({ loadEnabled: false, series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] } })), true);
-    expect(loadOfField(draft, "uniform")).toBe(0.25);
+    expect(draft.loadEnabled).toBe(true);
+    expect(loadOfField(draft, "uniform")).toBe(0);
   });
 });
 

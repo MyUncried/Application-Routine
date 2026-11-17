@@ -156,7 +156,8 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
-              <Stack.Screen name="profile-edit" />
+              {/* `profile-edit` est désormais un écran de l'onglet Profil, sous la barre de navigation (demande de Hermann
+                  du 14/11/2026). [Avant : `<Stack.Screen name="profile-edit" />` dans la pile racine — remplacé.] */}
               {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche
                   des mouvements du questionnaire par exemple) […] Catalogue des mouvements : Créer un mouvement ») :
                   la création d'un Mouvement est une feuille native iOS ; consultation, modification et ajout d'un
@@ -172,9 +173,14 @@ export default function RootLayout() {
                   natives iOS posées au-dessus de l'écran qui les ouvre (Catalogue des séances ou Composition), vitesse d'iOS.
                   [Feuilles du groupe `(creation)`, au-dessus d'une Composition ouverte d'avance — remplacées.] */}
               <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, sheetAllowedDetents: "fitToContents", gestureEnabled: false }} />
-              <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
+              {/* [format-questionnaire — supprimé le 15/11/2026 : écran unique de chaque Format, décision de Hermann (registre ch07).] */}
               <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
               <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
+              {/* Recette du 15/11/2026 (bp-zone-contexte : « il doit apparaître comme une modale ») et arbitrage du même jour
+                  (feuille plein écran fermée par ✕) : Créer une bibliothèque et Ma bibliothèque. [Avant : pile, entrée par la
+                  droite — remplacé.] */}
+              <Stack.Screen name="library-edit" options={{ presentation: "fullScreenModal" }} />
+              <Stack.Screen name="library-mine" options={{ presentation: "fullScreenModal" }} />
               {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
               <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
               {/* Planification (CE-UI-04/05) : modale plein écran sous la barre d'état, sans geste de retour (abandon par ✕). */}

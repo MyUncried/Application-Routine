@@ -137,9 +137,10 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
-    // Carte du questionnaire (même composant au récapitulatif) : même Niveau.
-    expect(flat("format-movement-card-0-level").color).toBe("#141414");
-    expect(flat("format-movement-card-0-first-line").alignItems).toBe("baseline");
+    // [Carte du questionnaire : même Niveau — remplacé le 15/11/2026 (décision de Hermann, « Formats à tableau — écran unique, sans
+    // redondance ») : plus de carte ni de questionnaire, la ligne du tableau n'affiche pas le Niveau.]
+    expect(screen.getByTestId("format-line-0-name-title")).toBeTruthy();
+    expect(screen.queryByTestId("format-movement-card-0-level")).toBeNull();
   });
 
   it("H : une carte sans famille prend le retrait de 8 des cartes d'une pile", async () => {
@@ -195,7 +196,7 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
       fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
     expect(fadesOut()).toHaveLength(2);
-    expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
+    expect(screen.getByTestId("format-line-0-name-title")).toBeTruthy();
 
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-movements-link"));
@@ -251,7 +252,7 @@ describe("Recette iPhone du 08/11/2026 — fondu enchaîné du mode catalogue d'
     expect(fades.map((fade) => fade.to)).toEqual([1]);
     // Les paramètres restent montés dessous (masqués à VoiceOver), sans fondu propre : aucun blanc entre les deux contenus.
     expect(screen.getByTestId("format-parameters", { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.getByTestId("format-questionnaire", { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
+    expect(screen.getByTestId("format-summary", { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
     expect(StyleSheet.flatten(screen.getByTestId("format-content-fade", { includeHiddenElements: true }).props.style).opacity).toBeUndefined();
     // Résultats, recherche et bouton du bas dans la même couche (même opacité), commandes rendues avec la liste.
     const layer = within(screen.getByTestId("format-catalogue-layer"));
@@ -282,11 +283,11 @@ describe("Recette iPhone du 08/11/2026 — fondu enchaîné du mode catalogue d'
     expect(fades.filter((fade) => fade.to === 0)).toHaveLength(1);
     // Pendant le fondu : couche encore là, sans toucher ; paramètres de nouveau lisibles, avec la carte ajoutée.
     expect(screen.getByTestId("format-catalogue-layer").props.pointerEvents).toBe("none");
-    expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
-    expect(screen.getByTestId("format-questionnaire").props.accessibilityElementsHidden).toBe(false);
+    expect(screen.getByTestId("format-line-0-name-title")).toBeTruthy();
+    expect(screen.getByTestId("format-summary").props.accessibilityElementsHidden).toBe(false);
     await finishFade(0);
     expect(screen.queryByTestId("format-catalogue-layer")).toBeNull();
-    expect(screen.getByTestId("format-movement-card-0")).toBeTruthy();
+    expect(screen.getByTestId("format-line-0-name-title")).toBeTruthy();
   });
 
   it("« Revenir aux paramètres » et « Fermer sans sélectionner » : même fondu enchaîné ; un second appui pendant le fondu est ignoré", async () => {

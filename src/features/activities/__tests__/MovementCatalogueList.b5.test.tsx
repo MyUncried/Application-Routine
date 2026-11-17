@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -285,6 +285,69 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
     await press("movement-catalogue-notice-action");
     expect(names()).toEqual(["Fentes avant", "Squats sautés", "Squats", "Squats assistés"]);
     expect(await movements().listArchivedIds()).toEqual(new Set());
+  });
+
+  // Recette du 14/11/2026 (Hermann : « le message "Mouvement archivé" apparaît mais ne disparaît plus ») : il s'efface seul.
+  it("le message « Mouvement archivé » s'efface de lui-même après 2,5 secondes (recette du 15/11/2026)", async () => {
+    await seed();
+    await renderList();
+    await action("fentes", "archive");
+    expect(screen.getByTestId("movement-catalogue-notice-message").props.children).toBe(t.archived);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    });
+    expect(screen.getByTestId("movement-catalogue-notice-message").props.children).toBe(t.archived);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    });
+    expect(screen.queryByTestId("movement-catalogue-notice-message")).toBeNull();
+  }, 15000);
+
+  it("Bibliothèques personnelles (12/11/2026) : archiver un membre d'une Bibliothèque est annoncé avant d'archiver", async () => {
+    await seed();
+    // Module remplacé par `jest.setup.js` : l'espion porte sur l'objet du module simulé lui-même.
+    const importedMovements = jest.requireMock<typeof import("@/features/catalogue/importedMovements")>("@/features/catalogue/importedMovements");
+    const titles = jest.spyOn(importedMovements, "personalLibraryTitlesContaining").mockImplementation(async (id) => (id === "fentes" ? ["Gainage"] : []));
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    try {
+      await renderList();
+      await action("fentes", "archive");
+      const [title, message, buttons] = alert.mock.calls[0] as unknown as [string, string, { text: string; onPress?: () => void }[]];
+      expect(title).toBe("Archiver ce mouvement ?");
+      expect(message).toBe("Il fait partie de votre bibliothèque « Gainage ». Archivé, il n'y apparaîtra plus.");
+      // Rien n'est archivé avant la confirmation.
+      expect(await movements().listArchivedIds()).toEqual(new Set());
+      await act(async () => buttons.find((button) => button.text === "Archiver")!.onPress!());
+      await settle();
+      expect(await movements().listArchivedIds()).toEqual(new Set(["fentes"]));
+    } finally {
+      titles.mockRestore();
+      alert.mockRestore();
+    }
+  });
+
+  it("Décision du 13/11/2026 : Supprimer un Mouvement importé archivé l'explique sans ouvrir la confirmation", async () => {
+    await seed();
+    await movements().archive("fentes");
+    const importedMovements = jest.requireMock<typeof import("@/features/catalogue/importedMovements")>("@/features/catalogue/importedMovements");
+    const info = jest
+      .spyOn(importedMovements, "importedMovementInfo")
+      .mockImplementation(async (id) => (id === "fentes" ? ({ libraries: ["Fitness"] } as unknown as Awaited<ReturnType<typeof importedMovements.importedMovementInfo>>) : null));
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    try {
+      await renderList({ ...EMPTY_MOVEMENT_FILTERS, statuses: new Set(["ARCHIVED"]) });
+      await action("fentes", "delete");
+      const [title, message] = alert.mock.calls[0] as unknown as [string, string];
+      expect(title).toBe("Suppression impossible");
+      expect(message).toBe(
+        "Ce mouvement vient de la bibliothèque « Fitness ». Il reste archivé ; seule la désinstallation de la bibliothèque le retirera de votre Catalogue.",
+      );
+      expect(screen.queryByText(t.deleteConfirm.title)).toBeNull();
+      expect(await movements().findById("fentes")).not.toBeNull();
+    } finally {
+      info.mockRestore();
+      alert.mockRestore();
+    }
   });
 
   it("B.8 : vue Archivés — Restaurer (annulable), Supprimer après confirmation, sans annulation", async () => {

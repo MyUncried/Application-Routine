@@ -63,13 +63,13 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(said).toEqual(["Gainage, 10 répétitions", "Pause"]);
   });
 
-  it("bilatéral : « Premier côté, 12 répétitions » au départ, sifflet court à 55 % et « Changez de côté » au changement", () => {
+  it("bilatéral : « Premier côté, 12 répétitions » au départ, sifflet court à 55 % et « Second côté » au changement", () => {
     const { play, beeps, said } = setup();
     play({ phase: "INITIAL_COUNTDOWN", exerciseName: null, timed: false, next: nextExercise("Fente") });
     play({ exerciseName: "Fente", sideRank: 1, timed: false, objective: reps(12) });
     play({ phase: "SIDE_RECOVERY", exerciseName: "Fente", timed: false, next: nextExercise("Fente") });
     play({ exerciseName: "Fente", sideRank: 2, timed: false });
-    expect(said).toEqual(["Préparez-vous. À suivre : Fente", "Premier côté, 12 répétitions", "Récupération", "Changez de côté"]);
+    expect(said).toEqual(["Préparez-vous. À suivre : Fente", "Premier côté, 12 répétitions", "Récupération", "Second côté"]);
     expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1], ["SIFFLET_COURT", 0.55]]);
   });
 
@@ -84,7 +84,7 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     play({ kind: "FINISH", phase: null, exerciseName: null });
     expect(beeps).toEqual([["BIP_GRAVE", 1], ["CLIC_DOUX", 0.35], ["BIP_DOUBLE", 1], ["FANFARE_COURTE", 0.6]]);
     expect(said).toEqual(["Bravo, séance terminée"]);
-    expect(vibrate.mock.calls.map(([style]) => style)).toEqual(["MEDIUM", "HEAVY", "MEDIUM"]);
+    expect(vibrate.mock.calls.map(([style]) => style)).toEqual(["TAP", "HEAVY", "MEDIUM"]);
   });
 
   it("guidage sonore par événement : « Aucun » coupe seulement le son ; un son choisi remplace celui par défaut ; vibration réglée à part", () => {

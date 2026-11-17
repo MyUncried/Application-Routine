@@ -1,0 +1,171 @@
+# KODJO — Intégration du chargement des 60 Mouvements sur `main` et variante « Routine Catalogue »
+
+| Champ | Valeur |
+|---|---|
+| Identifiant | `CATALOGUE-60-INTEGRATION-MAIN` |
+| Date | 9 novembre 2026 |
+| Objectif | Reporter sur le dernier `origin/main` le strict nécessaire à l'import des 60 Mouvements pilotes, préparer une variante iOS isolée « Routine Catalogue », qualifier ; s'arrêter avant toute build, OTA ou fusion |
+| Décisions de Hermann (9/11) | Publication autorisée de `catalogue/chargement-60-recette-20261109` ; intégration sur `origin/main` (pas PRE-10) sans la pile historique ; variante iOS temporaire distincte (identifiant, base SQLite, OTA) ; tests sur les 60 fiches Git + comportement avec export OVH réel (limite de taille avec photos) ; pas de build, d'OTA ni de fusion |
+| Mission précédente | `.github/orchestration/reports/2026-11-09_CATALOGUE-60-CHARGEMENT-RECETTE.md` (branche `catalogue/chargement-60-recette-20261109`, commits `f43c261f`, `b0c0adb4`) |
+| Worktree | `C:/Dev/KODJO-CAT60-MAIN` |
+| Branche | `catalogue/integration-60-main-20261109` |
+| Commit de départ | `origin/main` = `901d7b4c` (Merge PR #420), schéma SQLite v23 |
+
+## 1. Isolation et publication
+
+- `catalogue/chargement-60-recette-20261109` vérifiée (2 commits d'avance, arbre propre, absente du distant) puis poussée. PR #434 non modifiée.
+- Worktree jetable de la mission précédente (`C:/Dev/KODJO-CAT60-port`, HEAD détaché sur PRE-10) supprimé ; aucun autre usage de la branche PRE-10.
+- Nouveau worktree `C:/Dev/KODJO-CAT60-MAIN` depuis `origin/main` ; `node_modules` propres à ce worktree.
+- `C:/Dev/PRE10` : aucune écriture.
+
+## 2. Éléments reportés (et non reportés)
+
+| Reporté sur `main` | Origine |
+|---|---|
+| `catalogue/pilote/mouvements-60-candidats.json`, `catalogue/referentiels/preclassement-60-candidats-v0.json` | identiques à la pile (#423, #433) |
+| `src/features/activities/pilotMovementImport.ts` (avec correctif Zones/interruption `f43c261f`) | #434 + mission précédente |
+| `pilotMovementImport.test.ts`, `pilotMovementImport.sqlite.test.ts` | #434 + mission précédente |
+| `docs/KODJO-Import-catalogue-admin-vers-mobile-2026-11-07.md` (adapté) | #434 |
+
+Non reportés : administration Web (#429, #432), taxonomie (#425), provenance (#421), scripts de validation catalogue, `catalogue/admin/brouillons.json` (vide, inutile à l'import), et les 7 annotations « non normatives » de #434 dans les spécifications (INDEX, PRODUCT, ch. 06, 07, 08, 09, 12) : outil temporaire hors MVP, aucune décision fonctionnelle nouvelle (classe D) ; la variante BMAD, précédent comparable, n'est pas non plus documentée dans les spécifications.
+
+## 3. Adaptations à `main`
+
+- **Catalogue remanié par PRE-9** : le raccordement de #434 ne s'appliquait plus. La commande est isolée dans `src/features/activities/PilotMovementImportCommand.tsx` ; `CatalogueScreen.tsx` ne reçoit que 5 lignes (import, rendu sous la zone de contexte des Mouvements si `EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1`, relecture de la liste après import, y compris après interruption).
+- **Module natif chargé à la demande** : `expo-document-picker` exécute `requireNativeModule` au chargement ; il est désormais requis au toucher de la commande (même motif que `expo-video` dans `MediaConsultation`). Le code de cette branche reste chargeable par un binaire qui n'embarque pas le module. Garde-fou testé : aucun import statique.
+- **Taille réelle** : si le sélecteur ne fournit pas la taille, celle du fichier est lue avant tout chargement en mémoire.
+- **Schéma SQLite** : aucune migration ; importeur exécuté sur le schéma v23 réel (tests SQLite).
+
+## 4. Variante iOS « Routine Catalogue » (préparée, non construite)
+
+| Caractéristique | Valeur |
+|---|---|
+| Profil EAS | `catalogue-recette` (`eas.json`) |
+| `APP_VARIANT` | `catalogue` |
+| Nom affiché | Routine Catalogue |
+| Identifiant iOS | `com.ankusha.kodjo.catalogue` (nouveau, distinct de Routine, Routine Dev, Routine BMAD) |
+| Schémas de lien | `routine-catalogue`, `com.ankusha.kodjo.catalogue` (`exp+routine` du dev client désactivé, comme BMAD) |
+| Base SQLite | conteneur de l'application : indépendante des autres apps |
+| OTA | `EXUpdatesEnabled = false` (bundle embarqué uniquement) ; **aucun canal** dans le profil |
+| Type | build interne (`distribution: internal`), sans dev client (`developmentClient: false`), appareil physique |
+| Commande d'import | activée (`EXPO_PUBLIC_KODJO_CATALOGUE_IMPORT=1`, injectée dans le bundle : vérifié) |
+| Runtime / version | `1.1.0` / `1.0.0` (inchangés, sans effet puisque OTA désactivées) |
+| Modules natifs | 36 modules Expo autolinkés, dont `expo-document-picker@57.0.3` ; autres versions identiques à `main` (lockfile) |
+| Icône | icône de base (pas de nouvel asset) ; différenciation par le nom |
+
+Vérifications : configuration résolue des variantes `""`, `development`, `bmad`, `production` **strictement identique** avant/après ; introspection `expo config --type introspect` (Info.plist, Expo.plist, entitlements vides) ; `expo-modules-autolinking resolve` ; `expo export --platform ios` local réussi (bundle Hermes 6,0 Mo contenant la commande, le module et les 60 fiches).
+
+À prévoir au moment de la build : nouvel identifiant → création de l'App ID et d'un profil de provisionnement ad hoc par EAS (identifiants Apple, appareil enregistré) ; `appVersionSource: remote` initialise un numéro de build propre à cet identifiant.
+
+## 5. Données et export OVH
+
+- Tests techniques sur les **60 fiches Git** (239 étapes), brouillon vide.
+- **Aucun export réel `kodjo-admin-brouillons.json` disponible** (absent du dépôt et de ce poste, voir rapport précédent) : le comportement avec un export réel n'est **pas vérifié**. Vérifié à la place, sur le code de l'administration (`tools/catalogue-admin/static-ovh/index.html`, PR #432) et un export synthétique au même format :
+  - photo embarquée : WebP base64, 1 050 px, ≤ 580 000 caractères ; ≤ 30 médias par fiche ; **l'export n'est pas plafonné** ; la limite de 24 Mo ne s'applique qu'à la relecture (administration et mobile, en octets) ;
+  - 42 photos au plafond : export < 24 Mo, 60 Mouvements importés, 42 médias signalés comme restant dans le fichier, aucun média créé ;
+  - 44 photos au plafond : export > 24 Mo, **refusé en entier** avant lecture, aucune écriture.
+- Brouillons et médias originaux non modifiés (aucun accès à l'administration OVH).
+
+## 6. Tests (worktree `C:/Dev/KODJO-CAT60-MAIN`, Node 24.19)
+
+| Commande | Résultat |
+|---|---|
+| `npx tsc --noEmit` | PASS |
+| `npx eslint` (commande, test, CatalogueScreen, app.config.js) | PASS (0 erreur, 0 avertissement) |
+| `npx jest pilotMovementImport PilotMovementImportCommand` (3 fichiers) | PASS — 23 tests : SQLite réelle, idempotence, collisions, préservation, interruption au 31e puis reprise, commande, taille, export OVH 42/44 photos, isolation |
+| Non-régression : `Catalogue*` (sessions), `MovementCatalogue*`, `SqliteMovementRepository`, `migrateDatabase`, `targetSchema` + import | PASS — 20 suites, 253 tests (avant l'ajout des 2 tests OVH) |
+| `npx expo install --check` | 22 écarts de version corrective **préexistants sur `main`** ; `expo-document-picker` aligné ; non corrigés (hors périmètre, changeraient toutes les variantes) |
+| `npx expo export --platform ios` (variante catalogue) | PASS |
+| Suite Jest complète | non exécutée (plusieurs heures en `--runInBand` sur ce poste ; diff limité au Catalogue des Mouvements) |
+
+CI : workflow `kodjo-catalogue-import-recette.yml`, déclenché uniquement par un push de cette branche (aucune exigence ajoutée à `main`).
+
+## 7. Risques
+
+- **PRE-10** : aucun fichier d'exécution ni de migration touché. `CatalogueScreen.tsx` est modifié par les deux lignes de travail (5 lignes chacune) : risque de conflit textuel à contrôler à l'intégration (voir § 9).
+- **Base personnelle et recette PRE-10** : non concernées tant que la build reste sous `com.ankusha.kodjo.catalogue`.
+- **Export OVH avec photos** : au-delà d'environ 43 photos lourdes, l'import mobile est refusé ; il faudrait alors un export allégé ou un arbitrage sur la limite (non décidé).
+- **Pas de rollback global** (60 transactions successives) ; reprise vérifiée.
+- Interface de la commande non validée visuellement (outil interne, sans référence Figma).
+
+## 8. Vérifications sur appareil (après build autorisée)
+
+Installation à côté des autres apps ; Catalogue › Mouvements : commande visible ; sélection du JSON dans Fichiers ; export réel (taille, nombre de médias) ; import 60/60 ; réimport « 0 ajouté, 60 identiques » ; 60 Mouvements visibles et classés ; aucune Séance/Exercice créé ; aucune mise à jour OTA reçue.
+
+## 9. Fichiers modifiés, commit et état Git
+
+Fichiers : `.github/workflows/kodjo-catalogue-import-recette.yml` (nouveau), `app.config.js`, `eas.json`, `package.json`, `package-lock.json`, `catalogue/pilote/mouvements-60-candidats.json` (nouveau), `catalogue/referentiels/preclassement-60-candidats-v0.json` (nouveau), `src/features/activities/pilotMovementImport.ts` (nouveau), `src/features/activities/PilotMovementImportCommand.tsx` (nouveau), `src/features/activities/__tests__/pilotMovementImport.test.ts` (nouveau), `src/features/activities/__tests__/pilotMovementImport.sqlite.test.ts` (nouveau), `src/features/activities/__tests__/PilotMovementImportCommand.test.tsx` (nouveau), `src/features/sessions/CatalogueScreen.tsx`, `docs/KODJO-Import-catalogue-admin-vers-mobile-2026-11-07.md` (nouveau sur `main`), ce rapport.
+
+- Commit de code, tests, configuration et rapport : `d989313ec7bd63e88e245c7a763cd97f1881fe7f` (parent `901d7b4c`) ; ce paragraphe est ajouté par le commit documentaire qui le suit directement.
+- Branche poussée : `origin/catalogue/integration-60-main-20261109`. Aucune PR, aucune fusion dans `main`.
+- CI GitHub : run `42599908263` « KODJO catalogue import recette » — **success** (installation, typecheck, tests d'import, non-régression Catalogue) sur Node 22. Le workflow VNext (`42599908280`) est `skipped` pour ce push.
+- Fusion simulée en mémoire (`git merge-tree`, aucune référence modifiée) avec `origin/pre10-bmad/dev` (`9aa90d5f`) et `pre10-bmad/dev` local (`5f80c443`) : **sans conflit**.
+- `catalogue/chargement-60-recette-20261109` poussée (`b0c0adb4`).
+- Worktrees : `C:/Dev/KODJO-CAT60` (`catalogue/chargement-60-recette-20261109`, propre) et `C:/Dev/KODJO-CAT60-MAIN` (cette branche, propre après commit) ; `C:/Dev/PRE10` non modifié.
+
+## 10. Build `catalogue-recette` — 9/11 (blocage initial, puis build réussie)
+
+Autorisation de Hermann (9/11) : lancer uniquement la build iOS interne `catalogue-recette` depuis cette branche, après vérification du HEAD et de la CI ; identifiant `com.ankusha.kodjo.catalogue`, isolation SQLite et OTA désactivées impératifs ; ni installation, ni App Store, ni fusion ; préciser toute action Apple nouvelle avant de poursuivre.
+
+Vérifications faites :
+
+- HEAD local = distant = `d87d0fe38e7566bcd8f0a4b55bc2605cfe1ca2b6`, arbre propre ; CI « KODJO catalogue import recette » **success** sur ce HEAD (run `42600249733`).
+- Variables d'environnement serveur EAS (`development`, `preview`, `production`) : aucune — rien ne peut écraser `APP_VARIANT` ni réactiver les OTA.
+- Identifiants iOS du projet `@ankushas-team/routine` (API EAS, lecture seule) : équipe Apple `RC8F846A68` (ANKUSHA) ; profils ad hoc actifs jusqu'au 29/08/2027 pour `com.ankusha.kodjo`, `.dev`, `.bmad` (certificat de distribution `2638F145…`, commun) ; **aucun identifiant pour `com.ankusha.kodjo.catalogue`** ; **aucune clé API App Store Connect** enregistrée sur le compte.
+
+Conséquence : la création de l'App ID et du profil ad hoc exige une connexion Apple interactive (identifiant Apple + 2FA), impossible depuis la session Claude (sans entrée interactive). **Build non lancée** ; action requise de Hermann (voir compte rendu de session). Aucune écriture effectuée chez Apple ni chez EAS.
+
+### 10.1 Identifiants Apple créés par Hermann (9/11, ~12:55–13:02)
+
+- `eas credentials` (PowerShell de Hermann, `APP_VARIANT=catalogue`) : premier essai en échec « Failed to find Bundle ID item with identifier com.ankusha.kodjo.catalogue » — la commande ne crée pas l'App ID.
+- App ID explicite `com.ankusha.kodjo.catalogue` (« Routine Catalogue », aucune capability) enregistré par Hermann sur le portail Apple Developer.
+- Second essai réussi : certificat de distribution existant `2638F1453FFD797DB21CBF65EEB0ABB5` réutilisé (aucun nouveau certificat, aucune révocation) ; profil ad hoc `4K675SAAR3` actif jusqu'au 29/08/2027, un seul appareil : iPhone `00008150-000259D10CA3C01C`.
+
+### 10.2 Build lancée et terminée
+
+Vérifications immédiatement avant lancement : HEAD local = distant = `e8d17f16ba2b0080bb407fe835be59fd0d43716f`, arbre propre ; CI « KODJO catalogue import recette » **success** sur ce HEAD (run `42601525731`) ; `expo config` avec `APP_VARIANT=catalogue` → `Routine Catalogue`, `com.ankusha.kodjo.catalogue`, schéma `routine-catalogue`, `updates.enabled=false`.
+
+Commande : `eas build --platform ios --profile catalogue-recette --non-interactive --no-wait` (depuis `C:/Dev/KODJO-CAT60-MAIN`).
+
+| Élément | Valeur |
+|---|---|
+| Identifiant EAS | `f882e911-43fc-4e59-bed1-d048812dcc33` |
+| Statut | **FINISHED** (créée 12:04:06 UTC, terminée 12:09:48 UTC) |
+| Commit source | `e8d17f16ba2b0080bb407fe835be59fd0d43716f` |
+| Profil / distribution | `catalogue-recette` / INTERNAL (ad hoc), appareil réel |
+| Identifiant d'app | `com.ankusha.kodjo.catalogue`, version 1.0.0 (build 1), runtime `1.1.0`, SDK 57 |
+| Fingerprint | `c3783f2df468eeaa0785ca875ab6e26cda72e497` |
+| Page d'installation | https://expo.dev/accounts/ankushas-team/projects/routine/builds/f882e911-43fc-4e59-bed1-d048812dcc33 |
+| Archive `.ipa` | https://expo.dev/artifacts/eas/So_6QPj_f7EU6ybhxPWBAj-3tMOFeBk16EeobWjwF0A.ipa |
+| Expiration de l'artefact | 23/11/2026 |
+
+Non fait (conformément à l'autorisation) : aucune installation, aucune soumission App Store, aucune OTA, aucune fusion dans `main`, aucune écriture dans PRE-10 (`C:/Dev/PRE10`, branche `composition-phases-duree`).
+
+Reste à faire : recette sur iPhone (§ 8) par Hermann ; taille exacte du JSON réel d'export OVH à transmettre (limite 24 Mo = 25 165 824 octets) ; la recette réelle n'est **pas** démontrée par cette build.
+
+### 10.3 Export OVH réel (9/11, 13:11)
+
+`kodjo-admin-brouillons.json` exporté par Hermann depuis Safari (iPhone) : **408 octets** (taille lue sur l'iPhone, contenu non transmis). Hermann confirme n'avoir fait aucune modification de fiche ni ajout de photo dans l'administration : export sans `movementEdits` ni média, très en deçà de la limite de 24 Mo. L'import attendu crée les 60 Mouvements du corpus du 27/10 avec le préclassement de recette non approuvé. Acceptation réelle sur l'iPhone : à constater pendant la recette.
+
+### 10.4 Recette iPhone de la build `f882e911` et correction de la relecture (9/11, 13:17–13:40)
+
+Constats (captures de Hermann) :
+
+- 1er import : « Import interrompu après 31 insertion(s) : pilot:FIT-PIL-002 (The created movement could not be read back.) » ; écran : 32 mouvements (la fiche fautive est enregistrée, non relue).
+- 2e import (même fichier, 408 octets) : 32 fiches reconnues, 7 ajoutées, interruption sur `pilot:FIT-PIL-010` (même message) ; écran : 40 mouvements.
+- Relances suivantes : import achevé, 60 Mouvements (« tout est téléchargé », Hermann). La reprise sans doublon prévue par le test d'interruption est ainsi constatée sur appareil réel ; le message final et le réimport « 0 ajouté, 60 identiques » ne m'ont pas été transmis en capture.
+
+Analyse historique : le message provient de `SqliteMovementRepository.create` (`main`), non de l'importeur. Le défaut existait avant la passerelle (toute création de Mouvement) ; il est **détecté** par l'import, qui enchaîne 60 créations. Les tests ne l'avaient pas vu : `node:sqlite` n'utilise qu'une connexion. Attribution : **plausible** — expo-sqlite exécute `withExclusiveTransactionAsync` sur une connexion distincte ; `create` relisait ensuite sur la connexion principale (WAL), qui peut lire un instantané antérieur. Les deux échecs, sur des fiches sans particularité et à des rangs différents, correspondent à un aléa de concurrence, pas à une donnée.
+
+Correction (classe D, technique, sans effet sur règle ou contrat) : relecture dans la transaction d'écriture, sur la même connexion, comme `SqliteSessionRepository.create` ; une relecture impossible annule désormais l'insertion au lieu de la laisser validée. Test ajouté dans `pilotMovementImport.sqlite.test.ts` : connexion principale en retard d'un instantané après chaque transaction ; **échoue sans la correction** avec exactement le message de l'iPhone, passe avec.
+
+Tests : `tsc` et eslint propres ; 22 suites / 277 tests (import, commande, Catalogue, repository Mouvement, familles, durées de phase, migrations, schéma) verts. PRE-10 (`origin/pre10-bmad/dev` `9aa90d5f`, `composition-phases-duree` `eb06ac60`) ne modifie pas `SqliteMovementRepository.ts`.
+
+Non démontré : la correction n'est vérifiée sur iPhone qu'après une nouvelle build (OTA désactivées), soumise à l'accord de Hermann. La base de « Routine Catalogue » contient déjà les 60 fiches : une vérification exigerait une réinstallation propre ou une création manuelle de Mouvements.
+
+### 10.5 Build de vérification de la correction et PR #436 (9/11)
+
+Décisions de Hermann : valider la correction sur iPhone avant fusion (« 1. Oui ») ; fusionner seulement la correction de relecture (« Ok pour la fusion telle que tu le préconises ») ; données de catalogue à gérer à part et à charger à la demande (options A–D présentées, option A recommandée, non engagée).
+
+- Build EAS `6987d086-3456-4775-8d2b-9b89c1f3b99c` : **FINISHED** (22:27 UTC), commit `2631c322` (CI `42617296949` success), profil `catalogue-recette`, `com.ankusha.kodjo.catalogue`. Page : https://expo.dev/accounts/ankushas-team/projects/routine/builds/6987d086-3456-4775-8d2b-9b89c1f3b99c (expire le 23/11/2026). Non installée par Claude.
+- PR #436 (`fix/movement-create-readback-20261109`, commit `4f48d9c0`, depuis `origin/main` `901d7b4c`, worktree `C:/Dev/KODJO-MOVFIX`) : correction seule + test dédié (échoue sans, passe avec) + rapport `2026-11-09_MOVEMENT-CREATE-READBACK-FIX.md`. **Non fusionnée** : en attente de la validation iPhone (réinstallation propre, import unique « 60 ajouté(s) », réimport « 0 / 60 »).

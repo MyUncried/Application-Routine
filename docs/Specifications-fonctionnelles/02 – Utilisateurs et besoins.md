@@ -1,5 +1,14 @@
 # Utilisateurs et besoins
 
+## Besoins des acteurs du chantier Bibliothèques (plan en six étapes)
+
+**Utilisateur KODJO — premier lot :** découvrir, choisir, installer et mettre à jour volontairement les Bibliothèques génériques KODJO depuis Profil ; retrouver les Mouvements et les contenus personnels dans le Catalogue sans éditeur doublon. **Administrateur éditorial KODJO — nécessaire au même chantier :** gérer intégralement les fiches, leurs médias, métadonnées, identités de source, provenance, droits éditoriaux et révisions, puis exporter un catalogue compatible avec KODJO. Ce besoin inclut la création d'un 61e Mouvement, les services CA-3 et la reprise des 60 installés. **Créateur de Bibliothèque personnelle, coach et destinataire communautaire :** besoins futurs, non requis pour l'intégration des Bibliothèques génériques. Plan en six étapes et arbitrages au chapitre 07.
+
+## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
+
+Le **premier lot Bibliothèques** couvre exclusivement les collections génériques éditées par KODJO (ex. Fitness, Hyrox, Pilates, Yoga) : découverte, sélection et installation depuis le **Profil**, puis contrôle et application volontaire de leurs mises à jour. Les Mouvements, Séances et Programmes restent accessibles et personnalisables dans le **Catalogue** ; le bloc redondant « Mes données » du Profil est à supprimer. Les compositions et fiches publiées par KODJO ne sont pas directement modifiables. Une Bibliothèque conserve une identité distincte des catégories du Catalogue. La création de Bibliothèques personnelles/de coach, la publication, le partage, les droits de destinataires, l'Espace en étoile, la modération de diffusion et le commerce sont des **évolutions ultérieures**, non le premier lot. Conserver les données et relations nécessaires à l'extensibilité sans introduire maintenant les mécanismes serveur de partage. La désinstallation et les adaptations locales des fiches installées restent **À CLARIFIER** ; aucun écran Figma n'est déclaré validé par cette décision. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir [registre BIB-19 à BIB-23](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md).
+
+
 ## Composition — actualisation du 28/10/2026
 
 Le besoin de répéter une mobilisation avec plusieurs blocs est couvert par un exercice directement membre du cycle, sans imposer un circuit artificiel. Le besoin de séance simple reste couvert sans conteneur. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -122,14 +131,14 @@ Décrire plusieurs actions successives, par exemple 6 s puis 3 s, au sein d’un
 
 ### Profil
 
-Une personne à laquelle un kinésithérapeute, un coach, un professionnel de santé ou un autre accompagnant transmet une Séance à réaliser de manière autonome.
+Une personne utilisant des contenus préparés ou transmis par un autre utilisateur, sans prescription numérique, suivi de patient ni rôle professionnel intégré au modèle KODJO (KIN-01).
 
 ### Besoins futurs
 
-- **B-049** — Recevoir ou copier une Séance préparée par un tiers.
+- **B-049** — Recevoir un contenu préparé par un tiers lorsque le partage sera développé ; aucune duplication d'une fiche Mouvement importée (MOUV-D3).
 - **B-050** — Retrouver des consignes et éventuellement un média associé à chaque Exercice.
-- **B-051** — Partager volontairement certaines informations d’Exécution.
-- **B-052** — Comprendre les versions successives d’une Séance.
+- **B-051** — Recevoir ou transmettre volontairement des Mouvements autorisés dans une relation générique ; aucun suivi d'exécution ni partage de données de patients (KIN-01).
+- **B-052** — Comprendre les révisions successives des Mouvements reçus et choisir explicitement leur mise à jour.
 
 Ces fonctions de réception et de partage ne font pas partie du MVP.
 
@@ -206,7 +215,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - *Texte identique à celui de la section [« 8. Besoins validés pour les évolutions »](#8-besoins-validés-pour-les-évolutions) ; il n’est pas recopié ici.*
 - **B-072** — Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
 - **B-073** — Configurer un Exercice ou un Circuit sans ou avec changement de côté, sans désignation anatomique du côté de départ (D-406) et sans créer de zones corporelles latéralisées (au niveau du Circuit : besoin d’évolution potentiel, explicitement hors du périmètre actuel, D-209, D-395, RM-146).
-- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2`, sans compteur supplémentaire (D-407).
+- **B-074** — Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté 1` ou `Côté 2` [libellés affichés « 1er côté » / « 2ème côté » depuis le 13/11/2026 — recette PRE-10, Hermann : « Changer le texte Côté 1 et côté 2 par 1er côté, et 2ème côté »] [« 2ème côté » remplacé le 13/11/2026 par « 2d côté », suffixe ordinal en exposant (« 1ᵉʳ », « 2ᵈ ») — Hermann : « Le "er" de 1er doit être en exposant, pareil pour le "d" de second côté ou le "e" de troisième, quatrième, etc » ; « 2e » (deuxième) quand il y a un troisième], sans compteur supplémentaire (D-407).
 - **B-075** — Conserver séparément les résultats du côté 1 et du côté 2, y compris lorsqu’un seul côté est partiellement réalisé.
 - **B-076** — Activer la bilatéralité d’un Circuit après confirmation ; toutes ses Exercices héritent alors du Circuit et leur contrôle propre devient unilatéral désactivé (besoin d’évolution potentiel, explicitement hors du périmètre actuel, non validé pour la version actuelle : D-209, D-395, RM-145 à RM-147).
 - **B-092** — Renseigner facultativement, dès le MVP (D-421), une charge informative en kilogrammes pour un Exercice, commune aux Séries identiques ou propre à chaque Série variable, et la retrouver pendant l’Exécution (D-403, RM-235 à RM-241).
@@ -262,3 +271,11 @@ Contenu identique à la section [« Conception de planification »](03%20%E2%80%
 ## Besoins couverts par les formats
 
 Composer un protocole sans ressaisir ses constantes ; choisir l’organisation lorsqu’elle est autorisée ; connaître la durée calculable avant départ ; conserver un résultat fidèle aux conditions réellement exécutées. Une séance libre reste libre, y compris après préremplissage. Le Death by restitue tours acquis et répétitions partielles ; aucune comparaison entre individus ni aucun classement n’est ajouté.
+
+## Besoins post-MVP — Bibliothèques et partage de Mouvements
+
+Tout utilisateur peut constituer des Bibliothèques personnelles en référençant les Mouvements de son Catalogue, sans les copier. Il peut recevoir une Bibliothèque dont la composition reste en lecture seule, ou transmettre directement des Mouvements dans une relation individuelle de l'**Espace en étoile**. Le modèle ne distingue pas de type d'utilisateur « coach » ou « kinésithérapeute ». Dans l'usage kiné-patient, l'exécution est expliquée oralement et aucune prescription numérique n'est créée à ce stade.
+
+Le propriétaire habilité peut publier une fiche sans accorder à ses destinataires le droit de la redistribuer ; les Mouvements de tiers ne sont redistribués, à l'identique, que si leur droit de redistribution le permet ; une fiche reçue n'est jamais modifiée ni copiée (MOUV-D3, A-2) [texte d'origine : « avec des permissions destinataires Protégé ; … si leurs permissions le permettent » — remplacé le 11/11/2026]. Les révisions proposées apparaissent via une pastille et l'action « Mettre à jour ». Une fiche commune à plusieurs Bibliothèques possède **une seule version active locale** : sa mise à jour volontaire est visible dans toutes, après aperçu des impacts, sans changer la composition des autres Bibliothèques.
+
+Les Bibliothèques peuvent accueillir des fiches de sources distinctes portant le même nom affiché ; l'identité de source reste distincte. Les modalités de paiements, groupes, droits futurs et interfaces sont à concevoir. La modération centrale est nécessaire avant diffusion et doit pouvoir suspendre un contenu. **Ces besoins sont post-MVP**, sans dépendance réseau nouvelle pour l'Exécution actuelle. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).

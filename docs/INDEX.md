@@ -1,5 +1,36 @@
 # Documentation de KODJO
 
+## Décisions A-1 à A-6 — reprise du chantier Catalogue autonome (11/11/2026)
+
+[Registre, section « Décisions A-1 à A-6 »](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) : Bibliothèque = collection logique de références (A-1) ; fiche importée ni copiée, ni dupliquée, ni modifiée (A-2) ; branche d'intégration `catalogue/integration-pre10-20261111` (A-3) ; écrans Figma, report de « Mes bibliothèques », « Bibliothèques partagées » et de la désinstallation (A-4) ; réemploi sélectif des PR #421 à #434 (A-5) ; Wi-Fi = simple canal de transport (A-6). Choix techniques P0 et points À CLARIFIER au registre.
+
+## Étape 2 — modèle cible de la fiche Mouvement
+
+[Spécification de développement : auteur unique, médias hybrides, fiches importées protégées et migrations](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Décisions MOUV-D1 à D4 confirmées ; développement non exécuté. Le dossier précédent d'audit mentionne des divergences désormais arbitrées : ces mentions sont **historiques** sur la cardinalité de l'auteur et la lecture seule des importées.
+
+## Fiche Mouvement — contrat consolidé pour développement (11/11/2026)
+
+[Contrat de la fiche Mouvement, matrice de couverture et mandat Claude](KODJO-Fiche-Mouvement-Contrat-consolide-et-handoff-2026-11-11.md) — étude ciblée du fichier autonome CA-1, de la provenance, du chargement CA-3, du modèle local et des écarts avant évolution de la persistance. **Aucune modification du moteur ni validation de tests**. Les fichiers CA-1/CA-3 analysés proviennent d'une branche pilote distincte, non fusionnée automatiquement.
+
+## Pilotage du catalogue autonome — six étapes confirmées le 11/11/2026
+
+**Référence de réalisation :** [plan en six étapes au registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md). Conception exhaustive de la fiche Mouvement ; consolidation CA-1/CA-2/CA-3 et données/révisions sans migration concurrente PRE-10 ; Figma Profil ; services communs indépendants des interfaces ; administration Web existante (Node.js local et OVH, création du 61e Mouvement, export compatible) ; puis intégration mobile et réconciliation des 60 Mouvements déjà installés. **Les décisions BIB-19–23 restreignent les Bibliothèques visibles aux collections génériques KODJO, sans reporter le socle éditorial.** Le plan L1–L6 de distribution communautaire est remplacé pour le pilotage de ce chantier. Figma Profil vérifié : [écran `1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778). Fonctions personnelles et partagées figurant dans la maquette : futures, comportement actuel à clarifier.
+
+## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
+
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+
+## Bibliothèques et partage de Mouvements — conception cible
+
+Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèques par références, identité source stable malgré les homonymes, **révision active unique par Mouvement**, propagation aux Bibliothèques qui le référencent après mise à jour volontaire, première publication distincte de la redistribution, fiches reçues non modifiables et non duplicables, redistribution à l'identique uniquement si autorisée, archivage, arrêt de partage, modération et Espace en étoile générique.
+
+- [Parcours fonctionnels PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md) — référence des interactions attendues, sans interface Figma encore validée.
+- [Conception fonctionnelle et droits](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md) — règles produit post-MVP et points réellement ouverts.
+- [Architecture, modèle de données et axes de simplification pour Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) — proposition technique à examiner, notamment la migration `normalized_name UNIQUE` et la cohérence des mises à jour sur deux bases.
+- [Registre des décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
+
+**Périmètre :** premier lot Bibliothèques génériques KODJO distinct du MVP local ; partage et modération centrale reportés. Aucune réalisation de réseau ou de modération centrale revendiquée. La page « Prototype MVP » de Figma comporte des actions « Partager », pas des parcours complets de Bibliothèques ou de modération validés.
+
 ## Formats — base de reprise actualisée le 5 novembre 2026
 
 **D-499 — précision validée par Hermann le 06/11/2026 :** « Valider les paramètres » apparaît uniquement lorsqu’une seconde étape est nécessaire et ouvre le récapitulatif sans enregistrer dans la séance. Dans ce cas, la coche du questionnaire reste grise et inactive. Sans seconde étape, la coche enregistre dans la séance lorsque les données sont complètes et cohérentes. Dans le récapitulatif, elle devient bleue et active lorsque les données sont complètes et cohérentes, puis enregistre dans la séance. Death by à un mouvement : questionnaire → coche → Composition, sans récapitulatif ; à deux mouvements : questionnaire → « Valider les paramètres » → récapitulatif → coche → Composition. L’enregistrement reste un ajout au brouillon de Composition, sans sauvegarde définitive de la Séance. Cette précision supersède la suppression générale du bouton dans les questionnaires ; les autres validations par coche restent applicables.
@@ -97,7 +128,7 @@ Huit points clos : C01–C07 et C09. C08 seul reste différé sur le périmètre
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; aucune propagation entre copies d'objets locaux n’est nécessaire. La diffusion entre utilisateurs suit BIB-12 et n'actualise une révision ordinaire qu'après l'action « Mettre à jour ». Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 

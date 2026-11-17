@@ -66,6 +66,21 @@ const SPIKE_POLICIES: readonly { readonly policy: SessionPolicy; readonly label:
   { policy: "LIBRARY_MIX", label: "Musique non baissée" },
 ];
 
+/**
+ * Recette e1 du 12/11/2026 (Hermann, i : « la voix n'est pas parfaitement claires, c'est le cas depuis le début et même
+ * depuis qu'on a téléchargé le premium » ; priorité le 12/11) : quelle voix est choisie, et la session audio de la
+ * séance dégrade-t-elle la voix ? Même phrase, voix choisie : V1 dans sa propre session (référence), V2 comme en
+ * séance (session de l'application, bibliothèque de sons démarrée, musique baissée), V3 comme V2, un peu plus lente.
+ */
+type VoiceTrial = "V1" | "V2" | "V3";
+const VOICE_TRIALS: readonly { readonly trial: VoiceTrial; readonly label: string }[] = [
+  { trial: "V1", label: "V1 — Voix seule, dans sa propre session audio (référence)" },
+  { trial: "V2", label: "V2 — Comme en séance : session de l'application, sons prêts, musique baissée" },
+  { trial: "V3", label: "V3 — Comme V2, débit un peu plus lent" },
+];
+const VOICE_PHRASE = "Récupération. À suivre : Squats assistés, 12 répétitions.";
+type FrenchVoice = { readonly identifier: string; readonly name: string; readonly quality: string; readonly chosen: boolean };
+
 const REPEAT = 3;
 const INTERVAL_MS = 1000;
 
@@ -89,6 +104,7 @@ export function SoundDiagnosticScreen() {
   const toDispose = useRef<AudioPlayer[]>([]);
   const selected = TONES[toneIndex]!;
   const [spikePolicy, setSpikePolicy] = useState<SessionPolicy>("LIBRARY_DUCK");
+  const [voices, setVoices] = useState<readonly FrenchVoice[] | null>(null);
 
   const note = (line: string) => setJournal((lines) => [`${new Date().toLocaleTimeString("fr-FR")} ${line}`, ...lines].slice(0, 40));
 
@@ -196,6 +212,78 @@ export function SoundDiagnosticScreen() {
     await new Promise<void>((resolve) => {
       Speech.speak(text, { language: EXECUTION_VOICE_LANGUAGE, ...(voice === null ? {} : { voice }), useApplicationAudioSession: true, onDone: () => resolve(), onError: () => resolve(), onStopped: () => resolve() });
     });
+  }
+
+  async function listVoices() {
+    if (!hasNativeModule("ExpoSpeech")) {
+      note("Module de synthèse vocale absent de cette version de l'application.");
+      return;
+    }
+    const Speech = await import("expo-speech");
+    const all = await Speech.getAvailableVoicesAsync();
+    const chosen = bestFrenchVoice(all);
+    const french = all
+      .filter((voice) => voice.language.replace("_", "-").toLowerCase().startsWith("fr"))
+      .map((voice) => ({ identifier: voice.identifier, name: voice.name, quality: `${voice.language} · ${voice.quality}`, chosen: voice.identifier === chosen }));
+    setVoices(french);
+    note(`${french.length} voix françaises ; choisie en séance : ${chosen ?? "aucune (voix système par défaut)"}`);
+  }
+
+  async function speak(text: string, options: { voice: string | null; ownSession: boolean; rate?: number }) {
+    const Speech = await import("expo-speech");
+    await new Promise<void>((resolve) => {
+      Speech.speak(text, {
+        language: EXECUTION_VOICE_LANGUAGE,
+        ...(options.voice === null ? {} : { voice: options.voice }),
+        ...(options.rate === undefined ? {} : { rate: options.rate }),
+        useApplicationAudioSession: !options.ownSession,
+        onDone: () => resolve(),
+        onError: () => resolve(),
+        onStopped: () => resolve(),
+      });
+    });
+  }
+
+  async function playVoice(voice: FrenchVoice) {
+    if (running) return;
+    setRunning(true);
+    note(`voix ${voice.name} (${voice.identifier})`);
+    try {
+      await speak(VOICE_PHRASE, { voice: voice.identifier, ownSession: true });
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function runVoiceTrial(trial: VoiceTrial) {
+    if (running) return;
+    if (!hasNativeModule("ExpoSpeech")) {
+      note("Module de synthèse vocale absent de cette version de l'application.");
+      return;
+    }
+    setRunning(true);
+    note(VOICE_TRIALS.find((entry) => entry.trial === trial)!.label);
+    const Speech = await import("expo-speech");
+    const voice = bestFrenchVoice(await Speech.getAvailableVoicesAsync());
+    const sounds = trial !== "V1" && hasScheduledSounds() ? new ScheduledSounds() : null;
+    try {
+      if (trial !== "V1") {
+        await startExecutionAudio();
+        if (sounds !== null) {
+          await sounds.start("LIBRARY_DUCK");
+          await sounds.preload(["BIP_DOUBLE"]);
+          note("sons prêts, comme en séance");
+        }
+      }
+      await wait(300);
+      await speak(VOICE_PHRASE, { voice, ownSession: trial === "V1", ...(trial === "V3" ? { rate: 0.9 } : {}) });
+      note("fin");
+    } catch (error) {
+      note(`Erreur : ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      await sounds?.stop();
+      setRunning(false);
+    }
   }
 
   async function runSpike(spike: Spike) {
@@ -338,6 +426,26 @@ export function SoundDiagnosticScreen() {
         {SPIKES.map((entry) => (
           <Pressable key={entry.spike} onPress={() => void runSpike(entry.spike)} disabled={running} accessibilityRole="button" style={[styles.button, running && styles.buttonDisabled]} testID={`sound-spike-${entry.spike}`}>
             <Text style={styles.buttonText}>{entry.label}</Text>
+          </Pressable>
+        ))}
+        <Text style={styles.section}>Voix (recette e1, i)</Text>
+        <Text style={styles.text}>Écoutez V1, V2 et V3 : la voix est-elle plus claire en V1 ? Puis listez les voix et touchez-en plusieurs pour choisir la plus claire. Notez le nom de la voix retenue.</Text>
+        {VOICE_TRIALS.map((entry) => (
+          <Pressable key={entry.trial} onPress={() => void runVoiceTrial(entry.trial)} disabled={running} accessibilityRole="button" style={[styles.button, running && styles.buttonDisabled]} testID={`voice-trial-${entry.trial}`}>
+            <Text style={styles.buttonText}>{entry.label}</Text>
+          </Pressable>
+        ))}
+        <Pressable onPress={() => void listVoices()} disabled={running} accessibilityRole="button" style={[styles.button, running && styles.buttonDisabled]} testID="voice-list">
+          <Text style={styles.buttonText}>Lister les voix françaises installées</Text>
+        </Pressable>
+        {voices?.map((voice) => (
+          <Pressable key={voice.identifier} onPress={() => void playVoice(voice)} disabled={running} accessibilityRole="button" style={[styles.button, running && styles.buttonDisabled]}>
+            <Text style={styles.buttonText}>
+              {voice.name}
+              {voice.chosen ? " — choisie en séance" : ""}
+            </Text>
+            <Text style={styles.mono}>{voice.identifier}</Text>
+            <Text style={styles.mono}>{voice.quality}</Text>
           </Pressable>
         ))}
         <Text style={styles.section}>Journal</Text>

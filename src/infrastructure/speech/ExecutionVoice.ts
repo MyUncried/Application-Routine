@@ -14,7 +14,15 @@ import { hasNativeModule, startExecutionAudio } from "@/infrastructure/audio/Exe
  *   active avant la première annonce. Depuis la décision du 10/11/2026 (« 1.A »), elle reste active et
  *   atténue la musique pendant toute l'Exécution (voir `ExecutionSounds`).
  */
-export type VoicePort = { readonly say: (text: string) => void; readonly prepare?: () => void };
+export type VoicePort = {
+  readonly say: (text: string) => void;
+  readonly prepare?: () => void;
+  /**
+   * Recette du 12/11/2026 (Hermann, e1e : « L'annonce doit s'arrêter net à la pause, et reprendre au début lorsqu'on
+   * recommence l'exercice ») : arrête net l'annonce en cours ou sur le point de partir et rend son texte (`null` sinon).
+   */
+  readonly interrupt?: () => string | null;
+};
 
 export const EXECUTION_VOICE_LANGUAGE = "fr-FR";
 
@@ -34,6 +42,8 @@ export function bestFrenchVoice(voices: readonly VoiceInfo[]): string | null {
 export class ExecutionVoice implements VoicePort {
   private voiceId: Promise<string | null> | null = null;
   private generation = 0;
+  /** Annonce demandée et pas encore terminée. */
+  private current: string | null = null;
 
   /** Préparation au début de l'Exécution : session audio et choix de la voix, avant la première annonce. */
   prepare(): void {
@@ -53,9 +63,21 @@ export class ExecutionVoice implements VoicePort {
     return this.voiceId;
   }
 
+  interrupt(): string | null {
+    const text = this.current;
+    this.current = null;
+    this.generation += 1;
+    if (hasNativeModule("ExpoSpeech")) void import("expo-speech").then((Speech) => Speech.stop()).catch(() => undefined);
+    return text;
+  }
+
   private async sayAsync(text: string): Promise<void> {
     if (!hasNativeModule("ExpoSpeech")) return;
     const generation = ++this.generation;
+    this.current = text;
+    const done = () => {
+      if (generation === this.generation) this.current = null;
+    };
     const Speech = await import("expo-speech");
     const voice = await this.voice().catch(() => null);
     await Speech.stop();
@@ -68,6 +90,8 @@ export class ExecutionVoice implements VoicePort {
       language: EXECUTION_VOICE_LANGUAGE,
       ...(voice === null ? {} : { voice }),
       useApplicationAudioSession: true,
+      onDone: done,
+      onError: done,
     });
   }
 }

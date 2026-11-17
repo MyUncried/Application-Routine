@@ -164,11 +164,13 @@ export const DATABASE_NAME = "kodjo.db";
  * `sessions.guidance_settings`, colonnes additives nullables. 001..028 inchangées.
  */
 /**
- * **Planification (version 30, `migration030`)** : tables additives `routines`, `routine_entries` et
- * `routine_exclusions` (Routine multi-contenus, Calendrier Semaine). 001..029 inchangées. [Le chantier « catalogue
+ * **Catalogue des Mouvements en grille (version 30, `migration030`)** : table singleton `catalogue_preferences` (`movement_catalogue_grid` : 0 =
+ * liste, défaut ; 1 = grille), jointe au Profil ; aucune table existante modifiée. 001..029 inchangées.
+ * **Planification (version 31, `migration031`)** : tables additives `routines`, `routine_entries` et
+ * `routine_exclusions` (Routine multi-contenus, Calendrier Semaine). 001..030 inchangées. [Le chantier « catalogue
  * connecté » prévoyait une migration « ≥ 029 » non développée : elle prendra la prochaine version disponible.]
  */
-export const DATABASE_VERSION = 30;
+export const DATABASE_VERSION = 31;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

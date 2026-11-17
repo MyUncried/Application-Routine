@@ -45,6 +45,11 @@ export const DEFAULT_ANNOUNCE_SESSION_ENABLED = true as const;
 export const DEFAULT_ANNOUNCE_SIDES_ENABLED = true as const;
 /** Recette du 10/11/2026 (constat B) : annonce du nom des phases du mouvement, activée par défaut. */
 export const DEFAULT_ANNOUNCE_PHASES_ENABLED = true as const;
+/**
+ * Catalogue des Mouvements (décision de Hermann du 16/11/2026, CE-MVT-03, Bascule) : la liste reste la présentation d'origine ;
+ * la grille est choisie par la bascule et le choix est mémorisé.
+ */
+export const DEFAULT_MOVEMENT_CATALOGUE_GRID_ENABLED = false as const;
 
 export type Silhouette = "homme" | "femme";
 
@@ -78,6 +83,8 @@ export type Profile = {
   readonly announceSidesEnabled: boolean;
   /** Annonce du nom des phases du mouvement. */
   readonly announcePhasesEnabled: boolean;
+  /** Catalogue des Mouvements présenté en grille (`true`) ou en liste (`false`, défaut) — choix de la bascule, mémorisé. */
+  readonly movementCatalogueGridEnabled: boolean;
   /**
    * Son et vibration des neuf événements (documentation de main `ebe72f76`, RM-087 ; `migration029`). Remplace, pour
    * l'Exécution, les anciennes bascules générales Sons et Vibration, qui ne sont plus affichées.
@@ -111,6 +118,7 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     announceSessionEnabled: DEFAULT_ANNOUNCE_SESSION_ENABLED,
     announceSidesEnabled: DEFAULT_ANNOUNCE_SIDES_ENABLED,
     announcePhasesEnabled: DEFAULT_ANNOUNCE_PHASES_ENABLED,
+    movementCatalogueGridEnabled: DEFAULT_MOVEMENT_CATALOGUE_GRID_ENABLED,
     guidanceEvents: DEFAULT_GUIDANCE_EVENTS,
     displayName: null,
     photoUri: null,

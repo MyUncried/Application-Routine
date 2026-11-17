@@ -58,10 +58,14 @@ describe("valeurs initiales décidées (aucune valeur de maquette)", () => {
     // MAJ 04/11 §6 quater bis : « Avec charge » désactivé par défaut.
     // Recette du 04/11/2026 : interrupteurs Buy-in et Buy-out du For time, désactivés par défaut.
     expect(initialAnswers("FOR_TIME")).toEqual({ roundCount: 3, timeCapSeconds: null, restBetweenRoundsSeconds: 0, buyIn: false, buyOut: false, withLoad: false });
-    expect(initialAnswers("DEATH_BY")).toMatchObject({ intervalSeconds: 60, startRepetitions: 1, increment: 1 });
+    // Recette du 16/11/2026 (r16-deathby-depart) : Départ et Incrément sans valeur par défaut. [1 et + 1 — remplacé.]
+    expect(initialAnswers("DEATH_BY")).toMatchObject({ intervalSeconds: 60 });
+    expect(initialAnswers("DEATH_BY")).not.toHaveProperty("startRepetitions");
+    expect(initialAnswers("DEATH_BY")).not.toHaveProperty("increment");
     expect(initialAnswers("STRENGTH")).toMatchObject({ seriesCount: 3, repetitions: 15 });
     expect(initialAnswers("PROGRESSION")).not.toHaveProperty("repetitions");
-    expect(executionOptions("FOR_TIME")).toEqual([]);
+    // Décision de Hermann du 14/11/2026 (FT-20 à FT-23) : En alternance (défaut) ou À la suite. [Aucun choix — remplacé.]
+    expect(executionOptions("FOR_TIME")).toEqual(["ALTERNATED", "SEQUENCE"]);
     expect(executionOptions("EMOM")).toEqual(["EACH_INTERVAL", "SEQUENCE", "ALTERNATED"]);
   });
 
@@ -198,22 +202,21 @@ describe("For time (§11, A6)", () => {
     expect(modelTimeline("FOR_TIME", answers, movementsOf("FOR_TIME", answers, ["a", "b"])).end).toEqual({ kind: "MEASURED" });
   });
 
-  it("N passé à 4 : 21-15-9-« à compléter » ; à 2 : 21-15 — sans copie, extrapolation ni confirmation", () => {
+  // Règles de Hermann du 14/11/2026, FT-7 : séries variables complétées avec la dernière valeur, dernières séries supprimées à la
+  // diminution. [« 21-15-9-à compléter », valeur du tour 3 gardée en réserve (contre-recette n° 3 ter du 03/11/2026) — remplacé.]
+  it("N passé à 4 : 21-15-9 puis série à renseigner (recette du 15/11/2026) ; à 2 : 21-15, dernière série supprimée (FT-7)", () => {
     const movements = movementsOf("FOR_TIME", answers, ["a"]);
     const four = adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 4), movements);
+    // Recette du 15/11/2026 (Hermann, ft-i6 : « La dernière valeur ne doit pas être reprise » ; h1 : « les valeurs des Nouvelles séries doivent être entrée manuellement ») : séries ajoutées à renseigner. [Dernière valeur reprise (FT-7, FT-10) — remplacé.]
     expect(four[0]!.values.volumes).toEqual([21, 15, 9, null]);
-    const [element] = build("FOR_TIME", withAnswer(answers, "roundCount", 4), four);
-    expect(element!.kind === "EXERCISE" && seriesRowsOf(element!.exercise.executionParameters).at(-1)!.target).toEqual({ kind: "UNSET" });
-    // Contre-recette n° 3 ter du 03/11/2026 (f3-fortime) : à 2, la valeur du tour 3 reste en réserve (non construite) ;
-    // repasser à 3 la retrouve.
     const two = adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 2), movements);
-    expect(two[0]!.values.volumes).toEqual([21, 15, 9]);
+    expect(two[0]!.values.volumes).toEqual([21, 15]);
     const [built] = build("FOR_TIME", withAnswer(answers, "roundCount", 2), two);
     expect(built!.kind === "EXERCISE" && seriesRowsOf(built!.exercise.executionParameters).map((row) => row.target)).toEqual([
       { kind: "NUMBER", value: 21 },
       { kind: "NUMBER", value: 15 },
     ]);
-    expect(adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 3), two)[0]!.values.volumes).toEqual([21, 15, 9]);
+    expect(adaptMovementsToAnswers("FOR_TIME", withAnswer(answers, "roundCount", 3), two)[0]!.values.volumes).toEqual([21, 15, null]);
   });
 });
 
@@ -227,11 +230,12 @@ describe("Death by (§12, A2)", () => {
   });
 
   it("en alternance : Circuit porteur alterné sans durée, intervalle propre à chaque membre ; dans chaque intervalle : Circuit groupé, intervalle commun", () => {
-    const alternated = build("DEATH_BY", { ...answers, execution: "ALTERNATED" }, movementsOf("DEATH_BY", answers, ["a", "b"]));
+    const filled = movementsOf("DEATH_BY", answers, ["a", "b"]).map((movement) => ({ ...movement, values: { ...movement.values, start: 1, startIncrement: 1 } }));
+    const alternated = build("DEATH_BY", { ...answers, execution: "ALTERNATED" }, filled);
     const circuit = alternated[0]!.kind === "CIRCUIT" ? alternated[0]!.circuit : null;
     expect(circuit).toMatchObject({ nature: "SERIES", format: { key: "DEATH_BY", settings: {} } });
     expect(circuit!.exercises[0]!.format).toEqual({ key: "DEATH_BY", settings: { incrementPerRound: 1, intervalSeconds: 60 } });
-    const grouped = build("DEATH_BY", { ...answers, execution: "EACH_INTERVAL" }, movementsOf("DEATH_BY", answers, ["a", "b"]));
+    const grouped = build("DEATH_BY", { ...answers, execution: "EACH_INTERVAL" }, filled);
     expect(grouped[0]!.kind === "CIRCUIT" && grouped[0]!.circuit).toMatchObject({ nature: "TOURS", format: { key: "DEATH_BY", settings: { windowSeconds: 60 } } });
     for (const elements of [alternated, grouped]) expect(configurationValidity({ elements, stopPoints: [] }).status).toBe("valid");
   });

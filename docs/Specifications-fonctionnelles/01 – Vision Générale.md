@@ -1,5 +1,14 @@
 # Vision et glossaire
 
+## Chantier Catalogue autonome / Bibliothèques — plan de référence
+
+**Six étapes sans changement de périmètre éditorial :** concevoir la fiche Mouvement et séparer ses propriétés d'usage/éditoriales ; consolider CA-1/CA-2/CA-3 et le stockage des identités, médias, provenances et révisions compatible PRE-10 ; concevoir Figma Profil ; développer services communs de gestion des fiches ; finaliser l'administration Web Node.js/OVH ; intégrer l'application et réconcilier les 60 Mouvements existants. L'édition, l'import/export et les droits de source sont conservés ; seuls les usages personnels/coachs et le partage entre utilisateurs sont reportés. Voir BIB-19–23 et le plan au registre.
+
+## Bibliothèques KODJO — portée du premier lot (BIB-19 à BIB-23)
+
+Les Bibliothèques génériques proposées et maintenues par KODJO (Fitness, Hyrox, Pilates, Yoga : exemples) sont sélectionnées, installées et mises à jour volontairement depuis le Profil ; le Catalogue reste la surface des Mouvements, Séances et Programmes. Les Bibliothèques personnelles, de coach et partagées sont reportées après ce premier lot, sans supprimer leur conception cible. Bibliothèque et Catégorie du Catalogue sont deux notions distinctes. Voir le registre BIB-19 à BIB-23.
+
+
 ## Composition — actualisation du 28/10/2026
 
 Le Cycle est un conteneur visible de circuits et d’exercices directs ; le Circuit a pour natures Séries groupées et Séries alternées. Tour désigne un passage de circuit, répétition le compte du cycle. Les valeurs de séries identiques/variables sont un autre axe. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
@@ -137,7 +146,7 @@ La création rapide constitue le parcours principal. La Description reste facult
 
 ## Vision de la bilatéralité
 
-La configuration permet de régler le `Changement de côté` d’un Exercice sur `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence, que Kodjo ne désigne pas (D-406, RM-242). Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté 1` ou `Côté 2` sous le nom de l’Exercice (D-407, RM-243). Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de régler le `Changement de côté` d’un Exercice sur `Avec` ou `Sans` ; l’utilisateur choisit lui-même le côté par lequel il commence, que Kodjo ne désigne pas (D-406, RM-242). Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté 1` ou `Côté 2` [libellés affichés « 1er côté » / « 2ème côté » depuis le 13/11/2026 — recette PRE-10, Hermann : « Changer le texte Côté 1 et côté 2 par 1er côté, et 2ème côté »] [« 2ème côté » remplacé le 13/11/2026 par « 2d côté », suffixe ordinal en exposant (« 1ᵉʳ », « 2ᵈ ») — Hermann : « Le "er" de 1er doit être en exposant, pareil pour le "d" de second côté ou le "e" de troisième, quatrième, etc » ; « 2e » (deuxième) quand il y a un troisième] sous le nom de l’Exercice (D-407, RM-243). Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
 
 ## Concepts de composition
 
@@ -308,7 +317,7 @@ Une **phase d’exercice** est une action chronométrée et nommée au sein d’
 |---|---|
 | **Changement de côté** | Paramètre d’un Exercice présenté par le contrôle `Changement de côté` : `Avec` ou `Sans`. Avec `Avec`, l’Exercice est bilatéral et l’utilisateur choisit lui-même le côté par lequel il commence (D-406, RM-242). Les valeurs historiques `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT` se lisent selon RM-244. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Circuit ; un éventuel champ technique historique correspondant reste fixé à `UNILATERAL`. |
 | **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Dans la version actuelle, il provient de l’Exercice ; le Circuit n’expose aucun changement de côté. |
-| **Côté courant** | Côté 1 ou côté 2 pour le passage en cours ; le côté 1 est celui par lequel l’utilisateur commence (D-407, RM-243). L’interface l’affiche sous le nom de l’Exercice par `Côté 1` ou `Côté 2`. Les valeurs techniques historiques `RIGHT` et `LEFT` restent lisibles ; les noms techniques relèvent de l’implémentation (RM-244). Aucun compteur `1/2` ou `2/2` n’est affiché. |
+| **Côté courant** | Côté 1 ou côté 2 pour le passage en cours ; le côté 1 est celui par lequel l’utilisateur commence (D-407, RM-243). L’interface l’affiche sous le nom de l’Exercice par `Côté 1` ou `Côté 2` [libellés affichés « 1er côté » / « 2ème côté » depuis le 13/11/2026 — recette PRE-10, Hermann : « Changer le texte Côté 1 et côté 2 par 1er côté, et 2ème côté »] [« 2ème côté » remplacé le 13/11/2026 par « 2d côté », suffixe ordinal en exposant (« 1ᵉʳ », « 2ᵈ ») — Hermann : « Le "er" de 1er doit être en exposant, pareil pour le "d" de second côté ou le "e" de troisième, quatrième, etc » ; « 2e » (deuxième) quand il y a un troisième]. Les valeurs techniques historiques `RIGHT` et `LEFT` restent lisibles ; les noms techniques relèvent de l’implémentation (RM-244). Aucun compteur `1/2` ou `2/2` n’est affiché. |
 | **Exercice bilatéral autonome** | Exercice exécutant ses Séries des deux côtés selon l’Ordre des côtés : toutes ses Séries du premier côté puis toutes celles du second (défaut), ou les deux côtés à chaque série (D-247). Sa Pause entre les côtés éventuelle, intrinsèque, s’applique selon cet ordre ; la Récupération après exercice éventuelle appartient à l’occurrence de Séance et intervient après l’Exercice complet (D-208). |
 | **Bilatéralité du Circuit** | Le Circuit et ses Tours n’ont pas de direction ni de réglage de côté. Le changement de côté est porté uniquement par l’Exercice. |
 
@@ -447,7 +456,7 @@ Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé 
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+Les corrections du Mouvement local, partagé entre les Exercices et Séances de la même installation, sont visibles à leur prochaine lecture ; il n'y a pas de propagation de copies entre ces objets locaux. La diffusion entre utilisateurs suit au contraire la mise à jour manuelle BIB-12. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
@@ -464,3 +473,21 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 ## Création et Formats — état final du 5 novembre 2026
 
 Exercice libre : entrée de création d’un Exercice sans préconfiguration de modèle ; distinct d’un Format nommé Libre. Rang Death by : fenêtre à tenter, distincte des rangs acquis. « Limite de l’intervalle atteinte » décrit l’arrêt avant un rang impossible, sans tentative fictive.
+
+## Glossaire cible — Bibliothèques et Mouvements distribués (post-MVP)
+
+Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le modèle opérationnel actuel avant migration. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+- **Fiche source** : identité éditoriale stable (espace de noms de source + identifiant de fiche), indépendante du nom affiché, de l'auteur et des Bibliothèques.
+- **Mouvement local** : objet possédant son `Movement.id`, déjà référencé par les Exercices et Séances ; une seule révision active par fiche source sur un appareil.
+- **Auteur** : un auteur unique connu, ou inconnu ; distinct du responsable administratif et du titulaire déclaré des droits.
+- **Bibliothèque** : composition ordonnée de références vers des Mouvements ; un même Mouvement peut appartenir à plusieurs Bibliothèques sans copie. Collection logique identifiable, non définie par un fichier physique (A-1, 11/11/2026).
+- **Bibliothèque personnelle** : composition modifiable par son propriétaire. **Bibliothèque reçue** : composition non modifiable localement par le destinataire.
+- **Copie personnelle** : [Supersédée le 11/11/2026 par MOUV-D3 et A-2 : une fiche importée ne peut être ni copiée, ni dupliquée, ni modifiée, même pour créer une version personnelle ; seul le référencement est possible. Texte d'origine : « nouvelle identité locale avec provenance et permissions conservées ; distincte du simple référencement. »]
+- **Publier** : première diffusion par le propriétaire habilité. **Redistribuer** : transmission ultérieure par un destinataire lorsque sa permission l'autorise.
+- **Permissions de fiche (MOUV-D3)** : les fiches importées sont non modifiables et non duplicables ; leur éventuelle redistribution exige l'autorisation de la source. Les Mouvements créés personnellement restent modifiables/duplicables ; les paramètres des Exercices demeurent indépendants.
+- **Révision active** : version utilisée partout où la même identité source est référencée. Une mise à jour volontaire depuis une Bibliothèque la propage à toutes ses références locales, sans modifier leur composition.
+- **Espace en étoile** : relations individuelles orientées entre utilisateurs, sans rôle « professionnel » dans le modèle et sans prescription numérique dans ce premier lot.
+- **Modération** : suspension prioritaire de fiche ou média, distincte d'une mise à jour volontaire.
+
+La règle du MVP actuel d'un nom de Mouvement unique (`normalized_name`, D-445 C01) reste applicable au code actuel ; **la cible distribuée accepte les homonymes de sources différentes**, après migration de cette contrainte.

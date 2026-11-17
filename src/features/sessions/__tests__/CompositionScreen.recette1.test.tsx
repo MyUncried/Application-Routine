@@ -115,7 +115,7 @@ function incomplete(id: string, structuralPosition: SessionDraftExercise["struct
   const created = exerciseOfMovement(
     { id: `movement-${id}`, name: `Exercice ${id}`, description: null, media: [], categoryId: "cardio", bodyZoneIds: [], phases: [], nextPhaseId: 1, aliases: [], levelGroup: null },
     id,
-    { countdownSeconds: 5, endSeconds: 5, recoverySeconds: 30 },
+    { countdownSeconds: 5, endSeconds: 5 },
   );
   return { ...created, structuralPosition };
 }
@@ -242,7 +242,10 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await act(async () => undefined);
+    // Fermeture animée de la feuille d'une carte (PRE-9, constat d) : attendue jusqu'à son terme.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    });
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     // [« carte complète → éditeur » — remplacé par la recette iPhone n° 2 du 31/10/2026 (constat c) :
     // toute carte d'Exercice ouvre la feuille ; la photo ouvre l'éditeur.]

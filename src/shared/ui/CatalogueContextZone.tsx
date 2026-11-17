@@ -16,6 +16,8 @@ import { dimensions, type } from "@/shared/ui/tokens";
  *   étendu jusqu'à la commande suivante à l'écart 12 des commandes — recette iPhone du 30/10/2026,
  *   cat-commandes) ; Filtre, Tri et Créer (visuels 34 à `y = 160`, cibles 44 × 44), alignés à droite,
  *   écart 12.
+ * - Bascule liste / grille du catalogue des Mouvements (`summaryAccessory`, décision de Hermann du 16/11/2026, CE-MVT-03) : à
+ *   droite de la ligne 1, bord droit à 16 de l’écran (Figma `12530:27177`, `x = 330`, 56 de large), centrée sur la ligne.
  * - Créer est facultatif (recette du 30/10/2026, constat a) : la sélection « Utiliser un mouvement
  *   existant » reprend cette zone sans le bouton Créer).
  *
@@ -30,7 +32,11 @@ export function CatalogueContextZone({
   createLabel,
   onCreate,
   onCommandRowLayout,
+  trailingCommand,
+  summaryAccessory,
 }: {
+  /** Bibliothèques personnelles : commande « Ajouter des mouvements » (list-plus) après le Tri, à la place de Créer. */
+  readonly trailingCommand?: ReactNode;
   readonly summary: ReactNode;
   /**
    * « N résultats » ; `null` hors état filtré ou archivé (champ Rechercher pleine largeur) ; chaîne
@@ -53,16 +59,19 @@ export function CatalogueContextZone({
   readonly onCreate?: () => void;
   /** Largeur mesurée de la deuxième ligne (disposition de la commande Filtre étendue, Séances). */
   readonly onCommandRowLayout?: (event: LayoutChangeEvent) => void;
+  /** Élément posé à droite de la ligne 1 (bascule liste / grille des Mouvements) ; absent : ligne 1 inchangée. */
+  readonly summaryAccessory?: ReactNode;
 }) {
   return (
     <View style={styles.zone} testID="catalogue-context-zone">
       <View style={styles.line1} testID="catalogue-context-line1">
         <View style={styles.summary}>{summary}</View>
         {results !== null && results.length > 0 ? (
-          <Text style={styles.results} numberOfLines={1} testID="catalogue-results">
+          <Text style={[styles.results, summaryAccessory !== undefined ? styles.resultsBeforeAccessory : null]} numberOfLines={1} testID="catalogue-results">
             {results}
           </Text>
         ) : null}
+        {summaryAccessory !== undefined ? <View style={styles.accessory}>{summaryAccessory}</View> : null}
       </View>
       <View style={styles.line2} onLayout={onCommandRowLayout} testID="catalogue-command-row">
         <CatalogueSearchField
@@ -75,6 +84,7 @@ export function CatalogueContextZone({
           {createLabel !== undefined && onCreate !== undefined ? (
             <CommandCircle label={createLabel} icon="create" onPress={onCreate} testID="catalogue-create-action" />
           ) : null}
+          {trailingCommand ?? null}
         </View>
       </View>
     </View>
@@ -107,6 +117,15 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     color: CONTEXT_TEXT_COLOR,
     textAlign: "right",
+  },
+  // Avec la bascule : « N résultats » reste collé à sa gauche (écart 12), l’espace libre passe avant.
+  resultsBeforeAccessory: {
+    marginLeft: "auto",
+  },
+  // Bord droit de l’accessoire à 16 de l’écran : il sort du retrait de 8 de la ligne 1.
+  accessory: {
+    flexShrink: 0,
+    marginRight: -CONTEXT_ZONE_GEOMETRY.line1Inset,
   },
   line2: {
     height: COMMAND.touchTarget,

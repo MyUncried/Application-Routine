@@ -255,6 +255,7 @@ function counterReferences(): readonly { readonly unit: string; readonly adjecti
   const circuitUnits = [s.circuit.countUnit.plural, s.carrier.blockUnit.plural, s.carrier.roundUnit.plural];
   return [
     ...circuitUnits.flatMap((unit) => adjectives.map((adjective) => ({ unit, adjective }))),
+    { unit: s.carrier.seriesUnit.plural, adjective: s.carrier.inSequence },
     { unit: s.cycle.countUnit.plural, adjective: null },
   ];
 }
@@ -505,6 +506,8 @@ export type CircuitHeaderProps = {
 export type CarrierHeader = {
   readonly title: string;
   readonly unit: { readonly singular: string; readonly plural: string } | null;
+  /** « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » » : adjectif propre au porteur (« à la suite ») à la place de l'adjectif de nature. */
+  readonly adjective?: string;
   readonly openLabel: string;
   /** `OVERFLOW` : durée de tour dépassée par le travail prévu (EMOM, réponse 2 de Hermann du 07/11/2026), en rouge. */
   readonly duration: { readonly text: string; readonly tone: "EDITABLE" | "MUTED" | "OVERFLOW" } | null;
@@ -1152,7 +1155,7 @@ function CircuitCounter({
           // seul dans l'emplacement aux marges négatives, il remontait de 17.
           <View style={styles.adjectiveTarget} testID={`${testID}-adjective-target`}>
             <Text style={[styles.adjective, styles.carrierNature]} numberOfLines={1} testID={`${testID}-adjective`}>
-              {circuitNatureAdjective(nature)}
+              {carrier.adjective ?? circuitNatureAdjective(nature)}
             </Text>
           </View>
         ) : (
