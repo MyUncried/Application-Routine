@@ -42,7 +42,7 @@ sheets[]     fiche éditoriale complète :
   sources      { documentary { sourceId, section, url, usageStatement }|null, prescriptionContext{} }
                ← référence documentaire originale, distincte de upstream (source d'import) et des droits
   validation   { classification, clinical, rights, corpusReview, licensing, clinicalValidation, publicationAllowed }
-  media[]      (ordonnés) { id, kind PHOTO|VIDEO, storage EMBEDDED|REMOTE, url, fileName, caption, alt,
+  media[]      (ordonnés) { id, kind PHOTO|VIDEO, storage EMBEDDED|REMOTE, url, fileName, caption,
                  sourceUrl, attribution, license, rightsStatus }  ← modèle de l'administration Web
   install      { knownLocalMovementIds[] }
 ```
@@ -63,7 +63,7 @@ sheets[]     fiche éditoriale complète :
   - 30 au plus par fiche ;
   - liens HTTPS uniquement ;
   - photo intégrée de 580 000 caractères au plus ;
-  - texte alternatif obligatoire pour une photo ;
+  - aucun champ éditorial de texte alternatif requis pour une photo (suppression décidée, réconciliation du 17/11/2026) ;
   - source obligatoire pour un média distant ;
   - attribution et licence obligatoires lorsque les droits sont déclarés confirmés.
 - **Projection Mouvement** : conforme au contrat `Movement` actuel (`validateMovement`).
@@ -94,7 +94,7 @@ Le validateur ne lit aucune base locale. La correspondance des Catégories et de
 - aucun média transporté ;
 - projection actuellement livrée : `phases: []`, `nextPhaseId: 1`, `levelGroup: null`. La cible pour les fiches portant une famille est décrite ci-dessous. [11/11/2026 : livrée ; la famille est appliquée après l'écriture du Mouvement, voir « Familles de niveaux des fiches — format retenu ».]
 
-Les autres propriétés restent dans la fiche éditoriale, sans être ajoutées au modèle `Movement`.
+Les autres propriétés restent dans la fiche éditoriale complète, conservée dans le registre local et reliée à `Movement.id` (§9.1). Les classifications supplémentaires sont structurées ; leurs usages en filtres et tris mobiles restent à arbitrer.
 
 ## 6. Révisions et empreinte
 
@@ -423,3 +423,7 @@ La représentation sérialisée précise et le traitement des conflits entre une
 - Protection des adaptations locales : une fiche dont la famille n'a pas changé depuis l'installation ne touche à rien ; si l'appartenance du Mouvement a été modifiée sur le téléphone depuis l'installation, elle est conservée. Un Mouvement existant rattaché à une autre famille locale la garde.
 - Une fiche qui quitte sa famille fait sortir le Mouvement (`leaveFamily`, dissolution du dernier couple).
 - Limite connue : une interruption entre la confirmation de la fiche et le placement dans la famille laisse le Mouvement sans famille jusqu'à la révision suivante de la fiche.
+
+## Réconciliation du 17 novembre 2026
+
+La suppression du champ éditorial `media[].alt` est la règle cible et supersède son obligation historique. Le code à la baseline 91961aa4 conserve encore ce champ. La compatibilité des anciens fichiers, empreintes et révisions doit être traitée dans la correction technique. [Modèle, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
