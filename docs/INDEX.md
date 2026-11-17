@@ -18,7 +18,7 @@
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation régie désormais par MOUV-ACC-20261117 ; adaptations locales interdites selon A-2, hors reprise historique CA-3. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## Bibliothèques et partage de Mouvements — conception cible
 
@@ -167,8 +167,8 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 
 **Composition, 06/11/2026 (D-511 à D-513, classe B)** : [carte d’exercice, en-tête de Circuit et placement](KODJO-Catalogues-cartes-modales-2026-11-06.md#11-composition--carte-dexercice-en-tête-de-circuit-placement). Placement réservé aux Points d’arrêt ; géométrie de la carte actualisée ; déploiement Figma des en-têtes partiel.
 
-## Réconciliation du 17 novembre 2026
+## Décisions consolidées du 17 novembre 2026
 
-La réconciliation du 17/11/2026 précise la fiche complète et son stockage, supprime le texte alternatif éditorial et décrit le partage individuel personnalisé comme cible ultérieure. Les filtres supplémentaires, phases importées, suppression de Bibliothèque, espace partagé, fréquence structurée et suivi restent ouverts.
+Arbitrages clos : inventaire des 30 champs, identité et multi-appartenance, accès et révocation, phases, filtres et partage personnalisé. Glossaire utilisateur et contrôle central reportés. La licence propose « Non renseignée » ou « Licence ou conditions connues ».
 
-[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
