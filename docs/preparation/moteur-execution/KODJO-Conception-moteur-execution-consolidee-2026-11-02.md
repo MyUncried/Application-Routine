@@ -373,7 +373,7 @@ En alternance coordonnée, l'intervalle reste propre à chaque membre et ne devi
 
 ### 12.5 Clôture des éléments formatés
 
-**ACQUIS — D3.** La Clôture est une interaction en attente **bloquante**, rattachée à l'élément terminé (identité d'occurrence) :
+**ACQUIS — D3.** La Clôture est une interaction en attente **bloquante**, rattachée à l'élément terminé (identité d'occurrence) : [For time — remplacé le 14/11/2026 (correction 4 de Hermann, `_bmad-output/pre11/for-time-corrections-1-2-2026-11-14.md`) : aucune modale de résultat dans le déroulement normal ; fin normale = affichage du temps final, sans saisie [remplacé le 14/11/2026, recette k2 et k3 : aucun affichage, passage direct à l'étape suivante] ; seule la borne qui interrompt une série demande ses répétitions ; l'arrêt ouvre « Répétitions partielles » puis arrête la séance [pendant une série seulement — recette k6 du 14/11/2026 : en pause, arrêt direct]. Une saisie de résultat n'est jamais mise en Pause par l'arrière-plan.]
 - aucune référence temporelle de l'élément suivant n'est ouverte pendant la saisie ;
 - elle présente les valeurs calculées (tours complets, temps réalisé, rang atteint, fenêtres) et les champs à déclarer ;
 - sa validation clôt l'élément ; l'élément suivant s'ouvre **automatiquement** à l'instant de la validation, sauf Point d'arrêt suivant ou Pause en cours.

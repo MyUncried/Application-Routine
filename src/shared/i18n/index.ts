@@ -62,6 +62,12 @@ const executionParameters = {
     seriesCountUniformSingular: "{n} série identique",
     seriesCountVariable: "{n} séries variables",
     seriesCountVariableSingular: "{n} série variable",
+    // Formats — saisie par la modale (16/11/2026, Hermann : exercice en boucle, « tours identiques / variables » au lieu de
+    // « séries identiques / variables ») : mêmes options, comptées en tours.
+    roundCountUniform: "{n} tours identiques",
+    roundCountUniformSingular: "{n} tour identique",
+    roundCountVariable: "{n} tours variables",
+    roundCountVariableSingular: "{n} tour variable",
     seriesTypes: { VARIABLE: "Variables", UNIFORM: "Identiques" },
     stopCondition: "Condition d’arrêt",
     // D-447 (PRE-7 story B.2) : « À l’objectif » et « À l’objectif et à l’échec » remplacent
@@ -277,6 +283,15 @@ const executionParameters = {
     emomOverflow: "La durée atteint ou dépasse l’intervalle : il ne reste pas de temps pour le reste du travail ni pour le repos.",
     // Recette iPhone du 08/11/2026 au soir (Hermann) : durée de la série d'un Exercice qui atteint seule l'intervalle.
     emomSeriesOverflow: "La durée de la série dépasse la durée de l’intervalle.",
+    // Correction 2 de Hermann du 14/11/2026 (For time, règle 5 ; « aucune valeur perdue en silence ») : changement de Rôle qui
+    // retire des séries (tours moins nombreux, bloc de séries plus court).
+    roleLossTitle: "Retirer des séries ?",
+    roleLossMessageOne: "En {role}, cet exercice garde {kept} séries : la dernière valeur sera retirée.",
+    roleLossMessageMany: "En {role}, cet exercice garde {kept} séries : les {count} dernières valeurs seront retirées.",
+    blockLossMessageOne: "Les autres exercices du {role} passent aussi à {kept} séries : une valeur sera retirée.",
+    blockLossMessageMany: "Les autres exercices du {role} passent aussi à {kept} séries : {count} valeurs seront retirées.",
+    roleLossCancel: "Annuler",
+    roleLossConfirm: "Continuer",
   },
   media: {
     section: "Médias",

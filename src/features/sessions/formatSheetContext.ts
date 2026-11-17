@@ -1,7 +1,8 @@
 import { roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
+import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
-import type { CircuitRole, FormatSettings } from "@/domain/sessions/formats";
+import { circuitRoleOf, type CircuitRole, type FormatSettings } from "@/domain/sessions/formats";
 import type { SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { FormatSheetContext, FormatSheetRow } from "@/features/activities/FormatSettingsFrame";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
@@ -27,6 +28,8 @@ export function formatSheetContextOf(
   let role: FormatSheetContext["role"];
   let inheritedCapText: string | undefined;
   let emom: FormatSheetContext["emom"];
+  let roleChangeLoss: FormatSheetContext["roleChangeLoss"];
+  let seriesForRole: FormatSheetContext["seriesForRole"];
   switch (format.key) {
     case "AMRAP":
       if (carrier === undefined) rows.push("duration", "increment");
@@ -37,13 +40,26 @@ export function formatSheetContextOf(
       }
       break;
     case "FOR_TIME":
-      if (carrier === undefined) rows.push("timeCap");
+      if (carrier === undefined) rows.push("timeCap", "stopTarget");
       else {
         const choices = roleChoices(draft, draft.structure, exerciseId);
         if (choices !== null) role = choices;
-        rows.push("role", "inheritedCap");
+        // Règles de Hermann du 14/11/2026, FT-6 : « À l'échec » n'est pas proposé en For time (« À l'objectif » seul).
+        rows.push("role", "inheritedCap", "stopTarget");
         const cap = carrier.format?.settings.timeCapSeconds;
         inheritedCapText = typeof cap === "number" ? `≤ ${formatPhraseDuration(cap)}` : strings.executionParameters.format.noLimit;
+        // Correction 2 de Hermann du 14/11/2026, règle 5 : valeurs retirées par un changement de Rôle, annoncées avant.
+        roleChangeLoss = (nextRole, parameters) => {
+          const lost = forTimeRoleChangeLoss(draft, exerciseId, nextRole, parameters);
+          return { lost, kept: seriesCountOf(parameters) - lost };
+        };
+        // Précision de Hermann du 14/11/2026 (soir) : « le for Time a un nombre de tours. Dans la composition de séance si je transforme un exercice Buy In ou Buy Out en un exercice Tour, il doit héritier du nombre de Tours du circuit » : même ajustement que l'enregistrement du Rôle (`setMemberRole`), montré dans la modale dès le choix.
+        seriesForRole = (nextRole, parameters) => {
+          const placed = { ...draft, exercises: draft.exercises.map((candidate) => (candidate.id === exerciseId ? { ...candidate, executionParameters: parameters } : candidate)) };
+          return setMemberRole(placed, exerciseId, nextRole).exercises.find((candidate) => candidate.id === exerciseId)?.executionParameters ?? parameters;
+        };
+        // [Demande du 14/11/2026 (soir) : séries ajoutées ou retirées pour tout le bloc, pertes annoncées — retiré le 14/11/2026,
+        // recette m2 et m3 : « Les exercices de buy in (et de buy out) sont indépendants ».]
       }
       break;
     case "EMOM": {
@@ -87,6 +103,8 @@ export function formatSheetContextOf(
     ...(role !== undefined ? { role } : {}),
     ...(inheritedCapText !== undefined ? { inheritedCapText } : {}),
     ...(emom !== undefined ? { emom } : {}),
+    ...(roleChangeLoss !== undefined ? { roleChangeLoss } : {}),
+    ...(seriesForRole !== undefined ? { seriesForRole } : {}),
     onApply: (next: FormatSettings, nextRole: CircuitRole | null) =>
       update((current) => {
         const withSettings: SessionDraft = {
@@ -100,6 +118,21 @@ export function formatSheetContextOf(
         return nextRole === null ? withSettings : setMemberRole(withSettings, exerciseId, nextRole);
       }),
   };
+}
+
+/**
+ * Ligne Séries de la modale comptée en tours (mission du 16/11/2026, écart b : « exercice en boucle : libellé « tours identiques /
+ * variables » au lieu de « séries identiques / variables » » ; Décision de Hermann du 16/11/2026 (« la modale des paramètres d’exécution doit être la même qu’on l’ouvre de la composition de séance ou de l’écran d’un format, les effets de changement de rôle sont aussi identiques »)) : exercice en tour d'un For time ou d'un AMRAP joué en
+ * alternance, ou membre d'un Superset. Sinon : séries.
+ */
+export function seriesWordingOf(draft: SessionDraft, exerciseId: string): "rounds" | "series" {
+  const circuit = circuitOfExercise(draft.structure, exerciseId);
+  if (circuit === undefined || circuit.nature !== "SERIES") return "series";
+  if (circuit.originModel === "SUPERSET") return "rounds";
+  const key = circuit.format?.key;
+  if (key !== "FOR_TIME" && key !== "AMRAP") return "series";
+  const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);
+  return exercise !== undefined && circuitRoleOf(exercise.format, circuit.exercises.indexOf(exerciseId)) === "TOUR" ? "rounds" : "series";
 }
 
 /** Le Rôle n'est changé que par `setMemberRole` (replacement dans sa zone). */

@@ -1,8 +1,9 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import type { SharedValue } from "react-native-reanimated";
 import { StyleSheet, TurboModuleRegistry, View } from "react-native";
 import Reanimated, { cancelAnimation, Easing, useAnimatedProps, useSharedValue, withTiming } from "react-native-reanimated";
 
-import { displayedFraction, MINOR_MARKS, pointAt, QUARTER_MARKS, RING, type RingMotion } from "@/features/execution/timerRing";
+import { displayedFraction, MINOR_MARKS, pointAt, QUARTER_MARKS, RING, type RingMotion, type RingSegment } from "@/features/execution/timerRing";
 
 /**
  * Fin de PRE-10 — chrono circulaire (Figma `1992:8132`) : anneau de fond, repères, anneau de progression à embouts
@@ -55,33 +56,43 @@ export function ExecutionTimerRing({
   motion,
   fading = false,
   color = RING.progressColor,
+  segments = NO_SEGMENTS,
   children,
   testID,
 }: {
   readonly motion: RingMotion;
   readonly fading?: boolean;
-  /** Couleur de l'anneau qui tourne et de sa trace (recette du 13/11/2026, `ringColorOf`). */
+  /** Couleur de la phase en cours : portion qui avance et pastille (recette du 13/11/2026, `ringColorOf`). */
   readonly color?: string;
+  /**
+   * PRE-11, précision FT-15 (For time) : portions terminées de la minute, chacune dans la couleur de sa phase
+   * (`ringSegmentsOf`), dessinées par-dessus la portion en cours ; masquées dès que la minute est révolue.
+   */
+  readonly segments?: readonly RingSegment[];
   readonly children: ReactNode;
   readonly testID?: string;
 }) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
   return (
-    <AnimatedRing motion={motion} fading={fading} color={color} testID={testID}>
+    <AnimatedRing motion={motion} fading={fading} color={color} segments={segments} testID={testID}>
       {children}
     </AnimatedRing>
   );
 }
 
+const NO_SEGMENTS: readonly RingSegment[] = [];
+
 function AnimatedRing({
   motion,
   fading,
   color = RING.progressColor,
+  segments,
   children,
   testID,
 }: {
   readonly motion: RingMotion;
   readonly fading: boolean;
+  readonly segments: readonly RingSegment[];
   /** Couleur de l'anneau qui tourne et de sa trace (`ringColorOf`). */
   readonly color?: string;
   readonly children: ReactNode;
@@ -97,6 +108,13 @@ function AnimatedRing({
   const runningKey = useRef<string | null>(null);
   // Opacité de l'anneau de couleur : fondu à la fin d'une étape, retour immédiat à l'étape suivante (anneau vide).
   const arcOpacity = useSharedValue(1);
+  // PRE-11, correction 4 (14/11/2026, Hermann : « l'arc garde la même couleur quand on enchaîne pause et exercice ») : la
+  // couleur passe par les propriétés animées, comme la position ; un changement de `stroke` statique d'un cercle déjà animé
+  // n'était pas réappliqué (cause plausible, non démontrée sur iPhone). Changement immédiat, sans fondu.
+  const tint = useSharedValue(color);
+  useEffect(() => {
+    tint.value = color;
+  }, [color, tint]);
   useEffect(() => {
     cancelAnimation(arcOpacity);
     arcOpacity.value = fading ? withTiming(0, { duration: ARC_FADE_MS }) : 1;
@@ -116,11 +134,11 @@ function AnimatedRing({
 
   const arcProps = useAnimatedProps(() => {
     const fraction = displayedFraction(turns.value, wrap);
-    return { strokeDashoffset: circumference * (1 - fraction), strokeOpacity: fraction > 0.0005 ? arcOpacity.value : 0 };
+    return { strokeDashoffset: circumference * (1 - fraction), strokeOpacity: fraction > 0.0005 ? arcOpacity.value : 0, stroke: tint.value };
   });
   const knobProps = useAnimatedProps(() => {
     const point = pointAt(displayedFraction(turns.value, wrap), RING.progressRadius, center);
-    return { cx: point.x, cy: point.y, opacity: arcOpacity.value };
+    return { cx: point.x, cy: point.y, opacity: arcOpacity.value, fill: tint.value };
   });
 
   const radial = (fraction: number, inner: number, outer: number) => {
@@ -154,10 +172,60 @@ function AnimatedRing({
           origin={`${center}, ${center}`}
           animatedProps={arcProps}
         />
+        {segments.map((segment) => (
+          <RingPortion key={`${segment.from}:${segment.color}`} segment={segment} turns={turns} wrap={wrap} opacity={arcOpacity} center={center} circumference={circumference} />
+        ))}
         <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={color} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
       </Svg.default>
       <View style={styles.content}>{children}</View>
     </View>
+  );
+}
+
+/**
+ * PRE-11, précision FT-15 de Hermann du 14/11/2026 : portion terminée de l'anneau, fixe, dans la couleur de sa phase. Elle reste
+ * affichée tant que la position courante l'a dépassée dans la minute ; à la minute révolue (position revenue avant sa fin), elle
+ * disparaît : « tout l'arc revient au gris ». Bouts droits (les portions se touchent) ; la première, partie du haut, garde
+ * l'embout arrondi du départ.
+ */
+function RingPortion({
+  segment,
+  turns,
+  wrap,
+  opacity,
+  center,
+  circumference,
+}: {
+  readonly segment: RingSegment;
+  readonly turns: SharedValue<number>;
+  readonly wrap: boolean;
+  readonly opacity: SharedValue<number>;
+  readonly center: number;
+  readonly circumference: number;
+}) {
+  const { Circle: AnimatedCircle } = animatedSvg();
+  const to = segment.to;
+  const shown = useAnimatedProps(() => ({ strokeOpacity: displayedFraction(turns.value, wrap) + 0.0005 >= to ? opacity.value : 0 }));
+  const dotShown = useAnimatedProps(() => ({ opacity: displayedFraction(turns.value, wrap) + 0.0005 >= to ? opacity.value : 0 }));
+  const length = Math.max(0, segment.to - segment.from) * circumference;
+  const start = pointAt(0, RING.progressRadius, center);
+  return (
+    <>
+      <AnimatedCircle
+        cx={center}
+        cy={center}
+        r={RING.progressRadius}
+        stroke={segment.color}
+        strokeWidth={RING.progressWidth}
+        strokeLinecap="butt"
+        strokeDasharray={`${length} ${circumference}`}
+        fill="none"
+        rotation={-90 + segment.from * 360}
+        origin={`${center}, ${center}`}
+        animatedProps={shown}
+      />
+      {segment.from === 0 ? <AnimatedCircle cx={start.x} cy={start.y} r={RING.progressWidth / 2} fill={segment.color} stroke="none" animatedProps={dotShown} /> : null}
+    </>
   );
 }
 

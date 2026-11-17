@@ -7,6 +7,7 @@ import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-han
 
 import type { Movement } from "@/domain/activities/Movement";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { seriesRowsOf } from "@/domain/activities/ExecutionParameters";
 import { structureCircuits } from "@/domain/sessions/structure";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { FormatModelDraftProvider } from "@/features/sessions/FormatModelDraftContext";
@@ -14,7 +15,9 @@ import { FormatModelScreen } from "@/features/sessions/FormatModelScreen";
 import { SessionDraftContext, type SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { colors } from "@/shared/ui/tokens";
+import { valueFieldColors } from "@/shared/ui/valueField";
 
 const mockPush = jest.fn();
 const mockBack = jest.fn();
@@ -151,7 +154,10 @@ describe("FormatModelScreen", () => {
     mockDismiss.mockReset();
   });
 
-  it("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20″ / 10″, durée 4′00″ ; « Enregistrer dans la séance » (recette du 04/11) indisponible sans mouvement", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20″ / 10″, durée 4′00″ ; « Enregistrer dans la séance » (recette du 04/11) indisponible sans mouvement", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     expect(await screen.findByTestId("format-title")).toHaveTextContent("Tabata");
@@ -174,7 +180,10 @@ describe("FormatModelScreen", () => {
     expect(mockDismiss).not.toHaveBeenCalled();
   });
 
-  it("« + Ajouter » ouvre directement le mode catalogue (§19) ; Progression : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("« + Ajouter » ouvre directement le mode catalogue (§19) ; Progression : le choix reste sur le questionnaire, « Valider les paramètres » ouvre le récapitulatif sur place, Retour y revient avec les réponses (MAJ 04/11)", async () => {
     // Recette du 04/11/2026 : les modèles sans tableau s'enregistrent depuis leur questionnaire ; la Progression garde le récapitulatif.
     mockModel = "PROGRESSION";
     const draftRef = { current: createEmptyDraft() };
@@ -229,7 +238,11 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-save").props.accessibilityLabel).toBe(t.save); // Complément du 5 novembre 2026 (§18–§19) : coche de l’en-tête, libellé d’accessibilité.
   });
 
-  it.each(["AMRAP", "FOR_TIME", "PROGRESSION", "EMOM", "DEATH_BY"] as const)("recette n° 3 du 03/11, MAJ 04/11 : %s — les choix restent sur le questionnaire ; « Valider les paramètres » ouvre le récapitulatif", async (model) => {
+  // [For time compris — retiré le 15/11/2026 : le For time n'a plus de questionnaire (décision de Hermann, registre ch07, « For time —
+  // tableau unique, sans questionnaire »).]
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // plus de questionnaire ni de « Valider les paramètres ». Test d’origine conservé, désactivé.]
+  it.skip.each(["AMRAP", "PROGRESSION", "EMOM", "DEATH_BY"] as const)("recette n° 3 du 03/11, MAJ 04/11 : %s — les choix restent sur le questionnaire ; « Valider les paramètres » ouvre le récapitulatif", async (model) => {
     mockModel = model;
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -245,7 +258,10 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-save")).toBeTruthy();
   });
 
-  it("récapitulatif AMRAP à deux mouvements : tableau Mouvement | Rép. | Max ; Circuit porteur ajouté au brouillon", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("récapitulatif AMRAP à deux mouvements : tableau Mouvement | Rép. | Max ; Circuit porteur ajouté au brouillon", async () => {
     mockModel = "AMRAP";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
@@ -282,7 +298,10 @@ describe("FormatModelScreen", () => {
 
   // [Recette du 05/11 (x-sans-recap) : troisième exercice refusé avec un message — complément du 5 novembre 2026 (§11) :
   // « + Ajouter » se désactive dès que deux mouvements sont choisis ; « Valider les paramètres » ne s'active qu'avec deux.]
-  it("complément du 05/11 : Superset — « Récupération après le tour », 3 tours ; « + Ajouter » désactivé à deux ; récapitulatif par tour", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("complément du 05/11 : Superset — « Récupération après le tour », 3 tours ; « + Ajouter » désactivé à deux ; récapitulatif par tour", async () => {
     mockModel = "SUPERSET";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -304,8 +323,13 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-superset-0-2-reps").props.value).toBe("");
   });
 
-  it("complément du 05/11 (§9, §16) : « Avec charge » dans tous les questionnaires ; (+ kg) par mouvement ; (− kg) puis (+ kg) retrouve la valeur ; interrupteur coupé puis rétabli aussi", async () => {
-    for (const model of ["TABATA", "INTERVALS_30_30", "SUPERSET", "STRENGTH", "UNTIL_FAILURE", "DEATH_BY", "AMRAP", "EMOM", "FOR_TIME", "PROGRESSION"]) {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("complément du 05/11 (§9, §16) : « Avec charge » dans tous les questionnaires ; (+ kg) par mouvement ; (− kg) puis (+ kg) retrouve la valeur ; interrupteur coupé puis rétabli aussi", async () => {
+    // [For time compris — retiré le 15/11/2026 : plus d'interrupteur « Avec charge » pour le For time, la charge se décide par
+    // mouvement (décision de Hermann, « For time — tableau unique, sans questionnaire »).]
+    for (const model of ["TABATA", "INTERVALS_30_30", "SUPERSET", "STRENGTH", "UNTIL_FAILURE", "DEATH_BY", "AMRAP", "EMOM", "PROGRESSION"]) {
       mockModel = model;
       const view = render(<Harness draftRef={{ current: createEmptyDraft() }} />);
       await screen.findByTestId("format-title");
@@ -361,7 +385,10 @@ describe("FormatModelScreen", () => {
 
   // [Recette du 05/11 (constat c, g-recherche-vide) sur le cadre des suggestions — étape retirée (§19) ; « Aucun résultat » reste
   // affiché en mode catalogue (k-aucun-resultat).]
-  it("recette du 05/11 (k-aucun-resultat) : un texte sans résultat affiche « Aucun résultat » en mode catalogue", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette du 05/11 (k-aucun-resultat) : un texte sans résultat affiche « Aucun résultat » en mode catalogue", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -371,7 +398,10 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByTestId("format-catalogue-card-mv-squats")).toBeNull();
   });
 
-  it("recette n° 3 du 03/11 (autres constats) : AMRAP Buy-in — sections Buy-in et En boucle dès le questionnaire ; buy-in choisi requis ; jamais un mouvement de boucle", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 du 03/11 (autres constats) : AMRAP Buy-in — sections Buy-in et En boucle dès le questionnaire ; buy-in choisi requis ; jamais un mouvement de boucle", async () => {
     mockModel = "AMRAP";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
@@ -421,7 +451,10 @@ describe("FormatModelScreen", () => {
     ]);
   });
 
-  it("recette n° 3 du 03/11 (autres constats) : Buy-in désactivé — la section disparaît avec son mouvement", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 du 03/11 (autres constats) : Buy-in désactivé — la section disparaît avec son mouvement", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -434,7 +467,10 @@ describe("FormatModelScreen", () => {
     expect(screen.getByText("Fentes avant")).toBeTruthy();
   });
 
-  it("recette n° 3 du 03/11 (autres constats) : appui court sur un mouvement choisi — fiche en lecture seule", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 du 03/11 (autres constats) : appui court sur un mouvement choisi — fiche en lecture seule", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -447,7 +483,10 @@ describe("FormatModelScreen", () => {
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement-sheet", params: { movementId: "mv-squats" } });
   });
 
-  it("recette n° 3 du 03/11 (f3-depart) : Renforcement — la Pause est affichée et réglable", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 du 03/11 (f3-depart) : Renforcement — la Pause est affichée et réglable", async () => {
     mockModel = "STRENGTH";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -475,7 +514,10 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByText("Fermer le mode catalogue")).toBeNull();
   });
 
-  it("recette n° 3 bis du 03/11 (f3s-clavier) : cellules des tableaux sans touche « Next » — navigation par la barre", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 bis du 03/11 (f3s-clavier) : cellules des tableaux sans touche « Next » — navigation par la barre", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -488,7 +530,10 @@ describe("FormatModelScreen", () => {
     expect(cell.props.onSubmitEditing).toBeUndefined();
   });
 
-  it("recette n° 3 du 03/11 (f3-depart) : À l'échec — aucune ligne de durée totale", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 du 03/11 (f3-depart) : À l'échec — aucune ligne de durée totale", async () => {
     mockModel = "UNTIL_FAILURE";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -496,7 +541,10 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByTestId("format-row-total")).toBeNull();
   });
 
-  it("recette n° 3 du 03/11 (f3-depart) : Progression — Pause affichée, pas de durée au questionnaire, Exécution en dernier ; tableau à noms fixes et séries défilantes", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 du 03/11 (f3-depart) : Progression — Pause affichée, pas de durée au questionnaire, Exécution en dernier ; tableau à noms fixes et séries défilantes", async () => {
     mockModel = "PROGRESSION";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -540,7 +588,10 @@ describe("FormatModelScreen", () => {
     expect(shown("recoveryBetweenSeconds")).toBe("1′00″");
   });
 
-  it("recette n° 3 (f3-emom) : EMOM dans chaque intervalle — un cadre par intervalle avec les deux mouvements", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette n° 3 (f3-emom) : EMOM dans chaque intervalle — un cadre par intervalle avec les deux mouvements", async () => {
     mockModel = "EMOM";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -554,7 +605,10 @@ describe("FormatModelScreen", () => {
 
   // Spécification de Hermann du 08/11/2026 (A §1, §3, §4.2) — récapitulatif EMOM : durées M′SS″ (Intervalle, Durée totale, repère de fin du
   // Déroulé, début « 0 ») ; lignes de paramètres de 40 + séparateur de 1 (rogné sous la dernière) ; cadre du tableau sans marge haute.
-  it("spécification du 08/11 (A) : récapitulatif EMOM — durées M′SS″, lignes de paramètres de 40, cadre du tableau sans marge", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("spécification du 08/11 (A) : récapitulatif EMOM — durées M′SS″, lignes de paramètres de 40, cadre du tableau sans marge", async () => {
     mockModel = "EMOM";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -574,7 +628,10 @@ describe("FormatModelScreen", () => {
   // Constat de Hermann du 06/11/2026 sur iPhone (« La carte est sélectionnée mais ne se déplace pas, c'est l'écran qui
   // se déplace ») : le glisser est porté par un geste natif (Pan après appui long). Jest simule les états du geste ; il ne
   // prouve pas que la feuille native iOS reste immobile (vérification sur iPhone).
-  it("constat du 06/11 : appui long puis glisser — la carte suit le doigt et prend la place atteinte", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("constat du 06/11 : appui long puis glisser — la carte suit le doigt et prend la place atteinte", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -598,7 +655,10 @@ describe("FormatModelScreen", () => {
     expect(mockPush).not.toHaveBeenCalledWith(expect.objectContaining({ pathname: "/movement-sheet" }));
   });
 
-  it("constat du 06/11 : geste interrompu (annulé) — l'ordre reste inchangé", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("constat du 06/11 : geste interrompu (annulé) — l'ordre reste inchangé", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -618,15 +678,16 @@ describe("FormatModelScreen", () => {
 
   // [Constat du 06/11 : buy-in et buy-out sans geste de déplacement — remplacé le 08/11/2026 au soir (plusieurs buy-in / buy-out) :
   // chaque carte se déplace dans sa section, sans en sortir ; une carte de boucle ne dépasse toujours ni les buy-in ni les buy-out.]
-  it("recette du 08/11 au soir : For time — plusieurs buy-in et buy-out (sélection multiple), déplacés dans leur section seulement", async () => {
+  // [Recette du 08/11 au soir : cartes des buy-in et buy-out déplacées par appui long dans leur section — cartes remplacées le
+  // 15/11/2026 par les lignes des trois blocs (décision de Hermann, « For time — tableau unique, sans questionnaire »). Monter /
+  // Descendre (VoiceOver) et Supprimer (glissement) restent bornés au bloc.]
+  it("recette du 08/11 au soir, décision du 15/11 : For time — plusieurs buy-in et buy-out (sélection multiple) ; Monter / Descendre et Supprimer dans le bloc", async () => {
     mockModel = "FOR_TIME";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
-    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
-    fireEvent(screen.getByTestId("format-buyOut"), "valueChange", true);
     await pick("Squ", "mv-squats", "format-loop");
     await pick("Fen", "mv-fentes", "format-loop");
-    // Sélection multiple dans la section Buy-in, puis dans la section Buy-out ; « + Ajouter » reste affiché.
+    // Sélection multiple dans le bloc Buy-in, puis dans le bloc Buy-out ; « + Ajouter » reste affiché.
     for (const section of ["format-buy-in", "format-buy-out"]) {
       fireEvent.press(screen.getByTestId(`${section}-link`));
       fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
@@ -634,48 +695,44 @@ describe("FormatModelScreen", () => {
       await act(async () => {
         fireEvent.press(screen.getByTestId("format-catalogue-add"));
       });
-      expect(screen.getByTestId(`${section}-link`)).toHaveTextContent(t.add);
+      expect(screen.getByTestId(`${section}-link`)).toHaveTextContent(t.forTimeTable.add);
     }
-    const named = /Squats sautés|Fentes avant/;
-    expect(within(screen.getByTestId("format-buy-in-cards")).getAllByText(named)).toHaveLength(2);
-    expect(within(screen.getByTestId("format-buy-out-cards")).getAllByText(named)).toHaveLength(2);
-    expect(within(screen.getByTestId("format-movement-cards")).getAllByText(named)).toHaveLength(2);
+    const named = /^(Squats sautés|Fentes avant)$/;
+    for (const block of ["format-buy-in", "format-loop", "format-buy-out"]) expect(within(screen.getByTestId(block)).getAllByText(named)).toHaveLength(2);
     // Ordre : buy-in (0, 1), boucle (2, 3), buy-out (4, 5).
-    const text = (index: number) =>
-      within(screen.getByTestId(`format-movement-card-${index}`)).queryByText("Squats sautés") !== null ? "Squats sautés" : "Fentes avant";
+    const text = (index: number) => String(screen.getByTestId(`format-for-time-${index}-name-title`).props.children);
     const [in0, in1, out0, out1] = [text(0), text(1), text(4), text(5)];
     expect(in0).not.toBe(in1);
     expect(out0).not.toBe(out1);
     expect([text(2), text(3)]).toEqual(["Squats sautés", "Fentes avant"]);
-    // Geste d'un buy-in : borné à la section Buy-in (le premier passe second, jamais dans la boucle).
-    act(() => {
-      fireGestureHandler(getByGestureTestId("format-movement-drag-0"), [
-        { state: State.BEGAN },
-        { state: State.ACTIVE, translationY: 0 },
-        { translationY: 1000 },
-        { state: State.END, translationY: 1000 },
-      ]);
-    });
-    expect([text(0), text(1), text(2)]).toEqual([in1, in0, "Squats sautés"]);
-    // Geste d'une carte de boucle : ne dépasse pas les buy-out.
-    act(() => {
-      fireGestureHandler(getByGestureTestId("format-movement-drag-2"), [
-        { state: State.BEGAN },
-        { state: State.ACTIVE, translationY: 0 },
-        { translationY: 1000 },
-        { state: State.END, translationY: 1000 },
-      ]);
-    });
-    expect([text(2), text(3), text(4), text(5)]).toEqual(["Fentes avant", "Squats sautés", out0, out1]);
     // VoiceOver : Monter sur le premier buy-out ne le fait pas entrer dans la boucle ; Descendre l'échange avec le second.
     fireEvent(screen.getByTestId("format-movement-4-card"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
-    expect([text(3), text(4)]).toEqual(["Squats sautés", out0]);
+    expect([text(3), text(4)]).toEqual(["Fentes avant", out0]);
     fireEvent(screen.getByTestId("format-movement-4-card"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
     expect([text(4), text(5)]).toEqual([out1, out0]);
     // Retrait d'un buy-in (action Supprimer du glissement) : l'autre reste.
     fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    expect(within(screen.getByTestId("format-buy-in-cards")).getAllByText(named)).toHaveLength(1);
-    expect(within(screen.getByTestId("format-buy-in-cards")).getByText(in0)).toBeTruthy();
+    expect(within(screen.getByTestId("format-buy-in")).getAllByText(named)).toHaveLength(1);
+    expect(within(screen.getByTestId("format-buy-in")).getByText(in1)).toBeTruthy();
+  });
+
+  it("recette du 16/11/2026 (Déroulé, légende) : la pastille d'un buy-in ou d'un buy-out a la couleur de ses cadres ; celle d'un tour garde sa nuance", async () => {
+    mockModel = "FOR_TIME";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await screen.findByTestId("format-title");
+    await pick("Squ", "mv-squats", "format-loop");
+    for (const [section, card] of [["format-buy-in", "mv-fentes"], ["format-buy-out", "mv-squats"]] as const) {
+      fireEvent.press(screen.getByTestId(`${section}-link`));
+      fireEvent.press(await screen.findByTestId(`format-catalogue-card-${card}`));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-catalogue-add"));
+      });
+    }
+    const swatch = (index: number) => (StyleSheet.flatten(screen.getByTestId(`format-timeline-legend-${index}`).props.style as object) as { backgroundColor?: string }).backgroundColor;
+    // Ordre : buy-in (0), tour (1), buy-out (2).
+    expect(swatch(0)).toBe("#7984C7");
+    expect(swatch(2)).toBe("#7984C7");
+    expect(swatch(1)).not.toBe("#7984C7");
   });
 
   it("recette n° 3 (f3-questionnaire) : le dernier mouvement se supprime, l'enregistrement devient indisponible", async () => {
@@ -710,7 +767,10 @@ describe("FormatModelScreen", () => {
     expect(new Set(ids).size).toBe(2);
   });
 
-  it("MAJ 04/11 §3 ; recette du 05/11 au soir (p-coche, p-ajout) : mode catalogue — recherche, effacement, Filtrer / Trier / Replier, sélection, « Ajouter X mouvements » en bas ; « Revenir aux paramètres » sans ajout ; la croix quitte le Format", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("MAJ 04/11 §3 ; recette du 05/11 au soir (p-coche, p-ajout) : mode catalogue — recherche, effacement, Filtrer / Trier / Replier, sélection, « Ajouter X mouvements » en bas ; « Revenir aux paramètres » sans ajout ; la croix quitte le Format", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -786,43 +846,364 @@ describe("FormatModelScreen", () => {
   // Recette iPhone du 04/11/2026 (cahier « Recette Formats 04/11 », écarts un par ligne)
   // ---------------------------------------------------------------------------
 
-  it("recette du 04/11 (e-fortime-buyin) : For time — interrupteurs Buy-in et Buy-out ; sections ; buy-in et buy-out requis ; Rôles écrits", async () => {
-    mockModel = "FOR_TIME";
-    const draftRef = { current: createEmptyDraft() };
-    render(<Harness draftRef={draftRef} />);
-    await screen.findByTestId("format-title");
-    fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
-    fireEvent(screen.getByTestId("format-buyOut"), "valueChange", true);
-    expect(screen.getByText(t.buyInSection)).toBeTruthy();
-    expect(screen.getByText(t.forTimeLoopSection)).toBeTruthy();
-    expect(screen.getByText(t.buyOutSection)).toBeTruthy();
-    await pick("Squ", "mv-squats", "format-loop");
-    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    await pick("Fen", "mv-fentes", "format-buy-out");
-    await pick("Squ", "mv-squats", "format-buy-in");
-    expect(within(screen.getByTestId("format-buy-out-cards")).getByText("Fentes avant")).toBeTruthy();
-    expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    // Un mouvement ajouté à la boucle se place avant le buy-out.
-    await pick("Fen", "mv-fentes", "format-loop");
-    expect(within(screen.getByTestId("format-buy-out-cards")).getAllByText("Fentes avant")).toHaveLength(1);
-    toSummary();
-    // Buy-in et buy-out : une case (une seule exécution) — buy-in au premier tour, buy-out au dernier (y-format-cadres, 07/11/2026).
-    fireEvent.changeText(screen.getByTestId("format-for-time-0-0"), "50");
-    expect(screen.queryByTestId("format-for-time-3-0")).toBeNull();
-    fireEvent.changeText(screen.getByTestId("format-for-time-3-2"), "20");
-    expect(screen.queryByTestId("format-for-time-0-1")).toBeNull();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("format-save"));
+  // [Recette du 04/11 (e-fortime-buyin) : interrupteurs puis lignes Buy-in / Buy-out du questionnaire, « Valider les paramètres » —
+  // remplacés le 15/11/2026 (décision de Hermann, registre ch07, « For time — tableau unique, sans questionnaire »).]
+  /**
+   * Mission FORMATS-MODALE-PARAMS-20261116 (décision de Hermann du 16/11/2026) : la zone du nom ouvre la modale des paramètres
+   * d'exécution ; `steps` y agit, puis ✓ (un premier appui range un champ resté ouvert) — fermeture animée achevée.
+   */
+  async function inSheet(index: number, steps: () => void) {
+    fireEvent.press(screen.getByTestId(`format-for-time-${index}-name-open`));
+    await screen.findByTestId("execution-sheet");
+    steps();
+    for (let press = 0; press < 2 && screen.queryByTestId("execution-sheet") !== null; press += 1)
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+      });
+    await waitFor(() => expect(screen.queryByTestId("execution-sheet")).toBeNull(), { timeout: 4000 });
+  }
+
+  /**
+   * For time (16/11/2026) : unité et valeurs de chaque série saisies dans la modale ; `count` : nombre de séries du buy-in ou du
+   * buy-out réglé dans la modale. [Unité au popover, valeurs au tableau (15/11/2026) — remplacé.]
+   */
+  async function fillForTime(index: number, values: readonly string[], mode: "REPETITIONS" | "DURATION" = "REPETITIONS", count?: number) {
+    await inSheet(index, () => {
+      fireEvent.press(screen.getByTestId(`execution-sheet-mode-control-${mode}`));
+      if (count !== undefined) enterExecutionSheetValue("execution-sheet-series", count, "integer");
+      const kind = mode === "DURATION" ? "duration" : "integer";
+      // Une seule série : objectif commun de la modale (pas de tableau des séries).
+      if (screen.queryByTestId("execution-sheet-table-row-1-target", { includeHiddenElements: true }) === null) enterExecutionSheetValue("execution-sheet-target", Number(values[0]), kind);
+      else values.forEach((value, at) => enterExecutionSheetValue(`execution-sheet-table-row-${at + 1}-target`, Number(value), kind));
     });
-    expect(draftRef.current.exercises.map((exercise) => [exercise.name, exercise.format?.settings.circuitRole ?? 0])).toEqual([
-      ["Squats sautés", 1],
-      ["Squats sautés", 0],
-      ["Fentes avant", 0],
-      ["Fentes avant", 2],
-    ]);
+  }
+
+  const parametersLine = (index: number) => screen.getByTestId(`format-for-time-${index}-parameters`);
+
+  describe("For time — tableau unique, sans questionnaire (décision de Hermann du 15/11/2026)", () => {
+    const rowIds = () => screen.getAllByTestId(/^format-row-/).map((row) => String(row.props.testID).replace("format-row-", ""));
+
+    it("état vide : récapitulatif direct, ni questionnaire ni « Valider les paramètres », ni interrupteurs ; trois blocs sans colonne ; coche grise ; Retour quitte sans ajout", async () => {
+      mockModel = "FOR_TIME";
+      const draftRef = { current: createEmptyDraft() };
+      // Même ouvert par la route du questionnaire, le For time s'affiche en récapitulatif.
+      render(<Harness draftRef={draftRef} />);
+      await screen.findByTestId("format-title");
+      expect(screen.getByTestId("format-summary")).toBeTruthy();
+      expect(screen.queryByTestId("format-validate")).toBeNull();
+      for (const id of ["format-withLoad", "format-buyIn", "format-buyOut"]) expect(screen.queryByTestId(id)).toBeNull();
+      expect(rowIds()).toEqual(["roundCount", "restBetweenRoundsSeconds", "timeCapSeconds"]);
+      // Demande de Hermann du 15/11/2026 (Figma `12341:27052`) : carte des paramètres pleine largeur, sans rayon, retrait de 12,
+      // lignes de 31 — comme les trois blocs.
+      expect(StyleSheet.flatten(screen.getByTestId("format-parameters").props.style)).toMatchObject({ marginHorizontal: 0, borderRadius: 0, paddingHorizontal: 12, paddingVertical: 4 });
+      expect(StyleSheet.flatten(screen.getByTestId("format-row-roundCount").props.style)).toMatchObject({ height: 31 });
+      expect(shown("roundCount")).toBe("3");
+      expect(screen.getByTestId("format-timeCapSeconds").props.placeholder).toBe(t.noLimit);
+      for (const block of ["format-buy-in", "format-loop", "format-buy-out"]) {
+        expect(screen.getByTestId(`${block}-link`)).toHaveTextContent(t.forTimeTable.add);
+        expect(screen.queryByTestId(`${block}-columns`)).toBeNull();
+        expect(screen.queryByTestId(`${block}-add-column`)).toBeNull();
+        expect(screen.queryByTestId(`${block}-remove-column`)).toBeNull();
+      }
+      expect([t.forTimeTable.buyIn, t.forTimeTable.loop, t.forTimeTable.buyOut].map((title) => screen.getByText(title))).toHaveLength(3);
+      expect(screen.queryByTestId("format-movement-cards")).toBeNull();
+      expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+      // Recette du 16/11/2026 (constat b) : croix « Fermer ». [Flèche « Retour » — remplacée.]
+      expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.closeAccessibilityLabel);
+      await pick("Squ", "mv-squats", "format-loop");
+      fireEvent.press(screen.getByTestId("screen-header-back"));
+      await waitFor(() => expect(mockBack).toHaveBeenCalledTimes(1));
+      expect(draftRef.current.exercises).toHaveLength(0);
+      expect(mockDismiss).not.toHaveBeenCalled();
+    });
+
+    it("premier mouvement : S1 à droite, ni « − » ni « + » ; « Paramètres à compléter » en rouge, cases désactivées ; buy-in : séries réglées dans la modale, Variables dès deux séries (écart a) ; boucle : « tours » (écart b), nombre de tours imposé ; charge activée dans la modale ; enregistrement", async () => {
+      mockModel = "FOR_TIME";
+      const draftRef = { current: createEmptyDraft() };
+      render(<Harness draftRef={draftRef} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-buy-in");
+      expect(screen.getByTestId("format-buy-in-head-0")).toHaveTextContent("S1");
+      expect(screen.queryByTestId("format-buy-in-head-1")).toBeNull();
+      // Mission du 16/11/2026, règle 4 : plus de « − » ni de « + » dans l'en-tête.
+      expect(screen.queryByTestId("format-buy-in-remove-column")).toBeNull();
+      expect(screen.queryByTestId("format-buy-in-add-column")).toBeNull();
+      expect(screen.queryByTestId("format-loop-columns")).toBeNull();
+      // Règle 1 : « Paramètres à compléter » en rouge ; « – » grisé à la place de la case ; ni popover ni « + kg ».
+      expect(parametersLine(0)).toHaveTextContent(t.table.parametersToComplete);
+      expect(StyleSheet.flatten(parametersLine(0).props.style).color).toBe(colors.danger);
+      expect(screen.getByTestId("format-for-time-0-0")).toHaveTextContent(t.forTimeTable.disabledValue);
+      expect(screen.queryByTestId("format-for-time-0-charge")).toBeNull();
+      expect(screen.queryByTestId("format-for-time-0-unit-menu-REPETITIONS")).toBeNull();
+      // Boucle : Tour 1…3 (Nombre de tours, ligne dédiée).
+      await pick("Fen", "mv-fentes", "format-loop");
+      expect(screen.getByTestId("format-loop-head-2")).toHaveTextContent("Tour 3");
+      // Écart (a) : le nombre de séries du buy-in se règle dans la modale ; à deux séries, « Variables » est disponible.
+      // Décision du 16/11/2026 : même modale que dans la Composition — ligne Rôle (Buy-in) et ligne Récupération.
+      await inSheet(0, () => {
+        expect(screen.getByTestId("execution-sheet-format-role-row")).toBeTruthy();
+        expect(screen.getByTestId("execution-sheet-recovery", { includeHiddenElements: true })).toBeTruthy();
+        fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
+        expect(screen.getByTestId("execution-sheet-series-type-control-VARIABLE").props.accessibilityState).toMatchObject({ disabled: true });
+        enterExecutionSheetValue("execution-sheet-series", 2, "integer");
+        expect(screen.getByTestId("execution-sheet-series-type-control-VARIABLE").props.accessibilityState).not.toMatchObject({ disabled: true });
+        enterExecutionSheetValue("execution-sheet-table-row-1-target", 50, "integer");
+        enterExecutionSheetValue("execution-sheet-table-row-2-target", 40, "integer");
+        // Recette du 16/11/2026 (Autres constats a) : colonne Pause désactivée, tiret gris comme la Charge sans charge ; condition
+        // d'arrêt « À l'objectif ».
+        for (const n of [1, 2]) {
+          expect(screen.getByTestId(`execution-sheet-table-row-${n}-pause-unset`, { includeHiddenElements: true })).toHaveTextContent("—");
+          expect(screen.queryByTestId(`execution-sheet-table-row-${n}-pause`, { includeHiddenElements: true })).toBeNull();
+        }
+        expect(screen.getByTestId("execution-sheet-stop-condition-control", { includeHiddenElements: true }).props.accessibilityLabel).toBe(
+          "Condition d’arrêt, À l’objectif",
+        );
+      });
+      expect(screen.getByTestId("format-buy-in-head-1")).toHaveTextContent("S2");
+      expect([shown("for-time-0-0"), shown("for-time-0-1")]).toEqual(["50", "40"]);
+      // Règle 2 : l'unité, en bleu.
+      expect(parametersLine(0)).toHaveTextContent(/^rép\.$/);
+      expect(StyleSheet.flatten(parametersLine(0).props.style).color).toBe(valueFieldColors.editable);
+      // La modale de la boucle compte en tours (écart b), nombre imposé par le Nombre de tours.
+      fireEvent(screen.getByTestId("format-roundCount"), "focus");
+      fireEvent.changeText(screen.getByTestId("format-roundCount"), "4");
+      fireEvent(screen.getByTestId("format-roundCount"), "blur");
+      expect(screen.getByTestId("format-loop-more", { includeHiddenElements: true })).toBeTruthy();
+      fireEvent(screen.getByTestId("format-roundCount"), "focus");
+      fireEvent.changeText(screen.getByTestId("format-roundCount"), "3");
+      fireEvent(screen.getByTestId("format-roundCount"), "blur");
+      expect(screen.queryByTestId("format-loop-more", { includeHiddenElements: true })).toBeNull();
+      // Unité requise : coche grise tant que la ligne de boucle n'a ni unité ni valeurs.
+      expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
+      await inSheet(1, () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
+        expect(screen.getByTestId("execution-sheet-series-value", { includeHiddenElements: true })).toHaveTextContent("3 tours variables");
+        ["21", "15", "9"].forEach((value, at) => enterExecutionSheetValue(`execution-sheet-table-row-${at + 1}-target`, Number(value), "integer"));
+        // Règle 5 : la charge s'active dans la modale ; décision du 16/11/2026 : cases « — » sur fond rouge jusqu'à la saisie.
+        fireEvent.press(screen.getByTestId("execution-sheet-load-control-WITH"));
+        expect(screen.getByTestId("execution-sheet-table-row-1-load-value", { includeHiddenElements: true })).toHaveTextContent("—");
+        expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+        enterExecutionSheetValue("execution-sheet-table-row-1-load", 40, "integer");
+      });
+      // Charge propre au mouvement, valeur sous la colonne.
+      expect(screen.getByTestId("format-for-time-1-0-load").props.value).toBe("(40 kg)");
+      expect(parametersLine(1)).not.toHaveTextContent(/kg/);
+      expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      const [circuit] = structureCircuits(draftRef.current.structure!);
+      expect(circuit).toMatchObject({ repeatCount: 3, format: { key: "FOR_TIME" } });
+      expect(draftRef.current.exercises.map((exercise) => [exercise.name, exercise.format?.settings.circuitRole ?? 0])).toEqual([
+        ["Squats sautés", 1],
+        ["Fentes avant", 0],
+      ]);
+      const rows = (index: number) => seriesRowsOf(draftRef.current.exercises[index]!.executionParameters);
+      expect(rows(0).map((row) => (row.target.kind === "NUMBER" ? row.target.value : null))).toEqual([50, 40]);
+      expect(rows(1).map((row) => (row.target.kind === "NUMBER" ? row.target.value : null))).toEqual([21, 15, 9]);
+      expect(rows(1)[0]!.loadKg).toBe(40);
+      await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith(2));
+    });
+
+    it("unité dans la modale : Durée possible tant qu'un autre exercice reste en Répétitions ; le dernier en Répétitions garde son unité, avec le message court", async () => {
+      mockModel = "FOR_TIME";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-loop");
+      await pick("Fen", "mv-fentes", "format-loop");
+      await fillForTime(0, ["30", "30", "30"], "DURATION");
+      expect(parametersLine(0)).toHaveTextContent(/^durée$/);
+      const alert = jest.spyOn(Alert, "alert");
+      await fillForTime(1, ["30", "30", "30"], "DURATION");
+      expect(alert).toHaveBeenCalledWith(t.lastRepetitionsLocked);
+      alert.mockRestore();
+      expect(parametersLine(1)).toHaveTextContent(t.table.parametersToComplete);
+    });
+
+    // Recette iPhone du 15/11/2026 (Hermann : « Ajout d'un buy in : mis à jour de l'unité : seul le nombre de répétition est
+    // proposé » ; « lorsque l'unité est choisie l'ecran est figé, aucun bouton ne fonctionne »).
+    it("recette du 15/11 : buy-in seul — Répétitions et Durée admises ; l'exercice en tour ajouté ensuite porte les Répétitions ; la ligne des paramètres est dans la ligne glissable, « + Ajouter » reste actif après le choix", async () => {
+      mockModel = "FOR_TIME";
+      render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-buy-in");
+      // Ligne des paramètres : texte de la ligne (plus de menu natif au-dessus de la ligne glissable).
+      expect(within(screen.getByTestId("format-movement-0")).getByTestId("format-for-time-0-parameters")).toBeTruthy();
+      // Mouvement seul : exercice seul, une série par tour (3), comme dans la Composition.
+      await fillForTime(0, ["45", "45", "45"], "DURATION");
+      expect(parametersLine(0)).toHaveTextContent(/^durée$/);
+      await pick("Fen", "mv-fentes", "format-loop");
+      // Seul autre exercice en Durée : l'exercice en tour reste en Répétitions (au moins un en Répétitions, FMT-31).
+      const alert = jest.spyOn(Alert, "alert");
+      await fillForTime(1, ["30", "30", "30"], "DURATION");
+      expect(alert).toHaveBeenCalledWith(t.lastRepetitionsLocked);
+      alert.mockRestore();
+      await fillForTime(1, ["21", "15", "9"]);
+      expect(parametersLine(1)).toHaveTextContent(/^rép\.$/);
+    });
   });
 
-  it("recette du 04/11 (e-emom-mode, e-emom-trait) : EMOM — aucune unité par défaut, objectif vide en rouge (trait), enregistrement indisponible", async () => {
+  // Décision de Hermann du 16/11/2026 : « la modale des paramètres d'exécution doit être la même qu'on l'ouvre de la composition de
+  // séance ou de l'écran d'un format, les effets de changement de rôle sont aussi identiques ».
+  describe("For time — modale identique à celle de la Composition (16/11/2026)", () => {
+    it("ligne Rôle : passer un exercice de la boucle en Buy-out le déplace dans le bloc Buy-out ; ligne Récupération : valeur propre au mouvement enregistrée", async () => {
+      mockModel = "FOR_TIME";
+      const draftRef = { current: createEmptyDraft() };
+      render(<Harness draftRef={draftRef} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-loop");
+      await pick("Fen", "mv-fentes", "format-loop");
+      await fillForTime(0, ["21", "15", "9"]);
+      await inSheet(1, () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
+        fireEvent.press(screen.getByTestId("execution-sheet-format-role-control-BUY_OUT"));
+        const kind = "integer";
+        if (screen.queryByTestId("execution-sheet-table-row-1-target", { includeHiddenElements: true }) === null) enterExecutionSheetValue("execution-sheet-target", 30, kind);
+        else for (let n = 1; screen.queryByTestId(`execution-sheet-table-row-${n}-target`, { includeHiddenElements: true }) !== null; n += 1) enterExecutionSheetValue(`execution-sheet-table-row-${n}-target`, 30, kind);
+        enterExecutionSheetValue("execution-sheet-recovery", 45);
+      });
+      await waitFor(() => expect(within(screen.getByTestId("format-buy-out")).getByText("Fentes avant")).toBeTruthy());
+      expect(within(screen.getByTestId("format-loop")).queryByText("Fentes avant")).toBeNull();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      const fentes = draftRef.current.exercises.find((exercise) => exercise.name === "Fentes avant")!;
+      expect(fentes.format?.settings.circuitRole).toBe(2);
+      expect(fentes.postActivityRecoverySeconds).toBe(45);
+    });
+  });
+
+  // Corrections 1 et 2 de Hermann du 14/11/2026 (For time) : tests (b) et (e) au niveau de l'écran.
+  // Décision de Hermann du 14/11/2026 (« Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » »,
+  // FT-20 à FT-23). Décision du 15/11/2026 (« For time — tableau unique, sans questionnaire », Figma `12341:27002`, `12428:26360`) :
+  // plus de questionnaire ; « Exécution » en dernière ligne de la carte des paramètres ; unité choisie ligne par ligne.
+  // [« Exécution » au-dessus de « Nombre de tours » au récapitulatif (Figma `8624:30672`, archivé) — remplacé.]
+  describe("For time — mode d'exécution « En alternance » / « À la suite »", () => {
+    const rowIds = () => screen.getAllByTestId(/^format-row-/).map((row) => String(row.props.testID).replace("format-row-", ""));
+
+    it("un seul exercice en tour (avec buy-in) : ligne Exécution masquée, mode alternance", async () => {
+      mockModel = "FOR_TIME";
+      const draftRef = { current: createEmptyDraft() };
+      render(<Harness draftRef={draftRef} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-buy-in");
+      await pick("Fen", "mv-fentes", "format-loop");
+      expect(screen.queryByTestId("format-row-execution")).toBeNull();
+      await fillForTime(0, ["30"]);
+      await fillForTime(1, ["21", "15", "9"]);
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      expect(structureCircuits(draftRef.current.structure!)[0]!.nature).toBe("SERIES");
+    });
+
+    it("deux exercices : « Exécution » en dernière ligne, « En alternance » ; « À la suite » : « Nombre de séries », « Repos entre les séries », colonnes S1…, séries groupées enregistrées, séries = tours", async () => {
+      mockModel = "FOR_TIME";
+      const draftRef = { current: createEmptyDraft() };
+      render(<Harness draftRef={draftRef} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-loop");
+      await pick("Fen", "mv-fentes", "format-loop");
+      expect(rowIds()).toEqual(["roundCount", "restBetweenRoundsSeconds", "timeCapSeconds", "execution"]);
+      expect(screen.getByTestId("format-row-execution")).toHaveTextContent(t.executions.ALTERNATED, { exact: false });
+      expect(screen.getByTestId("format-row-roundCount")).toHaveTextContent(t.rows.roundCount, { exact: false });
+      expect(screen.getByTestId("format-row-restBetweenRoundsSeconds")).toHaveTextContent(t.rows.restBetweenRoundsSeconds, { exact: false });
+      expect(screen.getByTestId("format-loop-head-0")).toHaveTextContent("Tour 1");
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-execution-SEQUENCE"));
+      });
+      expect(screen.getByTestId("format-row-execution")).toHaveTextContent(t.executions.SEQUENCE, { exact: false });
+      expect(screen.getByTestId("format-row-roundCount")).toHaveTextContent(t.rows.seriesCount, { exact: false });
+      expect(screen.getByTestId("format-row-restBetweenRoundsSeconds")).toHaveTextContent(t.rows.restBetweenSeriesSeconds, { exact: false });
+      expect(screen.getByTestId("format-loop-head-0")).toHaveTextContent("S1");
+      await fillForTime(0, ["21", "15", "9"]);
+      await fillForTime(1, ["21", "15", "9"]);
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      const [circuit] = structureCircuits(draftRef.current.structure!);
+      expect(circuit).toMatchObject({ nature: "TOURS", repeatCount: 3 });
+      expect(draftRef.current.exercises.map((exercise) => seriesRowsOf(exercise.executionParameters).length)).toEqual([3, 3]);
+    });
+  });
+
+  describe("For time — valeurs par tour et séries des blocs (corrections 1 et 2 du 14/11/2026)", () => {
+    const targetsOf = (draft: SessionDraft, index: number) =>
+      seriesRowsOf(draft.exercises[index]!.executionParameters).map((row) => (row.target.kind === "NUMBER" ? row.target.value : row.target.kind));
+
+    it("(b) tours 2 et 3 modifiés au récapitulatif : une valeur par tour enregistrée, retrouvée à la réouverture", async () => {
+      mockModel = "FOR_TIME";
+      const first = { current: createEmptyDraft() };
+      const view = render(<Harness draftRef={first} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-loop");
+      await pick("Fen", "mv-fentes", "format-loop");
+      await fillForTime(0, ["10", "10", "10"]);
+      await fillForTime(1, ["21", "15", "9"]);
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      // (a) 10 répétitions sur 3 tours : trois valeurs enregistrées, jamais « identiques + une valeur ».
+      expect(first.current.exercises[0]!.executionParameters.series.kind).toBe("VARIABLE");
+      expect(targetsOf(first.current, 0)).toEqual([10, 10, 10]);
+      view.unmount();
+      const [circuit] = structureCircuits(first.current.structure!);
+      mockCircuitId = circuit!.id;
+      const second = { current: first.current };
+      const reopened = render(<Harness draftRef={second} initialStage="summary" />);
+      expect(await screen.findByTestId("format-summary")).toBeTruthy();
+      // Réouverture (« Modifier le format ») : unité et valeurs relues, cases actives.
+      expect(parametersLine(0)).toHaveTextContent(/^rép\.$/);
+      typeValue("for-time-0-1", "12");
+      typeValue("for-time-0-2", "14");
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      // Composition : la configuration de l'exercice porte les valeurs des tours 2 et 3.
+      expect(targetsOf(second.current, 0)).toEqual([10, 12, 14]);
+      reopened.unmount();
+      render(<Harness draftRef={{ current: second.current }} initialStage="summary" />);
+      expect(await screen.findByTestId("format-summary")).toBeTruthy();
+      expect(["0", "1", "2"].map((at) => shown(`for-time-0-${at}`))).toEqual(["10", "12", "14"]);
+    });
+
+    // [« Sans » à la ligne Buy-in retirant le bloc après confirmation (correction 2 du 14/11/2026 ; i7, 15/11/2026) — remplacé le
+    // 15/11/2026 : plus de ligne Buy-in / Buy-out, le nombre de séries est le nombre de colonnes (− / +) ; un mouvement se retire par
+    // le glissement de sa ligne.]
+    it("(e) buy-in à 2 séries, buy-out à 3 (dans la modale, 16/11/2026) : S1-S2 et S1-S3, valeurs conservées et retrouvées à la réouverture", async () => {
+      mockModel = "FOR_TIME";
+      const first = { current: createEmptyDraft() };
+      const view = render(<Harness draftRef={first} />);
+      await screen.findByTestId("format-title");
+      await pick("Squ", "mv-squats", "format-buy-in");
+      await pick("Fen", "mv-fentes", "format-loop");
+      await pick("Squ", "mv-squats", "format-buy-out");
+      await fillForTime(0, ["30", "40"], "REPETITIONS", 2);
+      await fillForTime(1, ["21", "15", "9"]);
+      await fillForTime(2, ["1", "2", "5"], "REPETITIONS", 3);
+      expect(screen.getByTestId("format-buy-in-head-1")).toHaveTextContent("S2");
+      expect(screen.queryByTestId("format-buy-in-head-2")).toBeNull();
+      expect(screen.getByTestId("format-buy-out-head-2")).toHaveTextContent("S3");
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      expect(targetsOf(first.current, 0)).toEqual([30, 40]);
+      expect(targetsOf(first.current, 2)).toEqual([1, 2, 5]);
+      view.unmount();
+      const [circuit] = structureCircuits(first.current.structure!);
+      mockCircuitId = circuit!.id;
+      render(<Harness draftRef={{ current: first.current }} initialStage="summary" />);
+      expect(await screen.findByTestId("format-summary")).toBeTruthy();
+      expect([shown("for-time-0-0"), shown("for-time-0-1"), shown("for-time-2-2")]).toEqual(["30", "40", "5"]);
+      expect(screen.queryByTestId("format-buy-in-head-2")).toBeNull();
+      expect(screen.getByTestId("format-buy-out-head-2")).toHaveTextContent("S3");
+    });
+  });
+
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette du 04/11 (e-emom-mode, e-emom-trait) : EMOM — aucune unité par défaut, objectif vide en rouge (trait), enregistrement indisponible", async () => {
     mockModel = "EMOM";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -846,7 +1227,10 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("recette du 04/11 (e-amrap-trait) : AMRAP — objectif vide affiché par un trait", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette du 04/11 (e-amrap-trait) : AMRAP — objectif vide affiché par un trait", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -856,7 +1240,10 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-amrap-reps-0").props.placeholder).toBe(t.dash);
   });
 
-  it("recette du 04/11 (e-deathby) : Death by — le tableau Départ | Incrément apparaît au questionnaire dès le deuxième mouvement", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette du 04/11 (e-deathby) : Death by — le tableau Départ | Incrément apparaît au questionnaire dès le deuxième mouvement", async () => {
     mockModel = "DEATH_BY";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -890,7 +1277,10 @@ describe("FormatModelScreen", () => {
     expect(order.indexOf("format-row-recoveryBetweenSeconds")).toBeLessThan(order.indexOf("format-row-stop"));
   });
 
-  it("recette du 04/11 (e-contexte-fixe, e-cat-fixe, e-cat-recherche) : zone de contexte figée ; en mode catalogue elle porte l'en-tête et la recherche (même champ, croix intérieure)", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("recette du 04/11 (e-contexte-fixe, e-cat-fixe, e-cat-recherche) : zone de contexte figée ; en mode catalogue elle porte l'en-tête et la recherche (même champ, croix intérieure)", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");
@@ -913,7 +1303,10 @@ describe("FormatModelScreen", () => {
     expect(screen.queryByTestId("format-catalogue-search-clear")).toBeNull();
   });
 
-  it("MAJ 04/11 §6 sexies : Modifier le format — récapitulatif prérempli, « Enregistrer les modifications », Retour au questionnaire ; mise à jour en place", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("MAJ 04/11 §6 sexies : Modifier le format — récapitulatif prérempli, « Enregistrer les modifications », Retour au questionnaire ; mise à jour en place", async () => {
     mockModel = "TABATA";
     // Séance avec un Circuit Tabata en alternance (créé par le parcours).
     const first = { current: createEmptyDraft() };
@@ -959,7 +1352,10 @@ describe("FormatModelScreen", () => {
     const inHeader = (testID: string) => within(screen.getByTestId("screen-header")).getByTestId(testID);
     const isBlue = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style).backgroundColor === colors.wheelActionValidateBackground;
 
-    it("questionnaire à récapitulatif : « Valider les paramètres » en bas (gris sans mouvement, actif ensuite), coche toujours grise ; récapitulatif sans bouton en bas", async () => {
+    // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+    // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+    // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+    it.skip("questionnaire à récapitulatif : « Valider les paramètres » en bas (gris sans mouvement, actif ensuite), coche toujours grise ; récapitulatif sans bouton en bas", async () => {
       mockModel = "PROGRESSION";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
       await screen.findByTestId("format-title");
@@ -974,7 +1370,8 @@ describe("FormatModelScreen", () => {
       expect(screen.getByTestId("format-summary")).toBeTruthy();
       // Récapitulatif : chevron Retour, coche, pas de bouton en bas (p-coche-recap, Q4).
       expect(screen.queryByTestId("format-bottom-action")).toBeNull();
-      expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.backAccessibilityLabel);
+      // Recette du 16/11/2026 (constat b) : croix « Fermer ». [Flèche « Retour » — remplacée.]
+      expect(screen.getByTestId("screen-header-back").props.accessibilityLabel).toBe(t.closeAccessibilityLabel);
     });
 
     it("questionnaire sans récapitulatif (Tabata à un mouvement) : pas de bouton en bas ; coche grise sans mouvement, bleue ensuite", async () => {
@@ -988,7 +1385,10 @@ describe("FormatModelScreen", () => {
       expect(isBlue("format-save")).toBe(true);
     });
 
-    it("Superset (toujours un récapitulatif) : « Valider les paramètres » actif avec deux mouvements, coche grise au questionnaire", async () => {
+    // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+    // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+    // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+    it.skip("Superset (toujours un récapitulatif) : « Valider les paramètres » actif avec deux mouvements, coche grise au questionnaire", async () => {
       mockModel = "SUPERSET";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
       await screen.findByTestId("format-title");
@@ -999,7 +1399,10 @@ describe("FormatModelScreen", () => {
       expect(isBlue("format-save")).toBe(false);
     });
 
-    it("récapitulatif : la coche remplace « Enregistrer dans la séance » ; grise si une cellule requise est vide", async () => {
+    // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+    // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+    // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+    it.skip("récapitulatif : la coche remplace « Enregistrer dans la séance » ; grise si une cellule requise est vide", async () => {
       mockModel = "AMRAP";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
@@ -1015,7 +1418,10 @@ describe("FormatModelScreen", () => {
       expect(isBlue("format-save")).toBe(true);
     });
 
-    it("EMOM : récapitulatif incomplet ou incohérent (contrôle des fenêtres, même condition) — coche grise", async () => {
+    // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+    // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+    // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+    it.skip("EMOM : récapitulatif incomplet ou incohérent (contrôle des fenêtres, même condition) — coche grise", async () => {
       mockModel = "EMOM";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
       await screen.findByTestId("format-title");
@@ -1028,7 +1434,10 @@ describe("FormatModelScreen", () => {
 
 
   // Complément du 5 novembre 2026 (Hermann), §19 : espacements du gabarit commun aux dix Formats.
-  it("complément du 05/11 (§19) : « Mouvements » descendue de 8 ; cartes espacées de 6 ; « Paramètres d’exécution » à 16 de la dernière carte", async () => {
+  // [Remplacé le 15/11/2026 — décision de Hermann, registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » :
+  // questionnaire, cartes de mouvement et tableau entre deux cadres supprimés ; couverture reprise dans
+  // FormatModelScreen.tableauUnique.test.tsx. Test d’origine conservé, désactivé.]
+  it.skip("complément du 05/11 (§19) : « Mouvements » descendue de 8 ; cartes espacées de 6 ; « Paramètres d’exécution » à 16 de la dernière carte", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await screen.findByTestId("format-title");

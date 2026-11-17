@@ -56,7 +56,7 @@ export type CapabilityTrigger =
   | "DECLARED_STOP";
 
 /** Comportement à l'expiration d'une échéance pendant une étape (A4), lorsqu'il est défini. */
-export type ExpiryBehaviour = "STEP_ENDS" | "NEXT_WINDOW_STARTS_NO_INVENTED_REST" | "WINDOW_WITHOUT_TAP_NOT_ACQUIRED";
+export type ExpiryBehaviour = "STEP_ENDS" | "NEXT_WINDOW_STARTS_NO_INVENTED_REST" | "WINDOW_WITHOUT_TAP_NOT_ACQUIRED" | "DESCENDANTS_CLOSED_THEN_CLOSURE";
 
 export type CapabilityEnd = "PLAN_COMPLETED" | "ELEMENT_COMPLETED" | "LAST_WINDOW" | "ELEMENT_BOUND" | "WORK_ACCOMPLISHED" | "DECLARED_STOP";
 
@@ -186,16 +186,16 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     timeReferences: ["ELEMENT_STOPWATCH", "STEP", "PHASES"],
     triggers: ["TARGET_REACHED", "NEXT"],
     // Référence du 02/11/2026 (§11, FMT-32, D-21) : temps limite facultatif ; atteint, il arrête l'élément
-    // avec un résultat incomplet, sans finir la Séance. L'étape en cours à cet instant n'est pas décrite.
-    onExpiry: {
-      status: UNDEFINED_CAPABILITY,
-      question: "Étape en cours lorsque le temps limite facultatif du For time est atteint (élément arrêté, résultat incomplet ; détail PRE-10/11).",
-    },
+    // avec un résultat incomplet, sans finir la Séance. [« L'étape en cours à cet instant n'est pas décrite » —
+    // remplacé : conception consolidée §12.3 (02/11/2026), l'étape en cours est fermée, puis Clôture avec le partiel
+    // du membre en cours (PRE-11 T1).]
+    onExpiry: "DESCENDANTS_CLOSED_THEN_CLOSURE",
     end: "WORK_ACCOMPLISHED",
     progression: "FIXED",
     results: [...GENERIC_RESULTS, "ELAPSED_TIME"],
     undefinedAspects: [],
-    executionAvailable: false,
+    // PRE-11 (T1, 13/11/2026) : For time exécutable (politique FOR_TIME, src/domain/execution/policies/forTime.ts).
+    executionAvailable: true,
     // MAJ 04/11 §6 bis 2 : buy-in et buy-out à l'objectif ; une durée fixe s'ajoute au chrono ; au moins un Exercice
     // de l'ensemble du Circuit en Répétitions.
     configuration: { roles: ["BUY_IN", "TOUR", "BUY_OUT"], buyInStop: ["TARGET"], buyInResult: "NOT_APPLICABLE", memberModes: ["REPETITIONS", "DURATION"], incrementUnit: "NOT_APPLICABLE", loads: "PER_SERIES_FROM_SNAPSHOT" },

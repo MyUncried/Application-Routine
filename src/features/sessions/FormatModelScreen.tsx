@@ -18,7 +18,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Reanimated, {
   Easing as ReanimatedEasing,
   LinearTransition,
@@ -41,6 +41,7 @@ import {
   basePause,
   buildModelElements,
   executionOptions,
+  showsExecution,
   allowedModes,
   lastRepetitionsLocked,
   emomDurationOverflow,
@@ -51,11 +52,16 @@ import {
   modelDuration,
   roleSwitches,
   summaryIssues,
-  chargePerSeries,
+  forTimeBlockSeries,
+  forTimeInSequence,
+  movementRole,
   deathByFirstRankWarning,
   supersetRecovery,
   withAnswer,
   withMovementMode,
+  withSeriesValue,
+  withUnitToChoose,
+  UNIT_CHOICE_AT_ADD,
   type FormatModelKey,
   type ModelAnswerKey,
   type ModelAnswers,
@@ -63,7 +69,13 @@ import {
   type ModelMovement,
   type MovementValues,
 } from "@/domain/sessions/formatModels";
-import { applyModelReedit, modelStateOfCircuit, type ModelReeditState } from "@/domain/sessions/formatReedit";
+import { applyModelReedit, modelStateOfCircuit, sheetValuesOf, type ModelReeditState } from "@/domain/sessions/formatReedit";
+import { circuitRoleOf } from "@/domain/sessions/formats";
+import { seriesCountOf } from "@/domain/sessions/forTimeSeries";
+import { createEmptyDraft } from "@/domain/sessions/SessionDraft";
+import type { ExecutionMode, ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { formatSheetContextOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
 import { currentLayout } from "@/domain/sessions/layoutOperations";
 import { structureCircuits } from "@/domain/sessions/structure";
@@ -75,27 +87,26 @@ import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFilters, type MovementCatalogueItem } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
-import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { closeCreationModals } from "@/features/sessions/creationNavigation";
 import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext";
 import {
-  AmrapTable,
-  DeathByTable,
-  ObjectivePauseTable,
-  SeriesTable,
+  ChargeValue,
+  TABLE_LAYOUT,
   TableCell,
   cellKey,
   formatLoad,
   formatPrimeDuration,
-  hasSummaryTable,
   parseCellKey,
+  signedText,
   tableCellOrder,
+  valueText,
   type CellBinding,
 } from "@/features/sessions/FormatTables";
 import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
-import { exerciseOfMovement, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
+import { DimensionBlock, DimensionCell, DimensionText, ForTimeBlocks, FormatBlocks, SeriesBlock, type BlockRow, type RowKit, type SeriesAccess } from "@/features/sessions/ForTimeBlocks";
+import { exerciseOfMovement, inheritsCircuitSeriesCount, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
 import { strings } from "@/shared/i18n";
@@ -157,9 +168,6 @@ const CONTEXT_HEIGHT = 101;
  * 5 novembre 2026 (Hermann), §19 : 6 (au lieu de 8).
  */
 const CARD_GAP = 6;
-const CARD_STEP_DEFAULT = 60 + CARD_GAP;
-/** Constat du 06/11/2026 : délai de l'appui long qui soulève une carte (celui de `Pressable`, 500 ms). */
-const CARD_LONG_PRESS_MS = 500;
 /**
  * Complément du 5 novembre 2026 (Hermann), §19 : la ligne « Mouvements » (titre et « + Ajouter ») descend de 8 — elle empiétait
  * sur le bas de la zone de contexte (illustration et accroche). Hors mode catalogue (en-tête et recherche dans la zone figée).
@@ -317,10 +325,27 @@ function movementShade(band: string, index: number): string {
  * elle existe (ex. après nombre de séries tout seul) ») : quelle que soit la dernière ligne d'un cadre, son trait est masqué (le
  * contenu déborde d'un point sous le cadre, qui le rogne).
  */
-function Panel({ children, style, testID, summary = false }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string; summary?: boolean }) {
+function Panel({
+  children,
+  style,
+  testID,
+  summary = false,
+  forTime = false,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+  summary?: boolean;
+  /**
+   * For time — carte des paramètres (décision de Hermann du 15/11/2026 ; demande du 15/11/2026 : « le premier cadre des paramètres
+   * d'exécution prend aussi toute la largeur » ; Figma `12341:27052`) : pleine largeur sans marge ni rayon, comme les trois blocs ;
+   * retrait de 12, lignes de 31 (contrôles de 24), marges haute et basse de 4 (CE-FMT-02 §8, cotes).
+   */
+  forTime?: boolean;
+}) {
   return (
-    <View style={[styles.panel, style]} testID={testID}>
-      <SummaryRowsContext.Provider value={summary}>
+    <View style={[styles.panel, forTime ? styles.panelForTime : null, style]} testID={testID}>
+      <SummaryRowsContext.Provider value={forTime ? "forTime" : summary}>
         <View style={styles.panelContent}>{children}</View>
       </SummaryRowsContext.Provider>
     </View>
@@ -333,13 +358,18 @@ function Panel({ children, style, testID, summary = false }: { children: React.R
  * y = 12, valeur centrée verticalement. Chaque ligne porte son séparateur, celui de la dernière est rogné par le cadre (`Panel`).
  * [Lignes de 34 avec 4 de marge verticale au récapitulatif — remplacées le 08/11/2026 ; questionnaire inchangé.]
  */
-const SummaryRowsContext = createContext(false);
+const SummaryRowsContext = createContext<boolean | "forTime">(false);
+/** For time (Figma `12341:27052`) : lignes de 31, séparateur compris. */
+const FOR_TIME_ROW_HEIGHT = 31;
 const SUMMARY_ROW_HEIGHT = 40;
 
 function Row({ label, children, last = false, testID }: { label: string; children: React.ReactNode; last?: boolean; testID?: string }) {
   const summary = useContext(SummaryRowsContext);
   return (
-    <View style={summary ? [styles.row, styles.summaryRow] : [styles.row, last ? null : styles.rowSeparated]} testID={testID}>
+    <View
+      style={summary === "forTime" ? [styles.row, styles.forTimeRow] : summary ? [styles.row, styles.summaryRow] : [styles.row, last ? null : styles.rowSeparated]}
+      testID={testID}
+    >
       <Text style={styles.rowLabel}>{label}</Text>
       {children}
     </View>
@@ -378,6 +408,7 @@ function groupedBlocks(blocks: readonly TimelineBlock[], size: number): (Timelin
 
 function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: Timeline; endLabel: string; band: string; names: readonly string[]; testID: string }) {
   const height = 22;
+  const buyInMovements = new Set(timeline.blocks.flatMap((block) => (block.kind === "WORK" && block.buyIn === true && block.movement !== null ? [block.movement] : [])));
   const renderBlock = (block: TimelineBlock, index: number, inGroup = false) => {
     if (block.kind === "ELLIPSIS") {
       return (
@@ -429,7 +460,13 @@ function TimelineFrame({ timeline, endLabel, band, names, testID }: { timeline: 
         <View style={styles.legend}>
           {names.map((name, index) => (
             <View key={`${name}-${index}`} style={styles.legendItem}>
-              <View style={[styles.legendSwatch, { backgroundColor: movementShade(band, index) }]} />
+              {/* Recette du 16/11/2026 (Hermann : « Déroulé (tous formats concernes) : la couleur du cadre de la légende buy In / buy out ne
+                  correspond pas a celle du cadre de l'illustration ») : la pastille reprend la couleur des cadres de ce mouvement.
+                  [Nuance de rang pour tout mouvement — remplacé.] */}
+              <View
+                style={[styles.legendSwatch, { backgroundColor: buyInMovements.has(index) ? BUY_IN_BLOCK : movementShade(band, index) }]}
+                testID={`${testID}-legend-${index}`}
+              />
               <Text style={styles.legendText} numberOfLines={1}>
                 {name}
               </Text>
@@ -497,7 +534,13 @@ function savesFromQuestionnaire(model: FormatModelKey, movementCount: number): b
 let openings = 0;
 
 export function FormatModelScreen({ stage: initialStage }: { readonly stage: Stage }) {
-  const [stage, setStage] = useState<Stage>(initialStage);
+  // Décision de Hermann du 15/11/2026 (« Le questionnaire n’est plus nécessaire » ; registre ch07, « For time — tableau unique, sans
+  // questionnaire (15/11/2026) ») : le For time n'a plus de questionnaire, il s'ouvre sur son récapitulatif (état vide).
+  // Décision de Hermann du 15/11/2026 (registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » ; CE-FMT-02 §4) :
+  // Tabata, 30/30, Renforcement, À l'échec, Progression, EMOM, Superset, Death by et AMRAP n'ont plus de questionnaire non plus ; l'entrée
+  // depuis la Composition ouvre l'écran unique du Format (création et réouverture). [Questionnaire des autres Formats — remplacé.]
+  void initialStage;
+  const [stage, setStage] = useState<Stage>("summary");
   // ESSAI du 04/11/2026 (feuille native iOS) : montée, descente et voile sont ceux du système.
   const leaving = useRef(false);
   const dismissWith = (then: () => void) => {
@@ -511,6 +554,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const params = useLocalSearchParams<{ model?: string; circuitId?: string }>();
   const routeModel: FormatModelKey = isFormatModelKey(params.model) ? params.model : "TABATA";
   const { draft: modelDraft, start, startWith, setAnswers, setMovements } = useFormatModelDraft();
+  // For time (FT-3, 14/11/2026) : rang du mouvement dont la modale des paramètres est ouverte.
+  const [parametersOf, setParametersOf] = useState<number | null>(null);
   const sessionDraft = useSessionDraft();
   /**
    * Mise à jour consolidée du 04/11/2026 (§6 sexies) : « Modifier le format » — récapitulatif du Modèle d'origine
@@ -539,8 +584,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const fresh = modelDraft?.opening === opening;
   useEffect(() => {
     if (modelDraft?.opening === opening) return;
-    if (reedit !== null) startWith(routeModel, opening, reedit.opened.answers, reedit.opened.movements);
-    else start(routeModel, opening);
+    // For time sans questionnaire (15/11/2026) : plus d'interrupteur « Avec charge », la charge se décide mouvement par mouvement
+    // (« (+ kg) » / « (− kg) ») — les commandes locales sont toujours disponibles.
+    // Formats à tableau, écran unique (15/11/2026) : de même, « (unité, ±kg) » sur chaque ligne — la charge se décide mouvement par
+    // mouvement, sans interrupteur « Avec charge ». AMRAP neuf : colonne « Par tour » présente (CE-FMT-02 §8, « AMRAP : Objectif, Par
+    // tour, Max »), faute d'interrupteur « Volume croissant ».
+    const forTimeLoads = (answers: ModelAnswers): ModelAnswers => ({ ...answers, withLoad: true });
+    if (reedit !== null) startWith(routeModel, opening, forTimeLoads(reedit.opened.answers), reedit.opened.movements);
+    else startWith(routeModel, opening, forTimeLoads(routeModel === "AMRAP" ? { ...initialAnswers(routeModel), increasingVolume: true } : initialAnswers(routeModel)), []);
+    void start;
     // Une seule fois par ouverture : le brouillon de cette ouverture n'est jamais recréé.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opening]);
@@ -586,16 +638,39 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       cancelled = true;
     };
   }, [service]);
-  const levelOf = useCallback((movementId: string) => entries.find((entry) => entry.movement.id === movementId)?.level?.rank ?? null, [entries]);
 
   const addMovements = useCallback(
     (added: readonly Movement[], role: "LOOP" | "BUY_IN" | "BUY_OUT") => {
       if (defaults === null || modelDraft === null) return;
       const entries = added.map((movement) => {
         const exercise = exerciseOfMovement(movement, Crypto.randomUUID(), defaults);
-        return { exercise, values: initialMovementValues(model, modelDraft.answers, exercise), movement };
+        // Règles de Hermann du 14/11/2026 (For time, FT-4) : un buy-in ou un buy-out commence à une série.
+        // For time sans questionnaire (15/11/2026, Hermann : « montrer unité, en rouge, à l’ajout de chaque ligne, les champs de valeur ne
+        // sont pas activés tant que l’unité n’est pas renseignée ») : ligne sans unité, valeurs à renseigner (aucune valeur inventée).
+        // [21-15-9 en Répétitions à l'ajout — remplacé pour le For time.]
+        const forTimeRole = role === "LOOP" ? "TOUR" : role;
+        const values =
+          model === "FOR_TIME"
+            ? { volumes: Array.from({ length: forTimeRole === "TOUR" ? (modelDraft.answers.roundCount ?? 3) : forTimeBlockSeries(modelDraft.answers, forTimeRole) }, () => null), loads: [] }
+            : withUnitToChoose(model, initialMovementValues(model, modelDraft.answers, exercise, forTimeRole));
+        return { exercise, values, movement };
       });
-      setMovements((current) => {
+      setMovements((existing) => {
+        // Death by : passage de un à plusieurs mouvements — Départ et Incrément communs déjà saisis restent ceux du premier mouvement.
+        const first = existing[0];
+        const current =
+          model === "DEATH_BY" && existing.length === 1 && first !== undefined
+            ? [
+                {
+                  ...first,
+                  values: {
+                    ...first.values,
+                    start: first.values.start ?? modelDraft.answers.startRepetitions ?? null,
+                    startIncrement: first.values.startIncrement ?? modelDraft.answers.increment ?? null,
+                  },
+                },
+              ]
+            : existing;
         const mapped = entries.map(({ exercise, values }) => ({ exercise, values }));
         // Buy-in : choix explicite de la section Buy-in, toujours en tête (§7.3, §7.4 ; recette n° 3 du 03/11/2026 : jamais un
         // mouvement de boucle pris pour le buy-in). Recette du 08/11/2026 au soir (Hermann : « Il faut retirer la limite d'un
@@ -618,6 +693,19 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     },
     [defaults, model, modelDraft, setMovements],
   );
+
+  // For time sans questionnaire (15/11/2026) : « un bloc est actif dès qu’il contient un mouvement » — les réponses Buy-in / Buy-out,
+  // lues par la structure produite et la validation, suivent le contenu des blocs. [Interrupteurs Buy-in / Buy-out — remplacés.]
+  // AMRAP, écran unique (15/11/2026, CE-FMT-02 §8 : « un bloc Buy-in et un bloc En boucle, chacun avec son « + Ajouter » ») : de même
+  // pour le Buy-in. [Interrupteur Buy-in du questionnaire — remplacé.]
+  const forTimeBlockState = (model === "FOR_TIME" || model === "AMRAP") && modelDraft !== null && modelDraft.opening === opening ? modelDraft : null;
+  useEffect(() => {
+    if (forTimeBlockState === null) return;
+    const hasIn = forTimeBlockState.movements.some((item) => item.buyIn === true);
+    const hasOut = model === "FOR_TIME" && forTimeBlockState.movements.some((item) => item.buyOut === true);
+    if ((forTimeBlockState.answers.buyIn === true) === hasIn && (forTimeBlockState.answers.buyOut === true) === hasOut) return;
+    setAnswers((current) => ({ ...current, buyIn: hasIn, buyOut: hasOut }));
+  }, [forTimeBlockState, model, setAnswers]);
 
   // Mouvements remis par la modale du Catalogue au retour sur l'écran.
   const movementsById = useRef(new Map<string, Movement>());
@@ -659,6 +747,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [catalogueFocus, setCatalogueFocus] = useState(false);
   const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
+  // Superset complet, « Modifier » (recette du 16/11/2026, fmt-superset) : la sélection remplace les mouvements du tableau.
+  const [replacing, setReplacing] = useState(false);
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
   // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » (ou « Changer ») ouvre directement le mode catalogue — champ de
   // recherche actif, clavier ouvert, filtres, tri et piles à côté du champ. [Étape intermédiaire de saisie avec suggestions et lien
@@ -793,6 +883,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     setCatalogueMode(false);
     setCatalogueLeaving(false);
     setPicked(new Map());
+    setReplacing(false);
     setCommandsShown(false);
   };
   // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
@@ -801,20 +892,24 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Recette du 05/11/2026 (g-superset-deux, Hermann : « Remplacer Ok par J'ai compris. Lorsque l'utilisateur a appuyé il faut
   // fermer le clavier, le mode catalogue s'il est ouvert, supprimer le texte de la zone de saisie et revenir à l'écran
   // questionnaire »).
+  // Recette iPhone du 16/11/2026 (constat g, Hermann : « superset : ouverture du catalogue, sélectionner 3 mouvements > affichage de la
+  // fenêtre d'information, lorsque j'ai appuyé sur "J'ai compris" il faut laisser le catalogue ouvert, ne pas le refermer ») : en mode
+  // catalogue, le message se referme seul ; catalogue, recherche et sélection restent en place. [Fermeture du mode catalogue — remplacée
+  // le 16/11/2026 ; hors mode catalogue, comportement du 05/11/2026 inchangé.]
   const warnSupersetFull = () =>
     Alert.alert(t().supersetLimitTitle, t().supersetLimitMessage, [
       {
         text: t().supersetLimitAcknowledge,
         onPress: () => {
           Keyboard.dismiss();
-          if (catalogueMode) closeCatalogue();
+          if (catalogueMode) return;
           setQuery("");
           setSearchRole(null);
         },
       },
     ]);
   const togglePicked = (movement: Movement) => {
-    if (!picked.has(movement.id) && searchRole === "LOOP" && supersetFull(picked.size + 1)) {
+    if (!picked.has(movement.id) && searchRole === "LOOP" && (replacing ? model === "SUPERSET" && picked.size + 1 > 2 : supersetFull(picked.size + 1))) {
       warnSupersetFull();
       return;
     }
@@ -837,7 +932,30 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     Keyboard.dismiss();
     // Remarque E du 07/11/2026 et b-cat-fermer du 08/11/2026 : ajout sous la couche du catalogue, qui s'efface en fondu enchaîné.
     if (catalogueClosing.current) return;
+    if (replacing) {
+      // « Modifier » : les mouvements gardés conservent leurs valeurs ; les retirés disparaissent ; les nouveaux sont ajoutés.
+      const kept = new Set(movements.flatMap((item) => (item.exercise.sourceMovementId !== undefined && picked.has(item.exercise.sourceMovementId) ? [item.exercise.sourceMovementId] : [])));
+      fadeCatalogueOut(() => {
+        setMovements((current) => current.filter((item) => item.exercise.sourceMovementId !== undefined && kept.has(item.exercise.sourceMovementId)));
+        addMovements(
+          ordered.filter((movement) => !kept.has(movement.id)),
+          role,
+        );
+      });
+      return;
+    }
     fadeCatalogueOut(() => addMovements(ordered, role));
+  };
+  /** Superset complet : « Modifier » ouvre le mode catalogue sur les deux mouvements choisis (recette du 16/11/2026, fmt-superset). */
+  const editSuperset = () => {
+    setQuery("");
+    setSearchRole("LOOP");
+    openCatalogue();
+    setReplacing(true);
+    setPicked(new Map(movements.flatMap((item) => {
+      const movement = movementOf(item);
+      return movement === null ? [] : [[movement.id, movement] as const];
+    })));
   };
   const openSheet = (movement: Movement) => router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
   const filterSummary =
@@ -951,7 +1069,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés ») : sans sélection, le bouton est actif et ferme le mode
   // catalogue (comme « Revenir aux paramètres »). [« Ajouter » grisé sans sélection — remplacé.]
   const addPickedLabel =
-    picked.size === 0 ? t().closeWithoutSelecting : picked.size === 1 ? t().addPickedOne : fillTemplate(t().addPickedMany, { count: String(picked.size) });
+    picked.size === 0
+      ? t().closeWithoutSelecting
+      : replacing
+        ? t().applyPicked
+        : picked.size === 1
+          ? t().addPickedOne
+          : fillTemplate(t().addPickedMany, { count: String(picked.size) });
 
   // p-coche / p-ajout : « Revenir aux paramètres » ferme le mode catalogue sans ajout.
   // Remarque E du 07/11/2026 : « Fermer sans sélectionner » et « Revenir aux paramètres » ferment en fondu lent.
@@ -964,12 +1088,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     // croix quitte le Format. [§18–§19 : la croix du mode catalogue revenait au questionnaire sans ajout — remplacé par « Revenir
     // aux paramètres ».]
     if (catalogueMode) Keyboard.dismiss();
-    if (stage === "summary" && !catalogueMode) {
-      Keyboard.dismiss();
-      setSearchRole(null);
-      setStage("questionnaire");
-      return;
-    }
+    // For time sans questionnaire (15/11/2026) : « Croix ou Retour → Composition, sans ajout » — le Retour quitte le Format, comme la
+    // croix d'un questionnaire (retour à l'écran qui l'a ouvert, règle du 06/11/2026).
+    // Formats à tableau, écran unique (15/11/2026, CE-FMT-02 §4 : « Retour » vers un questionnaire n'existe plus) : Retour quitte aussi
+    // le Format. [Retour du récapitulatif vers le questionnaire, réponses conservées — remplacé.]
     // Recette du 05/11/2026 (n-cat-format, Hermann : « Questionnaire : Croix > Retour à la modale "Créer un exercice" ») : ouvert
     // depuis la modale de création, le questionnaire y revient. [Essai feuille native : la croix ramenait à la Composition, même
     // si la fenêtre Formats était empilée dessous — remplacé.] Réédition (« Modifier le format ») : retour à la Composition.
@@ -1085,6 +1207,9 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
       />
     </Row>
   );
+  // [For time — ligne d’un bloc buy-in ou buy-out, « Sans » ou un nombre de séries (correction 2 du 14/11/2026), retrait annoncé à la
+  // fermeture du clavier (recette du 15/11/2026, i7) — remplacé le 15/11/2026 (décision de Hermann, registre ch07, « For time —
+  // tableau unique, sans questionnaire ») : le nombre de séries du buy-in et du buy-out est le nombre de colonnes, réglé par − / +.]
   const readRow = (label: string, text: string, key: string, last = false) => (
     <Row key={key} label={label} last={last} testID={`format-row-${key}`}>
       <Text style={styles.readValue} testID={`format-${key}`}>
@@ -1095,16 +1220,15 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const totalRow = (last: boolean) => readRow(t().totalDuration, movements.length === 0 && duration === null ? genericDuration(model, answers, formatDuration) : duration === null ? t().dash : modelDurationText(duration, formatDuration), "total", last);
 
   const options = executionOptions(model);
-  const showExecution = options.length > 0 && movements.length > 1;
+  // Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out ») : For time, dès deux exercices en tour.
+  const showExecution = showsExecution(model, movements);
   const execution: ModelExecution = answers.execution ?? options[0] ?? "SEQUENCE";
-  const executionRow = () => (
-    <Row key="execution" label={t().execution} last testID="format-row-execution">
+  const executionRow = (last = true) => (
+    <Row key="execution" label={t().execution} last={last} testID="format-row-execution">
       <ExecutionMenu options={options} execution={execution} onSelect={(option) => setAnswers((current) => ({ ...current, execution: option }))} />
     </Row>
   );
 
-  // Complément du 5 novembre 2026 (Hermann), §13 : Death by à un mouvement — Objectif de départ et Incrément dans l'unité du mouvement.
-  const deathByDuration = model === "DEATH_BY" && movements[0]?.values.mode === "DURATION";
 
   /**
    * Complément du 5 novembre 2026 (Hermann), §15–§16 : un seul mouvement (Tabata, 30/30, Renforcement, À l'échec, Death by) — ligne « Charge » dans le cadre des
@@ -1136,14 +1260,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     );
   };
 
-  /** Complément du 5 novembre 2026 (Hermann), §9 : « (+ kg) » — la charge de ce mouvement apparaît et le clavier s'ouvre sur sa première case. */
-  const addLoad = (index: number) => {
-    const movement = movements[index];
-    if (movement === undefined) return;
-    updateValues(index, { ...movement.values, loadOn: true });
-    const first = chargePerSeries(model) ? cellKey("load", index, 0) : cellKey("load", index);
-    setTimeout(() => focusCell(first), 0);
-  };
+  // [Complément du 5 novembre 2026 (Hermann), §9 : « (+ kg) » sous le nom (`addLoad`, charge activée et clavier sur sa première case)
+  // — remplacé le 16/11/2026 (décision de Hermann) : la charge s'active et se retire dans la modale des paramètres d'exécution.]
 
   // Complément du 5 novembre 2026 (§9) : « Vider toutes les cases retire la ligne à la fermeture du clavier, et « + kg »
   // revient ; il n'y a rien à restaurer. »
@@ -1168,9 +1286,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const rows = parameterRows();
   // Complément du 5 novembre 2026 (Hermann), §12 : lignes posées au-dessus du tableau (nombre de séries, de tours, intervalle du Death by, durée de l'AMRAP),
   // les autres dans le cadre qui le suit.
-  const tableHere = (stage === "summary" || (model === "DEATH_BY" && movements.length > 1)) && hasSummaryTable(model, movements);
-  const BEFORE_TABLE = new Set([answerFieldKey("seriesCount"), answerFieldKey("roundCount"), ...(model === "DEATH_BY" ? [answerFieldKey("intervalSeconds")] : []), ...(model === "AMRAP" ? [answerFieldKey("durationSeconds")] : [])]);
-  const isRowBeforeTable = (row: React.ReactNode) => isValidElement(row) && typeof row.key === "string" && BEFORE_TABLE.has(row.key);
+  // For time sans questionnaire (15/11/2026) : carte des paramètres entière, puis les trois blocs (`ForTimeBlocks`), hors du cadre des
+  // tableaux. [Tableaux For time entre « Nombre de tours » et les paramètres qui suivent, « Exécution » au-dessus de « Nombre de
+  // tours » (Figma `8624:30672`, archivé) — remplacés.]
+  // Formats à tableau, écran unique (15/11/2026 ; Figma `12455:26716` et suivants) : cadre des paramètres entier, puis le tableau des
+  // mouvements pleine largeur (`formatBlocks`). [Tableau entre deux cadres de paramètres (Complément du 5 novembre 2026, §12) — remplacé.]
   // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Progression : il manque la pause » ; « ne pas calculer de durée total sur
   // l'écran Questionnaire » ; « la ligne du mode d'exécution est la dernière, après la durée totale ») ; MAJ 04/11 §6 quater :
   // « Avec charge » au questionnaire seulement, après Pause.
@@ -1197,8 +1317,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const loadSwitch = stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : [];
     // Complément du 5 novembre 2026 (Hermann), §15–§16 : un seul mouvement — ligne Charge sous Durée totale ; plusieurs : tableau par mouvement (récapitulatif),
     // lignes communes Travail par série / Répétitions par série / Pause retirées des paramètres.
-    const single = answers.withLoad === true && movements.length === 1 ? [chargeRow()] : [];
-    const byMovement = stage === "summary" && several;
+    const single: React.ReactNode[] = [];
+    void chargeRow;
+    // Formats à tableau, écran unique (15/11/2026) : le tableau porte toujours l'objectif, la pause et la charge de chaque mouvement,
+    // même seul — plus de lignes communes Travail / Répétitions / Pause ni de ligne Charge. [Un seul mouvement : lignes communes et ligne
+    // Charge sous Durée totale (Complément du 5 novembre 2026, §15–§16) — remplacé.]
+    const byMovement = true;
+    void several;
     switch (model) {
       case "TABATA":
       case "INTERVALS_30_30":
@@ -1226,12 +1351,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // Complément du 5 novembre 2026 (Hermann), §13 : « Objectif de départ » et incrément dans l'unité du mouvement (Répétitions ou Durée, au clavier).
         return withExecution([
           stepRow("intervalSeconds", r.intervalSeconds),
-          ...(several
-            ? []
-            : [
-                stepRow("startRepetitions", r.startRepetitions, { seconds: deathByDuration, format: deathByDuration ? formatDuration : (value) => `${value} ${t().repetitionsUnit}`, placeholder: t().dash }),
-                stepRow("increment", r.increment, { seconds: deathByDuration, format: (value) => `+ ${deathByDuration ? formatDuration(value) : `${value} ${t().repetitionsUnit}`}`, placeholder: "+" }),
-              ]),
+          // Formats à tableau (15/11/2026) : un seul mouvement aussi — Départ et Incrément dans le tableau (réponses communes du Format).
+          // [Lignes « Objectif de départ » et « Incrément » du questionnaire (§13) — remplacées.]
           // Recette du 06/11/2026 (n-deathby, Hermann : « Mettre la ligne "Récupération entre les mouvements avant la ligne condition
           // d'arrêt ») : la récupération précède la condition d'arrêt. [Récupération en dernière ligne — remplacé.]
           ...(several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds)] : []),
@@ -1240,7 +1361,16 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           ...single,
         ]);
       case "AMRAP": {
-        if (stage === "summary") return [stepRow("durationSeconds", (answers.blockCount ?? 1) > 1 || several || (answers.loopRestSeconds ?? 0) > 0 ? r.blockDuration : r.durationSeconds, { last: true })];
+        // Décision de Hermann du 16/11/2026 (registre ch07, « AMRAP — réglages conservés (16/11/2026) » ; CE-FMT-02 §8, « AMRAP — cadre
+        // des paramètres ») : Durée ; Nombre d'AMRAP (1 par défaut) ; Repos entre deux AMRAP, seulement au-delà d'un AMRAP ; Repos après
+        // chaque tour de boucle (0″ par défaut). [Cadre réduit à la seule ligne « Durée » (15/11/2026) — remplacé.]
+        if (stage === "summary")
+          return [
+            stepRow("durationSeconds", (answers.blockCount ?? 1) > 1 || several || (answers.loopRestSeconds ?? 0) > 0 ? r.blockDuration : r.durationSeconds),
+            stepRow("blockCount", r.blockCount),
+            ...((answers.blockCount ?? 1) > 1 ? [stepRow("restBetweenBlocksSeconds", r.restBetweenBlocksSeconds)] : []),
+            stepRow("loopRestSeconds", r.loopRestSeconds, { last: true }),
+          ];
         return [
           stepRow("durationSeconds", r.durationSeconds),
           stepRow("blockCount", r.blockCount),
@@ -1252,11 +1382,22 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ];
       }
       case "FOR_TIME":
+        // Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out » ;
+        // « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » », Figma « For time — Récapitulatif »
+        // `8624:30672`, FT-20 à FT-23) : ligne « Exécution » au-dessus de « Nombre de tours », dès deux exercices en tour ; « À la
+        // suite » : « Nombre de séries » et « Repos entre les séries ».
+        // Recette du 15/11/2026 (Hermann, fx1 : « La ligne Exécution doit être la dernière du questionnaire ») : au questionnaire,
+        // dernière ligne ; au récapitulatif, au-dessus de « Nombre de tours » (Figma `8624:30672`). [Au-dessus de « Nombre de tours »
+        // au questionnaire aussi — remplacé.]
+        // Décision de Hermann du 15/11/2026 (registre ch07, « For time — tableau unique, sans questionnaire » ; CE-FMT-02 §8, Figma
+        // `12341:27002`) : carte des paramètres toujours visible — Nombre de tours, Repos entre les tours, Temps limite, puis Exécution
+        // (dernière ligne, dès deux exercices en tour). [Questionnaire (lignes Buy-in / Buy-out, « Avec charge ») et Exécution au-dessus
+        // de « Nombre de tours » au récapitulatif — remplacés.]
         return [
-          stepRow("roundCount", r.roundCount),
-          stepRow("restBetweenRoundsSeconds", r.restBetweenRoundsSeconds),
-          stepRow("timeCapSeconds", r.timeCapSeconds, { last: stage === "summary" }),
-          ...(stage === "questionnaire" ? [switchRow("buyIn", r.buyIn), switchRow("buyOut", r.buyOut), switchRow("withLoad", r.withLoad)] : []),
+          stepRow("roundCount", showExecution && sequence ? r.seriesCount : r.roundCount),
+          stepRow("restBetweenRoundsSeconds", showExecution && sequence ? r.restBetweenSeriesSeconds : r.restBetweenRoundsSeconds),
+          stepRow("timeCapSeconds", r.timeCapSeconds, { last: !showExecution }),
+          ...(showExecution ? [executionRow()] : []),
         ];
       case "STRENGTH":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
@@ -1285,7 +1426,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ]);
       case "PROGRESSION":
         // Suivies du tableau (récapitulatif), de la Pause, de la durée totale et de l'Exécution (sous le tableau).
-        return [stepRow("seriesCount", r.seriesCount, { last: stage === "summary" })];
+        // Formats à tableau (15/11/2026, Figma `12445:26518`) : Pause, Durée totale et Exécution dans le même cadre, tableau dessous.
+        return [stepRow("seriesCount", r.seriesCount)];
       case "SUPERSET":
         // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
   // la paire ; on ne doit pas pouvoir sélectionner plus de deux exercices, afficher un message ») : la récupération après la paire (portée par le dernier exercice, §9.2) est réglable ; valeur initiale =
@@ -1317,79 +1459,29 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   }, [catalogueFilters, catalogueMode, query]);
   const scrollY = useRef(0);
   const [revealedId, setRevealedId] = useState<string | null>(null);
-
-  // Recette iPhone n° 3 du 02/11/2026 (f3-questionnaire, Hermann : « L'appui long sur la carte du mouvement
-  // devrait permettre de déplacer la carte ») : appui long, la carte se soulève et suit le doigt ; au
-  // relâchement elle prend la place atteinte. Même procédé que le Catalogue des Mouvements (suivi du doigt
-  // par la liste, défilement suspendu pendant le geste). Le buy-in reste en tête. Actions VoiceOver
-  // Monter / Descendre conservées.
-  //
-  // Constat de Hermann du 06/11/2026 sur iPhone (« Questionnaire / Récapitulatif : on ne peut plus déplacer un
-  // mouvement avec l'appui long. La carte est sélectionnée mais ne se déplace pas, c'est l'écran qui se déplace ») :
-  // depuis le passage de ces écrans en feuille native iOS (formSheet, 04/11), le geste natif de la feuille prenait le
-  // toucher dès que le défilement était coupé et annulait les touchers de React Native (le gestionnaire de touchers
-  // de React Native cède à tout geste natif extérieur). Le glisser est désormais porté par un geste natif de
-  // react-native-gesture-handler (`Pan` activé après l'appui long) : actif avant tout mouvement du doigt, il garde
-  // le toucher pour la carte. Levée, pour ce seul écran, du choix « plan §8 » (pas de react-native-gesture-handler,
-  // cf. CompositionScreen) — décision de Hermann du 06/11/2026 (« Oui je l'autorise. »).
-  const [drag, setDrag] = useState<{ readonly from: number; readonly dy: number } | null>(null);
-  // Valeur courante du geste, lue par les rappels du geste natif (jamais pendant le rendu).
-  const dragRef = useRef<{ readonly from: number; readonly dy: number } | null>(null);
-  const cardStep = useRef(CARD_STEP_DEFAULT);
-  // Buy-in en tête, buy-out en fin (ordre tenu à l'ajout). Recette du 08/11/2026 au soir (plusieurs buy-in / buy-out, comme dans
-  // la Composition) : chaque carte se déplace dans sa section (buy-in, boucle, buy-out), sans en sortir.
-  // [Buy-in et buy-out jamais déplacés (constat du 06/11/2026) — remplacé le 08/11/2026.]
-  const buyInCount = buyIn ? movements.filter((item) => item.buyIn === true).length : 0;
-  const buyOutCount = buyOut ? movements.filter((item) => item.buyOut === true).length : 0;
-  const sectionBounds = (index: number): readonly [number, number] =>
-    index < buyInCount
-      ? [0, buyInCount - 1]
-      : index >= movements.length - buyOutCount
-        ? [movements.length - buyOutCount, movements.length - 1]
-        : [buyInCount, movements.length - 1 - buyOutCount];
-  const dragTarget = (current: { from: number; dy: number }) => {
-    const [first, last] = sectionBounds(current.from);
-    return Math.max(first, Math.min(last, current.from + Math.round(current.dy / cardStep.current)));
-  };
-  const updateDrag = (next: { readonly from: number; readonly dy: number } | null) => {
-    dragRef.current = next;
-    setDrag(next);
-  };
-  const startDrag = (index: number) => {
-    if (index < 0 || index >= movements.length) return;
-    setRevealedId(null);
-    updateDrag({ from: index, dy: 0 });
-  };
-  const moveDrag = (dy: number) => {
-    const current = dragRef.current;
-    if (current !== null) updateDrag({ ...current, dy });
-  };
-  const cancelDrag = () => {
-    if (dragRef.current !== null) updateDrag(null);
-  };
-  const endDrag = () => {
-    const current = dragRef.current;
-    updateDrag(null);
-    if (current === null) return;
-    const to = dragTarget(current);
-    if (to === current.from) return;
-    setMovements((list) => {
-      const next = [...list];
-      const [moved] = next.splice(current.from, 1);
-      if (moved === undefined) return list;
+  /** Ligne dont l'unité vient d'être choisie : sa première case prend le focus après le rendu (recette du 16/11/2026). */
+  const unitFocusRow = useRef<number | null>(null);
+  /**
+   * Recette iPhone du 16/11/2026 (Hermann, fmt-entree : « on devrait pouvoir réordonner les mouvements du tableau avec un appui long ») :
+   * déplacement d'un mouvement dans son bloc. [Appui long des cartes de mouvement — retiré le 15/11/2026 avec les cartes, rétabli
+   * sur les lignes du tableau.]
+   */
+  const reorderMovement = (from: number, to: number) =>
+    setMovements((current) => {
+      const moved = current[from];
+      const target = current[to];
+      if (moved === undefined || target === undefined || movementRole(moved) !== movementRole(target)) return current;
+      const next = [...current];
+      next.splice(from, 1);
       next.splice(to, 0, moved);
       return next;
     });
-  };
-  const cardList = (items: readonly ModelMovement[], offset: number, isBuyIn: boolean, isBuyOut = false) => (
-    <View
-      testID={isBuyIn ? "format-buy-in-cards" : isBuyOut ? "format-buy-out-cards" : "format-movement-cards"}
-    >
-      {items.map((item, at) => movementCard(item, at + offset))}
-    </View>
-  );
 
-  const tableShown = stage === "summary" || (model === "DEATH_BY" && movements.length > 1);
+  // [Appui long qui soulève et déplace une carte de mouvement (recette n° 3 du 02/11/2026, constat du 06/11/2026, geste natif de
+  // react-native-gesture-handler) — remplacé le 15/11/2026 avec les cartes (écran unique des Formats à tableau, comme le For time) :
+  // le déplacement reste offert par les actions VoiceOver Monter / Descendre de chaque ligne.]
+
+  const tableShown = true;
   const cellOrder = useMemo(() => (tableShown ? tableCellOrder(model, movements, answers) : []), [answers, model, movements, tableShown]);
   // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
@@ -1459,10 +1551,24 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // entre le nombre de séries et la Pause, rangés dans le même cadre).
   const rowFields = rows.flatMap((node) => (isValidElement(node) && typeof node.key === "string" && node.key.startsWith(ANSWER_FIELD_PREFIX) ? [node.key] : []));
   // Complément du 5 novembre 2026 (Hermann), §12 : lignes du cadre au-dessus du tableau, cases du tableau, puis lignes du cadre qui le suit.
-  const beforeFields = tableHere ? rowFields.filter((key) => BEFORE_TABLE.has(key)) : rowFields;
-  const afterFields = tableHere ? rowFields.filter((key) => !BEFORE_TABLE.has(key)) : [];
-  const fieldOrder = [...beforeFields, ...cellOrder, ...afterFields, ...(model === "PROGRESSION" ? [answerFieldKey("pauseSeconds")] : [])];
+  // Death by à un mouvement : Départ et Incrément du tableau sont les réponses communes du Format.
+  const deathBySingleFields =
+    model === "DEATH_BY" && movements.length === 1
+      ? [answerFieldKey("startRepetitions"), answerFieldKey("increment"), ...(movements[0]!.values.loadOn === true ? [cellKey("load", 0)] : [])]
+      : [];
+  // Formats à tableau (15/11/2026) : lignes du cadre des paramètres (Progression : Pause comprise), puis cases du tableau.
+  const fieldOrder = [...rowFields, ...(model === "PROGRESSION" ? [answerFieldKey("pauseSeconds")] : []), ...deathBySingleFields, ...cellOrder];
   const focusedAt = focusedCell === null ? -1 : fieldOrder.indexOf(focusedCell);
+  // Recette iPhone du 16/11/2026 (Hermann, fmt-entree : « après le choix de l'unité, le focus doit aller directement sur le premier champ
+  // éditable de la ligne ») : une fois la ligne rendue dans sa nouvelle unité, le clavier s'ouvre sur sa première case (Death by à un
+  // mouvement : Départ).
+  useEffect(() => {
+    const row = unitFocusRow.current;
+    if (row === null) return;
+    unitFocusRow.current = null;
+    const first = deathBySingleFields.length > 0 ? deathBySingleFields[0] : cellOrder.find((key) => parseCellKey(key)?.row === row);
+    focusCell(first);
+  });
   // Hermann, 04/11/2026 : « Ouvrir le clavier doit positionner le bas du tableau des objectifs juste au-dessus du clavier,
   // toutes les lignes du tableau doivent être visibles. » Le bas du tableau est placé au-dessus du clavier et de sa barre ;
   // un tableau plus haut que la place disponible garde au moins la case active visible.
@@ -1785,7 +1891,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // écran figé pendant la saisie d'un mouvement avec suggestions, et pendant le déplacement d'une carte. Recette du
         // 04/11/2026 (f4-catalogue : « lorsqu'un texte est tapé dans la zone de recherche on doit pouvoir continuer de faire
         // défiler la liste des mouvements ») : jamais figé en mode catalogue.
-        scrollEnabled={drag === null}
         // Recette n° 3 bis du 03/11/2026 (f3s-recherche, Hermann : « appuyer sur entrer ou sur une autre partie de
         // l'écran ne change rien, le clavier reste ouvert » ; « faire défiler vers le bas et le haut ne ferme pas le
         // clavier ») : pendant la saisie d'un mouvement, un toucher hors du champ ne le quitte plus (avec
@@ -1816,22 +1921,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         {/* Mouvements (§7.1 à §7.4). */}
         {/* Recette n° 3 du 03/11/2026 (autres constats, Hermann : « Activer Buy-in : la section Buy-in apparaît, le
             nom de l'autre section change (en boucle...) ») : sections Buy-in et En boucle dès le questionnaire. */}
-        {buyIn || buyOut ? (
-          <>
-            {/* 08/11/2026 au soir : « + Ajouter » aussi quand un buy-in ou un buy-out existe. [« Changer » — remplacé.] */}
-            {buyIn ? movementSection("BUY_IN", t().buyInSection, t().add, "format-buy-in") : null}
-            {buyIn ? cardList(movements.slice(0, buyInCount), 0, true) : null}
-            {movementSection("LOOP", loopLabelOf(), t().add, "format-loop")}
-            {cardList(movements.slice(buyInCount, movements.length - buyOutCount), buyInCount, false)}
-            {buyOut ? movementSection("BUY_OUT", t().buyOutSection, t().add, "format-buy-out") : null}
-            {buyOut ? cardList(movements.slice(movements.length - buyOutCount), movements.length - buyOutCount, false, true) : null}
-          </>
-        ) : (
-          <>
-            {movementSection("LOOP", t().movements, t().add, "format-movements")}
-            {cardList(movements, 0, false)}
-          </>
-        )}
+        {/* For time sans questionnaire (15/11/2026) : les mouvements sont les lignes des trois blocs, sous les paramètres. */}
+        {/* Formats à tableau, écran unique (15/11/2026) : plus de cartes de mouvement, les mouvements sont les lignes du tableau. */}
 
         {/* 08/11/2026 : paramètres toujours montés (dessous de la couche du catalogue). [Paramètres démontés en mode catalogue — remplacé.] */}
         {(
@@ -1841,48 +1932,23 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         </Text>
         {/* Complément du 5 novembre 2026 (Hermann), §12 : tableau des mouvements isolé dans son propre cadre, entre le cadre du nombre de séries (ou de tours,
             d'intervalle, de durée) et celui des paramètres qui suivent ; cadres séparés de 8. */}
-        <Panel testID="format-parameters" summary={stage === "summary"}>
-          {tableHere ? rows.filter(isRowBeforeTable) : rows}
-          {tableHere ? null : progressionTail()}
+        {/* Formats à tableau (15/11/2026, CE-FMT-02 §8 : « Cadre des paramètres pleine largeur (lignes de 31 px, contrôles de 24 px, marges
+            de 7 px) ») : même cadre que le For time. */}
+        <Panel testID="format-parameters" summary={stage === "summary"} forTime>
+          {rows}
+          {progressionTail()}
         </Panel>
-        {tableHere ? (
-          <View ref={tableRef} collapsable={false} style={styles.tableFrame} testID="format-objectives">
-            {model === "PROGRESSION" ? (
-              <SeriesTable model="PROGRESSION" movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
-            ) : null}
-            {model === "AMRAP" ? (
-              <AmrapTable movements={movements} increasing={answers.increasingVolume === true} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
-            ) : null}
-            {model === "EMOM" ? (
-              <SeriesTable model="EMOM" bare movements={movements} count={answers.seriesCount ?? 1} withLoad={answers.withLoad === true} overflow={emomOverflow} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
-            ) : null}
-            {model === "SUPERSET" ? (
-              <SeriesTable model="SUPERSET" bare movements={movements} count={answers.roundCount ?? 3} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
-            ) : null}
-            {model === "DEATH_BY" ? <DeathByTable movements={movements} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} /> : null}
-            {model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE" ? (
-              <ObjectivePauseTable
-                model={model}
-                movements={movements}
-                objectiveFallback={model === "STRENGTH" ? answers.repetitions : answers.workSeconds}
-                pauseFallback={(index) => answers.pauseSeconds ?? (movements[index] !== undefined ? basePause(movements[index].exercise) : 0)}
-                withLoad={answers.withLoad === true}
-                onChange={updateValues}
-                onAddLoad={addLoad}
-                cell={cellBinding}
-              />
-            ) : null}
-            {model === "FOR_TIME" ? (
-              // Recette du 04/11/2026 (f4-modale, For time : « le fond du tableau doit être transparent, seules les zones de
-              // textes doivent avoir un fond blanc ») : zones de saisie blanches. Recette du 05/11/2026 (constat d) : cadre propre.
-              <SeriesTable model="FOR_TIME" bare movements={movements} count={answers.roundCount ?? 1} withLoad={answers.withLoad === true} onChange={updateValues} onAddLoad={addLoad} cell={cellBinding} />
-            ) : null}
+        {model === "FOR_TIME" ? (
+          forTimeBlocks()
+        ) : (
+          <View ref={tableRef} collapsable={false} testID="format-objectives">
+            {formatBlocks()}
           </View>
-        ) : null}
+        )}
         {/* Remarque B du 06/11/2026 (Hermann : « le message rouge "les durées atteignent ou dépassent..." doit être juste sous le tableau des
             objectifs ») : contrôle EMOM des durées (MAJ 04/11 §4.4 ; Complément du 5 novembre 2026 (Hermann), §14) — message, cadres rouges,
             validation bloquée. [Message sous le cadre des paramètres qui suit le tableau — remplacé.] */}
-        {model === "EMOM" && tableHere && emomOverflow.length > 0 ? (
+        {model === "EMOM" && movements.length > 0 && emomOverflow.length > 0 ? (
           <Text style={styles.alert} accessibilityRole="alert" testID="format-emom-overflow">
             {t().emomOverflow.replace("{interval}", formatDuration(answers.intervalSeconds ?? 60))}
           </Text>
@@ -1894,12 +1960,6 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {t().lastRepetitionsLocked}
           </Text>
         ) : null}
-        {tableHere && (rows.some((row) => !isRowBeforeTable(row)) || model === "PROGRESSION") ? (
-          <Panel style={styles.panelAfterTable} testID="format-parameters-after" summary={stage === "summary"}>
-            {rows.filter((row) => !isRowBeforeTable(row))}
-            {progressionTail()}
-          </Panel>
-        ) : null}
         {/* Complément du 5 novembre 2026 (Hermann), §13 : avertissement non bloquant du Death by, seulement si le premier rang ne tient pas dans l'intervalle. */}
         {model === "DEATH_BY" && deathByFirstRankWarning(answers, movements) ? (
           <Text style={styles.alert} accessibilityRole="alert" testID="format-death-by-warning">
@@ -1908,7 +1968,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ) : null}
 
         <View style={styles.spacer} />
-        <Text style={styles.section}>{t().timeline}</Text>
+        {/* Recette iPhone du 16/11/2026 (constat h, Hermann : « AMRAP, avec nombre d'AMRAP > 1 : écrire à côté de Déroulé "(N fois)" »). */}
+        <Text style={styles.section} testID="format-timeline-title">
+          {model === "AMRAP" && (answers.blockCount ?? 1) > 1 ? `${t().timeline} ${t().timelineRepeat.replace("{count}", String(answers.blockCount))}` : t().timeline}
+        </Text>
         <TimelineFrame
           timeline={timeline}
           endLabel={endLabel}
@@ -1927,15 +1990,19 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           <View style={styles.context}>
             <FormatModelIllustration model={model} />
             <View style={styles.modalHeader} testID="screen-header">
+              {/* Recette iPhone du 16/11/2026 (constat b, Hermann : « Vérifier le symbole et l'état d'activation des boutons Annuler et
+                  Valider pour tous les formats ») : sans questionnaire, l'écran unique est la modale du Format — croix (Annuler, quitte
+                  sans ajout) en face de la coche, pour tous les Formats. [Flèche Retour hors questionnaire et hors mode catalogue —
+                  remplacée le 16/11/2026.] */}
               <Pressable
                 onPress={close}
                 accessibilityRole="button"
-                accessibilityLabel={stage === "questionnaire" || catalogueMode ? t().closeAccessibilityLabel : t().backAccessibilityLabel}
+                accessibilityLabel={t().closeAccessibilityLabel}
                 hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
                 style={styles.headerCircle}
                 testID="screen-header-back"
               >
-                <KodjoIcon name={stage === "questionnaire" || catalogueMode ? "control-close" : "control-back"} size={dimensions.backAction.icon} testID="screen-header-back-icon" />
+                <KodjoIcon name="control-close" size={dimensions.backAction.icon} testID="screen-header-back-icon" />
               </Pressable>
               <Text style={styles.modalTitle} accessibilityRole="header" numberOfLines={1} testID="format-title">
                 {modelName}
@@ -2032,6 +2099,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           sign={signBar}
         />
       ) : null}
+      {parametersSheet()}
     </View>
     </GestureHandlerRootView>
   );
@@ -2040,78 +2108,591 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     setMovements((current) => current.map((item, at) => (at === index ? { ...item, values } : item)));
   }
 
-  function movementCard(item: ModelMovement, index: number) {
-    const movement = movementOf(item);
-    // Pendant le geste : carte portée soulevée, cartes franchies décalées d'un pas.
-    const lifted = drag !== null && drag.from === index;
-    const target = drag === null ? index : dragTarget(drag);
-    const shift =
-      drag === null || lifted ? 0 : index > drag.from && index <= target ? -cardStep.current : index < drag.from && index >= target ? cardStep.current : 0;
-    const remove = () => setMovements((current) => current.filter((_, at) => at !== index));
-    const move = (direction: -1 | 1) =>
-      setMovements((current) => {
-        const target = index + direction;
-        const [first, last] = sectionBounds(index);
-        if (target < first || target > last) return current;
-        const next = [...current];
-        [next[index], next[target]] = [next[target]!, next[index]!];
-        return next;
-      });
-    const slot = (
-      <View
-        key={item.exercise.id}
-        style={[styles.cardSlot, lifted ? [styles.liftedCard, { transform: [{ translateY: drag?.dy ?? 0 }] }] : shift !== 0 ? { transform: [{ translateY: shift }] } : null]}
-        onLayout={(event) => {
-          if (index === 0) cardStep.current = event.nativeEvent.layout.height + CARD_GAP;
-        }}
-      >
-        <SwipeActionsRow
-          actions={[{ key: "delete", label: t().delete, backgroundColor: "#E5484D", onPress: remove }]}
-          revealed={revealedId === item.exercise.id}
-          onReveal={() => setRevealedId(item.exercise.id)}
-          onHide={() => setRevealedId(null)}
-          // Recette n° 3 du 03/11/2026 (autres constats, Hermann : « un appui court doit ouvrir la fiche du
-          // mouvement en modale, par le bas, lecture seule sans possibilité de modification »).
-          onPress={() => {
-            if (revealedId !== null) {
-              setRevealedId(null);
-              return;
-            }
-            if (movement !== null) router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
-          }}
-          accessibilityLabel={item.exercise.name}
-          extraAccessibilityActions={[
-            { name: "moveUp", label: t().moveUp, onAction: () => move(-1) },
-            { name: "moveDown", label: t().moveDown, onAction: () => move(1) },
-          ]}
-          testID={`format-movement-${index}`}
-        >
-          {movement !== null ? (
-            <SelectedMovementCard movement={movement} levelRank={levelOf(movement.id)} onPhotoPress={() => openSheet(movement)} testID={`format-movement-card-${index}`} />
-          ) : (
-            <View style={styles.fallbackCard}>
-              <Text style={styles.rowLabel}>{item.exercise.name}</Text>
-            </View>
-          )}
-        </SwipeActionsRow>
-      </View>
-    );
-    // [Buy-in et buy-out : jamais déplacés, aucun geste de déplacement — remplacé le 08/11/2026 : geste borné à la section.]
-    // Constat du 06/11/2026 : geste natif activé après l'appui long (immobile 500 ms, comme l'appui long de `Pressable`) ;
-    // un mouvement du doigt de plus de 10 pt avant ce délai le fait échouer (glisser latéral de suppression et
-    // défilement intacts). Actif, il annule l'appui de la carte (pas de fiche ouverte au relâchement).
-    const dragGesture = Gesture.Pan()
-      .activateAfterLongPress(CARD_LONG_PRESS_MS)
-      .runOnJS(true)
-      .onStart(() => startDrag(index))
-      .onUpdate((event) => moveDrag(event.translationY))
-      .onEnd((_event, success) => (success ? endDrag() : cancelDrag()))
-      .onFinalize(() => cancelDrag())
-      .withTestId(`format-movement-drag-${index}`);
+  /**
+   * For time — tableau unique, sans questionnaire (décision de Hermann du 15/11/2026, registre ch07 ; CE-FMT-02 §8 ; Figma
+   * `12341:27002`) : blocs Buy-in, En boucle, Buy-out, chacun avec « + Ajouter » (mode catalogue direct, sélection multiple) ;
+   * « − » / « + » des colonnes — boucle : Nombre de tours (même valeur que la ligne dédiée, borne existante) ; buy-in et buy-out :
+   * nombre de séries du bloc, sans plafond. FT-3 : le nom ouvre la même modale de paramètres que la Composition. [Un tableau par zone
+   * présente (règles du 14/11/2026, FT-4, FT-5, FT-12), cartes des mouvements au-dessus — remplacés.]
+   */
+  function forTimeBlocks() {
+    const sequence = forTimeInSequence(answers, movements);
     return (
-      <GestureDetector key={item.exercise.id} gesture={dragGesture}>
-        {slot}
-      </GestureDetector>
+      <ForTimeBlocks
+        movements={movements}
+        answers={answers}
+        sequence={sequence}
+        movementOf={movementOf}
+        onAdd={(role) => sectionLink(role, t().add).onPress()}
+        onChange={updateValues}
+        onOpenParameters={setParametersOf}
+        onOpenSheet={openSheet}
+        onRemove={(index) => setMovements((current) => current.filter((_, at) => at !== index))}
+        onMove={(index, direction) =>
+          setMovements((current) => {
+            const target = index + direction;
+            const moved = current[index];
+            const other = current[target];
+            if (moved === undefined || other === undefined || movementRole(moved) !== movementRole(other)) return current;
+            const next = [...current];
+            next[index] = other;
+            next[target] = moved;
+            return next;
+          })
+        }
+        onReorder={reorderMovement}
+        revealedId={revealedId}
+        onReveal={setRevealedId}
+        cell={cellBinding}
+      />
+    );
+  }
+
+  /**
+   * Formats à tableau — écran unique, sans redondance (décision de Hermann du 15/11/2026, registre ch07 ; CE-FMT-02 §8 ; Figma
+   * `12455:26716`, `12445:26716`, `12445:27394`, `12445:27143`, `12445:26957`, `12445:26518` et variantes) : tableau pleine largeur des
+   * mouvements, en-tête « Mouvements » et « + Ajouter » (AMRAP : blocs Buy-in et En boucle), lignes de 48 (photo 40, nom sur une ligne,
+   * ligne des paramètres bleue ou « Paramètres à compléter » rouge, qui ouvrent la modale des paramètres d'exécution — décision du
+   * 16/11/2026). Colonnes à dimensions inchangées : Tabata, 30/30, Renforcement, À l'échec (Objectif, Pause, Charge) ; Death by (Départ,
+   * Incrément, Charge) ; AMRAP (Objectif, Par tour, Max). Colonnes de séries ou de tours : Progression et EMOM (S1…Sn), Superset
+   * (Tour 1…n), nombre réglé sur la ligne « Nombre de séries » (« Nombre de tours ») ou dans la modale. [« (unité, ±kg) » tactiles et
+   * « − » / « + » de l'en-tête — remplacés le 16/11/2026.]
+   * [Cartes des mouvements au-dessus des paramètres et tableaux AmrapTable, DeathByTable, ObjectivePauseTable, SeriesTable dans un
+   * cadre entre deux cadres de paramètres — remplacés pour ces Formats.]
+   */
+  function formatBlocks() {
+    const tt = t().table;
+    const unitChoice = UNIT_CHOICE_AT_ADD.has(model);
+    const defaultMode: "REPETITIONS" | "DURATION" = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+    const shownMode = (item: ModelMovement) => item.values.mode ?? (unitChoice ? undefined : defaultMode);
+    const single = movements.length === 1;
+    const kit: RowKit = {
+      movementOf,
+      mode: shownMode,
+      // Décision de Hermann du 16/11/2026 : l'unité, le côté et la charge se règlent dans la modale des paramètres d'exécution.
+      onOpenParameters: setParametersOf,
+      // Recette du 16/11/2026 (Autres constats c, Hermann : « Death by - Il faut le même principe d'affichage du texte "Paramètres à compléter" de la modale des paramètres d'exécution. ») : Départ ou
+      // Incrément encore vide (mêmes valeurs que les cases du tableau).
+      ...(model === "DEATH_BY"
+        ? {
+            parametersMissing: (item: ModelMovement) =>
+              (single ? (answers.startRepetitions ?? item.values.start) : item.values.start) == null ||
+              (single ? (answers.increment ?? item.values.startIncrement) : item.values.startIncrement) == null,
+          }
+        : {}),
+      onOpenSheet: openSheet,
+      onRemove: (index) => {
+        // Death by : passage à un seul mouvement — Départ et Incrément du mouvement restant deviennent les réglages communs.
+        if (model === "DEATH_BY" && movements.length === 2) {
+          const kept = movements[index === 0 ? 1 : 0]?.values;
+          if (kept !== undefined)
+            setAnswers((current) => ({
+              ...current,
+              ...(kept.start != null ? { startRepetitions: kept.start } : {}),
+              ...(kept.startIncrement != null ? { increment: kept.startIncrement } : {}),
+            }));
+        }
+        setMovements((current) => current.filter((_, at) => at !== index));
+      },
+      onReorder: reorderMovement,
+      onMove: (index, direction) =>
+        setMovements((current) => {
+          const target = index + direction;
+          const moved = current[index];
+          const other = current[target];
+          if (moved === undefined || other === undefined || movementRole(moved) !== movementRole(other)) return current;
+          const next = [...current];
+          next[index] = other;
+          next[target] = moved;
+          return next;
+        }),
+      revealedId,
+      onReveal: setRevealedId,
+      rowTestID: (index) => `format-line-${index}`,
+    };
+    const rows: BlockRow[] = movements.map((item, index) => ({ item, index }));
+    const add = (role: "LOOP" | "BUY_IN") => () => sectionLink(role, t().add).onPress();
+    const label = (name: string, column: string) => `${name}, ${column}`;
+    const notYet = t().forTimeTable.disabledValue;
+    // Charge : grisée (« — ») sans charge, active avec ; elle s'ouvre au toucher comme une case. Recette du 16/11/2026 (fmt-entree,
+    // Hermann : « la police des valeurs charge sont comme celle des objectifs, retirer les parenthèses » ; « la cellule est en orange
+    // lorsque la charge est activée mais que la cellule n'a pas d'entrée ») : « 12 kg » dans le cadre des objectifs, orange (à vérifier)
+    // tant qu'elle est vide. [« (12 kg) », plus petit, sous la colonne — remplacé.]
+    const chargeColumn = ({ item, index }: BlockRow) =>
+      item.values.loadOn === true ? (
+        <DimensionCell
+          key="load"
+          cell={
+            <TableCell
+              kind="decimal"
+              value={item.values.loadKg ?? null}
+              format={formatLoad}
+              entrySuffix=" kg"
+              fit
+              pending={item.values.loadKg == null}
+              onChange={(entered) => updateValues(index, { ...item.values, loadKg: entered })}
+              {...cellBinding(cellKey("load", index))}
+              label={label(item.exercise.name, tt.load)}
+              testID={`format-line-${index}-load`}
+            />
+          }
+        />
+      ) : (
+        <DimensionText key="load" text={t().dash} testID={`format-line-${index}-load-off`} />
+      );
+    const numberCell = (
+      { item }: BlockRow,
+      value: number | null,
+      onValue: (value: number | null) => void,
+      key: string,
+      column: string,
+      testID: string,
+      signed = false,
+    ) => {
+      const mode = shownMode(item);
+      return (
+        <DimensionCell
+          key={key}
+          cell={
+            <TableCell
+              kind={mode === "DURATION" ? "duration" : "integer"}
+              value={value}
+              format={(entered) => (signed ? signedText(entered, mode) : valueText(entered, mode))}
+              width={TABLE_LAYOUT.columnWidth}
+              missing={value === null}
+              onChange={onValue}
+              {...cellBinding(key)}
+              label={label(item.exercise.name, column)}
+              testID={testID}
+            />
+          }
+        />
+      );
+    };
+    // « + Ajouter » à droite de « Mouvements » (Figma `12455:26716`).
+    const movementsAddLeft = 99;
+    switch (model) {
+      case "TABATA":
+      case "INTERVALS_30_30":
+      case "STRENGTH":
+      case "UNTIL_FAILURE": {
+        const objectiveFallback = model === "STRENGTH" ? answers.repetitions : answers.workSeconds;
+        return (
+          <FormatBlocks testID="format-table-blocks">
+            <DimensionBlock
+              title={t().movements}
+              rows={rows}
+              heads={[tt.objective, tt.pause, tt.load]}
+              onAdd={add("LOOP")}
+              addLeft={movementsAddLeft}
+              kit={kit}
+              testID="format-movements"
+              columns={(row) => {
+                const { item, index } = row;
+                const values = item.values;
+                const mode = values.mode ?? defaultMode;
+                const objective = values.repetitions !== undefined ? values.repetitions : mode === defaultMode ? (objectiveFallback ?? null) : null;
+                const pause = values.pause ?? answers.pauseSeconds ?? basePause(item.exercise);
+                return [
+                  model === "UNTIL_FAILURE" ? (
+                    <DimensionText key="obj" strong lines={2} text={t().atFailureTwoLines} testID={`format-objective-${index}`} />
+                  ) : (
+                    numberCell(row, objective, (value) => updateValues(index, { ...values, mode, repetitions: value }), cellKey("obj", index), tt.objective, `format-objective-${index}`)
+                  ),
+                  <DimensionCell
+                    key="pause"
+                    cell={
+                      <TableCell
+                        kind="duration"
+                        durationMin={0}
+                        value={pause}
+                        format={formatPrimeDuration}
+                        width={TABLE_LAYOUT.columnWidth}
+                        onChange={(value) => (value === null ? undefined : updateValues(index, { ...values, pause: value }))}
+                        {...cellBinding(cellKey("pause", index))}
+                        label={label(item.exercise.name, tt.pause)}
+                        testID={`format-pause-${index}`}
+                      />
+                    }
+                  />,
+                  chargeColumn(row),
+                ];
+              }}
+            />
+          </FormatBlocks>
+        );
+      }
+      case "DEATH_BY":
+        return (
+          <FormatBlocks testID="format-table-blocks">
+            <DimensionBlock
+              title={t().movements}
+              rows={rows}
+              heads={[tt.start, tt.increment, tt.load]}
+              onAdd={add("LOOP")}
+              addLeft={movementsAddLeft}
+              kit={kit}
+              testID="format-movements"
+              columns={(row) => {
+                const { item, index } = row;
+                const values = item.values;
+                // Un seul mouvement : Départ et Incrément communs du Format (réponses), comme l'ancien questionnaire ; plusieurs : propres
+                // à chaque mouvement (MAJ 04/11 §4.3).
+                // Recette du 16/11/2026 (fmt-un-mouvement, Hermann : « Départ et incrément : trait horizontal, fond rouge ») : à défaut de
+                // réglage commun (Format rouvert, passage de deux mouvements à un), Départ et Incrément du mouvement.
+                const start = single ? (answers.startRepetitions ?? values.start ?? null) : (values.start ?? null);
+                const increment = single ? (answers.increment ?? values.startIncrement ?? null) : (values.startIncrement ?? null);
+                return [
+                  numberCell(
+                    row,
+                    start,
+                    (value) => (single ? (value === null ? undefined : setAnswers((current) => withAnswer(current, "startRepetitions", value))) : updateValues(index, { ...values, start: value })),
+                    single ? answerFieldKey("startRepetitions") : cellKey("start", index),
+                    tt.start,
+                    `format-death-by-start-${index}`,
+                  ),
+                  numberCell(
+                    row,
+                    increment,
+                    (value) => (single ? (value === null ? undefined : setAnswers((current) => withAnswer(current, "increment", value))) : updateValues(index, { ...values, startIncrement: value })),
+                    single ? answerFieldKey("increment") : cellKey("sinc", index),
+                    tt.increment,
+                    `format-death-by-increment-${index}`,
+                    true,
+                  ),
+                  chargeColumn(row),
+                ];
+              }}
+            />
+          </FormatBlocks>
+        );
+      case "AMRAP": {
+        const increasing = answers.increasingVolume === true;
+        const amrapColumns = ({ item, index }: BlockRow, loop: boolean) => {
+          const values = item.values;
+          const mode = shownMode(item);
+          const max = values.max === true;
+          const charged = values.loadOn === true;
+          const name = item.exercise.name;
+          const pending = mode === undefined;
+          const objective = pending ? (
+            <DimensionText key="obj" text={notYet} testID={`format-amrap-reps-${index}`} />
+          ) : (
+            <DimensionCell
+              key="obj"
+              charged={charged}
+              cell={
+                <TableCell
+                  kind={mode === "DURATION" ? "duration" : "integer"}
+                  value={values.repetitions ?? null}
+                  format={(value) => valueText(value, mode)}
+                  width={TABLE_LAYOUT.columnWidth}
+                  missing={!max && values.repetitions == null}
+                  disabled={max}
+                  onChange={(value) => updateValues(index, { ...values, repetitions: value })}
+                  {...cellBinding(cellKey("obj", index))}
+                  label={label(name, tt.objective)}
+                  testID={`format-amrap-reps-${index}`}
+                />
+              }
+              charge={
+                charged ? (
+                  <ChargeValue
+                    value={values.loadKg ?? null}
+                    onChange={(entered) => updateValues(index, { ...values, loadKg: entered })}
+                    binding={cellBinding(cellKey("load", index))}
+                    label={label(name, tt.load)}
+                    testID={`format-amrap-load-${index}`}
+                  />
+                ) : null
+              }
+            />
+          );
+          if (!loop) return [objective];
+          const perRound =
+            pending || max ? (
+              <DimensionText key="inc" text={max ? t().dash : notYet} testID={`format-amrap-increment-${index}`} />
+            ) : (
+              <DimensionCell
+                key="inc"
+                charged={charged}
+                cell={
+                  <TableCell
+                    kind={mode === "DURATION" ? "duration" : "integer"}
+                    value={values.increment ?? null}
+                    format={(value) => signedText(value, mode)}
+                    width={TABLE_LAYOUT.columnWidth}
+                    missing={values.increment == null}
+                    onChange={(value) => updateValues(index, { ...values, increment: value })}
+                    {...cellBinding(cellKey("inc", index))}
+                    label={label(name, tt.perRound)}
+                    testID={`format-amrap-increment-${index}`}
+                  />
+                }
+              />
+            );
+          // Max en Répétitions seulement (n-charge-colonne, 05/11/2026).
+          const maxDisabled = mode !== "REPETITIONS";
+          const radio = (
+            <Pressable
+              key="max"
+              onPress={() => updateValues(index, { ...values, max: !max })}
+              disabled={maxDisabled}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: max, disabled: maxDisabled }}
+              accessibilityLabel={label(name, tt.max)}
+              style={styles.maxRadioZone}
+              testID={`format-amrap-max-${index}`}
+            >
+              <View style={[styles.maxRadio, max ? styles.maxRadioOn : null, maxDisabled ? styles.maxRadioDisabled : null]} testID={`format-amrap-radio-${index}`}>
+                {max ? <View style={styles.maxRadioDot} /> : null}
+              </View>
+            </Pressable>
+          );
+          return increasing ? [objective, perRound, radio] : [objective, radio];
+        };
+        return (
+          <FormatBlocks testID="format-table-blocks">
+            <DimensionBlock
+              title={t().forTimeTable.buyIn}
+              rows={rows.filter(({ item }) => item.buyIn === true)}
+              heads={[tt.objective]}
+              onAdd={add("BUY_IN")}
+              kit={kit}
+              testID="format-buy-in"
+              columns={(row) => amrapColumns(row, false)}
+            />
+            <DimensionBlock
+              title={t().forTimeTable.loop}
+              rows={rows.filter(({ item }) => item.buyIn !== true)}
+              heads={increasing ? [tt.objective, tt.perRoundHead, tt.max] : [tt.objective, tt.max]}
+              onAdd={add("LOOP")}
+              kit={kit}
+              testID="format-loop"
+              columns={(row) => amrapColumns(row, true)}
+            />
+          </FormatBlocks>
+        );
+      }
+      case "EMOM":
+      case "PROGRESSION":
+      case "SUPERSET": {
+        const rounds = model === "SUPERSET";
+        const count = (rounds ? answers.roundCount : answers.seriesCount) ?? (rounds ? 3 : 1);
+        const prefix = model === "EMOM" ? "format-emom" : model === "SUPERSET" ? "format-superset" : "format-progression";
+        const access: SeriesAccess = {
+          objective: (values, at) => values.cells?.[at]?.repetitions ?? null,
+          load: (values, at) => values.cells?.[at]?.loadKg ?? null,
+          write: (values, at, patch) => {
+            let cells = values.cells ?? [];
+            if (patch.objective !== undefined) cells = withSeriesValue(cells, at, "repetitions", patch.objective, false);
+            if (patch.load !== undefined) cells = withSeriesValue(cells, at, "loadKg", patch.load, false);
+            return { ...values, cells };
+          },
+          cellTestID: (index, at) => `${prefix}-${index}-${at}-reps`,
+          loadTestID: (index, at) => `${prefix}-${index}-${at}-load`,
+          flagged: (index, at) => emomOverflow.some((cellAt) => cellAt.index === index && cellAt.column === at),
+        };
+        return (
+          <FormatBlocks testID="format-table-blocks">
+            <SeriesBlock
+              title={t().movements}
+              rows={rows}
+              count={count}
+              heading={(at) => (rounds ? tt.round : tt.series).replace("{n}", String(at + 1))}
+              // Recette du 16/11/2026 (fmt-superset, Hermann : « Superset : après avoir ajouté deux mouvements, "+ ajouter" doit se
+              // transformer en "Modifier" et être activé ») : le mode catalogue s'ouvre sur les deux mouvements choisis. [« + Ajouter »
+              // grisé dès deux mouvements (Complément du 5 novembre 2026, §11) — remplacé.]
+              {...(model === "SUPERSET" && movements.length >= 2 ? { addText: t().supersetEdit } : {})}
+              onAdd={model === "SUPERSET" && movements.length >= 2 ? editSuperset : add("LOOP")}
+              addLeft={movementsAddLeft}
+              kit={kit}
+              access={access}
+              onChange={updateValues}
+              cell={cellBinding}
+              testID="format-movements"
+            />
+          </FormatBlocks>
+        );
+      }
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * Unités admises d'une ligne, contrôlées au ✓ de la modale. Tabata et 30/30 : Durée seule ; AMRAP et For time : au moins un exercice
+   * en Répétitions. Recette iPhone du 15/11/2026 (Hermann : « Ajout d'un buy in : mis à jour de l'unité : seul le nombre de répétition est
+   * proposé ») : au For time, la règle (FMT-31) ne verrouille pas un buy-in ou un buy-out tant qu'aucun exercice en tour n'est ajouté.
+   */
+  function allowedUnitsOf(index: number): readonly ("REPETITIONS" | "DURATION")[] {
+    return allowedModes(model, movements, index);
+  }
+
+  /**
+   * Modale des paramètres d'exécution d'un mouvement — For time (FT-3, 14/11/2026), puis tous les Formats à tableau (décision de Hermann
+   * du 16/11/2026, registre ch07, « Formats — saisie par la modale des paramètres d'exécution » ; CE-FMT-02 §8 ; mission
+   * FORMATS-MODALE-PARAMS-20261116) : c'est l'entrée standard (unité, côté, charge, nombre de séries ou de tours), les cases du tableau
+   * restant éditables directement.
+   *
+   * Décision de Hermann du 16/11/2026 (« la modale des paramètres d'exécution doit être la même qu'on l'ouvre de la composition de séance
+   * ou de l'écran d'un format, les effets de changement de rôle sont aussi identiques ») : elle s'ouvre sur l'Exercice que le Format
+   * produirait pour ce mouvement, placé dans une Composition provisoire (jamais enregistrée), avec exactement les réglages de la carte de
+   * la Composition (`useMovementExerciseIntake`) : nombre de séries hérité (`inheritsCircuitSeriesCount`), réglages de Format avec la ligne
+   * Rôle (`formatSheetContextOf`), Récupération, décompte en tours (`seriesWordingOf`). Au ✓, la Composition provisoire modifiée est
+   * relue : Rôle (le mouvement change de bloc), réglages de Format (Intervalle, Incrément, Durée, borne For time), Récupération propre au
+   * mouvement, valeurs du tableau (`sheetValuesOf`) et nombre de séries du Format. [Contexte de Format sans Rôle ni Récupération —
+   * remplacé le 16/11/2026.] Sans unité choisie, la modale s'ouvre avec l'unité à renseigner. Une unité refusée par le Format (Tabata et
+   * 30/30 : Durée seule ; dernier exercice en Répétitions) laisse l'unité du tableau inchangée.
+   */
+  function parametersSheet() {
+    if (parametersOf === null) return null;
+    const movement = movements[parametersOf];
+    if (movement === undefined) return null;
+    const index = parametersOf;
+    const several = movements.length > 1;
+    const close = () => setParametersOf(null);
+    const sideDefault = (defaults as { readonly sideRecoverySeconds?: number } | null)?.sideRecoverySeconds ?? DOMAIN_DEFAULTS.sideRecoverySeconds;
+    // Unité à choisir : la modale s'ouvre sur « — » (Paramètres à compléter), comme un Exercice de la Composition.
+    const unitPending = movement.values.mode === undefined && (model === "FOR_TIME" || UNIT_CHOICE_AT_ADD.has(model));
+    const accepts = (mode: ExecutionMode | null) => mode !== null && allowedUnitsOf(index).includes(mode);
+    // Recette du 05/11/2026 (n-charge-colonne, Hermann : « Pour le seul exercice restant en Répétitions, l'option Durée est désactivée,
+    // avec un message court ») : la modale propose les deux unités ; une Durée refusée est annoncée par ce message court, le tableau
+    // garde son unité. Tabata et 30/30 : Durée imposée, sans message.
+    const refused = (mode: ExecutionMode | null) => {
+      if (mode !== null && !accepts(mode) && (model === "FOR_TIME" || model === "AMRAP")) Alert.alert(t().lastRepetitionsLocked);
+    };
+    // Composition provisoire : l'Exercice produit par le Format pour ce mouvement, à sa place dans sa structure.
+    let next = 0;
+    const provisionalId = () => `format-sheet-${(next += 1)}`;
+    const opening = appendModelToDraft(createEmptyDraft(), buildModelElements(model, answers, movements, provisionalId), provisionalId);
+    const exercise = opening.exercises.find((candidate) => candidate.id === movement.exercise.id);
+    if (exercise === undefined) return null;
+    const parent: ExecutionParametersInput = unitPending ? { ...exercise.executionParameters, mode: null } : exercise.executionParameters;
+    // Effets du ✓ sur la Composition provisoire (Rôle, réglages de Format), comme dans la Composition, puis relus en une fois.
+    let working = opening;
+    const built = formatSheetContextOf(opening, exercise.id, (change) => {
+      working = change(working);
+    });
+    // Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément
+    // vide au tableau (Death by : Départ commun ou du mouvement ; AMRAP : « ± / tour » d'un mouvement en boucle) → à renseigner.
+    const incrementMissing =
+      model === "DEATH_BY"
+        ? (several ? movement.values.startIncrement : (answers.increment ?? movement.values.startIncrement)) == null
+        : model === "AMRAP" && movementRole(movement) === "TOUR" && movement.values.max !== true && movement.values.increment == null;
+    const context =
+      built !== undefined && incrementMissing && built.rows.includes("increment")
+        ? (() => {
+            const { incrementPerRound: _default, ...settings } = built.settings;
+            return { ...built, settings, incrementRequired: true };
+          })()
+        : built;
+    const initialRecovery = exercise.postActivityRecoverySeconds ?? null;
+    let recoverySeconds = initialRecovery;
+    let applied: ExecutionParametersInput | null = null;
+    let pending = false;
+    const later = () => {
+      if (pending) return;
+      pending = true;
+      queueMicrotask(commit);
+    };
+    // Valeurs affichées des tableaux à dimensions : un Objectif ou une Pause inchangés restent communs.
+    const defaultMode: ExecutionMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+    const shownObjective =
+      movement.values.repetitions !== undefined
+        ? movement.values.repetitions
+        : (movement.values.mode ?? defaultMode) === defaultMode
+          ? ((model === "STRENGTH" ? answers.repetitions : answers.workSeconds) ?? null)
+          : null;
+    const shownPause = movement.values.pause ?? answers.pauseSeconds ?? basePause(movement.exercise);
+    // Nombre de séries (ou de tours, Superset) du Format ; Death by et AMRAP : une série.
+    const countKey: "seriesCount" | "roundCount" | null =
+      model === "SUPERSET" ? "roundCount" : model === "DEATH_BY" || model === "AMRAP" || model === "FOR_TIME" ? null : "seriesCount";
+
+    function commit() {
+      if (applied === null) return;
+      const parameters = applied;
+      const after = working.exercises.find((candidate) => candidate.id === exercise!.id) ?? exercise!;
+      const roles = several && (model === "FOR_TIME" || model === "AMRAP");
+      const before = movementRole(movement!);
+      const role = roles ? circuitRoleOf(after.format, 0) : before;
+      const unitKept = accepts(parameters.mode);
+      refused(parameters.mode);
+      const count = seriesCountOf(parameters);
+      // Réglages de Format modifiés dans la modale.
+      const settings = after.format?.settings ?? {};
+      const initial = exercise!.format?.settings ?? {};
+      const changed = (key: string) =>
+        typeof settings[key] === "number" && (settings[key] !== initial[key] || (key === "incrementPerRound" && incrementMissing)) ? (settings[key] as number) : null;
+      const interval = changed("intervalSeconds");
+      const duration = changed("durationSeconds");
+      const increment = changed("incrementPerRound");
+      const cap = changed("timeCapSeconds");
+      const read = sheetValuesOf(model, movement!.values, { ...exercise!, executionParameters: parameters }, { objective: shownObjective, pause: shownPause });
+      // Death by à un mouvement : Départ commun du Format (réponses), comme la case du tableau.
+      const commonStart = model === "DEATH_BY" && !several ? (read.start ?? null) : null;
+      const values: MovementValues = {
+        ...(unitKept ? read : movement!.values),
+        ...(recoverySeconds !== null && recoverySeconds !== initialRecovery ? { recovery: recoverySeconds } : {}),
+        ...(increment !== null && model === "AMRAP" ? { increment } : {}),
+        ...(increment !== null && model === "DEATH_BY" && several ? { startIncrement: increment } : {}),
+      };
+      setMovements((current) =>
+        current.map((item, at) => {
+          if (at !== index) return item;
+          const { buyIn: _in, buyOut: _out, ...rest } = item;
+          const placed: ModelMovement = roles ? { ...rest, ...(role === "BUY_IN" ? { buyIn: true as const } : role === "BUY_OUT" ? { buyOut: true as const } : {}) } : item;
+          return { ...placed, exercise: { ...item.exercise, executionParameters: parameters, sideMode: parameters.sideMode ?? item.exercise.sideMode }, values };
+        }),
+      );
+      setAnswers((current) => {
+        let updated = model === "FOR_TIME" && parameters.loadEnabled === true && current.withLoad !== true ? { ...current, withLoad: true } : current;
+        if (unitKept) {
+          if (model === "FOR_TIME") {
+            if (role === "TOUR" && !several && count !== (current.roundCount ?? 1)) updated = withAnswer(updated, "roundCount", count);
+            // Un mouvement seul est produit en exercice seul, à une série par tour : son nombre ne règle pas le bloc Buy-in ou Buy-out.
+            if (several && role !== "TOUR" && count !== forTimeBlockSeries(current, role)) updated = { ...updated, [role === "BUY_IN" ? "buyInSeriesCount" : "buyOutSeriesCount"]: count };
+          } else if (countKey !== null && count !== (current[countKey] ?? (countKey === "roundCount" ? 3 : 1))) updated = withAnswer(updated, countKey, count);
+          if (commonStart !== null) updated = withAnswer(updated, "startRepetitions", commonStart);
+          // Death by à un mouvement, unité changée : Départ et Incrément communs à renseigner dans la nouvelle unité, sans conversion (§13).
+          if (model === "DEATH_BY" && !several && commonStart === null && parameters.mode !== (movement!.values.mode ?? "REPETITIONS")) {
+            const { startRepetitions: _start, increment: _increment, ...rest } = updated;
+            updated = rest;
+          }
+        }
+        if (interval !== null) updated = withAnswer(updated, "intervalSeconds", interval);
+        if (duration !== null) updated = withAnswer(updated, "durationSeconds", duration);
+        if (cap !== null) updated = withAnswer(updated, "timeCapSeconds", cap);
+        if (increment !== null && model === "DEATH_BY" && !several) updated = withAnswer(updated, "increment", increment);
+        return updated;
+      });
+      close();
+    }
+
+    return (
+      <ExecutionParametersSheet
+        key={movement.exercise.id}
+        parent={parent}
+        baseline={parent}
+        profileSideRecoverySecondsDefault={sideDefault}
+        exerciseSignals="absent"
+        inheritedSeriesCount={inheritsCircuitSeriesCount(opening, exercise)}
+        seriesWording={seriesWordingOf(opening, exercise.id)}
+        presentation="compositionCard"
+        recovery={{
+          seconds: exercise.postActivityRecoverySeconds,
+          onApply: (seconds) => {
+            recoverySeconds = seconds;
+            later();
+          },
+        }}
+        {...(context !== undefined ? { format: context } : {})}
+        onApply={(value) => {
+          applied = value;
+          later();
+        }}
+        onCancel={close}
+      />
     );
   }
 
@@ -2283,11 +2864,13 @@ const styles = StyleSheet.create({
   liftedCard: { zIndex: 2, shadowColor: "#000000", shadowOpacity: 0.16, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
   fallbackCard: { minHeight: 52, justifyContent: "center", paddingHorizontal: 12, borderRadius: 12, backgroundColor: PANEL },
   panel: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, overflow: "hidden" },
+  panelForTime: { marginHorizontal: 0, borderRadius: 0, paddingHorizontal: 12, paddingVertical: 4 },
   panelContent: { marginBottom: -1 },
   row: { minHeight: 34, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4, gap: 8 },
   rowSeparated: { borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   // Récapitulatif (spécification de Hermann du 08/11/2026, A §3, B §3) : ligne de 40 et son séparateur de 1, rogné sous la dernière.
   summaryRow: { minHeight: SUMMARY_ROW_HEIGHT + 1, paddingVertical: 0, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
+  forTimeRow: { minHeight: FOR_TIME_ROW_HEIGHT, height: FOR_TIME_ROW_HEIGHT, paddingVertical: 0, borderBottomWidth: 1, borderBottomColor: SEPARATOR },
   rowLabel: { flexShrink: 1, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   // Recette du 06/11/2026 (constat b, Hermann : « les textes quand ils ne sont pas modifiables (ex. condition d'arrêt ou durée total), doivent
   // être alignés à droite des autres textes, pas de leur cadre ») : retrait du texte des pastilles (10).
@@ -2298,6 +2881,12 @@ const styles = StyleSheet.create({
   chipText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, lineHeight: 16, color: "#FFFFFF" },
   chipChevron: { fontSize: 12, color: "#FFFFFF" },
   spacer: { flexGrow: 1, minHeight: 12 },
+  // Radio Max de 20, centré dans sa colonne de 44 et sur la ligne de 48 (B §4.4, Figma `12445:27394`).
+  maxRadioZone: { width: 44, height: 48, alignItems: "center", justifyContent: "center" },
+  maxRadio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: "#9499A8", alignItems: "center", justifyContent: "center" },
+  maxRadioOn: { borderColor: VALUE_COLOR, backgroundColor: VALUE_COLOR },
+  maxRadioDisabled: { borderColor: "#BFC2CC", opacity: 0.5 },
+  maxRadioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFFFFF" },
   tablePanel: { marginTop: 12, paddingHorizontal: 0 },
   alert: { marginHorizontal: 16, marginTop: 8, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 16, color: tokenColors.danger },
   timeline: { marginHorizontal: 16, borderRadius: 16, backgroundColor: PANEL, paddingHorizontal: 16, paddingVertical: 8, gap: 4 },

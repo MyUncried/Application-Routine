@@ -111,7 +111,7 @@ import {
   type WorkPhase,
 } from "./ExecutionParameters";
 import { invertTotalDuration, isTotalDurationInvertible, type TotalDurationInversion } from "./executionCalculations";
-import { normalizeLoad, reactivateLoad, REACTIVATED_LOAD_KG, roundLoadUp } from "./exerciseLoad";
+import { loadToFill, normalizeLoad, reactivateLoad, roundLoadUp } from "./exerciseLoad";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import { codePointLength } from "@/domain/sessions/validation";
 
@@ -906,10 +906,16 @@ export function sheetDraftResult(
   baseline: ExecutionParametersInput | null = null,
 ): SheetCommitResult {
   const normalized = normalizeWorkPhases(draft, defaultLabel);
-  const parameters = normalizeLoad(effectiveParameters(normalized));
-  return baseline === null
-    ? validateForSave(parameters, null)
-    : validateForSave(parameters, baseline, { baselineRowIndexes: baselineRowIndexes(normalized, baseline) });
+  const effective = effectiveParameters(normalized);
+  const parameters = normalizeLoad(effective);
+  const result =
+    baseline === null
+      ? validateForSave(parameters, null)
+      : validateForSave(parameters, baseline, { baselineRowIndexes: baselineRowIndexes(normalized, baseline) });
+  // Décision de Hermann du 16/11/2026 : « Avec » sans charge saisie bloque ✓ (charge à renseigner).
+  if (!loadToFill(effective)) return result;
+  const required: ExecutionParametersViolation = { code: "REQUIRED", field: "loadKg", level: "INPUT" };
+  return { ok: false, violations: [...(result.ok ? [] : result.violations), required] };
 }
 
 // --- PRE-5 story 2.1 : phases de l'exercice (AD-20, AD-25, FR-2 à FR-9) -------
@@ -1164,28 +1170,12 @@ export function normalizeWorkPhases(draft: ExecutionSheetDraft, defaultLabel?: D
 // --- PRE-5 story 2.1 : charge (AD-19, FR-10 à FR-14, Δ16 à Δ20, Δ48) -----------
 
 /**
- * Pose une charge sur les seules valeurs à 0 de l'uniforme et de toutes les lignes
- * (actives, retirées, réservées) ; une charge positive conservée reste telle quelle.
- */
-function withLoadOnZeros(draft: ExecutionSheetDraft, loadKg: number): ExecutionSheetDraft {
-  const all = (rows: readonly SeriesRow[]) => rows.map((row) => (row.loadKg === 0 ? { ...row, loadKg } : row));
-  return {
-    ...draft,
-    uniform: draft.uniform.loadKg === 0 ? { ...draft.uniform, loadKg } : draft.uniform,
-    rows: all(draft.rows),
-    hiddenRows: all(draft.hiddenRows),
-    savedVariableRows: draft.savedVariableRows ? all(draft.savedVariableRows) : null,
-  };
-}
-
-/**
  * Charge Avec / Sans (FR-10, FR-14, AD-19). Sans : seules les valeurs restent,
  * conservées partout (D-249 ne s'applique pas à la charge). Avec : `reactivateLoad`
- * sur les paramètres demandés ; si toutes les valeurs étaient nulles (ou aucune
- * mémorisée), 0,25 kg est posé sur chaque valeur à 0 de l'uniforme et des lignes
- * (actives, retirées, réservées), sans écraser une charge positive conservée dans une
- * ligne retirée ou réservée ; sinon les valeurs sont restaurées telles quelles, zéros
- * compris. À N = 1 en état variable demandé, l'uniforme est pris d'abord.
+ * sur les paramètres demandés : les valeurs sont restaurées telles quelles, zéros compris ;
+ * toutes nulles (ou aucune mémorisée), la charge est à renseigner (`loadToFill`, décision de
+ * Hermann du 16/11/2026). [0,25 kg posé sur chaque valeur à 0 — remplacé le 16/11/2026.]
+ * À N = 1 en état variable demandé, l'uniforme est pris d'abord.
  */
 export function setLoadEnabled(draft: ExecutionSheetDraft, enabled: boolean): ExecutionSheetDraft {
   if (enabled === draft.loadEnabled) {
@@ -1195,13 +1185,8 @@ export function setLoadEnabled(draft: ExecutionSheetDraft, enabled: boolean): Ex
   if (!enabled) {
     return { ...uniform, loadEnabled: false, pendingRemoval: null };
   }
-  const requested = requestedParameters(uniform);
-  const reactivated = reactivateLoad(requested);
-  const before = seriesRowsOf(requested).map((row) => row.loadKg);
-  const after = seriesRowsOf(reactivated).map((row) => row.loadKg);
-  const restored = before.every((kg, index) => kg === after[index]);
-  const next = restored ? uniform : withLoadOnZeros(uniform, REACTIVATED_LOAD_KG);
-  return { ...next, loadEnabled: reactivated.loadEnabled, pendingRemoval: null };
+  const reactivated = reactivateLoad(requestedParameters(uniform));
+  return { ...uniform, loadEnabled: reactivated.loadEnabled, pendingRemoval: null };
 }
 
 /** Cible d'une saisie de charge : la charge commune, ou une ligne active désignée par son identité (AD-27). */
@@ -1240,14 +1225,13 @@ export function setLoadValue(draft: ExecutionSheetDraft, target: LoadValueTarget
 }
 
 /**
- * Règles du zéro à la fermeture du clavier (FR-14, AD-19) : `normalizeLoad` sur
- * les paramètres effectifs ; tout à 0 fait passer à Sans, sans modifier aucune
- * valeur. Sans effet (charge déjà Sans, ou une valeur positive) : Brouillon
- * inchangé, annulation en attente comprise.
+ * Fermeture du clavier d'une charge (FR-14, AD-19). Décision de Hermann du 16/11/2026 : une charge
+ * « Avec » toute à 0 reste à renseigner (`loadToFill` : « — » sur fond rouge, ✓ indisponible) ; seul
+ * « Sans » retire la charge. Brouillon inchangé. [Tout à 0 faisait passer à Sans (`normalizeLoad`) —
+ * remplacé le 16/11/2026.]
  */
 export function normalizeDraftLoad(draft: ExecutionSheetDraft): ExecutionSheetDraft {
-  const normalized = normalizeLoad(effectiveParameters(draft));
-  return normalized.loadEnabled === draft.loadEnabled ? draft : { ...draft, loadEnabled: normalized.loadEnabled, pendingRemoval: null };
+  return draft;
 }
 
 // --- PRE-5 story 2.1 : Condition d'arrêt (AD-23, FR-19, FR-21) -----------------

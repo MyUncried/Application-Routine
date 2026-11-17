@@ -45,6 +45,7 @@ import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLos
 import { enterCarrier, exitCarrier, exitNeedsChoice } from "./carrierMembership";
 import { entryExceedsMemberLimit, exitBreaksMemberMinimum } from "./circuitMemberLimit";
 import { circuitCompatibility, isSinglePassage, type ElementFormat, type ElementFormatKey } from "./formats";
+import { seriesForRounds } from "./forTimeSeries";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import {
   layoutStopPointId,
@@ -270,15 +271,13 @@ function circuitCountChanged(draft: SessionDraft, circuitId: string, requested: 
   // PRE-9 C.4 (référence Formats §11, A6) : Circuit porteur For time — séries existantes conservées,
   // lignes ajoutées à compléter, surplus retiré, sans copie, extrapolation ni confirmation ; buy-in et
   // buy-out restent à une exécution. Death by alterné : compte ouvert, inchangé.
+  // [« lignes ajoutées à compléter, sans copie », séries passées en Variables — remplacé le 14/11/2026 (règles de Hermann,
+  // FT-7) : séries identiques, valeur répétée ; variables, complétées avec la dernière valeur ; diminution, dernières séries
+  // supprimées. Buy-in et buy-out : nombre de séries propre, inchangé (FT-4).]
   if (circuit.format?.key === "FOR_TIME") {
     const exercises = draft.exercises.map((exercise) => {
       if (!inCircuit(exercise) || isSinglePassage(exercise.format)) return exercise;
-      const rows = seriesRowsOf(exercise.executionParameters);
-      const last = rows.at(-1);
-      const resized = Array.from({ length: count }, (_, index) =>
-        rows[index] ?? { target: unsetTarget(), pauseSeconds: last?.pauseSeconds ?? 0, loadKg: last?.loadKg ?? 0 },
-      );
-      return { ...exercise, executionParameters: { ...exercise.executionParameters, series: { kind: "VARIABLE" as const, rows: resized, workPhases: exercise.executionParameters.series.workPhases } } };
+      return { ...exercise, executionParameters: seriesForRounds(exercise.executionParameters, count) };
     });
     return { ...draft, structure, exercises };
   }

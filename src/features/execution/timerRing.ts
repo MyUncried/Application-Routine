@@ -94,6 +94,35 @@ export function ringColorOf(phase: string | null): string {
     : RING.progressColor;
 }
 
+/** Portion de l'anneau, de `from` à `to` (parts du tour), dans la couleur de sa phase. */
+export type RingSegment = { readonly from: number; readonly to: number; readonly color: string };
+
+/**
+ * PRE-11, précision FT-15 de Hermann du 14/11/2026 : « Chaque portion de l'arc garde la couleur de la phase pendant laquelle
+ * elle a été tracée. » Segments de la minute en cours d'après les débuts de phase (`changes`, en temps réalisé, dans l'ordre) :
+ * `past`, portions terminées (fixes) ; `currentFrom`, départ de la portion en cours, qui avance avec le chrono dans la couleur de
+ * la phase en cours. À chaque minute révolue, tout revient au gris : seules les portions de la nouvelle minute restent.
+ * Deux phases de même couleur qui se suivent forment une seule portion.
+ */
+export function ringSegmentsOf(changes: readonly { readonly atMs: number; readonly color: string }[], elapsedMs: number): { readonly past: readonly RingSegment[]; readonly currentFrom: number } {
+  const minuteStart = Math.floor(Math.max(0, elapsedMs) / MINUTE_MS) * MINUTE_MS;
+  const merged = changes.filter((change, index) => index === 0 || change.color !== changes[index - 1]!.color);
+  const fraction = (atMs: number) => (Math.min(Math.max(atMs, minuteStart), elapsedMs) - minuteStart) / MINUTE_MS;
+  const past: RingSegment[] = [];
+  let currentFrom = 0;
+  merged.forEach((change, index) => {
+    const end = merged[index + 1]?.atMs;
+    if (end === undefined) {
+      currentFrom = fraction(change.atMs);
+      return;
+    }
+    const from = fraction(change.atMs);
+    const to = fraction(end);
+    if (to > from) past.push({ from, to, color: change.color });
+  });
+  return { past, currentFrom };
+}
+
 /** Point à `fraction` du tour (0 = haut, sens horaire), au rayon `radius`, autour de (`center`, `center`). */
 export function pointAt(fraction: number, radius: number, center: number): { readonly x: number; readonly y: number } {
   "worklet";

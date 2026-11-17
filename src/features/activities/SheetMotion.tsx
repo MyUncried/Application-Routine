@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode, type Ref } from "react";
+import { createContext, useContext, useState, type ReactNode, type Ref } from "react";
 import { StyleSheet, type ScrollView, type ScrollViewProps, type StyleProp, type ViewProps, type ViewStyle } from "react-native";
 import Reanimated, {
   Easing,
@@ -11,6 +11,8 @@ import Reanimated, {
   type LayoutAnimation,
   type LayoutAnimationsValues,
 } from "react-native-reanimated";
+
+import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 
 /**
  * PRE-4 Q39 (Hermann, 2026-10-17, recette iPhone, E-13 ; NFR-10) — apparitions
@@ -255,9 +257,15 @@ export function SheetMotionGroupMount({ children }: { children?: ReactNode }) {
 }
 
 /** Q39 : corps défilant dont la hauteur suit le contenu en glissant (transition de mise en page seule). */
-export function SheetMotionScrollView({ ref, ...props }: ScrollViewProps & { ref?: Ref<ScrollView> }) {
+export function SheetMotionScrollView({ ref, scrollEnabled = true, ...props }: ScrollViewProps & { ref?: Ref<ScrollView> }) {
   const motion = useContext(SheetMotionContext);
-  return <Reanimated.ScrollView {...props} ref={ref} layout={motion.layout} />;
+  // Recette du 16/11/2026 (constat f) : la liste ne défile pas pendant le glisser gauche d'une carte (`swipeScrollLock`).
+  const [swipeLocked, setSwipeLocked] = useState(false);
+  return (
+    <SwipeScrollLockContext.Provider value={setSwipeLocked}>
+      <Reanimated.ScrollView {...props} scrollEnabled={scrollEnabled && !swipeLocked} ref={ref} layout={motion.layout} />
+    </SwipeScrollLockContext.Provider>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -299,7 +299,8 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     expect(structureCircuits(setLayoutCircuitCount(draft, "c", 3).structure!)[0]!.repeatCount).toBe(3);
   });
 
-  it("For time porteur : N 3 → 4 ajoute une ligne à compléter, 4 → 2 retire le surplus, sans confirmation ; buy-out à une exécution (A6)", () => {
+  // Règles de Hermann du 14/11/2026, FT-7 : ligne ajoutée = dernière valeur. [« ajoute une ligne à compléter » — remplacé.]
+  it("For time porteur : N 3 → 4 complète avec la dernière valeur, 4 → 2 retire le surplus, sans confirmation ; buy-out inchangé (FT-7)", () => {
     const member = (id: string) => exercise(id, variableParameters({ mode: "REPETITIONS", rows: [[21, 0], [15, 0], [9, 0]] }), { key: "FOR_TIME", settings: {} });
     const out = exercise("out", repetitionParameters(50), { key: "FOR_TIME", settings: { passageOnce: 1 } });
     const draft = draftOf(
@@ -308,6 +309,7 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     );
     const four = setLayoutCircuitCount(draft, "f", 4);
     const rows = (d: SessionDraft, id: string) => seriesRowsOf(d.exercises.find((item) => item.id === id)!.executionParameters).map((row) => row.target);
+    // Recette du 15/11/2026 (Hermann, ft-i6 : « La dernière valeur ne doit pas être reprise » ; h1 : « les valeurs des Nouvelles séries doivent être entrée manuellement ») : séries ajoutées à renseigner. [Dernière valeur reprise (FT-7, FT-10) — remplacé.]
     expect(rows(four, "a")).toEqual([...[21, 15, 9].map((value) => ({ kind: "NUMBER", value })), { kind: "UNSET" }]);
     expect(rows(four, "out")).toHaveLength(1);
     expect(rows(setLayoutCircuitCount(four, "f", 2), "a")).toEqual([21, 15].map((value) => ({ kind: "NUMBER", value })));

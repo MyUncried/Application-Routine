@@ -75,6 +75,11 @@ export type SegmentedControlOption<T extends string> = {
    */
   readonly invalid?: boolean;
   /**
+   * Variante `inline` seulement (recette du 16/11/2026, mq-charge-rouge, Hermann : « Il doit avoir un fond rouge et sans liseré ») :
+   * avec `invalid`, fond rouge clair sans le cadre rouge.
+   */
+  readonly invalidWithoutFrame?: boolean;
+  /**
    * Variante `inline` seulement (PRE-9, contre-recette n° 3 du 31/10/2026, cr4-verifier, Hermann :
    * « uniquement le cadre du contrôle « X phases » ») : sélectionnée, l'option est « Paramètre à
    * vérifier » — fond `toVerifyColors.surface` et bord 1 `toVerifyColors.border` à la place du fond
@@ -500,7 +505,7 @@ export function SegmentedControl<T extends string>({
                   </View>
                 )}
               </View>
-              {flag === "invalid" ? (
+              {flag === "invalid" && option.invalidWithoutFrame !== true ? (
                 <View
                   pointerEvents="none"
                   style={styles.inlineInvalidFrame}

@@ -80,7 +80,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration, spokenDurations } from "@/domain/activities/durationFormat";
 import { phaseCycleIssues, type PhaseCycleIssues } from "@/domain/activities/phaseCycleFit";
-import { formatLoadKg } from "@/domain/activities/exerciseLoad";
+import { formatLoadKg, loadToFill } from "@/domain/activities/exerciseLoad";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
 import {
@@ -403,6 +403,12 @@ export type ExecutionParametersSheetProps = {
    * des durées : ✓ indisponible tant que le travail prévu atteint l'intervalle. Absent : aucun cadre.
    */
   readonly format?: FormatSheetContext;
+  /**
+   * Formats — saisie par la modale des paramètres d'exécution (16/11/2026, Hermann : « exercice en boucle : libellé "tours identiques /
+   * variables" au lieu de "séries identiques / variables" ») : `"rounds"` compte les séries de la ligne « Séries » en tours.
+   * Absent (`"series"`) : libellés inchangés.
+   */
+  readonly seriesWording?: "series" | "rounds";
 };
 
 const t = strings.executionParameters.sheet;
@@ -548,15 +554,16 @@ function seriesLabel(count: number | null): string {
 }
 
 /** Recette du 20/10 (RC-15) : option sélectionnée du Type de série (« 3 séries identiques », « 1 série identique »). */
-function seriesTypeCountLabel(count: number, seriesType: SeriesType): string {
+function seriesTypeCountLabel(count: number, seriesType: SeriesType, wording: "series" | "rounds" = "series"): string {
+  const rounds = wording === "rounds";
   const template =
     seriesType === "VARIABLE"
       ? count === 1
-        ? t.seriesCountVariableSingular
-        : t.seriesCountVariable
+        ? rounds ? t.roundCountVariableSingular : t.seriesCountVariableSingular
+        : rounds ? t.roundCountVariable : t.seriesCountVariable
       : count === 1
-        ? t.seriesCountUniformSingular
-        : t.seriesCountUniform;
+        ? rounds ? t.roundCountUniformSingular : t.seriesCountUniformSingular
+        : rounds ? t.roundCountUniform : t.seriesCountUniform;
   return template.replace("{n}", String(count));
 }
 
@@ -620,6 +627,7 @@ export function ExecutionParametersSheet({
   profileSideRecoverySecondsDefault,
   exerciseSignals = "present",
   inheritedSeriesCount = false,
+  seriesWording = "series",
   phaseStructureLocked = false,
   nextPhaseId,
   onApply,
@@ -858,6 +866,10 @@ export function ExecutionParametersSheet({
   const phaseBelow = phaseIssues.belowRanks.length > 0;
   const phaseBelowRankSet = new Set(phaseIssues.belowRanks);
   const effectiveFirst = seriesRowsOf(effective)[0] ?? { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 };
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec
+  // un trait horizontal et un fond rouge ») : « Avec » sans charge saisie — « — » sur fond rouge (champ commun et cellules), ✓
+  // indisponible jusqu'à la saisie. [0,25 kg posé à l'activation — remplacé le 16/11/2026.]
+  const loadPending = loadToFill(effective);
   const single = isSingleSeries(draft);
   const bilateral = isBilateral(draft.sideMode);
   const showVariableTable = draft.variable && !single;
@@ -904,7 +916,10 @@ export function ExecutionParametersSheet({
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
   const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
   const forTimeOnceSheet = format?.key === "FOR_TIME" && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
-  const noSeriesRow = amrapMemberSheet || forTimeOnceSheet;
+  // Règles de Hermann du 14/11/2026 (For time, FT-3, FT-4) : buy-in et buy-out, nombre de séries libre, identiques ou variables —
+  // la ligne Séries revient. [Recette du 07/11/2026 (y-format-cadres) : ligne Séries retirée pour le buy-in et le buy-out — remplacé
+  // le 14/11/2026 ; la ligne Pause reste retirée.]
+  const noSeriesRow = amrapMemberSheet;
   const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : !noSeriesRow;
   // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
   // cadre Cadence (lecture seule sous l'Intervalle, ou absente) ; Récupération absente en alternance et dans chaque intervalle.
@@ -914,7 +929,7 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow;
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeOnceSheet;
   const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet;
   const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false);
   // y-format-cadres (07/11/2026, Hermann, maquette `11264:19453`) : AMRAP, rôle Buy-in — « Récupération grisée, à 0 s, non modifiable ».
@@ -922,6 +937,9 @@ export function ExecutionParametersSheet({
   // y-format-cadres (07/11/2026, Hermann) : « EMOM : retirer la colonne Pause du tableau et redistribuer horizontalement les deux
   // colonnes restantes. » (le repos est le temps restant de l'intervalle).
   const tablePause = !emomSheet;
+  // Recette du 16/11/2026 (Autres constats a, Hermann : « For Time, paramètre d'exécution : […] Les champs de valeur de la colonne
+  // Pause devraient être désactivés, avec un trait horizontal, comme la colonne Charge. ») : tiret gris, sans saisie.
+  const tablePauseLocked = format?.key === "FOR_TIME";
   // Q40 : jamais deux surlignages — le tableau n'est pas surligné tant qu'une surface hors
   // tableau est ouverte.
   // PRE-5 story 2.2, D-434 : le clavier d'une cellule (Cible, Pause, Charge) est une surface
@@ -933,7 +951,7 @@ export function ExecutionParametersSheet({
   const uniformLoadActive = isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD });
   // Recette du 20/10 (RC-14) : option Avec de la Charge, de 62 si la charge commune (au repos, et
   // le texte saisi pendant le focus) y tient, sinon élargie au strict nécessaire.
-  const uniformLoadText = formatLoadKg(effectiveFirst.loadKg);
+  const uniformLoadText = loadPending ? t.unset : formatLoadKg(effectiveFirst.loadKg);
   const uniformLoadWidth = loadOptionWidth(uniformLoadText, ...(uniformLoadEntry === null ? [] : [uniformLoadEntry]));
   const totalEditable = isRequestedTotalEditable(draft);
 
@@ -1380,6 +1398,47 @@ export function ExecutionParametersSheet({
     return true;
   }
 
+  // Changement de Rôle confirmé malgré la perte de valeurs (voir `handleValidate`).
+  const roleLossConfirmed = useRef(false);
+  /**
+   * Précision de Hermann du 14/11/2026 (soir) : « le for Time a un nombre de tours. Dans la composition de séance si je transforme un exercice Buy In ou Buy Out en un exercice Tour, il doit héritier du nombre de Tours du circuit ». Paramètres et Rôle d'avant le changement de Rôle : chaque choix en repart (revenir au Rôle d'origine retrouve les
+   * séries d'origine) ; la perte annoncée au ✓ se mesure sur eux.
+   */
+  const roleBase = useRef<{ readonly parameters: ExecutionParametersInput; readonly role: CircuitRole } | null>(null);
+  function chooseRole(role: CircuitRole) {
+    const current = formatValue?.role ?? null;
+    const apply = () => {
+      if (format?.seriesForRole !== undefined && current !== null && role !== current) {
+        if (roleBase.current === null || roleBase.current.role === current) roleBase.current = { parameters: effectiveParameters(draft), role: current };
+        const base = roleBase.current;
+        const parameters = role === base.role ? base.parameters : format.seriesForRole(role, base.parameters);
+        setDraft(openSheetDraft(parameters, { inheritedSeriesCount: role === "TOUR", nextPhaseId: draft.nextPhaseId }));
+      }
+      setFormatValue((value) => (value === null ? value : { ...value, role }));
+    };
+    // Recette du 14/11/2026 (Hermann, m6 : « Il faut que le message apparaisse au moment de la suppression pas au moment de la
+    // validation des paramètres ») : les valeurs retirées par le Rôle choisi sont annoncées dès ce choix ; Annuler garde le Rôle
+    // d'avant, Continuer l'applique (rien n'est redemandé au ✓). [Annonce au ✓ — remplacée.]
+    const base = roleBase.current?.parameters ?? effectiveParameters(draft);
+    const loss = format?.roleChangeLoss !== undefined && current !== null && role !== current && role !== format.role?.current ? format.roleChangeLoss(role, base) : null;
+    if (loss !== null && loss.lost > 0) {
+      const formatT = strings.executionParameters.format;
+      const fill = (text: string) => text.replace("{role}", formatT.roles[role]).replace("{kept}", String(loss.kept)).replace("{count}", String(loss.lost));
+      Alert.alert(formatT.roleLossTitle, fill(loss.lost === 1 ? formatT.roleLossMessageOne : formatT.roleLossMessageMany), [
+        { text: formatT.roleLossCancel, style: "cancel" },
+        {
+          text: formatT.roleLossConfirm,
+          style: "destructive",
+          onPress: () => {
+            roleLossConfirmed.current = true;
+            apply();
+          },
+        },
+      ]);
+      return;
+    }
+    apply();
+  }
   function handleValidate() {
     if (absorbSheetCommand()) return;
     // ✓ : une durée restée non multiple du motif (phase modifiée depuis la saisie) demande l'arrondi.
@@ -1388,17 +1447,46 @@ export function ExecutionParametersSheet({
       askPhaseRounding(pendingRounding, phaseIssues.cycleSeconds, draft.variable);
       return;
     }
-    if (validation.ok && !emomOverflow && !phaseBelow) {
+    if (validation.ok && !emomOverflow && !phaseBelow && !formatIncrementMissing) {
       const value = validation.value;
       // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Récupération absente (alternance, dans chaque intervalle) — 0 s appliqué.
       const appliedRecovery = recoveryShown && !recoveryLocked ? recoverySeconds : 0;
       const appliedFormat = formatValue;
+      // Correction 2 de Hermann du 14/11/2026 (For time, règle 5) : un changement de Rôle qui retire des valeurs est annoncé. [Au ✓
+      // — remplacé par l'annonce au choix du Rôle (`chooseRole`, recette m6) ; reste ici le filet d'un Rôle choisi sans elle.]
+      const loss =
+        format?.roleChangeLoss !== undefined && appliedFormat?.role != null && appliedFormat.role !== format.role?.current
+          ? format.roleChangeLoss(appliedFormat.role, roleBase.current?.parameters ?? value)
+          : null;
+      if (loss !== null && loss.lost > 0 && appliedFormat?.role != null && !roleLossConfirmed.current) {
+        const formatT = strings.executionParameters.format;
+        const fill = (text: string) =>
+          text.replace("{role}", formatT.roles[appliedFormat.role!]).replace("{kept}", String(loss.kept)).replace("{count}", String(loss.lost));
+        Alert.alert(formatT.roleLossTitle, fill(loss.lost === 1 ? formatT.roleLossMessageOne : formatT.roleLossMessageMany), [
+          { text: formatT.roleLossCancel, style: "cancel" },
+          {
+            text: formatT.roleLossConfirm,
+            style: "destructive",
+            onPress: () => {
+              roleLossConfirmed.current = true;
+              handleValidate();
+            },
+          },
+        ]);
+        return;
+      }
+      // [Demande du 14/11/2026 (soir) : nombre de séries commun au bloc, pertes des autres exercices annoncées — retiré le
+      // 14/11/2026, recette m2 et m3 : « Les exercices de buy in (et de buy out) sont indépendants ».]
       closeAnimated(() => {
         // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
         recovery?.onApply(appliedRecovery);
+        // Précision du 14/11/2026 (soir), For time : séries déjà ajustées au Rôle choisi (`chooseRole`) — le Rôle est enregistré
+        // d'abord, pour que ces séries ne soient pas lues comme un nouveau nombre de séries de l'ancien bloc (`withForTimeSeries`).
+        const roleFirst = format !== undefined && appliedFormat !== null && roleBase.current !== null && appliedFormat.role !== format.role?.current;
+        if (roleFirst) format.onApply(appliedFormat.settings, appliedFormat.role);
         onApply(value);
         // CE-FMT-04 : réglages de Format appliqués après les paramètres (Rôle : replacement dans sa zone).
-        if (format !== undefined && appliedFormat !== null) format.onApply(appliedFormat.settings, appliedFormat.role);
+        if (!roleFirst && format !== undefined && appliedFormat !== null) format.onApply(appliedFormat.settings, appliedFormat.role);
       });
     }
   }
@@ -1451,7 +1539,6 @@ export function ExecutionParametersSheet({
   const emomOverflow = emomOverflowDetail.ranks.length > 0;
   // Recette du 08/11/2026 : valeurs à modifier en fond rouge (cibles des séries en dépassement).
   const emomOverflowRankSet = new Set(emomOverflowDetail.ranks);
-  const validateDisabled = (!validation.ok || emomOverflow || phaseBelow) && !sheetCommandsAbsorbed(surface);
   const validateLabel = validation.ok
     ? t.validateAccessibilityLabel
     : `${t.validateAccessibilityLabel}, ${t.validateUnavailableSuffix}`;
@@ -1575,6 +1662,10 @@ export function ExecutionParametersSheet({
   // AMRAP : grisé pour un buy-in (ou buy-out) ou à l'échec ; valeur conservée sans effet (CE-FMT-04).
   const formatIncrementLocked =
     !formatDeathBy && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT" || (validation.ok && stopConditionOf(validation.value) === "FAILURE"));
+  // Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément à renseigner.
+  const formatIncrementMissing =
+    formatShown("increment") && !formatIncrementLocked && format?.incrementRequired === true && typeof formatSettings.incrementPerRound !== "number";
+  const validateDisabled = (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing) && !sheetCommandsAbsorbed(surface);
   const formatIntervalSeconds = formatNumber("intervalSeconds", 60);
   const formatDurationSeconds = formatNumber("durationSeconds", 12 * 60);
   const formatTimeCapSeconds = typeof formatSettings.timeCapSeconds === "number" ? formatSettings.timeCapSeconds : null;
@@ -1585,6 +1676,7 @@ export function ExecutionParametersSheet({
       return { ...current, settings: next === null ? rest : { ...rest, [id]: next } };
     });
   const formatIncrementText = (() => {
+    if (formatIncrementMissing) return t.unset;
     const magnitude = Math.abs(formatIncrement);
     const unit = formatIncrementInDuration ? formatPhraseDuration(magnitude) : `${magnitude} ${strings.executionParameters.format.repetitionsUnit}`;
     return `${formatIncrement < 0 ? "−" : "+"} ${unit}`;
@@ -1633,7 +1725,8 @@ export function ExecutionParametersSheet({
     const first = seriesRowsOf(effectiveParameters(base))[0];
     switch (field) {
       case "formatIncrement":
-        return Math.abs(formatIncrement);
+        // Incrément à renseigner (16/11/2026) : aucune valeur, la première saisie est appliquée même égale au repli.
+        return formatIncrementMissing ? null : Math.abs(formatIncrement);
       case "formatInterval":
         return formatIntervalSeconds;
       case "formatDuration":
@@ -1767,7 +1860,7 @@ export function ExecutionParametersSheet({
       draft.workPhases.length > 0 && !isPhasesFolded,
       openSurface.kind === "keyboard" ? openSurface.field : null,
       outsideFields,
-      tablePause,
+      tablePause && !tablePauseLocked,
     ),
     scrollRef,
     reduceMotion,
@@ -1882,7 +1975,7 @@ export function ExecutionParametersSheet({
               disabled: !roleContext.available.includes(option),
             }))}
             value={formatValue.role}
-            onChange={(role) => setFormatValue((current) => (current === null ? current : { ...current, role }))}
+            onChange={chooseRole}
             accessibilityLabel={formatT.role}
             testID="execution-sheet-format-role-control"
           />
@@ -1904,6 +1997,8 @@ export function ExecutionParametersSheet({
             ) : (
               scalarField("formatIncrement", {
                 display: formatIncrementText,
+                invalid: formatIncrementMissing,
+                invalidHint: formatIncrementMissing ? t.invalidHint : undefined,
                 accessibilityLabel: formatDeathBy ? formatT.incrementPerInterval : formatT.incrementPerRound,
                 testID: "execution-sheet-format-increment",
               })
@@ -2046,17 +2141,11 @@ export function ExecutionParametersSheet({
       accessibilityLabel={t.stopCondition}
       testID="execution-sheet-stop-condition-control"
     />
-  ) : stopCondition === "NONE" ? (
-    <Text
-      accessible
-      accessibilityRole="text"
-      accessibilityLabel={`${t.stopCondition}, ${t.unsetSpoken}`}
-      style={styles.staticValue}
-      testID="execution-sheet-stop-condition-none"
-    >
-      {t.unset}
-    </Text>
   ) : (
+    // Recette du 16/11/2026 (Autres constats a et b, Hermann : « For Time, paramètre d'exécution : la condition d'arrêt devrait être
+    // "à l'objectif". Alors que là il n'y a qu'un trait horizontal. » ; « Progression : appuyer sur le mode d'exécution fait passer
+    // la condition d'arrêt à un trait "-" ») : aucune cellule renseignée → « À l'objectif », comme en identiques. [« — », annoncé
+    // « aucune valeur » (story 2.4) — remplacé le 16/11/2026.]
     <SegmentedControl<StopConditionChoice | "MIXED">
       // Instance distincte selon le nombre d'options : le cadre de sélection n'est jamais
       // animé depuis une position hors du contrôle (deux options → une seule).
@@ -2065,7 +2154,7 @@ export function ExecutionParametersSheet({
       readOnly
       optionWidth={stopCondition === "MIXED" ? MIXED_STOP_CONDITION_WIDTH : INLINE_OPTION_WIDTHS.wide}
       options={stopCondition === "MIXED" ? [{ value: "MIXED", label: t.stopConditions.MIXED }] : stopConditionOptions}
-      value={stopCondition}
+      value={stopCondition === "NONE" ? "TARGET" : stopCondition}
       onChange={ignorePress}
       accessibilityLabel={t.stopCondition}
       testID="execution-sheet-stop-condition-control"
@@ -2095,7 +2184,7 @@ export function ExecutionParametersSheet({
   const seriesCountOpen = !draft.inheritedSeriesCount && isOpen(scalarSurface("count"));
   const seriesChevron = seriesTypeValue === "VARIABLE";
   const seriesSelectedWidth = seriesSelectedOptionWidth({
-    label: seriesTypeCountLabel(draft.count, seriesTypeValue),
+    label: seriesTypeCountLabel(draft.count, seriesTypeValue, seriesWording),
     stepperValue: seriesLabel(draft.count),
     open: false,
     chevron: seriesChevron,
@@ -2108,7 +2197,7 @@ export function ExecutionParametersSheet({
   const seriesCountContent = (
     <SegmentCountField
       entry={segmentEntry("count")}
-      closedLabel={seriesTypeCountLabel(draft.count, seriesTypeValue)}
+      closedLabel={seriesTypeCountLabel(draft.count, seriesTypeValue, seriesWording)}
       // PRE-6 story 3.3 (AD-37) : N imposé par le Circuit de Séries — valeur affichée, indisponible.
       disabled={draft.inheritedSeriesCount}
       disabledSuffix={circuitText.inheritedSeriesCountSuffix}
@@ -2388,6 +2477,19 @@ export function ExecutionParametersSheet({
         </View>
       );
     }
+    if (kind === "rowPause" && tablePauseLocked) {
+      return (
+        <View
+          style={[tableCellStyle, styles.keyboardCell]}
+          accessible
+          accessibilityRole="text"
+          accessibilityLabel={`${t.rowPause.replace("{n}", String(number))}, ${t.unsetSpoken}`}
+          testID={`${prefix}-pause-unset`}
+        >
+          <Text style={[tableCellValueStyle, styles.tableCellUnset]}>{t.unset}</Text>
+        </View>
+      );
+    }
     const field = rowCellField(kind, row);
     const common = {
       editText: keyboard.editText(field),
@@ -2437,7 +2539,10 @@ export function ExecutionParametersSheet({
       <KeyboardField
         {...common}
         mode="cellDecimal"
-        displayValue={formatLoadKg(seriesRow.loadKg)}
+        displayValue={loadPending ? t.unset : formatLoadKg(seriesRow.loadKg)}
+        spokenDisplayValue={loadPending ? t.unsetSpoken : undefined}
+        invalid={loadPending}
+        invalidWhileEmpty
         accessibilityLabel={t.rowLoad.replace("{n}", String(number))}
         testID={`${prefix}-load`}
       />
@@ -2942,12 +3047,17 @@ export function ExecutionParametersSheet({
                           width: uniformLoadShown ? uniformLoadWidth : undefined,
                           // Le segment sous le champ annonce aussi la valeur affichée.
                           accessibilityLabel: uniformLoadShown
-                            ? `${t.loadWith}, ${formatLoadKg(effectiveFirst.loadKg)}`
+                            ? `${t.loadWith}, ${spokenValue(uniformLoadText)}`
                             : undefined,
+                          invalid: uniformLoadShown && loadPending,
+                          // Recette du 16/11/2026 (mq-charge-rouge) : fond rouge, sans liseré.
+                          invalidWithoutFrame: true,
                           selectedContent: uniformLoadShown ? (
                             <KeyboardField
                               mode="cellDecimal"
                               displayValue={uniformLoadText}
+                              invalid={loadPending}
+                              invalidWhileEmpty
                               editText={keyboard.editText(UNIFORM_LOAD_FIELD)}
                               active={uniformLoadActive}
                               onFocus={() => {
@@ -2966,7 +3076,8 @@ export function ExecutionParametersSheet({
                               accessibilityLabel={t.loadValue}
                               hitSlop={LOAD_SEGMENT_HIT_SLOP}
                               style={[styles.loadSegmentInput, { width: uniformLoadWidth }]}
-                              valueStyle={[inlineSelectedLabelStyle, uniformLoadActive ? styles.loadSegmentInputActive : null]}
+                              // Charge à renseigner (fond rouge clair, 16/11/2026) : « — » en texte primaire, lisible comme sur le champ actif.
+                              valueStyle={[inlineSelectedLabelStyle, uniformLoadActive || loadPending ? styles.loadSegmentInputActive : null]}
                               entryGeneration={keyboard.entryGeneration}
                               testID="execution-sheet-load-input"
                             />
@@ -3186,7 +3297,7 @@ export function ExecutionParametersSheet({
                         scalarField("recovery", {
                           display: recoveryText,
                           accessibilityLabel: t.recovery,
-                          profileDefault: openedPendingDefaults,
+                          // [Fond orange « défaut du Profil » — retiré le 14/11/2026 : plus de Récupération par défaut.]
                           testID: "execution-sheet-recovery",
                         })
                       )}

@@ -44,6 +44,7 @@ export function carrierHeaderOf(
   const t = strings.screens.composition.carrier;
   const title = strings.screens.sessionModels.cards[format.key].title;
   const setting = carrierDurationSetting(format, circuit.nature);
+  const forTimeInSequenceCircuit = format.key === "FOR_TIME" && circuit.nature === "TOURS";
   const value = setting === null ? undefined : format.settings[setting];
   const seconds = typeof value === "number" ? value : null;
   const duration =
@@ -57,7 +58,9 @@ export function carrierHeaderOf(
   const durationLabel = setting === null ? undefined : `${t.durationLabels[setting]}, ${duration?.text ?? ""}`;
   return {
     title,
-    unit: format.key === "DEATH_BY" ? null : format.key === "AMRAP" ? t.blockUnit : t.roundUnit,
+    // « Correction — For time : ajouter le mode d’exécution « En alternance » / « À la suite » » : For time « À la suite » (séries groupées) — « 3 séries · à la suite » ; en alternance, « 3 tours · alternées ».
+    unit: format.key === "DEATH_BY" ? null : format.key === "AMRAP" ? t.blockUnit : forTimeInSequenceCircuit ? t.seriesUnit : t.roundUnit,
+    ...(forTimeInSequenceCircuit ? { adjective: t.inSequence } : {}),
     openLabel: t.untilFailure,
     duration,
     ...(setting !== null && onPressDuration !== undefined ? { onPressDuration } : {}),
