@@ -6,7 +6,7 @@
 **Parcours normatifs :** [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md). **Conception technique pour revue :** [architecture et données](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
   
 **Autorité :** décisions BIB-01 à BIB-18 ci-dessous ; registre au chapitre 07.  
-**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **KIN-01 :** la transmission individuelle s'effectue dans un **Espace en étoile générique**, sans rôle professionnel dans le modèle. Dans l'usage kiné-patient, les consignes d'exécution sont orales, sans prescription numérique. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
+**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **KIN-01 :** la transmission individuelle s'effectue dans un **Espace en étoile générique**, sans rôle professionnel dans le modèle. Dans l'usage kiné-patient, un texte facultatif peut accompagner un partage personnalisé ; fréquence structurée et suivi partagé restent à arbitrer (réconciliation du 17/11/2026). Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
 
 ## Articulation avec le socle éditorial — 11/11/2026
 
@@ -138,3 +138,9 @@ Dans l’administration, l’administrateur peut rattacher une fiche Mouvement �
 Le destinataire retrouve sur le téléphone la progression des fiches effectivement reçues. L’appartenance à une famille ne donne aucun accès supplémentaire à ses autres membres. Les règles locales de famille, de rang et d’affichage continuent de s’appliquer. Les familles gestuelles du classement et l’identifiant de concept gestuel n’interviennent pas dans ce parcours.
 
 Contrat de transfert et recette : [Format du catalogue, familles de niveaux](KODJO-Format-catalogue-mouvements-v1.md).
+
+## Réconciliation du 17 novembre 2026
+
+La cible inclut le partage individuel standard et personnalisé. Le parcours personnalisé ajoute une photo/vidéo prise directement ou existante, un texte facultatif, puis le choix du destinataire avant envoi. Le média personnel reste attaché au mouvement pour ce destinataire. La création automatique d'une Bibliothèque par relation et le suivi partagé restent à arbitrer. Les échanges récents sur la suppression d'une Bibliothèque constituent une proposition ouverte ; les règles antérieures de conservation ne sont pas remplacées par une inactivation automatique.
+
+[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
