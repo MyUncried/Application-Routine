@@ -44,6 +44,19 @@
 - **Le serveur central sert au partage** des données entre utilisateurs (orientation exprimée par Hermann ; elle rejoint la cible Bibliothèques déjà écrite).
 - **Benchmark vérifié demandé avant de décider** de l'architecture de sauvegarde. Il est fait, voir §4.
 
+### Décisions de premier lot (17/11/2026, inscrites au ch. 07 « Gestion de compte — premier lot »)
+
+| ID | Décision |
+|---|---|
+| CPT-01 | Premier lot : compte seul |
+| CPT-02 | Compte obligatoire |
+| CPT-03 | Apple et Google uniquement ; Apple doit fonctionner sur Android |
+| CPT-04 | Android dès le départ |
+| CPT-05 | Supabase, sous réserve de vérification (région UE, coût, Expo 57) |
+| CPT-06 | Lot sauvegarde/restauration serveur juste après |
+
+Ces décisions referment les arbitrages 1 à 3 et 5 du §6. L'arbitrage 4 (copie lisible ou chiffrée) est reporté au lot sauvegarde.
+
 ## 3. Ce qui vient de Claude et non des sources (hypothèses non validées)
 
 1. Découpage proposé :
@@ -127,11 +140,16 @@ Le socle (compte et serveur de partage) précède la sauvegarde dans les deux ca
 
 ## Modifications réalisées
 
-Création de ce rapport uniquement. Aucun fichier applicatif ni normatif modifié.
+- Création de ce rapport.
+- **Synchronisation documentaire, classe B** (évolution validée par Hermann) :
+  - nouvelle section CPT-01 à CPT-06 au ch. 07, avec trois points À CLARIFIER ;
+  - formulations contraires annotées, texte d'origine conservé : ch. 01 (Utilisateur) ; ch. 02 (critère de réussite, question reportée) ; ch. 05 (utilisateur prioritaire du MVP, V3 « Comptes et synchronisation ») ; ch. 12 (§12.0, §12.1, §12.7, table des choix techniques) ; `docs/PRODUCT.md` ; BIB-18.
+- Aucun fichier applicatif modifié.
 
 ## Éléments non corrigés ou hors périmètre
 
-- Mise à jour des spécifications (ch. 05 et 07) : elle suivra les arbitrages, en classe B.
+- Vérification Supabase (CPT-05) : à faire avant le plan.
+- Index des identifiants (annexe) : CPT-01 à CPT-06 non encore référencés.
 - Plan d'implémentation : il suivra les arbitrages et sera soumis à revue avant tout code.
 
 ## Vérifications restant à faire sur appareil réel
@@ -146,6 +164,8 @@ Aucun test applicable : mission documentaire, sans code modifié.
 ## Fichiers modifiés
 
 - `.github/orchestration/reports/2026-11-17_CADRAGE-GESTION-COMPTE.md` (création)
+- `docs/Specifications-fonctionnelles/01 – Vision Générale.md`, `02 – Utilisateurs et besoins.md`, `05 – Versions du produit.md`, `07 – Registre des décisions de conception.md`, `12 – Architecture technique.md`
+- `docs/PRODUCT.md`, `docs/KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md`
 
 ## Commit final et état Git
 

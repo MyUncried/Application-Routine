@@ -2815,3 +2815,22 @@ Classe B. Réalisation et interprétations retenues : spec `_bmad-output/pre11/s
 Les décisions MOUV-ADM-20261117, MOUV-ACC-20261117, MOUV-PART-20261117 et MOUV-UX-20261117 sont explicitement validées par Hermann. Elles remplacent les anciens arbitrages ouverts sur les champs, phases, filtres, suppression et suivi. BIB-05 est précisée : visibilité bibliothèque conservée, visibilité fiche déduite des accès. Autorisation centrale de révision distincte de la redistribution. Les règles anciennes de conservation automatique de l’accès après perte de la dernière voie sont supersédées ; l’arrêt des nouvelles distributions seul reste distinct d’une révocation.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+
+## Gestion de compte — premier lot (17/11/2026)
+
+Décisions de Hermann du 17/11/2026, prises lors du cadrage du chantier (rapport `.github/orchestration/reports/2026-11-17_CADRAGE-GESTION-COMPTE.md`). Elles font évoluer les chapitres 01, 02, 05 et 12 et BIB-18 (formulations remplacées annotées, texte d’origine conservé).
+
+| ID | Décision | Formulation de Hermann | Statut |
+|---|---|---|---|
+| CPT-01 | Le premier lot du chantier Compte est le **compte seul** : création du compte, connexion sécurisée, rattachement de l’Utilisateur local existant (§12.7), catalogue par compte (décisions du 17/11). Sans sauvegarde ni synchronisation des données privées. | « Compte seul » | Validée |
+| CPT-02 | Le compte est **obligatoire**. La première connexion exige le réseau ; ensuite l’application et le moteur d’exécution restent utilisables hors ligne. Remplace « aucun compte obligatoire » (ch. 05, ch. 12 §12.1 et §12.7). | « Obligatoire » ; « Avoir un compte facultatif c’est tout de même cumuler les contraintes des deux options » | Validée |
+| CPT-03 | Fournisseurs de connexion : **Apple et Google uniquement**, sans e-mail ni mot de passe. Conséquence technique (proposition de Claude, non contestée) : la connexion Apple doit aussi fonctionner sur Android, pour un utilisateur qui change de plateforme. | « Apple et Google uniquement » | Validée |
+| CPT-04 | Android est visé dès le départ. Rappel de conformité au ch. 12 §12.0/§12.1, sans règle nouvelle. | « Android prévu, dès le départ. » | Validée (classe A) |
+| CPT-05 | Backend : **Supabase** retenu, sous réserve d’une vérification courte : région UE, coût, connexion Apple et Google avec Expo 57, y compris Apple sur Android. | « Oui » à « Supabase retenu sous réserve de cette vérification courte » | Validée sous réserve |
+| CPT-06 | Le lot **sauvegarde et restauration sur le serveur KODJO** des données privées est planifié juste après le lot compte. Le choix entre copie lisible par KODJO et copie chiffrée côté téléphone est reporté à ce lot. Le contenu partagé n’entre pas dans la sauvegarde : il est récupéré depuis le serveur avec ses droits. | « Oui » à « Lot sauvegarde planifié juste après le lot compte » | Validée |
+
+**À CLARIFIER (non décidé) :**
+- Rattachement du lot Compte à la version MVP publiée, qui était définie « sans compte ».
+- Suppression du compte depuis l’application (obligation App Store) : sort des données locales et du contenu partagé.
+- Statut juridique d’un historique contenant des douleurs déclarées (RGPD art. 9), à soumettre à un avis juridique ou DPO avant le lot sauvegarde.

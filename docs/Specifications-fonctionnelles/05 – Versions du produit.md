@@ -190,6 +190,8 @@ Faire évoluer l’application personnelle vers un service synchronisé permetta
 
 #### Comptes et synchronisation
 
+[Précisé le 17/11/2026 — décisions CPT-01 à CPT-06 de Hermann, chapitre 07 : le premier lot est le **compte seul** (créer un compte, se connecter de manière sécurisée, catalogue par compte), obligatoire, par Apple ou Google ; la **sauvegarde et la restauration sur le serveur KODJO** forment le lot suivant ; la synchronisation multi-appareils reste à planifier.]
+
 - créer un compte utilisateur ;
 - se connecter de manière sécurisée ;
 - synchroniser les routines, programmations et séances ;
@@ -361,7 +363,7 @@ Le MVP s’adresse en priorité à une personne qui crée ses propres Séances e
 
 Il fonctionne :
 
-- sans compte utilisateur obligatoire ;
+- sans compte utilisateur obligatoire ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.]
 - sans synchronisation entre appareils ;
 - sans partage avec un professionnel ou un groupe ;
 - uniquement en français à l’écran.

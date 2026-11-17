@@ -51,7 +51,7 @@ La provenance, l'identité de source, l'historique des révisions et les droits 
 | **BIB-15** | Pour la première publication publique ou payante : contrôles automatiques **et** validation humaine. Une révision approuvée et inchangée est réutilisable dans d'autres Bibliothèques sans nouvelle validation. Toute nouvelle révision à diffuser repasse par le contrôle approprié. |
 | **BIB-16** | KODJO doit pouvoir signaler, refuser, suspendre ou retirer un contenu problématique après diffusion, indépendamment de l'accord du propriétaire ou du destinataire ; l'historique de décision est traçable. |
 | **BIB-17** | Un retrait de modération neutralise autant que possible le contenu litigieux, sans détruire inutilement les références de la fiche dans les Bibliothèques, Exercices, Séances ou historiques ; le blocage distant est effectif dès la prochaine synchronisation capable de l'appliquer. |
-| **BIB-18** | Les fonctions de diffusion, comptes, paiements, contrôle central et modération appartiennent à la cible **post-MVP** ; le MVP local et son moteur d'exécution ne sont pas rendus dépendants d'un serveur. |
+| **BIB-18** | Les fonctions de diffusion, comptes, paiements, contrôle central et modération appartiennent à la cible **post-MVP** ; le MVP local et son moteur d'exécution ne sont pas rendus dépendants d'un serveur. [Précisé le 17/11/2026 — CPT-02 : avec le compte obligatoire, la première connexion exige le réseau ; ensuite l’application et le moteur d’exécution restent utilisables hors ligne.] |
 
 ### 2.1 Matrice des droits des fiches reçues (après MOUV-D3)
 

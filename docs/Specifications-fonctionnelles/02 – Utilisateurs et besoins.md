@@ -186,7 +186,7 @@ Les comptes, la synchronisation, les autorisations de partage et la confidential
 
 ## 6. Critère de réussite du MVP
 
-Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
+Une personne seule doit pouvoir, sans compte et sans aide professionnelle : [À revoir après le 17/11/2026 — CPT-02 rend le compte obligatoire dès sa livraison ; le critère reste valable tant que le rattachement du lot Compte au MVP n’est pas clarifié.]
 
 1. créer une Séance exécutable ;
 2. la retrouver et la modifier ;
@@ -199,7 +199,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 
 ## 7. Questions reportées après le MVP
 
-- Quelles fonctions nécessiteront un compte ou une synchronisation distante ?
+- Quelles fonctions nécessiteront un compte ou une synchronisation distante ? [Répondu le 17/11/2026 — CPT-01/CPT-02 : le compte est obligatoire pour l’ensemble de l’application ; la synchronisation reste à planifier.]
 - Comment partager une Séance tout en maîtrisant les droits et la confidentialité ?
 - Comment gérer les versions lorsqu’une Séance partagée évolue ?
 - Quelles statistiques et quels filtres apporteront une valeur réelle ?

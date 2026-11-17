@@ -59,7 +59,7 @@ Le MVP est conçu pour un utilisateur individuel qui :
 - crée et réutilise des Exercices persistants à partir de T03 ;
 - les exécute immédiatement ou planifie directement ses Séances et Exercices persistants ;
 - consulte l’historique détaillé de ses exécutions ;
-- utilise l’application sans compte et sans synchronisation cloud.
+- utilise l’application sans compte et sans synchronisation cloud. [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.]
 
 Le fitness constitue le premier cas d’usage ; le produit reste généraliste et couvre aussi la rééducation (D-436).
 
@@ -330,7 +330,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — 5 onglets`
 
 ## 6. Hors périmètre du MVP
 
-- compte utilisateur distant ;
+- compte utilisateur distant ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot « compte seul », est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Le rattachement de ce lot à la version MVP publiée reste À CLARIFIER.]
 - synchronisation cloud ou multi-appareils ;
 - partage de Séances ;
 - relation avec un professionnel ;
