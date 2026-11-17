@@ -240,3 +240,11 @@ Correction de périmètre reçue : la mission est une **création** de la vue en
 - **Choix sans maquette** (liseré, repli par le liseré, place de « N résultats ») : jugés sur iPhone, sans remarque.
 - **Base de l'iPhone** passée en version 30 (`migration030`).
 - **Suite :** commit du code après validation de Hermann.
+
+## Commit du code et intégration de main (17/11/2026)
+
+- **Validation de Hermann, recopiée :** « Je valide ».
+- **Code :** commit `32e1ff8d` (40 fichiers, chapitres 09 et 12 compris).
+- **Intégration :** `main` @ `7c0d2d21` (PR #440, `pre11-formats`) intégré sans conflit par le commit `d8ae5fa7`. `pre11-formats` n'ajoute aucune migration : la grille garde `migration030`, version 30.
+- **Tests sur le résultat :** 369 suites, 5 877 réussis, 32 ignorés, 0 échec ; `tsc` propre ; ESLint sans erreur sur les fichiers de la grille.
+- **Reste à faire :** pousser la branche, ouvrir la PR vers `main` et la fusionner, avec l'accord de Hermann.
