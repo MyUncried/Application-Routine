@@ -197,6 +197,66 @@ Hermann a contesté les modalités 2 et 3 : « Si je partage une séance avec qu
 - **CPT-10** : modalités 1, 4 et 5 du §8 ;
 - **CPT-11** : règle du §9, « aucune donnée d'Exécution ne quitte le téléphone ».
 
+## 11. Vérification Supabase (CPT-05)
+
+**Sources.** Les sites `supabase.com` et `docs.expo.dev` sont bloqués par le réseau de la session. J'ai lu à la place :
+- les **sources officielles de la documentation** dans les dépôts GitHub `supabase/supabase` (commit `f78870c`, 17/11/2026 ; fichiers `apps/docs/content/guides/...` et `packages/shared-data/{plans,regions}.ts`) et `expo/expo` (`docs/pages/guides/using-supabase.mdx`, branche `main`) ;
+- le registre npm.
+
+La page de tarifs publique n'a pas été lue. Les prix viennent des fichiers de données du dépôt.
+
+**Verdict : aucun obstacle à Supabase.** Quatre points restent à traiter dans le plan.
+
+### Région UE
+
+- Régions précises disponibles dans l'UE :
+  - Paris `eu-west-3` ;
+  - Francfort `eu-central-1` ;
+  - Irlande `eu-west-1` ;
+  - Stockholm `eu-north-1`.
+- La région générale « Europe » peut placer le projet à Londres ou Zurich, hors UE. La documentation le dit explicitement et précise que le choix de région « n'est pas une preuve de conformité ».
+- **Recommandation :** une région précise, Paris.
+- Supabase propose un contrat de sous-traitance (DPA) et un guide RGPD, et se déclare SOC 2 Type 2.
+- Non vérifié : Supabase étant une société américaine, la question des transferts et de l'accès par des autorités étrangères relève de l'avis juridique déjà prévu.
+
+### Coût
+
+| Formule | Prix mensuel | Utilisateurs actifs inclus | Stockage inclus | Au-delà |
+|---|---|---|---|---|
+| Free | 0 $ | 50 000 | 1 Go | — |
+| Pro | 25 $ | 100 000 | 100 Go | 0,00325 $ par utilisateur actif, 0,0213 $ par Go et par mois, sortie de données 0,09 $ par Go (non mis en cache) |
+| Team | 599 $ | 100 000 | 100 Go | Idem |
+
+- Un projet Free est **mis en pause après 7 jours de faible activité**. La formule Free convient au développement, pas à la production.
+- Pour le lot Compte, qui ne stocke que l'identité et le contenu partagé, la formule Pro à 25 $ par mois suffit largement.
+- Le coût de calcul au-delà des crédits inclus n'a pas été vérifié.
+
+### Connexion Apple
+
+- **Sur iOS**, connexion native : `expo-apple-authentication` (version 57.0.2 publiée pour le SDK 57) puis `signInWithIdToken`. Aucune rotation de clé n'est nécessaire.
+- **Sur Android**, Apple n'existe pas en natif : la connexion passe par une page web (`signInWithOAuth`) avec un lien de retour vers l'app. CPT-03 est donc réalisable.
+- **Conséquence pour Android : maintenance.** Apple impose de configurer un Services ID et une clé de signature, puis de **régénérer la clé secrète tous les 6 mois**. Sans cette régénération, la connexion Apple cesse de fonctionner sur Android. Il faut un rappel récurrent et un responsable désigné.
+
+### Connexion Google
+
+- Méthode documentée par Supabase pour Expo : `@react-native-google-signin/google-signin` (17.0.0, compatible Expo ≥ 52) puis `signInWithIdToken`.
+- La documentation se contredit : le guide de démarrage Expo de Supabase indique que la version gratuite de cette bibliothèque ne permet pas de transmettre de *nonce* sur iOS et Android.
+- Trois options, à trancher dans le plan :
+  - **(a)** bibliothèque gratuite et option Supabase « Skip nonce check », avec une protection réduite contre le rejeu d'un jeton ;
+  - **(b)** version Premium de la bibliothèque, sur abonnement payant ;
+  - **(c)** connexion par page web `signInWithOAuth`, gratuite et sûre, mais moins fluide qu'un choix de compte natif.
+
+### Points utiles pour la suppression du compte (CPT-10)
+
+- Suppression côté serveur par `auth.admin.deleteUser()`, avec la clé de service, donc dans une fonction serveur et jamais dans l'app.
+- **Un utilisateur qui possède des fichiers dans Supabase Storage ne peut pas être supprimé** : il faut supprimer ses fichiers d'abord.
+- La révocation des jetons Apple exigée par l'App Store n'est pas décrite par Supabase : elle est à implémenter par un appel à l'API Apple. Mécanisme à vérifier.
+
+### Session sur le téléphone
+
+- Le guide Expo stocke la session Supabase avec `expo-sqlite/localStorage`. KODJO utilise déjà `expo-sqlite`.
+- Variante possible : `expo-secure-store` (57.0.4 pour le SDK 57). Choix à faire dans le plan.
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
