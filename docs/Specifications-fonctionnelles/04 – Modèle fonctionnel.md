@@ -653,3 +653,9 @@ Une Bibliothèque contient des références ordonnées ; plusieurs Bibliothèque
 La révision est installée sur demande de l'utilisateur depuis une Bibliothèque, avec aperçu des impacts sur les autres Bibliothèques : toutes celles qui référencent la même fiche utilisent alors le même nouveau contenu, **sans changement de leurs compositions**. L'archivage et l'arrêt du partage sont indépendants ; les contenus retirés des Bibliothèques restent disponibles localement sous réserve des droits et de la modération.
 
 **Accès :** accord au niveau Bibliothèque pour les destinataires ; une transmission individuelle utilise la relation générique de l'Espace en étoile, sans Bibliothèque fictive. Aucun rôle professionnel ni prescription numérique d'exécution dans le modèle de ce lot. Paiements et offres restent un chantier séparé. [Conception](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+## Réconciliation de la fiche Mouvement — 17 novembre 2026
+
+La fiche éditoriale et le Mouvement local sont reliés par l'identité source. Les Bibliothèques regroupent des références aux fiches ; leurs appartenances sont distinctes des classifications et de la provenance.
+
+[Contrat consolidé de données et arbitrages](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
