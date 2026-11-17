@@ -1,5 +1,7 @@
 # KODJO — Fiche Mouvement, contrat consolidé et préparation du développement
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 **Date :** 11 novembre 2026. **Statut :** consolidation documentaire ciblée de l'étape 1, préparation du développement de l'étape 2. **Périmètre exclusif :** fiche Mouvement, fichier catalogue autonome et données associées ; aucune intervention sur PRE-10, le moteur, les Séances, les interfaces Figma ou l'administration Web dans cette tranche. **Ce document n'autorise pas à inventer des règles non décidées.**
 
 **Baseline documentaire :** branche `docs/bibliotheques-generiques-cadrage-20261110` (11/11) ; **travaux techniques examinés séparément, non fusionnés** : branche `catalogue/integration-60-main-20261109`, fichier `docs/KODJO-Format-catalogue-mouvements-v1.md`, `docs/KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md`, code CA-1/CA-2/CA-3/CA-4. Le code consulté sur la branche documentaire est distinct de celui de la branche pilote. Ce document ne déclare **aucun test exécuté** ni conformité de branche fusionnée.
@@ -120,8 +122,8 @@ Ces points ne bloquent **pas** la lecture/validation/stockage sans perte du cont
 
 **Portée de cette livraison :** document de cadrage et de développement ; la modification de code reste à demander à Claude. Les limitations identifiées sont issues des sources consultées, non de tests d'exécution.
 
-## Réconciliation du 17 novembre 2026
+## Décisions consolidées du 17 novembre 2026
 
-Les constats de cet audit sont datés du 11/11. La cible actuelle supprime le texte alternatif éditorial. Les familles sont décrites dans la section « format retenu » du format catalogue. Le transfert des phases et les filtres mobiles supplémentaires restent ouverts. Les décisions et limites actuelles sont regroupées dans le modèle cible.
+Les constats et preuves du 11/11 restent historiques. La cible du 17/11 retire les champs listés dans MOUV-ADM-20261117 ; elle inclut le transfert des phases et les filtres de classification. Migration de la position de départ dans les étapes sans doublon ; séparation des notes internes et du contenu destinataire. Adapter modèle, sérialisation, validation, projection mobile et administration sans prétendre que ce handoff a déjà été développé.
 
-[Définition, décisions et arbitrages](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md).
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
