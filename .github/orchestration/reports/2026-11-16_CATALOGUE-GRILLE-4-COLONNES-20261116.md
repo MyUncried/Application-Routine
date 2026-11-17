@@ -227,3 +227,16 @@ Correction de périmètre reçue : la mission est une **création** de la vue en
 - Ce rapport est committé seul (voir le message de clôture) ; le code reste non commité jusqu'à la validation de Hermann.
 - Worktree `C:\Dev\KODJO-GRILLE4`, branche locale non poussée.
 - `node_modules` est une jonction vers `C:\Dev\PRE10-SON\node_modules` (dépendances identiques, `package-lock.json` comparé) ; elle est ignorée par Git.
+
+## Recette iPhone (17/11/2026)
+
+- **Serveur :** branche `catalogue/grille-4-colonnes-20261116`, Metro 8087 (réseau local) et tunnel 8088 ; présence du nouveau code dans le bundle servi vérifiée avant le test.
+- **Résultats du cahier (version 129, n° 1 à 10)** : tous OK, sans note.
+  - `g4-bascule`, `g4-memoire`, `g4-dimensions`, `g4-sans-niveau`, `g4-pile` ;
+  - `g4-pile-depliee`, dont le liseré, sa cible de 10 pt et le repli au toucher ;
+  - `g4-badge`, `g4-ouverture` ;
+  - `g4-compteurs`, dont « N résultats » à gauche de la bascule ;
+  - `g4-liste-intacte`.
+- **Choix sans maquette** (liseré, repli par le liseré, place de « N résultats ») : jugés sur iPhone, sans remarque.
+- **Base de l'iPhone** passée en version 30 (`migration030`).
+- **Suite :** commit du code après validation de Hermann.
