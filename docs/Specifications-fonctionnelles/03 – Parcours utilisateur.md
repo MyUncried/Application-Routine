@@ -718,6 +718,6 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 
 ## Parcours post-MVP — Transmission dans un Espace en étoile (KIN-01)
 
-L'Espace en étoile relie individuellement un utilisateur émetteur à des destinataires. L'invitation est acceptée ou refusée ; le destinataire peut bloquer l'émetteur. La transmission porte sur un ou plusieurs **Mouvements**, sans Bibliothèque fictive, ni rôle professionnel dans les données. Dans l'usage kiné-patient, les consignes d'exécution sont orales ; ni Exercice ni Séance ne sont prescrits numériquement dans ce lot.
+L'Espace en étoile relie individuellement un utilisateur émetteur à des destinataires. L'invitation est acceptée ou refusée ; le destinataire peut bloquer l'émetteur. La transmission porte sur un ou plusieurs **Mouvements**, sans Bibliothèque fictive, ni rôle professionnel dans les données. Dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (17/11/2026) ; ni Exercice ni Séance ne sont prescrits numériquement dans ce lot.
 
 Les modalités détaillées de relation, confidentialité, avis de mise à jour et UI restent à concevoir ; ne pas inférer des maquettes Figma inexistantes. [PU-01 à PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
