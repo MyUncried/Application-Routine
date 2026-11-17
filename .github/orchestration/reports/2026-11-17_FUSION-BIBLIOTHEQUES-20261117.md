@@ -92,6 +92,7 @@
 
 ## Vérifications restant à faire sur appareil réel
 
+- `fu-maj-boucle` : surveiller la réapparition de l’écran rouge lors d’une installation ou mise à jour de bibliothèque.
 - Installation de la build `8107f9b0` par Hermann.
 - Accès au réseau local et réinstallation des bibliothèques depuis le PC dans Routine BMAD.
 
@@ -107,6 +108,21 @@
 - **Lancé :** `APP_VARIANT=bmad npx expo start --dev-client --lan --port 8081 --clear` depuis `C:DevKODJO-MAIN` (`main` @ `91961aa4`), adresse `192.168.0.16:8081`.
 - **Contenu servi vérifié :** le bundle iOS contient `expo-network` et `MovementCatalogueGrid` ; `format-questionnaire` n’y apparaît que dans deux commentaires (écran supprimé).
 - Ports encore ouverts : 8081 (version fusionnée), 8083 et 8084 (planification).
+
+## Écart observé sur iPhone : boucle de rendu non reproduite (17/11/2026)
+
+- **Constat de Hermann :** écran rouge à 08:40, après la mise à jour de « Pilote KODJO — 60 mouvements (public) » dans Routine BMAD (9 fiches nouvelles).
+  - Message : « Uncaught (in promise) Error: Maximum update depth exceeded ».
+  - Source : `MovementCatalogueList.tsx:144`, `setState` du chargement du catalogue (`useMovementCatalogue`, commun à la liste et à la grille).
+  - Le journal de Metro ne garde que cette ligne ; les 4 étapes suivantes de la pile sont perdues.
+- **Recherche :**
+  - lecture des hôtes de la liste et de la grille : Catalogue, Ma bibliothèque, sélection de mouvements ; aucune boucle identifiée ;
+  - test temporaire : 9 nouvelles fiches puis relecture, Catalogue en liste et en grille : pas de boucle ;
+  - test temporaire avec les vraies données : installation de Pilote 60, puis application du fichier de recette de `KODJO-CAT-INTEG` (lu depuis une copie, sans le modifier), en liste et en grille, avec et sans compteur « mouvements » : pas de boucle ;
+  - tests temporaires supprimés, aucun fichier applicatif modifié.
+- **Hermann :** l’application fonctionne ensuite normalement ; les mêmes étapes, refaites, ne reproduisent pas l’erreur.
+- **Classement :** défaut non reproduit, cause indéterminée. Aucune attribution démontrée, ni à la grille ni aux Bibliothèques.
+- **Suivi :** ligne de surveillance `fu-maj-boucle` ajoutée au cahier de recette (version 130).
 
 ## Commit final et état Git
 
