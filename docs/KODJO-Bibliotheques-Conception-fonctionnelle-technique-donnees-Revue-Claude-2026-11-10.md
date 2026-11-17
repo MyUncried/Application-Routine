@@ -1,5 +1,7 @@
 # KODJO — Dossier de conception pour revue indépendante Claude
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 ## Réconciliation du plan de réalisation — 11/11/2026
 
 Ce dossier est la **conception cible étendue**. Le **plan normatif d'exécution reste celui des six étapes** rappelé au [registre des décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md), et non l'ancien découpage L1–L6 orienté partage. BIB-19 à BIB-23 limitent les Bibliothèques du premier lot à celles éditées par KODJO ; ils **n'écartent pas CA-1/CA-2/CA-3, la fiche éditoriale, le modèle de données complet, les imports/exports, les révisions, les droits de source, l'administration Web Node.js/OVH ni la réconciliation des 60 Mouvements installés**.
@@ -42,11 +44,11 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 | F4-A | La mise à jour d'une Bibliothèque reçue est **manuelle** avec pastille. |
 | F4-B | Un Mouvement retiré d'une Bibliothèque source et précédemment installé reste **dans le Catalogue local** de l'utilisateur ; ses références dans les Séances/Bibliothèques personnelles restent. |
 | F4-C | Pour un **partage de Bibliothèque** (notamment coach), le propriétaire attribue le droit d'accès au niveau Bibliothèque ; le retrait d'un membre ne révoque pas l'usage local déjà acquis. Ce modèle de Bibliothèque **ne constitue pas le parcours de transmission kiné-patient** (KIN-01) ; commerce et modération restent séparés. |
-| F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans supprimer les Mouvements retirés ni écraser les Mouvements personnels distincts. |
+| F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans détruire les références des Mouvements retirés ni écraser les Mouvements personnels distincts ; la disponibilité après retrait dépend d’un autre accès valide (MOUV-ACC-20261117). |
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
 | F4-F | Arrêter le partage d'une Bibliothèque bloque les **nouvelles distributions** ; les destinataires existants conservent leurs installations, n'obtiennent **plus de nouvelles mises à jour** tant que le partage reste arrêté. |
 | **F4-G — validé** | Une seule révision active par fiche source et par appareil : une mise à jour volontaire depuis une Bibliothèque actualise la même fiche partout où elle est référencée ; aucune autre composition n'est modifiée, l'utilisateur est averti de l'impact transversal. |
-| KIN-01 | L'Espace en étoile est une **relation individuelle générique** ; transmission de Mouvements sans rôle professionnel ou prescription numérique. Dans l'usage kiné-patient, les consignes d'exécution sont orales. Invitation acceptée et possibilité de refuser ou bloquer le partageur. |
+| KIN-01 | L'Espace en étoile est une **relation individuelle générique** ; transmission de Mouvements sans rôle professionnel ou prescription numérique. Dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (réconciliation du 17/11/2026). Invitation acceptée et possibilité de refuser ou bloquer le partageur. |
 
 **Arbitrages explicitement non faits :** détails des offres et paiements, expiration d'accès, retransmission d'une installation sur un nouvel appareil après arrêt du partage, modification postérieure de permissions, règles de groupe, gestion des conflits complexes et emplacement UX des commandes.
 
@@ -74,7 +76,7 @@ La source détaillée est [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisat
 | PU-14 | Propriétaire | Arrêt de diffusion sans révocation des usages acquis ; plus de nouvelles mises à jour. |
 | PU-15 | Utilisateur / KODJO | Signalement et retrait de modération prioritaire. |
 | PU-16 | Utilisateur | Utilisation locale hors ligne, reprise après interruption d'installation. |
-| PU-17 | Utilisateur émetteur / destinataire | Transmission dans un Espace en étoile générique, sans rôle professionnel ni prescription numérique ; usage kiné-patient : consignes orales. |
+| PU-17 | Utilisateur émetteur / destinataire | Transmission dans un Espace en étoile générique, sans rôle professionnel ni prescription numérique ; usage kiné-patient : texte facultatif dans le partage personnalisé (17/11/2026). |
 
 ### Deux modes de partage sans rôles professionnels
 
@@ -434,3 +436,9 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 ---
 
 **Traçabilité documentaire :** ce dossier est une proposition de conception pour revue sur branche dédiée ; il ne supersède pas de lui-même les chapitres normatifs. Les décisions F4-A–F doivent être propagées au registre et aux chapitres après consolidation, sans laisser coexister de règles contradictoires. Les fichiers non concernés doivent rester inchangés.
+
+## Décisions consolidées du 17 novembre 2026
+
+Modèle cible : relation compte–catalogue unique, identité source stable et multiples appartenances sans duplication locale. Calculer les accès effectifs depuis les voies de partage, distinguer indisponibilité, archivage et destruction physique. Préserver références et historique lors de la perte du dernier accès. Séparer médias communs et compléments du destinataire. Autorisation centrale portée par révision, synthèses au niveau bibliothèque/catalogue ; aucune case auteur. Les détails de stockage/transit restent reportés.
+
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.

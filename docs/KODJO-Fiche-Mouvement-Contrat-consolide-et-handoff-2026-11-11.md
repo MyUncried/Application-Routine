@@ -1,5 +1,7 @@
 # KODJO — Fiche Mouvement, contrat consolidé et préparation du développement
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 **Date :** 11 novembre 2026. **Statut :** consolidation documentaire ciblée de l'étape 1, préparation du développement de l'étape 2. **Périmètre exclusif :** fiche Mouvement, fichier catalogue autonome et données associées ; aucune intervention sur PRE-10, le moteur, les Séances, les interfaces Figma ou l'administration Web dans cette tranche. **Ce document n'autorise pas à inventer des règles non décidées.**
 
 **Baseline documentaire :** branche `docs/bibliotheques-generiques-cadrage-20261110` (11/11) ; **travaux techniques examinés séparément, non fusionnés** : branche `catalogue/integration-60-main-20261109`, fichier `docs/KODJO-Format-catalogue-mouvements-v1.md`, `docs/KODJO-Provenance-propriete-fiches-mouvements-2026-11-06.md`, code CA-1/CA-2/CA-3/CA-4. Le code consulté sur la branche documentaire est distinct de celui de la branche pilote. Ce document ne déclare **aucun test exécuté** ni conformité de branche fusionnée.
@@ -36,10 +38,10 @@
 | `classification` | `categoryId,bodyZoneIds[],specialtyIds[],gesturalFamilyIds[],clinicalProblemIds[],anatomicalTargetIds[],basis,review,original,originalProposedSpecialties[]` | Classements internes et informations d'origine |
 | `sources` | `documentary` (`sourceId,section,url,usageStatement`) ou null ; `prescriptionContext{}` | Sources documentaires et contexte conservé, distinct de l'identité upstream |
 | `validation` | `classification,clinical,rights,corpusReview,licensing,clinicalValidation,publicationAllowed` | États éditoriaux ; aucune validation clinique présumée |
-| `media[]` | `id,kind,storage,url,fileName,caption,alt,sourceUrl,attribution,license,rightsStatus` | Métadonnées des médias ordonnés |
+| `media[]` | `id,kind,storage,url,fileName,caption,sourceUrl,attribution,license,rightsStatus` | Métadonnées des médias ordonnés |
 | `install` | `knownLocalMovementIds[]` | Rapprochement avec des installations antérieures, pas identité éditoriale |
 
-**Cardinalités/règles vérifiées dans CA-1 :** `sheetId` unique au sein du fichier ; `history` non vide, entrée terminale correspondant à la révision ; `media[]` au plus 30 ; droits médias `UNVERIFIED`/`PERMISSION_CONFIRMED`/`RESTRICTED` ; photo intégrée bornée à 580 000 caractères ; URL média HTTPS ; source requise pour média distant ; texte alternatif requis pour photo ; attribution/licence requises lorsque le statut indique des droits confirmés. L'ordre des étapes, alias, médias, historique compte ; ordre des ensembles de classifications non significatif. **Ces limites proviennent du format pilote ; les autres bornes éventuelles doivent être reprises du validateur, pas inventées.**
+**Cardinalités/règles vérifiées dans CA-1 :** `sheetId` unique au sein du fichier ; `history` non vide, entrée terminale correspondant à la révision ; `media[]` au plus 30 ; droits médias `UNVERIFIED`/`PERMISSION_CONFIRMED`/`RESTRICTED` ; photo intégrée bornée à 580 000 caractères ; URL média HTTPS ; source requise pour média distant ; exigence historique de texte alternatif pour photo supersédée par sa suppression (17/11/2026) ; attribution/licence requises lorsque le statut indique des droits confirmés. L'ordre des étapes, alias, médias, historique compte ; ordre des ensembles de classifications non significatif. **Ces limites proviennent du format pilote ; les autres bornes éventuelles doivent être reprises du validateur, pas inventées.**
 
 **Provenance pilote :** `owner: null` signifie inconnu, pas KODJO ou ANKUSHA. `catalogue.manager` peut désigner ANKUSHA sans en faire le titulaire des droits. Les 60 fiches sont `EXTERNAL_IMPORTED` et privées, publication non autorisée en l'absence de droits établis. Ne pas promouvoir automatiquement ces fiches en Bibliothèques publiques KODJO.
 
@@ -119,3 +121,9 @@ Ces points ne bloquent **pas** la lecture/validation/stockage sans perte du cont
 > Travailler sur une **branche distincte**. Ne pas ouvrir de PR ni fusionner `main`. Fournir commits, diff complet, tests exécutés, matrice de conformité et liste courte des arbitrages effectivement bloquants.
 
 **Portée de cette livraison :** document de cadrage et de développement ; la modification de code reste à demander à Claude. Les limitations identifiées sont issues des sources consultées, non de tests d'exécution.
+
+## Décisions consolidées du 17 novembre 2026
+
+Les constats et preuves du 11/11 restent historiques. La cible du 17/11 retire les champs listés dans MOUV-ADM-20261117 ; elle inclut le transfert des phases et les filtres de classification. Migration de la position de départ dans les étapes sans doublon ; séparation des notes internes et du contenu destinataire. Adapter modèle, sérialisation, validation, projection mobile et administration sans prétendre que ce handoff a déjà été développé.
+
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.

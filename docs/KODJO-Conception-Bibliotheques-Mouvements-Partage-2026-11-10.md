@@ -1,12 +1,14 @@
 # KODJO — Conception des Bibliothèques et du partage des Mouvements
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 **Date :** 10 novembre 2026.  
 **Statut :** conception fonctionnelle cible ultérieure du partage ; premier lot limité aux Bibliothèques génériques KODJO (BIB-19 à BIB-23).
 
 **Parcours normatifs :** [PU-01 à PU-17](KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md). **Conception technique pour revue :** [architecture et données](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
   
 **Autorité :** décisions BIB-01 à BIB-18 ci-dessous ; registre au chapitre 07.  
-**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **KIN-01 :** la transmission individuelle s'effectue dans un **Espace en étoile générique**, sans rôle professionnel dans le modèle. Dans l'usage kiné-patient, les consignes d'exécution sont orales, sans prescription numérique. Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
+**Périmètre :** création, provenance, composition, partage, droits, mises à jour, modération et principes techniques de distribution des Mouvements. **KIN-01 :** la transmission individuelle s'effectue dans un **Espace en étoile générique**, sans rôle professionnel dans le modèle. Dans l'usage kiné-patient, un texte facultatif peut accompagner un partage personnalisé ; fréquence en texte facultatif sans planification automatique et suivi des contenus reçus sur consentement révocable par relation (MOUV-PART-20261117). Ce document ne spécifie pas de nouvel écran Figma et ne déclare aucune fonction réseau livrée.
 
 ## Articulation avec le socle éditorial — 11/11/2026
 
@@ -14,7 +16,7 @@ BIB-19 à BIB-23 limitent **l'offre de Bibliothèques proposée à l'utilisateur
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation régie désormais par MOUV-ACC-20261117 ; adaptations locales interdites selon A-2, hors reprise historique CA-3. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## 1. Concepts et identités
 
@@ -123,7 +125,7 @@ La cible technique cherche à réutiliser la base locale opérationnelle et le r
 7. **Modération :** critères de contrôle, délais, contestations et droit applicable selon les données effectivement traitées.
 8. **UX / Figma :** écrans Bibliothèques, aperçu de propagation vers d'autres Bibliothèques, commandes de partage, mise à jour et signalement, non validés visuellement à ce stade.
 
-**Déjà définis et non ouverts :** une seule révision active par fiche source et par appareil ; propagation de son actualisation à toutes les Bibliothèques référentes ; compositions des autres Bibliothèques inchangées ; **absence de copie ou d'édition des fiches reçues/importées (MOUV-D3, A-2)** ; redistribution à l'identique seulement si autorisée ; archivage indépendant de la diffusion ; arrêt du partage sans suppression des installations existantes.
+**Déjà définis et non ouverts :** une seule révision active par fiche source et par appareil ; propagation de son actualisation à toutes les Bibliothèques référentes ; compositions des autres Bibliothèques inchangées ; **absence de copie ou d'édition des fiches reçues/importées (MOUV-D3, A-2)** ; redistribution à l'identique seulement si autorisée ; archivage indépendant de la diffusion ; arrêt du partage sans suppression des installations existantes. [17/11/2026 : arrêt des nouvelles distributions uniquement ; une révocation ou perte du dernier accès rend le mouvement indisponible, selon MOUV-ACC-20261117.]
 
 ## 8. Périmètre et traçabilité
 
@@ -138,3 +140,9 @@ Dans l’administration, l’administrateur peut rattacher une fiche Mouvement �
 Le destinataire retrouve sur le téléphone la progression des fiches effectivement reçues. L’appartenance à une famille ne donne aucun accès supplémentaire à ses autres membres. Les règles locales de famille, de rang et d’affichage continuent de s’appliquer. Les familles gestuelles du classement et l’identifiant de concept gestuel n’interviennent pas dans ce parcours.
 
 Contrat de transfert et recette : [Format du catalogue, familles de niveaux](KODJO-Format-catalogue-mouvements-v1.md).
+
+## Décisions consolidées du 17 novembre 2026
+
+Un catalogue par compte et aucune bibliothèque principale par fiche. Accès déduit de l’ensemble des partages actifs (bibliothèque, direct, séance partagée) ; visibilité saisie du mouvement supprimée, visibilité de bibliothèque conservée. Publication publique du mouvement sans publication des appartenances privées. Perte du dernier accès : indisponibilité, séances à corriger, avertissement ou notification et accès en un clic aux séances. Exécution en cours terminée, historique conservé. Médias personnalisés conservés chez le destinataire. L’autorisation système porte sur une révision de fiche, bibliothèque/catalogue en présentent la synthèse ; redistribution distincte. BIB-05 est précisée et les règles de conservation d’accès fondées sur l’installation seule sont supersédées.
+
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
