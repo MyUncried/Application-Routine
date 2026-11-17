@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { ElementFormat } from "@/domain/sessions/formats";
+import { seriesForRounds } from "@/domain/sessions/forTimeSeries";
 import { toSessionDraft } from "@/domain/sessions/SessionDraft";
 import {
   structureCircuits,
@@ -240,7 +241,8 @@ describe("PRE-9 C.1 — Format porté par l'Exercice ou le Circuit porteur, en b
       ["clé inconnue", input(single({ key: "HIIT" as never, settings: {} })), "UNRECOGNIZED", "element.format"],
       ["Tabata n'est plus un Format", input(single({ key: "TABATA" as never, settings: {} })), "UNRECOGNIZED", "element.format"],
       ["AMRAP porté par un Circuit alterné", input(carrier(AMRAP_CIRCUIT, "SERIES", [exercise("x", { key: "AMRAP", settings: {} })])), "FORBIDDEN_PLACEMENT", "element.format"],
-      ["For time porté par un Circuit dans chaque tour", input(carrier(FOR_TIME_CIRCUIT, "TOURS", [exercise("x", FOR_TIME_MEMBER)])), "FORBIDDEN_PLACEMENT", "element.format"],
+      // [For time porté par un Circuit dans chaque tour — admis depuis le 14/11/2026 (Hermann, For time « À la suite », FT-20 à FT-23).]
+      ["AMRAP porté par un Circuit à séries alternées", input(carrier(AMRAP_CIRCUIT, "SERIES", [exercise("x", AMRAP_MEMBER)])), "FORBIDDEN_PLACEMENT", "element.format"],
       ["membre EMOM dans un Circuit porteur AMRAP (aucun Format imbriqué, §6)", input(carrier(AMRAP_CIRCUIT, "TOURS", [exercise("x", EMOM)])), "FORBIDDEN_PLACEMENT", "element.format"],
       ["réglage du Circuit porté par un Exercice", input(single({ key: "EMOM", settings: { windowSeconds: 60 } })), "UNRECOGNIZED", "element.formatSettings"],
       ["réglage d'Exercice porté par le Circuit", input(carrier({ key: "AMRAP", settings: { durationSeconds: 720 } }, "TOURS", [exercise("x", AMRAP_MEMBER)])), "UNRECOGNIZED", "element.formatSettings"],
@@ -353,7 +355,18 @@ describe("PRE-9 C.1 — service : ouverture, enregistrement et duplication conse
 
     expect((await service().updateSession(created.id, { ...draft, name: "Renommée" })).status).toBe("UPDATED");
     const saved = (await repository().findStructuredById(created.id))!;
-    expect(saved.structure).toEqual(created.structure);
+    // Corrections 1 et 2 de Hermann du 14/11/2026 (correction 1, point 6) : à la lecture, l'exercice en tour du For time
+    // « identique + une valeur » (m1) devient une valeur par tour (3 tours) ; tout le reste, Formats compris, est inchangé.
+    // [Structure réenregistrée strictement identique — remplacé pour les séries d'un exercice en tour d'un For time.]
+    const migrated = structureExercises(saved.structure).find((item) => item.id === "m1")!;
+    const original = structureExercises(created.structure).find((item) => item.id === "m1")!;
+    expect(migrated.executionParameters).toEqual(seriesForRounds(original.executionParameters, 3));
+    expect(migrated.executionParameters.series.kind).toBe("VARIABLE");
+    const withoutM1 = (structure: typeof saved.structure) => JSON.stringify(structure, (key, value) => (key === "executionParameters" ? undefined : value));
+    expect(withoutM1(saved.structure)).toEqual(withoutM1(created.structure));
+    expect(structureExercises(saved.structure).filter((item) => item.id !== "m1").map((item) => item.executionParameters)).toEqual(
+      structureExercises(created.structure).filter((item) => item.id !== "m1").map((item) => item.executionParameters),
+    );
     expect(saved.origin).toBe("EMOM");
 
     let next = 0;
@@ -369,8 +382,8 @@ describe("PRE-9 C.1 — service : ouverture, enregistrement et duplication conse
       { format_key: "AMRAP", count: 2 },
       { format_key: "FOR_TIME", count: 2 },
     ]);
-    // L'original est intact.
-    expect((await repository().findStructuredById(created.id))!.structure).toEqual(created.structure);
+    // L'original (tel que réenregistré) est intact.
+    expect((await repository().findStructuredById(created.id))!.structure).toEqual(saved.structure);
   });
 
   it("Séance de l'ancien modèle dont un membre du Circuit standard porte un Format : rouverte, réenregistrée et dupliquée avec ce Format ; le membre libre reste libre", async () => {

@@ -1,3 +1,4 @@
+import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import type { CircuitRole, ElementFormatKey, FormatSettings } from "@/domain/sessions/formats";
 
 /**
@@ -52,6 +53,24 @@ export type FormatSheetContext = {
   /** Complément du 5 novembre 2026 (Hermann), §14 : travail prévu des autres membres de l'intervalle commun, rang par rang (S1…Sn). */
   readonly emom?: { readonly windowSeconds: number | null; readonly othersWorkByRank: readonly number[] };
   readonly onApply: (settings: FormatSettings, role: CircuitRole | null) => void;
+  /**
+   * For time (correction 2 de Hermann du 14/11/2026, règle 5) : nombre de valeurs qu'un nouveau Rôle retirerait à ces séries, et
+   * nombre de séries gardées — annoncé avant de valider (« aucune valeur perdue en silence »). Absent : aucune annonce.
+   */
+  readonly roleChangeLoss?: (role: CircuitRole, parameters: ExecutionParametersInput) => { readonly lost: number; readonly kept: number };
+  /**
+   * Demande de Hermann du 14/11/2026 (soir) : « Pour les exercices en buy in et en buy out, je dois pouvoir ajouter ou supprimer des séries dans la composition de séance » : valeurs que les autres exercices du bloc (buy-in, buy-out) perdraient avec ce nombre de séries ; annoncé avant ✓.
+   */
+  /**
+   * Précision de Hermann du 14/11/2026 (soir) : « le for Time a un nombre de tours. Dans la composition de séance si je transforme un exercice Buy In ou Buy Out en un exercice Tour, il doit héritier du nombre de Tours du circuit » : séries de l'exercice pour le Rôle choisi (en tour : une par tour du Circuit ; dans un bloc occupé : nombre du bloc),
+   * appliquées à la modale dès le choix du Rôle.
+   */
+  readonly seriesForRole?: (role: CircuitRole, parameters: ExecutionParametersInput) => ExecutionParametersInput;
+  /**
+   * Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément
+   * encore à renseigner (écran d'un Format) ; sans `incrementPerRound`, la ligne affiche « — » en rouge et le ✓ attend la saisie.
+   */
+  readonly incrementRequired?: boolean;
 };
 
 export type FormatSheetValue = { readonly settings: FormatSettings; readonly role: CircuitRole | null };

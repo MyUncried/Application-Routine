@@ -136,11 +136,19 @@ export type EngineCommand =
   | { readonly type: "START" }
   | { readonly type: "PAUSE"; readonly reason?: "USER" | "DIALOG" }
   | { readonly type: "RESUME" }
-  /** Suivant : `confirmed` requis avant le terme d'une étape chronométrée (ch08, CE-EXEC-SESSION-01). */
-  | { readonly type: "NEXT"; readonly confirmed?: boolean }
+  /** Suivant : `confirmed` [requis avant le terme d'une étape chronométrée (ch08, CE-EXEC-SESSION-01) — plus requis depuis le 14/11/2026, voir `needsNextConfirmation`]. */
+  | {
+      readonly type: "NEXT";
+      readonly confirmed?: boolean;
+      /**
+       * PRE-11, correction 3 (For time, bouton ✓) : l'étape en cours est validée sans saisie ni confirmation — un Exercice
+       * chronométré passe Terminé, une pause ou une récupération est passée.
+       */
+      readonly validated?: boolean;
+    }
   | { readonly type: "RESET" }
   /** Arrêter la séance : seulement depuis la Pause (ch08). */
-  | { readonly type: "STOP" }
+  | { readonly type: "STOP"; readonly payload?: unknown }
   /** Validation d'une Clôture (interaction bloquante, D3). */
   | { readonly type: "SUBMIT"; readonly payload: unknown }
   | { readonly type: "TICK" };
@@ -164,7 +172,15 @@ export type TransitionResult = {
 
 // ————————————————————————————————————————————————————————————————— pilotes (§6.4)
 
-export type PilotContext = { readonly nowMs: Ms; readonly env: EngineEnv; readonly scopeKey: string; readonly depth: number; readonly spec: ScopeSpec };
+export type PilotContext = {
+  readonly nowMs: Ms;
+  readonly env: EngineEnv;
+  readonly scopeKey: string;
+  readonly depth: number;
+  readonly spec: ScopeSpec;
+  /** Temps actif d'une référence de la portée (`name`) à `nowMs` ; `null` si elle n'existe pas (PRE-11 : temps réalisé d'un For time). */
+  readonly refMs: (name: string) => Ms | null;
+};
 
 export type NewRef = { readonly name: string; readonly role: Exclude<TimeRole, "SAFETY">; readonly budgetMs: Ms | null };
 
@@ -197,6 +213,11 @@ export interface Pilot {
   onReset?(local: unknown, leaf: LeafSpec, ctx: PilotContext): ResetDecision;
   /** Commande autorisée dans cette portée (Q2 : Réinitialiser désactivé dans un AMRAP ou un Death by). */
   allows?(local: unknown, command: EngineCommand["type"], leaf: LeafSpec | null): boolean;
+  /**
+   * Arrêt de la séance pendant cette portée (PRE-11, corrections 3 et 4 de Hermann du 14/11/2026) : résultats à enregistrer avant
+   * la fermeture (For time : séries terminées et répétitions saisies pour la série en cours). `payload` : saisie de l'arrêt.
+   */
+  onStop?(local: unknown, ctx: PilotContext, payload: unknown): readonly ResultChange[];
 }
 
 export type EngineEnv = {
@@ -324,7 +345,12 @@ function pilotOf(env: EngineEnv, spec: ScopeSpec): Pilot {
 
 function ctxFor(draft: Draft, frameIndex: number, nowMs: Ms): PilotContext {
   const frame = draft.state.frames[frameIndex]!;
-  return { nowMs, env: draft.env, scopeKey: frame.spec.key, depth: frame.depth, spec: frame.spec };
+  const refs = draft.state.refs;
+  const refMs = (name: string): Ms | null => {
+    const ref = refs.find((candidate) => candidate.owner === frame.spec.key && candidate.name === name);
+    return ref === undefined ? null : runningMs(ref, nowMs);
+  };
+  return { nowMs, env: draft.env, scopeKey: frame.spec.key, depth: frame.depth, spec: frame.spec, refMs };
 }
 
 /** Une référence englobante (portée de profondeur < `depth`) est-elle échue à `atMs` ? */
@@ -668,7 +694,17 @@ function applyCommand(draft: Draft, event: EngineEvent, atMs: Ms): RejectionReas
       return null;
     case "STOP":
       if (state.status !== "PAUSED") return "NOT_PAUSED";
-      if (state.frames.length > 0) closeDescendants(draft, 0, "INTERRUPTED", atMs);
+      {
+        // PRE-11, corrections 3 et 4 : chaque portée ouverte dit ce qui est acquis (For time : séries terminées et répétitions
+        // saisies), calculé avant la fermeture et enregistré après elle, pour remplacer le résultat « interrompu » de sa clé.
+        const acquired: ResultChange[] = [];
+        for (let index = state.frames.length - 1; index >= 0; index -= 1) {
+          const frame = state.frames[index]!;
+          acquired.push(...(pilotOf(draft.env, frame.spec).onStop?.(frame.local, ctxFor(draft, index, atMs), event.payload) ?? []));
+        }
+        if (state.frames.length > 0) closeDescendants(draft, 0, "INTERRUPTED", atMs);
+        draft.results.push(...acquired);
+      }
       finish(draft, "STOPPED", atMs);
       return null;
     case "NEXT":
@@ -703,8 +739,12 @@ function next(draft: Draft, event: Extract<EngineEvent, { type: "NEXT" }>, atMs:
       return null;
     case "TIMED": {
       const elapsed = leafElapsedMs(state, atMs);
-      if (elapsed >= (leaf.spec.plannedMs ?? 0)) {
+      if (elapsed >= (leaf.spec.plannedMs ?? 0) || (event.validated === true && leaf.spec.kind === "ACTIVITY")) {
         closeLeaf(draft, "COMPLETED", atMs, true);
+        return null;
+      }
+      if (event.validated === true) {
+        closeLeaf(draft, "SKIPPED", atMs, true);
         return null;
       }
       // Seul un Exercice chronométré demande confirmation (RM-060). Pauses et récupérations : passage direct
@@ -771,9 +811,13 @@ export function structuralPhase(spec: LeafSpec): boolean {
   return spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END";
 }
 
-/** Suivant avant le terme : confirmation pour un Exercice chronométré seulement (RM-060 ; recette PRE-10 du 09/11/2026). */
-export function needsNextConfirmation(spec: LeafSpec): boolean {
-  return spec.kind === "ACTIVITY" && spec.end === "TIMED";
+/**
+ * Suivant avant le terme : plus aucune confirmation. Recette du 14/11/2026 (Hermann : « exercice en durée : appuyer sur suivant
+ * doit mener directement l'exercice suivant, sans message intermédiaire de confirmation ») ; l'Exercice quitté reste `Partielle`.
+ * [Confirmation pour un Exercice chronométré (RM-060 ; recette PRE-10 du 09/11/2026) — remplacé.]
+ */
+export function needsNextConfirmation(_spec: LeafSpec): boolean {
+  return false;
 }
 
 /** Réinitialiser : Série/côté, pauses et récupérations ; pas le compte à rebours, la Fin, un Point d'arrêt ni une Clôture. */

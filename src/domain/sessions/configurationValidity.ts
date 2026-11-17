@@ -18,7 +18,8 @@
  *   - `EMPTY_LOOP` : Circuit porteur AMRAP ou For time sans membre de Rôle Tour (§6.1, R09 ; MAJ 04/11 §6 bis 2) ;
  *   - `ROLE_ZONES` : membres d'un Circuit AMRAP ou For time hors de l'ordre des zones buy-in, tour, buy-out, ou
  *     buy-out dans un AMRAP (MAJ 04/11 §6 bis 2) ;
- *   - `NO_REPETITIONS` : Circuit For time sans aucun Exercice en Répétitions, buy-in et buy-out compris (§11) ;
+ *   - `NO_REPETITIONS` : Circuit For time sans aucun Exercice de la boucle (Rôle Tour) en Répétitions (recette du 16/11/2026,
+ *     mp-duree-refusee : buy-in et buy-out exclus) [buy-in et buy-out compris (§11) — remplacé le 16/11/2026] ;
  *   - `EMOM_DURATION` : travail prévu en Durée (× 2 de chaque côté, plus la pause entre les côtés) qui atteint
  *     ou dépasse l'intervalle — de l'Exercice, ou commun dans chaque intervalle (somme des membres) ; seuil
  *     inclusif (décision de Hermann du 03/11/2026, MAJ 04/11 §4.4) ;
@@ -147,7 +148,13 @@ export function configurationValidity<E extends ValidityExercise>(
         add(circuit.id, "ROLE_ZONES");
       }
     }
-    if (carried.key === "FOR_TIME" && circuit.exercises.every((exercise) => exercise.type === "EXERCISE" && exercise.executionParameters.mode === "DURATION")) {
+    if (
+      carried.key === "FOR_TIME" &&
+      circuit.exercises.some((exercise, index) => circuitRoleOf(exercise.format, index) === "TOUR") &&
+      circuit.exercises.every(
+        (exercise, index) => circuitRoleOf(exercise.format, index) !== "TOUR" || (exercise.type === "EXERCISE" && exercise.executionParameters.mode === "DURATION"),
+      )
+    ) {
       add(circuit.id, "NO_REPETITIONS");
     }
     // Dans chaque intervalle : pour chaque rang k, somme du travail prévu des membres ≥ intervalle commun (Complément du 5 novembre 2026 (Hermann), §14 : chaque

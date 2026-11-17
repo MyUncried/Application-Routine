@@ -26,7 +26,6 @@ import type { ExecutionRepository } from "@/domain/execution/ExecutionRepository
 import {
   createInitialState,
   ENGINE_STATE_VERSION,
-  libreEnv,
   nextDueAtMs,
   restoreWithoutContinuity,
   transition,
@@ -38,8 +37,9 @@ import {
   type StepResult,
   type TransitionResult,
 } from "@/domain/execution/kernel";
-import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
+import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, guidedPhases, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
 import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
+import { executionEnv } from "@/domain/execution/policies";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
 import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
 import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
@@ -172,6 +172,22 @@ export class ExecutionService {
     return occurrenceResults([...this.active.results.values()].flatMap((change) => (change.type === "STEP" ? [change.result as StepResult] : [])));
   }
 
+  /**
+   * Répétitions saisies pour une série interrompue (Durée maximum atteinte ou Arrêt d'un For time), par clé d'étape. Recette du
+   * 15/11/2026 (Hermann, g7 : « La feuille « séance partiellement exécuté » ne présente pas la valeur saisie dans la modale de
+   * résultat »).
+   */
+  partialRepetitions(): ReadonlyMap<string, number> {
+    const found = new Map<string, number>();
+    if (this.active === null) return found;
+    for (const change of this.active.results.values()) {
+      if (change.type !== "SCOPE") continue;
+      const result = change.result as { readonly format?: string; readonly interruptedKey?: string | null; readonly partialRepetitions?: number | null };
+      if (result.format === "FOR_TIME" && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+    }
+    return found;
+  }
+
   // —————————————————————————————————————————— préparation et lancement
 
   /** Fige la Séance et compile son plan sans rien persister : l'Exécution n'existe qu'au démarrage (ch09). */
@@ -191,7 +207,7 @@ export class ExecutionService {
       if (this.active !== null && this.active.state.status !== "FINISHED") throw new ExecutionBlockedError("An execution is already active.");
       if ((await this.deps.repository.findUnfinished()) !== null) throw new ExecutionBlockedError("An unfinished execution must be resumed or stopped first.");
       const executionId = this.deps.newId();
-      const env = libreEnv(prepared.plan);
+      const env = executionEnv(prepared.plan);
       const reading = this.now();
       const started = transition(env, createInitialState(executionId), { type: "START" }, reading);
       const startedAt = new Date(reading).toISOString();
@@ -346,7 +362,7 @@ export class ExecutionService {
     const results = new Map<string, ResultChange>();
     for (const change of await this.deps.repository.listResults(executionId)) results.set(`${change.type}:${change.key}`, change);
     this.lastReadingMs = Math.max(this.lastReadingMs, record.state.evaluatedAtMs ?? 0);
-    this.active = { executionId, plan, env: libreEnv(plan), state: record.state, revision: record.revision, saveError: false, businessStatus: record.businessStatus, results };
+    this.active = { executionId, plan, env: executionEnv(plan), state: record.state, revision: record.revision, saveError: false, businessStatus: record.businessStatus, results };
   }
 
   private enqueue<T>(task: () => Promise<T>): Promise<T> {
@@ -477,7 +493,8 @@ function objectiveOf(mode: ExecutionMode | null | undefined, seriesTarget: Serie
 function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern | null {
   const spec = state.leaf?.spec;
   if (spec === undefined || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return null;
-  const phases = plan.exercises[spec.exerciseId]?.workPhases ?? [];
+  // PRE-11 (13/11/2026) : Rôle Tour d'un For time, aucun bip ni annonce de phase (`guidedPhases`).
+  const phases = guidedPhases(plan, spec);
   if (workPhasesCycleSeconds(phases) === null) return null;
   // Recette du 13/11/2026 (Hermann : « Oui il faut continuer le guidage, c'est à l'utilisateur d'arrêter ») : en
   // Répétitions, les phases continuent au-delà du nombre prévu, jusqu'à Suivant ; seule une étape chronométrée borne le

@@ -267,6 +267,28 @@ describe("PRE-8 E.2 — durée de la carte (D-391)", () => {
     expect(formatCatalogueSessionDuration({ kind: "lowerBound", seconds: 663 })).toBe("≥ 11′03″");
     expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 0 })).toBe("0″");
   });
+
+  // Recette du 14/11/2026 (Hermann : « For time, avec ou sans limite : la carte de séance présente " >=0". C'est incorrect » ;
+  // « Écrire soit "Sans limite", soit mettre le cap de temps déterminé "<=..." »). Death by : emplacement vide (spécification carte §1).
+  it("For time : « Sans limite » sans Durée maximum, « ≤ » avec (part connue comprise) ; Death by : vide ; jamais « ≥ 0″ »", () => {
+    const forTime = (format: NonNullable<Activity["format"]>) => exercise({ name: "Burpees", executionParameters: repetitionParameters(21, 3, 0), format });
+    const timed = exercise({ name: "Gainage", executionParameters: durationParameters(40), postActivityRecoverySeconds: 0 });
+    const card = (elements: readonly StructureElement<Activity>[]) => {
+      const projection = project(elements);
+      return formatCatalogueSessionDuration(projection.duration, projection.forTimeBound);
+    };
+    expect(card([{ kind: "EXERCISE", exercise: forTime({ key: "FOR_TIME", settings: {} }) }])).toBe("Sans limite");
+    expect(card([{ kind: "EXERCISE", exercise: forTime({ key: "FOR_TIME", settings: { timeCapSeconds: 600 } }) }])).toBe("≤ 10′00″");
+    expect(card([{ kind: "EXERCISE", exercise: forTime({ key: "FOR_TIME", settings: { timeCapSeconds: 600 } }) }, { kind: "EXERCISE", exercise: timed }])).toBe("≤ 10′40″");
+    expect(card([{ kind: "EXERCISE", exercise: forTime({ key: "FOR_TIME", settings: {} }) }, { kind: "EXERCISE", exercise: timed }])).toBe("Sans limite");
+    // Circuit porteur For time : sa Durée maximum.
+    const carrier: StructureCircuit<Activity> = {
+      ...circuit("f", [forTime({ key: "FOR_TIME", settings: {} }), forTime({ key: "FOR_TIME", settings: {} })], 3, "SERIES"),
+      format: { key: "FOR_TIME", settings: { timeCapSeconds: 900, restBetweenRoundsSeconds: 0 } },
+    };
+    expect(card([{ kind: "CIRCUIT", circuit: carrier }])).toBe("≤ 15′00″");
+    expect(card([{ kind: "EXERCISE", exercise: forTime({ key: "DEATH_BY", settings: { intervalSeconds: 60, increment: 1 } }) }])).toBe("");
+  });
 });
 
 /**

@@ -4195,7 +4195,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     walk(strings.screens.exercise.adjustedTotalDurationUndoAction);
     expect(lexicon).toContain("Minutes");
     expect(lexicon).toContain("Annuler");
-    expect(lexicon.filter((value) => value.includes("'") || FORBIDDEN.test(value))).toEqual([]);
+    // Formats — saisie par la modale (décision de Hermann du 16/11/2026 : exercice en boucle, « tours identiques / variables ») : le
+    // décompte en tours de la ligne « Séries » est la seule exception à « Tour » (libellés `roundCount*`).
+    const sheet = strings.executionParameters.sheet;
+    const rounds: readonly string[] = [sheet.roundCountUniform, sheet.roundCountUniformSingular, sheet.roundCountVariable, sheet.roundCountVariableSingular];
+    expect(lexicon.filter((value) => value.includes("'") || (FORBIDDEN.test(value) && !rounds.includes(value)))).toEqual([]);
   });
 
   // [Roue de la Cible commune ouverte — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : saisie de la Cible en cours (Q47 : premier appui = sortie du champ).]
@@ -4625,15 +4629,13 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(styleOf(STOP_CONTROL).width).toBe(220);
   });
 
-  it("PRE5-2.4/AC5 — variables vides (`UNSET` partout) : « — », annoncé « Condition d’arrêt, aucune valeur », de rôle texte ; aucune validation ajoutée (✓ indisponible comme avant)", () => {
+  // [« — », annoncé « Condition d’arrêt, aucune valeur », de rôle texte — remplacé le 16/11/2026 (recette, Autres constats a et b,
+  // Hermann : « la condition d'arrêt devrait être "à l'objectif". Alors que là il n'y a qu'un trait horizontal »).]
+  it("PRE5-2.4/AC5 — variables vides (`UNSET` partout) : « À l’objectif » en lecture seule (16/11/2026) ; aucune validation ajoutée (✓ indisponible comme avant)", () => {
     renderSheet(variableSheet([null, null]));
-    expect(query(STOP_CONTROL)).toBeNull();
-    const none = get("execution-sheet-stop-condition-none");
-    expect(String(none.props.children)).toBe("—");
-    expect(none.props.accessibilityLabel).toBe("Condition d’arrêt, aucune valeur");
-    expect(none.props.accessibilityRole).toBe("text");
-    expect(none.props.accessible).toBe(true);
-    expect(within(get("execution-sheet-row-stop-condition")).getByTestId("execution-sheet-stop-condition-none", hidden)).toBe(none);
+    expect(query("execution-sheet-stop-condition-none")).toBeNull();
+    expect(get(STOP_CONTROL).props.accessibilityRole).toBe("text");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
@@ -4931,22 +4933,33 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(rowIds.slice(-2)).toEqual(["execution-sheet-row-pause", "execution-sheet-row-load"]);
   });
 
-  it("PRE5-2.2/AC5, AC3 — identiques : Avec pose 0,25 kg ; focus : surface clavier, fond #EAEAFF annoncé « sélectionné » ; « 1,3 » puis sortie → 1,5 kg ; ✓ applique", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [Avec pose 0,25 kg — remplacé.]
+  it("PRE5-2.2/AC5, AC3 — identiques : Avec → « — » sur fond rouge, ✓ indisponible ; focus : surface clavier, fond #EAEAFF annoncé « sélectionné » ; « 1,3 » puis sortie → 1,5 kg ; ✓ applique", () => {
     const { onApply } = renderSheet(params());
     fireEvent.press(get("execution-sheet-load-control-WITH"));
     expect(loadChoice()).toBe("WITH");
-    expect(shown(UNIFORM)).toBe("0,25 kg");
+    expect(shown(UNIFORM)).toBe("—");
+    expect(screen.getByTestId("execution-sheet-load-control-WITH-invalid-surface", { includeHiddenElements: true })).toBeTruthy();
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(get(input(UNIFORM)).props.keyboardType).toBe("decimal-pad");
     // Recette du 19/10 : barre rendue par la Feuille (RC-1). Recette du 20/10 (RC-14) : Avec
     // demande le focus de la charge commune ; le champ est actif quand le focus natif arrive.
     expect(get(input(UNIFORM)).props.inputAccessoryViewID).toBeUndefined();
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
+    // Recette du 16/11/2026 (mq-charge-rouge, Hermann : « Il doit avoir un fond rouge et sans liseré ») : au focus, fond rouge tant que la
+    // charge reste à renseigner ; pas de cadre rouge. [Fond #EAEAFF au focus — remplacé.]
+    expect(screen.queryByTestId("execution-sheet-load-control-WITH-invalid-frame", { includeHiddenElements: true })).toBeNull();
     focus(UNIFORM);
-    expect(shown(UNIFORM)).toBe("0,25");
-    expect(styleOf(UNIFORM).backgroundColor).toBe("#EAEAFF");
+    expect(shown(UNIFORM)).toBe("");
+    expect(styleOf(UNIFORM).backgroundColor).toBe(colors.dangerSurface);
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: true });
+    type(UNIFORM, "0");
+    expect(styleOf(UNIFORM).backgroundColor).toBe(colors.dangerSurface);
+    type(UNIFORM, "⌫");
     type(UNIFORM, "1,3");
     expect(shown(UNIFORM)).toBe("1,3");
+    expect(styleOf(UNIFORM).backgroundColor).toBe("#EAEAFF");
     blur(UNIFORM);
     expect(shown(UNIFORM)).toBe("1,5 kg");
     expect(styleOf(UNIFORM).backgroundColor).not.toBe("#EAEAFF");
@@ -4954,7 +4967,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 1.5 } });
   });
 
-  it("PRE5-2.2/AC1, RC-14 — illisible : valeur précédente ; second séparateur et signe refusés à la frappe (D-434) ; champ vidé : 0 kg, et à la fermeture en identiques → Sans", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [Champ vidé → Sans — remplacé.]
+  it("PRE5-2.2/AC1, RC-14 — illisible : valeur précédente ; second séparateur et signe refusés à la frappe (D-434) ; champ vidé : reste Avec, « — » sur fond rouge, ✓ indisponible (16/11/2026)", () => {
     const { onApply } = renderSheet(uniformLoad(20));
     focus(UNIFORM);
     type(UNIFORM, ",");
@@ -4974,8 +4989,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     focus(UNIFORM);
     type(UNIFORM, "");
     blur(UNIFORM);
-    expect(loadChoice()).toBe("WITHOUT");
-    expect(query(UNIFORM)).toBeNull();
+    expect(loadChoice()).toBe("WITH");
+    expect(shown(UNIFORM)).toBe("—");
+    expect(screen.getByTestId("execution-sheet-load-control-WITH-invalid-surface", { includeHiddenElements: true })).toBeTruthy();
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(get("execution-sheet-load-control-WITHOUT"));
     validate();
     expect(applied(onApply)).toMatchObject({ loadEnabled: false, series: { kind: "UNIFORM", loadKg: 0 } });
   });
@@ -5101,14 +5119,19 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     });
   });
 
-  it("PRE5-2.2/AC2, PRE7-B.2 (B10) — variables, toutes les charges à 0 à la fermeture : Sans, colonne conservée avec des tirets, valeurs conservées", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [Toutes à 0 → Sans — remplacé.]
+  it("PRE5-2.2/AC2, PRE7-B.2 (B10) — variables, toutes les charges à 0 à la fermeture : reste Avec, cellules « — » sur fond rouge, ✓ indisponible ; Sans : colonne conservée avec des tirets", () => {
     const { onApply } = renderSheet(variableLoads([0, 20]));
     focus(cell(2));
     keyboard.show();
     type(cell(2), "0");
     fireEvent.press(get("execution-sheet-keyboard-close"));
     blur(cell(2));
-    expect(loadChoice()).toBe("WITHOUT");
+    expect(loadChoice()).toBe("WITH");
+    expect([1, 2].map((row) => shown(cell(row)))).toEqual(["—", "—"]);
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(get("execution-sheet-load-control-WITHOUT"));
     expect(query(cell(1))).toBeNull();
     expect(within(get("execution-sheet-table-header")).getByText("Charge", hidden)).toBeTruthy();
     expect(get(`${cell(1)}-unset`).props.accessibilityLabel).toBe("Série 1, charge, Sans");
@@ -5116,13 +5139,16 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(applied(onApply)).toMatchObject({ loadEnabled: false });
   });
 
-  it("PRE5-2.2/AC5, AC8 — variables : Avec déplie le tableau replié, pose 0,25 kg sur chaque ligne et rend la colonne ; textes de la barre par le lexique", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [0,25 kg sur chaque ligne — remplacé.]
+  it("PRE5-2.2/AC5, AC8 — variables : Avec déplie le tableau replié, cellules « — » sur fond rouge et rend la colonne ; textes de la barre par le lexique", () => {
     renderSheet(variableLoads([0, 0, 0], false));
     fireEvent.press(get(TABLE_TOGGLE));
     expect(query("execution-sheet-table")).toBeNull();
     fireEvent.press(get("execution-sheet-load-control-WITH"));
     expect(query("execution-sheet-table")).not.toBeNull();
-    expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["0,25 kg", "0,25 kg", "0,25 kg"]);
+    expect([1, 2, 3].map((row) => shown(cell(row)))).toEqual(["—", "—", "—"]);
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     // RC-2 : aucune cellule active, aucune barre ; la barre vient avec le clavier d'un champ touché.
     expect([1, 2, 3].map((row) => get(cell(row)).props.accessibilityState.selected)).toEqual([false, false, false]);
     expect(query("execution-sheet-keyboard-bar")).toBeNull();
@@ -5873,7 +5899,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     keyboard.restore();
   });
 
-  it("PRE5-2.7/AC1, RC-14 — identiques, Sans → Avec : le segment Avec affiche « 0,25 kg » (champ commun dans l'option, aucune pastille séparée) et le focus natif lui est donné (clavier ouvert, RC-14)", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [« 0,25 kg » — remplacé.]
+  it("PRE5-2.7/AC1, RC-14 — identiques, Sans → Avec : le segment Avec affiche « — » sur fond rouge (champ commun dans l'option, aucune pastille séparée) et le focus natif lui est donné (clavier ouvert, RC-14)", () => {
     const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
     // `focus` du simulacre de `TextInput` est partagé : appels des tests précédents effacés (depuis le 06/11/2026,
     // des champs hors tableau reçoivent aussi le focus natif).
@@ -5886,7 +5914,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     // Le champ est rendu DANS le segmenté, à la place du libellé « Avec » ; « Sans » reste.
     expect(within(get(LOAD_CONTROL)).getByTestId(UNIFORM, hidden)).toBeTruthy();
     expect(controlLabels()).toEqual(["Sans"]);
-    expect(shown(UNIFORM)).toBe("0,25 kg");
+    expect(shown(UNIFORM)).toBe("—");
     expect(inputs().map((node) => String(node.props.testID))).toEqual([`${UNIFORM}-input`]);
     // RC-14 : Avec ouvre le clavier dans l'option (focus natif de l'entrée de la charge commune).
     expect(focusSpy.mock.contexts.map((instance) => String((instance as { props: { testID?: string } }).props.testID))).toEqual([
@@ -5894,16 +5922,25 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     ]);
     // Plein cadre de l'option (62 × 26, rayon 5), texte centré blanc Semi Bold 12, sans fond propre.
     expect(styleOf(UNIFORM)).toMatchObject({ width: 62, height: 26, borderRadius: 5, alignItems: "center", justifyContent: "center" });
+    // [Texte blanc, sans fond propre — remplacé le 16/11/2026 (recette mp-charge-vide, Hermann : « Charge avec - pas de liseré
+    // rouge ») : charge à renseigner sur fond rouge clair, même clavier ouvert, « — » en texte primaire.]
     expect(styleOf(`${UNIFORM}-value`)).toMatchObject({
       textAlign: "center",
       fontSize: 12,
       fontFamily: "Inter_600SemiBold",
-      color: colors.background,
+      color: colors.primary,
     });
-    expect(styleOf(UNIFORM).backgroundColor).toBeUndefined();
+    expect(styleOf(UNIFORM).backgroundColor).toBe(colors.dangerSurface);
+    // Recette du 16/11/2026 (mq-charge-rouge) : fond rouge sans liseré. [Cadre rouge de l’option — remplacé.]
+    expect(screen.queryByTestId(`${LOAD_CONTROL}-WITH-invalid-frame`, { includeHiddenElements: true })).toBeNull();
     expect(styleOf(UNIFORM).minWidth).toBeUndefined();
+    // Premier chiffre : couleur du champ actif.
+    focus(UNIFORM);
+    type(UNIFORM, "2");
+    expect(styleOf(UNIFORM)).toMatchObject({ backgroundColor: "#EAEAFF" });
     // Le segment Avec annonce aussi la valeur affichée.
-    expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, 0,25 kg");
+    // « — » annoncé « aucune valeur ».
+    expect(get(`${LOAD_CONTROL}-WITH`).props.accessibilityLabel).toBe(`Avec, ${strings.executionParameters.sheet.unsetSpoken}`);
   });
 
   it("PRE5-2.7/AC1, RC-14 — toucher le segment à 20 kg : focus du champ, « 20 » sans sélection native (la première frappe remplace), fond #EAEAFF et texte primaire, barre ; « 1,3 » puis « Fermer » → « 1,5 kg » dans le segment", () => {
@@ -5931,7 +5968,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 1.5 } });
   });
 
-  it("PRE5-2.7/AC3 — identiques : texte illisible → valeur précédente dans le segment ; « 0 » puis fermeture → Sans, le segment affiche de nouveau « Avec »", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [« 0 » → Sans — remplacé.]
+  it("PRE5-2.7/AC3 — identiques : texte illisible → valeur précédente dans le segment ; « 0 » puis fermeture → reste Avec, « — » sur fond rouge", () => {
     const { onApply } = renderSheet(uniformLoad(20));
     focus(UNIFORM);
     type(UNIFORM, ",");
@@ -5940,11 +5979,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     focus(UNIFORM);
     type(UNIFORM, "0");
     blur(UNIFORM);
-    expect(loadChoice()).toBe("WITHOUT");
-    expect(query(UNIFORM)).toBeNull();
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    expect(loadChoice()).toBe("WITH");
+    expect(shown(UNIFORM)).toBe("—");
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    focus(UNIFORM);
+    type(UNIFORM, "12");
+    blur(UNIFORM);
     validate();
-    expect(applied(onApply)).toMatchObject({ loadEnabled: false, series: { kind: "UNIFORM", loadKg: 0 } });
+    expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 12 } });
   });
 
   it("PRE5-2.7/AC2 — variables : l'option garde « Avec » (aucun champ dans le segment), colonne Charge au titre non interactif, une cellule clavier par série", () => {
@@ -6141,7 +6183,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     expect(applied(onApply)).toMatchObject({ loadEnabled: true, series: { kind: "UNIFORM", loadKg: 34.25 } });
   });
 
-  it("RC-14 — première activation : 0,25 kg et saisie ouverte ; zéro à la validation → Sans ; variables : Avec n'ouvre pas le clavier (RC-2)", () => {
+  // Décision de Hermann du 16/11/2026 (« La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ avec un
+  // trait horizontal et un fond rouge ») : charge à renseigner, ✓ indisponible ; vider la charge ne repasse plus à Sans. [0,25 kg, zéro → Sans — remplacé.]
+  it("RC-14 — première activation : champ vide et saisie ouverte ; zéro : reste Avec, à renseigner ; variables : Avec n'ouvre pas le clavier (RC-2)", () => {
     const focusSpy = jest.spyOn(TextInput.prototype as unknown as Record<"focus", () => void>, "focus");
     // `focus` du simulacre de `TextInput` est partagé : appels des tests précédents effacés (depuis le 06/11/2026,
     // des champs hors tableau reçoivent aussi le focus natif).
@@ -6153,11 +6197,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     fireEvent.press(get(`${LOAD_CONTROL}-WITH`));
     expect(focused()).toEqual([input(UNIFORM)]);
     focus(UNIFORM);
-    expect(shown(UNIFORM)).toBe("0,25");
+    expect(shown(UNIFORM)).toBe("");
     type(UNIFORM, "0");
     blur(UNIFORM);
-    expect(loadChoice()).toBe("WITHOUT");
-    expect(controlLabels()).toEqual(["Avec", "Sans"]);
+    expect(loadChoice()).toBe("WITH");
+    expect(shown(UNIFORM)).toBe("—");
     screen.unmount();
     focusSpy.mockClear();
     renderSheet(variableLoads([0, 0], false));

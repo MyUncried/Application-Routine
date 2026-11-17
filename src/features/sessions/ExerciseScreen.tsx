@@ -26,7 +26,6 @@ import type { Category } from "@/domain/categories/Category";
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
-  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
@@ -142,15 +141,12 @@ export function useProfileDefaults() {
     readonly sideRecovery: number;
     readonly countdown: number;
     readonly end: number;
-    /** PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice de Séance. */
-    readonly recovery: number;
     readonly silhouette: Silhouette | null;
   }>({
     loaded: false,
     sideRecovery: DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
     countdown: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
     end: DEFAULT_EXERCISE_END_SECONDS,
-    recovery: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
     silhouette: null,
   });
   useEffect(() => {
@@ -163,7 +159,6 @@ export function useProfileDefaults() {
             sideRecovery: profile.sideChangeRecoverySecondsDefault,
             countdown: profile.exerciseCountdownSecondsDefault,
             end: profile.exerciseEndSecondsDefault,
-            recovery: profile.postActivityRecoverySecondsDefault,
             silhouette: profile.silhouette,
           });
         }
@@ -663,9 +658,9 @@ function CompositionExerciseEditor() {
       const created: SessionDraftExercise = {
         ...initialSnapshot,
         executionParameters: withProfilePhases(initialSnapshot.executionParameters, profile.countdown, profile.end),
-        // PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil ; défauts du
-        // Profil en attente du premier ✓ (fond orange dans la Feuille).
-        postActivityRecoverySeconds: profile.recovery,
+        // [PRE-9 (01/11/2026, point 2) : Récupération du nouvel Exercice reprise du Profil — remplacé le 14/11/2026.]
+        // Correction de Hermann du 14/11/2026 : « Retirer l'enregistrement par défaut de la valeur Récupération du Profil dans les paramètres d'exécution (plus de valeur par défaut pour la récupération) » : le nouvel Exercice naît sans Récupération (`null`, `createExerciseDraft`). Défauts du
+        // Profil (Compte à rebours, Fin) en attente du premier ✓ (fond orange dans la Feuille).
         profileDefaultsPending: true,
       };
       setInitialSnapshot(created);

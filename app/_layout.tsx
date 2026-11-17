@@ -172,7 +172,7 @@ export default function RootLayout() {
                   natives iOS posées au-dessus de l'écran qui les ouvre (Catalogue des séances ou Composition), vitesse d'iOS.
                   [Feuilles du groupe `(creation)`, au-dessus d'une Composition ouverte d'avance — remplacées.] */}
               <Stack.Screen name="formats-window" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, sheetAllowedDetents: "fitToContents", gestureEnabled: false }} />
-              <Stack.Screen name="format-questionnaire" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
+              {/* [format-questionnaire — supprimé le 15/11/2026 : écran unique de chaque Format, décision de Hermann (registre ch07).] */}
               <Stack.Screen name="format-summary" options={{ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: CREATION_SHEET_CONTENT, gestureEnabled: false }} />
               <Stack.Screen name="movement-sheet" options={{ presentation: "formSheet", gestureEnabled: false }} />
               {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}

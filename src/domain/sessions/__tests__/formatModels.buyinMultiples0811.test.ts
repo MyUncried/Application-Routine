@@ -75,8 +75,11 @@ describe("For time : plusieurs buy-in et plusieurs buy-out (08/11/2026 au soir)"
 
   it("Déroulé : chaque buy-in une fois au départ, dans l'ordre, puis les tours, puis chaque buy-out", () => {
     const labels = modelTimeline("FOR_TIME", answers, rows).blocks.map((block) => (block.kind === "WORK" ? block.label : block.kind));
-    expect(labels.slice(0, 2)).toEqual(["1000 · buy-in", "50 · buy-in"]);
-    expect(labels.slice(-2)).toEqual(["20 · buy-out", "30 · buy-out"]);
+    // Décision de Hermann du 15/11/2026 (« Retirer le texte « buy in » et « buy out » du cadre d’illustration ») : volume seul.
+    // [« 1000 · buy-in », « 50 · buy-in » — remplacé.]
+    expect(labels.slice(0, 2)).toEqual(["1000", "50"]);
+    // [« 20 · buy-out », « 30 · buy-out » — remplacé le 15/11/2026 (décision de Hermann).]
+    expect(labels.slice(-2)).toEqual(["20", "30"]);
     expect(labels.slice(2, -2)).toEqual(["21", "15", "9"]);
   });
 
@@ -116,8 +119,9 @@ describe("AMRAP : plusieurs buy-in (08/11/2026 au soir)", () => {
     const blocks = modelTimeline("AMRAP", answers, rows).blocks;
     const work = blocks.filter((block) => block.kind === "WORK");
     expect(work.slice(0, 2).map((block) => (block.kind === "WORK" ? [block.label, block.movement, block.buyIn === true] : null))).toEqual([
-      ["1000 · buy-in", 0, true],
-      ["50 · buy-in", 1, true],
+      // [« · buy-in » — retiré le 15/11/2026 (décision de Hermann).]
+      ["1000", 0, true],
+      ["50", 1, true],
     ]);
     const loopMovements = work.slice(2).map((block) => (block.kind === "WORK" ? block.movement : null));
     expect(new Set(loopMovements)).toEqual(new Set([2, 3]));

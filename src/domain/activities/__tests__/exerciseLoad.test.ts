@@ -5,6 +5,7 @@ import {
   formatLoadKg,
   normalizeLoad,
   parseLoadText,
+  loadToFill,
   reactivateLoad,
   roundLoadUp,
 } from "@/domain/activities/exerciseLoad";
@@ -62,11 +63,18 @@ describe("PRE5-1.1/AC7 — normalizeLoad (règles du zéro, FR-14)", () => {
 });
 
 describe("PRE5-1.1/AC7 — reactivateLoad (FR-14, Δ20)", () => {
-  it("aucune valeur mémorisée, ou toutes nulles → 0,25 kg sur l'uniforme et sur chaque ligne", () => {
-    expect(reactivateLoad(uniformParameters({ target: 30, loadKg: 0 }))).toEqual(uniformParameters({ target: 30, loadKg: 0.25, loadEnabled: true }));
-    expect(reactivateLoad(variableParameters({ rows: [[30, 10, 0], [30, 10, 0], [30, 10, 0]] }))).toEqual(
-      variableParameters({ rows: [[30, 10, 0.25], [30, 10, 0.25], [30, 10, 0.25]], loadEnabled: true }),
-    );
+  // Décision de Hermann du 16/11/2026 : « La modale ne doit pas fixer la charge à 0,25 kg quand on choisit « Avec », mais un champ
+  // avec un trait horizontal et un fond rouge ». [→ 0,25 kg sur l'uniforme et sur chaque ligne — remplacé le 16/11/2026.]
+  it("aucune valeur mémorisée, ou toutes nulles → charge à renseigner, aucune valeur inventée (16/11/2026)", () => {
+    const uniform = reactivateLoad(uniformParameters({ target: 30, loadKg: 0 }));
+    expect(uniform).toEqual(uniformParameters({ target: 30, loadKg: 0, loadEnabled: true }));
+    expect(loadToFill(uniform)).toBe(true);
+    const variable = reactivateLoad(variableParameters({ rows: [[30, 10, 0], [30, 10, 0], [30, 10, 0]] }));
+    expect(variable).toEqual(variableParameters({ rows: [[30, 10, 0], [30, 10, 0], [30, 10, 0]], loadEnabled: true }));
+    expect(loadToFill(variable)).toBe(true);
+    // Une ligne chargée suffit : les lignes à 0 sont « sans charge » pour leur Série (Δ19).
+    expect(loadToFill(variableParameters({ rows: [[30, 10, 20], [30, 10, 0]], loadEnabled: true }))).toBe(false);
+    expect(loadToFill(uniformParameters({ target: 30, loadKg: 0 }))).toBe(false);
   });
 
   it("sinon les valeurs conservées sous Sans sont restaurées telles quelles, zéros compris", () => {

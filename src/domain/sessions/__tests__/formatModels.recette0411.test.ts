@@ -83,8 +83,10 @@ describe("For time : interrupteurs Buy-in et Buy-out (recette du 04/11/2026)", (
     const rows = [row("FOR_TIME", answers, "i", { volumes: [50] }, { buyIn: true }), row("FOR_TIME", answers, "t"), row("FOR_TIME", answers, "o", { volumes: [20] }, { buyOut: true })];
     const { blocks } = modelTimeline("FOR_TIME", answers, rows);
     const labels = blocks.map((block) => (block.kind === "WORK" ? block.label : block.kind));
-    expect(labels[0]).toBe("50 · buy-in");
-    expect(labels.at(-1)).toBe("20 · buy-out");
+    // Décision de Hermann du 15/11/2026 (« Retirer le texte « buy in » et « buy out » du cadre d’illustration »). [« 50 · buy-in »,
+    // « 20 · buy-out » — remplacés.]
+    expect(labels[0]).toBe("50");
+    expect(labels.at(-1)).toBe("20");
     expect(labels.slice(1, -1)).toEqual(["21", "15", "9"]);
   });
 });
@@ -113,7 +115,9 @@ describe("EMOM : aucun mode d'exécution par défaut (recette du 04/11/2026)", (
     const answers = { ...initialAnswers("EMOM"), seriesCount: 2 };
     const typed: MovementValues = { cells: [{ repetitions: 12, loadKg: null }, { repetitions: 12, loadKg: null }] };
     expect(typed.mode).toBeUndefined();
-    expect(summaryIssues("EMOM", answers, [{ exercise: base("a"), values: typed }])).toEqual([]);
+    // Extension proposée par Claude le 15/11/2026, non validée (`UNIT_CHOICE_AT_ADD`, « Unité à choisir » étendue à l’EMOM) : une
+    // ligne sans unité est à compléter. [Récapitulatif complet sans unité choisie — remplacé tant que l’extension est active.]
+    expect(summaryIssues("EMOM", answers, [{ exercise: base("a"), values: typed }])).toEqual([{ kind: "MISSING", index: 0 }]);
     const [built] = buildModelElements("EMOM", answers, [{ exercise: base("a"), values: typed }], newId);
     expect(built?.kind === "EXERCISE" ? built.exercise.executionParameters.mode : built?.kind === "CIRCUIT" ? built.circuit.exercises[0]?.executionParameters.mode : null).toBe("REPETITIONS");
     expect(withMovementMode(typed, "REPETITIONS").cells![0]!.repetitions).toBe(12);

@@ -686,7 +686,8 @@ describe("strings — PRE-4 story 1.1", () => {
 
 describe("strings — PRE-4 story 2.2", () => {
   it("PRE4-2.2/AC6 — préfixes uniques de la nature d'une durée : « ≈ » estimée, « ≥ » borne minimale (NFR-08)", () => {
-    expect(strings.shared.durationNature).toEqual({ estimatedPrefix: "≈ ", lowerBoundPrefix: "≥ " });
+    // Recette du 14/11/2026 (carte de séance For time) : borne haute « ≤ ».
+    expect(strings.shared.durationNature).toEqual({ estimatedPrefix: "≈ ", lowerBoundPrefix: "≥ ", upperBoundPrefix: "≤ " });
   });
 
   it("PRE4-2.2/AC6 — les préfixes du domaine (`totalClauseAmount`, exempté du lexique, AD-11) sont identiques aux clés du lexique", () => {

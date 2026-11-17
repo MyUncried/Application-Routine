@@ -53,6 +53,16 @@ describe("CircuitHeader — Circuit porteur", () => {
     expect(screen.getByTestId("header-duration")).toHaveTextContent("Sans limite");
   });
 
+  // Décision de Hermann du 14/11/2026 (For time « En alternance » / « À la suite », FT-20 à FT-23) : fiche de séance selon le mode.
+  it.each([
+    ["SERIES", "tours", "alternées"],
+    ["TOURS", "séries", "à la suite"],
+  ] as [CircuitNature, string, string][])("For time %s : « 3 %s · %s »", (nature, unit, adjective) => {
+    renderCarrier({ key: "FOR_TIME", settings: { restBetweenRoundsSeconds: 0 } }, nature, 3);
+    expect(screen.getByTestId("header-counter-unit")).toHaveTextContent(unit);
+    expect(screen.getByTestId("header-counter-adjective")).toHaveTextContent(adjective);
+  });
+
   // Contre-recette n° 3 ter du 03/11/2026 (Hermann : « Changer "jusqu'à l'échec" par "à l'échec" »).
   it("Death by alterné : « à l'échec », aucune durée d'en-tête (A2)", () => {
     renderCarrier({ key: "DEATH_BY", settings: {} }, "SERIES", 1);
