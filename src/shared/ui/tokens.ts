@@ -226,6 +226,10 @@ export const colors = {
   // Niveau, archivage, filet de famille, feuilles de pile, champ Rechercher.
   movementCardDescription: "#7A7A80",
   movementCardShadow: "#1A1A26",
+  // Grille du catalogue des Mouvements (Figma `12530:27177`, 16/11/2026) : nom de la carte de grille (`#14171c`).
+  movementGridCardName: "#14171C",
+  // Liseré de la pile déployée en grille (Figma `12478:26998`) : bleu KODJO à 60 %.
+  movementGridRail: "rgba(5, 8, 229, 0.6)",
   movementLevelAction: "#8C8C94",
   movementArchiveAction: "#F08C33",
   movementFamilyRail: "rgba(5, 8, 229, 0.35)",
@@ -359,6 +363,9 @@ export const type = {
   // commande Filtrer étendue, action Réinitialiser.
   movementCardDescription: { ...regular, fontSize: 12, lineHeight: 16 },
   movementCardLevel: { ...medium, fontSize: 12, lineHeight: 15 },
+  // Grille du catalogue des Mouvements à quatre colonnes (Figma `12530:27177`, décision de Hermann du 16/11/2026 : « Écrire le
+  // texte plus petit » ; « Le texte pas en gras ») : nom de la carte de grille, Inter Regular 10,5, deux lignes au plus.
+  movementGridCardName: { ...regular, fontSize: 10.5, lineHeight: 13 },
   swipeActionLabel: { ...semiBold, fontSize: 11, lineHeight: 13 },
   searchField: { ...regular, fontSize: 15, lineHeight: 18 },
   filterCommandTitle: { ...medium, fontSize: 11, lineHeight: 13 },

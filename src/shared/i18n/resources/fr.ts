@@ -1720,6 +1720,9 @@ export const fr = {
         newInPileBadge: "New ↓",
         newAccessibility: "nouveau",
         newInPileAccessibility: "contient un niveau nouveau",
+        // Décision de Hermann du 16/11/2026 (CE-MVT-03, Bascule) : présentation en liste ou en grille de photos.
+        viewList: "Afficher en liste",
+        viewGrid: "Afficher en grille",
         // Recette A/B (D03) : croix d'effacement de la recherche.
         searchClear: "Effacer la recherche",
         // Recette A/B (B08, MFN-05) : réordonnancement des Niveaux d'une pile déployée.
