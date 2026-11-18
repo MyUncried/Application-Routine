@@ -9,12 +9,20 @@ import { formatSpokenTime } from "@/features/planning/planningSummary";
  * - RM-052 : la demande système n'a lieu qu'à la première activation d'un rappel pendant une planification
  *   (`ensurePermission`, appelée par le formulaire).
  * - RM-053 : refus ou indisponibilité → le rappel reste désactivé ; la planification s'enregistre quand même.
+ * - RM-054b : le rappel emporte la première Séance retenue pour son occurrence ; son toucher ouvre l'écran d'Exécution.
  * - Fenêtre glissante : `refresh` annule les rappels de planification programmés et reprogramme la fenêtre courante.
  */
 
 export type NotificationPermission = "granted" | "denied" | "undetermined";
 
-export type ScheduledReminder = { readonly id: string; readonly fireAt: Date; readonly title: string; readonly body: string };
+/** `sessionId` : première Séance retenue pour l'occurrence, ouverte au toucher du rappel (RM-054b). */
+export type ScheduledReminder = {
+  readonly id: string;
+  readonly fireAt: Date;
+  readonly title: string;
+  readonly body: string;
+  readonly sessionId: string;
+};
 
 /** Port vers les notifications locales du système (adaptateur `expo-notifications`). */
 export interface LocalNotifications {
@@ -22,6 +30,11 @@ export interface LocalNotifications {
   requestPermission(): Promise<NotificationPermission>;
   /** Remplace l'ensemble des rappels de planification programmés par `reminders`. */
   replaceReminders(reminders: readonly ScheduledReminder[]): Promise<void>;
+  /**
+   * RM-054b : appelle `listener` avec la Séance d'un rappel touché, y compris celui qui a lancé l'application.
+   * Retourne la fonction de désabonnement.
+   */
+  onReminderOpened(listener: (sessionId: string) => void): () => void;
 }
 
 export type ReminderSchedulerDeps = {
@@ -67,6 +80,7 @@ export class ReminderScheduler {
         return {
           id: reminder.id,
           fireAt: reminder.fireAt,
+          sessionId: reminder.sessionIds[0]!,
           title: reminderTitle(reminder.sessionIds.map((sessionId) => names.get(sessionId)!)),
           body: planningStrings.reminder.body.replace("{time}", formatSpokenTime(time)),
         };

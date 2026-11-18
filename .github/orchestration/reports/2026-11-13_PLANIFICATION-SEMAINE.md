@@ -150,3 +150,11 @@ Communiqués dans le message de livraison (hash du commit contenant ce rapport, 
 - Conflits résolus : `manifest.json` (icône Planifier + icônes d'Exécution gardées), `package.json` / `package-lock.json` (`expo-network` de `main` + `expo-notifications`), `constants.ts`, `migrateDatabase.ts`, `migration030.ts` (version de `main`). Assertions de version courante des tests de migration : 30 → 31.
 - Tests : `jest` 397 suites, 6 164 réussis, 32 ignorés ; `tsc` propre ; `eslint src app` : rien sur les fichiers de la branche (29 problèmes préexistants dans des fichiers de `main` non modifiés ici).
 - Conséquence recette : `expo-network` est un nouveau module natif et la base installée par la build f3600cd7 est numérotée selon l'ancienne 030. **Supprimer Routine Dev de l'iPhone et installer une nouvelle build** (données de test).
+
+## Complément du 18/11/2026 — toucher d'un rappel (recette)
+
+- Écart de recette (Hermann, 18/11) : « lorsqu'une notification apparaît, cliquer dessus ne fait rien actuellement ». Décision : écran d'Exécution sans démarrage (« 1. Ok ») ; première Séance prévue à l'occurrence (« 2. A. »).
+- Classe **B** : règle **RM-054b** (ch10), note technique ch12 §12.13, registre ch07 (section « Planification — toucher d'un rappel », numéro D- à attribuer à l'intégration dans `main`), annexes Index et Matrice.
+- Code : le rappel emporte `sessionId` (première Séance retenue, motifs compris) ; `LocalNotifications.onReminderOpened` (réponse de lancement consommée une fois + écouteur, action par défaut seulement, dédoublonnage par identifiant) ; `ReminderOpenGate` monté dans `app/_layout.tsx` ouvre `/execution?sessionId=…`, sauf Exécution déjà ouverte.
+- Tests : `reminders.test.ts` (séance emportée, « 1 fois sur 2 ») ; `ReminderOpenGate.test.tsx` (ouverture, Exécution en cours, désabonnement).
+- Restent à vérifier sur iPhone : toucher avec l'application fermée, en arrière-plan et au premier plan. Les rappels programmés avant ce correctif ne portent pas la Séance : ils sont reprogrammés à l'ouverture suivante de l'application.

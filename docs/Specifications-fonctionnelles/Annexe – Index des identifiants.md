@@ -740,6 +740,7 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [RM-053](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
 | [RM-054](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
 | [RM-054a](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
+| [RM-054b](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
 | [RM-055](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance) | 10 | Exécution d’une Séance |
 | [RM-056](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance) | 10 | Exécution d’une Séance |
 | [RM-057](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance) | 10 | Exécution d’une Séance |

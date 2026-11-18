@@ -2006,6 +2006,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-053 | En cas de refus ou d’indisponibilité de l’autorisation, le rappel reste désactivé ; la planification peut néanmoins être enregistrée. |
 | RM-054 | Les notifications locales sont planifiées selon la stratégie technique définie au chapitre 12. |
 | RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. |
+| RM-054b | Toucher un rappel ouvre l’écran d’Exécution (CE-EXEC-SESSION-01) de la première Séance prévue à cette occurrence, dans l’ordre de la liste et compte tenu des motifs « x fois sur n ». L’écran s’ouvre sans rien exécuter : seul « Démarrer » lance la séance. Une Exécution déjà ouverte n’est pas quittée. (Décision de Hermann du 18/11/2026.) |
 
 ### Planification multi-contenus
 

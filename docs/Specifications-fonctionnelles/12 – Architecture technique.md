@@ -610,6 +610,8 @@ les notifications futures correspondantes doivent être recalculées ou supprim�
 
 L’application ne demande pas l’autorisation de notification au lancement. Elle vérifie l’état de l’autorisation lorsque l’utilisateur active pour la première fois un rappel pendant une planification, explique l’usage, puis déclenche la demande système. Si l’autorisation est refusée, le rappel n’est pas activé et l’interface indique que l’autorisation peut être modifiée dans les réglages du système.
 
+Ouverture d’un rappel (RM-054b, 18/11/2026) : chaque notification porte, outre l’identité de son occurrence, l’identifiant de la première Séance retenue pour cette occurrence (calculé à la programmation, motifs « x fois sur n » compris). Le toucher est traité au premier plan comme au lancement de l’application (réponse conservée par le système, consommée une seule fois) ; seule l’action par défaut est prise en compte. L’application ouvre alors l’écran d’Exécution de cette Séance, sans créer d’Exécution ; si une Exécution est déjà ouverte dans le processus, elle n’est pas quittée.
+
 ## 12.14 Médias
 
 L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).

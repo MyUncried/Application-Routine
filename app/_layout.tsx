@@ -15,6 +15,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
 import { ExecutionRecoveryGate } from "@/features/execution/ExecutionRecoveryGate";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
+import { ReminderOpenGate } from "@/features/planning/ReminderOpenGate";
 import { CreationDraftProviders } from "@/features/sessions/CreationDraftProviders";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
@@ -194,6 +195,8 @@ export default function RootLayout() {
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
           {/* PRE-10.2 (ch12 §12.33) : Exécution interrompue détectée au démarrage → Reprendre / Arrêter la séance. */}
           {fontsSettled && databaseReady && !showAppSplash ? <ExecutionRecoveryGate /> : null}
+          {/* RM-054b : toucher un rappel ouvre l'écran d'Exécution de la première Séance de son occurrence. */}
+          {fontsSettled && databaseReady && !showAppSplash ? <ReminderOpenGate /> : null}
           {showAppSplash ? (
             <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}

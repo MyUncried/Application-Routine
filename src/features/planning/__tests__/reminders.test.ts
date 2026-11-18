@@ -56,6 +56,7 @@ function fakeNotifications(initial: NotificationPermission, answer: Notification
     replaceReminders: async (reminders) => {
       scheduled.push([...reminders]);
     },
+    onReminderOpened: () => () => undefined,
   };
   return { port, scheduled };
 }
@@ -94,6 +95,29 @@ describe("ReminderScheduler (RM-051 à RM-053)", () => {
       fireAt: new Date(2030, 7, 5, 7, 45),
       title: "Gainage",
       body: "Séance prévue à 8 h.",
+      sessionId: "s1",
     });
+  });
+
+  it("RM-054b : le rappel emporte la première Séance retenue pour son occurrence, motifs x fois sur n compris", async () => {
+    const { port, scheduled } = fakeNotifications("granted", "granted");
+    const twoContents: Routine = {
+      ...base,
+      exclusions: [],
+      entries: [
+        { id: "e1", sessionId: "s2", frequency: { x: 1, n: 2, positions: [1] } },
+        { id: "e2", sessionId: "s1", frequency: EVERY_TIME },
+      ],
+    };
+    await new ReminderScheduler({
+      ...deps(port),
+      listRoutines: async () => [twoContents],
+      activeSessionNames: async () => new Map([["s1", "Gainage"], ["s2", "Mobilité"]]),
+    }).refresh();
+    expect(scheduled[0]!.slice(0, 3).map((reminder) => [reminder.id, reminder.sessionId])).toEqual([
+      ["r1|2030-08-05T08:00", "s2"],
+      ["r1|2030-08-08T08:00", "s1"],
+      ["r1|2030-08-12T08:00", "s2"],
+    ]);
   });
 });

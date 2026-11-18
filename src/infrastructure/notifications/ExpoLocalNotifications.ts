@@ -4,11 +4,15 @@ import type { LocalNotifications, NotificationPermission, ScheduledReminder } fr
 
 /**
  * Adaptateur `expo-notifications` des rappels de Routine (chapitre 12 « Notifications »). Seuls les rappels marqués
- * `kind: "routine-reminder"` sont annulés puis reprogrammés : aucune autre notification n'est touchée.
+ * `kind: "routine-reminder"` sont annulés puis reprogrammés : aucune autre notification n'est touchée. Le toucher d'un
+ * rappel (action par défaut) est signalé avec sa Séance (RM-054b).
  */
 const KIND = "routine-reminder";
 
 let handlerInstalled = false;
+
+/** Rappels déjà ouverts : la réponse de lancement et l'écouteur peuvent signaler le même toucher. */
+const openedReminders = new Set<string>();
 
 function installForegroundHandler() {
   if (handlerInstalled) return;
@@ -41,9 +45,33 @@ export const expoLocalNotifications: LocalNotifications = {
     }
     for (const reminder of reminders) {
       await Notifications.scheduleNotificationAsync({
-        content: { title: reminder.title, body: reminder.body, data: { kind: KIND, id: reminder.id } },
+        content: { title: reminder.title, body: reminder.body, data: { kind: KIND, id: reminder.id, sessionId: reminder.sessionId } },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminder.fireAt },
       });
     }
+  },
+  onReminderOpened(listener: (sessionId: string) => void) {
+    const open = (response: Notifications.NotificationResponse | null | undefined) => {
+      if (!response || response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+      const identifier = response.notification.request.identifier;
+      const data = response.notification.request.content.data;
+      if (data?.kind !== KIND || typeof data.sessionId !== "string" || openedReminders.has(identifier)) return;
+      openedReminders.add(identifier);
+      listener(data.sessionId);
+    };
+    // Rappel touché alors que l'application était fermée : réponse conservée par le système, consommée une fois.
+    let active = true;
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (!active) return;
+        open(response);
+        return Notifications.clearLastNotificationResponseAsync();
+      })
+      .catch(() => undefined);
+    const subscription = Notifications.addNotificationResponseReceivedListener(open);
+    return () => {
+      active = false;
+      subscription.remove();
+    };
   },
 };
