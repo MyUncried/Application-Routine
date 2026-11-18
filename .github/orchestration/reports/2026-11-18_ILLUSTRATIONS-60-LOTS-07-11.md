@@ -33,18 +33,18 @@ Génération Figma `generate_image` (`gpt-image-2.5-flare`, fichier d'atelier `u
 | 09 | FIT-HYR-003 | Sled pull | `catalogue/illustrations/20261117/FIT-HYR-003.webp` | `f92c7c64e5bf5db6d9f33b86f3417c0439b5a13e` | `dd3d34bc5c4abcbb595edbfe068ac9ff728ff312` |
 | 09 | FIT-HYR-002 | Sled push | `catalogue/illustrations/20261117/FIT-HYR-002.webp` | `41d5cbf020813ad67165f1ea0455cabfeea4135b` | `8f802504e7cf5a7e6b44272cd502224f6a4b1962` |
 | 09 | FIT-PIL-007 | Spine Stretch Forward | `catalogue/illustrations/20261117/FIT-PIL-007.webp` | `ea11868bfb9bd041b6b7ffe731506ba187d716e8` | `6308aea8acc8c99f843d292818d332d15bfd5529` |
-| 10 | FIT-HYR-010 | Step-up sur plateforme | — | non fait | non fait |
-| 10 | FIT-CRO-010 | Strict pull-up (traction stricte) | — | non fait | non fait |
-| 10 | FIT-PIL-009 | Swimming | — | non fait | non fait |
-| 10 | FIT-YOG-001 | Tadasana (montagne) | — | non fait | non fait |
-| 10 | FIT-PIL-001 | The Hundred | — | non fait | non fait |
+| 10 | FIT-HYR-010 | Step-up sur plateforme | `catalogue/illustrations/20261117/FIT-HYR-010.webp` | `90a8ab968be8b37a12a7a29241f487b991b96096` | `9b56b199ab7587d04e0bb39d2ec8657c3f80b4bd` |
+| 10 | FIT-CRO-010 | Strict pull-up (traction stricte) | `catalogue/illustrations/20261117/FIT-CRO-010.webp` | `c8af2b57162668eaebff601ef184380ec5d262bd` | `6957db5006863aa9cd7bb51f0a93b6a0ada091bf` |
+| 10 | FIT-PIL-009 | Swimming | `catalogue/illustrations/20261117/FIT-PIL-009.webp` | `9561d2c2c3c2c1ae439c9d71b73d945f266ae541` | `3ce83d87b1744439d324056d7b4027997d698584` |
+| 10 | FIT-YOG-001 | Tadasana (montagne) | `catalogue/illustrations/20261117/FIT-YOG-001.webp` | `702bba33f7d4f97b215c1e58e6568b7d27fbe824` | `e918d19febd78698a5a9c6baaa772864c57f6622` |
+| 10 | FIT-PIL-001 | The Hundred | `catalogue/illustrations/20261117/FIT-PIL-001.webp` | `55203e659754faded9188255ec5d6236ba9cc611` | `a4917db015ea1b4110801b80dd484c0d6d994f31` |
 | 11 | FIT-CRO-006 | Thruster | — | non fait | non fait |
 | 11 | FIT-YOG-009 | Trikonasana (triangle) | — | non fait | non fait |
 | 11 | FIT-YOG-007 | Virabhadrasana II (guerrier II) | — | non fait | non fait |
 | 11 | FIT-YOG-008 | Vrksasana (arbre) | — | non fait | non fait |
 | 11 | FIT-HYR-008 | Wall balls | — | non fait | non fait |
 
-Total versionné et rattaché : **50/60**.
+Total versionné et rattaché : **55/60**.
 
 ## Anomalies et générations écartées
 
@@ -52,6 +52,7 @@ Total versionné et rattaché : **50/60**.
 - Toutes les fiches : rendu sur appareil non vérifié.
 - Lot 08 : 6 générations. FIT-PIL-010 (Side Kick) : première génération écartée (abduction de la jambe vers le plafond au lieu du balancement avant/arrière) ; seconde retenue en vue plongeante, légère rotation du buste visible. FIT-PIL-003 (Single Leg Circle) : le cercle est suggéré par deux positions de la jambe (verticale puis inclinée), sans tracé. Changement de mise au format à partir de FIT-YOG-010 : le fond est prolongé en haut (hauteur portée de 1024 à 1048 px avant redimensionnement) au lieu de rogner 14 px de chaque côté, pour ne pas couper pieds ou équipement.
 - Lot 09 : 6 générations. FIT-PIL-005 (Single Leg Stretch) : première génération écartée (buste trop relevé, deux phases identiques) ; seconde retenue avec buste plus bas, mais l'alternance des jambes reste peu lisible entre les deux phases. FIT-HYR-003 (Sled pull) : cadrage serré (dos et traîneau proches des bords). FIT-PIL-007 (Spine Stretch Forward) : enroulement vers l'avant modéré.
+- Lot 10 : 8 générations. FIT-HYR-010 (Step-up) : première génération écartée (box trop haute, cuisse quasi horizontale, contraire à « marche ou box basse ») ; seconde retenue (step d'environ 25 cm). FIT-PIL-009 (Swimming) : deux générations écartées (phases identiques et bras/jambe levés apparemment du même côté ; puis bras au repos le long du corps), troisième retenue en vue de dessus : deux bras devant, alternance en diagonale lisible, amplitude peu visible. FIT-CRO-010 (Strict pull-up) : hauteur de barre différente entre les deux phases. FIT-YOG-001 (Tadasana) : posture unique présentée de face et de profil (deux vues, pas deux phases). FIT-PIL-001 (The Hundred) : tibias légèrement inclinés plutôt que parallèles au sol ; battements de bras non représentables.
 
 ## Statut
 
