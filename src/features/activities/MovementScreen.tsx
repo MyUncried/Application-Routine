@@ -719,6 +719,7 @@ export function MovementSheet({
           bodyLocked={isNameBlocking}
           keepNameFocusOnSubmit={isNameBlocking}
           level={levelMenu}
+          catalogueIllustration={importedFrom?.illustration}
           mediaService={service}
           mediaDraftId={mediaDraftId}
           finishLabel={isSessionContext ? t.sessionFinish : t.finish}

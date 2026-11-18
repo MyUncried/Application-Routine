@@ -47,6 +47,7 @@ export async function importedMovementLabel(movementId: string): Promise<string 
 export type ImportedMovementInfo = {
   /** Bibliothèques installées qui contiennent la fiche. */
   readonly libraries: readonly string[];
+  readonly illustration?: { readonly uri: string; readonly label: string };
   readonly catalogueId: string;
   readonly sheetId: string;
   readonly revision: string;
@@ -75,7 +76,11 @@ export async function importedMovementInfo(movementId: string): Promise<Imported
   const containing = (await registry.installedLibraries()).filter((entry) =>
     entry.library.members.some((member) => member.catalogueId === record.catalogueId && member.sheetId === record.sheetId));
   const provenance = record.sheet.provenance;
+  const photo = record.sheet.media.find((item) =>
+    item.kind === "PHOTO" && item.storage === "EMBEDDED" && item.rightsStatus === "PERMISSION_CONFIRMED");
+
   return {
+    ...(photo ? { illustration: { uri: photo.url, label: record.sheet.content.name } } : {}),
     libraries: containing.map((entry) => entry.library.title),
     catalogueId: record.catalogueId,
     sheetId: record.sheetId,
