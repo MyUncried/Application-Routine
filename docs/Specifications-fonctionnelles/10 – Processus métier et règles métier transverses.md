@@ -2006,7 +2006,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-052 | La demande d’autorisation système est déclenchée dans le contexte de la première activation d’un rappel pendant une planification. |
 | RM-053 | En cas de refus ou d’indisponibilité de l’autorisation, le rappel reste désactivé ; la planification peut néanmoins être enregistrée. |
 | RM-054 | Les notifications locales sont planifiées selon la stratégie technique définie au chapitre 12. |
-| RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. |
+| RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. [Remplacé le 18/11/2026, D-517 : plus d’interrupteur dans la carte Rappel ; la désactivation est à clarifier (07, À CLARIFIER 18/11/2026).] |
 | RM-054b | Toucher un rappel ouvre l’écran d’Exécution (CE-EXEC-SESSION-01) de la première Séance prévue à cette occurrence, dans l’ordre de la liste et compte tenu des motifs « x fois sur n ». L’écran s’ouvre sans rien exécuter : seul « Démarrer » lance la séance. Une Exécution déjà ouverte n’est pas quittée. (Décision de Hermann du 18/11/2026.) |
 | RM-054c | Activer le rappel présélectionne 15 min. Un appui sur « Autre » ouvre la roulette native heures / minutes (pas de 5 min, 24 h au plus) dans le voile des sélecteurs ; la valeur validée remplace le libellé « Autre » ; choisir ensuite un délai standard rend le libellé « Autre ». Tant que le rappel est activé sans délai, la planification ne peut pas être enregistrée (coche inactive). (Demandes de Hermann, recette du 18/11/2026 : k12 « Remettre 15' par défaut. » ; k13 « Appuyer sur Autre doit ouvrir la modale, la valeur choisi doit remplacer Autre, sélectionner un rappel standard fait repasser la valeur à Autre ».) [17/11/2026 : « Activer le rappel ne présélectionne aucun délai » ; « Autre » réglé par les roues d’heure du `DatePicker` dans la ligne « Rappel personnalisé » — remplacés le 18/11/2026. Avant le 17/11 : 15 min présélectionnées ; « Autre » dans une feuille « Rappel personnalisé ».] |
 
@@ -2036,7 +2036,21 @@ Chaque Routine possède sa propre règle de créneau et une liste ordonnée de r
 
 La suppression d'une Routine n'a aucun effet sur sa source. La modification de la source est prise en compte par les occurrences futures ; au démarrage d’une Exécution, un Instantané immuable de la source est créé.
 
+### Planification — grille de créneaux et rotation (D-516 à D-519)
+
+| ID | Règle |
+| --- | --- |
+| RM-253 | La Répétition génère les créneaux. Le cycle de rotation compte 1 à 7 créneaux (#1 à #7) ; au départ seul #1 est actif. Sa longueur se règle en touchant un numéro de colonne (D-516). |
+| RM-254 | Chaque séance du parcours occupe une ligne ; un point dans une colonne signifie qu’elle est jouée dans ce créneau du cycle. Au moins un point par colonne et par ligne (aucune séance sans point, aucun créneau vide). |
+| RM-255 | La mention de fréquence d’une séance (« à chaque fois » ou « x fois sur n ») est calculée en direct à partir de ses points ; elle n’est pas saisie. |
+| RM-256 | Plusieurs séances dans un même créneau forment un seul lancement, à l’heure de début, dans l’ordre des lignes ; l’ordre des lignes est celui de la sélection. |
+| RM-257 | Répétition : valeur « toutes les » / « tous les » (accord avec l’unité) / « aucune », nombre, unité, « jusqu’au » date. « aucune » = planification unique. La rangée des jours n’existe que pour l’unité semaines (D-517). |
+| RM-258 | Nom de la planification : texte libre, unique, non hérité. Copie automatique du nom de la séance quand la planification vient de son action « Planifier » ou quand une seule séance est sélectionnée ; sinon vide et obligatoire (D-519). |
+| RM-259 | Synthèse : durée en premier, sans point final ni majuscule initiale, sans « Prochain créneau » ; « X jours par semaine » quand les jours ne tiennent pas sur la ligne (D-518). |
+
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
+
+> [Remplacé le 18/11/2026, D-516 : le réglage « x fois sur n » par contenu est remplacé par la grille créneaux × rotation (RM-253 à RM-256). Texte d’origine conservé ci-dessous ; l’invariant « le créneau produit les occurrences, le contenu ne fait que les filtrer » reste valide.]
 
 #### La forme retenue
 
@@ -2090,6 +2104,8 @@ Le x du premier stepper et le nombre de pastilles sélectionnées expriment la m
 ---
 
 ### Planification des créneaux et de leurs contenus — La répétition du créneau
+
+> [Précisé le 18/11/2026, D-517 : ligne Répétition à valeur modifiable sans interrupteur, jours de la semaine pour l’unité semaines seulement, roulettes natives en popover ; voir RM-257.]
 
 #### Un interrupteur, puis une unité
 
