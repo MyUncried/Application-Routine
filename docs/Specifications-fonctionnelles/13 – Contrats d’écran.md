@@ -4396,6 +4396,37 @@ Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’ann
 
 Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
 
+### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026)
+
+#### 1. Règle
+
+Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas.
+
+#### 2. Emplacements par scénario
+
+| Scénario | Haut gauche | Haut droite | Bas gauche | Bas droite |
+|---|---|---|---|---|
+| Exercice en répétitions | objectif répétitions | — | charge | — |
+| Exercice en durée avec phases | objectif durée | — | charge | nombre de mouvements |
+| Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
+| For time | objectif du tour | temps max | charge | — |
+| AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
+| EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
+| Death by | objectif du rang | intervalle | charge | — |
+| Tabata / 30-30 | durée de la phase | — | charge | — |
+
+#### 3. Précisions
+
+- Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
+- Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
+- Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
+- Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
+
+#### 4. Limites
+
+Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
+
 ### Contrôles et layout de planification
 
 #### Règles d'interface propres à la planification
