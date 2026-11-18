@@ -4366,7 +4366,7 @@ Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-259.
 - Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel.
 - Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit.
 - Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
-- Rappel : 5 min / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Autre » ouvre la roulette.
+- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-521).
 
 #### 3. Interactions
 
@@ -4374,7 +4374,7 @@ Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle)
 
 #### 4. Points à clarifier
 
-Voir le registre (chapitre 07, À CLARIFIER du 18/11/2026) : désactivation du Rappel, RM-049 et séances manquées, unité mois / jours, unités de la roulette du Rappel.
+Aucun. Occurrences passées : rejouables (D-522) ; unité « mois » retirée (D-523).
 
 ### Contrôles et layout de planification
 
