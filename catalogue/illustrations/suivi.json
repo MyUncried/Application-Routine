@@ -123,11 +123,11 @@
     "sheetId": "REED-006",
     "name": "Descente excentrique du poignet",
     "path": "catalogue/illustrations/20261117/REED-006.webp",
-    "generation": "à corriger",
+    "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
-    "rattachement": "absent",
+    "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
     "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/REED-006.webp",
-    "anomalie": "Remontée assistée : seul le coude est soutenu ; la fiche prescrit un avant-bras sur la table, poignet au bord."
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-PIL-006",
