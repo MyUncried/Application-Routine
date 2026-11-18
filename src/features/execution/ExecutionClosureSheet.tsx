@@ -18,12 +18,17 @@ export function ExecutionClosureSheet({
   heldDurationMs,
   bottomInset,
   onSubmit,
+  title,
+  exerciseName,
 }: {
   readonly format: FormatView;
   /** Exercice en durée interrompu : durée tenue jusqu'à la Durée maximum (relevée par l'écran) ; `null` sinon. */
   readonly heldDurationMs: number | null;
   readonly bottomInset: number;
   readonly onSubmit: (payload: { readonly partialRepetitions?: number; readonly partialDurationMs?: number }) => void;
+  /** PRE-11 (T2) : titre (« Fin de l'EMOM ») et nom affiché (exercice et fenêtre) ; par défaut ceux du For time. */
+  readonly title?: string;
+  readonly exerciseName?: string;
 }) {
   const interrupted = format.interrupted;
   const duration = interrupted !== null && interrupted.mode === "DURATION";
@@ -32,7 +37,8 @@ export function ExecutionClosureSheet({
     objective?.kind !== "NUMBER" ? null : duration ? formatClock(objective.value * 1000) : t.stopRepetitions(objective.value);
   return (
     <ExecutionPartialRepetitionsSheet
-      exerciseName={interrupted?.name ?? format.name}
+      exerciseName={exerciseName ?? interrupted?.name ?? format.name}
+      {...(title !== undefined ? { title } : {})}
       targetText={targetText}
       inSeries={interrupted !== null && !duration}
       heldDurationMs={duration ? (heldDurationMs ?? 0) : null}

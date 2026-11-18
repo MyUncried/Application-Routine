@@ -55,6 +55,7 @@ export function ExecutionPartialRepetitionsSheet({
   onConfirm,
   onCancel,
   testID = "execution-partial",
+  title = t.forTimeStopTitle,
 }: {
   readonly exerciseName: string | null;
   /** [Cible − 1 comme valeur la plus haute — remplacé le 15/11/2026, recette k5 : « Mettre la Valeur limite à 99 ».] */
@@ -74,6 +75,8 @@ export function ExecutionPartialRepetitionsSheet({
   readonly onCancel?: () => void;
   /** Préfixe des identifiants (feuille de l'Arrêt, ou Clôture de la Durée maximum). */
   readonly testID?: string;
+  /** PRE-11 (T2) : titre de la feuille — « Arrêt de l'EMOM », « Fin de l'EMOM » ; « Arrêt du For Time » par défaut. */
+  readonly title?: string;
 }) {
   const [value, setValue] = useState(0);
   const held = heldDurationMs ?? null;
@@ -94,7 +97,7 @@ export function ExecutionPartialRepetitionsSheet({
             <View style={styles.headerSpacer} />
           )}
           <Text style={styles.title} accessibilityRole="header" testID={`${testID}-title`}>
-            {t.forTimeStopTitle}
+            {title}
           </Text>
           <ModalValidateAction onPress={confirm} enabled accessibilityLabel={t.validate} testID={`${testID}-validate`} />
         </View>

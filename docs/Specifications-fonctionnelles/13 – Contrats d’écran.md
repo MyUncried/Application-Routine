@@ -2768,6 +2768,12 @@ Les captures de composition ne prouvent pas le layout d’exécution. Les nombre
 
 Réemploi du shell Exécution ; cadran de fenêtre et contexte exercice. Position précise des informations propres au format à illustrer avant qualification visuelle.
 
+[Complété le 18/11/2026 pour le Death by — PRE-11 T4, registre ch07 « Death by — exécution (18/11/2026) » : écran de l'EMOM (grand chrono = temps restant de la fenêtre du rang, « Repos » orange, barre Arrêt / Pause désactivée / « Suivant ») ; compteur Tour = rang en cours ; fenêtre manquée : écran figé et feuille « Fin du Death by » (coche seule) ; feuille « Arrêt du Death by » ; aucun bandeau.] [Complété le 18/11/2026, recette de l'EMOM (registre ch07 « EMOM — recette iPhone (18/11/2026) ») : « Repos » en titre ; coin d'objectif vert pendant le repos et clignotant aux 3 dernières secondes ; barre du Format dès le Compte à rebours initial.]
+
+[Complété le 18/11/2026 pour l'AMRAP — PRE-11 T3, registre ch07 « AMRAP — exécution (18/11/2026) » : écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; compteur Tour sans total ; à l'échéance, écran figé et feuille « Fin du bloc » (exercice en cours, puis buy-in À l'échec) ; feuille « Arrêt de l'AMRAP ».]
+
+[Complété le 18/11/2026 pour l'EMOM — PRE-11 T2, registre ch07 « EMOM — exécution (18/11/2026) » : disposition du Figma `8982:15709` (grand chrono = temps restant de la fenêtre, « Repos » orange dans le cercle, portion travaillée de l'anneau dans la couleur du travail) ; barre du For time (Arrêt, Pause désactivée, « Suivant » 72) ; feuille « Arrêt de l'EMOM » ; bandeau non bloquant Q1 au-dessus de la barre ; feuille « Fin de l'EMOM » par fenêtre restant à saisir. L'appui sur le cadran est porté par « Suivant » (À CLARIFIER).] [Remplacé en partie le 18/11/2026, recette iPhone (registre ch07 « EMOM — recette iPhone (18/11/2026) ») : plus de bandeau ; « Repos » en titre, plus dans le cercle ; coin d'objectif conservé sur fond vert pendant le repos, clignotant aux 3 dernières secondes de chaque fenêtre ; barre du Format dès le Compte à rebours initial ; feuille « Fin de l'EMOM » sur écran figé, nom « Mouvement · série k » ; synthèse : une ligne par Série.]
+
 #### 8. Éléments obligatoires
 
 Objectif et fenêtre courante ; temps restant ; distinction travail/repos ; rang distinct de tours acquis Death by.
@@ -2855,7 +2861,7 @@ Tours acquis par appuis valides, dernière fenêtre non acquise, répétitions p
 
 #### 7. Structure de l’écran
 
-Confirmation à deux choix métier : Limite atteinte / Abandonner ; saisie des répétitions partielles lorsqu’applicable ; synthèse ensuite.
+Confirmation à deux choix métier : Limite atteinte / Abandonner ; saisie des répétitions partielles lorsqu’applicable ; synthèse ensuite. [Remplacé le 18/11/2026 — arbitrage de Hermann (spec PRE-11 §5 point 30, « Feuille du For time ») : pas de choix « Limite atteinte / Abandonner » ; fenêtre manquée : écran figé, feuille « Fin du Death by » à coche seule (exercice, objectif du rang, répétitions faites ou durée tenue), puis élément suivant (D3) ; l'abandon passe par l'Arrêt (feuille « Arrêt du Death by », puis synthèse). Registre ch07, « Death by — exécution (18/11/2026) ».]
 
 #### 8. Éléments obligatoires
 

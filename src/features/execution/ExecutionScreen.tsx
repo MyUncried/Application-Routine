@@ -23,12 +23,18 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Frame } from "@/domain/execution/kernel";
+import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
+import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/deathBy";
+import { EMOM_PILOT, type EmomLocal } from "@/domain/execution/policies/emom";
 import { FOR_TIME_PILOT, type ForTimeLocal } from "@/domain/execution/policies/forTime";
 import {
+  formatKindOfLeaf,
+  planLeafOf,
   projectExecution,
   type ExecutionProjection,
   type NextView,
 } from "@/domain/execution/projection";
+import { seriesLines, type OccurrenceResult } from "@/domain/execution/results";
 import type { Profile } from "@/domain/preferences/Profile";
 import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
@@ -316,14 +322,16 @@ export function ExecutionScreen({
         const endedAtMs = active === null ? null : forTimeWorkEndedAt(active.state.frames);
         const endView = (fallback: ExecutionProjection) =>
           previous === null ? fallback : projectExecution(previous.plan, previous.state, endedAtMs ?? service.now());
-        const nowWork = now.status === "RUNNING" && now.format?.kind === "FOR_TIME" && now.format.phase === "WORK";
+        // PRE-11 (T3) : de même à l'échéance d'un bloc AMRAP (arbitrage de Hermann du 18/11/2026 : « écran figé à l'échéance »).
+        // PRE-11 (T4) : de même à la fenêtre manquée d'un Death by (même arbitrage : « écran figé à l'échéance »).
+        const nowWork = now.status === "RUNNING" && freezesAtEnd(now.format?.kind) && now.format?.phase === "WORK";
         if (nowWork) lastWork.current = active;
-        if (now.phase === "CLOSURE" && now.format?.kind === "FOR_TIME" && now.format.interrupted !== null) {
+        if (now.phase === "CLOSURE" && freezesAtEnd(now.format?.kind) && now.format?.interrupted !== null && now.format?.interrupted !== undefined) {
           if (previous !== null) setCapView((current) => current ?? endView(now));
         } else if (now.phase !== "SESSION_END" && now.status !== "FINISHED") setCapView(null);
         const step = lastOnStep.current;
         if (step === null) return;
-        const onStep = nowWork && now.target === step.target;
+        const onStep = nowWork && forTimeLike(now.format?.kind) && now.target === step.target;
         if (onStep) lastOnStep.current = now;
         else setFrozenView((current) => current ?? endView(step));
       }),
@@ -346,7 +354,7 @@ export function ExecutionScreen({
     lastOnStep.current = null;
     setFrozenView(null);
   };
-  const liveForTimeWork = live !== null && live.status === "RUNNING" && live.format?.kind === "FOR_TIME" && live.format.phase === "WORK";
+  const liveForTimeWork = live !== null && live.status === "RUNNING" && forTimeLike(live.format?.kind) && live.format?.phase === "WORK";
   const frozen = partialOpen && frozenView !== null && live !== null && live.status !== "FINISHED";
   // Borne atteinte (recette du 18/11/2026) : l'écran reste sur le dernier exercice pendant la Clôture, et pendant la Fin de séance qui suit
   // aussitôt sautée.
@@ -510,6 +518,7 @@ export function ExecutionScreen({
     const status = active.businessStatus ?? "INTERRUPTED";
     const occurrences = service.occurrences();
     const partials = service.partialRepetitions();
+    const emomOccurrence = (occurrence: OccurrenceResult) => formatKindOfLeaf(active.plan, occurrence.series[0]?.key ?? "") === "EMOM";
     return (
       <View style={[styles.screen, paddings]} testID="execution-end">
         <Text style={styles.sessionName}>{active.plan.sessionName}</Text>
@@ -544,12 +553,29 @@ export function ExecutionScreen({
                   ? t.end.exercisePartial
                   : t.end.exerciseCompleted}{" "}
                 {/* Recette du 15/11/2026 (g7) : répétitions saisies pour la série interrompue. */}
-                {occurrence.series
-                  .flatMap((step) => (partials.has(step.key) ? [partials.get(step.key)!] : []))
-                  .map((count) => `· ${t.repetitions(count)} `)
-                  .join("")}
-                · {formatClock(occurrence.activeMs)}
+                {emomOccurrence(occurrence)
+                  ? ""
+                  : `${occurrence.series
+                      .flatMap((step) => (partials.has(step.key) ? [partials.get(step.key)!] : []))
+                      .map((count) => `· ${t.repetitions(count)} `)
+                      .join("")}· ${formatClock(occurrence.activeMs)}`}
               </Text>
+              {/* Recette EMOM du 18/11/2026 (Hermann : « Séance terminée, appui suivant à chaque série : le récapitulatif n'indique qu'une
+                  minute, pas les séries ni les répétitions » ; « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries /
+                  objectif ») : en EMOM, une ligne par Série — statut, réalisé / objectif ; le temps de travail cumulé n'est plus affiché.
+                  [Statut et temps actif de l'Exercice seuls — remplacé pour l'EMOM.] */}
+              {emomOccurrence(occurrence)
+                ? seriesLines(occurrence, (key) => planLeafOf(active.plan, key), partials).map((line) => (
+                    <Text key={line.series} style={styles.endRowStatus} testID={`execution-end-series-${occurrence.occurrenceKey}-${line.series}`}>
+                      {t.end.seriesLine(
+                        line.series,
+                        line.terminated ? t.end.exerciseCompleted : t.end.seriesNotTerminated,
+                        line.done === null ? "–" : line.mode === "DURATION" ? formatClock(line.done) : String(line.done),
+                        typeof line.target !== "number" ? undefined : line.mode === "DURATION" ? formatClock(line.target) : t.repetitions(line.target),
+                      )}
+                    </Text>
+                  ))
+                : null}
             </View>
           ))}
         </ScrollView>
@@ -572,6 +598,8 @@ export function ExecutionScreen({
   // Recette du 13/11/2026 (Hermann : « Lors d’une pause ou une pause entre les côtés, retirer le sous-titre, et n’écrire
   // que Pause ») : titre « Pause » pour les deux, sans le nom de l’exercice dessous. [« Pause entre les côtés » — remplacé.]
   const pauseLike = projection.phase === "SERIES_PAUSE" || projection.phase === "SIDE_RECOVERY";
+  // Recette EMOM du 18/11/2026 (Hermann : « Le texte Repos doit prendre la place du nom de l’exercice, pas au centre ») : titre « Repos »
+  // pendant le repos d'une fenêtre (EMOM, Death by). [Nom de l'exercice en titre, « Repos » dans le cercle — remplacé.]
   const title =
     projection.phase === "ACTIVITY"
       ? (projection.exerciseName ?? "")
@@ -683,8 +711,14 @@ export function ExecutionScreen({
   // Registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause » (16/11/2026) ; Formats §11.1 : exercice
   // en durée du tour (à lancer, en cours, retenu). En cours ou retenu, son compte à rebours prend le coin du haut à gauche
   // (« une seule forme d'angle ») : la borne n'y est pas affichée pendant la durée (à confirmer, voir le rapport).
-  const forTimeWork = projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK";
-  const duration = forTimeWork && waiting === null ? (projection.format?.duration ?? null) : null;
+  // PRE-11 (T3) : un bloc AMRAP a l'écran du For time (barre, + Tour / Suivant, exercices en durée), son grand chrono décompte le bloc.
+  const forTimeWork = forTimeLike(projection.format?.kind) && projection.format?.phase === "WORK";
+  // PRE-11 (T2) — EMOM (Figma `8982:15709`) : grand chrono = temps restant de la fenêtre ; une Série en Durée a son compte à rebours
+  // dans le coin du bas à gauche, comme le For time.
+  // PRE-11 (T4) : le Death by a l'écran de l'EMOM (fenêtre du rang, repos révélé, barre Arrêt / Suivant), sans bandeau.
+  const emomView = windowed(projection.format?.kind) ? (projection.format?.emom ?? null) : null;
+  const emomWork = emomView !== null && projection.format?.phase === "WORK";
+  const duration = (forTimeWork || emomWork) && waiting === null ? (projection.format?.duration ?? null) : null;
   const durationActive = duration !== null && duration.state !== "PENDING" ? duration : null;
   const forTimeCap =
     waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
@@ -734,30 +768,56 @@ export function ExecutionScreen({
   // Pause).
   // For time en cours (16/11/2026) : « Arrêt » sans Pause préalable, le chrono continue derrière la modale.
   const forTimeRunning = forTimeWork && projection.status === "RUNNING" && !atStopPoint;
+  // PRE-11 (T2), arbitrage de Hermann du 18/11/2026 (« Comme le For time ») : Arrêt sans Pause, chrono qui continue derrière la feuille.
+  const emomRunning = emomWork && projection.status === "RUNNING";
+  const emomBar = windowed(projection.format?.kind);
+  const deathByBar = projection.format?.kind === "DEATH_BY";
   const stopSession = async (payload?: { readonly partialRepetitions: number | null; readonly partialDurationMs?: number | null }, stopAtMs?: number | null) => {
     // Arrêt daté de l'appui (For time) : aucune Pause, y compris si la borne a ouvert la Clôture depuis (seconde recette du 17/11/2026).
-    const dated = forTimeBar && typeof stopAtMs === "number";
-    if (projection.status === "RUNNING" && typeof projection.target === "string" && !forTimeRunning && !dated)
+    const dated = (forTimeBar || emomBar) && typeof stopAtMs === "number";
+    if (projection.status === "RUNNING" && typeof projection.target === "string" && !forTimeRunning && !emomRunning && !dated)
       await service.dispatch({ type: "PAUSE", reason: "DIALOG" }, projection.target);
-    const at = (forTimeRunning || dated) && typeof stopAtMs === "number" ? { atMs: stopAtMs } : {};
+    const at = (forTimeRunning || emomRunning || dated) && typeof stopAtMs === "number" ? { atMs: stopAtMs } : {};
     await service.dispatch(payload === undefined ? { type: "STOP", ...at } : { type: "STOP", payload, ...at });
   };
   // PRE-11, corrections 3 et 4 de Hermann du 14/11/2026 : barre propre au For time — en cours, Réinitialiser inactif (48),
   // Pause orange (56), ✓ bleu (72) qui valide l'étape sans saisie ; en Pause, Arrêt rouge (48), Redémarrer bleu (72), ✓ grisé
   // inactif (48). L'Arrêt ouvre d'abord la modale « Répétitions partielles » ; sa croix revient à la Pause.
-  const forTimeBar = projection.format?.kind === "FOR_TIME";
+  const forTimeBar = forTimeLike(projection.format?.kind);
+  const amrapBar = projection.format?.kind === "AMRAP";
   const forTimeRing =
     projection.format?.kind === "FOR_TIME" && projection.timer.kind === "STOPWATCH"
       ? ringSegmentsOf(projection.format.phaseStarts.map((start) => ({ atMs: start.atMs, color: ringColorOf(start.kind) })), projection.timer.elapsedMs).past
       : null;
   const forTimeFinal = projection.format?.kind === "FOR_TIME" && projection.format.phase === "CLOSURE" && projection.timer.kind === "STOPWATCH";
+  // PRE-11 (T2) : la portion de la fenêtre déjà travaillée garde la couleur du travail ; le repos avance en orange (Figma `8982:15709`).
+  const emomRing =
+    emomView !== null && emomView.resting && emomView.workEndedMs !== null && emomView.windowMs > 0
+      ? [{ from: 0, to: Math.min(1, emomView.workEndedMs / emomView.windowMs), color: ringColorOf("ACTIVITY") }]
+      : null;
+  const ringSegments = forTimeRing ?? emomRing;
+  // Pas de fondu des textes en For time ni en EMOM : seules les valeurs changent.
+  const steadyFormat = forTimeBar || emomBar;
+  // Bouton de droite de l'EMOM : « Suivant » (travail de la fenêtre terminé, FMT-24), actif pendant une Série en Répétitions.
+  const emomNextEnabled = emomRunning && projection.phase === "ACTIVITY" && durationActive === null && projection.commands.next;
+  // Recette EMOM du 18/11/2026 (emom-1, Hermann : « Bouton suivant pas conforme (couleur de fond, épaisseur du trait…) / Bouton Pause pas
+  // conforme (taille doit rester « standard ») et doit être au format inactif ») : pendant le Compte à rebours initial d'une séance qui
+  // commence par un EMOM ou un Death by, la barre est déjà celle du Format — Pause désactivée (48), « Suivant » 72 (disque bleu plein,
+  // symbole blanc épais) qui passe le Compte à rebours. [Barre standard (Pause 72 active, Suivant 48) — remplacé.]
+  const emomAhead = projection.phase === "INITIAL_COUNTDOWN" && windowed(upcoming?.format ?? undefined);
+  const emomCommands = emomBar || emomAhead;
+  const emomRightEnabled = emomAhead ? projection.commands.next : emomNextEnabled;
+  // Clignotement du coin d'objectif aux trois dernières secondes de chaque fenêtre (recette EMOM du 18/11/2026), comme le décompte du
+  // For time : une clé par seconde affichée.
+  const emomPulse =
+    emomRunning && !still && emomView !== null && emomView.remainingMs > 0 && emomView.remainingMs <= 3000 ? Math.ceil(emomView.remainingMs / 1000) : null;
   const inSeries = projection.phase === "ACTIVITY" && projection.mode === "REPETITIONS";
   const onStop = () => {
     // Recette du 14/11/2026 (Hermann, arrêt entre deux séries : « Supprimer cette modale, l’arrêt pendant la pause amène
     // directement à l’écran de fin de séance ») : la modale des répétitions partielles ne s'ouvre que pendant une série en
     // Répétitions. [Modale « Aucune série en cours » — remplacée.]
     // Mission du 16/11/2026, règle 6 : pendant une durée, la modale s'ouvre aussi et propose la durée tenue (relevée ici).
-    if (forTimeBar && !atStopPoint && durationActive !== null) {
+    if ((forTimeBar || emomBar) && !atStopPoint && durationActive !== null) {
       // Lecture fraîche à l'instant de l'appui (l'affichage peut dater d'un rafraîchissement).
       // Recette du 17/11/2026 (ftr2-modale-duree, Hermann : « il faut remettre la modale d'arrêt de confirmation de la durée retenue » ;
       // autres remarques, b : « En durée : Le titre : "Durée tenue" ; Une seule ligne avec le nom de l'exercice, et la durée ; boutons
@@ -768,9 +828,9 @@ export function ExecutionScreen({
       lastOnStep.current = projection;
       setPartialOf({ name: projection.exerciseName, inSeries: false, targetText: formatClock(now.totalMs) });
       setPartialOpen(true);
-    } else if (forTimeBar && !atStopPoint && inSeries) {
+    } else if ((forTimeBar || emomBar) && !atStopPoint && inSeries) {
       setPartialHeldMs(null);
-      setPartialStopAtMs(forTimeRunning ? service.now() : null);
+      setPartialStopAtMs(forTimeRunning || emomRunning ? service.now() : null);
       if (forTimeRunning) lastOnStep.current = projection;
       setPartialOf({ name: projection.exerciseName, inSeries: true, targetText: projection.seriesTarget?.kind === "NUMBER" ? t.stopRepetitions(projection.seriesTarget.value) : null });
       setPartialOpen(true);
@@ -821,7 +881,7 @@ export function ExecutionScreen({
             : { lines: t.pressToRelease, color: MENTION.held };
   // Mission du 17/11/2026 (Hermann : « Fond blanc par défaut, vert quand l'exercice en durée court, orange quand son compte à rebours
   // est en pause ; jamais gris »). [Gris en attente du lancement — remplacé.]
-  const circleFill = durationActive === null || durationActive.state === "PENDING" ? undefined : DURATION_FILL[durationActive.state];
+  const circleFill = !forTimeWork || durationActive === null || durationActive.state === "PENDING" ? undefined : DURATION_FILL[durationActive.state];
 
   // Recette r6 (11/11/2026, Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents
   // éléments de l'écran. » ; 12/11/2026 : « Oui pour l'écran d'exécution de séance ») : disposition du Figma
@@ -867,7 +927,7 @@ export function ExecutionScreen({
             <Text style={styles.context} numberOfLines={1} testID="execution-context">
               {/* Recette du 12/11/2026 (Hermann : « Retirer le nom de la séance de l’écran ») : la ligne ne montre plus que l’exercice
                   en cours pendant une récupération ; sa place reste réservée. [Nom de la séance — remplacé.] */}
-              {projection.phase !== "ACTIVITY" && !pauseLike && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
+              {projection.phase !== "ACTIVITY" && projection.phase !== "WINDOW_REST" && !pauseLike && waiting === null && projection.exerciseName !== null ? projection.exerciseName : ""}
             </Text>
           )}
         </Fade>
@@ -890,16 +950,17 @@ export function ExecutionScreen({
               waiting !== null ||
               // Recette du 17/11/2026 (Hermann, constat c : « pendant la durée de changement de côté, ne pas faire tourner le
               // cercle ») ; hors For time, dont l'anneau porte le chrono global qui continue.
-              (projection.phase === "SIDE_RECOVERY" && projection.format?.kind !== "FOR_TIME"),
+              // PRE-11 (T2) : en EMOM non plus — l'anneau porte la fenêtre, qui continue.
+              (projection.phase === "SIDE_RECOVERY" && projection.format === null),
           )}
           // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au démarrage de l’exercice, le cercle guide de
           // couleur disparaît et réapparaît ») : l’anneau, vide pendant le Compte à rebours, ne s’efface pas à sa fin.
-          fading={fadingOut && !countdownNow}
+          fading={fadingOut && !countdownNow && !emomBar}
           // Recette du 17/11/2026 (Hermann : « À chaque transition d'exercice le chronomètre disparaît et réapparaît. Cela ne doit pas arriver […] ne disparaît jamais. Ne pas changer la couleur de l'anneau lorsqu'on passe en exercice en durée, ni celle du chronomètre. ») : même anneau pendant un exercice en durée. [Anneau estompé gris (Figma `12514:27223`, puis #D6DAE1) — remplacé.]
           color={ringColorOf(projection.phase)}
           // PRE-11, précision FT-15 (14/11/2026) : For time, anneau bicolore — chaque portion de la minute garde la couleur de sa
           // phase ; seule la portion en cours prend la couleur de la phase en cours (et la pastille).
-          {...(forTimeRing !== null ? { segments: forTimeRing } : {})}
+          {...(ringSegments !== null ? { segments: ringSegments } : {})}
           testID="execution-ring"
         >
           {/*
@@ -912,7 +973,7 @@ export function ExecutionScreen({
               pause et vice versa, éviter cela ») : le grand chrono n'a plus de fondu, dans toute séance ; seuls le côté (en haut) et la ligne
               du bas (phase guidée, mention) gardent le leur, hors For time. [Fondu de tout le contenu du cercle à chaque étape — remplacé.] */}
           <View style={styles.ringContent}>
-            <Fade stepKey={stepKey} out={textOut && !forTimeBar} still={same || forTimeBar} style={styles.sideSlot}>
+            <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.sideSlot}>
               {waiting !== null ? null : shownSide !== null ? (
                 // Recette du 13/11/2026 : suffixe ordinal en exposant (« 1er », « 2d »), aligné en haut du rang.
                 <View style={styles.sideRow} accessible accessibilityLabel={t.side(shownSide).spoken} testID="execution-side">
@@ -922,6 +983,8 @@ export function ExecutionScreen({
                 </View>
               ) : null}
             </Fade>
+            {/* PRE-11 (T2) : « Repos » dans le cercle, en orange (Figma `8982:15709`). Recette EMOM du 18/11/2026 : « Repos » passe en titre.
+                [« Repos » dans le cercle — remplacé.] */}
             <View style={styles.phaseSlot} />
             <View style={styles.timerSlot}>
               <Text
@@ -935,7 +998,7 @@ export function ExecutionScreen({
                 {waiting !== null ? formatClock(waiting.timedMs ?? 0) : timerText(projection)}
               </Text>
             </View>
-            <Fade stepKey={stepKey} out={textOut && !forTimeBar} still={same || forTimeBar} style={styles.objectiveSlot}>
+            <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.objectiveSlot}>
               {forTimeFinal ? (
                 <Text style={styles.guidance} numberOfLines={1} testID="execution-final-time">
                   {t.forTimeFinal}
@@ -1004,9 +1067,18 @@ export function ExecutionScreen({
             </ExecutionCornerBadge>
           </View>
         ) : repetitions !== null && ringAreaWidth !== null ? (
-          <Fade stepKey={stepKey} out={textOut && !forTimeBar} still={same || forTimeBar} style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
-              <CornerValue text={repetitions} align="left" testID="execution-objective" />
+          <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
+            <ExecutionCornerBadge
+              side="left"
+              areaWidth={ringAreaWidth}
+              // Recette EMOM du 18/11/2026 (Hermann : « Appui sur suivant : conserver le triangle des objectifs, le mettre en fond vert » ;
+              // « À chaque compte à rebours d’EMOM, faire clignoter le triangle d’objectif (si vert : vert foncé et vert, si gris : gris
+              // foncé et gris). Voir exemple du For Time. ») : fond vert pendant le repos de la fenêtre ; clignotement à chaque seconde des
+              // trois dernières de la fenêtre (EMOM, Death by).
+              {...(emomView?.resting === true ? { color: DURATION_BADGE.running } : {})}
+              pulse={emomPulse === null ? null : { key: emomPulse, color: emomView?.resting === true ? DURATION_BADGE.pulse : OBJECTIVE_PULSE_GREY }}
+            >
+              <CornerValue text={repetitions} align="left" {...(emomView?.resting === true ? { color: MENTION.running } : {})} testID="execution-objective" />
             </ExecutionCornerBadge>
           </Fade>
         ) : null}
@@ -1030,14 +1102,14 @@ export function ExecutionScreen({
           </View>
         ) : null}
         {objectiveCorner !== null && ringAreaWidth !== null ? (
-          <Fade stepKey={stepKey} out={textOut && !forTimeBar} still={same || forTimeBar} style={styles.badgeLayer}>
+          <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
             <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth}>
               <CornerValue text={objectiveCorner} align="right" testID="execution-objective" />
             </ExecutionCornerBadge>
           </Fade>
         ) : null}
         {load !== null && ringAreaWidth !== null ? (
-          <Fade stepKey={stepKey} out={textOut && !forTimeBar} still={same || forTimeBar} style={styles.badgeLayer}>
+          <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
             <ExecutionCornerBadge side="right" areaWidth={ringAreaWidth}>
               <CornerValue text={load} align="right" testID="execution-load" />
             </ExecutionCornerBadge>
@@ -1171,6 +1243,10 @@ export function ExecutionScreen({
         </>
       ) : null}
 
+      {/* PRE-11 (T2, Q1) : bandeau non bloquant d'une fenêtre EMOM non terminée. Recette EMOM du 18/11/2026 (emom-3, Hermann : « Supprimer
+          ce bandeau » ; « Si je n'appuie jamais : Retirer l'écran de saisie de résultat pendant l'effort ») : aucune saisie pendant les
+          fenêtres ; les répétitions des fenêtres non terminées sont demandées à la fin de l'EMOM (« Fin de l'EMOM »). [Bandeau — remplacé.] */}
+
       {/* Barre de commandes du Figma `1992:8132` : Son, Réinitialiser, Mettre en pause, Activité suivante, Voix. */}
       <View style={[styles.commands, veil.mounted ? styles.commandsAboveVeil : null]}>
         {veil.mounted ? <Animated.View pointerEvents="none" style={[styles.commandsVeil, { opacity: veil.opacity, bottom: -Math.max(insets.bottom - 16, spacing[8]) }]} /> : null}
@@ -1195,11 +1271,11 @@ export function ExecutionScreen({
             style={veil.mounted ? styles.aboveVeil : undefined}
             testID="execution-stop"
           />
-        ) : forTimeRunning ? (
-          // Registre ch07 (16/11/2026), Hermann : « remplacer le bouton réinitialisé par le bouton d’arrêt rouge ». [Réinitialiser
+        ) : forTimeRunning || emomRunning ? (
+          // Registre ch07 (16/11/2026), Hermann : « remplacer le bouton réinitialisé par le bouton d’arrêt rouge ». PRE-11 (T2) : EMOM. [Réinitialiser
           // inactif (correction 3 du 14/11/2026) — remplacé pour le For time en cours.]
           <IconCommand label={t.commands.stop} icon={ICONS.stop} size={48} disabled={false} onPress={onStop} testID="execution-stop" />
-        ) : forTimeBar ? (
+        ) : forTimeBar || emomCommands ? (
           <IconCommand label={t.commands.resetExercise} icon={ICONS.resetInactive} size={48} disabled dimmed={false} onPress={onReset} testID="execution-reset" />
         ) : (
           <IconCommand
@@ -1225,7 +1301,7 @@ export function ExecutionScreen({
             style={veil.mounted ? [styles.pauseCommand, styles.aboveVeil] : styles.pauseCommand}
             testID={paused ? "execution-resume" : "execution-continue"}
           />
-        ) : forTimeBar ? (
+        ) : forTimeBar || emomCommands ? (
           // Registre ch07 (16/11/2026), Hermann : « désactiver le bouton pause » ; Figma « Mettre en pause — désactivé » (48).
           // [Pause orange 56 (correction 3 du 14/11/2026) — remplacé.]
           <IconCommand label={t.commands.pause} icon={ICONS.pauseDisabled} size={48} disabled dimmed={false} onPress={noop} testID="execution-pause" />
@@ -1243,7 +1319,19 @@ export function ExecutionScreen({
             testID="execution-pause"
           />
         )}
-        {forTimeBar ? (
+        {emomCommands ? (
+          // PRE-11 (T2) : « Suivant » (72) — travail de la fenêtre terminé (FMT-24) ; inactif pendant une Série en Durée et le repos.
+          // Compte à rebours initial (recette emom-1 du 18/11/2026) : même bouton, qui passe le Compte à rebours.
+          <IconCommand
+            label={t.commands.next}
+            icon={emomRightEnabled ? ICONS.next72 : ICONS.next72Inactive}
+            size={72}
+            disabled={!emomRightEnabled}
+            dimmed={false}
+            onPress={emomAhead ? onNext : onValidate}
+            testID="execution-emom-next"
+          />
+        ) : forTimeBar ? (
           // Registre ch07 (16/11/2026) : « + Tour » (72) remplace la coche et compte un tour ; composant DSF « Bouton + Tour »
           // (Actif, Désactivé). [✓ qui valide l'étape (correction 3 du 14/11/2026) — remplacé.]
           forTimeRunning && forTimeCommand?.kind === "NEXT" ? (
@@ -1320,6 +1408,13 @@ export function ExecutionScreen({
         <ExecutionClosureSheet
           key={liveTarget ?? "closure"}
           format={live.format}
+          {...(live.format.kind === "EMOM"
+            ? { title: t.emomClosureTitle, exerciseName: t.emomWindowName(live.format.interrupted.name, live.format.emom?.closingWindow ?? 0) }
+            : live.format.kind === "AMRAP"
+              ? { title: t.amrapClosureTitle }
+              : live.format.kind === "DEATH_BY"
+                ? { title: t.deathByClosureTitle }
+                : {})}
           heldDurationMs={
             durationSample === null
               ? null
@@ -1333,8 +1428,9 @@ export function ExecutionScreen({
       ) : null}
 
       {/* For time en cours (16/11/2026) : la modale s'ouvre sans Pause ; « le chrono continue derrière la modale ». */}
-      {partialOpen && (paused || forTimeRunning || (forTimeBar && partialStopAtMs !== null)) ? (
+      {partialOpen && (paused || forTimeRunning || emomRunning || ((forTimeBar || emomBar) && partialStopAtMs !== null)) ? (
         <ExecutionPartialRepetitionsSheet
+          {...(deathByBar ? { title: t.deathByStopTitle } : emomBar ? { title: t.emomStopTitle } : amrapBar ? { title: t.amrapStopTitle } : {})}
           exerciseName={partialOf.name}
           targetText={partialOf.targetText}
           inSeries={partialOf.inSeries}
@@ -1442,7 +1538,8 @@ function Counter({
           </View>
         ) : (
           <Text style={[styles.seriesTourText, absent ? styles.counterAbsent : null]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID={testID}>
-            {absent ? "–" : `${value.current}/${value.total}`}
+            {/* PRE-11 (T3) : tour de boucle AMRAP, compte ouvert (total 0) — le rang seul. */}
+            {absent ? "–" : value.total > 0 ? `${value.current}/${value.total}` : `${value.current}`}
           </Text>
         )}
       </View>
@@ -1533,20 +1630,54 @@ const noop = () => undefined;
 const DURATION_FILL = { RUNNING: "#D1F2D9", HELD: "#FFD194" } as const;
 // `pulse` : vert plus foncé du clignotement des 3 dernières secondes (autres remarques, d, du 17/11/2026).
 const DURATION_BADGE = { running: "#BDEBC9", held: "#FFD194", pulse: "#7FD39A" } as const;
+/** Gris plus foncé du clignotement du coin d'objectif gris (recette EMOM du 18/11/2026 : « si gris : gris foncé et gris »). */
+const OBJECTIVE_PULSE_GREY = "#D3D6DE";
 const MENTION = { idle: "#8F8F94", running: "#126B38", held: "#B85408" } as const;
 /** Composant DSF « DSF / Actions / Bouton + Tour » (`12548:29210`) : 72 × 72, Actif (bleu KODJO) et Désactivé. */
 const PLUS_TOUR = { blue: "#0508E5", grey: "#B4B9C4" } as const;
 
-/** Travail d'un For time en cours (registre ch07, 16/11/2026 : l'arrière-plan ne met pas en Pause). */
+/**
+ * Travail d'un For time en cours (registre ch07, 16/11/2026 : l'arrière-plan ne met pas en Pause). PRE-11 (T2) : de même pendant les
+ * fenêtres d'un EMOM, qui s'enchaînent à l'heure quoi qu'il arrive (FMT-23, D5 ; ch10 « L'Exécution continue à progresser lorsque
+ * l'application passe en arrière-plan »).
+ */
 function inForTimeWork(frames: readonly Frame[]): boolean {
-  return frames.some((frame) => frame.spec.pilot === FOR_TIME_PILOT && (frame.local as ForTimeLocal | null)?.phase === "WORK");
+  return frames.some(
+    (frame) =>
+      (frame.spec.pilot === FOR_TIME_PILOT && (frame.local as ForTimeLocal | null)?.phase === "WORK") ||
+      (frame.spec.pilot === EMOM_PILOT && (frame.local as EmomLocal | null)?.phase === "WORK") ||
+      // PRE-11 (T3) : de même pendant un bloc AMRAP, dont la borne court quoi qu'il arrive (D1).
+      (frame.spec.pilot === AMRAP_PILOT && (frame.local as AmrapLocal | null)?.phase === "WORK") ||
+      // PRE-11 (T4) : de même pendant un Death by, dont les fenêtres s'enchaînent à l'heure (FMT-33).
+      (frame.spec.pilot === DEATH_BY_PILOT && (frame.local as DeathByLocal | null)?.phase === "WORK"),
+  );
+}
+
+/** PRE-11 (T3) : Formats qui ont l'écran du For time (barre, commandes, exercices en durée) — For time et AMRAP. */
+function forTimeLike(kind: string | undefined): boolean {
+  return kind === "FOR_TIME" || kind === "AMRAP";
+}
+
+/** PRE-11 (T4) : Formats à l'écran de l'EMOM (fenêtres, repos révélé, « Suivant ») — EMOM et Death by. */
+function windowed(kind: string | undefined): boolean {
+  return kind === "EMOM" || kind === "DEATH_BY";
+}
+
+/**
+ * Formats dont l'écran se fige à la fin du travail (borne, échéance du bloc, fenêtre manquée) — For time, AMRAP, Death by.
+ * Recette EMOM du 18/11/2026 (Hermann : « Faire disparaître la fenêtre nommé Résultat, à la place figer l'écran au dernier exercice
+ * réalisé ») : l'EMOM aussi, pendant sa Clôture « Fin de l'EMOM ». [Écran « Résultat » derrière la feuille — remplacé pour l'EMOM.]
+ */
+function freezesAtEnd(kind: string | undefined): boolean {
+  return forTimeLike(kind) || windowed(kind);
 }
 
 /** Instant de fin du travail d'un For time (borne ou fin normale), s'il vient de se terminer. */
 function forTimeWorkEndedAt(frames: readonly Frame[]): number | null {
   for (const frame of frames) {
-    if (frame.spec.pilot !== FOR_TIME_PILOT) continue;
-    const local = frame.local as ForTimeLocal | null;
+    if (frame.spec.pilot !== FOR_TIME_PILOT && frame.spec.pilot !== AMRAP_PILOT && frame.spec.pilot !== DEATH_BY_PILOT) continue;
+    // PRE-11 (T3) : de même pour l'échéance d'un bloc AMRAP. PRE-11 (T4) : et pour la fenêtre manquée d'un Death by.
+    const local = frame.local as ForTimeLocal | AmrapLocal | DeathByLocal | null;
     if (local?.phase === "CLOSURE" && typeof local.workEndedAtMs === "number") return local.workEndedAtMs;
   }
   return null;
@@ -1700,15 +1831,16 @@ const GOAL_GREEN = "#34C759";
  * dessous, à la taille de « max » et « mouv. » ; une valeur sans unité (durée, « À l'échec ») tient sur une ligne. [Nombre et unité
  * sur une ligne — remplacé.]
  */
-function CornerValue({ text, align, testID }: { text: string; align: "left" | "right"; testID: string }) {
+function CornerValue({ text, align, color, testID }: { text: string; align: "left" | "right"; color?: string; testID: string }) {
   const match = /^([\d\s.,]+)\s(\S.*)$/.exec(text);
+  const tint = color === undefined ? null : { color };
   return (
     <View style={[styles.cornerLines, { alignItems: align === "left" ? "flex-start" : "flex-end" }]} accessible accessibilityLabel={text} testID={testID}>
-      <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+      <Text style={[styles.pillText, tint]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
         {match === null ? text : match[1]}
       </Text>
       {match === null ? null : (
-        <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+        <Text style={[styles.pillText, styles.autoCountUnit, tint]} numberOfLines={1}>
           {match[2]}
         </Text>
       )}
@@ -1724,7 +1856,9 @@ function repetitionsText(projection: ExecutionProjection): string | null {
     projection.timer.kind === "COUNTDOWN"
   )
     return formatClock(projection.timer.totalMs);
-  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null) return null;
+  // Recette EMOM du 18/11/2026 (« Appui sur suivant : conserver le triangle des objectifs ») : pendant le repos d'une fenêtre, l'objectif
+  // du travail de la fenêtre reste dans le coin.
+  if ((projection.phase !== "ACTIVITY" && projection.phase !== "WINDOW_REST") || projection.seriesTarget === null) return null;
   const target = projection.seriesTarget;
   // Demande de Hermann du 14/11/2026 (soir) : « Un exercice en durée : il doit avoir dans le triangle haut à gauche la durée cible
   // de l'exercice » — durée de la Série au format des durées (`formatPhraseDuration`, « M′SS″ » ou « S″ »). [Rien pour un

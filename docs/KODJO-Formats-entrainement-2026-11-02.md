@@ -294,6 +294,10 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
   - « AMRAP — Modale exercice, dans un circuit, durée à l'échec » ;
   - « AMRAP — Modale exercice simple, à la cible » et « … à l'échec ».
 
+### 7.5 bis Exécution de l'AMRAP (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « AMRAP — exécution (18/11/2026) ». En résumé : buy-in une fois au début du premier bloc ; boucle des membres de Rôle Tour, objectif recalculé à chaque tour (incrément signé, borné à 1) ; Récupération à chaque tour dans le temps du bloc ; arrêt net à l'échéance, feuille « Fin du bloc » pour l'exercice en cours puis les buy-in À l'échec ; repos entre les blocs ; écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; bip long au début du bloc, 3 bips avant son échéance.
+
 <a id="formats-formulaire-controles"></a>
 ### 7.6 Tableaux et données effectives
 
@@ -614,6 +618,10 @@ Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouve
 
 **Écrans Figma :** « EMOM — Récapitulatif, dans chaque intervalle » (charge activée : Squats sautés 10 / 10 / 10 rép. « (+ kg) » ; Fentes avant 30 s × 3 à « (12 kg) » « (− kg) ») ; « … en alternance » et « … à la suite » (sans charge). L'écran « EMOM — Récapitulatif, saisie d'un incrément de charge négatif au clavier » est supprimé.
 
+### 10.1 Exécution de l'EMOM (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « EMOM — exécution (18/11/2026) ». En résumé : une fenêtre par Série (au tour k pour le Circuit « dans chaque intervalle ») ; deux côtés dans la même fenêtre ; « Suivant » termine le travail en Répétitions et révèle le repos ; une Série en Durée démarre à l'ouverture de la fenêtre et finit à son terme ; la fenêtre suivante commence à l'heure ; fenêtre non terminée déclarée dans un bandeau non bloquant pendant la fenêtre suivante, ou à la fin de l'EMOM [bandeau supprimé le 18/11/2026, recette : saisie à la fin de l'EMOM seulement — registre ch07 « EMOM — recette iPhone (18/11/2026) »] ; barre du For time (Arrêt, Pause désactivée) ; bip long au début de chaque fenêtre, 3 bips avant son échéance.
+
 ## 11. Application de la règle au For time
 
 [04/11/2026 (recette iPhone), Hermann : « For time — Questionnaire : il manque les interrupteurs Buy-in et Buy-out ». Le questionnaire For time porte deux interrupteurs, **Buy-in** et **Buy-out**, désactivés par défaut. Activé, chacun ouvre sa section (« Buy-in · une fois, au départ », « Buy-out · une fois, à la fin ») avec « + Ajouter » / « Changer » [remplacé le 08/11/2026 : « + Ajouter » seul, plusieurs buy-in et plusieurs buy-out — registre ch07, « Recette du 08/11/2026 au soir — buy-in / buy-out multiples »], comme le Buy-in de l'AMRAP (§7.1, §7.3) ; la boucle devient « En boucle · à chaque tour ». Interrupteur activé : son mouvement est requis pour valider ; il faut toujours au moins un mouvement en Tour (§3). Le mouvement choisi prend le Rôle correspondant (§3) ; désactiver l'interrupteur retire la section et son mouvement. Registre ch07, « Recette iPhone du 04/11/2026 ».] [Interrupteurs remplacés le 14/11/2026 (corrections 1 et 2 de Hermann du 14/11/2026, `_bmad-output/pre11/for-time-corrections-1-2-2026-11-14.md`, correction 2) : une ligne Buy-in et une ligne Buy-out, « Sans » ou un nombre de séries (commun au bloc), saisi comme le Temps limite ; un nombre active le bloc ; revenir à « Sans » retire ses exercices après confirmation.]
@@ -739,6 +747,10 @@ Le récapitulatif « Death by — Récapitulatif, à la suite » (`11411:20474`)
 **Documentation :** référence Formats §12 du complément du 5 novembre, règles métier, données/résultats, capacités et conception du moteur. Le libellé « Nombre de répétitions de départ » devient « Objectif de départ » ; la tagline et les textes doivent couvrir les deux modes et les intervalles configurables, sans imposer ici une nouvelle formulation graphique.
 
 **Écrans Figma :** récapitulatifs Death by avec un exemple mixte Répétitions/Durée. L’avertissement du premier rang n’a pas d’écran dédié : il suit la présentation des messages du formulaire.
+
+### 12.1 Exécution du Death by (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « Death by — exécution (18/11/2026) ». En résumé : rang après rang, objectif départ + incrément × (rang − 1) ; une fenêtre par rang (commune aux membres « dans chaque intervalle », une par membre en alternance) ; écran et barre de l'EMOM (Arrêt, Pause désactivée, « Suivant » qui acquiert le rang et révèle le repos) ; Série en Durée lancée à l'ouverture de la fenêtre ; fenêtre manquée : écran figé, feuille « Fin du Death by », puis élément suivant ; limite de l'intervalle : arrêt avant le rang incompatible, sans saisie ; Arrêt : feuille « Arrêt du Death by », puis synthèse ; bip long au début de chaque fenêtre, 3 bips avant l'échéance.
 
 ## 13. Sortie d'un format
 
