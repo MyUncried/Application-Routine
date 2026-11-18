@@ -372,12 +372,12 @@
   {
     "sheetId": "FIT-PIL-004",
     "name": "Rolling Like a Ball",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-PIL-004.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "03d708536e2a085143fb585b69c529dae7dead4a",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-HYR-005",
