@@ -4420,7 +4420,7 @@ Une information, un coin, dans tous les formats. Au plus quatre informations, un
 
 - Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
 - Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
-- Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
+- Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). À chaque début de tour, annonce vocale ou bip selon D-530 (18/11/2026). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
 - Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
 
 #### 4. Limites

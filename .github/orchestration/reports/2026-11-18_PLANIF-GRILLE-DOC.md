@@ -16,3 +16,4 @@
 - **Renumérotation (18/11/2026)** : D-516 à D-518 étant pris par les PR #427 et #431, les décisions de la planification sont D-519 à D-527 ; RM-253 à RM-264 et CE-UI-12 inchangés. D-527 et RM-260 à RM-264 (cycle, nom, migration) sont une proposition de Claude à valider par Hermann.
 - **Ajout EMOM en durée (18/11/2026)** : D-528, RM-265 à RM-268, CE-UI-13 (ch07, ch10, ch13) et `docs/PROMPT-CLAUDE-CODE-EMOM-DUREE-2026-11-18.md`. Compléments d'exécution (effort partiel, sons, Repos sans effet) proposés par Claude, à valider.
 - **Ajout coins du chronomètre (18/11/2026)** : D-529, CE-UI-14 et `docs/PROMPT-CLAUDE-CODE-COINS-CHRONOMETRE-2026-11-18.md`. Format « +Tour · n » proposé par Claude, à valider.
+- **Ajout annonce des tours (18/11/2026)** : D-530, RM-269, CE-UI-14 (ligne ajoutée) et `docs/PROMPT-CLAUDE-CODE-ANNONCE-TOURS-2026-11-18.md`.

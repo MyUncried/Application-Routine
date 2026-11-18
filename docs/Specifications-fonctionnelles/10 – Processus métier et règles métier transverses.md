@@ -2039,6 +2039,7 @@ La suppression d'une Routine n'a aucun effet sur sa source. La modification de l
 | RM-266 | L’effort cumulé est borné par l’objectif. À l’objectif atteint, l’écran passe seul en Repos pour les secondes restantes de la minute ; l’appui au centre est alors sans effet. |
 | RM-267 | Fin de minute avec effort inférieur à l’objectif : la minute se ferme, la suivante démarre, et le tour est enregistré en effort partiel (cumul réalisé sur objectif). |
 | RM-268 | Guidage sonore EMOM en durée : bips selon l’anneau de la minute (trois dernières secondes) ; signal au passage en Repos. |
+| RM-269 | Annonce des tours : voir D-530. Interrupteur « Annonce des tours » du Profil activé par défaut ; annonce ou bip à chaque début de tour, jamais les deux ; objectif de répétitions du tour qui démarre. |
 
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
 
@@ -2280,7 +2281,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | --- | --- |
 | RM-085 | Les Préférences MVP sont Annonces vocales, sons et vibrations par événement, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). |
 | RM-086 | Les Préférences sont sauvegardées immédiatement. |
-| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours. |
+| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours.  [Complété le 18/11/2026, D-530 : sept interrupteurs d’annonce avec « Annonce des tours ».] |
 | RM-088 | La voix utilisée est celle du système et son volume dépend du téléphone. |
 | RM-089 | La valeur initiale des vibrations par événement est activée. |
 | RM-090 | Le feedback haptique léger émis à chaque changement effectif de valeur d’une roulette est systématique dans le MVP et indépendant des vibrations par événement. |
