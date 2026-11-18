@@ -53,6 +53,12 @@ export type TimeRef = {
   /** Ancre du segment actif en cours ; `null` quand la référence est suspendue (Pause). */
   readonly anchorMs: Ms | null;
   readonly accumulatedMs: Ms;
+  /**
+   * Durée retenue seule (For time, décision de Hermann du 16/11/2026 : « Appuyer sur cette partie devient orange : le chrono
+   * principal continue de tourner, la jauge / le compte à rebours s’arrête. Il faut rappuyer pour qu’elle / qu’il reprenne. ») :
+   * référence d'étape suspendue pendant que l'Exécution court ; la reprise après une Pause ne la relance pas.
+   */
+  readonly held?: true;
 };
 
 export type ExecutionStatus = "READY" | "RUNNING" | "PAUSED" | "FINISHED";
@@ -130,6 +136,8 @@ export type EngineEffect =
   | { readonly type: "STEP_STARTED"; readonly key: string; readonly kind: LeafSpec["kind"]; readonly atMs: Ms; readonly attempt: number }
   | { readonly type: "STEP_ENDED"; readonly key: string; readonly completion: StepCompletion; readonly atMs: Ms }
   | { readonly type: "PAUSED"; readonly reason: PauseReason; readonly atMs: Ms }
+  /** For time : durée retenue (`held`) ou reprise par l'appui dans le cercle (son propre, recette du 17/11/2026). */
+  | { readonly type: "HELD"; readonly held: boolean; readonly atMs: Ms }
   | { readonly type: "FINISHED"; readonly reason: FinishReason; readonly atMs: Ms };
 
 export type EngineCommand =
@@ -145,10 +153,28 @@ export type EngineCommand =
        * chronométré passe Terminé, une pause ou une récupération est passée.
        */
       readonly validated?: boolean;
+      /**
+       * For time (registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause », 16/11/2026) : `ROUND`,
+       * « + Tour » — le tour de l'étape est terminé ; `DURATION` — lancement de l'exercice en durée qui suit dans le tour. Transmis
+       * au pilote de la portée (contribution de l'étape close), qui saute les étapes ainsi faites.
+       */
+      readonly advance?: "ROUND" | "DURATION";
     }
+  /** For time : suspendre (`HOLD`) ou reprendre (`RELEASE`) la seule durée en cours, l'Exécution continuant. */
+  | { readonly type: "HOLD" }
+  | { readonly type: "RELEASE" }
   | { readonly type: "RESET" }
-  /** Arrêter la séance : seulement depuis la Pause (ch08). */
-  | { readonly type: "STOP"; readonly payload?: unknown }
+  /** Arrêter la séance : depuis la Pause (ch08), ou en cours si une portée le permet (For time, 16/11/2026 : « Arrêt » sans Pause). */
+  | {
+      readonly type: "STOP";
+      readonly payload?: unknown;
+      /**
+       * Instant de l’appui sur « Arrêt » quand la confirmation vient plus tard, le chrono continuant derrière la modale (recette du
+       * 17/11/2026, ft-arret-serie / ft-arret-duree : « le temps enregistré doit être celui de l’instant où on a appuyé sur
+       * Arrêt, pas celui de la validation »). Borné à la lecture courante ; absent : l’instant de la commande.
+       */
+      readonly atMs?: Ms;
+    }
   /** Validation d'une Clôture (interaction bloquante, D3). */
   | { readonly type: "SUBMIT"; readonly payload: unknown }
   | { readonly type: "TICK" };
@@ -218,6 +244,11 @@ export interface Pilot {
    * la fermeture (For time : séries terminées et répétitions saisies pour la série en cours). `payload` : saisie de l'arrêt.
    */
   onStop?(local: unknown, ctx: PilotContext, payload: unknown): readonly ResultChange[];
+  /**
+   * Commandes ouvertes par la portée, refusées ailleurs (For time, 16/11/2026) : `HOLD` / `RELEASE` (durée retenue seule) et
+   * `STOP_RUNNING` (Arrêt sans Pause préalable : « le chrono continue derrière la modale »).
+   */
+  enables?(local: unknown, command: "HOLD" | "RELEASE" | "STOP_RUNNING", leaf: LeafSpec | null): boolean;
 }
 
 export type EngineEnv = {
@@ -389,15 +420,20 @@ function openLeaf(draft: Draft, spec: LeafSpec, atMs: Ms, attempt = 1, priorAtte
   if (safety !== null) {
     addRef(draft, { id: `${owner}::safety`, owner, depth, name: "safety", role: "SAFETY", budgetMs: safety, anchorMs: atMs, accumulatedMs: 0 });
   }
-  if (spec.kind === "STOP_POINT") setSessionRunning(draft, false, atMs);
+  if (outsideSessionTime(spec)) setSessionRunning(draft, false, atMs);
   newGeneration(draft);
   draft.effects.push({ type: "STEP_STARTED", key: spec.key, kind: spec.kind, atMs, attempt });
 }
 
 /**
  * Temps de Séance (durée réelle, ch09) : l'attente d'un Point d'arrêt n'y compte pas, comme la Pause
- * (arbitrage de Hermann du 09/11/2026, recette PRE-10 q-attente).
+ * (arbitrage de Hermann du 09/11/2026, recette PRE-10 q-attente). Recette du 17/11/2026 (Hermann, ft-barre : « Pendant le compte
+ * à rebours, le "Temps écoulé" ne doit pas commencer, idem pendant la fin de séance ») : ni le Compte à rebours initial, ni la Fin.
  */
+function outsideSessionTime(spec: LeafSpec): boolean {
+  return spec.kind === "STOP_POINT" || spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END";
+}
+
 function setSessionRunning(draft: Draft, running: boolean, atMs: Ms) {
   set(draft, {
     refs: draft.state.refs.map((ref) => {
@@ -499,7 +535,7 @@ function closeLeaf(draft: Draft, completion: StepCompletion, atMs: Ms, notifyPar
   }
   removeRefsOwnedBy(draft, new Set([leafTarget(leaf)]));
   set(draft, { leaf: null, rewound, history });
-  if (leaf.spec.kind === "STOP_POINT" && draft.state.status === "RUNNING") setSessionRunning(draft, true, atMs);
+  if (outsideSessionTime(leaf.spec) && draft.state.status === "RUNNING") setSessionRunning(draft, true, atMs);
   newGeneration(draft);
   draft.effects.push({ type: "STEP_ENDED", key: leaf.spec.key, completion, atMs });
   if (!notifyParent) return;
@@ -571,11 +607,11 @@ function suspendAll(draft: Draft, atMs: Ms) {
 }
 
 function resumeAll(draft: Draft, atMs: Ms) {
-  set(draft, { refs: draft.state.refs.map((ref) => (ref.anchorMs !== null ? ref : { ...ref, anchorMs: atMs })) });
+  set(draft, { refs: draft.state.refs.map((ref) => (ref.anchorMs !== null || ref.held === true ? ref : { ...ref, anchorMs: atMs })) });
   const leaf = draft.state.leaf;
-  // L'attente d'un Point d'arrêt reste hors du temps de Séance après une Pause.
-  if (leaf !== null && leaf.spec.kind === "STOP_POINT") setSessionRunning(draft, false, atMs);
-  if (leaf !== null && leaf.spec.cadenceMs !== undefined) {
+  // L'attente d'un Point d'arrêt (le Compte à rebours, la Fin) reste hors du temps de Séance après une Pause.
+  if (leaf !== null && outsideSessionTime(leaf.spec)) setSessionRunning(draft, false, atMs);
+  if (leaf !== null && leaf.spec.cadenceMs !== undefined && leafStepRef(draft.state)?.held !== true) {
     // Reprendre le bip : premier nouveau bip après un intervalle complet (§13).
     set(draft, { leaf: { ...leaf, cadenceAnchorMs: atMs } });
   }
@@ -657,6 +693,33 @@ function expire(draft: Draft, ref: TimeRef, atMs: Ms) {
   applyDecision(draft, frameIndex, pilotOf(draft.env, frame.spec).onReference(frame.local, ref.name, ctxFor(draft, frameIndex, atMs)), atMs);
 }
 
+function enabled(draft: Draft, command: "HOLD" | "RELEASE" | "STOP_RUNNING"): boolean {
+  const leaf = draft.state.leaf?.spec ?? null;
+  return draft.state.frames.some((frame) => pilotOf(draft.env, frame.spec).enables?.(frame.local, command, leaf) === true);
+}
+
+/** Retenue (`held`) ou reprise de la seule référence d'étape (For time, voir `TimeRef.held`). */
+function holdStep(draft: Draft, hold: boolean, atMs: Ms): RejectionReason | null {
+  const { state } = draft;
+  if (state.status !== "RUNNING") return "NOT_RUNNING";
+  const leaf = state.leaf;
+  const step = leafStepRef(state);
+  if (leaf === null || step === null || leaf.spec.kind !== "ACTIVITY" || leaf.spec.end !== "TIMED") return "NOT_ALLOWED";
+  if (!enabled(draft, hold ? "HOLD" : "RELEASE") || (step.held === true) === hold) return "NOT_ALLOWED";
+  const changed: TimeRef = hold
+    ? { ...step, anchorMs: null, accumulatedMs: runningMs(step, atMs), held: true }
+    : (({ held: _held, ...rest }) => ({ ...rest, anchorMs: atMs }))(step);
+  set(draft, { refs: draft.state.refs.map((ref) => (ref.id === step.id ? changed : ref)) });
+  draft.effects.push({ type: "HELD", held: hold, atMs });
+  if (leaf.spec.cadenceMs !== undefined) {
+    // Comme la Pause (T04) : seuls les intervalles complets sont acquis ; le bip repart d'un intervalle complet.
+    const completed = hold && leaf.cadenceAnchorMs !== null ? Math.floor(Math.max(0, atMs - leaf.cadenceAnchorMs) / leaf.spec.cadenceMs) : 0;
+    set(draft, { leaf: { ...leaf, cadenceAcquired: leaf.cadenceAcquired + completed, cadenceAnchorMs: hold ? null : atMs } });
+  }
+  newGeneration(draft);
+  return null;
+}
+
 function allowed(draft: Draft, command: EngineCommand["type"]): boolean {
   const leaf = draft.state.leaf?.spec ?? null;
   return draft.state.frames.every((frame) => pilotOf(draft.env, frame.spec).allows?.(frame.local, command, leaf) ?? true);
@@ -692,20 +755,25 @@ function applyCommand(draft: Draft, event: EngineEvent, atMs: Ms): RejectionReas
       touchSafety(draft, atMs);
       newGeneration(draft);
       return null;
+    case "HOLD":
+      return holdStep(draft, true, atMs);
+    case "RELEASE":
+      return holdStep(draft, false, atMs);
     case "STOP":
-      if (state.status !== "PAUSED") return "NOT_PAUSED";
+      if (state.status !== "PAUSED" && !(state.status === "RUNNING" && enabled(draft, "STOP_RUNNING"))) return "NOT_PAUSED";
       {
         // PRE-11, corrections 3 et 4 : chaque portée ouverte dit ce qui est acquis (For time : séries terminées et répétitions
         // saisies), calculé avant la fermeture et enregistré après elle, pour remplacer le résultat « interrompu » de sa clé.
+        const stopAtMs = event.atMs === undefined ? atMs : Math.min(atMs, event.atMs);
         const acquired: ResultChange[] = [];
         for (let index = state.frames.length - 1; index >= 0; index -= 1) {
           const frame = state.frames[index]!;
-          acquired.push(...(pilotOf(draft.env, frame.spec).onStop?.(frame.local, ctxFor(draft, index, atMs), event.payload) ?? []));
+          acquired.push(...(pilotOf(draft.env, frame.spec).onStop?.(frame.local, ctxFor(draft, index, stopAtMs), event.payload) ?? []));
         }
-        if (state.frames.length > 0) closeDescendants(draft, 0, "INTERRUPTED", atMs);
+        if (state.frames.length > 0) closeDescendants(draft, 0, "INTERRUPTED", stopAtMs);
         draft.results.push(...acquired);
+        finish(draft, "STOPPED", stopAtMs);
       }
-      finish(draft, "STOPPED", atMs);
       return null;
     case "NEXT":
       return next(draft, event, atMs);
@@ -735,7 +803,7 @@ function next(draft: Draft, event: Extract<EngineEvent, { type: "NEXT" }>, atMs:
     case "MANUAL":
     case "WAIT":
       // Fin normale d'une Série en Répétitions ou À l'échec (D-111) ; Continuer après un Point d'arrêt.
-      closeLeaf(draft, "COMPLETED", atMs, true);
+      closeLeaf(draft, "COMPLETED", atMs, true, event.advance === undefined ? undefined : { advance: event.advance });
       return null;
     case "TIMED": {
       const elapsed = leafElapsedMs(state, atMs);
@@ -866,7 +934,8 @@ function finalize(draft: Draft, atMs: Ms, event: EngineEvent, rejection: Rejecti
 export function restoreWithoutContinuity(state: EngineState): EngineState {
   if (state.status === "FINISHED" || state.status === "READY") return state;
   const frozenAt = state.evaluatedAtMs ?? 0;
-  const refs = state.refs.map((ref) => (ref.anchorMs === null ? ref : { ...ref, anchorMs: null, accumulatedMs: runningMs(ref, frozenAt) }));
+  // Une durée retenue (For time) repart avec la Séance à la reprise : la tentative recommence de toute façon.
+  const refs = state.refs.map(({ held: _held, ...ref }) => (ref.anchorMs === null ? ref : { ...ref, anchorMs: null, accumulatedMs: runningMs(ref, frozenAt) }));
   const leaf = state.leaf;
   if (leaf === null) {
     return { ...state, refs, status: "PAUSED", pause: { reason: "RESTORE", atMs: frozenAt }, generation: state.generation + 1 };

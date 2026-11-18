@@ -86,6 +86,16 @@ describe("Death by et For time : jusqu'à l'échec, temps mesuré (§11, §12)",
     expect(computeActivityDurationResult(exercise("f", { key: "FOR_TIME", settings: {} }))).toMatchObject({ kind: "lowerBound", knownSeconds: 0 });
   });
 
+  // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Récupération après un exercice. […] Le temps total
+  // est donc la somme des temps de travail, sans durée de repos ajoutée. »).
+  it("For time autonome : sa Récupération enregistrée n'entre pas dans la borne ; Death by inchangé", () => {
+    const forTime: ElementFormat = { key: "FOR_TIME", settings: {} };
+    expect(computeActivityDurationResult(exercise("f", forTime, 90))).toMatchObject({ kind: "lowerBound", knownSeconds: 0, seconds: 0 });
+    const alone = computeStructureDuration<Facts>({ elements: [direct(exercise("x"))] });
+    expect(computeStructureDuration<Facts>({ elements: [direct(exercise("x")), direct(exercise("f", forTime, 90))] })).toMatchObject({ kind: "lowerBound", seconds: alone.seconds });
+    expect(computeActivityDurationResult(exercise("d", deathBy, 90))).toMatchObject({ kind: "lowerBound", knownSeconds: 90 });
+  });
+
   it("Circuits porteurs Death by et For time : ≥", () => {
     expect(carrierCircuitDuration({ repeatCount: 1, format: { key: "DEATH_BY", settings: {} } })).toMatchObject({ kind: "lowerBound" });
     expect(carrierCircuitDuration({ repeatCount: 3, format: { key: "FOR_TIME", settings: { restBetweenRoundsSeconds: 0 } } })).toMatchObject({ kind: "lowerBound" });

@@ -1,0 +1,6 @@
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Recette du 17/11/2026 (ftr-mention : « fond bleu, symbole blanc, respecter l'épaisseur des traits (cf. bouton pause) ») :
+     Suivant 72 du For time, disque plein sans contour (aucun bord tronqué), traits de 6 comme les barres de « Mettre en pause ». -->
+<circle cx="36" cy="36" r="36" fill="#0508E5"/>
+<path d="M25 24L36 36L25 48M46 24V48" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#FFFFFF"/>
+</svg>

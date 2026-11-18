@@ -1,4 +1,4 @@
-import { roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
+import { forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
@@ -30,6 +30,8 @@ export function formatSheetContextOf(
   let emom: FormatSheetContext["emom"];
   let roleChangeLoss: FormatSheetContext["roleChangeLoss"];
   let seriesForRole: FormatSheetContext["seriesForRole"];
+  // Recette du 17/11/2026 (Hermann, autres remarques, a : « je suis capable de créer un for time avec deux exercices en durée si j'entre les paramètres dans la composition de séance. Par contre le démarrage de la est bloqué ») ; règle du 05/11/2026 (n-charge-colonne : « Pour le seul exercice restant en Répétitions, l'option Durée est désactivée, avec un message court ») et du 16/11/2026 (mp-duree-refusee : « Il faut au moins un exercice en répétition sur les exercices en boucle »).
+  const durationRefused = forTimeDurationRefused(draft, draft.structure, exerciseId);
   switch (format.key) {
     case "AMRAP":
       if (carrier === undefined) rows.push("duration", "increment");
@@ -43,7 +45,8 @@ export function formatSheetContextOf(
       if (carrier === undefined) rows.push("timeCap", "stopTarget");
       else {
         const choices = roleChoices(draft, draft.structure, exerciseId);
-        if (choices !== null) role = choices;
+        // Même règle : le seul Exercice de la boucle en Répétitions ne passe ni en Buy-in ni en Buy-out (la boucle n'en aurait plus).
+        if (choices !== null) role = durationRefused ? { ...choices, available: choices.available.filter((candidate) => candidate === "TOUR") } : choices;
         // Règles de Hermann du 14/11/2026, FT-6 : « À l'échec » n'est pas proposé en For time (« À l'objectif » seul).
         rows.push("role", "inheritedCap", "stopTarget");
         const cap = carrier.format?.settings.timeCapSeconds;
@@ -105,6 +108,7 @@ export function formatSheetContextOf(
     ...(emom !== undefined ? { emom } : {}),
     ...(roleChangeLoss !== undefined ? { roleChangeLoss } : {}),
     ...(seriesForRole !== undefined ? { seriesForRole } : {}),
+    ...(durationRefused ? { durationRefused } : {}),
     onApply: (next: FormatSettings, nextRole: CircuitRole | null) =>
       update((current) => {
         const withSettings: SessionDraft = {

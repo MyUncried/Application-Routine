@@ -57,6 +57,8 @@ export function ExecutionTimerRing({
   fading = false,
   color = RING.progressColor,
   segments = NO_SEGMENTS,
+  fill,
+  inner,
   children,
   testID,
 }: {
@@ -69,12 +71,16 @@ export function ExecutionTimerRing({
    * (`ringSegmentsOf`), dessinées par-dessus la portion en cours ; masquées dès que la minute est révolue.
    */
   readonly segments?: readonly RingSegment[];
+  /** For time, exercice en durée (16/11/2026) : fond du cercle (gris, vert, orange) ; aucun par défaut. */
+  readonly fill?: string;
+  /** For time, exercice en durée : anneau fin du compte à rebours, à l'intérieur de l'anneau gris (voir `InnerCountdown`). */
+  readonly inner?: InnerCountdown | null;
   readonly children: ReactNode;
   readonly testID?: string;
 }) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
   return (
-    <AnimatedRing motion={motion} fading={fading} color={color} segments={segments} testID={testID}>
+    <AnimatedRing motion={motion} fading={fading} color={color} segments={segments} fill={fill} inner={inner ?? null} testID={testID}>
       {children}
     </AnimatedRing>
   );
@@ -82,17 +88,34 @@ export function ExecutionTimerRing({
 
 const NO_SEGMENTS: readonly RingSegment[] = [];
 
+/**
+ * Registre ch07 (16/11/2026), Hermann : « le cercle vert […] doit être à l'intérieur juste à sa bordure », « ses deux bouts
+ * doivent être arrondis », « pendant la pause » il reste, figé (Figma `12514:27223`, `12514:27329`). `fraction` : part restante
+ * du compte à rebours ; `ratePerMs` : vitesse de décompte (0 quand l'exercice est retenu).
+ */
+export type InnerCountdown = { readonly fraction: number; readonly ratePerMs: number };
+
+/**
+ * Figma « Compte à rebours exercice — progression » : diamètre 256,8, vert. Recette du 17/11/2026 (ft-encours : « Le cercle
+ * vert qui défile peut être plus épais ») : trait 10, bord extérieur inchangé. [Trait 6 du Figma — remplacé.]
+ */
+const INNER = { radius: 128.4 - 5, width: 10, color: "#29AD5C" } as const;
+
 function AnimatedRing({
   motion,
   fading,
   color = RING.progressColor,
   segments,
+  fill,
+  inner,
   children,
   testID,
 }: {
   readonly motion: RingMotion;
   readonly fading: boolean;
   readonly segments: readonly RingSegment[];
+  readonly fill?: string | undefined;
+  readonly inner: InnerCountdown | null;
   /** Couleur de l'anneau qui tourne et de sa trace (`ringColorOf`). */
   readonly color?: string;
   readonly children: ReactNode;
@@ -150,7 +173,8 @@ function AnimatedRing({
   return (
     <View style={[styles.frame, { width: canvas, height: canvas }]} testID={testID}>
       <Svg.default width={canvas} height={canvas} style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Svg.Circle cx={center} cy={center} r={RING.trackRadius} stroke={RING.trackColor} strokeWidth={RING.trackWidth} fill="none" />
+        <Svg.Circle cx={center} cy={center} r={RING.trackRadius} stroke={RING.trackColor} strokeWidth={RING.trackWidth} fill={fill ?? "none"} />
+        {inner !== null ? <InnerArc countdown={inner} center={center} /> : null}
         {MINOR_MARKS.map((mark) => (
           <Svg.Line key={mark} {...radial(mark, RING.minorMark.inner, RING.minorMark.outer)} stroke={RING.minorMark.color} strokeOpacity={RING.minorMark.opacity} strokeWidth={RING.minorMark.width} strokeLinecap="round" />
         ))}
@@ -179,6 +203,42 @@ function AnimatedRing({
       </Svg.default>
       <View style={styles.content}>{children}</View>
     </View>
+  );
+}
+
+/**
+ * Anneau du compte à rebours d'un exercice en durée (For time) : part restante depuis le haut, sens horaire, qui se vide à
+ * vitesse constante sur le fil d'affichage ; figé quand l'exercice est retenu.
+ */
+function InnerArc({ countdown, center }: { readonly countdown: InnerCountdown; readonly center: number }) {
+  const { Circle: AnimatedCircle } = animatedSvg();
+  const circumference = 2 * Math.PI * INNER.radius;
+  const left = useSharedValue(countdown.fraction);
+  useEffect(() => {
+    cancelAnimation(left);
+    left.value = countdown.fraction;
+    if (countdown.ratePerMs <= 0 || countdown.fraction <= 0) return;
+    left.value = withTiming(0, { duration: countdown.fraction / countdown.ratePerMs, easing: Easing.linear });
+  }, [countdown.fraction, countdown.ratePerMs, left]);
+  const props = useAnimatedProps(() => ({
+    strokeDashoffset: circumference * (1 - Math.max(0, Math.min(1, left.value))),
+    strokeOpacity: left.value > 0.0005 ? 1 : 0,
+  }));
+  return (
+    <AnimatedCircle
+      cx={center}
+      cy={center}
+      r={INNER.radius}
+      stroke={INNER.color}
+      strokeWidth={INNER.width}
+      strokeLinecap="round"
+      strokeDasharray={`${circumference} ${circumference}`}
+      fill="none"
+      rotation={-90}
+      origin={`${center}, ${center}`}
+      animatedProps={props}
+      testID="execution-duration-ring"
+    />
   );
 }
 

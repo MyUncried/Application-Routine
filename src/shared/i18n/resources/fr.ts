@@ -576,6 +576,8 @@ export const fr = {
       backToParameters: "Revenir aux paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
+      // Recette du 17/11/2026 : boucle d’un For time déjà sans exercice en répétitions (séance antérieure).
+      loopWithoutRepetitions: "Au moins un exercice de la boucle doit être en répétitions : choisissez Répétitions.",
       collapsePiles: "Replier les piles",
       expandPiles: "Déplier les piles",
       openMovementSheet: "Fiche du mouvement {name}",
@@ -1096,8 +1098,13 @@ export const fr = {
       // la saisie et l’enregistrement (écriture concurrente) est signalé pour ce qu’il est, et non par
       // l’erreur générique. Aucun texte relevé (NON VÉRIFIABLE).
       nameTakenError: "Un mouvement de cette séance porte un nom déjà utilisé. Modifiez son nom.",
+      // Recette du 17/11/2026 (Hermann : « le nom d’une séance doit être unique ») : même tournure que le nom de
+      // mouvement déjà utilisé (« Ce nom est déjà utilisé. … choisissez un autre nom. »). Texte non relevé dans Figma.
+      sessionNameTaken: "Ce nom est déjà utilisé par une autre séance. Choisissez un autre nom.",
       // Recette iPhone du 07/11/2026 (y-rouge, Hermann : « on ne peut sauvegarder mais il n’y a pas de message d’explication « la somme des durée des exercices d’une série excède l’intervalle de temps alloué par série » »).
       emomOverflow: "La somme des durées des exercices d’une série excède l’intervalle de temps alloué par série.",
+      // Recette du 17/11/2026 : For time dont la boucle n’a plus aucun exercice en répétitions.
+      forTimeNoRepetitions: "For time : au moins un exercice de la boucle doit être en répétitions.",
       // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
       // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
       // Formulations à valider.

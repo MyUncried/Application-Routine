@@ -91,6 +91,8 @@ export type CompositionContextHeaderProps = {
    * vide montre l'invite grise « Entrer un nom de séance » ; l'obligation de nommer apparaît.
    */
   readonly namePrompt?: boolean;
+  /** Recette du 17/11/2026 (nom de Séance unique) : message sous le nom quand une autre Séance le porte déjà. */
+  readonly nameError?: string | null;
   /** Étiquette affectée (référentiel chargé), `null` sinon. */
   readonly sessionLabel: Label | null;
   /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), teinte de son icône (story 7.2, D-442). */
@@ -152,6 +154,7 @@ export function CompositionContextHeader({
   onChangeName,
   onNameFocus,
   namePrompt = false,
+  nameError = null,
   sessionLabel,
   sessionColor,
   onOpenLabelPicker,
@@ -189,6 +192,11 @@ export function CompositionContextHeader({
           style={styles.nameInput}
         />
       </View>
+      {nameError !== null ? (
+        <Text style={styles.nameError} accessibilityRole="alert" testID="composition-session-name-taken">
+          {nameError}
+        </Text>
+      ) : null}
       <View style={styles.infoRow} testID="composition-info-row">
         <View style={styles.infoGroup} testID="composition-info-group">
           <Pressable
@@ -333,6 +341,11 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     paddingVertical: 0,
     paddingHorizontal: 0,
+  },
+  // Recette du 17/11/2026 : nom de Séance déjà utilisé (pas de maquette ; couleur des erreurs de la Composition).
+  nameError: {
+    ...type.body,
+    color: colors.danger,
   },
   // Bande « Durée + actions » de 32 (Figma `8328:28611`), revue 5.1b : boîte de 44 aux marges
   // verticales de −6, pour contenir les cibles de 44 ; l'encombrement reste 32.
