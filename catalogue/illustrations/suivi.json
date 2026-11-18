@@ -452,12 +452,12 @@
   {
     "sheetId": "FIT-PIL-005",
     "name": "Single Leg Stretch",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-PIL-005.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "4d05f7594e2679961f45a9700ce9701a97769678",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-HYR-001",
