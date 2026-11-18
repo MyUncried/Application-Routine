@@ -322,12 +322,12 @@
   {
     "sheetId": "FIT-STR-006",
     "name": "Papillon (adducteurs)",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-STR-006.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "a181e5a04dc8404b781367d63e50f90eb802e992",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "REED-003",
