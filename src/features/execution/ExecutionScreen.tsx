@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Frame } from "@/domain/execution/kernel";
 import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
+import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/deathBy";
 import { EMOM_PILOT, type EmomLocal } from "@/domain/execution/policies/emom";
 import { FOR_TIME_PILOT, type ForTimeLocal } from "@/domain/execution/policies/forTime";
 import {
@@ -320,14 +321,15 @@ export function ExecutionScreen({
         const endView = (fallback: ExecutionProjection) =>
           previous === null ? fallback : projectExecution(previous.plan, previous.state, endedAtMs ?? service.now());
         // PRE-11 (T3) : de même à l'échéance d'un bloc AMRAP (arbitrage de Hermann du 18/11/2026 : « écran figé à l'échéance »).
-        const nowWork = now.status === "RUNNING" && forTimeLike(now.format?.kind) && now.format?.phase === "WORK";
+        // PRE-11 (T4) : de même à la fenêtre manquée d'un Death by (même arbitrage : « écran figé à l'échéance »).
+        const nowWork = now.status === "RUNNING" && freezesAtEnd(now.format?.kind) && now.format?.phase === "WORK";
         if (nowWork) lastWork.current = active;
-        if (now.phase === "CLOSURE" && forTimeLike(now.format?.kind) && now.format?.interrupted !== null && now.format?.interrupted !== undefined) {
+        if (now.phase === "CLOSURE" && freezesAtEnd(now.format?.kind) && now.format?.interrupted !== null && now.format?.interrupted !== undefined) {
           if (previous !== null) setCapView((current) => current ?? endView(now));
         } else if (now.phase !== "SESSION_END" && now.status !== "FINISHED") setCapView(null);
         const step = lastOnStep.current;
         if (step === null) return;
-        const onStep = nowWork && now.target === step.target;
+        const onStep = nowWork && forTimeLike(now.format?.kind) && now.target === step.target;
         if (onStep) lastOnStep.current = now;
         else setFrozenView((current) => current ?? endView(step));
       }),
@@ -691,7 +693,8 @@ export function ExecutionScreen({
   const forTimeWork = forTimeLike(projection.format?.kind) && projection.format?.phase === "WORK";
   // PRE-11 (T2) — EMOM (Figma `8982:15709`) : grand chrono = temps restant de la fenêtre ; une Série en Durée a son compte à rebours
   // dans le coin du bas à gauche, comme le For time.
-  const emomView = projection.format?.kind === "EMOM" ? projection.format.emom : null;
+  // PRE-11 (T4) : le Death by a l'écran de l'EMOM (fenêtre du rang, repos révélé, barre Arrêt / Suivant), sans bandeau.
+  const emomView = windowed(projection.format?.kind) ? (projection.format?.emom ?? null) : null;
   const emomWork = emomView !== null && projection.format?.phase === "WORK";
   const duration = (forTimeWork || emomWork) && waiting === null ? (projection.format?.duration ?? null) : null;
   const durationActive = duration !== null && duration.state !== "PENDING" ? duration : null;
@@ -745,7 +748,8 @@ export function ExecutionScreen({
   const forTimeRunning = forTimeWork && projection.status === "RUNNING" && !atStopPoint;
   // PRE-11 (T2), arbitrage de Hermann du 18/11/2026 (« Comme le For time ») : Arrêt sans Pause, chrono qui continue derrière la feuille.
   const emomRunning = emomWork && projection.status === "RUNNING";
-  const emomBar = projection.format?.kind === "EMOM";
+  const emomBar = windowed(projection.format?.kind);
+  const deathByBar = projection.format?.kind === "DEATH_BY";
   const stopSession = async (payload?: { readonly partialRepetitions: number | null; readonly partialDurationMs?: number | null }, stopAtMs?: number | null) => {
     // Arrêt daté de l'appui (For time) : aucune Pause, y compris si la borne a ouvert la Clôture depuis (seconde recette du 17/11/2026).
     const dated = (forTimeBar || emomBar) && typeof stopAtMs === "number";
@@ -1378,7 +1382,9 @@ export function ExecutionScreen({
             ? { title: t.emomClosureTitle, exerciseName: t.emomWindowName(live.format.interrupted.name, live.format.emom?.closingWindow ?? 0) }
             : live.format.kind === "AMRAP"
               ? { title: t.amrapClosureTitle }
-              : {})}
+              : live.format.kind === "DEATH_BY"
+                ? { title: t.deathByClosureTitle }
+                : {})}
           heldDurationMs={
             durationSample === null
               ? null
@@ -1394,7 +1400,7 @@ export function ExecutionScreen({
       {/* For time en cours (16/11/2026) : la modale s'ouvre sans Pause ; « le chrono continue derrière la modale ». */}
       {partialOpen && (paused || forTimeRunning || emomRunning || ((forTimeBar || emomBar) && partialStopAtMs !== null)) ? (
         <ExecutionPartialRepetitionsSheet
-          {...(emomBar ? { title: t.emomStopTitle } : amrapBar ? { title: t.amrapStopTitle } : {})}
+          {...(deathByBar ? { title: t.deathByStopTitle } : emomBar ? { title: t.emomStopTitle } : amrapBar ? { title: t.amrapStopTitle } : {})}
           exerciseName={partialOf.name}
           targetText={partialOf.targetText}
           inSeries={partialOf.inSeries}
@@ -1609,7 +1615,9 @@ function inForTimeWork(frames: readonly Frame[]): boolean {
       (frame.spec.pilot === FOR_TIME_PILOT && (frame.local as ForTimeLocal | null)?.phase === "WORK") ||
       (frame.spec.pilot === EMOM_PILOT && (frame.local as EmomLocal | null)?.phase === "WORK") ||
       // PRE-11 (T3) : de même pendant un bloc AMRAP, dont la borne court quoi qu'il arrive (D1).
-      (frame.spec.pilot === AMRAP_PILOT && (frame.local as AmrapLocal | null)?.phase === "WORK"),
+      (frame.spec.pilot === AMRAP_PILOT && (frame.local as AmrapLocal | null)?.phase === "WORK") ||
+      // PRE-11 (T4) : de même pendant un Death by, dont les fenêtres s'enchaînent à l'heure (FMT-33).
+      (frame.spec.pilot === DEATH_BY_PILOT && (frame.local as DeathByLocal | null)?.phase === "WORK"),
   );
 }
 
@@ -1618,12 +1626,22 @@ function forTimeLike(kind: string | undefined): boolean {
   return kind === "FOR_TIME" || kind === "AMRAP";
 }
 
+/** PRE-11 (T4) : Formats à l'écran de l'EMOM (fenêtres, repos révélé, « Suivant ») — EMOM et Death by. */
+function windowed(kind: string | undefined): boolean {
+  return kind === "EMOM" || kind === "DEATH_BY";
+}
+
+/** Formats dont l'écran se fige à la fin du travail (borne, échéance du bloc, fenêtre manquée) — For time, AMRAP, Death by. */
+function freezesAtEnd(kind: string | undefined): boolean {
+  return forTimeLike(kind) || kind === "DEATH_BY";
+}
+
 /** Instant de fin du travail d'un For time (borne ou fin normale), s'il vient de se terminer. */
 function forTimeWorkEndedAt(frames: readonly Frame[]): number | null {
   for (const frame of frames) {
-    if (frame.spec.pilot !== FOR_TIME_PILOT && frame.spec.pilot !== AMRAP_PILOT) continue;
-    // PRE-11 (T3) : de même pour l'échéance d'un bloc AMRAP.
-    const local = frame.local as ForTimeLocal | AmrapLocal | null;
+    if (frame.spec.pilot !== FOR_TIME_PILOT && frame.spec.pilot !== AMRAP_PILOT && frame.spec.pilot !== DEATH_BY_PILOT) continue;
+    // PRE-11 (T3) : de même pour l'échéance d'un bloc AMRAP. PRE-11 (T4) : et pour la fenêtre manquée d'un Death by.
+    const local = frame.local as ForTimeLocal | AmrapLocal | DeathByLocal | null;
     if (local?.phase === "CLOSURE" && typeof local.workEndedAtMs === "number") return local.workEndedAtMs;
   }
   return null;

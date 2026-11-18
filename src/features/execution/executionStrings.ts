@@ -102,7 +102,9 @@ export const executionStrings = {
   notLaunchable: "Cette séance ne peut pas encore être exécutée.",
   // PRE-11 (T1, 13/11/2026) : For time exécutable. [« Les Formats AMRAP, EMOM, For time et Death by… » — remplacé.]
   // PRE-11 (T2, 18/11/2026) : EMOM exécutable. [« Les Formats AMRAP, EMOM et Death by… » — remplacé.]
-  notLaunchableFormats: "Les Formats AMRAP et Death by seront exécutables dans une prochaine version.",
+  // PRE-11 (T3, 18/11/2026) : AMRAP exécutable. PRE-11 (T4, 18/11/2026) : Death by exécutable — plus aucun Format spécialisé non
+  // lançable ; message conservé pour un Format futur. [« Les Formats AMRAP et Death by… » — remplacé.]
+  notLaunchableFormats: "Ce Format sera exécutable dans une prochaine version.",
   // PRE-11 (T2, 18/11/2026) — EMOM : feuille de l'Arrêt (arbitrage « Comme le For time »), Clôture des fenêtres non saisies (§12.2),
   // bandeau Q1.
   emomStopTitle: "Arrêt de l’EMOM",
@@ -110,6 +112,9 @@ export const executionStrings = {
   amrapStopTitle: "Arrêt de l’AMRAP",
   amrapClosureTitle: "Fin du bloc",
   emomClosureTitle: "Fin de l’EMOM",
+  /** PRE-11 (T4), arbitrage de Hermann du 18/11/2026 : feuilles du Death by, modèle du For time. */
+  deathByStopTitle: "Arrêt du Death by",
+  deathByClosureTitle: "Fin du Death by",
   emomWindowName: (name: string | null, window: number) => `${name ?? ""} · fenêtre ${window}`,
   emomBanner: (window: number) => `Fenêtre ${window} non terminée — répétitions faites :`,
   emomBannerValue: "Répétitions faites",

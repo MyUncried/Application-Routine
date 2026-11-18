@@ -191,7 +191,8 @@ export class ExecutionService {
       const result = change.result as { readonly format?: string; readonly interruptedKey?: string | null; readonly partialRepetitions?: number | null };
       // PRE-11 (T2) : de même pour une fenêtre EMOM non terminée (répétitions déclarées, Arrêt).
       // PRE-11 (T3) : de même pour l'exercice en cours à l'échéance d'un bloc AMRAP ou à l'Arrêt.
-      if ((result.format === "FOR_TIME" || result.format === "EMOM" || result.format === "AMRAP") && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+      // PRE-11 (T4) : de même pour la fenêtre manquée d'un Death by, ou son Arrêt.
+      if ((result.format === "FOR_TIME" || result.format === "EMOM" || result.format === "AMRAP" || result.format === "DEATH_BY") && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
     }
     return found;
   }

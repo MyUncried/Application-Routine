@@ -32,6 +32,12 @@
  * une portée pilotée par `AMRAP` (`policies/amrap.ts`) : buy-in (bloc 1 seulement) et étapes-modèles d'un tour de boucle, rejouées
  * à chaque tour par le pilote ; le repos entre les blocs reste l'étape de récupération que D.1 place entre deux segments.
  *
+ * PRE-11 (T4, Death by, 18/11/2026) : chaque segment progressif Death by de D.1 (Exercice autonome — y compris À la suite et dans un
+ * Circuit standard groupé, où il repart de son départ à chaque passage (FMT-34) — ou Circuit porteur « dans chaque intervalle » /
+ * « en alternance ») devient une portée pilotée par `DEATH_BY` (`policies/deathBy.ts`) : étapes-modèles du rang 1 de chaque
+ * membre, rejouées rang après rang par le pilote (régime ouvert, objectif = départ + incrément × (rang − 1)) ; la Récupération d'un
+ * Exercice autonome (À la suite) suit la portée.
+ *
  * Fonctions pures, sans React ni SQLite.
  */
 
@@ -389,11 +395,16 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
         break;
       }
       case "PROGRESSIVE_SEGMENT":
-        // PRE-11 (T3) : segment AMRAP — une portée par bloc (Exercice autonome, ou bloc d'un Circuit porteur). Le Death by reste
-        // exclu par `launchabilityOf`.
-        if (step.format.key !== "AMRAP") throw new Error("compileExecutablePlan: progressive segments other than AMRAP are not executable yet.");
+        // PRE-11 (T3) : segment AMRAP — une portée par bloc (Exercice autonome, ou bloc d'un Circuit porteur).
+        // PRE-11 (T4) : segment Death by — une portée par exécution (Exercice autonome, ou Circuit porteur), sa Récupération ensuite.
+        // [Death by exclu par `launchabilityOf` — remplacé le 18/11/2026.]
         flush();
-        items.push({ type: "SCOPE", scope: amrapScopeOf(step, exercises, snapshot) });
+        if (step.format.key === "DEATH_BY") {
+          const built = deathByScopeOf(step, exercises, snapshot);
+          items.push({ type: "SCOPE", scope: built.scope }, ...built.after);
+        } else {
+          items.push({ type: "SCOPE", scope: amrapScopeOf(step, exercises, snapshot) });
+        }
         index += 1;
         break;
       case "SERIES": {
@@ -668,6 +679,102 @@ function amrapScopeOf(step: ProgressiveStep, exercises: ReadonlyMap<string, Sess
   ];
   const config: AmrapScopeConfig = { format: "AMRAP", elementId: step.elementId, elementKind: step.elementKind, name, blockMs, block, blocks, buyIn, loop, items, context };
   return { pilot: "AMRAP", key, config };
+}
+
+// ————————————————————————————————————————————————————————————————— Death by (PRE-11, T4)
+
+/** Membre d'une fenêtre Death by : étapes-modèles du rang 1 (Série 1, ses côtés et la pause entre eux) et incrément par rang. */
+export type DeathByMemberSpec = { readonly exerciseId: string; readonly increment: number; readonly leaves: readonly LeafSpec[] };
+
+/**
+ * Fenêtre d'un rang : intervalle commun et membres joués dans l'ordre (Exercice autonome, ou Circuit « dans chaque intervalle ») ;
+ * en alternance, une fenêtre par membre, d'intervalle propre (T17 : A à 60 s puis B à 90 s à chaque rang).
+ */
+export type DeathBySlotSpec = { readonly windowMs: number; readonly members: readonly DeathByMemberSpec[] };
+
+/** Configuration de la portée Death by (lue par `policies/deathBy.ts`). */
+export type DeathByScopeConfig = {
+  readonly format: "DEATH_BY";
+  readonly key: string;
+  readonly elementId: string;
+  readonly elementKind: "EXERCISE" | "CIRCUIT";
+  readonly name: string;
+  /** Fenêtres de chaque rang, dans l'ordre. */
+  readonly slots: readonly DeathBySlotSpec[];
+  /** Étapes indexées par la projection : étapes-modèles (`…/model/…`) et poids de l'élément (durée inconnue, régime ouvert). */
+  readonly items: readonly ChildSpec[];
+  readonly context: LeafContext | null;
+};
+
+/** Étapes-modèles d'un membre Death by : sa Série 1 (côtés compris) et la pause entre les côtés ; ni pause de série ni Récupération. */
+function deathByMemberLeaves(exercise: SessionSnapshotExercise, base: string, context: PlanContext): LeafSpec[] {
+  const ledger = buildExecutionLedger(exercise.executionParameters, 0);
+  const first = ledger.find((event): event is Extract<LedgerEvent, { kind: "WORK" }> => event.kind === "WORK")?.series ?? null;
+  const group: SeriesPlanStep[] = ledger.flatMap((event): SeriesPlanStep[] =>
+    event.kind === "WORK" && event.series === first ? [{ kind: "SERIES", stepId: `${base}/s${event.series}/${event.side}`, exerciseId: exercise.id, series: event.series, side: event.side, context }] : [],
+  );
+  if (group.length === 0) return [];
+  const leaves: LeafSpec[] = [];
+  emitOccurrence(exercise, group, base, null, (spec) => {
+    if (spec.kind === "ACTIVITY" || spec.kind === "SIDE_RECOVERY") leaves.push(spec);
+  });
+  return leaves;
+}
+
+/** Portée d'un segment Death by (voir l'en-tête et `policies/deathBy.ts`), et la Récupération d'un Exercice autonome qui la suit. */
+function deathByScopeOf(
+  step: ProgressiveStep,
+  exercises: ReadonlyMap<string, SessionSnapshotExercise>,
+  snapshot: SessionSnapshot,
+): { readonly scope: ScopeSpec; readonly after: readonly ChildSpec[] } {
+  const key = `${step.stepId}/death-by`;
+  const planContext: PlanContext = { cycle: step.context.cycle, circuit: null, formattedElementId: step.elementId };
+  const seconds = (value: unknown) => (typeof value === "number" && value > 0 ? value : 60);
+  const incrementOf = (format: ElementFormat | null | undefined) => {
+    const value = format?.settings.incrementPerRound;
+    return typeof value === "number" && value > 0 ? value : 1;
+  };
+  const memberOf = (exercise: SessionSnapshotExercise, increment: number): DeathByMemberSpec => ({
+    exerciseId: exercise.id,
+    increment,
+    leaves: deathByMemberLeaves(exercise, `${key}/model/ex:${exercise.id}`, planContext),
+  });
+  let slots: DeathBySlotSpec[];
+  let name: string;
+  const after: ChildSpec[] = [];
+  if (step.elementKind === "CIRCUIT") {
+    const circuit = structureCircuits(snapshot.structure).find((candidate) => candidate.id === step.elementId);
+    const members = (circuit?.exercises ?? []).flatMap((member) => {
+      const exercise = exercises.get(member.id);
+      return exercise === undefined ? [] : [{ exercise, format: member.format ?? null }];
+    });
+    name = circuit?.name ?? "Death by";
+    if (circuit?.nature === "SERIES") {
+      // En alternance (FMT-34, T17) : intervalle propre à chaque membre, fenêtres successives à chaque rang.
+      slots = members.map(({ exercise, format }) => ({ windowMs: seconds(format?.settings.intervalSeconds) * MS, members: [memberOf(exercise, incrementOf(format))] }));
+    } else {
+      // Dans chaque intervalle : intervalle commun, membres joués l'un après l'autre dans la même fenêtre.
+      slots = [{ windowMs: seconds(step.format.settings.windowSeconds) * MS, members: members.map(({ exercise, format }) => memberOf(exercise, incrementOf(format))) }];
+    }
+  } else {
+    const exercise = exercises.get(step.elementId)!;
+    name = exercise.exercise?.name ?? "Death by";
+    slots = [{ windowMs: seconds(step.format.settings.intervalSeconds) * MS, members: [memberOf(exercise, incrementOf(exercise.format))] }];
+    // FMT-34 « À la suite : Exercices indépendants et récupération configurée entre eux » : la Récupération suit la portée.
+    const recovery = exercise.postActivityRecoverySeconds ?? 0;
+    if (recovery > 0) {
+      after.push({ type: "LEAF", leaf: timedLeaf("POST_ACTIVITY_RECOVERY", `${step.stepId}/recovery`, recovery, { exerciseId: exercise.id, context: leafContext(step.context) }) });
+    }
+  }
+  const context: LeafContext = { circuit: null, cycle: step.context.cycle };
+  // Poids de l'élément : durée inconnue (régime ouvert) — jamais jouée ni listée ; l'estimation de la Séance devient un minimum.
+  const weight: LeafSpec = { kind: "WINDOW_REST", key: `${key}/weight`, end: "PARENT", plannedMs: null, contribution: "omitted", blockWeight: true, context };
+  const items: ChildSpec[] = [
+    ...slots.flatMap((slot) => slot.members.flatMap((member) => member.leaves.map((leaf): ChildSpec => ({ type: "LEAF", leaf: { ...leaf, inWindow: true } })))),
+    { type: "LEAF", leaf: weight },
+  ];
+  const config: DeathByScopeConfig = { format: "DEATH_BY", key, elementId: step.elementId, elementKind: step.elementKind, name, slots, items, context };
+  return { scope: { pilot: "DEATH_BY", key, config }, after };
 }
 
 /** Étapes de repos retirées d'un élément For time (recette du 17/11/2026). */

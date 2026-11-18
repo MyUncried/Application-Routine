@@ -146,7 +146,8 @@ describe("PRE-9 D.4 — validité de configuration", () => {
     // [AMRAP indisponible — remplacé.]
     expect(engineAvailability({ key: "EMOM", settings: { intervalSeconds: 60 } })).toBe(true);
     expect(engineAvailability({ key: "AMRAP", settings: { durationSeconds: 600 } })).toBe(true);
-    expect(engineAvailability({ key: "DEATH_BY", settings: { intervalSeconds: 60 } })).toBe(false);
+    // PRE-11 (T4, 18/11/2026) : Death by exécutable. [Death by indisponible — remplacé.]
+    expect(engineAvailability({ key: "DEATH_BY", settings: { intervalSeconds: 60 } })).toBe(true);
     expect(engineAvailability(null)).toBe(true);
   });
 });

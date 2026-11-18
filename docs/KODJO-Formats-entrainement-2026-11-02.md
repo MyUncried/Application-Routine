@@ -748,6 +748,10 @@ Le récapitulatif « Death by — Récapitulatif, à la suite » (`11411:20474`)
 
 **Écrans Figma :** récapitulatifs Death by avec un exemple mixte Répétitions/Durée. L’avertissement du premier rang n’a pas d’écran dédié : il suit la présentation des messages du formulaire.
 
+### 12.1 Exécution du Death by (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « Death by — exécution (18/11/2026) ». En résumé : rang après rang, objectif départ + incrément × (rang − 1) ; une fenêtre par rang (commune aux membres « dans chaque intervalle », une par membre en alternance) ; écran et barre de l'EMOM (Arrêt, Pause désactivée, « Suivant » qui acquiert le rang et révèle le repos) ; Série en Durée lancée à l'ouverture de la fenêtre ; fenêtre manquée : écran figé, feuille « Fin du Death by », puis élément suivant ; limite de l'intervalle : arrêt avant le rang incompatible, sans saisie ; Arrêt : feuille « Arrêt du Death by », puis synthèse ; bip long au début de chaque fenêtre, 3 bips avant l'échéance.
+
 ## 13. Sortie d'un format
 
 Lorsqu'un exercice sort d'un circuit qui porte un format (AMRAP, For time, EMOM ou Death by en alternance ou dans chaque intervalle), ou lorsque l'utilisateur veut faire sortir de son format un exercice qui le porte lui-même, une confirmation propose deux options :

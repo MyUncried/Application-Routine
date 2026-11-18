@@ -33,14 +33,15 @@ describe("PRE-10 prescription exécutable", () => {
   it("préconfiguration standard (origine Tabata) lançable ; Format spécialisé non lançable dans PRE-10 (D.3)", () => {
     const tabata = { ...structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("A", durationParameters(20, 8, 10)) }], stopPoints: [] }), origin: "TABATA" as const };
     expect(launchabilityOf(createSessionSnapshot(tabata))).toEqual({ status: "launchable" });
-    // PRE-11 (T2, 18/11/2026) : l'EMOM est exécutable [EMOM — remplacé] ; (T3, 18/11/2026) l'AMRAP aussi : le Death by sert d'exemple
-    // de Format encore indisponible. [AMRAP — remplacé.]
-    const emom = structuredSession({
+    // PRE-11 (T2, 18/11/2026) : l'EMOM est exécutable [EMOM — remplacé] ; (T3, 18/11/2026) l'AMRAP aussi [AMRAP — remplacé] ;
+    // (T4, 18/11/2026) le Death by aussi : plus aucun Format spécialisé indisponible. [« Death by : engine-unavailable, compilation
+    // refusée » — remplacé ; le mécanisme `engine-unavailable` reste en place pour un Format futur.]
+    const deathBy = structuredSession({
       elements: [{ kind: "EXERCISE", exercise: exerciseActivity("E", repetitionParameters(10, 1, 0), { format: { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 1 } } }) }],
       stopPoints: [],
     });
-    expect(launchabilityOf(createSessionSnapshot(emom))).toEqual({ status: "engine-unavailable", elementIds: ["E"] });
-    expect(() => compileExecutablePlan(createSessionSnapshot(emom))).toThrow();
+    expect(launchabilityOf(createSessionSnapshot(deathBy))).toEqual({ status: "launchable" });
+    expect(() => compileExecutablePlan(createSessionSnapshot(deathBy))).not.toThrow();
   });
 
   it("valeurs par série prises telles que transmises par la Composition (aucune recopie de S1, décision du 06/11/2026) ; charge active par série", () => {

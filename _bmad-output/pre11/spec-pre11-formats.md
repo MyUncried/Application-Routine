@@ -93,10 +93,10 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 
 ## 6. Contradictions relevées entre sources (à trancher dans la tranche concernée)
 
-1. CE-FMT-06 (choix « Limite atteinte / Abandonner », puis synthèse) contre D3 et FMT-34 (la Séance continue) — T4.
+1. CE-FMT-06 (choix « Limite atteinte / Abandonner », puis synthèse) contre D3 et FMT-34 (la Séance continue) — T4. [Tranché le 18/11/2026 (§5 point 30, « Feuille du For time ») : pas de choix ; fenêtre manquée → feuille « Fin du Death by » puis élément suivant ; abandon par l'Arrêt. CE-FMT-06 annoté.]
 2. `KODJO-Formats-entrainement` §14.2 (Point d'arrêt interne qui suspend) contre D4 (Point d'arrêt refusé dans un Format) ; `arbitrages-pre9.md:151` (Tabata parmi les éléments à fenêtre) — D4 et la préconfiguration Tabata prévalent (décisions plus récentes).
 3. §14.1 (incrément AMRAP ≥ 0) contre l'incrément signé du complément du 05/11 — T3. [Tranché en T3 (18/11/2026) : incrément signé, objectif borné à 1 (complément du 05/11, plus récent, déjà au registre des Formats).]
-4. `planExpansion.ts:48-51` (« À CLARIFIER ») contre FMT-34 / T16 (redémarrage au départ, tranché) — T4.
+4. `planExpansion.ts:48-51` (« À CLARIFIER ») contre FMT-34 / T16 (redémarrage au départ, tranché) — T4. [Appliqué le 18/11/2026 (T4) : chaque passage d'un Circuit standard groupé ouvre sa propre portée Death by, qui repart du départ.]
 5. Descripteur `capabilities.ts` : cas `NON_DEFINI` (A4, A6) tranchés depuis par D1, D2, D5, Q1, §12.3 — mis à jour au fil des tranches.
 6. EMOM « À l'objectif » seul (07/11) non imposé dans `configurationValidity.ts` (`main`) ; l'invariant existe dans la PR #430 (conflictuelle, non fusionnée) — repris isolément en T2.
 7. Numéros D-514 / D-515 de `main` différents de ceux des PR #424, #426, #431 — signalé, sans action dans PRE-11.
@@ -105,9 +105,9 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 
 - Articulation côté / fenêtre (R-02) — T5.
 - Unité jouée par un membre AMRAP autonome dans un Circuit alterné — T3. [Sans objet (18/11/2026) : l'AMRAP est refusé dans un Circuit standard alterné (descripteur du Format, §6.1).]
-- Acquisition d'un membre Death by en Durée — T4.
+- Acquisition d'un membre Death by en Durée — T4. [18/11/2026, interprétation retenue (À CLARIFIER) : comme une Série en Durée de l'EMOM — démarrage à l'ouverture de la fenêtre, rang acquis à la fin de la durée ; registre ch07 « Death by — exécution (18/11/2026) ».]
 - Forme du partiel AMRAP (un nombre ou un par membre) — T3. [Tranché le 18/11/2026 (§5 point 30) : exercice en cours seul.]
-- Bouton Abandonner pendant un Death by — T4.
+- Bouton Abandonner pendant un Death by — T4. [Tranché le 18/11/2026 (§5 point 30, « Comme le For time ») : l'Arrêt est l'abandon (feuille « Arrêt du Death by », puis synthèse).]
 - Sons propres aux Formats (fins de fenêtre, échéance) — T2.
 - Synthèse et affichage des résultats en fin de séance — hors PRE-11 (Synthèse reportée, §13.4 PRE-10).
 - Écran unique des Formats à tableau (15/11/2026, point 21 du §5) : (a) extension « Unité à choisir » à Progression, EMOM, Superset, AMRAP (`UNIT_CHOICE_AT_ADD`) [validée à la recette du 16/11/2026, fmt-unite-rouge OK] ; (b) AMRAP : Nombre de blocs, Repos entre les blocs et Repos de boucle n'ont plus d'écran de saisie (ils étaient au questionnaire) — valeurs initiales conservées [tranché le 16/11/2026 : rétablis dans le cadre des paramètres, point 22] ; « Volume croissant » activé d'office pour un nouvel AMRAP (colonne « Par tour » de CE-FMT-02 §8), incrément à saisir (0 si aucun) ; (c) AMRAP : le buy-in n'a plus que la colonne Objectif (Figma `12445:27394`), Max n'y est plus proposé ; (d) − / + sans plafond alors que la ligne « Nombre de séries » au clavier reste bornée à 99 ; (e) charge active affichée « (12 kg) » (Figma) alors que la mission écrit « 12 kg » [tranché le 16/11/2026 : « 12 kg », sans parenthèses, point 22] ; (f) Death by : cases « 1 » / « + 1 » sans unité (colonnes inchangées) alors que Figma `12445:27143` montre « 1 rép. » / « + 1 rép. » ; (g) le registre ch07 écrivait « For time : déjà aucun » texte buy-in, alors que la frise For time portait « · buy-in » / « · buy-out » — retiré.
@@ -125,6 +125,10 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 ## 8. Suivi des tranches
 
 (À compléter au fil de l'implémentation.)
+
+### T4 — Death by (18/11/2026)
+
+Réalisé, à vérifier sur iPhone. Même branche. Classe A (FMT-33 à FMT-38 ; D2, D3, Q2, Q4 ; §12.4, §12.5, complément du 5 novembre ; T16, T17, T18) et B (§5 point 30 : barre, feuille « Fin du Death by », feuille « Arrêt du Death by », sons ; CE-FMT-06 remplacé). Code : `plan.ts` (portée `DEATH_BY` par segment progressif : étapes-modèles du rang 1 de chaque membre, fenêtres par rang, étape de poids sans durée ; Récupération d'un Exercice autonome après la portée), `policies/deathBy.ts` (nouveau), `policies/index.ts`, `projection.ts` (`FormatView.deathBy`, écran de l'EMOM, chrono de fenêtre, étape suivante), `capabilities.ts` (Death by exécutable, A4 tranché), écran (`ExecutionScreen.tsx` : écran de l'EMOM, écran figé à la fenêtre manquée, feuilles « Fin du Death by » et « Arrêt du Death by »), `ExecutionService.ts` (partiel dans la synthèse), `executionStrings.ts`. Tests : `deathBy.pre11.test.ts` (14), `ExecutionScreen.deathBy.pre11.test.tsx` (2) ; trois tests anciens annotés (le Death by n'est plus l'exemple de Format indisponible). Interprétations À CLARIFIER : registre ch07, entrée du jour, (a) à (g). Rapport : `.github/orchestration/reports/2026-11-18_FORMATS-EMOM-AMRAP-DEATHBY.md`.
 
 ### T3 — AMRAP (18/11/2026)
 

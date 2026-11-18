@@ -30,9 +30,9 @@ describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
     for (const model of MODELS) {
       expect(FORMAT_CAPABILITIES[model].model).toBe(model);
       // PRE-10 (09/11/2026) : éléments libres et préconfigurations exécutables ; Formats spécialisés : PRE-11.
-      // PRE-11 (T1, 13/11/2026) : For time exécutable ; (T2, 18/11/2026) EMOM exécutable ; (T3, 18/11/2026) AMRAP exécutable ; Death by :
-      // tranche suivante.
-      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(FORMAT_CAPABILITIES[model].carrier === "FREE_ELEMENTS" || model === "FOR_TIME" || model === "EMOM" || model === "AMRAP");
+      // PRE-11 (T1, 13/11/2026) : For time exécutable ; (T2, 18/11/2026) EMOM exécutable ; (T3, 18/11/2026) AMRAP exécutable ; (T4,
+      // 18/11/2026) Death by exécutable : tous les modèles le sont. [Death by : tranche suivante — remplacé.]
+      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(true);
       expect(FORMAT_CAPABILITIES[model].sources.length).toBeGreaterThan(0);
     }
   });
@@ -71,9 +71,9 @@ describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
     // Suite de la Séance après un élément progressif : non définie pour AMRAP et Death by (A4). [AMRAP : tranchée par D3, PRE-11 T3
     // (18/11/2026) — la Séance enchaîne après la Clôture du bloc ; remplacé pour l'AMRAP.]
     expect(FORMAT_CAPABILITIES.AMRAP.undefinedAspects).toEqual([]);
-    for (const model of ["DEATH_BY"] as const) {
-      expect(FORMAT_CAPABILITIES[model].undefinedAspects.some((aspect) => aspect.question.startsWith("Suite de la Séance"))).toBe(true);
-    }
+    // [Death by : tranchée par D2, D3 et l'arbitrage de Hermann du 18/11/2026, PRE-11 T4 — la Séance enchaîne après la feuille « Fin du
+    // Death by » ; remplacé pour le Death by.]
+    expect(FORMAT_CAPABILITIES.DEATH_BY.undefinedAspects).toEqual([]);
     // 02/11 (A2, §12) : rang et fin du Death by alterné tranchés par le Circuit porteur ; plus de lacune de raccordement.
     expect(FORMAT_CAPABILITIES.DEATH_BY.undefinedAspects.some((aspect) => /rang|raccordement/i.test(aspect.question))).toBe(false);
     expect(FORMAT_CAPABILITIES.DEATH_BY.sources).toEqual(expect.arrayContaining(["§12", "A2"]));

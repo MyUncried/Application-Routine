@@ -118,11 +118,8 @@ export type FormatCapabilityDescriptor = {
 
 const GENERIC_RESULTS: readonly CapabilityResult[] = ["END_REASON", "ACHIEVED_RESULT", "COMPLETION_LEVEL"];
 
-/** Commun AMRAP et Death by sous ARB-03 : suite de la Séance après l'élément (`arbitrages-pre9.md` §3, A4). */
-const NEXT_AFTER_PROGRESSIVE: Undefined = {
-  status: UNDEFINED_CAPABILITY,
-  question: "Suite de la Séance après la fin de l'élément lorsqu'il est suivi d'autres éléments (A4, avant PRE-11).",
-};
+// [Commun AMRAP et Death by sous ARB-03 : « Suite de la Séance après la fin de l'élément lorsqu'il est suivi d'autres éléments (A4,
+// avant PRE-11) » — tranché par D3 (02/11/2026) ; retiré de l'AMRAP (PRE-11 T3) puis du Death by (PRE-11 T4, 18/11/2026).]
 
 const freeModel = (model: CapabilityModelKey): FormatCapabilityDescriptor => ({
   model,
@@ -219,11 +216,12 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     progression: "DYNAMIC_TARGET",
     results: [...GENERIC_RESULTS, "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS", "INTERVAL_LIMIT_REACHED"],
     prescription: { memberModes: ["REPETITIONS", "DURATION"], increment: "POSITIVE_MIN_ONE", intervalLimit: "STOP_BEFORE_INCOMPATIBLE_RANK" },
-    undefinedAspects: [
-      { status: UNDEFINED_CAPABILITY, question: "Suite après une fenêtre non acquise (A4)." },
-      NEXT_AFTER_PROGRESSIVE,
-    ],
-    executionAvailable: false,
+    // [« Suite après une fenêtre non acquise (A4) » — tranché par D2 (02/11/2026) et l'arbitrage de Hermann du 18/11/2026 : le défi
+    // s'arrête à la fin de la fenêtre manquée, feuille « Fin du Death by » (partiel), puis la Séance enchaîne (D3) ; PRE-11 T4.]
+    // [« Suite de la Séance après la fin de l'élément (A4) » — tranché par D3.]
+    undefinedAspects: [],
+    // PRE-11 (T4, 18/11/2026) : Death by exécutable (politique Death by, src/domain/execution/policies/deathBy.ts).
+    executionAvailable: true,
     // 02/11 (A2, §6.1, §12) : un Death by autonome rejoué dans un Circuit groupé repart de son départ initial et
     // finit localement ; le Death by alterné est porté par le Circuit, arrêt collectif au premier échec.
     sources: ["FMT-33…38", "§12", "A2", "§6.1", "D-368", "CE-FMT-05 §15", "ch05 l.484", "D-16", "D-18", "D-29", "recherche/03-formats §1.4"],
