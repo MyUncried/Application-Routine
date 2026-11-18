@@ -252,12 +252,12 @@
   {
     "sheetId": "REED-007",
     "name": "Flexion dorsale de cheville à l’élastique",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/REED-007.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/REED-007.webp",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-CRO-002",
