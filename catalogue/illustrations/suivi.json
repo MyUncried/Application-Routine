@@ -32,11 +32,11 @@
   {
     "sheetId": "FIT-YOG-006",
     "name": "Bhujangasana (cobra)",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
+    "path": "catalogue/illustrations/20261117/FIT-YOG-006.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "photo intégrée dans sheet.media ; import appareil non testé",
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-YOG-006.webp",
     "anomalie": null
   },
   {
