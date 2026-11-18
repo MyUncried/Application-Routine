@@ -15,8 +15,7 @@ import { toggledView, type SessionCatalogueView } from "@/features/sessions/sess
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { strings } from "@/shared/i18n";
 import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
+import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -66,89 +65,81 @@ export function PlanningSelection({
 
   return (
     <ScreenShell backgroundColor={palette.background}>
-      {/* Feuille native : haut fixe posé sur la liste (`SheetFixedTop`, recette du 18/11/2026). */}
-      <SheetFixedTop
-        top={
-          <>
-            <View style={{ backgroundColor: palette.background }}>
-              <FixedHeader
-                title={t.title}
-                closeIcon
-                topInset={0}
-                onBack={onCancel}
-                backAccessibilityLabel={t.cancel}
-                validate={{ onPress: () => available.length > 0 && onValidate(available), enabled: available.length > 0, accessibilityLabel: t.validate }}
-              />
-            </View>
-            <ContextBand fadeToTransparent color={palette.context} padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
-              <SessionCommandRow
-                view={view}
-                onToggleView={(touched) => setView((current) => toggledView(current, touched))}
-                counts={loading ? null : { SINGLE: context.singleCount, MULTIPLE: context.multipleCount }}
-                results={isSessionCatalogueFiltered(filters) ? countLabel(context.visible.length, { one: tContext.resultsOne, many: tContext.resultsMany }) : null}
-                query={query}
-                onChangeQuery={setQuery}
-                filterSummary={filterSummary}
-                filterCount={filterLabels.length === 0 ? null : String(filterLabels.length)}
-                onOpenFilters={() => {
-                  requestFilterSheet({
-                    kind: "sessions",
-                    filters,
-                    onApply: (next, labels) => {
-                      setFilters(next);
-                      setFilterLabels(labels);
-                    },
-                  });
-                  router.push("/catalogue-filters");
-                }}
-                onResetFilters={() => {
-                  setFilters(EMPTY_SESSION_FILTERS);
-                  setFilterLabels([]);
-                }}
-              />
-            </ContextBand>
-          </>
-        }
-        renderScroll={(topHeight) => (
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={[styles.list, { paddingTop: topHeight + spacing[16], paddingBottom: insets.bottom + spacing[24] }]}
-            contentInsetAdjustmentBehavior="never"
-            automaticallyAdjustContentInsets={false}
-            testID="planning-selection-list"
-          >
-            {loading ? <ActivityIndicator color={colors.primary} /> : null}
-            {failed ? <Text style={styles.message}>{t.loadError}</Text> : null}
-            {!loading && !failed && sessions.length === 0 ? (
-              <Text style={styles.message} testID="planning-selection-empty">
-                {t.empty}
-              </Text>
-            ) : null}
-            {context.visible.map((projection) => {
-              const order = selected.indexOf(projection.id) + 1;
-              const checked = order > 0;
-              return (
-                <Pressable
-                  key={projection.id}
-                  onPress={() => toggle(projection.id)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked }}
-                  accessibilityLabel={`${sessionCardAccessibilityLabel(projection)}, ${checked ? t.checked : t.unchecked}`}
-                  style={styles.item}
-                  testID={`planning-selection-${projection.id}`}
-                >
-                  <View pointerEvents="none">
-                    <SessionCard projection={projection} context="planning" />
-                  </View>
-                  <View style={[styles.check, checked ? styles.checkOn : null]} pointerEvents="none" testID={`planning-selection-${projection.id}-${checked ? "checked" : "unchecked"}`}>
-                    {checked ? <Text style={styles.checkOrder}>{order}</Text> : null}
-                  </View>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        )}
+      <FixedHeader
+        title={t.title}
+        closeIcon
+        topInset={0}
+        onBack={onCancel}
+        backAccessibilityLabel={t.cancel}
+        validate={{ onPress: () => available.length > 0 && onValidate(available), enabled: available.length > 0, accessibilityLabel: t.validate }}
       />
+      <ContextBand fadeToTransparent color={palette.context} padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
+        <SessionCommandRow
+          view={view}
+          onToggleView={(touched) => setView((current) => toggledView(current, touched))}
+          counts={loading ? null : { SINGLE: context.singleCount, MULTIPLE: context.multipleCount }}
+          results={isSessionCatalogueFiltered(filters) ? countLabel(context.visible.length, { one: tContext.resultsOne, many: tContext.resultsMany }) : null}
+          query={query}
+          onChangeQuery={setQuery}
+          filterSummary={filterSummary}
+          filterCount={filterLabels.length === 0 ? null : String(filterLabels.length)}
+          onOpenFilters={() => {
+            requestFilterSheet({
+              kind: "sessions",
+              filters,
+              onApply: (next, labels) => {
+                setFilters(next);
+                setFilterLabels(labels);
+              },
+            });
+            router.push("/catalogue-filters");
+          }}
+          onResetFilters={() => {
+            setFilters(EMPTY_SESSION_FILTERS);
+            setFilterLabels([]);
+          }}
+        />
+      </ContextBand>
+      {/* Feuille native : la liste n'est pas le premier élément de la feuille, comme dans « Utiliser un mouvement existant »
+          (`MovementSelectionScreen`, `styles.body`) et les feuilles de filtres ; sinon iOS l'étend sous l'en-tête et elle capte
+          le ✕ (recette du 18/11/2026). */}
+      <View style={styles.sheetBody} collapsable={false} testID="sheet-body">
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing[24] }]}
+          testID="planning-selection-list"
+        >
+          {loading ? <ActivityIndicator color={colors.primary} /> : null}
+          {failed ? <Text style={styles.message}>{t.loadError}</Text> : null}
+          {!loading && !failed && sessions.length === 0 ? (
+            <Text style={styles.message} testID="planning-selection-empty">
+              {t.empty}
+            </Text>
+          ) : null}
+          {context.visible.map((projection) => {
+            const order = selected.indexOf(projection.id) + 1;
+            const checked = order > 0;
+            return (
+              <Pressable
+                key={projection.id}
+                onPress={() => toggle(projection.id)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked }}
+                accessibilityLabel={`${sessionCardAccessibilityLabel(projection)}, ${checked ? t.checked : t.unchecked}`}
+                style={styles.item}
+                testID={`planning-selection-${projection.id}`}
+              >
+                <View pointerEvents="none">
+                  <SessionCard projection={projection} context="planning" />
+                </View>
+                <View style={[styles.check, checked ? styles.checkOn : null]} pointerEvents="none" testID={`planning-selection-${projection.id}-${checked ? "checked" : "unchecked"}`}>
+                  {checked ? <Text style={styles.checkOrder}>{order}</Text> : null}
+                </View>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
     </ScreenShell>
   );
 }
@@ -158,10 +149,10 @@ const CHECK = 24;
 const CARD_HEADER_HEIGHT = 72;
 
 const styles = StyleSheet.create({
-  // Feuille native : liste sur toute la hauteur, décalée sous le haut fixe (recette du 18/11/2026).
-  // [marginTop -CONTEXT_BAND_FADE_HEIGHT et paddingTop fixe — remplacés.]
+  // La part fondue de la zone de contexte recouvre le haut de la liste (contre-recette du 30/10/2026).
+  sheetBody: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
   scroll: { flex: 1 },
-  list: { paddingHorizontal: layout.screenGutter, gap: spacing[12] },
+  list: { paddingHorizontal: layout.screenGutter, paddingTop: spacing[16] + CONTEXT_BAND_FADE_HEIGHT, gap: spacing[12] },
   item: { position: "relative" },
   // Recette du 17/11/2026 (Hermann : « la coche de sélection doit être centrée verticalement sur la carte » ; « doit être
   // ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l'intérieur qui représente l'ordre de sélection des

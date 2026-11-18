@@ -185,3 +185,10 @@ Communiqués dans le message de livraison (hash du commit contenant ce rapport, 
 - Correction (classe D, technique) : composant partagé `src/shared/ui/SheetFixedTop.tsx` — en-tête et zone de contexte posés par-dessus la liste, liste enveloppée, contenu décalé de la hauteur mesurée du haut, ajustement automatique des marges désactivé. Appliqué au Catalogue des séances et au formulaire Planifier (même structure).
 - Tests : planification 7 suites / 39 tests verts ; `tsc` et `eslint` propres.
 - À vérifier sur iPhone : liste sous la zone de contexte, ✕ et coche actifs, défilement derrière la zone fondue ; même chose dans Planifier et via « Changer ».
+
+### Correctif n° 3 du 18/11/2026 — réemploi du patron existant (remarque de Hermann)
+
+- Remarque de Hermann : « Mais n'est ce pas une réutilisation de ce qui a déjà été fait plusieurs fois ? N'as tu pas une fonction standard qui s'applique ? »
+- Constat : aucun composant partagé, mais un patron établi dans les feuilles qui fonctionnent — « Utiliser un mouvement existant » (`MovementSelectionScreen`, même structure en-tête + zone de contexte de Catalogue + liste, `styles.body`) et les feuilles de filtres (`nativeScrollHost`, `collapsable={false}`) : la liste est enveloppée dans un conteneur `flex: 1` et n'est plus le premier élément de la feuille. `SheetFixedTop` (`87f25c8b`) réinventait une autre solution : **supprimé**.
+- Correction (classe D) : Catalogue des séances et Planifier reviennent à leur mise en page de `3787f7b6`, liste enveloppée selon ce patron (décalage de la part fondue porté par l'enveloppe du Catalogue).
+- Tests : planification 7 suites / 39 tests verts ; `tsc` et `eslint` propres. À vérifier sur iPhone comme au correctif n° 2.
