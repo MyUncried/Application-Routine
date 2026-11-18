@@ -4411,6 +4411,7 @@ Une information, un coin, dans tous les formats. Au plus quatre informations, un
 | Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
 | For time | objectif du tour | temps max | charge | — |
 | AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| AMRAP à un seul mouvement en Max | — | temps limite du bloc | charge | score cumulé |
 | EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
 | EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
 | Death by | objectif du rang | intervalle | charge | — |
