@@ -568,6 +568,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                       update({ reminderMinutes: Number(value) });
                     }
                   }}
+                  labelStyle={styles.reminderOption}
                   testID="planning-reminder-options"
                 />
               </View>
@@ -882,6 +883,9 @@ const styles = StyleSheet.create({
   valuePill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.background, justifyContent: "center" },
   value: { ...type.label, color: colors.primary },
   valuePlain: { ...type.label, color: colors.textPrimary },
+  // Recette du 18/11/2026 (k13, Hermann : « la taille de toutes les valeurs de rappel doit être celle du texte "Progression" »,
+  // titre de la carte de Séance) : typographie `listCardTitle` (Semi Bold 15). [`segmentedLabel` Semi Bold 16 — remplacé.]
+  reminderOption: { ...type.listCardTitle },
   datePanel: {
     alignSelf: "stretch",
     marginHorizontal: layout.screenGutter,

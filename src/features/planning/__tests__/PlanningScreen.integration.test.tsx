@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 import { State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 
@@ -268,6 +269,8 @@ describe("Planifier", () => {
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
     expect(screen.queryByText("Autre")).toBeNull();
     expect(within(screen.getByTestId("planning-reminder-options-OTHER")).getByText("1h20")).toBeTruthy();
+    // Taille du titre des cartes de Séance (« Progression », k13).
+    expect(StyleSheet.flatten(screen.getByText("1h20").props.style)).toMatchObject({ fontSize: 15 });
     fireEvent.press(screen.getByText("1h"));
     expect(screen.getByText("Autre")).toBeTruthy();
     fireEvent.press(screen.getByText("Autre"));

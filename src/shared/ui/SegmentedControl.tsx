@@ -170,7 +170,7 @@ export type SegmentedControlProps<T extends string> = {
    * droite ; ignore `labelStyle`, `minHeight` et `subtitle`.
    */
   readonly variant?: "standard" | "parameters" | "inline";
-  /** Typographie des libellés (variante « Paramètres ») ; couleurs gérées par le composant. */
+  /** Typographie des libellés (variantes « Paramètres » et standard, planification du 18/11/2026) ; couleurs gérées par le composant. */
   readonly labelStyle?: StyleProp<TextStyle>;
   /** Hauteur minimale de la variante « Paramètres » (42 par défaut ; 60 pour l’Ordre des côtés). */
   readonly minHeight?: number;
@@ -554,7 +554,7 @@ export function SegmentedControl<T extends string>({
             <Text
               style={[
                 styles.label,
-                parameters ? [labelStyle, styles.labelCentered] : null,
+                parameters ? [labelStyle, styles.labelCentered] : (labelStyle ?? null),
                 selected ? styles.labelSelected : null,
                 option.disabled ? styles.labelDisabled : null,
               ]}

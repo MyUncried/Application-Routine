@@ -256,3 +256,9 @@ Sources vérifiées : types `expo-notifications` 57.0.25 installés (`Notificati
 ### Vérifications restant à faire sur iPhone
 
 k16 déplacement par appui long ; k17 zone figée ; k18 en-tête et zone de contexte standards (halos, dégradé, titre centré) ; k19 date et heure dans le voile ; k20 rappel 15 min et « Autre » ; k2d (liste sous la recherche) toujours ouverte.
+
+### Précision du 18/11/2026 — taille des valeurs du rappel (k13)
+
+- Capture de Hermann : « Progression » est le titre d'une carte de Séance. Valeurs du rappel en `listCardTitle` (Semi Bold 15) ; `SegmentedControl` applique désormais `labelStyle` aussi en variante standard (aucun autre appelant ne le passe : rendu des autres écrans inchangé). Classe B (CE-UI-05 §9, registre ch07).
+- Même capture : l'application se charge en 5G ; liste du Catalogue des séances sous la recherche, coche bleue, halos visibles — à confirmer dans le cahier (k2d, k18).
+- Tests : planification et composants partagés verts ; `tsc` propre.
