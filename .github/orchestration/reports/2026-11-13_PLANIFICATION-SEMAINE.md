@@ -262,3 +262,8 @@ k16 déplacement par appui long ; k17 zone figée ; k18 en-tête et zone de cont
 - Capture de Hermann : « Progression » est le titre d'une carte de Séance. Valeurs du rappel en `listCardTitle` (Semi Bold 15) ; `SegmentedControl` applique désormais `labelStyle` aussi en variante standard (aucun autre appelant ne le passe : rendu des autres écrans inchangé). Classe B (CE-UI-05 §9, registre ch07).
 - Même capture : l'application se charge en 5G ; liste du Catalogue des séances sous la recherche, coche bleue, halos visibles — à confirmer dans le cahier (k2d, k18).
 - Tests : planification et composants partagés verts ; `tsc` propre.
+
+### Correctif du 18/11/2026 — racine des gestes de la feuille Planifier
+
+- Hermann : « Erreur » après rechargement. Cause probable (déduite du code, message non transmis) : la feuille `formSheet` est présentée hors de la vue racine de l'application ; le `GestureDetector` du déplacement des lignes (`bcdeafa3`) exige une `GestureHandlerRootView` ancêtre. Même dispositif que `FormatModelScreen` (« Racine des gestes natifs propre à la feuille »). Classe D.
+- Tests : planification verte ; `tsc` propre. Jest fournit sa propre racine de gestes : l'erreur n'y était pas reproductible.

@@ -4,7 +4,7 @@ import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -341,6 +341,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const weekUnit = (count: number) => (count === 1 ? planningStrings.weekUnit.singular : planningStrings.weekUnit.plural);
 
   return (
+    // Racine des gestes natifs propre à la feuille (formSheet, présentée hors de la vue racine de l'application), comme
+    // `FormatModelScreen` : sans elle, le déplacement des lignes (`GestureDetector`) lève une erreur (contre-recette du 18/11/2026).
+    <GestureHandlerRootView style={styles.gestureRoot}>
     <ScreenShell>
       {/* Figma `1992:6838` : titre aligné à gauche après la croix ; coche d'enregistrement (D-499). */}
       {/* Feuille native : haut standard (en-tête, zone de contexte, halos) posé sur la liste (`NativeSheetTop`, recette du 18/11/2026). */}
@@ -640,6 +643,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         ) : null}
       </WheelPickerOverlay>
     </ScreenShell>
+    </GestureHandlerRootView>
   );
 }
 
@@ -852,6 +856,7 @@ export function timeToDuration(time: LocalTime): number {
 const ENTRY_LONG_PRESS_MS = 500;
 
 const styles = StyleSheet.create({
+  gestureRoot: { flex: 1 },
   contentBand: {
     flexDirection: "row",
     alignItems: "flex-end",
