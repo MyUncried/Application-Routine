@@ -56,7 +56,7 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-YOG-005.webp",
+    "commit": "872a99f2cb437bbcf35aa428d00b3fe2abcc32f9",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
@@ -66,7 +66,7 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-CRO-008.webp",
+    "commit": "cd6579637b9e178c029cee88a12e21c3e69af087",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
@@ -76,7 +76,7 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-CRO-007.webp",
+    "commit": "3cbe002da836d839221817ce54d7c65f52958872",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
@@ -86,7 +86,7 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-HYR-004.webp",
+    "commit": "bd1f8db9abcb1ea43d08c2811ce73e4188a5886d",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
@@ -96,7 +96,7 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-HYR-009.webp",
+    "commit": "f83638ea500801c4cc3841aa15976e9b1f867c1b",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
@@ -106,7 +106,7 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-CRO-003.webp",
+    "commit": "3510998de08362fd76af107111000630dc703bcc",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
@@ -116,18 +116,18 @@
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
     "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
-    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/REED-002.webp",
+    "commit": "5667134b20c2d0f3a730ad29994f27d97aab5f5e",
     "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "REED-006",
     "name": "Descente excentrique du poignet",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
+    "path": "catalogue/illustrations/20261117/REED-006.webp",
+    "generation": "à corriger",
+    "sauvegarde": "versionnée",
     "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/REED-006.webp",
+    "anomalie": "Remontée assistée : seul le coude est soutenu ; la fiche prescrit un avant-bras sur la table, poignet au bord."
   },
   {
     "sheetId": "FIT-PIL-006",
