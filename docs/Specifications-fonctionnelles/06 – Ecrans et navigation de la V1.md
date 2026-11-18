@@ -1414,7 +1414,7 @@ Frame `1992:7187` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 #### Planifier une séance — Stepper du nombre de semaines
 
-> [Écran retiré ou remplacé le 18/11/2026, D-520 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
 
 
 Frame `1992:7537` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7537).
@@ -1423,7 +1423,7 @@ Frame `1992:7537` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 #### Planifier une séance — Rappel personnalisé sélectionné
 
-> [Écran retiré ou remplacé le 18/11/2026, D-520 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
 
 
 Frame `1992:7369` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7369).
@@ -1432,7 +1432,7 @@ Frame `1992:7369` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 #### Planifier une séance — Sans répétition
 
-> [Écran retiré ou remplacé le 18/11/2026, D-520 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
 
 
 Frame `1992:7716` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7716).
@@ -1441,7 +1441,7 @@ Frame `1992:7716` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 #### Modal — Planifier un parcours — Sélectionner plusieurs séances
 
-> [Écran retiré ou remplacé le 18/11/2026, D-520 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
 
 
 Frame `7594:34809` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34809).
@@ -1450,7 +1450,7 @@ Frame `7594:34809` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg
 
 #### Planifier un parcours
 
-> [Écran retiré ou remplacé le 18/11/2026, D-520 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
 
 
 Frame `7594:34531` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34531).
@@ -1459,7 +1459,7 @@ Frame `7594:34531` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg
 
 #### Modal — Planifier un parcours — Fréquence
 
-> [Écran retiré ou remplacé le 18/11/2026, D-520 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
 
 
 Frame `7594:34653` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34653).
@@ -2758,7 +2758,7 @@ Le trait ne désigne pas la ligne entière de contenu. Supprimer les information
 
 ### Champs et comportements des fonctionnalités — Planifier une Séance ou un Exercice
 
-Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le nombre de semaines utilise désormais un stepper intégré (frame 1992:7537), sans roulette dédiée. [Remplacé le 18/11/2026, D-517 : le nombre de semaines et le Rappel personnalisé utilisent une roulette native iOS en popover (frames 12652:28447 et 12652:28306), sans titre, bouton ni unité.] Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
+Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le nombre de semaines utilise désormais un stepper intégré (frame 1992:7537), sans roulette dédiée. [Remplacé le 18/11/2026, D-520 : le nombre de semaines et le Rappel personnalisé utilisent une roulette native iOS en popover (frames 12652:28447 et 12652:28306), sans titre, bouton ni unité.] Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
 
 ### Champs et comportements des fonctionnalités — Dialogues de confirmation
 

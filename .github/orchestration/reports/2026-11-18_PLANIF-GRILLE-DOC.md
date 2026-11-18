@@ -3,12 +3,14 @@
 - **Identifiant** : PLANIF-GRILLE-DOC-2026-11-18 ; objectif : mettre à jour la documentation (classe B) d'après les décisions de Hermann du 18/11/2026 et préparer le prompt Claude Code d'application.
 - **Branche / départ** : `docs/planification-grille-creneaux`, créée depuis `main` au commit `6a7e0376`.
 - **Périmètre demandé** : mise à jour de la documentation et rédaction du prompt. Aucun code applicatif.
-- **Périmètre traité** : registre (D-516 à D-520 + À CLARIFIER), chapitre 10 (RM-253 à RM-259, annotations RM-054a et sections x fois sur n / répétition du créneau), chapitre 13 (CE-UI-12, annotations CE-UI-05 et CE-UI-11), chapitre 06 (écrans retirés, stepper remplacé), chapitre 04 (ordre des contenus), matrice de planification, prompt.
-- **Constats** : quatre points arbitrés par Hermann le 18/11/2026 : Rappel « Sans » (D-521), occurrences passées rejouables (D-522, remplace RM-049), unité « mois » retirée (D-523), roulette du Rappel sans unité.
+- **Périmètre traité** : registre (D-519 à D-523 + À CLARIFIER), chapitre 10 (RM-253 à RM-259, annotations RM-054a et sections x fois sur n / répétition du créneau), chapitre 13 (CE-UI-12, annotations CE-UI-05 et CE-UI-11), chapitre 06 (écrans retirés, stepper remplacé), chapitre 04 (ordre des contenus), matrice de planification, prompt.
+- **Constats** : quatre points arbitrés par Hermann le 18/11/2026 : Rappel « Sans » (D-524), occurrences passées rejouables (D-525, remplace RM-049), unité « mois » retirée (D-526), roulette du Rappel sans unité.
 - **Preuves et tests** : aucun test applicable (documentation). Recherche ciblée des anciennes formulations (stepper, interrupteur, x fois sur n, frames retirées) ; textes d'origine conservés avec annotation datée.
-- **Hypothèses non démontrées** : ch08, ch09, PRODUCT.md et les DSF n'ont pas été modifiés ; leur dépendance au stepper et à l'interrupteur n'a pas été vérifiée exhaustivement (ch09 : mention du Rappel annotée ; texte de l'Occurrence planifiée non relu au regard de D-522).
+- **Hypothèses non démontrées** : ch08, ch09, PRODUCT.md et les DSF n'ont pas été modifiés ; leur dépendance au stepper et à l'interrupteur n'a pas été vérifiée exhaustivement (ch09 : mention du Rappel annotée ; texte de l'Occurrence planifiée non relu au regard de D-525).
 - **Éléments non corrigés / hors périmètre** : aucun point À CLARIFIER restant ; écrans Figma non modifiés (option « 5 min » du Rappel, « mois » dans la Répétition, Agenda) ; captures du chapitre 06 et de la matrice non régénérées ; DSF du sélecteur numéroté non édité.
 - **À vérifier sur appareil réel** : sans objet pour cette mission ; à vérifier lors de l'implémentation (roulettes natives, popovers, grille 7 colonnes, modale iOS).
 - **Fichiers modifiés** : chapitres 04, 06, 07, 10, 13 de `docs/Specifications-fonctionnelles/` ; `docs/MATRICE-PLANIFICATION-2026-10-08.md` ; nouveaux : `docs/PROMPT-CLAUDE-CODE-PLANIFICATION-GRILLE-2026-11-18.md` et ce rapport.
 - **Classe de synchronisation** : B (évolution validée explicitement). Documents mis à jour : ceux listés ci-dessus.
 - **Commit final et état Git** : voir le message de livraison (hash et état renseignés après commit).
+
+- **Renumérotation (18/11/2026)** : D-516 à D-518 étant pris par les PR #427 et #431, les décisions de la planification sont D-519 à D-527 ; RM-253 à RM-264 et CE-UI-12 inchangés. D-527 et RM-260 à RM-264 (cycle, nom, migration) sont une proposition de Claude à valider par Hermann.

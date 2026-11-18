@@ -1977,7 +1977,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-046 | En vue Semaine, la liste et le sélecteur de jour sont synchronisés : le jour en tête de liste devient le jour sélectionné, et sélectionner un jour positionne sa section en tête. |
 | RM-047 | Pour l’unité Semaine, la semaine contenant le début est l’ancrage ; fréquence N semaines, jours sélectionnés, bornes inclusives. Ne définit pas les règles Jour/Mois. |
 | RM-048 | Une occurrence future peut être exécutée en avance depuis l’action contextuelle disponible sur sa carte. Elle n’est ensuite pas reproposée à son horaire initial. |
-| RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. [Remplacé le 18/11/2026, D-522 : une occurrence passée sans Exécution ne disparaît pas et peut être rejouée ; son ajout au Suivi du MVP reste exclu.] |
+| RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. [Remplacé le 18/11/2026, D-525 : une occurrence passée sans Exécution ne disparaît pas et peut être rejouée ; son ajout au Suivi du MVP reste exclu.] |
 | RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni sa source planifiée ni les Exécutions historiques. |
 | RM-123 | Dupliquer une Routine prépare un brouillon avec la liste ordonnée des contenus, leurs motifs et les paramètres ; aucune persistance avant Enregistrer. |
 | RM-206 | Un Exercice persistant actif peut être planifié directement. Son archivage met fin aux occurrences futures de ses Routines selon la même règle de conservation historique que pour une Séance : les occurrences historisées, Exécutions et Instantanés restent conservés. Sa restauration ne recrée pas automatiquement les anciennes Routines. |
@@ -1991,7 +1991,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-052 | La demande d’autorisation système est déclenchée dans le contexte de la première activation d’un rappel pendant une planification. |
 | RM-053 | En cas de refus ou d’indisponibilité de l’autorisation, le rappel reste désactivé ; la planification peut néanmoins être enregistrée. |
 | RM-054 | Les notifications locales sont planifiées selon la stratégie technique définie au chapitre 12. |
-| RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. [Remplacé le 18/11/2026, D-517 et D-521 : plus d’interrupteur ; options Sans / 15 min / 30 min / 1 h / Autre, « Sans » désactive le rappel ; « 5 min » retirée.] |
+| RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. [Remplacé le 18/11/2026, D-520 et D-524 : plus d’interrupteur ; options Sans / 15 min / 30 min / 1 h / Autre, « Sans » désactive le rappel ; « 5 min » retirée.] |
 
 ### Planification multi-contenus
 
@@ -2019,21 +2019,26 @@ Chaque Routine possède sa propre règle de créneau et une liste ordonnée de r
 
 La suppression d'une Routine n'a aucun effet sur sa source. La modification de la source est prise en compte par les occurrences futures ; au démarrage d’une Exécution, un Instantané immuable de la source est créé.
 
-### Planification — grille de créneaux et rotation (D-516 à D-519)
+### Planification — grille de créneaux et rotation (D-519 à D-522)
 
 | ID | Règle |
 | --- | --- |
-| RM-253 | La Répétition génère les créneaux. Le cycle de rotation compte 1 à 7 créneaux (#1 à #7) ; au départ seul #1 est actif. Sa longueur se règle en touchant un numéro de colonne (D-516). |
+| RM-253 | La Répétition génère les créneaux. Le cycle de rotation compte 1 à 7 créneaux (#1 à #7) ; au départ seul #1 est actif. Sa longueur se règle en touchant un numéro de colonne (D-519). |
 | RM-254 | Chaque séance du parcours occupe une ligne ; un point dans une colonne signifie qu’elle est jouée dans ce créneau du cycle. Au moins un point par colonne et par ligne (aucune séance sans point, aucun créneau vide). |
 | RM-255 | La mention de fréquence d’une séance (« à chaque fois » ou « x fois sur n ») est calculée en direct à partir de ses points ; elle n’est pas saisie. |
 | RM-256 | Plusieurs séances dans un même créneau forment un seul lancement, à l’heure de début, dans l’ordre des lignes ; l’ordre des lignes est celui de la sélection. |
-| RM-257 | Répétition : valeur « toutes les » / « tous les » (accord avec l’unité) / « aucune », nombre, unité, « jusqu’au » date. Unités : jours et semaines (« mois » retiré, D-523). « aucune » = planification unique. La rangée des jours n’existe que pour l’unité semaines (D-517). |
-| RM-258 | Nom de la planification : texte libre, unique, non hérité. Copie automatique du nom de la séance quand la planification vient de son action « Planifier » ou quand une seule séance est sélectionnée ; sinon vide et obligatoire (D-519). |
-| RM-259 | Synthèse : durée en premier, sans point final ni majuscule initiale, sans « Prochain créneau » ; « X jours par semaine » quand les jours ne tiennent pas sur la ligne (D-518). |
+| RM-257 | Répétition : valeur « toutes les » / « tous les » (accord avec l’unité) / « aucune », nombre, unité, « jusqu’au » date. Unités : jours et semaines (« mois » retiré, D-526). « aucune » = planification unique. La rangée des jours n’existe que pour l’unité semaines (D-520). |
+| RM-258 | Nom de la planification : texte libre, unique, non hérité. Copie automatique du nom de la séance quand la planification vient de son action « Planifier » ou quand une seule séance est sélectionnée ; sinon vide et obligatoire (D-522). |
+| RM-259 | Synthèse : durée en premier, sans point final ni majuscule initiale, sans « Prochain créneau » ; « X jours par semaine » quand les jours ne tiennent pas sur la ligne (D-521). |
+| RM-260 | Longueur du cycle. Raccourcir : les colonnes retirées disparaissent avec leurs points ; une séance restée sans point est jouée dans toutes les colonnes restantes. Allonger : chaque nouvelle colonne reçoit un point pour toutes les séances (« à chaque fois »). Au départ, #1 seul, tous les points posés. Aucun cas n’efface le reste de la grille. |
+| RM-261 | Unicité du nom : parmi les planifications de l’utilisateur, sans distinguer majuscules/minuscules ni espaces de bord ; la planification en cours de modification n’est pas comparée à elle-même. Un nom vide ou déjà pris bloque l’enregistrement, avec le message « Ce nom est déjà utilisé » ou « Nom obligatoire » sous le champ. |
+| RM-262 | Avec une seule colonne active, la mention de chaque séance est « à chaque fois » ; le point ne peut pas être retiré (au moins un point par colonne). |
+| RM-263 | Planifications existantes : celles réglées par séance en « x fois sur n » (n ≤ 7) s’affichent dans la grille avec les positions retenues ; si n > 7, le cycle reste calculé comme enregistré et l’ouverture en modification demande de le ramener à 7 au plus. Aucune occurrence passée ou future déjà produite n’est réécrite. |
+| RM-264 | Planifications existantes en unité mois : elles continuent de produire leurs occurrences jusqu’à leur fin ; la modification impose de choisir jours ou semaines. Les planifications sans nom reçoivent un nom vide à compléter à la première modification. |
 
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
 
-> [Remplacé le 18/11/2026, D-516 : le réglage « x fois sur n » par contenu est remplacé par la grille créneaux × rotation (RM-253 à RM-256). Texte d’origine conservé ci-dessous ; l’invariant « le créneau produit les occurrences, le contenu ne fait que les filtrer » reste valide.]
+> [Remplacé le 18/11/2026, D-519 : le réglage « x fois sur n » par contenu est remplacé par la grille créneaux × rotation (RM-253 à RM-256). Texte d’origine conservé ci-dessous ; l’invariant « le créneau produit les occurrences, le contenu ne fait que les filtrer » reste valide.]
 
 #### La forme retenue
 
@@ -2088,7 +2093,7 @@ Le x du premier stepper et le nombre de pastilles sélectionnées expriment la m
 
 ### Planification des créneaux et de leurs contenus — La répétition du créneau
 
-> [Précisé le 18/11/2026, D-517 : ligne Répétition à valeur modifiable sans interrupteur, jours de la semaine pour l’unité semaines seulement, roulettes natives en popover ; voir RM-257.]
+> [Précisé le 18/11/2026, D-520 : ligne Répétition à valeur modifiable sans interrupteur, jours de la semaine pour l’unité semaines seulement, roulettes natives en popover ; voir RM-257.]
 
 #### Un interrupteur, puis une unité
 
