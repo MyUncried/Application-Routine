@@ -90,3 +90,7 @@ Commit de livraison et état Git : donnés dans le compte rendu de clôture (bra
 **Limite (choix technique).** Les bascules de la fenêtre en cours sont notées par l'écran : après une fermeture de l'application en pleine fenêtre, les portions passées de cette fenêtre reviennent au bleu ; le temps et le résultat ne sont pas touchés.
 
 **À confirmer.** (a) Fond blanc au repos (orange réservé à la pause) ; (b) même orange pour la retenue et le repos sur l'anneau ; (c) « triangle » = coin du bas à gauche du For time ; (d) Death by en Durée inchangé.
+
+**Tests (reprise).** `npx tsc --noEmit -p .` : aucune erreur ; eslint des fichiers touchés : aucun signalement ; `src/features/execution` et `src/domain/execution` : 27 suites, 188 tests réussis. Suite Jest complète : un premier lancement a été arrêté par le système (mémoire) ; relancée sur `81b1a8b0` avec `--maxWorkers=2` : 407 suites, 6 241 tests réussis, 32 ignorés, aucun échec. Recette iPhone : non effectuée (lignes emom-e1 à emom-e6 et emom-d5 du cahier ; emom-d1 à emom-d4 retirées).
+
+**Commit et état Git (reprise).** Code et documentation : `81b1a8b0` ; ce complément de rapport dans le commit documentaire qui suit. Branche `formats/emom-duree-20261118` poussée, arbre propre, aucune PR ni fusion.
