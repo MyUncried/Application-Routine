@@ -20,7 +20,7 @@
  * (§14.1) — le runtime ne demande que l'intervalle récent.
  */
 
-import { leafStepRef, type EngineState, type Ms } from "./kernel";
+import { dueAtMs, leafStepRef, type EngineState, type Ms } from "./kernel";
 
 export type SignalKind = "TRANSITION" | "COUNTDOWN" | "CADENCE" | "MINUTE" | "PHASE" | "HALF_TIME";
 
@@ -79,7 +79,8 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, pha
     // chronomètre affiché, y compris après une Pause (remplace l'ancrage sur la reprise, §13).
     if (spec.cadenceMs !== undefined && leaf.cadenceAnchorMs !== null) every(spec.cadenceMs, "CADENCE");
     // Recette du 10/11/2026 (G7) : signal minute de toute Série en Répétitions ou À l'échec, avec ou sans cadence.
-    if (spec.end === "MANUAL") every(MINUTE, "MINUTE");
+    // PRE-11 (T2) : pas de signal minute dans une fenêtre EMOM, qui a ses propres repères (début et fin de fenêtre).
+    if (spec.end === "MANUAL" && spec.inWindow !== true) every(MINUTE, "MINUTE");
     // Recette du 11/11/2026 (y5) : mi-temps des seuls exercices en Durée définie (ni Compte à rebours, ni Fin de
     // séance, ni Pauses ou récupérations : ce ne sont pas des étapes ACTIVITY).
     if (spec.end === "TIMED" && (spec.plannedMs ?? 0) > 0) push("HALF_TIME", wallAt((spec.plannedMs ?? 0) / 2));
@@ -103,6 +104,14 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, pha
         }
       }
     }
+  }
+  // PRE-11 (T2, arbitrage de Hermann du 18/11/2026 : « les 3 bips courts du compte à rebours avant l'échéance ») : fin d'une fenêtre
+  // EMOM — pendant le travail comme pendant le repos qui se termine avec elle.
+  for (const window of state.refs) {
+    if (window.role !== "WINDOW" || window.anchorMs === null) continue;
+    const due = dueAtMs(window);
+    if (due === null) continue;
+    for (const before of [3, 2, 1]) if (due - before * S > window.anchorMs) push("COUNTDOWN", due - before * S);
   }
   // Recette du 10/11/2026 (h1) : pas de bip de cadence pendant les trois dernières secondes d'une étape
   // chronométrée, qui ont leurs propres bips.

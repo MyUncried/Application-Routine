@@ -98,7 +98,9 @@ function breaksImposedValues(exercise: ValidityExercise, format: ElementFormat, 
   }
   // For time : Condition d'arrêt À l'objectif, buy-in et buy-out compris (§3, §11 ; MAJ 04/11 §6 bis 2 : le buy-in
   // AMRAP peut être à l'échec).
-  const targetOnly = format.key === "FOR_TIME";
+  // EMOM « À l'objectif » seul (décision de Hermann du 07/11/2026, registre ch07 « EMOM — champs de la modale « Paramètres
+  // d'exécution » et règles de conversion » ; spec PRE-11 §6.6, repris en T2) : aucune cible À l'échec.
+  const targetOnly = format.key === "FOR_TIME" || format.key === "EMOM";
   return targetOnly && seriesRowsOf(parameters).some((row) => row.target.kind === "FAILURE");
 }
 

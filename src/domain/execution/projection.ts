@@ -14,7 +14,8 @@ import { phaseGuidanceAt, workPhasesCycleSeconds } from "@/domain/activities/pha
 import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
 import { leafElapsedMs, leafStepRef, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
-import { guidedPhases, type ChildSpec, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
+import { guidedPhases, type ChildSpec, type EmomScopeConfig, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
+import { bannerWindow, EMOM_PILOT, type EmomLocal } from "./policies/emom";
 import { activityCount, FOR_TIME_PILOT, isDurationLeaf, pendingDurationOf, roundKeyOf, type ForTimeLocal } from "./policies/forTime";
 
 export type TimerView =
@@ -92,7 +93,8 @@ export type Counters = {
  * puis Clôture (D3) avec le temps réalisé figé et, si la borne a fermé un travail, ce travail à compléter.
  */
 export type FormatView = {
-  readonly kind: "FOR_TIME";
+  /** PRE-11 (T2) : `EMOM` — les champs propres au For time y sont neutres (aucune borne, aucune commande « + Tour »). */
+  readonly kind: "FOR_TIME" | "EMOM";
   readonly name: string;
   readonly phase: "WORK" | "CLOSURE";
   readonly elapsedMs: Ms;
@@ -132,6 +134,28 @@ export type FormatView = {
     /** L'exercice en cours est un exercice en durée : bouton inactif (fin à son terme). */
     readonly duration: boolean;
   } | null;
+  /** PRE-11 (T2) : fenêtre EMOM en cours ; `null` hors EMOM. */
+  readonly emom: EmomView | null;
+};
+
+/**
+ * PRE-11 (T2) — EMOM (FMT-20 à FMT-25 ; Figma `8982:15709` « Exécution d'une séance — EMOM — repos déclaré ») : rang et nombre des
+ * fenêtres, temps restant de la fenêtre (grand chrono), repos révélé par le travail terminé, et bandeau Q1 d'une fenêtre
+ * précédente non terminée (répétitions faites à déclarer, valeur proposée 0).
+ */
+export type EmomView = {
+  readonly window: number;
+  readonly windows: number;
+  readonly windowMs: Ms;
+  readonly elapsedMs: Ms;
+  readonly remainingMs: Ms;
+  /** Travail de la fenêtre terminé : repos jusqu'à l'échéance. */
+  readonly resting: boolean;
+  /** Temps de la fenêtre à la fin du travail ; `null` avant (portion « travail » de l'anneau). */
+  readonly workEndedMs: Ms | null;
+  readonly banner: { readonly window: number; readonly name: string | null; readonly target: SeriesTarget | null } | null;
+  /** Clôture : fenêtre dont les répétitions faites sont demandées ; `null` sinon. */
+  readonly closingWindow: number | null;
 };
 
 export type ExecutionProjection = {
@@ -238,7 +262,8 @@ function positionOf(plan: ExecutablePlan, state: EngineState): { readonly index:
     const at = index.get(leaf.spec.key);
     if (at !== undefined) return { index: at, passed: at };
     if (leaf.spec.kind === "CLOSURE") {
-      const scope = [...state.frames].reverse().find((frame) => leaf.spec.key === `${frame.spec.key}/closure`);
+      // PRE-11 (T2) : Clôture EMOM, une par fenêtre (`<portée>/closure/f<rang>`).
+      const scope = [...state.frames].reverse().find((frame) => leaf.spec.key === `${frame.spec.key}/closure` || leaf.spec.key.startsWith(`${frame.spec.key}/closure/`));
       const items = (scope?.spec.config as { items?: readonly ChildSpec[] } | undefined)?.items ?? [];
       const inner = childLeaves(items);
       const last = inner.length === 0 ? undefined : index.get(inner[inner.length - 1]!.key);
@@ -254,6 +279,8 @@ function positionOf(plan: ExecutablePlan, state: EngineState): { readonly index:
 
 /** Étape sans durée déterminable : Séries manuelles sans cadence ou À l'échec (R de RM-077). */
 function isUntimedSeries(leaf: LeafSpec): boolean {
+  // PRE-11 (T2) : une étape de fenêtre EMOM ne pèse rien ; la fenêtre pèse par son repos (durée de la fenêtre).
+  if (leaf.inWindow === true) return false;
   return leaf.kind === "ACTIVITY" && leaf.end === "MANUAL" && !(leaf.cadenceMs !== undefined && leaf.target?.kind === "NUMBER" && leaf.plannedMs !== null);
 }
 
@@ -263,7 +290,7 @@ function isUntimedSeries(leaf: LeafSpec): boolean {
  * à rebours et `SESSION_END` compris — remplacé.]
  */
 function temporalMs(leaf: LeafSpec): Ms {
-  if (leaf.kind === "STOP_POINT" || leaf.kind === "INITIAL_COUNTDOWN" || leaf.kind === "SESSION_END" || isUntimedSeries(leaf)) return 0;
+  if (leaf.kind === "STOP_POINT" || leaf.kind === "INITIAL_COUNTDOWN" || leaf.kind === "SESSION_END" || leaf.inWindow === true || isUntimedSeries(leaf)) return 0;
   return leaf.plannedMs ?? 0;
 }
 
@@ -301,7 +328,7 @@ export function estimatedDuration(plan: ExecutablePlan): EstimatedDuration {
   let ms = 0;
   let kind: EstimatedDuration["kind"] = "exact";
   for (const leaf of rootLeaves(plan)) {
-    if (leaf.kind === "STOP_POINT") continue;
+    if (leaf.kind === "STOP_POINT" || leaf.inWindow === true) continue;
     if (leaf.contribution === "omitted") {
       kind = "lowerBound";
       continue;
@@ -325,7 +352,17 @@ function progressBefore(plan: ExecutablePlan, state: EngineState, atMs: Ms): num
   let value = 0;
   for (let i = 0; i < Math.min(passed, leaves.length); i += 1) value += weightOf(leaves[i]!, weights);
   const leaf = state.leaf;
-  if (leaf !== null && state.status !== "FINISHED" && leaf.spec.kind !== "CLOSURE") {
+  const emomFrame = [...state.frames].reverse().find((frame) => frame.spec.pilot === EMOM_PILOT);
+  if (leaf !== null && state.status !== "FINISHED" && emomFrame !== undefined && (emomFrame.local as EmomLocal | null)?.phase === "WORK") {
+    // PRE-11 (T2) : la fenêtre EMOM en cours avance avec son temps (poids porté par son repos), travail et repos compris.
+    const config = emomFrame.spec.config as EmomScopeConfig;
+    const local = emomFrame.local as EmomLocal;
+    const rest = config.items[(config.windows[local.window]?.end ?? 0) - 1];
+    const windowRef = state.refs.find((ref) => ref.owner === emomFrame.spec.key && ref.name === "window");
+    if (rest?.type === "LEAF" && windowRef !== undefined && config.windowMs > 0) {
+      value += weightOf(rest.leaf, weights) * Math.min(1, runningMs(windowRef, atMs) / config.windowMs);
+    }
+  } else if (leaf !== null && state.status !== "FINISHED" && leaf.spec.kind !== "CLOSURE") {
     const weight = weightOf(leaf.spec, weights);
     const planned = temporalMs(leaf.spec);
     if (planned > 0 && !isUntimedSeries(leaf.spec)) {
@@ -513,8 +550,9 @@ function forTimeCommandOf(config: ForTimeScopeConfig, index: number): FormatView
 
 /** Élément For time en cours (portée la plus interne pilotée par `FOR_TIME`), `null` sinon. */
 function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatView | null {
-  const frame = [...state.frames].reverse().find((candidate) => candidate.spec.pilot === FOR_TIME_PILOT);
+  const frame = [...state.frames].reverse().find((candidate) => candidate.spec.pilot === FOR_TIME_PILOT || candidate.spec.pilot === EMOM_PILOT);
   if (frame === undefined || frame.local === null) return null;
+  if (frame.spec.pilot === EMOM_PILOT) return emomFormatOf(plan, state, frame.spec.key, frame.spec.config as EmomScopeConfig, frame.local as EmomLocal, atMs);
   const config = frame.spec.config as ForTimeScopeConfig;
   const local = frame.local as ForTimeLocal;
   const stopwatch = state.refs.find((ref) => ref.owner === frame.spec.key && ref.name === "elapsed");
@@ -531,6 +569,7 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
     phaseStarts: local.phaseStarts ?? [],
     duration: local.phase === "WORK" ? durationOf(plan, state, config, local, atMs) : null,
     command: local.phase === "WORK" ? forTimeCommandOf(config, local.index) : null,
+    emom: null,
     interrupted:
       interruptedSpec === undefined
         ? null
@@ -539,6 +578,52 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
             target: interruptedSpec.target === undefined ? null : interruptedSpec.target,
             mode: interruptedSpec.mode ?? null,
           },
+  };
+}
+
+/**
+ * PRE-11 (T2) — EMOM en cours : fenêtre, temps restant, repos révélé, bandeau Q1 ; Série en Durée en cours (compte à rebours dans le
+ * coin du bas à gauche, comme le For time) ; Clôture : Série interrompue de la fenêtre dont les répétitions sont demandées.
+ */
+function emomFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: string, config: EmomScopeConfig, local: EmomLocal, atMs: Ms): FormatView {
+  const windowRef = state.refs.find((ref) => ref.owner === scopeKey && ref.name === "window");
+  const elapsedMs = windowRef === undefined ? config.windowMs : Math.min(config.windowMs, runningMs(windowRef, atMs));
+  const nameOf = (leaf: LeafSpec | undefined) => (leaf?.exerciseId === undefined ? null : (plan.exercises[leaf.exerciseId]?.name ?? null));
+  const leafOf = (key: string | null) => (key === null ? undefined : childLeaves(config.items).find((leaf) => leaf.key === key));
+  const banner = bannerWindow(config, local);
+  const bannerLeaf = leafOf(banner?.interruptedKey ?? null);
+  const closing = local.phase === "CLOSURE" ? local.outcomes.find((outcome) => outcome.window === local.closing) : undefined;
+  const closingLeaf = leafOf(closing?.interruptedKey ?? null);
+  const spec = state.leaf?.spec ?? null;
+  const timed = spec !== null && spec.kind === "ACTIVITY" && spec.end === "TIMED" && local.phase === "WORK";
+  const totalMs = timed ? (spec.plannedMs ?? 0) : 0;
+  return {
+    kind: "EMOM",
+    name: config.name,
+    phase: local.phase,
+    elapsedMs,
+    capMs: null,
+    capReached: false,
+    completedActivities: local.outcomes.filter((outcome) => outcome.terminated).length,
+    totalActivities: config.windows.length,
+    phaseStarts: [],
+    duration: timed ? { state: "RUNNING", name: nameOf(spec), remainingMs: Math.max(0, totalMs - leafElapsedMs(state, atMs)), totalMs } : null,
+    command: null,
+    interrupted:
+      closingLeaf === undefined
+        ? null
+        : { name: nameOf(closingLeaf), target: closingLeaf.target === undefined ? null : closingLeaf.target, mode: closingLeaf.mode ?? null },
+    emom: {
+      window: config.windows[Math.min(local.window, config.windows.length - 1)]?.number ?? 1,
+      windows: config.windows.length,
+      windowMs: config.windowMs,
+      elapsedMs,
+      remainingMs: Math.max(0, config.windowMs - elapsedMs),
+      resting: local.phase === "WORK" && local.workDone,
+      workEndedMs: local.workEndedMs,
+      banner: banner === null ? null : { window: banner.window, name: nameOf(bannerLeaf), target: bannerLeaf === undefined || bannerLeaf.target === undefined ? null : bannerLeaf.target },
+      closingWindow: local.phase === "CLOSURE" ? local.closing : null,
+    },
   };
 }
 
@@ -563,6 +648,9 @@ function timerOf(state: EngineState, atMs: Ms, format: FormatView | null): Timer
   // PRE-11 (T1) : pendant un For time, le grand chrono compte le temps réalisé de l'élément ; l'anneau va jusqu'à la
   // borne s'il y en a une (décision de Hermann du 13/11/2026 : « Temps écoulé. La borne peut apparaître dans le
   // triangle du haut à gauche »).
+  // PRE-11 (T2) : EMOM — le grand chrono décompte la fenêtre (Figma `8982:15709`), travail et repos compris.
+  if (format !== null && format.kind === "EMOM" && format.emom !== null && format.phase === "WORK")
+    return { kind: "COUNTDOWN", remainingMs: format.emom.remainingMs, totalMs: format.emom.windowMs, elapsedMs: format.emom.elapsedMs };
   if (format !== null && format.phase === "WORK") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: format.capMs };
   // PRE-11, correction 4 (14/11/2026) : fin normale du For time — le grand chrono montre le temps final, figé, sans saisie.
   if (format !== null && format.phase === "CLOSURE" && leaf.spec.kind === "CLOSURE") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: null };
@@ -625,7 +713,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     progress: progressOf(plan, state, atMs),
     commands: {
       // PRE-11, correction 3 : Réinitialiser désactivé pendant le travail d'un For time.
-      reset: running && spec !== null && resettable(spec) && !(format?.kind === "FOR_TIME" && format.phase === "WORK"),
+      reset: running && spec !== null && resettable(spec) && !(format?.kind === "FOR_TIME" && format.phase === "WORK") && format?.kind !== "EMOM",
       resetScope: recoveryLike ? "RECOVERY" : "EXERCISE",
       pause: running,
       next: running && spec !== null && (spec.end === "MANUAL" || spec.end === "WAIT" || spec.end === "TIMED"),

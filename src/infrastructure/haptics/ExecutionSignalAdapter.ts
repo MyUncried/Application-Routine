@@ -327,6 +327,9 @@ export class ExecutionSignalAdapter {
     const previousTimed = this.previousTimed;
     this.previousTimed = signal.timed === true;
     const { cue, announcement } = this.transition(signal);
+    // PRE-11 (T2, arbitrage de Hermann du 18/11/2026 : « Bip long de la minute au début de chaque fenêtre (réglage « Démarrage d'un
+    // exercice ») ») : début d'une fenêtre EMOM — l'annonce est conservée, le son est le bip long.
+    if (signal.kind === "TRANSITION" && signal.windowStart === true) return { cue: { sound: "BIP_LONG", volume: GUIDANCE.halfTime.volume, vibration: cue.vibration }, announcement, event: "EXERCISE_START" };
     const event = transitionEvent(signal);
     // Zéro de l'étape chronométrée qui se termine : double bip (événement Compte à rebours), si l'étape qui commence
     // n'a pas son propre son.

@@ -101,7 +101,16 @@ export const executionStrings = {
   },
   notLaunchable: "Cette séance ne peut pas encore être exécutée.",
   // PRE-11 (T1, 13/11/2026) : For time exécutable. [« Les Formats AMRAP, EMOM, For time et Death by… » — remplacé.]
-  notLaunchableFormats: "Les Formats AMRAP, EMOM et Death by seront exécutables dans une prochaine version.",
+  // PRE-11 (T2, 18/11/2026) : EMOM exécutable. [« Les Formats AMRAP, EMOM et Death by… » — remplacé.]
+  notLaunchableFormats: "Les Formats AMRAP et Death by seront exécutables dans une prochaine version.",
+  // PRE-11 (T2, 18/11/2026) — EMOM : feuille de l'Arrêt (arbitrage « Comme le For time »), Clôture des fenêtres non saisies (§12.2),
+  // bandeau Q1.
+  emomStopTitle: "Arrêt de l’EMOM",
+  emomClosureTitle: "Fin de l’EMOM",
+  emomWindowName: (name: string | null, window: number) => `${name ?? ""} · fenêtre ${window}`,
+  emomBanner: (window: number) => `Fenêtre ${window} non terminée — répétitions faites :`,
+  emomBannerValue: "Répétitions faites",
+  emomSkip: "Passer",
   notLaunchableInvalid: "Cette séance comporte des paramètres à compléter.",
   blocked: "Une séance interrompue doit d’abord être reprise ou arrêtée.",
   // PRE-11 (T1) — For time : borne dans le coin du haut à gauche (Hermann, 13/11/2026), Clôture « Vos résultats »

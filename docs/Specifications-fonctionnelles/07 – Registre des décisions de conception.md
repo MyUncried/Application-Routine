@@ -2858,6 +2858,33 @@ Classe B (évolutions validées). Décisions de Hermann, recopiées des recettes
 - **Chapitres 09 et 12 (non modifiés, à compléter lors de leur prochaine mise à jour).** Ch09 : en For time, aucun temps de repos ; Compte à rebours initial et Fin de séance hors du temps de séance ; Arrêt daté de l'appui (temps de saisie exclu). Ch12 : effet moteur `HELD` (retenue/reprise d'une durée) et commande STOP datée (`atMs`).
 - **Documents mis à jour (classe B).** Le présent chapitre ; Formats §11.1 ; chapitre 13 (CE-EXEC-SESSION-01, annotation).
 
+## EMOM — exécution (18/11/2026)
+
+Classe B (évolution validée) pour les commandes et les sons ; classe A pour le déroulement des fenêtres (FMT-20 à FMT-25, FMT-35, FMT-36 ; conception consolidée D5, Q1, Q4, Q5, §12.2, §12.5). Décisions de Hermann, recopiées :
+
+> « Oui tu attaques les autres formats. Prends en considération ce qui a été fait pour For Time, je pense que tous les élément existent déjà. »
+
+Questions posées le 18/11/2026 et réponses de Hermann (options recommandées retenues) :
+
+> Commandes (EMOM, AMRAP, Death by) : « Comme le For time (Recommandé) » — Arrêt rouge à gauche, pas de Pause, bouton de droite + Tour / Suivant ; l'Arrêt ouvre la même feuille « Arrêt du … » (roulette des répétitions faites), puis mène à la synthèse.
+
+> Fin d'un bloc AMRAP à l'échéance, fenêtre Death by manquée : « Feuille du For time (Recommandé) » — écran figé à l'échéance, feuille « Fin du bloc » ou « Fin du Death by » à coche seule ; pas de choix « Limite atteinte / Abandonner » (l'Arrêt fait l'abandon).
+
+> Partiel AMRAP : « Exercice en cours seul (Recommandé) ».
+
+> Sons des fenêtres (EMOM, Death by) : « Sons existants (Recommandé) » — bip long de la minute au début de chaque fenêtre (réglage « Démarrage d'un exercice ») ; les 3 bips courts du compte à rebours avant l'échéance ; aucun nouveau son ni réglage.
+
+- **Déroulement (classe A).** Chaque fenêtre dure l'Intervalle de l'Exercice (ou l'intervalle commun du Circuit « dans chaque intervalle ») ; la Série k est jouée dans la fenêtre k (au tour k, chaque membre du Circuit porteur joue sa Série k dans la fenêtre commune) ; un exercice bilatéral joue ses deux côtés, et la pause entre eux, dans la même fenêtre (Q5). Une Série en Répétitions se termine par l'appui (« Suivant », travail terminé) ; une Série en Durée démarre seule à l'ouverture de la fenêtre et se termine à son terme. Le travail terminé révèle le repos de la fenêtre ; la fenêtre suivante commence à l'échéance, que le travail soit terminé ou non.
+- **Écran (Figma `8982:15709` « EMOM — repos déclaré »).** Grand chrono : temps restant de la fenêtre ; anneau : la portion travaillée garde la couleur du travail, le repos avance en orange ; « Repos » en orange dans le cercle ; titre : nom de l'exercice ; compte à rebours d'une Série en Durée dans le coin du bas à gauche (comme le For time).
+- **Barre (classe B).** Comme le For time : Arrêt rouge à gauche, Pause désactivée, « Suivant » (72) à droite, actif pendant une Série en Répétitions, inactif pendant une Série en Durée et pendant le repos. L'Arrêt ouvre la feuille « Arrêt de l'EMOM » (même feuille que l'Arrêt du For time : répétitions faites, ou durée tenue), puis la synthèse ; le temps continue derrière la feuille. Ni Réinitialiser, ni Pause manuelle. Remplace, pour l'EMOM, « La Pause manuelle reste toujours possible » (D4, conception consolidée).
+- **Fenêtre non terminée (D5, Q1, classe A).** Résultat « non terminée » ; pendant la fenêtre suivante, bandeau non bloquant « Fenêtre k non terminée — répétitions faites : » avec la valeur proposée 0 (stepper), une coche qui enregistre et « Passer » ; il disparaît seul à la fin de cette fenêtre. Ce qui n'est pas saisi est demandé à la fin de l'EMOM, fenêtre par fenêtre (feuille « Fin de l'EMOM », coche seule) ; sans fenêtre à saisir, aucune feuille. Une Série en Durée interrompue enregistre sa durée tenue, sans saisie.
+- **Sons (classe B).** Début de chaque fenêtre : bip long (réglage Son et Vibration « Démarrage d'un exercice »), annonces inchangées ; 3 bips courts avant l'échéance de chaque fenêtre, pendant le travail comme pendant le repos ; pas de signal « toutes les minutes » dans une fenêtre.
+- **Arrière-plan (classe A).** Comme le For time, quitter l'écran ou passer en arrière-plan ne met pas l'EMOM en pause (ch10).
+- **Invariant « EMOM sans À l'échec » (classe A).** Une cible À l'échec dans un EMOM rend la séance invalide (décision du 07/11/2026, « Condition d'arrêt : « À l'objectif » seul »).
+- **À clarifier (interprétations, n'empêchent aucune opération).** (a) La coche du bandeau, absente de la phrase de Q1, rend la saisie explicite ; (b) le bandeau dure toute la fenêtre suivante ; (c) le compteur « Minute 3/12 » de la maquette n'est pas affiché : la zone garde Série · Tour · Cycle ; (d) « Suivant » au lieu d'un appui sur le cadran ; l'appui sur le cercle n'est pas raccordé (le For time l'a désactivé, recette ftr2-regle-suivant) ; (e) dans un Circuit porteur, la saisie porte sur l'exercice en cours à l'échéance (même règle que l'AMRAP, « Exercice en cours seul »).
+- **Chapitres 09 et 12 (non modifiés, à compléter lors de leur prochaine mise à jour).** Ch09 : résultats par fenêtre EMOM (`<portée>/f<rang>`) et résultat d'élément. Ch12 : commande `DECLARE` du noyau, pilote `EMOM`, étapes `WINDOW_REST` placées dans le plan.
+- **Documents mis à jour (classe B).** Le présent chapitre ; conception consolidée (D4, annotation) ; chapitre 13, CE-FMT-05 (complément) ; référence Formats §10.1 ; spec PRE-11 §5 point 30 et §8.
+
 ## Décisions consolidées du 17 novembre 2026
 
 Les décisions MOUV-ADM-20261117, MOUV-ACC-20261117, MOUV-PART-20261117 et MOUV-UX-20261117 sont explicitement validées par Hermann. Elles remplacent les anciens arbitrages ouverts sur les champs, phases, filtres, suppression et suivi. BIB-05 est précisée : visibilité bibliothèque conservée, visibilité fiche déduite des accès. Autorisation centrale de révision distincte de la redistribution. Les règles anciennes de conservation automatique de l’accès après perte de la dernière voie sont supersédées ; l’arrêt des nouvelles distributions seul reste distinct d’une révocation.

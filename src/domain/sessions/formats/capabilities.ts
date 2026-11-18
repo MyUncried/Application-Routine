@@ -155,11 +155,12 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     progression: "FIXED",
     results: GENERIC_RESULTS,
     prescription: { memberModes: ["REPETITIONS", "DURATION"], perSeries: true, increment: "NONE" },
-    undefinedAspects: [
-      { status: UNDEFINED_CAPABILITY, question: "Résultat d'une fenêtre non terminée (A6, PRE-11)." },
-      { status: UNDEFINED_CAPABILITY, question: "Coexistence de la fenêtre avec une série Durée, des phases ou des côtés (A2, R-02)." },
-    ],
-    executionAvailable: false,
+    // [« Résultat d'une fenêtre non terminée (A6, PRE-11) » — tranché par D5 et Q1 (02/11/2026), PRE-11 T2.] [« Coexistence de la
+    // fenêtre avec une série Durée, des phases ou des côtés (A2, R-02) » — Q5 et FMT-20 : une Série et ses deux côtés consomment une
+    // fenêtre ; une Série en Durée démarre à l'ouverture de la fenêtre (PRE-11 T2, 18/11/2026).]
+    undefinedAspects: [],
+    // PRE-11 (T2, 18/11/2026) : EMOM exécutable (politique EMOM, src/domain/execution/policies/emom.ts).
+    executionAvailable: true,
     sources: ["FMT-20…25", "REC-13", "ch12 l.1829", "recherche/03-formats §1.4"],
   },
   AMRAP: {

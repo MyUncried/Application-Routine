@@ -24,6 +24,10 @@
  * (`policies/forTime.ts`) ; les phases qui suivent son dernier travail (récupération de l'Exercice) restent
  * après la portée : le temps réalisé s'arrête au dernier travail confirmé (§12.3).
  *
+ * PRE-11 (T2, EMOM, 18/11/2026) : les Séries d'un élément EMOM forment une portée pilotée par `EMOM` (`policies/emom.ts`) — une
+ * fenêtre par Série (Exercice) ou par tour (Circuit porteur « dans chaque intervalle »), ses côtés compris (Q5), terminée par son
+ * repos (`WINDOW_REST`, fin avec la fenêtre) ; la Récupération qui suit le dernier travail reste après la portée.
+ *
  * Fonctions pures, sans React ni SQLite.
  */
 
@@ -101,6 +105,13 @@ export type LeafSpec = {
    * annonce vocale de phase ») : Série d'un membre de Rôle Tour d'un Circuit For time, sans guidage des phases.
    */
   readonly phasesSilenced?: true;
+  /**
+   * PRE-11 (T2, EMOM) : étape d'une fenêtre EMOM (FMT-23 à FMT-25). Elle ne pèse rien dans la durée estimée ni dans la
+   * progression : la fenêtre pèse par son repos (`WINDOW_REST`, durée de la fenêtre), qui se termine avec elle.
+   */
+  readonly inWindow?: true;
+  /** PRE-11 (T2) : première étape d'une fenêtre EMOM — son départ est le début de la fenêtre (bip long, arbitrage du 18/11/2026). */
+  readonly windowStart?: true;
 };
 
 export type ScopeSpec = { readonly pilot: string; readonly key: string; readonly config: unknown };
@@ -258,9 +269,18 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
   const items: ChildSpec[] = [];
   // PRE-11 (T1) : étapes d'un élément For time en cours de regroupement (voir l'en-tête).
   const forTime = forTimeElements(snapshot);
+  // PRE-11 (T2) : éléments EMOM (Exercice autonome, Circuit porteur « dans chaque intervalle »).
+  const emom = emomElements(snapshot);
   let group: { readonly key: string; readonly element: ForTimeElement; readonly cycle: number | null; readonly tour: number | null; readonly items: ChildSpec[] } | null = null;
+  let emomGroup: EmomGroup | null = null;
   const silenced = forTimeTourMembers(snapshot);
-  const leaf = (raw: LeafSpec) => {
+  const leaf = (raw: LeafSpec, window?: number) => {
+    if (emomGroup !== null) {
+      // D4 (02/11/2026) : aucun Point d'arrêt à l'intérieur d'un élément à fenêtre.
+      if (raw.kind === "STOP_POINT") return;
+      emomGroup.entries.push({ leaf: raw, window: window ?? emomGroup.entries[emomGroup.entries.length - 1]?.window ?? 1 });
+      return;
+    }
     // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : Pause après chaque série. Pause de changement de
     // côté. Repos entre les tours. Repos entre les séries (mode « À la suite »). Récupération après un exercice. » ; « À
     // l'exécution, aucun décompte de repos ne s'intercale » ; « Les valeurs déjà saisies sont ignorées, sans être effacées ») :
@@ -270,7 +290,18 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
     const spec: LeafSpec = raw.kind === "ACTIVITY" && raw.exerciseId !== undefined && silenced.has(raw.exerciseId) ? { ...raw, phasesSilenced: true } : raw;
     (group === null ? items : group.items).push({ type: "LEAF", leaf: spec });
   };
+  /** Élément EMOM en cours : `null` hors EMOM, sinon vrai pour un Circuit porteur (fenêtre = tour). */
+  const emomCarried = (): boolean | null => (emomGroup === null ? null : emomGroup.element.kind === "CIRCUIT");
+  const flushEmom = () => {
+    if (emomGroup === null) return;
+    const closing: EmomGroup = emomGroup;
+    emomGroup = null;
+    const built = emomScopeOf(closing);
+    if (built.scope !== null) items.push({ type: "SCOPE", scope: built.scope });
+    items.push(...built.after);
+  };
   const flush = () => {
+    flushEmom();
     if (group === null) return;
     const closing = group;
     group = null;
@@ -294,6 +325,17 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
     items.push(...after);
   };
   const enter = (context: PlanContext | null) => {
+    const emomElement = context === null || context.formattedElementId === null ? undefined : emom.get(context.formattedElementId);
+    if (emomElement !== undefined && context !== null) {
+      const cycle = context.cycle?.repetition ?? null;
+      // Exercice EMOM membre d'un Circuit standard : rejoué à chaque tour (une portée par tour, comme le For time).
+      const tour = emomElement.kind === "EXERCISE" ? (context.circuit?.tour ?? null) : null;
+      if (emomGroup !== null && emomGroup.element.id === emomElement.id && emomGroup.cycle === cycle && emomGroup.tour === tour) return;
+      flush();
+      const key = `session/emom:${emomElement.id}${cycle === null ? "" : `#c${cycle}`}${tour === null ? "" : `#t${tour}`}`;
+      emomGroup = { key, element: emomElement, cycle, tour, entries: [] };
+      return;
+    }
     const element = context === null || context.formattedElementId === null ? undefined : forTime.get(context.formattedElementId);
     if (element === undefined || context === null) {
       flush();
@@ -348,7 +390,9 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
         const recoveryStep = steps[index];
         const recovery = recoveryStep?.kind === "RECOVERY" && recoveryStep.stepId === `${base}/recovery` ? recoveryStep : null;
         if (recovery !== null) index += 1;
-        emitOccurrence(exercises.get(step.exerciseId)!, group, base, recovery, leaf);
+        const windowed = emomCarried();
+        if (windowed !== null) emitEmomOccurrence(exercises.get(step.exerciseId)!, group, base, recovery, windowed, leaf);
+        else emitOccurrence(exercises.get(step.exerciseId)!, group, base, recovery, leaf);
         break;
       }
       default: {
@@ -378,6 +422,141 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
     exercises: infos,
     ...(snapshot.guidance !== undefined ? { guidance: snapshot.guidance } : {}),
   };
+}
+
+// ————————————————————————————————————————————————————————————————— EMOM (PRE-11, T2)
+
+type EmomElement = { readonly id: string; readonly kind: "EXERCISE" | "CIRCUIT"; readonly name: string; readonly windowMs: number };
+type EmomGroup = {
+  readonly key: string;
+  readonly element: EmomElement;
+  readonly cycle: number | null;
+  readonly tour: number | null;
+  readonly entries: { readonly leaf: LeafSpec; readonly window: number }[];
+};
+
+/** Fenêtre d'un élément EMOM : étapes `items[start, end)`, la dernière étant son repos (`WINDOW_REST`). */
+export type EmomWindowSpec = { readonly number: number; readonly start: number; readonly end: number };
+
+/** Configuration de la portée EMOM (lue par `policies/emom.ts`). */
+export type EmomScopeConfig = {
+  readonly format: "EMOM";
+  readonly elementId: string;
+  readonly elementKind: "EXERCISE" | "CIRCUIT";
+  readonly name: string;
+  /** Durée de chaque fenêtre (Intervalle de l'Exercice, ou intervalle commun du Circuit porteur), en ms. */
+  readonly windowMs: number;
+  readonly windows: readonly EmomWindowSpec[];
+  readonly items: readonly ChildSpec[];
+  readonly context: LeafContext | null;
+};
+
+/** Éléments EMOM de l'instantané : Exercices formatés (autonomes, À la suite, en alternance) et Circuits porteurs. */
+function emomElements(snapshot: SessionSnapshot): ReadonlyMap<string, EmomElement> {
+  const elements = new Map<string, EmomElement>();
+  const seconds = (value: unknown) => (typeof value === "number" && value > 0 ? value : 60);
+  const carriers = new Set<string>();
+  for (const circuit of structureCircuits(snapshot.structure)) {
+    const format = circuit.format ?? null;
+    if (format?.key !== "EMOM") continue;
+    elements.set(circuit.id, { id: circuit.id, kind: "CIRCUIT", name: circuit.name ?? "EMOM", windowMs: seconds(format.settings.windowSeconds) * MS });
+    for (const member of circuit.exercises) carriers.add(member.id);
+  }
+  for (const exercise of structureExercises(snapshot.structure)) {
+    const format = exercise.format ?? null;
+    if (format?.key !== "EMOM" || carriers.has(exercise.id)) continue;
+    elements.set(exercise.id, { id: exercise.id, kind: "EXERCISE", name: exercise.exercise?.name ?? "", windowMs: seconds(format.settings.intervalSeconds) * MS });
+  }
+  return elements;
+}
+
+/**
+ * Une occurrence d'Exercice dans un EMOM (FMT-20, FMT-21, Q5) : la Série k est jouée dans la fenêtre k (Exercice autonome) ou dans
+ * la fenêtre du tour (Circuit porteur, « dans chaque intervalle ») ; ses deux côtés consomment la même fenêtre, avec la pause entre
+ * les côtés s'il y en a une (Q5 ; FMT-20 : « deux côtés et pause entre côtés applicable »). Aucune Pause entre Séries (l'Intervalle
+ * la remplace, référence Formats §10). La Récupération éventuelle suit la dernière Série (après la portée si elle termine l'élément).
+ */
+function emitEmomOccurrence(
+  exercise: SessionSnapshotExercise,
+  group: readonly SeriesPlanStep[],
+  base: string,
+  recovery: Extract<PlanStep, { kind: "RECOVERY" }> | null,
+  carried: boolean,
+  leaf: (spec: LeafSpec, window?: number) => void,
+): void {
+  const ledger = buildExecutionLedger(exercise.executionParameters, 0);
+  const sidePause = ledger.find((event) => event.kind === "SIDE_PAUSE")?.seconds ?? 0;
+  const workOf = (step: SeriesPlanStep) =>
+    ledger.find((event): event is Extract<LedgerEvent, { kind: "WORK" }> => event.kind === "WORK" && event.series === step.series && event.side === step.side);
+  const series = [...new Set(group.map((step) => step.series ?? 0))].sort((a, b) => a - b);
+  let lastWindow = 1;
+  for (const rank of series) {
+    const steps = group.filter((step) => (step.series ?? 0) === rank);
+    const window = carried ? (steps[0]!.context.circuit?.tour ?? rank) : rank;
+    lastWindow = window;
+    steps.forEach((step, position) => {
+      const spec = activityLeaf(exercise, step, workOf(step), base, step.stepId);
+      const { resetToKey: _reset, ...played } = spec;
+      if (position > 0 && sidePause > 0) {
+        leaf(timedLeaf("SIDE_RECOVERY", `${base}/s${rank}/side-pause`, sidePause, { exerciseId: exercise.id, occurrenceKey: base, context: leafContext(step.context) }), window);
+      }
+      leaf(played, window);
+    });
+  }
+  if (recovery !== null && recovery.seconds > 0) {
+    leaf(timedLeaf("POST_ACTIVITY_RECOVERY", recovery.stepId, recovery.seconds, { exerciseId: exercise.id, occurrenceKey: base, context: leafContext(group[0]!.context) }), lastWindow);
+  }
+}
+
+/**
+ * Portée d'un élément EMOM : fenêtres dans l'ordre de leur rang, chacune terminée par son repos (`WINDOW_REST`, fin avec la
+ * fenêtre : FMT-25, aucun repos ajouté au calcul) ; les étapes qui suivent le dernier travail (Récupération de l'Exercice, À la
+ * suite) restent après la portée, jouées après l'échéance de la dernière fenêtre (FMT-21 : « E×N×W et récupérations configurées »).
+ */
+function emomScopeOf(group: EmomGroup): { readonly scope: ScopeSpec | null; readonly after: readonly ChildSpec[] } {
+  let last = group.entries.length - 1;
+  while (last >= 0 && group.entries[last]!.leaf.kind !== "ACTIVITY") last -= 1;
+  const work = group.entries.slice(0, last + 1);
+  const after = group.entries.slice(last + 1).map((entry): ChildSpec => ({ type: "LEAF", leaf: entry.leaf }));
+  if (work.length === 0) return { scope: null, after };
+  const order: number[] = [];
+  for (const entry of work) if (!order.includes(entry.window)) order.push(entry.window);
+  const items: ChildSpec[] = [];
+  const windows: EmomWindowSpec[] = [];
+  for (const number of order) {
+    const start = items.length;
+    const inWindow = work.filter((entry) => entry.window === number).map((entry) => entry.leaf);
+    inWindow.forEach((spec, position) => items.push({ type: "LEAF", leaf: { ...spec, inWindow: true, ...(position === 0 ? { windowStart: true as const } : {}) } }));
+    const lastActivity = [...inWindow].reverse().find((spec) => spec.kind === "ACTIVITY") ?? inWindow[inWindow.length - 1]!;
+    items.push({
+      type: "LEAF",
+      leaf: {
+        kind: "WINDOW_REST",
+        key: `${group.key}/f${number}/rest`,
+        end: "PARENT",
+        plannedMs: group.element.windowMs,
+        contribution: "exact",
+        ...(lastActivity.exerciseId !== undefined ? { exerciseId: lastActivity.exerciseId } : {}),
+        ...(lastActivity.occurrenceKey !== undefined ? { occurrenceKey: lastActivity.occurrenceKey } : {}),
+        ...(lastActivity.series !== undefined ? { series: lastActivity.series } : {}),
+        ...(lastActivity.seriesCount !== undefined ? { seriesCount: lastActivity.seriesCount } : {}),
+        ...(lastActivity.context !== undefined ? { context: lastActivity.context } : {}),
+      },
+    });
+    windows.push({ number, start, end: items.length });
+  }
+  const first = work[0]!.leaf;
+  const config: EmomScopeConfig = {
+    format: "EMOM",
+    elementId: group.element.id,
+    elementKind: group.element.kind,
+    name: group.element.name,
+    windowMs: group.element.windowMs,
+    windows,
+    items,
+    context: first.context ?? null,
+  };
+  return { scope: { pilot: "EMOM", key: group.key, config }, after };
 }
 
 /** Étapes de repos retirées d'un élément For time (recette du 17/11/2026). */

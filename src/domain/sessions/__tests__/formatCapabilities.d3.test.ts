@@ -30,8 +30,8 @@ describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
     for (const model of MODELS) {
       expect(FORMAT_CAPABILITIES[model].model).toBe(model);
       // PRE-10 (09/11/2026) : éléments libres et préconfigurations exécutables ; Formats spécialisés : PRE-11.
-      // PRE-11 (T1, 13/11/2026) : For time exécutable ; AMRAP, EMOM, Death by : tranches suivantes.
-      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(FORMAT_CAPABILITIES[model].carrier === "FREE_ELEMENTS" || model === "FOR_TIME");
+      // PRE-11 (T1, 13/11/2026) : For time exécutable ; (T2, 18/11/2026) EMOM exécutable ; AMRAP, Death by : tranches suivantes.
+      expect(FORMAT_CAPABILITIES[model].executionAvailable).toBe(FORMAT_CAPABILITIES[model].carrier === "FREE_ELEMENTS" || model === "FOR_TIME" || model === "EMOM");
       expect(FORMAT_CAPABILITIES[model].sources.length).toBeGreaterThan(0);
     }
   });
