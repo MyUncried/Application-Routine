@@ -1,5 +1,7 @@
 # Parcours utilisateur
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 <a id="composition-menu-creer"></a>
 
 ### Composition — menu Créer
@@ -704,7 +706,7 @@ Le **gestionnaire KODJO** crée ou édite une fiche éditoriale complète dans l
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation régie désormais par MOUV-ACC-20261117 ; adaptations locales interdites selon A-2, hors reprise historique CA-3. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## Parcours ultérieurs — Bibliothèques personnelles, reçues et mises à jour
 
@@ -718,6 +720,11 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 
 ## Parcours post-MVP — Transmission dans un Espace en étoile (KIN-01)
 
-L'Espace en étoile relie individuellement un utilisateur émetteur à des destinataires. L'invitation est acceptée ou refusée ; le destinataire peut bloquer l'émetteur. La transmission porte sur un ou plusieurs **Mouvements**, sans Bibliothèque fictive, ni rôle professionnel dans les données. Dans l'usage kiné-patient, les consignes d'exécution sont orales ; ni Exercice ni Séance ne sont prescrits numériquement dans ce lot.
+L'Espace en étoile relie individuellement un utilisateur émetteur à des destinataires. L'invitation est acceptée ou refusée ; le destinataire peut bloquer l'émetteur. La transmission porte sur un ou plusieurs **Mouvements**, sans Bibliothèque fictive, ni rôle professionnel dans les données. Dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (17/11/2026) ; ni Exercice ni Séance ne sont prescrits numériquement dans ce lot.
 
 Les modalités détaillées de relation, confidentialité, avis de mise à jour et UI restent à concevoir ; ne pas inférer des maquettes Figma inexistantes. [PU-01 à PU-17](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+## Décisions consolidées du 17 novembre 2026
+
+Le retrait volontaire avertit avant action ; la révocation reçue notifie. Un clic donne les séances concernées, à corriger avant tout nouveau démarrage. Le partage personnalisé se fait dans la relation, sans bibliothèque fictive.
+
+[Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.

@@ -1,5 +1,7 @@
 # KODJO — Provenance, propriété et fiches éditoriales des Mouvements
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 **Date :** 6 novembre 2026. **Statut :** décisions de conception validées par le propriétaire du produit ; modélisation préparatoire indépendante du moteur d'exécution. **Implémentation :** la présente spécification ne certifie pas un partage opérationnel, une base de comptes ni une migration SQLite.
 
 ## 1. Arbitrage et périmètre
@@ -27,7 +29,7 @@ KODJO prépare des fiches de Mouvements proposées par KODJO, des coachs ou des 
 
 Une fiche `sheetId` possède une identité immuable, distincte de son titre. Plusieurs fiches éditoriales appartenant à des coachs distincts peuvent partager un titre et un concept. **La contrainte actuelle d'unicité des noms de `Movement` dans une base locale n'est pas levée** par cette décision : le traitement de plusieurs fiches homonymes installées simultanément reste à arbitrer avant distribution réelle.
 
-## 3. Contrat de métadonnées proposé
+## 3. Contrat historique de métadonnées (supersédé sur les champs retirés le 17/11/2026)
 
 | Champ logique | Cardinalité | Rôle |
 |---|---|---|
@@ -54,9 +56,9 @@ Le **statut éditorial** est distinct de `movements.archived_at` (archivage loca
 1. **Création locale originale :** `origin=LOCAL_CREATED`, sans `upstream`, propriété administrative du propriétaire local. Aucun partage automatique.
 2. **Installation depuis catalogue KODJO :** identité locale différente de `sheetId`, `origin=CATALOGUE_INSTALLED`, provenance avec version figée.
 3. **Import d'un coach ou d'un tiers :** `SHARED_IMPORTED` ou `EXTERNAL_IMPORTED`, source et auteur conservés lorsqu'ils sont connus ; importer ne transfère pas les droits sur la source.
-4. **Adaptation locale :** nouvelle identité éditoriale, `origin=LOCAL_DERIVED`, `upstream` conservé ; propriétaire local ; la fiche source n'est pas modifiée.
+4. **Disposition historique supersédée par A-2 : aucune dérivation d’une fiche importée.** Ancienne proposition d’adaptation locale : nouvelle identité éditoriale, `origin=LOCAL_DERIVED`, `upstream` conservé ; propriétaire local ; la fiche source n'est pas modifiée.
 5. **Évolution de la fiche source :** aucune mise à jour silencieuse des consignes personnalisées ni des Mouvements utilisés ; politique de proposition/adoption à arbitrer.
-6. **Retrait de catalogue ou de publication :** ne supprime ni une copie locale légalement conservable, ni un Mouvement référencé par un Exercice, ni des instantanés historiques.
+6. **Disposition remplacée par MOUV-ACC-20261117 sur la disponibilité après perte du dernier accès.** Ancienne règle de retrait : ne supprime ni une copie locale légalement conservable, ni un Mouvement référencé par un Exercice, ni des instantanés historiques.
 7. **Publication :** ne peut devenir effective sans authentification, vérification des permissions et conditions de licence. Une valeur `visibility=PUBLIC` n'active, à elle seule, aucun partage réseau.
 8. **Compatibilité historique :** pour les Mouvements actuels dépourvus de métadonnées, provenance et propriétaire éditorial restent **inconnus** ; aucune attribution fictive rétroactive.
 
@@ -137,3 +139,9 @@ Décision utilisateur du 6 novembre 2026 : adopter provenance, propriétaire et 
 Documents affectés par la décision et à relire lors de chaque tranche : ch. 01 (glossaire), 04 (Mouvement), 05 (MVP), 07 (décisions), 08 (édition), 09 (données), 10 (règles), 11 (services), 12 (architecture), 13 (écrans si UI), `PRODUCT.md`, `INDEX.md`. Figma n'est pas modifié par cette tranche sans évolution d'interface.
 
 **État :** contrat préparatoire et types purs ; pas de backend, pas d'import réel, pas de droits activés, pas de migration ou de changement du moteur.
+
+## Décisions consolidées du 17 novembre 2026
+
+Le contrat proposé historique ci-dessus est supersédé sur les champs suivants : retrait de gestureId, publisher, reviewStatus et visibility de fiche ; auteur unique selon MOUV-D1 ; origine et amont conservés. Ayant droit facultatif (propriétaire par défaut, tiers possible), licence facultative sans liste standard imposée. La propriété n’est pas transférée à l’import. Une fiche reçue n’est ni modifiable ni duplicable. La perte du dernier accès rend le mouvement indisponible tout en préservant les références et l’historique ; les anciennes dispositions de dérivation et de maintien automatique d’usage ne sont plus la cible.
+
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.

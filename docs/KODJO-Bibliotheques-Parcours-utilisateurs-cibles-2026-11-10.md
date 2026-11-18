@@ -1,5 +1,7 @@
 # KODJO — Parcours utilisateurs cibles : Mouvements et Bibliothèques
 
+> **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
+
 **Date :** 10 novembre 2026  
 **État :** consolidation fonctionnelle des décisions déjà validées ; **parcours cibles stabilisés au niveau métier**, détails UX non représentés dans Figma à arbitrer avant développement.  
 **Usage :** base fonctionnelle du dossier d'architecture soumis à Claude. Aucune modification Figma ni déclaration de fonctionnalité livrée.  
@@ -12,7 +14,7 @@
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
-Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation et traitement des adaptations locales **À CLARIFIER**. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
+Le premier lot est limité aux Bibliothèques génériques éditées par KODJO : sélection, installation et mises à jour volontaires depuis le Profil ; contenus utilisés et personnalisés dans le Catalogue. Le bloc « Mes données » du Profil est supprimé. Les contenus publiés ne sont pas modifiables directement ; les Bibliothèques sont distinctes des catégories du Catalogue. Bibliothèques personnelles ou de coachs, partage, permissions, relations et commerce sont reportés. Les anciens parcours de partage ci-dessous restent des **cibles ultérieures**, non le premier lot. Désinstallation régie désormais par MOUV-ACC-20261117 ; adaptations locales interdites selon A-2, hors reprise historique CA-3. Figma inchangé. [Précisé le 11/11/2026 par les décisions A-2 et A-4 (registre, chapitre 07) : aucune adaptation locale d'une fiche importée n'est autorisée — seules les adaptations historiques éventuelles des 60 Mouvements sont réconciliées par CA-3 ; la désinstallation est reportée hors du premier lot. Des écrans Figma Bibliothèques existent désormais (A-4), sans validation UX complète.] Voir le registre BIB-19 à BIB-23.
 
 ## 1. Définitions et règles communes
 
@@ -46,7 +48,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 | **F4-C** | Accès attribué au niveau Bibliothèque ; retrait du Mouvement n'annule pas l'usage déjà reçu (PU-08/12). |
 | **F4-D** | Un seul « Mettre à jour » installe composition et nouvelles révisions sans écraser les Mouvements personnels originaux distincts (PU-10). |
 | **F4-E** | Archivage du propriétaire sans effet pour les destinataires (PU-13). |
-| **F4-F** | Arrêt explicite du partage : pas de nouveaux destinataires, aucune nouvelle MAJ, installations existantes conservées (PU-14). |
+| **F4-F** | Arrêt explicite du partage : pas de nouveaux destinataires, aucune nouvelle MAJ, installations existantes conservées (PU-14). | [17/11/2026 : arrêt des nouvelles distributions uniquement ; une révocation ou perte du dernier accès rend le mouvement indisponible, selon MOUV-ACC-20261117.]
 | **F4-G** | Mise à jour d'une fiche source : une seule version active, propagée à toutes ses références de Bibliothèques, avec aperçu préalable des impacts (PU-10/11). |
 
 ## 2. Parcours détaillés
@@ -119,7 +121,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 
 **Acteur :** destinataire d'une Bibliothèque distribuée.  
 **Déroulement :** nouvelle composition et/ou révisions approuvées disponibles → **pastille d'alerte** → ouverture de la Bibliothèque, détail des ajouts/retraits/actualisations et **indication des autres Bibliothèques qui référencent les mêmes fiches** → action unique **« Mettre à jour »**.  
-**Résultat si action confirmée :** nouvelle composition installée et nouvelles révisions appliquées de manière cohérente ; chaque Mouvement actualisé apparaît dans **toutes les Bibliothèques** qui le référencent, sans changer la composition des autres. Les Mouvements retirés restent dans le Catalogue local et les Séances/Bibliothèques personnelles ; adaptations et historiques préservés.  
+**Résultat si action confirmée :** nouvelle composition installée et nouvelles révisions appliquées de manière cohérente ; chaque Mouvement actualisé apparaît dans **toutes les Bibliothèques** qui le référencent, sans changer la composition des autres. Les Mouvements retirés restent utilisables seulement si un autre accès valide existe. Sinon ils deviennent indisponibles et les Séances sont à corriger ; références, Mouvements personnels distincts et historiques sont préservés (MOUV-ACC-20261117).
 **Résultat sans action :** aucune modification de la version installée. Une mesure de modération demeure prioritaire.  
 **Exigence technique :** détection de préconditions et reprise idempotente en cas d'interruption ; ne pas prétendre à une transaction SQL couvrant deux bases SQLite distinctes sans mécanisme adapté.  
 **Point de revue Claude :** démontrer la cohérence du lot et des conflits sans fusion automatique ; **ne pas** réintroduire de révision active propre à chaque Bibliothèque.
@@ -167,7 +169,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 
 ### PU-17 — Transmission individuelle d'un Mouvement dans un Espace en étoile
 
-**Acteurs :** utilisateur émetteur et destinataire lié individuellement. **Exemple d'usage :** kinésithérapeute transmettant un Mouvement à son patient, avec consignes d'exécution orales.  
+**Acteurs :** utilisateur émetteur et destinataire lié individuellement. **Exemple d'usage :** kinésithérapeute transmettant un Mouvement à son patient, avec texte facultatif au partage personnalisé (réconciliation du 17/11/2026).
 **Déroulement :** l'émetteur invite une autre personne dans une relation individuelle en étoile ; le destinataire accepte ou refuse et peut bloquer l'émetteur. L'émetteur sélectionne ensuite le destinataire et transmet un ou plusieurs Mouvements autorisés. Pour l'usage kiné-patient, les paramètres d'exécution sont donnés **oralement**, sans créer de prescription numérique d'Exercice, Séance ou programme.  
 **Résultat :** le patient reçoit et peut utiliser les Mouvements concernés dans son Catalogue, selon les permissions et le contrôle central de diffusion applicables aux fiches. La relation avec chaque patient est distincte ; cette topologie ne constitue ni un groupe de patients ni une Bibliothèque partagée. Le Mouvement peut ensuite être référencé dans les Bibliothèques personnelles du patient, sans copier la fiche.  
 **À CLARIFIER :** durée et fin de relation, notifications, conservation après fin du lien, contrôle d'accès, minimisation des données et obligations juridiques applicables au contexte d'utilisation. Aucun rôle professionnel, champ clinique ou prescription numérique dans le modèle cible de ce lot.
@@ -195,14 +197,14 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 5. Une tentative de copier, dupliquer ou modifier une fiche reçue/importée est refusée (MOUV-D3, A-2) ; son référencement dans plusieurs Bibliothèques ne crée aucune copie ; ses paramètres d'Exercice restent modifiables.
 6. Deux utilisateurs autorisés par le même coach reçoivent les Mouvements de sa Bibliothèque sans droits individuels attribués fiche par fiche.
 7. Sans action « Mettre à jour », aucune nouvelle version éditoriale ni composition n'est installée.
-8. Une action « Mettre à jour » actualise composition et révisions, préserve les variantes personnelles et garde en local les Mouvements retirés de la composition.
+8. Une action « Mettre à jour » actualise composition et révisions, préserve les variantes personnelles et conserve les références des Mouvements retirés de la composition, mais leur disponibilité dépend d’un autre accès valide (MOUV-ACC-20261117).
 9. Le propriétaire archive une Bibliothèque distribuée ; aucune différence n'apparaît chez ses destinataires.
 10. Le propriétaire arrête la diffusion ; les nouveaux destinataires n'installent plus et les destinataires existants ne reçoivent plus de mises à jour.
 11. Une révision non approuvée n'est pas distribuée ; une révision approuvée et inchangée n'est pas revalidée pour chaque Bibliothèque.
 12. Une suspension de modération bloque l'accès réseau et est prise en compte lors d'un contact ultérieur de l'application, sans attendre une mise à jour éditoriale.
 13. Les préférences ou paramètres d'Exercice ne deviennent pas verrouillés du seul fait qu'une fiche Mouvement est reçue/importée en lecture seule [texte d'origine : « est Protégée » — remplacé le 11/11/2026].
 14. Hors connexion, l'Exécution des données locales reste disponible sous réserve des restrictions déjà connues.
-15. Un utilisateur transmet un Mouvement dans une relation individuelle de l'Espace en étoile, sans prescription numérique ; dans l'usage kiné-patient, les consignes d'exécution restent orales.
+15. Un utilisateur transmet un Mouvement dans une relation individuelle de l'Espace en étoile, sans prescription numérique ; dans l'usage kiné-patient, un texte facultatif peut accompagner le partage personnalisé (réconciliation du 17/11/2026).
 16. Le patient A ne reçoit pas par cette transmission la liste ou les données du patient B relié au même kinésithérapeute.
 
 ## 5. À CLARIFIER — ne pas transformer en décisions
@@ -225,3 +227,9 @@ Ne pas introduire un cycle universel « Brouillon → Active → Inactive » pou
 ### Transmettre une progression de niveaux
 
 L’administrateur rattache les fiches à une même famille et en règle l’ordre. L’éditeur peut sélectionner ces fiches dans sa Bibliothèque et les présenter dans un autre ordre. Après import, l’utilisateur retrouve les niveaux des mouvements reçus dans la progression définie par l’administrateur. Voir la [conception du partage](KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
+
+## Décisions consolidées du 17 novembre 2026
+
+Parcours de retrait : avertir avant la suppression volontaire ; notifier une révocation reçue ; identifier en un clic les séances à corriger. Sans autre accès valide, aucun nouveau démarrage ; l’exécution en cours se termine. Partage standard, personnalisé et de séance : permissions source conservées, signalement avant envoi du contenu non transmissible. Les médias personnalisés restent privés et chez le destinataire. Fréquence en texte libre, planification par le destinataire ; suivi des contenus reçus sur consentement par relation, révocable, désactivé par défaut.
+
+[Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
