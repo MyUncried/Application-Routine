@@ -532,12 +532,12 @@
   {
     "sheetId": "FIT-YOG-001",
     "name": "Tadasana (montagne)",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-YOG-001.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "702bba33f7d4f97b215c1e58e6568b7d27fbe824",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-PIL-001",
