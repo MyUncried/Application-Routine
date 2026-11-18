@@ -4,7 +4,7 @@
   "catalogue": {
     "id": "kodjo.pilote-60",
     "title": "Catalogue pilote KODJO — 60 fiches de test",
-    "revision": "5",
+    "revision": "6",
     "owner": null,
     "manager": {
       "kind": "ORGANIZATION",
@@ -1694,7 +1694,7 @@
     },
     {
       "sheetId": "FIT-CRO-001",
-      "revision": "2",
+      "revision": "3",
       "history": [
         {
           "revision": "1",
@@ -1707,6 +1707,12 @@
           "date": "2026-11-18",
           "author": null,
           "summary": "Ajout de l’illustration du mouvement."
+        },
+        {
+          "revision": "3",
+          "date": "2026-11-18",
+          "author": null,
+          "summary": "Autorisation d’utilisation et d’affichage de l’illustration dans KODJO."
         }
       ],
       "provenance": {
@@ -1807,8 +1813,8 @@
           "alt": "Air squat",
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
-          "license": "",
-          "rightsStatus": "UNVERIFIED"
+          "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
+          "rightsStatus": "PERMISSION_CONFIRMED"
         }
       ],
       "install": {
@@ -4945,7 +4951,7 @@
     },
     {
       "sheetId": "FIT-YOG-002",
-      "revision": "2",
+      "revision": "3",
       "history": [
         {
           "revision": "1",
@@ -4958,6 +4964,12 @@
           "date": "2026-11-18",
           "author": null,
           "summary": "Ajout de l’illustration du mouvement."
+        },
+        {
+          "revision": "3",
+          "date": "2026-11-18",
+          "author": null,
+          "summary": "Autorisation d’utilisation et d’affichage de l’illustration dans KODJO."
         }
       ],
       "provenance": {
@@ -5056,8 +5068,8 @@
           "alt": "Adho Mukha Svanasana (chien tête en bas)",
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
-          "license": "",
-          "rightsStatus": "UNVERIFIED"
+          "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
+          "rightsStatus": "PERMISSION_CONFIRMED"
         }
       ],
       "install": {
@@ -5068,7 +5080,7 @@
     },
     {
       "sheetId": "FIT-YOG-003",
-      "revision": "2",
+      "revision": "3",
       "history": [
         {
           "revision": "1",
@@ -5081,6 +5093,12 @@
           "date": "2026-11-18",
           "author": null,
           "summary": "Ajout de l’illustration du mouvement."
+        },
+        {
+          "revision": "3",
+          "date": "2026-11-18",
+          "author": null,
+          "summary": "Autorisation d’utilisation et d’affichage de l’illustration dans KODJO."
         }
       ],
       "provenance": {
@@ -5178,8 +5196,8 @@
           "alt": "Balasana (posture de l’enfant)",
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
-          "license": "",
-          "rightsStatus": "UNVERIFIED"
+          "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
+          "rightsStatus": "PERMISSION_CONFIRMED"
         }
       ],
       "install": {
@@ -5396,7 +5414,7 @@
     },
     {
       "sheetId": "FIT-YOG-006",
-      "revision": "2",
+      "revision": "3",
       "history": [
         {
           "revision": "1",
@@ -5409,6 +5427,12 @@
           "date": "2026-11-18",
           "author": null,
           "summary": "Ajout de l’illustration du mouvement."
+        },
+        {
+          "revision": "3",
+          "date": "2026-11-18",
+          "author": null,
+          "summary": "Autorisation d’utilisation et d’affichage de l’illustration dans KODJO."
         }
       ],
       "provenance": {
@@ -5506,8 +5530,8 @@
           "alt": "Bhujangasana (cobra)",
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
-          "license": "",
-          "rightsStatus": "UNVERIFIED"
+          "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
+          "rightsStatus": "PERMISSION_CONFIRMED"
         }
       ],
       "install": {

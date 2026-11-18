@@ -5,9 +5,9 @@
     "path": "catalogue/illustrations/20261117/FIT-YOG-002.webp",
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
-    "rattachement": "Photo intégrée au catalogue validé. Diffusion et projection mobile bloquées.",
+    "rattachement": "Photo intégrée au catalogue et admise à la diffusion.",
     "commit": "f69b429eb71f14c963706e4039cbc39238535342",
-    "anomalie": "Droits UNVERIFIED : diffusableCatalogue retient la fiche et projectSheetToMovement retourne zéro média."
+    "anomalie": "Sur cette branche, projectSheetToMovement initialise media à une liste vide, même lorsque les droits sont confirmés. Affichage sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-CRO-001",
@@ -15,9 +15,9 @@
     "path": "catalogue/illustrations/20261117/FIT-CRO-001.webp",
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
-    "rattachement": "Photo intégrée au catalogue validé. Diffusion et projection mobile bloquées.",
+    "rattachement": "Photo intégrée au catalogue et admise à la diffusion.",
     "commit": "a490bc80bb6dd27f8537101fe02dd6f1c99a30a5",
-    "anomalie": "Droits UNVERIFIED : diffusableCatalogue retient la fiche et projectSheetToMovement retourne zéro média."
+    "anomalie": "Sur cette branche, projectSheetToMovement initialise media à une liste vide, même lorsque les droits sont confirmés. Affichage sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-YOG-003",
@@ -25,9 +25,9 @@
     "path": "catalogue/illustrations/20261117/FIT-YOG-003.webp",
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
-    "rattachement": "Photo intégrée au catalogue validé. Diffusion et projection mobile bloquées.",
+    "rattachement": "Photo intégrée au catalogue et admise à la diffusion.",
     "commit": "ddf994405813f47d2fd7969ee91ebb65b33d3b87",
-    "anomalie": "Droits UNVERIFIED : diffusableCatalogue retient la fiche et projectSheetToMovement retourne zéro média."
+    "anomalie": "Sur cette branche, projectSheetToMovement initialise media à une liste vide, même lorsque les droits sont confirmés. Affichage sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-YOG-006",
@@ -35,9 +35,9 @@
     "path": "catalogue/illustrations/20261117/FIT-YOG-006.webp",
     "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
-    "rattachement": "Photo intégrée au catalogue validé. Diffusion et projection mobile bloquées.",
+    "rattachement": "Photo intégrée au catalogue et admise à la diffusion.",
     "commit": "3e8e42a7e606a769f3ac29245938b3a446d0aa9b",
-    "anomalie": "Droits UNVERIFIED : diffusableCatalogue retient la fiche et projectSheetToMovement retourne zéro média."
+    "anomalie": "Sur cette branche, projectSheetToMovement initialise media à une liste vide, même lorsque les droits sont confirmés. Affichage sur appareil non vérifié."
   },
   {
     "sheetId": "REED-010",
