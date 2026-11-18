@@ -536,7 +536,7 @@ L’ancien usage de **circuit** pour cet objet autonome est supprimé. Le **Circ
 
 #### Ordre des contenus
 
-La liste est ordonnée et réordonnable. Chaque ligne porte une poignée de réordonnancement (icône `icon/poignee`, 12 × 18), le nom du contenu, et sa fréquence propre.
+La liste est ordonnée et réordonnable. Chaque ligne porte une poignée de réordonnancement (icône `icon/poignee`, 12 × 18), le nom du contenu, et sa fréquence propre. [Remplacé le 18/11/2026, D-516 : en planification d’un parcours, l’ordre est celui de la sélection, les séances sont les lignes d’une grille créneaux × rotation et la fréquence propre est calculée à partir des points (RM-253 à RM-256).]
 
 ---
 
