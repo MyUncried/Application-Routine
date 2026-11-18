@@ -54,3 +54,5 @@ example
 /catalogue/admin/inbox/
 # Identité « Utilisateur local » de cette installation PC (décision du 12/11/2026) : propre au poste.
 /catalogue/admin/installation.json
+# Format catalogue 3.0.0 (18/11/2026) : sauvegardes avant première réécriture au nouveau format
+/catalogue/admin/sauvegardes/

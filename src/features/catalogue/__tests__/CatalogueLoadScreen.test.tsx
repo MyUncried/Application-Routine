@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { Picker as SwiftUIPicker } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
@@ -19,6 +16,7 @@ import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { pilotCatalogueV3 } from "@/domain/catalogue/testing/pilotCatalogueV3";
 
 /**
  * CA-4 — écran de recette « Charger un catalogue » sur vraies bases SQLite (principale + registre) :
@@ -28,9 +26,8 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  */
 
 const NOW = "2026-11-10T09:00:00.000Z";
-const pilot = JSON.parse(
-  readFileSync(join(__dirname, "../../../../catalogue/catalogues/kodjo-pilote-60.catalogue.json"), "utf8"),
-) as MovementCatalogueFile;
+// Format 3.0.0 : pilote déjà au format courant, sans reprise de la position de départ (voir `pilotCatalogueV3`).
+const pilot: MovementCatalogueFile = pilotCatalogueV3();
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const FIRST = pilot.sheets[0]!;
 const FIRST_ID = "pilot:" + FIRST.sheetId;
@@ -100,7 +97,7 @@ function revisedFile(steps?: string[]): MovementCatalogueFile {
   const file = clone(pilot) as unknown as { sheets: Record<string, any>[] };  
   const sheet = file.sheets[0]!;
   sheet.content.steps = steps ?? [...sheet.content.steps, "Revenir lentement"];
-  sheet.sources.documentary.section = "Section révisée";
+  sheet.content.equipment = "Élastique (révisé)";
   sheet.revision = "2";
   sheet.history.push({ revision: "2", date: "2026-11-11", author: null, summary: "Révision" });
   return file as unknown as MovementCatalogueFile;
@@ -143,7 +140,7 @@ describe("CA-4 — écran « Charger un catalogue »", () => {
     await settle();
     const before = await dump();
     await press("catalogue-load-pick");
-    expect(within(screen.getByTestId("catalogue-load-invalid")).getByText(/catalogue.publicationAllowed — INCONSISTENT/)).toBeTruthy();
+    expect(within(screen.getByTestId("catalogue-load-invalid")).getByText(/catalogue.publicationAllowed — UNRECOGNIZED/)).toBeTruthy();
     expect(await dump()).toEqual(before);
   });
 
@@ -176,14 +173,14 @@ describe("CA-4 — écran « Charger un catalogue »", () => {
 
     const summary = within(screen.getByTestId("catalogue-load-summary"));
     expect(summary.getByText("Révision 1 → 2.")).toBeTruthy();
-    expect(summary.getByText("2 champ(s) différent(s) : contenu 1, sources 1.")).toBeTruthy();
+    expect(summary.getByText("2 champ(s) différent(s) : contenu 2.")).toBeTruthy();
     expect(summary.getByText("Le mouvement sera modifié : Étapes.")).toBeTruthy();
     expect(screen.queryByTestId("catalogue-load-comparison")).toBeNull();
 
     await press("catalogue-load-toggle-comparison");
     const comparison = within(screen.getByTestId("catalogue-load-comparison"));
-    expect(comparison.getByTestId("catalogue-load-field-sources.documentary.section")).toBeTruthy();
-    expect(comparison.getByText("Nouveau : Section révisée")).toBeTruthy();
+    expect(comparison.getByTestId("catalogue-load-field-content.equipment")).toBeTruthy();
+    expect(comparison.getByText("Nouveau : Élastique (révisé)")).toBeTruthy();
     expect(comparison.getByTestId("catalogue-load-field-content.steps")).toBeTruthy();
 
     await press("catalogue-load-accept");

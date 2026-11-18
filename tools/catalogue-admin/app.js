@@ -1,5 +1,10 @@
 /**
- * Administration locale du catalogue KODJO (format v2) — page du navigateur.
+ * Administration locale du catalogue KODJO (format courant 3.0.0, qui relit v1 et v2) — page du navigateur.
+ *
+ * Format 3.0.0 (18/11/2026, inventaire MOUV-ADM-20261117) : formulaires alignés sur les 30 éléments — position
+ * de départ, fondement, sources, diffuseur, statut éditorial, visibilité de fiche, texte alternatif, éditeur de
+ * Bibliothèque, gestionnaire du catalogue retirés ; phases administrables ; licence à deux choix ; ayant droit =
+ * propriétaire par défaut ; publication = synthèse calculée en lecture seule ; empreinte et version lue en diagnostic.
  *
  * Les règles métier ne sont PAS réécrites ici : la page importe les modules du domaine de
  * l'application, transpilés par `build-domain.mjs` et servis par le serveur local
@@ -11,8 +16,12 @@
 import {
   CATALOGUE_MAX_EMBEDDED_PHOTO_CHARS,
   CATALOGUE_MAX_MEDIA_PER_SHEET,
+  cataloguePublicationSynthesis,
+  libraryPublicationSynthesis,
+  MOVEMENT_CATALOGUE_FORMAT_VERSION,
   parseMovementCatalogueFile,
   sheetFingerprint,
+  sheetPublicationAllowed,
   undiffusableSheets,
 } from "/domain/src/domain/catalogue/MovementCatalogueFile.js";
 import {
@@ -51,9 +60,10 @@ const button = (text, action, { primary = false, disabled = false } = {}) => {
 
 const ACTOR_KINDS = [["", "Inconnu (null)"], ["LOCAL_USER", "Utilisateur local"], ["PERSON", "Personne"], ["ORGANIZATION", "Organisation"], ["PLATFORM", "Plateforme"]];
 const ORIGIN_LABELS = { LOCAL_CREATED: "Créée localement", CATALOGUE_INSTALLED: "Installée depuis un catalogue", SHARED_IMPORTED: "Importée d'un partage", EXTERNAL_IMPORTED: "Importée d'une source externe" };
-const VISIBILITY_LABELS = { PRIVATE: "Privée", UNLISTED: "Non répertoriée", PUBLIC: "Publique" };
-const REVIEW_STATUSES = ["DRAFT", "IN_REVIEW", "APPROVED", "RETIRED"];
-const VISIBILITIES = ["PRIVATE", "UNLISTED", "PUBLIC"];
+/** Visibilité d'une Bibliothèque (MOUV-ADM n° 22) : personnelle, partagée, publique. */
+const VISIBILITIES = [["PRIVATE", "Personnelle"], ["UNLISTED", "Partagée"], ["PUBLIC", "Publique"]];
+/** Phases d'une fiche : limites du contrat Mouvement (MFN-02, PRE-9 A.2b). */
+const PHASE_LIMITS = { maxCount: 6, labelMaxLength: 20, minSeconds: 1, maxSeconds: 3535 };
 const AXES = [
   ["categories", "Catégories", null],
   ["bodyZones", "Zones corporelles", "bodyZoneIds"],
@@ -212,18 +222,6 @@ function selectInput(options, get, set, { nullable = false, nullLabel = "Aucune 
   });
   return node;
 }
-function checkbox(text, get, set) {
-  const label = el("label", "inline");
-  const node = el("input");
-  node.type = "checkbox";
-  node.checked = get() === true;
-  node.addEventListener("change", () => {
-    set(node.checked);
-    changed();
-  });
-  label.append(node, document.createTextNode(text));
-  return label;
-}
 function chips(entries, get, set) {
   const box = el("div", "chips");
   const selected = new Set(get());
@@ -314,22 +312,6 @@ function localActorInput(get, set) {
   box.append(kind, detail);
   return box;
 }
-function recordInput(get, set) {
-  const node = el("textarea", "input");
-  node.rows = 3;
-  node.value = Object.entries(get() ?? {}).map(([key, value]) => key + " = " + value).join("\n");
-  node.placeholder = "clé = valeur (une par ligne)";
-  node.addEventListener("input", () => {
-    const record = {};
-    for (const line of lines(node.value)) {
-      const at = line.indexOf("=");
-      if (at > 0) record[line.slice(0, at).trim()] = line.slice(at + 1).trim();
-    }
-    set(record);
-    changed();
-  });
-  return node;
-}
 function section(title, ...children) {
   const box = el("fieldset", "section");
   box.append(el("legend", "", title), ...children);
@@ -392,7 +374,10 @@ async function openFile(fileName) {
   renderTab();
   notify("« " + state.working.catalogue.title + " » ouvert : " + state.working.sheets.length + " fiches, " +
     state.working.libraries.length + " Bibliothèque(s), révision " + state.working.catalogue.revision +
-    (data.sourceFormatVersion === "1.0.0" ? " (fichier v1 relu en v2 ; il sera écrit en v2 au premier enregistrement)" : "") + ".");
+    (data.sourceFormatVersion !== MOVEMENT_CATALOGUE_FORMAT_VERSION
+      ? " (fichier " + data.sourceFormatVersion + " relu au format " + MOVEMENT_CATALOGUE_FORMAT_VERSION +
+        " ; copie de sauvegarde puis écriture au nouveau format au premier enregistrement)"
+      : "") + ".");
 }
 
 async function save() {
@@ -556,17 +541,22 @@ function renderSheetForm(panel) {
   title.append(el("p", "eyebrow", "Fiche éditoriale"), el("h2", "", sheet.content.name || "(sans nom)"));
   head.append(title, el("span", "code", sheet.sheetId + " · révision " + sheet.revision));
   const fields = el("div", "fields");
-  const c = sheet.content, k = sheet.classification, p = sheet.provenance, s = sheet.sources;
+  const c = sheet.content, k = sheet.classification, p = sheet.provenance;
 
+  // MOUV-ADM-20261117 n° 1 à 5 : position de départ reprise dans les étapes (champ retiré) ; matériel et
+  // sécurité facultatifs et distincts ; notes éditoriales internes.
   fields.append(section("Contenu",
     labeled("Nom du mouvement", textInput(() => c.name, (x) => { c.name = x; }, { maxLength: 80 }), "80 caractères au plus (contrat Mouvement)."),
     labeled("Alias (un par ligne, ordonnés)", linesInput(() => c.aliases, (x) => { c.aliases = x; }, 2)),
-    grid(labeled("Position de départ", textInput(() => c.startingPosition, (x) => { c.startingPosition = x; }, { nullable: true })),
-      labeled("Matériel", textInput(() => c.equipment, (x) => { c.equipment = x; }, { nullable: true }))),
-    labeled("Étapes (une par ligne, ordonnées)", linesInput(() => c.steps, (x) => { c.steps = x; }, 5), "1 000 caractères au total, séparateurs compris (contrat Mouvement)."),
-    labeled("Consignes de sécurité", textInput(() => c.safetyNotes, (x) => { c.safetyNotes = x; }, { nullable: true, multiline: true })),
-    labeled("Notes éditoriales", textInput(() => c.notes, (x) => { c.notes = x; }, { multiline: true })),
+    labeled("Étapes (une par ligne, ordonnées)", linesInput(() => c.steps, (x) => { c.steps = x; }, 5),
+      "La position de départ, s'il y en a une, est la première étape. 1 000 caractères au total, séparateurs compris (contrat Mouvement)."),
+    grid(labeled("Matériel (facultatif)", textInput(() => c.equipment, (x) => { c.equipment = x; }, { nullable: true })),
+      labeled("Consignes de sécurité (facultatives)", textInput(() => c.safetyNotes, (x) => { c.safetyNotes = x; }, { nullable: true, multiline: true }),
+        "Précautions générales ; une indication propre à une étape reste dans cette étape.")),
+    labeled("Notes éditoriales (internes)", textInput(() => c.notes, (x) => { c.notes = x; }, { multiline: true }),
+      "Réservées à l'administration : jamais transmises au téléphone ni exportées."),
   ));
+  fields.append(phasesSection(sheet));
 
   // Tableau de Hermann du 11/11/2026 : n° 6 à 9 (fondement, revue, classification et spécialités d'origine) retirés.
   const classification = section("Classification",
@@ -579,50 +569,20 @@ function renderSheetForm(panel) {
   fields.append(classification);
   fields.append(familySection(sheet));
 
-  const upstream = el("div", "fields");
-  const renderUpstream = () => {
-    upstream.replaceChildren(checkbox("Amont renseigné (obligatoire sauf création locale)", () => p.upstream !== null, (on) => {
-      p.upstream = on ? { catalogueId: "", sheetId: "", revision: "" } : null;
-      renderUpstream();
-    }));
-    if (p.upstream) {
-      const u = p.upstream;
-      upstream.append(el("div", "three"));
-      upstream.lastChild.append(labeled("Catalogue amont", textInput(() => u.catalogueId, (x) => { u.catalogueId = x; })),
-        labeled("Fiche amont", textInput(() => u.sheetId, (x) => { u.sheetId = x; })),
-        labeled("Révision amont", textInput(() => u.revision, (x) => { u.revision = x; })));
-    }
-  };
-  renderUpstream();
+  // MOUV-ADM n° 11 à 17 : origine et source d'import gérées automatiquement (lecture seule) ; ayant droit =
+  // propriétaire par défaut ; licence à deux choix ; autorisation de publication = état système.
+  const u = p.upstream;
   fields.append(section("Provenance",
-    shown("Origine", ORIGIN_LABELS[p.origin] ?? p.origin),
-    upstream,
+    grid(shown("Origine", ORIGIN_LABELS[p.origin] ?? p.origin),
+      shown("Source d'import", u ? u.catalogueId + " · " + u.sheetId + " · révision " + u.revision : "Aucune (création locale)")),
     grid(labeled("Propriétaire", localActorInput(() => p.owner, (x) => { p.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable."),
       labeled("Auteur (unique)", localActorInput(() => p.author, (x) => { p.author = x; }))),
-    grid(labeled("Diffuseur", localActorInput(() => p.publisher, (x) => { p.publisher = x; })),
-      labeled("Ayant droit", localActorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }))),
-    grid(labeled("Licence", textInput(() => p.license, (x) => { p.license = x; }, { nullable: true })),
-      labeled("Statut éditorial", selectInput(REVIEW_STATUSES, () => p.reviewStatus, (x) => { p.reviewStatus = x; }))),
-    shown("Visibilité", VISIBILITY_LABELS[p.visibility] ?? p.visibility),
+    grid(labeled("Ayant droit", rightsHolderInput(p), "Par défaut le propriétaire ; indiquer un tiers seulement s'il est différent."),
+      labeled("Licence de la fiche", licenseInput(p), "Porte sur le texte de la fiche ; les médias gardent leurs droits. Ne change aucune permission.")),
+    shown("Autorisation de publication (système)", sheetPublicationAllowed(sheet)
+      ? "Accordée pour cette révision"
+      : "Non accordée — résultat des contrôles KODJO, jamais saisi (contrôle central à venir avec le partage)"),
   ));
-
-  const documentary = el("div", "fields");
-  const renderDocumentary = () => {
-    documentary.replaceChildren(checkbox("Référence documentaire renseignée", () => s.documentary !== null, (on) => {
-      s.documentary = on ? { sourceId: null, section: null, url: null, usageStatement: null } : null;
-      renderDocumentary();
-    }));
-    if (s.documentary) {
-      const d = s.documentary;
-      documentary.append(grid(labeled("Identifiant de source", textInput(() => d.sourceId, (x) => { d.sourceId = x; }, { nullable: true })),
-        labeled("Section", textInput(() => d.section, (x) => { d.section = x; }, { nullable: true }))),
-      grid(labeled("URL", textInput(() => d.url, (x) => { d.url = x; }, { nullable: true })),
-        labeled("Conditions d'usage", textInput(() => d.usageStatement, (x) => { d.usageStatement = x; }, { nullable: true }))));
-    }
-  };
-  renderDocumentary();
-  fields.append(section("Sources", documentary,
-    labeled("Contexte de prescription d'origine (non normatif)", recordInput(() => s.prescriptionContext, (x) => { s.prescriptionContext = x; }))));
 
   // Section « Validation » retirée (Hermann, 11/11/2026 : « je n'ai exprimé aucun besoin, alors pourquoi les
   // développer s'ils ne sont pas nécessaires »). Les valeurs existantes restent dans le fichier, inchangées.
@@ -632,9 +592,7 @@ function renderSheetForm(panel) {
   // [Avant : détail + « (sheets[i].media[j]) » — remplacé]
   const describeMediaIssue = (issue) => {
     const detail = issue.detail ?? issue.code;
-    const hint = detail === "description accessible obligatoire pour une photo"
-      ? "remplir « Texte alternatif de la photo »"
-      : null;
+    const hint = null;
     const position = /\.media\[(\d+)\]/.exec(issue.path);
     return detail + (hint ? " : " + hint : "") + (position ? " (média n° " + (Number(position[1]) + 1) + " de cette fiche)" : "");
   };
@@ -674,6 +632,134 @@ function renderSheetForm(panel) {
  * Famille de niveaux de la fiche (décision de Hermann du 11/11/2026, MFN-05 / D-439, règles A à D du 28/10) :
  * mouvements présentés par leur nom ; identifiants et clés de tri gérés par l'application. Niveau 1 en premier.
  */
+/**
+ * Phases de la fiche source (MOUV-UX-20261117) : ordre, libellé, durée par défaut facultative, sous les limites
+ * du contrat Mouvement. Une phase ajoutée reçoit une identité nouvelle (jamais celle d'une phase de la version
+ * enregistrée) : les Exercices du téléphone qui la référencent restent rattachés à la bonne phase.
+ */
+function phasesSection(sheet) {
+  const box = el("fieldset", "section");
+  const render = () => {
+    box.replaceChildren(el("legend", "", "Phases (ordonnées, " + PHASE_LIMITS.maxCount + " au plus)"));
+    const phases = sheet.phases;
+    const move = (from, to) => {
+      const next = [...phases];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      sheet.phases = next;
+      changed();
+      render();
+    };
+    phases.forEach((phase, at) => {
+      const row = el("div", "member");
+      const label = textInput(() => phase.label, (x) => { phase.label = x; },
+        { maxLength: PHASE_LIMITS.labelMaxLength, placeholder: "Libellé (" + PHASE_LIMITS.labelMaxLength + " caractères au plus)" });
+      const duration = el("input", "input");
+      duration.type = "number";
+      duration.min = String(PHASE_LIMITS.minSeconds);
+      duration.max = String(PHASE_LIMITS.maxSeconds);
+      duration.step = "1";
+      duration.placeholder = "Durée par défaut (s), facultative";
+      duration.value = phase.durationSeconds === null ? "" : String(phase.durationSeconds);
+      duration.addEventListener("input", () => {
+        const value = duration.value.trim();
+        phase.durationSeconds = value === "" ? null : Number(value);
+        changed();
+      });
+      const actions = el("div", "media-actions");
+      actions.append(button("↑", () => move(at, at - 1), { disabled: at === 0 }),
+        button("↓", () => move(at, at + 1), { disabled: at === phases.length - 1 }),
+        button("Retirer", () => {
+          sheet.phases = phases.filter((_, index) => index !== at);
+          changed();
+          render();
+        }));
+      row.append(el("span", "", String(at + 1) + "."), label, duration, actions);
+      box.append(row);
+    });
+    if (!phases.length) box.append(el("p", "info", "Aucune phase."));
+    const saved = state.original.sheets.find((entry) => entry.sheetId === sheet.sheetId)?.phases ?? [];
+    box.append(button("Ajouter une phase", () => {
+      const id = Math.max(0, ...phases.map((phase) => phase.id), ...saved.map((phase) => phase.id)) + 1;
+      sheet.phases = [...phases, { id, label: "", durationSeconds: null }];
+      changed();
+      render();
+    }, { disabled: phases.length >= PHASE_LIMITS.maxCount }));
+    box.append(el("small", "", "Durée de " + PHASE_LIMITS.minSeconds + " à " + PHASE_LIMITS.maxSeconds +
+      " s, vide = aucune. Transmises à l'installation et aux mises à jour acceptées ; la fiche reste en lecture seule sur le téléphone."));
+  };
+  render();
+  return box;
+}
+
+/** Ayant droit (MOUV-ADM n° 14) : le propriétaire par défaut (`null`), ou un tiers, sans double saisie. */
+function rightsHolderInput(p) {
+  const box = el("div", "fields");
+  const render = () => {
+    box.replaceChildren();
+    const mode = el("select", "input");
+    mode.append(new Option("Le propriétaire (par défaut)", ""), new Option("Un tiers", "THIRD"));
+    mode.value = p.rightsHolder === null ? "" : "THIRD";
+    mode.addEventListener("change", () => {
+      if (mode.value === "") {
+        p.rightsHolder = null;
+      } else {
+        try {
+          p.rightsHolder = actorFor("LOCAL_USER", state.installation);
+        } catch {
+          p.rightsHolder = null;
+          notify("Identité du PC indisponible : impossible d'indiquer un tiers.", "error");
+        }
+      }
+      changed();
+      render();
+    });
+    box.append(mode);
+    if (p.rightsHolder !== null) box.append(localActorInput(() => p.rightsHolder, (x) => { p.rightsHolder = x; }));
+  };
+  render();
+  return box;
+}
+
+/**
+ * Licence de la fiche (MOUV-ADM n° 15) : « Non renseignée » (`null`) ou « Licence ou conditions connues », avec
+ * un nom et un lien facultatif, ou un texte. Aucune liste prédéfinie ; aucune permission modifiée.
+ */
+function licenseInput(p) {
+  const box = el("div", "fields");
+  const render = () => {
+    box.replaceChildren();
+    const mode = el("select", "input");
+    mode.append(new Option("Non renseignée", ""), new Option("Licence ou conditions connues", "KNOWN"));
+    mode.value = p.license === null ? "" : "KNOWN";
+    mode.addEventListener("change", () => {
+      p.license = mode.value === "" ? null : { name: "", url: null, text: null };
+      changed();
+      render();
+    });
+    box.append(mode);
+    if (p.license === null) return;
+    const license = p.license;
+    const form = el("select", "input");
+    form.append(new Option("Nom et lien", "NAME"), new Option("Texte des conditions", "TEXT"));
+    form.value = license.text !== null ? "TEXT" : "NAME";
+    form.addEventListener("change", () => {
+      p.license = form.value === "TEXT" ? { name: null, url: null, text: "" } : { name: "", url: null, text: null };
+      changed();
+      render();
+    });
+    box.append(form);
+    if (form.value === "TEXT") {
+      box.append(labeled("Conditions", textInput(() => license.text, (x) => { license.text = x; }, { multiline: true })));
+    } else {
+      box.append(grid(labeled("Nom", textInput(() => license.name, (x) => { license.name = x; }, { maxLength: 200 })),
+        labeled("Lien (facultatif)", textInput(() => license.url, (x) => { license.url = x; }, { nullable: true, placeholder: "https://…" }))));
+    }
+  };
+  render();
+  return box;
+}
+
 function familySection(sheet) {
   const apply = (edit) => {
     try {
@@ -737,9 +823,9 @@ function renderLibraries(views) {
     if (!title || !title.trim()) return;
     try {
       const meta = revisionMeta();
-      // Décision du 12/11/2026 : éditeur et propriétaire par défaut = « Utilisateur local » (ce PC).
+      // Décision du 12/11/2026 : propriétaire par défaut = « Utilisateur local » (ce PC). [Éditeur retiré, MOUV-ADM n° 21.]
       const local = actorFor("LOCAL_USER", state.installation);
-      const result = createLibrary(state.working, { title, editor: local, owner: local }, { date: today(), author: meta.author, summary: meta.summary });
+      const result = createLibrary(state.working, { title, owner: local }, { date: today(), author: meta.author, summary: meta.summary });
       state.working = result.file;
       state.libraryId = result.library.libraryId;
       changed();
@@ -783,10 +869,11 @@ function renderLibraries(views) {
   fields.append(section("En-tête",
     labeled("Titre", textInput(() => library.title, (x) => { library.title = x; }, { maxLength: 200 })),
     labeled("Description", textInput(() => library.description, (x) => { library.description = x; }, { nullable: true, multiline: true })),
-    grid(labeled("Éditeur (composition)", localActorInput(() => library.editor, (x) => { library.editor = x; })),
-      labeled("Propriétaire", localActorInput(() => library.owner, (x) => { library.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable.")),
+    labeled("Propriétaire", localActorInput(() => library.owner, (x) => { library.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : utilisable sur les téléphones, mais jamais partageable ni publiable."),
     grid(labeled("Visibilité", selectInput(VISIBILITIES, () => library.visibility, (x) => { library.visibility = x; })),
-      shown("Publication autorisée", library.publicationAllowed ? "Oui" : "Non")),
+      shown("Publication (synthèse calculée)", libraryPublicationSynthesis(state.working, library)
+        ? "Toutes les fiches ont l'autorisation système"
+        : "Non — au moins une fiche sans autorisation système, ou propriétaire inconnu")),
   ));
   const sheetsById = new Map(state.working.sheets.map((sheet) => [sheet.sheetId, sheet]));
   const members = el("div", "members");
@@ -824,7 +911,8 @@ function renderLibraries(views) {
   pickerSearch.addEventListener("input", renderPicker);
   renderPicker();
   fields.append(section("Fiches (ordonnées) — " + library.members.length, members), section("Ajouter des fiches", pickerSearch, picker),
-    section("Historique (lecture seule)", readonly(library.history.map((h) => "Révision " + h.revision + " · " + h.date + " — " + h.summary).join("\n") ||
+    section("Historique (lecture seule)", readonly(library.history.map((h) => "Révision " + h.revision + " · " + h.date + " · " +
+      (h.author ? h.author.kind + ":" + h.author.id : "auteur inconnu") + " — " + h.summary).join("\n") ||
       "Aucune entrée (Bibliothèque issue de la conversion v1 ou du fichier initial).")));
   panel.append(head, fields);
 }
@@ -933,12 +1021,12 @@ function renderGlossary(views) {
 
 // --- En-tête du catalogue ---
 
-/** N° 29 : empreinte et version lue, repliées (identifier le fichier effectivement lu). */
+/** N° 29 : empreinte et version lue, dans un volet de diagnostic replié (identifier le fichier effectivement lu). */
 function technicalDetails() {
   const details = el("details", "source");
-  details.append(el("summary", "", "Détails techniques"),
+  details.append(el("summary", "", "Diagnostic"),
     readonly("Empreinte du fichier (révision optimiste) : " + state.etag.slice(0, 16) + "…" +
-      "\nVersion lue : " + state.sourceFormatVersion + (state.canonical ? "" : "\nForme non canonique sur disque : réécrite en sérialisation de référence au prochain enregistrement effectif.")));
+      "\nVersion lue : " + state.sourceFormatVersion + " (format courant : " + MOVEMENT_CATALOGUE_FORMAT_VERSION + ")" + (state.canonical ? "" : "\nForme non canonique sur disque : réécrite en sérialisation de référence au prochain enregistrement effectif.")));
   return details;
 }
 
@@ -953,10 +1041,12 @@ function renderCatalogue(views) {
       readonly(state.warnings.length ? state.warnings.map((w) => w.code + " — " + w.path).join("\n") : "Aucun signalement.")),
     section("En-tête",
       labeled("Titre", textInput(() => header.title, (x) => { header.title = x; }, { maxLength: 200 })),
-      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : aucune publication."),
-        labeled("Gestionnaire administratif", actorInput(() => header.manager, (x) => { header.manager = x; }))),
-      grid(labeled("Diffuseur", actorInput(() => header.publisher, (x) => { header.publisher = x; })),
-        shown("Publication autorisée", header.publicationAllowed ? "Oui" : "Non"))));
+      grid(labeled("Propriétaire", actorInput(() => header.owner, (x) => { header.owner = x; }), "Compte qui gère le catalogue. Déclaratif, non vérifié (aucun compte dans le MVP). Inconnu : aucune publication."),
+        shown("Publication (synthèse calculée)", cataloguePublicationSynthesis(state.working)
+          ? "Toutes les fiches ont l'autorisation système"
+          : "Non — au moins une fiche sans autorisation système, ou propriétaire inconnu")),
+      labeled("Notes du catalogue (internes, une par ligne)", linesInput(() => header.notes, (x) => { header.notes = x; }, 4),
+        "Facultatives, réservées à l'administration : jamais transmises au téléphone ni exportées.")));
   views.append(panel);
 }
 
@@ -966,7 +1056,7 @@ async function renderInbox(views) {
   const panel = el("section", "panel");
   panel.style.margin = "0 clamp(16px,3.6vw,48px) 36px";
   panel.append(el("h2", "", "Boîte d'arrivée — Mouvements envoyés par le téléphone"),
-    el("p", "tip", "Rien n'est ajouté automatiquement. « Ajouter au catalogue » crée une fiche LOCAL_CREATED privée, brouillon, non publiable, sans propriétaire ni auteur. « Rapprocher » rattache le Mouvement à une fiche existante (installation seulement, sans révision de la fiche). Les médias des Mouvements personnels ne sont pas transférés dans ce lot."));
+    el("p", "tip", "Rien n'est ajouté automatiquement. « Ajouter au catalogue » crée une fiche créée localement, non publiable, sans propriétaire ni auteur. « Rapprocher » rattache le Mouvement à une fiche existante (installation seulement, sans révision de la fiche). Les médias des Mouvements personnels ne sont pas transférés dans ce lot."));
   views.append(panel);
   const { status, data } = await api("GET", "/api/inbox");
   if (status !== 200) return panel.append(el("p", "warning", "Boîte d'arrivée illisible."));

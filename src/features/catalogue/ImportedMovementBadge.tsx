@@ -49,9 +49,30 @@ function day(iso: string): string {
   return Number.isNaN(value.getTime()) ? iso : value.toLocaleDateString("fr-FR");
 }
 
-/** Lignes de la fenêtre d'information (exportées pour les tests). */
+/** Licence lisible : « Non renseignée », nom (et lien) ou texte des conditions (MOUV-ADM n° 15). */
+export function licenseText(license: ImportedMovementInfo["license"]): string {
+  if (license === null) return "Non renseignée";
+  if (license.name !== null) return license.url === null ? license.name : `${license.name} — ${license.url}`;
+  return license.text ?? "Non renseignée";
+}
+
+const CLASSIFICATION_ROWS: readonly (readonly [keyof ImportedMovementInfo["classification"], string])[] = [
+  ["specialties", "Spécialités"],
+  ["gesturalFamilies", "Familles gestuelles"],
+  ["anatomicalTargets", "Cibles anatomiques"],
+  ["clinicalProblems", "Problèmes cliniques"],
+];
+
+/**
+ * Lignes de la fenêtre d'information (exportées pour les tests). Format 3.0.0 (18/11/2026, mission de mise en
+ * conformité de la fiche Mouvement) : informations utilisateur accessibles — matériel, consignes de sécurité et
+ * classifications conservées, ajoutés quand ils sont renseignés ; ayant droit = propriétaire par défaut ; licence à
+ * deux choix ; aucune note interne. [Ligne « Éditeur » (diffuseur, éditeurs de Bibliothèque) — remplacée : champs
+ * supprimés par MOUV-ADM n° 13 et 21.]
+ */
 export function importedInfoRows(info: ImportedMovementInfo): readonly (readonly [string, string])[] {
   const unknown = "Inconnu";
+  const filled = (value: string | null) => value !== null && value.trim() !== "";
   return [
     ["Bibliothèque", info.libraries.join(", ") || "—"],
     ["Catalogue", info.catalogueId],
@@ -60,9 +81,13 @@ export function importedInfoRows(info: ImportedMovementInfo): readonly (readonly
       : ORIGIN_LABELS[info.origin] ?? info.origin],
     ["Propriétaire", info.owner ?? unknown],
     ["Auteur", info.author ?? unknown],
-    ["Éditeur", info.editors.join(", ") || info.publisher || unknown],
-    ["Ayant droit", info.rightsHolder ?? unknown],
-    ["Licence", info.license ?? unknown],
+    ["Ayant droit", info.rightsHolder ?? info.owner ?? unknown],
+    ["Licence", licenseText(info.license)],
+    ...(filled(info.equipment) ? [["Matériel", info.equipment as string] as const] : []),
+    ...(filled(info.safetyNotes) ? [["Consignes de sécurité", info.safetyNotes as string] as const] : []),
+    ...CLASSIFICATION_ROWS.flatMap(([axis, label]) => info.classification[axis].length === 0
+      ? []
+      : [[label, info.classification[axis].map((value) => value.label).join(", ")] as const]),
     ["Version", `Révision ${info.revision} · installée le ${day(info.installedAt)}` +
       (info.updatedAt !== info.installedAt ? ` · mise à jour le ${day(info.updatedAt)}` : "")],
   ];

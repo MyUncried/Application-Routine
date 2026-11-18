@@ -1,5 +1,5 @@
 /**
- * Édition d'un fichier catalogue v2 par l'administration locale (W1, 11/11/2026).
+ * Édition d'un fichier catalogue (format courant, v3 depuis le 18/11/2026) par l'administration locale (W1, 11/11/2026).
  *
  * Module pur, partagé tel quel par le serveur Node et la page de l'administration (transpilé
  * par `tools/catalogue-admin/build-domain.mjs`) : création de fiches et de Bibliothèques,
@@ -23,14 +23,19 @@ import {
   canonicalJson,
   MOVEMENT_CATALOGUE_FORMAT,
   MOVEMENT_CATALOGUE_FORMAT_VERSION,
+  nextRevision,
   sheetFingerprint,
   type CatalogueLibrary,
   type CatalogueLibraryMember,
+  type CataloguePhase,
   type CatalogueSheet,
   type CatalogueSheetRevision,
   type MovementCatalogueFile,
 } from "@/domain/catalogue/MovementCatalogueFile";
 import type { EditorialActorRef } from "@/domain/catalogue/MovementEditorialProvenance";
+
+/** Règle de révision, définie avec le format (la conversion v3 l'applique aussi). */
+export { nextRevision };
 
 /** Métadonnées d'une révision : date ISO 8601, auteur de la révision (ou inconnu) et résumé. */
 export type CatalogueEditMeta = {
@@ -80,14 +85,11 @@ export const NEW_SHEET_VALIDATION = {
   publicationAllowed: false,
 } as const;
 
-export const NEW_SHEET_BASIS = "LOCAL_ADMIN_ENTRY (saisie dans l'administration locale, non approuvée)";
-
 export type NewSheetInput = {
   /** Identifiant souhaité ; généré à partir du nom s'il est absent. */
   readonly sheetId?: string;
   readonly name: string;
   readonly aliases?: readonly string[];
-  readonly startingPosition?: string | null;
   readonly equipment?: string | null;
   readonly steps?: readonly string[];
   readonly safetyNotes?: string | null;
@@ -99,7 +101,8 @@ export type NewSheetInput = {
   readonly gesturalFamilyIds?: readonly string[];
   readonly clinicalProblemIds?: readonly string[];
   readonly anatomicalTargetIds?: readonly string[];
-  readonly basis?: string;
+  /** Phases de la fiche source (MOUV-UX-20261117) ; aucune par défaut. */
+  readonly phases?: readonly CataloguePhase[];
   readonly owner?: EditorialActorRef | null;
   readonly author?: EditorialActorRef | null;
   readonly knownLocalMovementIds?: readonly string[];
@@ -107,46 +110,6 @@ export type NewSheetInput = {
 
 const SHEET_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 const LIBRARY_ID = /^[a-z0-9][a-z0-9.-]{1,63}$/;
-const INTEGER = /^\d+$/;
-const DOTTED_SUFFIX = /^(.*\.)(\d+)$/;
-
-/** Incrément d'une chaîne d'entiers décimaux sans perte de précision. */
-function incrementDigits(digits: string): string {
-  const chars = digits.split("");
-  let index = chars.length - 1;
-  while (index >= 0) {
-    if (chars[index] !== "9") {
-      chars[index] = String(Number(chars[index]) + 1);
-      return chars.join("").replace(/^0+(?=\d)/, "");
-    }
-    chars[index] = "0";
-    index -= 1;
-  }
-  return ("1" + chars.join("")).replace(/^0+(?=\d)/, "");
-}
-
-/**
- * Révision suivante, déterministe :
- * - révision entière (`"3"`) → entier suivant (`"4"`) ;
- * - révision terminée par `.<entier>` (`"2026-10-27.1"`, `"1.0.0"`) → ce suffixe incrémenté ;
- * - toute autre révision (`"2026-10-27"`) → suffixe `.1` ajouté (`"2026-10-27.1"`).
- * Le résultat n'est jamais une révision déjà utilisée (`used`) : la règle est réappliquée
- * jusqu'à obtenir une valeur libre.
- */
-export function nextRevision(previous: string, used: Iterable<string> = []): string {
-  const taken = new Set(used);
-  taken.add(previous);
-  const step = (value: string): string => {
-    if (INTEGER.test(value)) return incrementDigits(value);
-    const dotted = DOTTED_SUFFIX.exec(value);
-    if (dotted) return dotted[1] + incrementDigits(dotted[2]);
-    return value + ".1";
-  };
-  let candidate = step(previous);
-  while (taken.has(candidate)) candidate = step(candidate);
-  return candidate;
-}
-
 const historyEntry = (revision: string, meta: CatalogueEditMeta, fallback: string): CatalogueSheetRevision => ({
   revision,
   date: meta.date,
@@ -163,9 +126,9 @@ function orderedSheet(sheet: CatalogueSheet): CatalogueSheet {
     provenance: sheet.provenance,
     content: sheet.content,
     classification: sheet.classification,
-    sources: sheet.sources,
     validation: sheet.validation,
     media: sheet.media,
+    phases: sheet.phases,
     ...(sheet.levelGroup ? { levelGroup: sheet.levelGroup } : {}),
     install: sheet.install,
   };
@@ -178,10 +141,8 @@ function orderedLibrary(library: CatalogueLibrary): CatalogueLibrary {
     description: library.description,
     revision: library.revision,
     history: library.history,
-    editor: library.editor,
     owner: library.owner,
     visibility: library.visibility,
-    publicationAllowed: library.publicationAllowed,
     members: library.members,
   };
 }
@@ -242,22 +203,18 @@ export function createSheet(
     revision: "1",
     history: [historyEntry("1", meta, "Création de la fiche dans l'administration locale")],
     provenance: {
-      gestureId: null,
       origin: "LOCAL_CREATED",
       upstream: null,
       // Décision de Hermann du 11/11/2026 : par défaut, le propriétaire déclaré du catalogue.
       owner: input.owner !== undefined ? input.owner : file.catalogue.owner,
       author: input.author ?? null,
-      publisher: null,
+      // Ayant droit : le propriétaire (null) ; licence : « Non renseignée » (MOUV-ADM n° 14 et 15).
       rightsHolder: null,
       license: null,
-      reviewStatus: "DRAFT",
-      visibility: "PRIVATE",
     },
     content: {
       name: input.name.trim(),
       aliases: [...(input.aliases ?? [])],
-      startingPosition: input.startingPosition ?? null,
       equipment: input.equipment ?? null,
       steps: [...(input.steps ?? [])],
       safetyNotes: input.safetyNotes ?? null,
@@ -270,14 +227,10 @@ export function createSheet(
       gesturalFamilyIds: [...(input.gesturalFamilyIds ?? [])],
       clinicalProblemIds: [...(input.clinicalProblemIds ?? [])],
       anatomicalTargetIds: [...(input.anatomicalTargetIds ?? [])],
-      basis: input.basis ?? NEW_SHEET_BASIS,
-      review: { status: "PENDING", needsReview: true, flags: [], note: null },
-      original: {},
-      originalProposedSpecialties: [],
     },
-    sources: { documentary: null, prescriptionContext: {} },
     validation: { ...NEW_SHEET_VALIDATION },
     media: [],
+    phases: (input.phases ?? []).map((phase) => ({ id: phase.id, label: phase.label, durationSeconds: phase.durationSeconds })),
     install: { knownLocalMovementIds: [...(input.knownLocalMovementIds ?? [])] },
   };
   return { file: { ...file, sheets: [...file.sheets, sheet] }, sheet };
@@ -416,9 +369,6 @@ export function applyFileEdit(
     title: editedFile.catalogue.title,
     revision: previousFile.catalogue.revision,
     owner: editedFile.catalogue.owner,
-    manager: editedFile.catalogue.manager,
-    publisher: editedFile.catalogue.publisher,
-    publicationAllowed: editedFile.catalogue.publicationAllowed,
     notes: editedFile.catalogue.notes,
   };
   const candidate: MovementCatalogueFile = {
@@ -452,14 +402,13 @@ export type NewLibraryInput = {
   readonly libraryId?: string;
   readonly title: string;
   readonly description?: string | null;
-  readonly editor?: EditorialActorRef | null;
   readonly owner?: EditorialActorRef | null;
   readonly members?: readonly CatalogueLibraryMember[];
 };
 
 /**
- * Nouvelle Bibliothèque : révision `"1"`, privée et non publiable (aucune diffusion implicite),
- * éditeur et propriétaire `null` sauf déclaration. Ajoutée en dernière position.
+ * Nouvelle Bibliothèque : révision `"1"`, personnelle (aucune diffusion implicite), propriétaire du
+ * catalogue sauf déclaration. Ajoutée en dernière position.
  */
 export function createLibrary(
   file: MovementCatalogueFile,
@@ -482,11 +431,9 @@ export function createLibrary(
     description: input.description ?? null,
     revision: "1",
     history: [historyEntry("1", meta, "Création de la Bibliothèque")],
-    editor: input.editor ?? null,
     // Décision de Hermann du 11/11/2026 : par défaut, le propriétaire déclaré du catalogue.
     owner: input.owner !== undefined ? input.owner : file.catalogue.owner,
     visibility: "PRIVATE",
-    publicationAllowed: false,
     members: [],
   };
   for (const member of input.members ?? []) library = addLibraryMember(library, member);

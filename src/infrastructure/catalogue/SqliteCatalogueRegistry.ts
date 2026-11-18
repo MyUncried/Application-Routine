@@ -19,20 +19,39 @@
  * Schéma v3 (Bibliothèques personnelles, 12/11/2026) — additif, même base distincte : identité d'auteur locale
  * (identifiant invisible créé une fois, décision de Hermann du 12/11/2026), Bibliothèques personnelles et leurs
  * membres ordonnés (références de Mouvements, jamais des copies). Aucune donnée existante modifiée.
+ *
+ * Schéma v4 (format catalogue 3.0.0, 18/11/2026, MOUV-ADM-20261117) — dans la même transaction :
+ * 1. sauvegarde récupérable des tables converties (`*_backup_v3`, copies intégrales, jamais relues par
+ *    l'application ; une migration interrompue annule toute la transaction et laisse le schéma 3 intact) ;
+ * 2. instantanés installés et opérations en cours convertis au format 3.0.0 **sans reprise de la position de
+ *    départ ni changement de révision** (`normalizeStoredSheet`), notes internes retirées, empreinte recalculée :
+ *    la révision convertie du fichier source arrive comme une mise à jour ordinaire ;
+ * 3. Bibliothèques installées sans éditeur ni case de publication ; leur clé cible recalculée seulement quand
+ *    l'ancienne est reproduite à l'identique (sinon conservée : la mise à jour reste proposée) ;
+ * 4. opérations de Bibliothèque en cours : fichier relu et converti (`parseMovementCatalogueFile`), clé recalculée ;
+ * 5. table `installed_references` : référentiels de classification de chaque catalogue (libellés des
+ *    spécialités, familles gestuelles, problèmes cliniques, cibles anatomiques) pour les filtres validés.
+ * Aucune identité (catalogue, fiche, Mouvement, Bibliothèque) ni décision n'est modifiée.
  */
 import type { Movement } from "@/domain/activities/Movement";
 import {
+  normalizeStoredLibrary,
   normalizeStoredSheet,
+  parseMovementCatalogueFile,
   sheetFingerprint,
+  withoutInternalNotes,
   type CatalogueLibrary,
+  type CatalogueReferences,
   type CatalogueSheet,
   type MovementCatalogueFile,
 } from "@/domain/catalogue/MovementCatalogueFile";
-import type {
-  InstalledLibraryRecord,
-  LibraryDecisionRecord,
-  LibraryKey,
-  LibraryOperation,
+import {
+  libraryCompositionKey,
+  libraryTargetKey,
+  type InstalledLibraryRecord,
+  type LibraryDecisionRecord,
+  type LibraryKey,
+  type LibraryOperation,
 } from "@/domain/catalogue/libraryPlan";
 import type {
   InstalledSheetRecord,
@@ -52,7 +71,7 @@ import {
 import type { Database } from "@/infrastructure/database/Database";
 
 export const CATALOGUE_REGISTRY_DATABASE_NAME = "kodjo-catalogue-registry.db";
-export const CATALOGUE_REGISTRY_SCHEMA_VERSION = 3;
+export const CATALOGUE_REGISTRY_SCHEMA_VERSION = 4;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS installed_sheets (
@@ -148,6 +167,17 @@ CREATE TABLE IF NOT EXISTS personal_library_members (
   PRIMARY KEY (library_id, movement_id)
 );`;
 
+/** v4 : référentiels de classification par catalogue (filtres). Additif. */
+const SCHEMA_V4 = `
+CREATE TABLE IF NOT EXISTS installed_references (
+  catalogue_id TEXT PRIMARY KEY,
+  references_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);`;
+
+/** Tables sauvegardées avant la conversion du schéma 4 (copie intégrale, même base). */
+const V4_BACKED_UP_TABLES = ["installed_sheets", "pending_operations", "installed_libraries", "library_operations"] as const;
+
 type PersonalLibraryRow = {
   library_id: string; author_id: string; title: string; title_key: string; created_at: string; updated_at: string;
 };
@@ -156,6 +186,60 @@ type InstalledRow = {
   catalogue_id: string; sheet_id: string; movement_id: string; revision: string; fingerprint: string;
   sheet_json: string; installed_at: string; updated_at: string;
 };
+/**
+ * Conversion du registre au format catalogue 3.0.0 (voir l'en-tête) : sauvegarde, puis conversion des
+ * instantanés, des Bibliothèques et des opérations en cours, dans la transaction de `open`.
+ */
+async function migrateToSchema4(transaction: Database): Promise<void> {
+  for (const table of V4_BACKED_UP_TABLES) {
+    await transaction.execAsync(`DROP TABLE IF EXISTS ${table}_backup_v3; CREATE TABLE ${table}_backup_v3 AS SELECT * FROM ${table};`);
+  }
+  const installed = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; revision: string; sheet_json: string }>(
+    "SELECT catalogue_id, sheet_id, revision, sheet_json FROM installed_sheets");
+  const revisions = new Map<string, string>();
+  for (const row of installed) {
+    revisions.set(row.catalogue_id + "\u0000" + row.sheet_id, row.revision);
+    const sheet = normalizeStoredSheet(JSON.parse(row.sheet_json) as CatalogueSheet);
+    await transaction.runAsync(
+      "UPDATE installed_sheets SET sheet_json = ?, fingerprint = ? WHERE catalogue_id = ? AND sheet_id = ?",
+      [JSON.stringify(sheet), sheetFingerprint(sheet), row.catalogue_id, row.sheet_id]);
+  }
+  const pending = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; sheet_json: string }>(
+    "SELECT catalogue_id, sheet_id, sheet_json FROM pending_operations");
+  for (const row of pending) {
+    const sheet = normalizeStoredSheet(JSON.parse(row.sheet_json) as CatalogueSheet);
+    await transaction.runAsync(
+      "UPDATE pending_operations SET sheet_json = ? WHERE catalogue_id = ? AND sheet_id = ?",
+      [JSON.stringify(sheet), row.catalogue_id, row.sheet_id]);
+  }
+  const libraries = await transaction.getAllAsync<{ catalogue_id: string; library_id: string; target_key: string; library_json: string }>(
+    "SELECT catalogue_id, library_id, target_key, library_json FROM installed_libraries");
+  for (const row of libraries) {
+    const stored = JSON.parse(row.library_json) as CatalogueLibrary;
+    if (!Array.isArray((stored as { members?: unknown }).members)) continue; // illisible : conservée telle quelle (sauvegarde comprise)
+    const library = normalizeStoredLibrary(stored);
+    const revisionOf = (sheetId: string) => revisions.get(row.catalogue_id + "\u0000" + sheetId);
+    // Clé recalculée seulement si l'ancienne est reproduite (révisions installées = révisions de la cible).
+    const reproduced = libraryCompositionKey(stored, row.catalogue_id, revisionOf) === row.target_key;
+    const targetKey = reproduced ? libraryCompositionKey(library, row.catalogue_id, revisionOf) : row.target_key;
+    await transaction.runAsync(
+      "UPDATE installed_libraries SET library_json = ?, target_key = ? WHERE catalogue_id = ? AND library_id = ?",
+      [JSON.stringify(library), targetKey, row.catalogue_id, row.library_id]);
+  }
+  const operations = await transaction.getAllAsync<{ catalogue_id: string; library_id: string; file_json: string }>(
+    "SELECT catalogue_id, library_id, file_json FROM library_operations");
+  for (const row of operations) {
+    const parsed = parseMovementCatalogueFile(JSON.parse(row.file_json));
+    if (!parsed.ok) continue; // conservée telle quelle (sauvegarde comprise) : la reprise la signalera
+    const file = withoutInternalNotes(parsed.file);
+    const library = file.libraries.find((entry) => entry.libraryId === row.library_id);
+    if (!library) continue;
+    await transaction.runAsync(
+      "UPDATE library_operations SET file_json = ?, target_key = ? WHERE catalogue_id = ? AND library_id = ?",
+      [JSON.stringify(file), libraryTargetKey(file, library), row.catalogue_id, row.library_id]);
+  }
+}
+
 type PendingRow = {
   catalogue_id: string; sheet_id: string; kind: "INSTALL" | "UPDATE"; movement_id: string;
   sheet_json: string; movement_json: string; saved_local_values_json: string; created_at: string;
@@ -197,6 +281,8 @@ export class SqliteCatalogueRegistry {
         if (version < 1) await transaction.execAsync(SCHEMA);
         await transaction.execAsync(SCHEMA_V2);
         await transaction.execAsync(SCHEMA_V3);
+        await transaction.execAsync(SCHEMA_V4);
+        if (version >= 1) await migrateToSchema4(transaction);
         if (version === 1) {
           // Fiches installées et opérations en cours écrites en v1 : conversion sans perte, même identité.
           const installed = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; sheet_json: string }>(
@@ -220,6 +306,30 @@ export class SqliteCatalogueRegistry {
       });
     }
     return new SqliteCatalogueRegistry(database, now);
+  }
+
+  /**
+   * Référentiels de classification du catalogue chargé (filtres validés, MOUV-UX-20261117) : enregistrés à
+   * chaque acceptation d'une Bibliothèque ou d'une fiche, remplacés par la dernière version reçue.
+   */
+  async saveReferences(catalogueId: string, references: CatalogueReferences): Promise<void> {
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      await transaction.runAsync(
+        `INSERT INTO installed_references (catalogue_id, references_json, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT (catalogue_id) DO UPDATE SET references_json = excluded.references_json, updated_at = excluded.updated_at`,
+        [catalogueId, JSON.stringify(references), this.now()]);
+    });
+  }
+
+  /** Référentiels enregistrés, par catalogue. */
+  async installedReferences(): Promise<ReadonlyMap<string, CatalogueReferences>> {
+    const result = new Map<string, CatalogueReferences>();
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const rows = await transaction.getAllAsync<{ catalogue_id: string; references_json: string }>(
+        "SELECT catalogue_id, references_json FROM installed_references ORDER BY catalogue_id");
+      for (const row of rows) result.set(row.catalogue_id, JSON.parse(row.references_json) as CatalogueReferences);
+    });
+    return result;
   }
 
   /**
