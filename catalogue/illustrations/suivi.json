@@ -432,12 +432,12 @@
   {
     "sheetId": "FIT-PIL-010",
     "name": "Side Kick",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-PIL-010.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "5c7a3ebe366ddc156176df8daa16e58889eed3ae",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-PIL-003",
