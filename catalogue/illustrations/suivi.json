@@ -572,12 +572,12 @@
   {
     "sheetId": "FIT-YOG-007",
     "name": "Virabhadrasana II (guerrier II)",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-YOG-007.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "ee7459ca9ddce10c5799ec88d015387b30e9d316",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-YOG-008",
