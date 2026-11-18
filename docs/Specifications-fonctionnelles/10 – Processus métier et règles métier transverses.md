@@ -2040,6 +2040,9 @@ La suppression d'une Routine n'a aucun effet sur sa source. La modification de l
 | RM-267 | Fin de minute avec effort inférieur à l’objectif : la minute se ferme, la suivante démarre, et le tour est enregistré en effort partiel (cumul réalisé sur objectif). |
 | RM-268 | Guidage sonore EMOM en durée : bips selon l’anneau de la minute (trois dernières secondes) ; signal au passage en Repos. |
 | RM-269 | Annonce des tours : voir D-530. Interrupteur « Annonce des tours » du Profil activé par défaut ; annonce ou bip à chaque début de tour, jamais les deux ; objectif de répétitions du tour qui démarre. |
+| RM-270 | « Max » : mouvement sans objectif de répétitions, fait jusqu’à l’échec ; le résultat est un nombre de répétitions (D-531). |
+| RM-271 | « Max » est autorisé pour le buy-in de l’AMRAP, pour l’AMRAP à un seul mouvement et pour la cellule « à l’échec » de la Progression ; il est interdit pour un mouvement d’une boucle AMRAP de plusieurs mouvements, où le tour n’aurait plus de longueur définie. |
+| RM-272 | Exécution d’un mouvement en Max : le chronomètre du bloc continue ; Suivant à l’échec ; saisie du nombre de répétitions au clavier. En AMRAP à un seul mouvement, les saisies s’additionnent et le total est le score ; ni « +Tour » ni annonce de tour. |
 
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
 

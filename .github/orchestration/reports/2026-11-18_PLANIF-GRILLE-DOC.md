@@ -17,3 +17,4 @@
 - **Ajout EMOM en durée (18/11/2026)** : D-528, RM-265 à RM-268, CE-UI-13 (ch07, ch10, ch13) et `docs/PROMPT-CLAUDE-CODE-EMOM-DUREE-2026-11-18.md`. Compléments d'exécution (effort partiel, sons, Repos sans effet) proposés par Claude, à valider.
 - **Ajout coins du chronomètre (18/11/2026)** : D-529, CE-UI-14 et `docs/PROMPT-CLAUDE-CODE-COINS-CHRONOMETRE-2026-11-18.md`. Format « +Tour · n » proposé par Claude, à valider.
 - **Ajout annonce des tours (18/11/2026)** : D-530, RM-269, CE-UI-14 (ligne ajoutée) et `docs/PROMPT-CLAUDE-CODE-ANNONCE-TOURS-2026-11-18.md`.
+- **Ajout Max (19/11/2026)** : D-531, RM-270 à RM-272, annotations ch13 et `docs/PROMPT-CLAUDE-CODE-MAX-2026-11-19.md`.
