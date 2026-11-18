@@ -190,7 +190,8 @@ export class ExecutionService {
       if (change.type !== "SCOPE") continue;
       const result = change.result as { readonly format?: string; readonly interruptedKey?: string | null; readonly partialRepetitions?: number | null };
       // PRE-11 (T2) : de même pour une fenêtre EMOM non terminée (répétitions déclarées, Arrêt).
-      if ((result.format === "FOR_TIME" || result.format === "EMOM") && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+      // PRE-11 (T3) : de même pour l'exercice en cours à l'échéance d'un bloc AMRAP ou à l'Arrêt.
+      if ((result.format === "FOR_TIME" || result.format === "EMOM" || result.format === "AMRAP") && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
     }
     return found;
   }

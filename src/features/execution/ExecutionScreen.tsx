@@ -23,6 +23,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Frame } from "@/domain/execution/kernel";
+import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
 import { EMOM_PILOT, type EmomLocal } from "@/domain/execution/policies/emom";
 import { FOR_TIME_PILOT, type ForTimeLocal } from "@/domain/execution/policies/forTime";
 import {
@@ -318,9 +319,10 @@ export function ExecutionScreen({
         const endedAtMs = active === null ? null : forTimeWorkEndedAt(active.state.frames);
         const endView = (fallback: ExecutionProjection) =>
           previous === null ? fallback : projectExecution(previous.plan, previous.state, endedAtMs ?? service.now());
-        const nowWork = now.status === "RUNNING" && now.format?.kind === "FOR_TIME" && now.format.phase === "WORK";
+        // PRE-11 (T3) : de même à l'échéance d'un bloc AMRAP (arbitrage de Hermann du 18/11/2026 : « écran figé à l'échéance »).
+        const nowWork = now.status === "RUNNING" && forTimeLike(now.format?.kind) && now.format?.phase === "WORK";
         if (nowWork) lastWork.current = active;
-        if (now.phase === "CLOSURE" && now.format?.kind === "FOR_TIME" && now.format.interrupted !== null) {
+        if (now.phase === "CLOSURE" && forTimeLike(now.format?.kind) && now.format?.interrupted !== null && now.format?.interrupted !== undefined) {
           if (previous !== null) setCapView((current) => current ?? endView(now));
         } else if (now.phase !== "SESSION_END" && now.status !== "FINISHED") setCapView(null);
         const step = lastOnStep.current;
@@ -348,7 +350,7 @@ export function ExecutionScreen({
     lastOnStep.current = null;
     setFrozenView(null);
   };
-  const liveForTimeWork = live !== null && live.status === "RUNNING" && live.format?.kind === "FOR_TIME" && live.format.phase === "WORK";
+  const liveForTimeWork = live !== null && live.status === "RUNNING" && forTimeLike(live.format?.kind) && live.format?.phase === "WORK";
   const frozen = partialOpen && frozenView !== null && live !== null && live.status !== "FINISHED";
   // Borne atteinte (recette du 18/11/2026) : l'écran reste sur le dernier exercice pendant la Clôture, et pendant la Fin de séance qui suit
   // aussitôt sautée.
@@ -685,7 +687,8 @@ export function ExecutionScreen({
   // Registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause » (16/11/2026) ; Formats §11.1 : exercice
   // en durée du tour (à lancer, en cours, retenu). En cours ou retenu, son compte à rebours prend le coin du haut à gauche
   // (« une seule forme d'angle ») : la borne n'y est pas affichée pendant la durée (à confirmer, voir le rapport).
-  const forTimeWork = projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK";
+  // PRE-11 (T3) : un bloc AMRAP a l'écran du For time (barre, + Tour / Suivant, exercices en durée), son grand chrono décompte le bloc.
+  const forTimeWork = forTimeLike(projection.format?.kind) && projection.format?.phase === "WORK";
   // PRE-11 (T2) — EMOM (Figma `8982:15709`) : grand chrono = temps restant de la fenêtre ; une Série en Durée a son compte à rebours
   // dans le coin du bas à gauche, comme le For time.
   const emomView = projection.format?.kind === "EMOM" ? projection.format.emom : null;
@@ -754,7 +757,8 @@ export function ExecutionScreen({
   // PRE-11, corrections 3 et 4 de Hermann du 14/11/2026 : barre propre au For time — en cours, Réinitialiser inactif (48),
   // Pause orange (56), ✓ bleu (72) qui valide l'étape sans saisie ; en Pause, Arrêt rouge (48), Redémarrer bleu (72), ✓ grisé
   // inactif (48). L'Arrêt ouvre d'abord la modale « Répétitions partielles » ; sa croix revient à la Pause.
-  const forTimeBar = projection.format?.kind === "FOR_TIME";
+  const forTimeBar = forTimeLike(projection.format?.kind);
+  const amrapBar = projection.format?.kind === "AMRAP";
   const forTimeRing =
     projection.format?.kind === "FOR_TIME" && projection.timer.kind === "STOPWATCH"
       ? ringSegmentsOf(projection.format.phaseStarts.map((start) => ({ atMs: start.atMs, color: ringColorOf(start.kind) })), projection.timer.elapsedMs).past
@@ -1372,7 +1376,9 @@ export function ExecutionScreen({
           format={live.format}
           {...(live.format.kind === "EMOM"
             ? { title: t.emomClosureTitle, exerciseName: t.emomWindowName(live.format.interrupted.name, live.format.emom?.closingWindow ?? 0) }
-            : {})}
+            : live.format.kind === "AMRAP"
+              ? { title: t.amrapClosureTitle }
+              : {})}
           heldDurationMs={
             durationSample === null
               ? null
@@ -1388,7 +1394,7 @@ export function ExecutionScreen({
       {/* For time en cours (16/11/2026) : la modale s'ouvre sans Pause ; « le chrono continue derrière la modale ». */}
       {partialOpen && (paused || forTimeRunning || emomRunning || ((forTimeBar || emomBar) && partialStopAtMs !== null)) ? (
         <ExecutionPartialRepetitionsSheet
-          {...(emomBar ? { title: t.emomStopTitle } : {})}
+          {...(emomBar ? { title: t.emomStopTitle } : amrapBar ? { title: t.amrapStopTitle } : {})}
           exerciseName={partialOf.name}
           targetText={partialOf.targetText}
           inSeries={partialOf.inSeries}
@@ -1496,7 +1502,8 @@ function Counter({
           </View>
         ) : (
           <Text style={[styles.seriesTourText, absent ? styles.counterAbsent : null]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID={testID}>
-            {absent ? "–" : `${value.current}/${value.total}`}
+            {/* PRE-11 (T3) : tour de boucle AMRAP, compte ouvert (total 0) — le rang seul. */}
+            {absent ? "–" : value.total > 0 ? `${value.current}/${value.total}` : `${value.current}`}
           </Text>
         )}
       </View>
@@ -1600,15 +1607,23 @@ function inForTimeWork(frames: readonly Frame[]): boolean {
   return frames.some(
     (frame) =>
       (frame.spec.pilot === FOR_TIME_PILOT && (frame.local as ForTimeLocal | null)?.phase === "WORK") ||
-      (frame.spec.pilot === EMOM_PILOT && (frame.local as EmomLocal | null)?.phase === "WORK"),
+      (frame.spec.pilot === EMOM_PILOT && (frame.local as EmomLocal | null)?.phase === "WORK") ||
+      // PRE-11 (T3) : de même pendant un bloc AMRAP, dont la borne court quoi qu'il arrive (D1).
+      (frame.spec.pilot === AMRAP_PILOT && (frame.local as AmrapLocal | null)?.phase === "WORK"),
   );
+}
+
+/** PRE-11 (T3) : Formats qui ont l'écran du For time (barre, commandes, exercices en durée) — For time et AMRAP. */
+function forTimeLike(kind: string | undefined): boolean {
+  return kind === "FOR_TIME" || kind === "AMRAP";
 }
 
 /** Instant de fin du travail d'un For time (borne ou fin normale), s'il vient de se terminer. */
 function forTimeWorkEndedAt(frames: readonly Frame[]): number | null {
   for (const frame of frames) {
-    if (frame.spec.pilot !== FOR_TIME_PILOT) continue;
-    const local = frame.local as ForTimeLocal | null;
+    if (frame.spec.pilot !== FOR_TIME_PILOT && frame.spec.pilot !== AMRAP_PILOT) continue;
+    // PRE-11 (T3) : de même pour l'échéance d'un bloc AMRAP.
+    const local = frame.local as ForTimeLocal | AmrapLocal | null;
     if (local?.phase === "CLOSURE" && typeof local.workEndedAtMs === "number") return local.workEndedAtMs;
   }
   return null;

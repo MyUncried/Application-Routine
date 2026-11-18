@@ -107,8 +107,9 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, pha
   }
   // PRE-11 (T2, arbitrage de Hermann du 18/11/2026 : « les 3 bips courts du compte à rebours avant l'échéance ») : fin d'une fenêtre
   // EMOM — pendant le travail comme pendant le repos qui se termine avec elle.
+  // PRE-11 (T3, même arbitrage) : fin d'un bloc AMRAP (borne `block`, rôle DEADLINE). La borne d'un For time n'a pas ces bips.
   for (const window of state.refs) {
-    if (window.role !== "WINDOW" || window.anchorMs === null) continue;
+    if ((window.role !== "WINDOW" && !(window.role === "DEADLINE" && window.name === "block")) || window.anchorMs === null) continue;
     const due = dueAtMs(window);
     if (due === null) continue;
     for (const before of [3, 2, 1]) if (due - before * S > window.anchorMs) push("COUNTDOWN", due - before * S);

@@ -14,7 +14,8 @@ import { phaseGuidanceAt, workPhasesCycleSeconds } from "@/domain/activities/pha
 import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
 import { leafElapsedMs, leafStepRef, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
-import { guidedPhases, type ChildSpec, type EmomScopeConfig, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
+import { guidedPhases, type AmrapScopeConfig, type ChildSpec, type EmomScopeConfig, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
+import { AMRAP_PILOT, amrapLeafOf, amrapPendingDuration, isAmrapDurationLeaf, roundLeaves, segmentLeaves, type AmrapLocal } from "./policies/amrap";
 import { bannerWindow, EMOM_PILOT, type EmomLocal } from "./policies/emom";
 import { activityCount, FOR_TIME_PILOT, isDurationLeaf, pendingDurationOf, roundKeyOf, type ForTimeLocal } from "./policies/forTime";
 
@@ -93,8 +94,12 @@ export type Counters = {
  * puis Clôture (D3) avec le temps réalisé figé et, si la borne a fermé un travail, ce travail à compléter.
  */
 export type FormatView = {
-  /** PRE-11 (T2) : `EMOM` — les champs propres au For time y sont neutres (aucune borne, aucune commande « + Tour »). */
-  readonly kind: "FOR_TIME" | "EMOM";
+  /**
+   * PRE-11 (T2) : `EMOM` — les champs propres au For time y sont neutres (aucune borne, aucune commande « + Tour »).
+   * PRE-11 (T3) : `AMRAP` — barre, commandes et exercices en durée du For time ; `capMs` est la durée du bloc (le grand chrono la
+   * décompte), `elapsedMs` le temps écoulé du bloc.
+   */
+  readonly kind: "FOR_TIME" | "EMOM" | "AMRAP";
   readonly name: string;
   readonly phase: "WORK" | "CLOSURE";
   readonly elapsedMs: Ms;
@@ -136,6 +141,8 @@ export type FormatView = {
   } | null;
   /** PRE-11 (T2) : fenêtre EMOM en cours ; `null` hors EMOM. */
   readonly emom: EmomView | null;
+  /** PRE-11 (T3) : bloc AMRAP en cours — tour en cours, tours acquis, bloc et nombre de blocs ; `null` hors AMRAP. */
+  readonly amrap: { readonly round: number; readonly completedRounds: number; readonly block: number; readonly blocks: number } | null;
 };
 
 /**
@@ -259,7 +266,8 @@ function positionOf(plan: ExecutablePlan, state: EngineState): { readonly index:
   const { leaves, index } = planIndex(plan);
   const leaf = state.leaf;
   if (leaf !== null) {
-    const at = index.get(leaf.spec.key);
+    // PRE-11 (T3) : une étape d'un tour de boucle AMRAP est indexée par son étape-modèle.
+    const at = index.get(leaf.spec.key) ?? (leaf.spec.loopOf === undefined ? undefined : index.get(leaf.spec.loopOf));
     if (at !== undefined) return { index: at, passed: at };
     if (leaf.spec.kind === "CLOSURE") {
       // PRE-11 (T2) : Clôture EMOM, une par fenêtre (`<portée>/closure/f<rang>`).
@@ -280,7 +288,7 @@ function positionOf(plan: ExecutablePlan, state: EngineState): { readonly index:
 /** Étape sans durée déterminable : Séries manuelles sans cadence ou À l'échec (R de RM-077). */
 function isUntimedSeries(leaf: LeafSpec): boolean {
   // PRE-11 (T2) : une étape de fenêtre EMOM ne pèse rien ; la fenêtre pèse par son repos (durée de la fenêtre).
-  if (leaf.inWindow === true) return false;
+  if (leaf.inWindow === true || leaf.inBlock === true) return false;
   return leaf.kind === "ACTIVITY" && leaf.end === "MANUAL" && !(leaf.cadenceMs !== undefined && leaf.target?.kind === "NUMBER" && leaf.plannedMs !== null);
 }
 
@@ -290,7 +298,7 @@ function isUntimedSeries(leaf: LeafSpec): boolean {
  * à rebours et `SESSION_END` compris — remplacé.]
  */
 function temporalMs(leaf: LeafSpec): Ms {
-  if (leaf.kind === "STOP_POINT" || leaf.kind === "INITIAL_COUNTDOWN" || leaf.kind === "SESSION_END" || leaf.inWindow === true || isUntimedSeries(leaf)) return 0;
+  if (leaf.kind === "STOP_POINT" || leaf.kind === "INITIAL_COUNTDOWN" || leaf.kind === "SESSION_END" || leaf.inWindow === true || leaf.inBlock === true || isUntimedSeries(leaf)) return 0;
   return leaf.plannedMs ?? 0;
 }
 
@@ -328,7 +336,7 @@ export function estimatedDuration(plan: ExecutablePlan): EstimatedDuration {
   let ms = 0;
   let kind: EstimatedDuration["kind"] = "exact";
   for (const leaf of rootLeaves(plan)) {
-    if (leaf.kind === "STOP_POINT" || leaf.inWindow === true) continue;
+    if (leaf.kind === "STOP_POINT" || leaf.inWindow === true || leaf.inBlock === true) continue;
     if (leaf.contribution === "omitted") {
       kind = "lowerBound";
       continue;
@@ -353,7 +361,16 @@ function progressBefore(plan: ExecutablePlan, state: EngineState, atMs: Ms): num
   for (let i = 0; i < Math.min(passed, leaves.length); i += 1) value += weightOf(leaves[i]!, weights);
   const leaf = state.leaf;
   const emomFrame = [...state.frames].reverse().find((frame) => frame.spec.pilot === EMOM_PILOT);
-  if (leaf !== null && state.status !== "FINISHED" && emomFrame !== undefined && (emomFrame.local as EmomLocal | null)?.phase === "WORK") {
+  const amrapFrame = [...state.frames].reverse().find((frame) => frame.spec.pilot === AMRAP_PILOT);
+  if (leaf !== null && state.status !== "FINISHED" && amrapFrame !== undefined && (amrapFrame.local as AmrapLocal | null)?.phase === "WORK") {
+    // PRE-11 (T3) : le bloc AMRAP en cours avance avec son temps (poids porté par son étape de poids, durée du bloc).
+    const config = amrapFrame.spec.config as AmrapScopeConfig;
+    const weightLeaf = config.items[config.items.length - 1];
+    const blockRef = state.refs.find((ref) => ref.owner === amrapFrame.spec.key && ref.name === "block");
+    if (weightLeaf?.type === "LEAF" && blockRef !== undefined && config.blockMs > 0) {
+      value += weightOf(weightLeaf.leaf, weights) * Math.min(1, runningMs(blockRef, atMs) / config.blockMs);
+    }
+  } else if (leaf !== null && state.status !== "FINISHED" && emomFrame !== undefined && (emomFrame.local as EmomLocal | null)?.phase === "WORK") {
     // PRE-11 (T2) : la fenêtre EMOM en cours avance avec son temps (poids porté par son repos), travail et repos compris.
     const config = emomFrame.spec.config as EmomScopeConfig;
     const local = emomFrame.local as EmomLocal;
@@ -382,6 +399,15 @@ function progressBefore(plan: ExecutablePlan, state: EngineState, atMs: Ms): num
 }
 
 function nextOf(plan: ExecutablePlan, state: EngineState): NextView | null {
+  // PRE-11 (T3) : dans un bloc AMRAP, l'étape suivante est celle du segment, puis le premier exercice du tour suivant (la boucle
+  // ne finit qu'à l'échéance).
+  const amrapFrame = [...state.frames].reverse().find((frame) => frame.spec.pilot === AMRAP_PILOT);
+  const amrapLocal = amrapFrame === undefined ? null : (amrapFrame.local as AmrapLocal | null);
+  if (amrapFrame !== undefined && amrapLocal !== null && amrapLocal.phase === "WORK") {
+    const config = amrapFrame.spec.config as AmrapScopeConfig;
+    const following = segmentLeaves(config, amrapLocal)[amrapLocal.index + 1] ?? roundLeaves(config, amrapLocal.segment === "BUY_IN" ? 1 : amrapLocal.round + 1)[0];
+    return following === undefined ? null : nextViewOf(plan, following);
+  }
   const leaves = rootLeaves(plan);
   const following = leaves[positionOf(plan, state).index + 1];
   if (following === undefined || following.kind === "SESSION_END") return null;
@@ -486,7 +512,8 @@ function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineIt
   const current = state.status === "READY" ? -1 : at;
   return rootLeaves(plan).flatMap((spec, index): OutlineItem[] => {
     if (index < at - 1) return [];
-    if (spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END") return [];
+    // PRE-11 (T3) : l'étape de poids d'un bloc AMRAP n'est jamais jouée ni listée.
+    if (spec.kind === "INITIAL_COUNTDOWN" || spec.kind === "SESSION_END" || spec.blockWeight === true) return [];
     const circuit = spec.context?.circuit ?? null;
     return [
       {
@@ -550,9 +577,10 @@ function forTimeCommandOf(config: ForTimeScopeConfig, index: number): FormatView
 
 /** Élément For time en cours (portée la plus interne pilotée par `FOR_TIME`), `null` sinon. */
 function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatView | null {
-  const frame = [...state.frames].reverse().find((candidate) => candidate.spec.pilot === FOR_TIME_PILOT || candidate.spec.pilot === EMOM_PILOT);
+  const frame = [...state.frames].reverse().find((candidate) => candidate.spec.pilot === FOR_TIME_PILOT || candidate.spec.pilot === EMOM_PILOT || candidate.spec.pilot === AMRAP_PILOT);
   if (frame === undefined || frame.local === null) return null;
   if (frame.spec.pilot === EMOM_PILOT) return emomFormatOf(plan, state, frame.spec.key, frame.spec.config as EmomScopeConfig, frame.local as EmomLocal, atMs);
+  if (frame.spec.pilot === AMRAP_PILOT) return amrapFormatOf(plan, state, frame.spec.key, frame.spec.config as AmrapScopeConfig, frame.local as AmrapLocal, atMs);
   const config = frame.spec.config as ForTimeScopeConfig;
   const local = frame.local as ForTimeLocal;
   const stopwatch = state.refs.find((ref) => ref.owner === frame.spec.key && ref.name === "elapsed");
@@ -570,6 +598,7 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
     duration: local.phase === "WORK" ? durationOf(plan, state, config, local, atMs) : null,
     command: local.phase === "WORK" ? forTimeCommandOf(config, local.index) : null,
     emom: null,
+    amrap: null,
     interrupted:
       interruptedSpec === undefined
         ? null
@@ -609,6 +638,7 @@ function emomFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: string
     phaseStarts: [],
     duration: timed ? { state: "RUNNING", name: nameOf(spec), remainingMs: Math.max(0, totalMs - leafElapsedMs(state, atMs)), totalMs } : null,
     command: null,
+    amrap: null,
     interrupted:
       closingLeaf === undefined
         ? null
@@ -625,6 +655,63 @@ function emomFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: string
       closingWindow: local.phase === "CLOSURE" ? local.closing : null,
     },
   };
+}
+
+/**
+ * PRE-11 (T3) — bloc AMRAP en cours : temps du bloc (le grand chrono le décompte), tours acquis, commande de droite du For time
+ * transposée, exercice en durée du segment (à lancer, en cours, retenu) ; Clôture : étape dont le résultat est demandé.
+ */
+function amrapFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: string, config: AmrapScopeConfig, local: AmrapLocal, atMs: Ms): FormatView {
+  const blockRef = state.refs.find((ref) => ref.owner === scopeKey && ref.name === "block");
+  const elapsedMs = local.phase === "CLOSURE" || blockRef === undefined ? config.blockMs : Math.min(config.blockMs, runningMs(blockRef, atMs));
+  const nameOf = (leaf: LeafSpec | undefined | null) => (leaf === undefined || leaf === null || leaf.exerciseId === undefined ? null : (plan.exercises[leaf.exerciseId]?.name ?? null));
+  const leaves = segmentLeaves(config, local);
+  const spec = state.leaf?.spec ?? null;
+  let duration: FormatView["duration"] = null;
+  if (local.phase === "WORK" && spec !== null) {
+    if (isAmrapDurationLeaf(spec)) {
+      const totalMs = spec.plannedMs ?? 0;
+      duration = { state: leafStepRef(state)?.held === true ? "HELD" : "RUNNING", name: nameOf(spec), remainingMs: Math.max(0, totalMs - leafElapsedMs(state, atMs)), totalMs };
+    } else {
+      const pending = amrapPendingDuration(leaves, local.index);
+      if (pending !== null) duration = { state: "PENDING", name: nameOf(pending), remainingMs: pending.plannedMs ?? 0, totalMs: pending.plannedMs ?? 0 };
+    }
+  }
+  const closing = local.phase === "CLOSURE" && local.pending[0] !== undefined ? amrapLeafOf(config, local.pending[0]) : undefined;
+  return {
+    kind: "AMRAP",
+    name: config.name,
+    phase: local.phase,
+    elapsedMs,
+    capMs: config.blockMs,
+    capReached: local.phase === "CLOSURE",
+    completedActivities: local.completedRounds,
+    totalActivities: 0,
+    phaseStarts: [],
+    duration,
+    command: local.phase === "WORK" ? amrapCommandOf(leaves, local) : null,
+    emom: null,
+    amrap: { round: local.round, completedRounds: local.completedRounds, block: config.block, blocks: config.blocks },
+    interrupted: closing === undefined ? null : { name: nameOf(closing), target: closing.target === undefined ? null : closing.target, mode: closing.mode ?? null },
+  };
+}
+
+/**
+ * Commande de droite d'un bloc AMRAP — règles du For time (recette du 17/11/2026) transposées (arbitrage de Hermann du 18/11/2026 :
+ * « + Tour au dernier exercice d'un tour, Suivant ailleurs ») : buy-in, « Suivant » à chaque série ; boucle, « + Tour » au dernier
+ * exercice du tour, « Suivant » avant ; exercice en durée, bouton inactif (fin à son terme) ; pendant une pause ou une Récupération,
+ * « Suivant » la passe (Q3, l'échéance continue). Jamais « Succès » : la boucle ne finit qu'à l'échéance.
+ */
+function amrapCommandOf(leaves: readonly LeafSpec[], local: AmrapLocal): FormatView["command"] {
+  const current = leaves[local.index];
+  if (current === undefined) return null;
+  const segment = local.segment === "BUY_IN" ? "BUY_IN" : "ROUNDS";
+  if (current.kind !== "ACTIVITY") return { kind: "NEXT", segment, advance: "NEXT", duration: false };
+  const duration = isAmrapDurationLeaf(current);
+  if (segment === "BUY_IN") return { kind: "NEXT", segment, advance: "NEXT", duration };
+  if (duration) return { kind: "ROUND", segment, advance: "ROUND", duration };
+  const lastOfRound = leaves.slice(local.index + 1).every((leaf) => leaf.kind !== "ACTIVITY");
+  return lastOfRound ? { kind: "ROUND", segment, advance: "ROUND", duration } : { kind: "NEXT", segment, advance: "NEXT", duration };
 }
 
 /** Exercice en durée du tour courant d'un For time (voir `FormatView.duration`). */
@@ -651,6 +738,9 @@ function timerOf(state: EngineState, atMs: Ms, format: FormatView | null): Timer
   // PRE-11 (T2) : EMOM — le grand chrono décompte la fenêtre (Figma `8982:15709`), travail et repos compris.
   if (format !== null && format.kind === "EMOM" && format.emom !== null && format.phase === "WORK")
     return { kind: "COUNTDOWN", remainingMs: format.emom.remainingMs, totalMs: format.emom.windowMs, elapsedMs: format.emom.elapsedMs };
+  // PRE-11 (T3) : AMRAP — le grand chrono décompte le bloc (durée du bloc, buy-in compris : T13).
+  if (format !== null && format.kind === "AMRAP" && format.phase === "WORK" && format.capMs !== null)
+    return { kind: "COUNTDOWN", remainingMs: Math.max(0, format.capMs - format.elapsedMs), totalMs: format.capMs, elapsedMs: format.elapsedMs };
   if (format !== null && format.phase === "WORK") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: format.capMs };
   // PRE-11, correction 4 (14/11/2026) : fin normale du For time — le grand chrono montre le temps final, figé, sans saisie.
   if (format !== null && format.phase === "CLOSURE" && leaf.spec.kind === "CLOSURE") return { kind: "STOPWATCH", elapsedMs: format.elapsedMs, nominalMs: null };
@@ -713,7 +803,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     progress: progressOf(plan, state, atMs),
     commands: {
       // PRE-11, correction 3 : Réinitialiser désactivé pendant le travail d'un For time.
-      reset: running && spec !== null && resettable(spec) && !(format?.kind === "FOR_TIME" && format.phase === "WORK") && format?.kind !== "EMOM",
+      reset: running && spec !== null && resettable(spec) && !(format?.kind === "FOR_TIME" && format.phase === "WORK") && format?.kind !== "EMOM" && format?.kind !== "AMRAP",
       resetScope: recoveryLike ? "RECOVERY" : "EXERCISE",
       pause: running,
       next: running && spec !== null && (spec.end === "MANUAL" || spec.end === "WAIT" || spec.end === "TIMED"),

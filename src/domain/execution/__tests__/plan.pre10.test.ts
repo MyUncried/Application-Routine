@@ -33,9 +33,10 @@ describe("PRE-10 prescription exécutable", () => {
   it("préconfiguration standard (origine Tabata) lançable ; Format spécialisé non lançable dans PRE-10 (D.3)", () => {
     const tabata = { ...structuredSession({ elements: [{ kind: "EXERCISE", exercise: exerciseActivity("A", durationParameters(20, 8, 10)) }], stopPoints: [] }), origin: "TABATA" as const };
     expect(launchabilityOf(createSessionSnapshot(tabata))).toEqual({ status: "launchable" });
-    // PRE-11 (T2, 18/11/2026) : l'EMOM est exécutable ; l'AMRAP sert d'exemple de Format encore indisponible. [EMOM — remplacé.]
+    // PRE-11 (T2, 18/11/2026) : l'EMOM est exécutable [EMOM — remplacé] ; (T3, 18/11/2026) l'AMRAP aussi : le Death by sert d'exemple
+    // de Format encore indisponible. [AMRAP — remplacé.]
     const emom = structuredSession({
-      elements: [{ kind: "EXERCISE", exercise: exerciseActivity("E", repetitionParameters(10, 1, 0), { format: { key: "AMRAP", settings: { durationSeconds: 600, incrementPerRound: 0 } } }) }],
+      elements: [{ kind: "EXERCISE", exercise: exerciseActivity("E", repetitionParameters(10, 1, 0), { format: { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 1 } } }) }],
       stopPoints: [],
     });
     expect(launchabilityOf(createSessionSnapshot(emom))).toEqual({ status: "engine-unavailable", elementIds: ["E"] });

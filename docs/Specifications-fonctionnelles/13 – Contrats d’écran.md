@@ -2768,6 +2768,8 @@ Les captures de composition ne prouvent pas le layout d’exécution. Les nombre
 
 Réemploi du shell Exécution ; cadran de fenêtre et contexte exercice. Position précise des informations propres au format à illustrer avant qualification visuelle.
 
+[Complété le 18/11/2026 pour l'AMRAP — PRE-11 T3, registre ch07 « AMRAP — exécution (18/11/2026) » : écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; compteur Tour sans total ; à l'échéance, écran figé et feuille « Fin du bloc » (exercice en cours, puis buy-in À l'échec) ; feuille « Arrêt de l'AMRAP ».]
+
 [Complété le 18/11/2026 pour l'EMOM — PRE-11 T2, registre ch07 « EMOM — exécution (18/11/2026) » : disposition du Figma `8982:15709` (grand chrono = temps restant de la fenêtre, « Repos » orange dans le cercle, portion travaillée de l'anneau dans la couleur du travail) ; barre du For time (Arrêt, Pause désactivée, « Suivant » 72) ; feuille « Arrêt de l'EMOM » ; bandeau non bloquant Q1 au-dessus de la barre ; feuille « Fin de l'EMOM » par fenêtre restant à saisir. L'appui sur le cadran est porté par « Suivant » (À CLARIFIER).]
 
 #### 8. Éléments obligatoires

@@ -95,7 +95,7 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 
 1. CE-FMT-06 (choix « Limite atteinte / Abandonner », puis synthèse) contre D3 et FMT-34 (la Séance continue) — T4.
 2. `KODJO-Formats-entrainement` §14.2 (Point d'arrêt interne qui suspend) contre D4 (Point d'arrêt refusé dans un Format) ; `arbitrages-pre9.md:151` (Tabata parmi les éléments à fenêtre) — D4 et la préconfiguration Tabata prévalent (décisions plus récentes).
-3. §14.1 (incrément AMRAP ≥ 0) contre l'incrément signé du complément du 05/11 — T3.
+3. §14.1 (incrément AMRAP ≥ 0) contre l'incrément signé du complément du 05/11 — T3. [Tranché en T3 (18/11/2026) : incrément signé, objectif borné à 1 (complément du 05/11, plus récent, déjà au registre des Formats).]
 4. `planExpansion.ts:48-51` (« À CLARIFIER ») contre FMT-34 / T16 (redémarrage au départ, tranché) — T4.
 5. Descripteur `capabilities.ts` : cas `NON_DEFINI` (A4, A6) tranchés depuis par D1, D2, D5, Q1, §12.3 — mis à jour au fil des tranches.
 6. EMOM « À l'objectif » seul (07/11) non imposé dans `configurationValidity.ts` (`main`) ; l'invariant existe dans la PR #430 (conflictuelle, non fusionnée) — repris isolément en T2.
@@ -104,9 +104,9 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 ## 7. À CLARIFIER (non bloquant pour T1)
 
 - Articulation côté / fenêtre (R-02) — T5.
-- Unité jouée par un membre AMRAP autonome dans un Circuit alterné — T3.
+- Unité jouée par un membre AMRAP autonome dans un Circuit alterné — T3. [Sans objet (18/11/2026) : l'AMRAP est refusé dans un Circuit standard alterné (descripteur du Format, §6.1).]
 - Acquisition d'un membre Death by en Durée — T4.
-- Forme du partiel AMRAP (un nombre ou un par membre) — T3.
+- Forme du partiel AMRAP (un nombre ou un par membre) — T3. [Tranché le 18/11/2026 (§5 point 30) : exercice en cours seul.]
 - Bouton Abandonner pendant un Death by — T4.
 - Sons propres aux Formats (fins de fenêtre, échéance) — T2.
 - Synthèse et affichage des résultats en fin de séance — hors PRE-11 (Synthèse reportée, §13.4 PRE-10).
@@ -125,6 +125,10 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
 ## 8. Suivi des tranches
 
 (À compléter au fil de l'implémentation.)
+
+### T3 — AMRAP (18/11/2026)
+
+Réalisé, à vérifier sur iPhone. Même branche. Classe A (FMT-26, FMT-27, D-19, D-20 ; D1, D3, Q2, Q3, Q4 ; §12.1, §12.5, complément du 5 novembre ; T12, T13, T14, T25) et B (§5 point 30 ; exercices en durée en temps cumulé, ch07 du 16/11/2026). Code : `plan.ts` (portée `AMRAP` par segment progressif : buy-in du premier bloc, étapes-modèles de la boucle, étape de poids du bloc ; `inBlock`, `blockWeight`, `loopOf`), `policies/amrap.ts` (nouveau), `projection.ts` (`FormatView.amrap`, chrono du bloc, commande de droite, durée, progression, étape suivante), `signals.ts` (3 bips avant l'échéance du bloc), `capabilities.ts` (AMRAP exécutable, A4 et A6 tranchés), écran (`forTimeLike` : écran du For time pour l'AMRAP ; feuilles « Fin du bloc » et « Arrêt de l'AMRAP » ; compteur sans total), service (partiel AMRAP à la synthèse). Tests : `amrap.pre11.test.ts` (12), `ExecutionScreen.amrap.pre11.test.tsx` (2). Documents : ch07 « AMRAP — exécution (18/11/2026) », ch13 CE-FMT-05 §7, Formats §7.5 bis. Interprétations à confirmer : ch07, même entrée, « À clarifier ». Rapport : section 4.
 
 ### T2 — EMOM (18/11/2026)
 

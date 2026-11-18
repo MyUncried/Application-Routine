@@ -106,6 +106,9 @@ export const executionStrings = {
   // PRE-11 (T2, 18/11/2026) — EMOM : feuille de l'Arrêt (arbitrage « Comme le For time »), Clôture des fenêtres non saisies (§12.2),
   // bandeau Q1.
   emomStopTitle: "Arrêt de l’EMOM",
+  /** PRE-11 (T3), arbitrage de Hermann du 18/11/2026 : feuilles de l'AMRAP, modèle du For time. */
+  amrapStopTitle: "Arrêt de l’AMRAP",
+  amrapClosureTitle: "Fin du bloc",
   emomClosureTitle: "Fin de l’EMOM",
   emomWindowName: (name: string | null, window: number) => `${name ?? ""} · fenêtre ${window}`,
   emomBanner: (window: number) => `Fenêtre ${window} non terminée — répétitions faites :`,

@@ -294,6 +294,10 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
   - « AMRAP — Modale exercice, dans un circuit, durée à l'échec » ;
   - « AMRAP — Modale exercice simple, à la cible » et « … à l'échec ».
 
+### 7.5 bis Exécution de l'AMRAP (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « AMRAP — exécution (18/11/2026) ». En résumé : buy-in une fois au début du premier bloc ; boucle des membres de Rôle Tour, objectif recalculé à chaque tour (incrément signé, borné à 1) ; Récupération à chaque tour dans le temps du bloc ; arrêt net à l'échéance, feuille « Fin du bloc » pour l'exercice en cours puis les buy-in À l'échec ; repos entre les blocs ; écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; bip long au début du bloc, 3 bips avant son échéance.
+
 <a id="formats-formulaire-controles"></a>
 ### 7.6 Tableaux et données effectives
 

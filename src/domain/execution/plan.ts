@@ -28,6 +28,10 @@
  * fenêtre par Série (Exercice) ou par tour (Circuit porteur « dans chaque intervalle »), ses côtés compris (Q5), terminée par son
  * repos (`WINDOW_REST`, fin avec la fenêtre) ; la Récupération qui suit le dernier travail reste après la portée.
  *
+ * PRE-11 (T3, AMRAP, 18/11/2026) : chaque segment progressif AMRAP de D.1 (Exercice autonome, ou bloc k d'un Circuit porteur) devient
+ * une portée pilotée par `AMRAP` (`policies/amrap.ts`) : buy-in (bloc 1 seulement) et étapes-modèles d'un tour de boucle, rejouées
+ * à chaque tour par le pilote ; le repos entre les blocs reste l'étape de récupération que D.1 place entre deux segments.
+ *
  * Fonctions pures, sans React ni SQLite.
  */
 
@@ -112,6 +116,15 @@ export type LeafSpec = {
   readonly inWindow?: true;
   /** PRE-11 (T2) : première étape d'une fenêtre EMOM — son départ est le début de la fenêtre (bip long, arbitrage du 18/11/2026). */
   readonly windowStart?: true;
+  /**
+   * PRE-11 (T3, AMRAP) : étape d'un bloc AMRAP (buy-in, étape-modèle de la boucle). Elle ne pèse rien dans la durée estimée ni dans
+   * la progression : le bloc pèse par son étape de poids (`blockWeight`, durée du bloc), jamais ouverte.
+   */
+  readonly inBlock?: true;
+  /** PRE-11 (T3) : étape de poids d'un bloc AMRAP (durée du bloc) — indexée pour la progression, jamais jouée ni listée. */
+  readonly blockWeight?: true;
+  /** PRE-11 (T3) : étape d'un tour de boucle AMRAP — clé de son étape-modèle (`…/loop/…`), indexée par la projection. */
+  readonly loopOf?: string;
 };
 
 export type ScopeSpec = { readonly pilot: string; readonly key: string; readonly config: unknown };
@@ -376,8 +389,13 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
         break;
       }
       case "PROGRESSIVE_SEGMENT":
-        // Exclu par `launchabilityOf` (AMRAP, Death by : PRE-11).
-        throw new Error("compileExecutablePlan: progressive segments are not executable in PRE-10.");
+        // PRE-11 (T3) : segment AMRAP — une portée par bloc (Exercice autonome, ou bloc d'un Circuit porteur). Le Death by reste
+        // exclu par `launchabilityOf`.
+        if (step.format.key !== "AMRAP") throw new Error("compileExecutablePlan: progressive segments other than AMRAP are not executable yet.");
+        flush();
+        items.push({ type: "SCOPE", scope: amrapScopeOf(step, exercises, snapshot) });
+        index += 1;
+        break;
       case "SERIES": {
         const base = occurrenceBaseOf(step);
         const group: SeriesPlanStep[] = [];
@@ -557,6 +575,99 @@ function emomScopeOf(group: EmomGroup): { readonly scope: ScopeSpec | null; read
     context: first.context ?? null,
   };
   return { scope: { pilot: "EMOM", key: group.key, config }, after };
+}
+
+// ————————————————————————————————————————————————————————————————— AMRAP (PRE-11, T3)
+
+/** Étape-modèle de la boucle d'un AMRAP : jouée à chaque tour, objectif recalculé par l'incrément signé (plancher 1). */
+export type AmrapLoopItem = { readonly leaf: LeafSpec; readonly increment: number };
+
+/** Configuration de la portée d'un bloc AMRAP (lue par `policies/amrap.ts`). */
+export type AmrapScopeConfig = {
+  readonly format: "AMRAP";
+  readonly elementId: string;
+  readonly elementKind: "EXERCISE" | "CIRCUIT";
+  readonly name: string;
+  /** Durée du bloc (Durée de l'Exercice autonome, ou Durée de chaque bloc du Circuit porteur), en ms. */
+  readonly blockMs: number;
+  readonly block: number;
+  readonly blocks: number;
+  /** Étapes du buy-in, jouées une fois au début du premier bloc (T13) ; vide dans les blocs suivants. */
+  readonly buyIn: readonly LeafSpec[];
+  /** Étapes-modèles d'un tour de boucle (clés `…/loop/…`), dans l'ordre des membres de Rôle Tour. */
+  readonly loop: readonly AmrapLoopItem[];
+  /** Étapes indexées par la projection : buy-in, modèle du tour, poids du bloc (`blockWeight`). */
+  readonly items: readonly ChildSpec[];
+  readonly context: LeafContext | null;
+};
+
+type ProgressiveStep = Extract<PlanStep, { kind: "PROGRESSIVE_SEGMENT" }>;
+
+/** Étapes d'un passage d'un membre AMRAP : Séries et côtés de son registre, pauses, Récupération (T14 : à chaque tour). */
+function amrapMemberLeaves(exercise: SessionSnapshotExercise, base: string, context: PlanContext): LeafSpec[] {
+  const ledger = buildExecutionLedger(exercise.executionParameters, 0);
+  const group: SeriesPlanStep[] = ledger.flatMap((event): SeriesPlanStep[] =>
+    event.kind === "WORK" ? [{ kind: "SERIES", stepId: `${base}/s${event.series}/${event.side}`, exerciseId: exercise.id, series: event.series, side: event.side, context }] : [],
+  );
+  if (group.length === 0) return [];
+  const seconds = exercise.postActivityRecoverySeconds ?? 0;
+  const recovery = seconds > 0 ? { kind: "RECOVERY" as const, stepId: `${base}/recovery`, exerciseId: exercise.id, seconds, context } : null;
+  const leaves: LeafSpec[] = [];
+  emitOccurrence(exercise, group, base, recovery, (spec) => leaves.push(spec));
+  return leaves;
+}
+
+/** Portée d'un bloc AMRAP (voir l'en-tête et `policies/amrap.ts`). */
+function amrapScopeOf(step: ProgressiveStep, exercises: ReadonlyMap<string, SessionSnapshotExercise>, snapshot: SessionSnapshot): ScopeSpec {
+  const key = `${step.stepId}/amrap`;
+  // Étapes sans Circuit affiché : le tour de boucle est porté par le pilote (contexte du tour, compte ouvert).
+  const planContext: PlanContext = { cycle: step.context.cycle, circuit: null, formattedElementId: step.elementId };
+  const settings = step.format.settings;
+  const seconds = (value: unknown) => (typeof value === "number" && value > 0 ? value : 12 * 60);
+  const incrementOf = (format: ElementFormat | null | undefined) => {
+    const value = format?.settings.incrementPerRound;
+    return typeof value === "number" ? value : 0;
+  };
+  type Member = { readonly exercise: SessionSnapshotExercise; readonly role: string; readonly increment: number };
+  let members: Member[];
+  let blockMs: number;
+  let name: string;
+  let block = 1;
+  let blocks = 1;
+  if (step.elementKind === "CIRCUIT") {
+    const circuit = structureCircuits(snapshot.structure).find((candidate) => candidate.id === step.elementId);
+    members = (circuit?.exercises ?? []).flatMap((member, position) => {
+      const exercise = exercises.get(member.id);
+      return exercise === undefined ? [] : [{ exercise, role: circuitRoleOf(member.format, position), increment: incrementOf(member.format) }];
+    });
+    blockMs = seconds(settings.blockSeconds) * MS;
+    name = circuit?.name ?? "AMRAP";
+    block = step.block ?? 1;
+    blocks = step.context.circuit?.count ?? 1;
+  } else {
+    const exercise = exercises.get(step.elementId)!;
+    members = [{ exercise, role: "TOUR", increment: incrementOf(exercise.format) }];
+    blockMs = seconds(settings.durationSeconds) * MS;
+    name = exercise.exercise?.name ?? "AMRAP";
+  }
+  // T13 : le buy-in est consommé une seule fois, dans le premier bloc. FMT-26 : aucun incrément pour le buy-in ni pour À l'échec.
+  const buyIn = block === 1 ? members.filter((member) => member.role === "BUY_IN").flatMap((member) => amrapMemberLeaves(member.exercise, `${key}/buy-in/ex:${member.exercise.id}`, planContext)) : [];
+  const loop = members
+    .filter((member) => member.role !== "BUY_IN")
+    .flatMap((member) =>
+      amrapMemberLeaves(member.exercise, `${key}/loop/ex:${member.exercise.id}`, planContext).map(
+        (leaf): AmrapLoopItem => ({ leaf, increment: leaf.kind === "ACTIVITY" && leaf.target !== undefined && leaf.target.kind === "NUMBER" ? member.increment : 0 }),
+      ),
+    );
+  const context: LeafContext = { circuit: null, cycle: step.context.cycle };
+  const weight: LeafSpec = { kind: "BLOCK_REST", key: `${key}/block`, end: "PARENT", plannedMs: blockMs, contribution: "exact", blockWeight: true, context };
+  const items: ChildSpec[] = [
+    ...buyIn.map((leaf): ChildSpec => ({ type: "LEAF", leaf: { ...leaf, inBlock: true } })),
+    ...loop.map((item): ChildSpec => ({ type: "LEAF", leaf: { ...item.leaf, inBlock: true } })),
+    { type: "LEAF", leaf: weight },
+  ];
+  const config: AmrapScopeConfig = { format: "AMRAP", elementId: step.elementId, elementKind: step.elementKind, name, blockMs, block, blocks, buyIn, loop, items, context };
+  return { pilot: "AMRAP", key, config };
 }
 
 /** Étapes de repos retirées d'un élément For time (recette du 17/11/2026). */

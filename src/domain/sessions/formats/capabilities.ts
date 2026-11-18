@@ -169,13 +169,19 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     expansion: "PROGRESSIVE",
     timeReferences: ["ELEMENT_DEADLINE", "STEP", "PHASES"],
     triggers: ["ELEMENT_BOUND", "TARGET_REACHED", "NEXT"],
-    onExpiry: { status: UNDEFINED_CAPABILITY, question: "Étape en cours à l'échéance de l'élément (A4, PRE-11)." },
+    // [« Étape en cours à l'échéance de l'élément (A4, PRE-11) » — tranché par D1 (02/11/2026) : arrêt net, Clôture du bloc avec le
+    // partiel ; PRE-11 T3, 18/11/2026.]
+    onExpiry: "DESCENDANTS_CLOSED_THEN_CLOSURE",
     end: "ELEMENT_BOUND",
     progression: "CONTENT_REPEATED",
     results: [...GENERIC_RESULTS, "ROUNDS_COMPLETED"],
     prescription: { increment: "SIGNED_FLOOR_ONE" },
-    undefinedAspects: [{ status: UNDEFINED_CAPABILITY, question: "Tour partiel à l'échéance (A6, PRE-11)." }, NEXT_AFTER_PROGRESSIVE],
-    executionAvailable: false,
+    // [« Tour partiel à l'échéance (A6, PRE-11) » — tranché par D-20 et l'arbitrage de Hermann du 18/11/2026 (« Exercice en cours
+    // seul ») : répétitions faites de l'exercice en cours, saisies à la Clôture du bloc.] [« Suite de la Séance après la fin de
+    // l'élément (A4) » — tranché par D3 : la Séance enchaîne après la Clôture.]
+    undefinedAspects: [],
+    // PRE-11 (T3, 18/11/2026) : AMRAP exécutable (politique AMRAP, src/domain/execution/policies/amrap.ts).
+    executionAvailable: true,
     // MAJ 04/11 §6 bis 2 : buy-in pris sur le premier bloc, « Terminé » lance la boucle sans saisie intercalée.
     configuration: { roles: ["BUY_IN", "TOUR"], buyInStop: ["TARGET", "FAILURE"], buyInResult: "AT_FIRST_BLOCK_CLOSE", memberModes: ["REPETITIONS", "DURATION"], incrementUnit: "OBJECTIVE", loads: "PER_SERIES_FROM_SNAPSHOT" },
     sources: ["FMT-26", "REC-15", "ch12 l.1829", "ARB-03", "recherche/03-formats §1.4"],
