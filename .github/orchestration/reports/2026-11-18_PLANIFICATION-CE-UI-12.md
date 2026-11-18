@@ -109,3 +109,12 @@ Sans objet tant que rien n'est implémenté. Le jour venu, il faudra vérifier l
 ## Commit final et état Git
 
 Ils sont indiqués dans le compte rendu de clôture de la conversation, avec le hash du commit qui contient ce rapport. Rien n'est poussé ni fusionné.
+
+## Complément du 18/11/2026 — réponse de Hermann
+
+- Numérotation tranchée par Hermann : ses décisions deviennent D-519 à D-526, plus D-527. Les règles vont de RM-253 à RM-264. CE-UI-12 est inchangé. Accord donné pour toucher l'Agenda.
+- Les textes sont annoncés dans `planification-grille-docs.patch`, à appliquer sur `main` avec `git am`. **Fichier introuvable** :
+  - il ne figure pas parmi les pièces jointes de la conversation ;
+  - aucun fichier de ce nom dans le dossier utilisateur ni dans `C:\Dev` ;
+  - aucune branche `docs/planification-grille-creneaux` sur GitHub après `git fetch`.
+- Statut inchangé : CLARIFICATION_REQUIRED. J'attends la branche poussée, ou le fichier joint.
