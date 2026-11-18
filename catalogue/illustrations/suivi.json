@@ -282,12 +282,12 @@
   {
     "sheetId": "FIT-STR-010",
     "name": "Inclinaison latérale de la nuque",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-STR-010.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-STR-010.webp",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-CRO-009",
