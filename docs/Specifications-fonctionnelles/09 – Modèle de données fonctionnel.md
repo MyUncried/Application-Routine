@@ -976,7 +976,7 @@ Le créneau produit d’abord sa suite d’occurrences. Chaque contenu retient e
 
 Sans répétition : une date/heure. Avec répétition : Jour/Semaine/Mois. Pour Semaine, conserver l’ancrage sur la semaine contenant le début, le multiplicateur 1..12 et les dates inclusives du calcul existant. Ne pas utiliser ce calcul comme définition du mode Mois ou de la conversion pendant/jusqu’au.
 
-Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la largeur. Aucun n’est plus une option ; Autre ouvre le réglage personnalisé. Les règles de permission et le plafond personnalisé 24 h existants restent conservés.
+Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la largeur. Aucun n’est plus une option ; Autre ouvre le réglage personnalisé. [Remplacé le 18/11/2026, D-521 : options Sans / 15 min / 30 min / 1 h / Autre, plus d’interrupteur ; « Sans » désactive le rappel.] Les règles de permission et le plafond personnalisé 24 h existants restent conservés.
 
 La modification agit sur le futur ; suppression de Routine conserve sources et histoire. L’agrégation des états de plusieurs contenus, les exclusions d’occurrence et l’archivage d’un contenu de liste nécessitent les compléments explicitement ouverts dans la spécification. Ne pas créer d’Exécution fictive pour un contenu non réalisé.
 

@@ -1,6 +1,6 @@
 # Claude Code — planification : grille de créneaux, Répétition, Rappel (18/11/2026)
 
-Mission : appliquer à l'application les décisions D-516 à D-520 (`docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`), règles RM-253 à RM-259 (chapitre 10) et contrat CE-UI-12 (chapitre 13). Lis d'abord ces trois sources, `docs/AGENTS.md` (docs Expo v57) et `CLAUDE.md`. Travaille sur une branche dédiée, jamais sur main ; ne fusionne pas.
+Mission : appliquer à l'application les décisions D-516 à D-523 (`docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`), règles RM-253 à RM-259 (chapitre 10) et contrat CE-UI-12 (chapitre 13). Lis d'abord ces trois sources, `docs/AGENTS.md` (docs Expo v57) et `CLAUDE.md`. Travaille sur une branche dédiée, jamais sur main ; ne fusionne pas.
 
 ## Baseline gelée (change control)
 PRESERVE : tout écran, composant ou comportement non cité ci-dessous ; le moteur de génération des occurrences, les Exécutions et Instantanés historiques ; la sélection des contenus (modale à cases, coche d'en-tête, D-499) ; l'Agenda et le Calendrier ; les primitives natives existantes.
@@ -13,16 +13,16 @@ FORBIDDEN : remplacer une primitive native par une imitation React Native ; ré�
 3. **Répétition sans interrupteur** (D-517, RM-257) : valeur modifiable « toutes les » / « tous les » (accord avec l'unité) / « aucune », nombre, unité, « jusqu'au » + date. Rangée des jours pour l'unité semaines seulement, de « toutes les » au bord droit, sans séparateur.
 4. **Grille créneaux × rotation** (D-516, RM-253 à RM-256) : « Séance par créneau » (non gras) au-dessus du tableau ; en-tête avec « Changer » toujours visible et colonnes #1 à #7 (seul #1 actif au départ) ; une ligne par séance ; points = séance jouée ; au moins un point par colonne et par ligne ; mention « à chaque fois » / « x fois sur n » calculée en direct ; plusieurs séances dans un créneau = un lancement dans l'ordre des lignes (= ordre de sélection) ; toucher un numéro de colonne ouvre le sélecteur numéroté (DSF « Sélecteur numéroté », Figma 12626:2111) qui règle la longueur du cycle. Remplace le réglage « x fois sur n » par contenu (CE-UI-11).
 5. **Roulettes** : nombre de semaines et Rappel personnalisé = roulette native iOS `@expo/ui/swift-ui`, `pickerStyle("wheel")`, en popover près du champ, fond grisé, ni titre, ni bouton, ni unité. Supprimer le stepper du nombre de semaines. Respecter la règle « primitives natives » de `.github/AI_ORCHESTRATION.md` (équivalent Android natif si la plateforme l'exige, sans fallback silencieux).
-6. **Rappel sans interrupteur** : 5 min / 15 min / 30 min / 1 h / Autre. La désactivation est À CLARIFIER : n'implémente pas de comportement non décidé, signale-le.
+6. **Rappel sans interrupteur** : Sans / 15 min / 30 min / 1 h / Autre (D-521) : « 5 min » retirée, « Sans » désactive le rappel, roulette de « Autre » sans unité.
 7. **Écrans retirés** (D-520) : anciens écrans Planifier un parcours, Fréquence, Sélectionner plusieurs séances (anciennes versions), Rappel personnalisé sélectionné, Sans répétition.
 
 Références Figma (fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP) : grille `12650:27854`, cycle étendu `12624:29713`, sélecteur numéroté `12628:34456`, séance seule `12652:28035`, date `12652:28155`, Rappel `12652:28306`, semaines `12652:28447`. Le Figma définit le rendu ; il ne crée pas de règle métier.
 
-## Points non tranchés — ne pas décider
-Désactivation du Rappel ; RM-049 contre l'affichage des séances manquées ; unité « mois » et « jours » ; unités de la roulette du Rappel (voir À CLARIFIER du registre, 18/11/2026).
+## Décisions complémentaires du 18/11/2026
+Occurrences passées rejouables, elles ne disparaissent pas (D-522, remplace RM-049) ; unité « mois » retirée, restent jours et semaines (D-523). Ces deux points touchent l'Agenda et le calcul des occurrences : n'applique que ce qui relève de la planification et signale tout impact Agenda par `SCOPE_EXPANSION_REQUIRED`.
 
 ## Tests et preuves
 Tests ciblés : règles de la grille (≥ 1 point, cycle 1..7, calcul « x fois sur n »), accord « toutes/tous les », nom (cas de copie et cas vide obligatoire), jours seulement pour semaines, roulette native réellement utilisée (aucun fallback). Une suite verte ne remplace pas la validation sur iPhone.
 
 ## Livraison
-Synchronisation code/documentation (classe A : le code rejoint D-516 à D-520). Rapport de mission dans `.github/orchestration/reports/` avec liste PRESERVE/CHANGE/FORBIDDEN démontrée, commit, état Git ; vérifications à faire sur iPhone : roulettes, popovers, grille à 7 colonnes, modale iOS.
+Synchronisation code/documentation (classe A : le code rejoint D-516 à D-523). Rapport de mission dans `.github/orchestration/reports/` avec liste PRESERVE/CHANGE/FORBIDDEN démontrée, commit, état Git ; vérifications à faire sur iPhone : roulettes, popovers, grille à 7 colonnes, modale iOS.
