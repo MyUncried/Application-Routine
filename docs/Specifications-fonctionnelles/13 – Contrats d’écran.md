@@ -4259,7 +4259,7 @@ Tester 0/1/2, mêmes types et mixte, bascule de segment sans perte, cocher/déco
 
 ### CE-UI-05 — Planification — formulaire et états de paramètres
 
-> [Remplacé en partie le 18/11/2026, D-516 à D-520 : la mise en page, la ligne Répétition, le Rappel et le nombre de semaines sont définis par CE-UI-12 ; les frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 sont retirés ou remplacés. Texte d’origine conservé.]
+> [Remplacé en partie le 18/11/2026, D-519 à D-523 : la mise en page, la ligne Répétition, le Rappel et le nombre de semaines sont définis par CE-UI-12 ; les frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 sont retirés ou remplacés. Texte d’origine conservé.]
 
 #### 1. Identification
 
@@ -4345,7 +4345,7 @@ Tester contenu unique Séance/Exercice et liste mixte, ordre, suppression du tit
 
 ### CE-UI-11 — Planification — fréquence d’un contenu
 
-> [Remplacé le 18/11/2026, D-516 : la fréquence d’un contenu se règle par les points de la grille (CE-UI-12, RM-253 à RM-256). Texte d’origine conservé.]
+> [Remplacé le 18/11/2026, D-519 : la fréquence d’un contenu se règle par les points de la grille (CE-UI-12, RM-253 à RM-256). Texte d’origine conservé.]
 
 #### 1. Identification
 
@@ -4430,13 +4430,13 @@ n pastilles ; fréquence sans unité ; aucune occurrence ajoutée au créneau ; 
 Tester 1 sur 2, 2 sur 3 avec positions 1/3 ou 1/2, x=n, chaque stepper réinitialisant toutes les pastilles, annuler/valider, indépendance des contenus. Les tests du comportement de x et des bornes attendent leur spécification.
 
 <a id="controles-planification"></a>
-### CE-UI-12 — Planification — grille de créneaux (D-516 à D-520, 18/11/2026)
+### CE-UI-12 — Planification — grille de créneaux (D-519 à D-523, 18/11/2026)
 
 #### 1. Identification
 
-CE-UI-12 ; planification d’un parcours (plusieurs séances) et d’une séance seule. Frames Figma : `12650:27854` (grille, cycle 1), `12624:29713` (cycle étendu à 3), `12628:34456` (sélecteur numéroté) ; séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines `12652:28447`. Modale iOS (D-519).
+CE-UI-12 ; planification d’un parcours (plusieurs séances) et d’une séance seule. Frames Figma : `12650:27854` (grille, cycle 1), `12624:29713` (cycle étendu à 3), `12628:34456` (sélecteur numéroté) ; séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines `12652:28447`. Modale iOS (D-522).
 
-Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-259.
+Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
 
 #### 2. Contenu
 
@@ -4444,7 +4444,7 @@ Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-259.
 - Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel.
 - Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit.
 - Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
-- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-521).
+- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-524).
 
 #### 3. Interactions
 
@@ -4452,7 +4452,7 @@ Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle)
 
 #### 4. Points à clarifier
 
-Aucun. Occurrences passées : rejouables (D-522) ; unité « mois » retirée (D-523).
+Aucun. Occurrences passées : rejouables (D-525) ; unité « mois » retirée (D-526).
 
 ### Contrôles et layout de planification
 
