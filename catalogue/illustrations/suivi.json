@@ -592,11 +592,11 @@
   {
     "sheetId": "FIT-HYR-008",
     "name": "Wall balls",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-HYR-008.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "76cec310ed3427be3ed8a0051c64cd3d9677b262",
+    "anomalie": "Rendu sur appareil non vérifié."
   }
 ]
