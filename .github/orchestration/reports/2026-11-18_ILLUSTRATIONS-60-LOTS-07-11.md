@@ -38,13 +38,13 @@ Génération Figma `generate_image` (`gpt-image-2.5-flare`, fichier d'atelier `u
 | 10 | FIT-PIL-009 | Swimming | `catalogue/illustrations/20261117/FIT-PIL-009.webp` | `9561d2c2c3c2c1ae439c9d71b73d945f266ae541` | `3ce83d87b1744439d324056d7b4027997d698584` |
 | 10 | FIT-YOG-001 | Tadasana (montagne) | `catalogue/illustrations/20261117/FIT-YOG-001.webp` | `702bba33f7d4f97b215c1e58e6568b7d27fbe824` | `e918d19febd78698a5a9c6baaa772864c57f6622` |
 | 10 | FIT-PIL-001 | The Hundred | `catalogue/illustrations/20261117/FIT-PIL-001.webp` | `55203e659754faded9188255ec5d6236ba9cc611` | `a4917db015ea1b4110801b80dd484c0d6d994f31` |
-| 11 | FIT-CRO-006 | Thruster | — | non fait | non fait |
-| 11 | FIT-YOG-009 | Trikonasana (triangle) | — | non fait | non fait |
-| 11 | FIT-YOG-007 | Virabhadrasana II (guerrier II) | — | non fait | non fait |
-| 11 | FIT-YOG-008 | Vrksasana (arbre) | — | non fait | non fait |
-| 11 | FIT-HYR-008 | Wall balls | — | non fait | non fait |
+| 11 | FIT-CRO-006 | Thruster | `catalogue/illustrations/20261117/FIT-CRO-006.webp` | `f4371d3ca372a2263761a9d048a1c9ee05606dd9` | `7ffd7dfd28e4fe553dd0e9ce5506119a0676ae0a` |
+| 11 | FIT-YOG-009 | Trikonasana (triangle) | `catalogue/illustrations/20261117/FIT-YOG-009.webp` | `305dbcca941a68f1df99f95ec057daa894fcb280` | `5385ce7f7053d46eb29587ca0a90b5931f672e5a` |
+| 11 | FIT-YOG-007 | Virabhadrasana II (guerrier II) | `catalogue/illustrations/20261117/FIT-YOG-007.webp` | `ee7459ca9ddce10c5799ec88d015387b30e9d316` | `3857be59106938ddbb0834fb64cb0dbb141fca8c` |
+| 11 | FIT-YOG-008 | Vrksasana (arbre) | `catalogue/illustrations/20261117/FIT-YOG-008.webp` | `90e2608ec57564ddf3b8d27781c2aefc53549f05` | `2ee2348d76ba9d19629c80418ad6ef1eee1b7bf6` |
+| 11 | FIT-HYR-008 | Wall balls | `catalogue/illustrations/20261117/FIT-HYR-008.webp` | `76cec310ed3427be3ed8a0051c64cd3d9677b262` | `85411472f8703c30226b691d970e2adac03b4c54` |
 
-Total versionné et rattaché : **55/60**.
+Total versionné et rattaché : **60/60**.
 
 ## Anomalies et générations écartées
 
@@ -53,7 +53,26 @@ Total versionné et rattaché : **55/60**.
 - Lot 08 : 6 générations. FIT-PIL-010 (Side Kick) : première génération écartée (abduction de la jambe vers le plafond au lieu du balancement avant/arrière) ; seconde retenue en vue plongeante, légère rotation du buste visible. FIT-PIL-003 (Single Leg Circle) : le cercle est suggéré par deux positions de la jambe (verticale puis inclinée), sans tracé. Changement de mise au format à partir de FIT-YOG-010 : le fond est prolongé en haut (hauteur portée de 1024 à 1048 px avant redimensionnement) au lieu de rogner 14 px de chaque côté, pour ne pas couper pieds ou équipement.
 - Lot 09 : 6 générations. FIT-PIL-005 (Single Leg Stretch) : première génération écartée (buste trop relevé, deux phases identiques) ; seconde retenue avec buste plus bas, mais l'alternance des jambes reste peu lisible entre les deux phases. FIT-HYR-003 (Sled pull) : cadrage serré (dos et traîneau proches des bords). FIT-PIL-007 (Spine Stretch Forward) : enroulement vers l'avant modéré.
 - Lot 10 : 8 générations. FIT-HYR-010 (Step-up) : première génération écartée (box trop haute, cuisse quasi horizontale, contraire à « marche ou box basse ») ; seconde retenue (step d'environ 25 cm). FIT-PIL-009 (Swimming) : deux générations écartées (phases identiques et bras/jambe levés apparemment du même côté ; puis bras au repos le long du corps), troisième retenue en vue de dessus : deux bras devant, alternance en diagonale lisible, amplitude peu visible. FIT-CRO-010 (Strict pull-up) : hauteur de barre différente entre les deux phases. FIT-YOG-001 (Tadasana) : posture unique présentée de face et de profil (deux vues, pas deux phases). FIT-PIL-001 (The Hundred) : tibias légèrement inclinés plutôt que parallèles au sol ; battements de bras non représentables.
+- Lot 11 : 7 générations. FIT-YOG-007 (Guerrier II) : première génération écartée (regard tourné vers la jambe tendue) ; seconde retenue, flexion du genou avant d'environ 110° au lieu de 90°. FIT-YOG-008 (Arbre) : première génération écartée (pied au niveau du genou, contraire à la consigne de sécurité) ; seconde retenue (mollet puis cuisse). FIT-YOG-009 (Trikonasana) : côté de la préparation inversé par rapport à la posture finale. FIT-HYR-008 (Wall balls) : décor d'angle de mur clair au lieu du fond uni (cible murale nécessaire).
 
 ## Statut
 
-EN COURS — lots suivants à traiter dans l'ordre du tableau. Reprise : première fiche dont le suivi indique « en attente ».
+TERMINÉ — 60/60 illustrations versionnées et rattachées. Restent à faire : vérification d'affichage sur iPhone et confirmation de la mention de droits.
+
+## Preuves et tests
+
+- Vérification distante après chaque push ( = HEAD, blob distant = blob local) pour les 50 commits d'illustration et de rattachement des lots 07 à 11.
+- Contrôle global final : 60/60 fiches avec exactement un média PHOTO/EMBEDDED/PERMISSION_CONFIRMED dont les octets sont identiques au fichier WebP ; 60 fichiers  présents sur  ; suivi cohérent (60 « versionnée ») ; révision catalogue 62.
+-  : 160 réussis, 26 échoués — ensemble identique aux 26 échecs préexistants mesurés au commit  (avant toute illustration de cette session) ; aucune régression introduite. Ces échecs ne sont pas analysés ici.
+
+## Hypothèses non démontrées
+
+- Mention de licence et  reprises du lot de référence ; extension aux nouvelles images à confirmer par Hermann.
+- Exactitude technique des postures jugée par contrôle visuel de l'agent, sans validation professionnelle.
+
+## Hors périmètre / à vérifier sur appareil
+
+- Affichage des photos sur la fiche mouvement installée (iPhone) non vérifié.
+- Fichier d'atelier Figma  conservé (brouillons, y compris générations écartées).
+- Synchronisation code/documentation : classe D (données de catalogue), aucun document modifié.
+- Fichiers modifiés :  (25 ajoutés), , , ce rapport.
