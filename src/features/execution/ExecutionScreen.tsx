@@ -720,6 +720,17 @@ export function ExecutionScreen({
   const emomWork = emomView !== null && projection.format?.phase === "WORK";
   const duration = (forTimeWork || emomWork) && waiting === null ? (projection.format?.duration ?? null) : null;
   const durationActive = duration !== null && duration.state !== "PENDING" ? duration : null;
+  // Recette du 18/11/2026 (emom-6, Hermann : « Retirer le double anneau. Un seul anneau, celui des 60 secondes du tour en cours » ;
+  // « Reprendre du For time l'appui au centre pour mettre en pause et reprendre, avec le double chrono, de la même manière : position,
+  // couleur, flash » ; « Le chiffre central affiche l'effort effectif cumulé dans la minute (ex. 00:25 / 00:40). Le temps restant avant
+  // la minute suivante reste visible en secondaire » ; « Dès que l'effort cumulé atteint l'objectif […], l'écran passe tout seul en mode
+  // Repos (couleur de l'anneau et du fond) ») : EMOM dont la fenêtre porte une Série en Durée (le Death by n'est pas concerné).
+  const emomTimed = projection.format?.kind === "EMOM" && emomView?.timedWork === true;
+  const emomTimedWork = emomTimed && emomWork && durationActive !== null;
+  const emomTimedRest = emomTimed && emomView?.resting === true;
+  // Décompte du coin du bas à gauche : la durée en cours (For time, AMRAP, Death by) ; en EMOM en durée, le temps restant de la minute
+  // (« le temps restant avant la minute suivante reste visible en secondaire », emom-6).
+  const cornerCountdownMs = durationActive === null ? null : emomTimedWork && emomView !== null ? emomView.remainingMs : durationActive.remainingMs;
   const forTimeCap =
     waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
@@ -859,15 +870,16 @@ export function ExecutionScreen({
   // Recette du 17/11/2026 (ftr2-regle-suivant, Hermann : « désactiver l'appui sur le cercle lorsque rien n'est écrit ») : le cercle ne
   // réagit que pendant la durée (pause, reprise) ; l'exercice en durée se lance par « Suivant ». [Lancement par l'appui dans le cercle —
   // remplacé.]
+  // Recette du 18/11/2026 (emom-6) : même zone pour la Série en Durée d'un EMOM ; sans effet en repos (plus de durée en cours).
   const onDurationZone =
-    forTimeRunning && durationActive !== null && typeof projection.target === "string"
+    (forTimeRunning || (emomTimedWork && emomRunning)) && durationActive !== null && typeof projection.target === "string"
       ? () => {
           const step = typeof projection.target === "string" ? projection.target : undefined;
           void service.dispatch({ type: durationActive.state === "RUNNING" ? "HOLD" : "RELEASE" }, step);
         }
       : null;
   const durationMention =
-    !forTimeWork || waiting !== null || forTimeFinal
+    !(forTimeWork || emomTimedWork) || waiting !== null || forTimeFinal
       ? null
       : duration === null
         ? // Mission du 17/11/2026 (Hermann : « aucun texte dans les autres cas »). [« Appuyez à chaque tour terminé » — remplacé.]
@@ -881,7 +893,12 @@ export function ExecutionScreen({
             : { lines: t.pressToRelease, color: MENTION.held };
   // Mission du 17/11/2026 (Hermann : « Fond blanc par défaut, vert quand l'exercice en durée court, orange quand son compte à rebours
   // est en pause ; jamais gris »). [Gris en attente du lancement — remplacé.]
-  const circleFill = !forTimeWork || durationActive === null || durationActive.state === "PENDING" ? undefined : DURATION_FILL[durationActive.state];
+  const circleFill = emomTimedRest
+    ? // Recette du 18/11/2026 (emom-6) : repos atteint à l'objectif — fond du repos (orange pâle, à confirmer).
+      EMOM_REST_FILL
+    : !(forTimeWork || emomTimedWork) || durationActive === null || durationActive.state === "PENDING"
+      ? undefined
+      : DURATION_FILL[durationActive.state];
 
   // Recette r6 (11/11/2026, Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents
   // éléments de l'écran. » ; 12/11/2026 : « Oui pour l'écran d'exécution de séance ») : disposition du Figma
@@ -937,7 +954,8 @@ export function ExecutionScreen({
         <ExecutionTimerRing
           fill={circleFill}
           inner={
-            durationActive === null || durationActive.totalMs <= 0
+            // Recette du 18/11/2026 (emom-6, « Retirer le double anneau ») : l'EMOM en durée n'a que l'anneau de la minute.
+            durationActive === null || durationActive.totalMs <= 0 || emomTimedWork
               ? null
               : { fraction: durationActive.remainingMs / durationActive.totalMs, ratePerMs: durationActive.state === "RUNNING" && !still ? 1 / durationActive.totalMs : 0 }
           }
@@ -995,7 +1013,12 @@ export function ExecutionScreen({
                 accessibilityLabel={waiting !== null ? undefined : timerAccessibility(projection)}
                 testID="execution-timer"
               >
-                {waiting !== null ? formatClock(waiting.timedMs ?? 0) : timerText(projection)}
+                {waiting !== null
+                  ? formatClock(waiting.timedMs ?? 0)
+                  : emomTimedWork && durationActive !== null
+                    ? // Recette du 18/11/2026 (emom-6) : effort cumulé dans la minute sur l'objectif (« 00:25 / 00:40 »).
+                      `${formatClock(durationActive.totalMs - durationActive.remainingMs)} / ${formatClock(durationActive.totalMs)}`
+                    : timerText(projection)}
               </Text>
             </View>
             <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.objectiveSlot}>
@@ -1035,15 +1058,16 @@ export function ExecutionScreen({
               color={durationActive.state === "RUNNING" ? DURATION_BADGE.running : DURATION_BADGE.held}
               // Troisième recette du 17/11/2026 (Hermann, autres remarques, d : « pendant le compte à rebours du For Time en durée (3 secondes), faire clignoter le triangle du compte à rebours à chaque seconde (vert actuel > vert plus foncé > vert actuel) »).
               pulse={
-                durationActive.state === "RUNNING" && !still && durationActive.remainingMs > 0 && durationActive.remainingMs <= 3000
-                  ? { key: Math.ceil(durationActive.remainingMs / 1000), color: DURATION_BADGE.pulse }
+                // Recette du 18/11/2026 (emom-6) : en EMOM en durée, le coin porte le temps restant de la minute (le décompte qui clignote).
+                cornerCountdownMs !== null && (emomTimedWork || durationActive.state === "RUNNING") && !still && cornerCountdownMs > 0 && cornerCountdownMs <= 3000
+                  ? { key: Math.ceil(cornerCountdownMs / 1000), color: DURATION_BADGE.pulse }
                   : null
               }
             >
               {/* Recette du 17/11/2026 (autres remarques, c : « compte à rebours de la durée dans le triangle : mettre le texte en vert et en
                   orange (même couleur que le texte central) »). [Gris des triangles — remplacé.] */}
               <Text style={[styles.pillText, { color: durationActive.state === "RUNNING" ? MENTION.running : MENTION.held }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-duration-countdown">
-                {formatClock(durationActive.remainingMs, true)}
+                {formatClock(cornerCountdownMs ?? durationActive.remainingMs, true)}
               </Text>
             </ExecutionCornerBadge>
           </View>
@@ -1628,6 +1652,8 @@ const noop = () => undefined;
 // Recette du 17/11/2026 (ft-encours : « La couleur de fond orange du cercle doit être la même que celle du triangle en haut à
 // gauche ») : fond retenu = coin retenu. [#FFE6C2 du Figma — remplacé.]
 const DURATION_FILL = { RUNNING: "#D1F2D9", HELD: "#FFD194" } as const;
+/** Recette du 18/11/2026 (emom-6) : fond du cercle pendant le repos d'un EMOM en durée (orange pâle du repos ; teinte à confirmer). */
+const EMOM_REST_FILL = "#FFEBD1";
 // `pulse` : vert plus foncé du clignotement des 3 dernières secondes (autres remarques, d, du 17/11/2026).
 const DURATION_BADGE = { running: "#BDEBC9", held: "#FFD194", pulse: "#7FD39A" } as const;
 /** Gris plus foncé du clignotement du coin d'objectif gris (recette EMOM du 18/11/2026 : « si gris : gris foncé et gris »). */

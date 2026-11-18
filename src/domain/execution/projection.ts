@@ -174,6 +174,11 @@ export type EmomView = {
   readonly banner: { readonly window: number; readonly name: string | null; readonly target: SeriesTarget | null } | null;
   /** Clôture : fenêtre dont les répétitions faites sont demandées ; `null` sinon. */
   readonly closingWindow: number | null;
+  /**
+   * Recette du 18/11/2026 (emom-6) : le travail de la fenêtre en cours est une Série en Durée (EMOM en durée : effort cumulé, retenue au
+   * centre, repos à l'objectif). Toujours `false` hors EMOM.
+   */
+  readonly timedWork?: boolean;
 };
 
 export type ExecutionProjection = {
@@ -694,7 +699,9 @@ function emomFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: string
     completedActivities: local.outcomes.filter((outcome) => outcome.terminated).length,
     totalActivities: config.windows.length,
     phaseStarts: [],
-    duration: timed ? { state: "RUNNING", name: nameOf(spec), remainingMs: Math.max(0, totalMs - leafElapsedMs(state, atMs)), totalMs } : null,
+    // Recette du 18/11/2026 (emom-6, Hermann : « L'appui au centre met en pause uniquement le compteur d'effort cumulé, jamais le chrono
+    // de la minute ») : Série en Durée retenue (`HELD`) ou en cours, comme l'exercice en durée du For time.
+    duration: timed ? { state: leafStepRef(state)?.held === true ? "HELD" : "RUNNING", name: nameOf(spec), remainingMs: Math.max(0, totalMs - leafElapsedMs(state, atMs)), totalMs } : null,
     command: null,
     amrap: null,
     deathBy: null,
@@ -712,8 +719,16 @@ function emomFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: string
       workEndedMs: local.workEndedMs,
       banner: banner === null ? null : { window: banner.window, name: nameOf(bannerLeaf), target: bannerLeaf === undefined || bannerLeaf.target === undefined ? null : bannerLeaf.target },
       closingWindow: local.phase === "CLOSURE" ? local.closing : null,
+      timedWork: emomWindowTimed(config, local.window),
     },
   };
+}
+
+/** Recette du 18/11/2026 (emom-6) : la fenêtre `window` (indice) contient-elle une Série en Durée ? */
+function emomWindowTimed(config: EmomScopeConfig, window: number): boolean {
+  const spec = config.windows[Math.min(window, config.windows.length - 1)];
+  if (spec === undefined) return false;
+  return childLeaves(config.items.slice(spec.start, spec.end)).some((leaf) => leaf.kind === "ACTIVITY" && leaf.end === "TIMED");
 }
 
 /**

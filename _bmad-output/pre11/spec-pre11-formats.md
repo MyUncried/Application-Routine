@@ -136,6 +136,26 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
    > - « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries / objectif » (phrase inachevée)
    Traitement : registre ch07 « EMOM — recette iPhone (18/11/2026) » (barre du Format dès le Compte à rebours ; bandeau supprimé ; « série » au lieu de « fenêtre » ; écran figé pendant la Clôture ; double bip de la Pause, titre « Repos », coin d'objectif vert et clignotant ; synthèse par Série). Interprétations à confirmer : même entrée.
 
+32. EMOM en durée — recette du 18/11/2026 (cahier en ligne, note de la ligne emom-6 ; classe B ; branche dédiée `formats/emom-duree-20261118`, sans fusion). Texte de Hermann recopié :
+   > « Corrige l'écran d'exécution de l'EMOM en durée relevé en recette. Tu as reproduit le double anneau du For time ; il n'est pas voulu. Lis d'abord docs/AGENTS.md (Expo v57) et CLAUDE.md. Branche dédiée, pas de fusion.
+   > Baseline gelée
+   > • PRESERVE : le For time (son double anneau et son centre restent identiques), les autres formats, la saisie et le récapitulatif de l'EMOM, le moteur d'exécution hors EMOM en durée.
+   > • CHANGE : l'écran d'exécution de l'EMOM en durée uniquement.
+   > • FORBIDDEN : modifier le composant du For time autrement que pour le partager, réécrire les tests en masse, remplacer une primitive native. Tout besoin hors périmètre → SCOPE_EXPANSION_REQUIRED.
+   > À réaliser
+   > 1. Retirer le double anneau. Un seul anneau, celui des 60 secondes du tour en cours, qui avance en continu et ne s'arrête jamais, même en cas de micro-pause pendant la série.
+   > 2. Reprendre du For time l'appui au centre pour mettre en pause et reprendre, avec le double chrono, de la même manière : position, couleur, flash. Partage le composant, ne le duplique pas.
+   > 3. L'appui au centre met en pause uniquement le compteur d'effort cumulé, jamais le chrono de la minute. Le temps de pause intra-série est ainsi déduit sans fausser la durée totale de l'EMOM.
+   > 4. Le chiffre central affiche l'effort effectif cumulé dans la minute (ex. 00:25 / 00:40). Le temps restant avant la minute suivante reste visible en secondaire.
+   > 5. Dès que l'effort cumulé atteint l'objectif (ex. 40 s), l'écran passe tout seul en mode Repos (couleur de l'anneau et du fond) pour les secondes restantes jusqu'à la fin de la minute. Il n'y a pas d'effort supérieur à l'objectif : l'appui au centre est sans effet en Repos.
+   > Tests et preuves
+   > • Un seul anneau est rendu.
+   > • La pause répétée ne fait pas dériver la durée totale.
+   > • La bascule en Repos se fait à l'objectif.
+   > • Le composant du centre est partagé avec le For time.
+   > • Une suite verte ne remplace pas la validation sur iPhone. »
+   Mise en œuvre : registre ch07 « EMOM en durée — recette du 18/11/2026 » ; rapport `.github/orchestration/reports/2026-11-18_EMOM-DUREE-RECETTE.md`.
+
 ## 8. Suivi des tranches
 
 (À compléter au fil de l'implémentation.)

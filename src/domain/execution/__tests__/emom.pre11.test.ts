@@ -158,6 +158,36 @@ describe("PRE-11 T2 — EMOM", () => {
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", series: 2 });
   });
 
+  it("recette du 18/11/2026 (emom-6) : Série en Durée retenue au centre — l'effort seul s'arrête, la fenêtre continue, repos à l'objectif, sans dérive", () => {
+    const { plan, sim } = single(durationParameters(40, 2, 0));
+    sim.send({ type: "START" }, 0);
+    // Retenues répétées : 10 s puis 5 s.
+    expect(sim.send({ type: "HOLD" }, 10 * S).outcome).not.toBe("REJECTED");
+    expect(sim.send({ type: "RELEASE" }, 20 * S).outcome).not.toBe("REJECTED");
+    expect(sim.send({ type: "HOLD" }, 25 * S).outcome).not.toBe("REJECTED");
+    expect(projectExecution(plan, sim.state, 28 * S)?.format?.duration).toMatchObject({ state: "HELD", remainingMs: 25 * S });
+    // La fenêtre continue pendant la retenue.
+    expect(projectExecution(plan, sim.state, 28 * S)?.timer).toMatchObject({ kind: "COUNTDOWN", remainingMs: 32 * S });
+    expect(sim.send({ type: "RELEASE" }, 30 * S).outcome).not.toBe("REJECTED");
+    // Effort cumulé de 40 s atteint à 55 s (15 s de retenue) : repos jusqu'à l'échéance ; plus rien à retenir.
+    sim.at(54);
+    expect(sim.state.leaf?.spec.kind).toBe("ACTIVITY");
+    sim.at(55);
+    expect(sim.state.leaf?.spec.kind).toBe("WINDOW_REST");
+    expect(sim.send({ type: "HOLD" }, 56 * S).outcome).toBe("REJECTED");
+    // Aucune dérive : la fenêtre 2 commence à 60 s, la fin de l'EMOM à 120 s.
+    sim.at(60);
+    expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", series: 2 });
+    sim.at(120);
+    expect(windowResults(sim).map((result) => result.terminated)).toEqual([true, true]);
+  });
+
+  it("recette du 18/11/2026 (emom-6) : pas de retenue pendant une Série en Répétitions", () => {
+    const { sim } = single();
+    sim.send({ type: "START" }, 0);
+    expect(sim.send({ type: "HOLD" }, 10 * S).outcome).toBe("REJECTED");
+  });
+
   it("Q5 : exercice bilatéral — ses deux côtés et la pause entre eux dans une seule fenêtre", () => {
     const parameters = repetitionParameters(8, 2, 0, { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 });
     const { plan, sim } = single(parameters);
