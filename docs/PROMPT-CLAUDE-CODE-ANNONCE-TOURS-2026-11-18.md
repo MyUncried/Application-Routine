@@ -2,6 +2,8 @@
 
 Mission : appliquer D-530 et RM-269 (`docs/Specifications-fonctionnelles/07` et `10`, branche `docs/planification-grille-creneaux`, à lire sans la fusionner). Lis aussi `docs/AGENTS.md` (Expo v57) et `CLAUDE.md`. Branche dédiée, pas de fusion.
 
+Principe : l'application annonce déjà l'objectif de la série qui commence. L'annonce du tour suit la même logique (objectif du tour qui démarre) : réutilise le mécanisme et le style d'annonce existants, sans en créer un second.
+
 À faire :
 1. **Annonce à chaque début de tour**, y compris le premier : « Premier tour, 21 répétitions », puis « Deuxième tour, 15 répétitions »… Ordinal français, puis l'objectif de répétitions du tour qui démarre ; « 1 répétition » au singulier. Au départ du chrono pour le premier tour, à l'appui sur « +Tour » pour les suivants.
 2. **Un seul signal par appui** : si l'interrupteur « Annonce des tours » du Profil est activé (par défaut), annonce seule, sans bip ; sinon, bip seul selon le réglage Son et Vibration existant. Jamais les deux.
