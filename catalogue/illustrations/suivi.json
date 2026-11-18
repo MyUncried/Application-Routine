@@ -142,12 +142,12 @@
   {
     "sheetId": "REED-001",
     "name": "Élévation de jambe tendue",
-    "path": "catalogue/illustrations/20261117/REED-001.json",
-    "generation": "existante",
-    "sauvegarde": "vérifiée",
-    "rattachement": "absent",
-    "commit": "8ea8539fe3299bcd27608f443e07ba1ae4a44bff",
-    "anomalie": "Appui sur les coudes absent."
+    "path": "catalogue/illustrations/20261117/REED-001.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/REED-001.webp",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "REED-008",
