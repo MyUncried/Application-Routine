@@ -61,18 +61,18 @@ TERMINÉ — 60/60 illustrations versionnées et rattachées. Restent à faire :
 
 ## Preuves et tests
 
-- Vérification distante après chaque push ( = HEAD, blob distant = blob local) pour les 50 commits d'illustration et de rattachement des lots 07 à 11.
-- Contrôle global final : 60/60 fiches avec exactement un média PHOTO/EMBEDDED/PERMISSION_CONFIRMED dont les octets sont identiques au fichier WebP ; 60 fichiers  présents sur  ; suivi cohérent (60 « versionnée ») ; révision catalogue 62.
--  : 160 réussis, 26 échoués — ensemble identique aux 26 échecs préexistants mesurés au commit  (avant toute illustration de cette session) ; aucune régression introduite. Ces échecs ne sont pas analysés ici.
+- Vérification distante après chaque push (`origin` = HEAD, blob distant = blob local) pour les 50 commits d'illustration et de rattachement des lots 07 à 11.
+- Contrôle global final : 60/60 fiches avec exactement un média PHOTO/EMBEDDED/PERMISSION_CONFIRMED dont les octets sont identiques au fichier WebP ; 60 fichiers `.webp` présents sur `origin/assets/illustrations-60-20261117` ; suivi cohérent (60 « versionnée ») ; révision catalogue 62.
+- `npx jest src/domain/catalogue src/features/catalogue` : 160 réussis, 26 échoués — ensemble identique aux 26 échecs préexistants mesurés au commit `3ce4989` (avant toute illustration de cette session) ; aucune régression introduite. Ces échecs ne sont pas analysés ici.
 
 ## Hypothèses non démontrées
 
-- Mention de licence et  reprises du lot de référence ; extension aux nouvelles images à confirmer par Hermann.
+- Mention de licence et `PERMISSION_CONFIRMED` reprises du lot de référence ; extension aux nouvelles images à confirmer par Hermann.
 - Exactitude technique des postures jugée par contrôle visuel de l'agent, sans validation professionnelle.
 
 ## Hors périmètre / à vérifier sur appareil
 
 - Affichage des photos sur la fiche mouvement installée (iPhone) non vérifié.
-- Fichier d'atelier Figma  conservé (brouillons, y compris générations écartées).
+- Fichier d'atelier Figma `u3iM9kbt5TfSLU9tGfH3RN` conservé (brouillons, y compris générations écartées).
 - Synchronisation code/documentation : classe D (données de catalogue), aucun document modifié.
-- Fichiers modifiés :  (25 ajoutés), , , ce rapport.
+- Fichiers modifiés : `catalogue/illustrations/20261117/*.webp` (25 ajoutés), `catalogue/catalogues/kodjo-pilote-60.catalogue.json`, `catalogue/illustrations/suivi.json`, ce rapport.
