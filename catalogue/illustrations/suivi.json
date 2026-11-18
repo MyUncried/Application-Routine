@@ -262,12 +262,12 @@
   {
     "sheetId": "FIT-CRO-002",
     "name": "Front squat",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-CRO-002.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo intégrée, diffusée et relue par le service mobile. Gabarit 1206 × 987 px.",
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/FIT-CRO-002.webp",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "REED-009",
