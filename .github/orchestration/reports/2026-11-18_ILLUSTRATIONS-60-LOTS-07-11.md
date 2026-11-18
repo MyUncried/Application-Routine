@@ -23,11 +23,11 @@ Génération Figma `generate_image` (`gpt-image-2.5-flare`, fichier d'atelier `u
 | 07 | FIT-PIL-004 | Rolling Like a Ball | `catalogue/illustrations/20261117/FIT-PIL-004.webp` | `03d708536e2a085143fb585b69c529dae7dead4a` | `59e2be5acfc5a4bffceb1dff2e9d0d13aee3c7ec` |
 | 07 | FIT-HYR-005 | Rowing (rameur) | `catalogue/illustrations/20261117/FIT-HYR-005.webp` | `b338ebdd10fe2941a516134cac112a93e6cf7c60` | `a849295753c1dd458e900d9c45ea20a28ccd87ad` |
 | 07 | FIT-HYR-007 | Sandbag walking lunges | `catalogue/illustrations/20261117/FIT-HYR-007.webp` | `d5dd779d14cc168be8e2218e61ed0a4d7c35cb3d` | `1de512d5c680c04b0a52e86a407fc3c67d0b81e5` |
-| 08 | FIT-YOG-010 | Setu Bandha (pont) | — | non fait | non fait |
-| 08 | FIT-PIL-008 | Shoulder Bridge | — | non fait | non fait |
-| 08 | FIT-CRO-004 | Shoulder press | — | non fait | non fait |
-| 08 | FIT-PIL-010 | Side Kick | — | non fait | non fait |
-| 08 | FIT-PIL-003 | Single Leg Circle | — | non fait | non fait |
+| 08 | FIT-YOG-010 | Setu Bandha (pont) | `catalogue/illustrations/20261117/FIT-YOG-010.webp` | `3109ad2bafa6449fc32efba9f421232e26c5c64c` | `cc44c4af5e17ee2f435c3d98bf1a80d43452e8b3` |
+| 08 | FIT-PIL-008 | Shoulder Bridge | `catalogue/illustrations/20261117/FIT-PIL-008.webp` | `e5704670296786ef76f26656cd0ad9942d3ec9da` | `fc6a7044ed34d5bd3f0ab75d8a3334b13254454e` |
+| 08 | FIT-CRO-004 | Shoulder press | `catalogue/illustrations/20261117/FIT-CRO-004.webp` | `5a4e1e67e91431ee4a81b3823ca8ca5fef227064` | `09ab60faf1ff3b8082090f9bf8a4a200a3b9d80e` |
+| 08 | FIT-PIL-010 | Side Kick | `catalogue/illustrations/20261117/FIT-PIL-010.webp` | `5c7a3ebe366ddc156176df8daa16e58889eed3ae` | `99ad62dc0955fd22dc8518ebaa4676c3ee2d162a` |
+| 08 | FIT-PIL-003 | Single Leg Circle | `catalogue/illustrations/20261117/FIT-PIL-003.webp` | `90ec07fbeca3b7db04722734fa1de191f5147e9c` | `2ca8435667cd70e1bfe1f412c6a1c37f9df8cea3` |
 | 09 | FIT-PIL-005 | Single Leg Stretch | — | non fait | non fait |
 | 09 | FIT-HYR-001 | SkiErg | — | non fait | non fait |
 | 09 | FIT-HYR-003 | Sled pull | — | non fait | non fait |
@@ -44,12 +44,13 @@ Génération Figma `generate_image` (`gpt-image-2.5-flare`, fichier d'atelier `u
 | 11 | FIT-YOG-008 | Vrksasana (arbre) | — | non fait | non fait |
 | 11 | FIT-HYR-008 | Wall balls | — | non fait | non fait |
 
-Total versionné et rattaché : **40/60**.
+Total versionné et rattaché : **45/60**.
 
 ## Anomalies et générations écartées
 
 - Lot 07 : 6 générations. FIT-HYR-005 (Rowing) : première génération écartée (tibias inclinés à ~45° à l'attaque, contraire à « tibias presque verticaux ») ; seconde retenue. FIT-PIL-002 (Roll Up) : silhouettes petites dans le cadre (exercice allongé, 3 phases).
 - Toutes les fiches : rendu sur appareil non vérifié.
+- Lot 08 : 6 générations. FIT-PIL-010 (Side Kick) : première génération écartée (abduction de la jambe vers le plafond au lieu du balancement avant/arrière) ; seconde retenue en vue plongeante, légère rotation du buste visible. FIT-PIL-003 (Single Leg Circle) : le cercle est suggéré par deux positions de la jambe (verticale puis inclinée), sans tracé. Changement de mise au format à partir de FIT-YOG-010 : le fond est prolongé en haut (2 → 1047 px de hauteur avant redimensionnement) au lieu de rogner 14 px de chaque côté, pour ne pas couper pieds ou équipement.
 
 ## Statut
 
