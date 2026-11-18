@@ -155,7 +155,10 @@ export const executionStrings = {
   // Recette du 17/11/2026 (Hermann : « Corrige l'alignement du texte "Appuyer pour lancer" sur la première ligne ») : « Appuyez pour lancer »
   // sur la première ligne, le nom de l'exercice sur la seconde. [« Appuyez » / « pour lancer <nom> » — remplacé.]
   pressToLaunch: (name: string | null) => ["Appuyez pour lancer", name === null || name === "" ? "l’exercice" : name] as const,
-  pressToHold: ["Appuyez", "pour faire pause"] as const,
+  // Décisions de Hermann du 18/11/2026 (EMOM en durée) : « ma formulation partout » ; « "Appuyer pour" sur la première ligne, "faire une
+  // pause" sur la seconde ligne », dans tous les Formats. [« Appuyez » / « pour faire pause » — remplacé.] Reprise inchangée (« non, pour
+  // la reprise "Appuyez" et "pour repartir". Si je n'ai rien mentionné c'est que je ne voulais pas changer »).
+  pressToHold: ["Appuyer pour", "faire une pause"] as const,
   pressToRelease: ["Appuyez", "pour repartir"] as const,
   pressEachRound: ["Appuyez", "à chaque tour terminé"] as const,
   closureCapReached: "Limite atteinte",

@@ -680,7 +680,7 @@ Principe : un volume fixé, le plus vite possible. Résultat : le temps réalis�
 | État | Haut gauche | Fond du cercle | Chrono principal | Mention (cercle) | « + Tour » |
 |---|---|---|---|---|---|
 | Exercice en répétitions avant une durée | Objectif en rép. | Gris | Noir | « Appuyez pour lancer <exercice> » | Désactivé |
-| Durée en cours | Compte à rebours, vert | Vert | Estompé | « Appuyez pour faire pause » (vert foncé) | Désactivé |
+| Durée en cours | Compte à rebours, vert | Vert | Estompé | « Appuyer pour » / « faire une pause » (vert foncé) [« Appuyez pour faire pause » — remplacé le 18/11/2026, décision de Hermann, ch07 « EMOM en durée — précision du 18/11/2026 »] | Désactivé |
 | Durée en pause | Compte à rebours figé, orange | Orange | Estompé, continue | « Appuyez pour repartir » (orange foncé) | Désactivé |
 | Exercice suivant en répétitions | Objectif en rép. | Blanc | Noir | « Appuyez à chaque tour terminé » | Actif |
 

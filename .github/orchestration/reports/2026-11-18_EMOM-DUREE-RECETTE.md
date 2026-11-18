@@ -72,3 +72,21 @@ Classe B : spec PRE-11 §5 point 32 (texte de Hermann recopié) ; registre ch07,
 ## 12. Commit final et état Git
 
 Commit de livraison et état Git : donnés dans le compte rendu de clôture (branche poussée, aucune PR, aucune fusion).
+
+## 13. Reprise après le retour de Hermann (18/11/2026)
+
+**Retour** (recopié dans la spec PRE-11 §5 point 33 et au registre ch07, « EMOM en durée — précision du 18/11/2026 ») : « je ne comprends pas ce que tu as fait sur l'EMOM, tu as cassé la logique » — au centre, le chrono de l'intervalle (noir, jamais arrêté, sans valeur fixe), anneau bleu d'un tour par intervalle ; compte à rebours de la Série dans le « triangle » ; centre vert / orange, segment en cours de l'anneau orange pendant la retenue, bleu à la reprise. Libellés : « ma formulation partout » ; « "Appuyer pour" sur la première ligne, "faire une pause" sur la seconde ligne » ; « non, pour la reprise "Appuyez" et "pour repartir" ».
+
+**Constat.** Les points 4 et 5 de la demande initiale (effort cumulé / objectif au centre, minute dans le coin) avaient été appliqués à la lettre ; la précision les remplace. Le noyau et la politique EMOM de `18f575f3` (retenue de la seule Série, minute qui continue, repos à l'objectif) restent valables et inchangés.
+
+**Modifications (écran et libellé seulement).**
+- `ExecutionScreen.tsx` : centre = `timerText` (chrono de la fenêtre, comme tout EMOM) ; coin du bas à gauche = compte à rebours de la Série (même badge, mêmes couleurs et clignotement que le For time) ; anneau : couleur du segment en cours orange en retenue (`ringColorOf("SERIES_PAUSE")`), portions passées bleues / orange (`holdSegments`) d'après les bascules notées par l'écran (`advanceHoldMarks`, état React mis à jour pendant le rendu, seulement à une bascule) ; fond blanc au repos (orange pâle `#FFEBD1` retiré).
+- `executionStrings.ts` : `pressToHold` = « Appuyer pour » / « faire une pause » (tous les Formats) ; `pressToRelease` inchangé.
+- Tests : `ExecutionScreen.emomDuree.test.tsx` réécrit sur la précision (un seul anneau, couleur et portions bleu / orange, chrono central sans « / », compte à rebours de la Série figé en retenue, repos à fond blanc, pas de dérive) ; `ExecutionScreen.forTimeDuree.test.tsx` : seul le libellé de pause attendu change.
+- Documentation (classe B) : spec point 33 (point 32 annoté) ; ch07 nouvelle entrée et annotations de l'entrée précédente ; ch13 CE-FMT-05 et anciennes mentions « Appuyez pour faire pause » annotées ; Formats (tableau des états). Chapitres 09 et 12 non modifiés.
+
+**PRESERVE.** For time : double anneau, centre, couleurs inchangés (seul le libellé de pause change, décision explicite) ; `forTimeDuree` vert. Noyau, politiques, AMRAP, Death by, saisie et récapitulatif : non touchés (`git diff 18f575f3 --stat` : écran, libellés, tests, documents).
+
+**Limite (choix technique).** Les bascules de la fenêtre en cours sont notées par l'écran : après une fermeture de l'application en pleine fenêtre, les portions passées de cette fenêtre reviennent au bleu ; le temps et le résultat ne sont pas touchés.
+
+**À confirmer.** (a) Fond blanc au repos (orange réservé à la pause) ; (b) même orange pour la retenue et le repos sur l'anneau ; (c) « triangle » = coin du bas à gauche du For time ; (d) Death by en Durée inchangé.

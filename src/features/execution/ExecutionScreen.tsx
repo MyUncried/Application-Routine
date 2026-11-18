@@ -43,7 +43,7 @@ import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge"
 import { ExecutionClosureSheet } from "@/features/execution/ExecutionClosureSheet";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
 import { ExecutionPartialRepetitionsSheet } from "@/features/execution/ExecutionPartialRepetitionsSheet";
-import { ringColorOf, ringMotion, ringSegmentsOf } from "@/features/execution/timerRing";
+import { ringColorOf, ringMotion, ringSegmentsOf, type RingSegment } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { reclaimExecutionAudio, releaseExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -96,6 +96,8 @@ export function ExecutionScreen({
   const [prepared, setPrepared] = useState<PreparedExecution | null>(null);
   const [blocked, setBlocked] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
+  // EMOM en durée (précision de Hermann du 18/11/2026) : bascules effort / retenue de la fenêtre en cours, voir `advanceHoldMarks`.
+  const [holdMarks, setHoldMarks] = useState<HoldMarks>(NO_HOLD_MARKS);
   // Action de dialogue en cours : le dialogue reste affiché jusqu'à la fin de ses commandes, pour qu'aucun
   // autre dialogue (Pause) n'apparaisse entre-temps (recette PRE-10 du 09/11/2026).
   const [dialogBusy, setDialogBusy] = useState(false);
@@ -727,10 +729,19 @@ export function ExecutionScreen({
   // Repos (couleur de l'anneau et du fond) ») : EMOM dont la fenêtre porte une Série en Durée (le Death by n'est pas concerné).
   const emomTimed = projection.format?.kind === "EMOM" && emomView?.timedWork === true;
   const emomTimedWork = emomTimed && emomWork && durationActive !== null;
-  const emomTimedRest = emomTimed && emomView?.resting === true;
-  // Décompte du coin du bas à gauche : la durée en cours (For time, AMRAP, Death by) ; en EMOM en durée, le temps restant de la minute
-  // (« le temps restant avant la minute suivante reste visible en secondaire », emom-6).
-  const cornerCountdownMs = durationActive === null ? null : emomTimedWork && emomView !== null ? emomView.remainingMs : durationActive.remainingMs;
+  // Précision de Hermann du 18/11/2026 (« le chronomètre principal, au centre, c'est l'objectif de l'intervalle […] Il est en noir, l'anneau
+  // bleu tourne autour du cercle et fait un tour complet en un intervalle » ; « Un compte à rebours secondaire est dans le triangle, celui
+  // de la série ») : le coin du bas à gauche porte le compte à rebours de la Série, comme le For time ; le centre, le chrono de
+  // l'intervalle. [Effort cumulé / objectif au centre, temps restant de la minute dans le coin, repos sur fond orange pâle (18f575f3) —
+  // remplacé.]
+  const cornerCountdownMs = durationActive === null ? null : durationActive.remainingMs;
+  // Anneau de l'EMOM en durée : portions de l'intervalle où la Série a été retenue (orange), le reste en bleu. Le noyau ne garde que
+  // l'état courant de la retenue : les bascules sont notées par l'écran, en temps de l'intervalle, pour la fenêtre en cours.
+  const holdKey = emomTimed && emomView !== null ? `${projection.format?.name ?? ""}#${emomView.window}` : null;
+  const nextHoldMarks = advanceHoldMarks(holdMarks, holdKey, emomTimedWork && durationActive !== null ? durationActive.state === "HELD" : null, emomView?.elapsedMs ?? 0);
+  // Mise à jour pendant le rendu (état dérivé de la projection précédente) : un seul rendu de plus, seulement à une bascule.
+  if (nextHoldMarks !== holdMarks) setHoldMarks(nextHoldMarks);
+  const emomHoldMarks = nextHoldMarks.key === holdKey ? nextHoldMarks.list : NO_HOLD_MARKS.list;
   const forTimeCap =
     waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
@@ -806,7 +817,14 @@ export function ExecutionScreen({
     emomView !== null && emomView.resting && emomView.workEndedMs !== null && emomView.windowMs > 0
       ? [{ from: 0, to: Math.min(1, emomView.workEndedMs / emomView.windowMs), color: ringColorOf("ACTIVITY") }]
       : null;
-  const ringSegments = forTimeRing ?? emomRing;
+  // Précision de Hermann du 18/11/2026 (« appuyer au centre du cercle arrête le compte à rebours secondaire, fait changer la couleur […]
+  // ainsi que l'anneau sur le segment en cours » ; « l'anneau repasse en bleu sur le segment en cours ») : EMOM en durée, portions bleues
+  // (effort) et orange (retenue) de l'intervalle ; le repos qui suit l'objectif garde l'orange du repos (emom-2).
+  const emomTimedRing =
+    emomTimed && emomView !== null && emomView.windowMs > 0 && emomHoldMarks.length > 0
+      ? holdSegments(emomHoldMarks, emomView.resting && emomView.workEndedMs !== null ? emomView.workEndedMs : emomView.elapsedMs, emomView.windowMs, emomView.resting)
+      : null;
+  const ringSegments = forTimeRing ?? emomTimedRing ?? emomRing;
   // Pas de fondu des textes en For time ni en EMOM : seules les valeurs changent.
   const steadyFormat = forTimeBar || emomBar;
   // Bouton de droite de l'EMOM : « Suivant » (travail de la fenêtre terminé, FMT-24), actif pendant une Série en Répétitions.
@@ -893,12 +911,10 @@ export function ExecutionScreen({
             : { lines: t.pressToRelease, color: MENTION.held };
   // Mission du 17/11/2026 (Hermann : « Fond blanc par défaut, vert quand l'exercice en durée court, orange quand son compte à rebours
   // est en pause ; jamais gris »). [Gris en attente du lancement — remplacé.]
-  const circleFill = emomTimedRest
-    ? // Recette du 18/11/2026 (emom-6) : repos atteint à l'objectif — fond du repos (orange pâle, à confirmer).
-      EMOM_REST_FILL
-    : !(forTimeWork || emomTimedWork) || durationActive === null || durationActive.state === "PENDING"
-      ? undefined
-      : DURATION_FILL[durationActive.state];
+  // Précision de Hermann du 18/11/2026 : vert pendant le compte à rebours de la Série, orange en pause ; au repos, fond blanc comme l'EMOM
+  // en Répétitions (orange réservé à la pause). [Orange pâle au repos (18f575f3) — remplacé.]
+  const circleFill =
+    !(forTimeWork || emomTimedWork) || durationActive === null || durationActive.state === "PENDING" ? undefined : DURATION_FILL[durationActive.state];
 
   // Recette r6 (11/11/2026, Hermann : « Ok, il faudra ensuite se référer à Figma pour la position exacte des différents
   // éléments de l'écran. » ; 12/11/2026 : « Oui pour l'écran d'exécution de séance ») : disposition du Figma
@@ -975,7 +991,8 @@ export function ExecutionScreen({
           // couleur disparaît et réapparaît ») : l’anneau, vide pendant le Compte à rebours, ne s’efface pas à sa fin.
           fading={fadingOut && !countdownNow && !emomBar}
           // Recette du 17/11/2026 (Hermann : « À chaque transition d'exercice le chronomètre disparaît et réapparaît. Cela ne doit pas arriver […] ne disparaît jamais. Ne pas changer la couleur de l'anneau lorsqu'on passe en exercice en durée, ni celle du chronomètre. ») : même anneau pendant un exercice en durée. [Anneau estompé gris (Figma `12514:27223`, puis #D6DAE1) — remplacé.]
-          color={ringColorOf(projection.phase)}
+          // Précision de Hermann du 18/11/2026 : EMOM en durée, segment en cours orange pendant la pause de la Série.
+          color={emomTimedWork && durationActive?.state === "HELD" ? ringColorOf("SERIES_PAUSE") : ringColorOf(projection.phase)}
           // PRE-11, précision FT-15 (14/11/2026) : For time, anneau bicolore — chaque portion de la minute garde la couleur de sa
           // phase ; seule la portion en cours prend la couleur de la phase en cours (et la pastille).
           {...(ringSegments !== null ? { segments: ringSegments } : {})}
@@ -1013,12 +1030,9 @@ export function ExecutionScreen({
                 accessibilityLabel={waiting !== null ? undefined : timerAccessibility(projection)}
                 testID="execution-timer"
               >
-                {waiting !== null
-                  ? formatClock(waiting.timedMs ?? 0)
-                  : emomTimedWork && durationActive !== null
-                    ? // Recette du 18/11/2026 (emom-6) : effort cumulé dans la minute sur l'objectif (« 00:25 / 00:40 »).
-                      `${formatClock(durationActive.totalMs - durationActive.remainingMs)} / ${formatClock(durationActive.totalMs)}`
-                    : timerText(projection)}
+                {/* Précision de Hermann du 18/11/2026 : au centre, le chrono de l'intervalle, sans valeur fixe. [« 00:25 / 00:40 »
+                    (18f575f3) — remplacé.] */}
+                {waiting !== null ? formatClock(waiting.timedMs ?? 0) : timerText(projection)}
               </Text>
             </View>
             <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.objectiveSlot}>
@@ -1058,8 +1072,8 @@ export function ExecutionScreen({
               color={durationActive.state === "RUNNING" ? DURATION_BADGE.running : DURATION_BADGE.held}
               // Troisième recette du 17/11/2026 (Hermann, autres remarques, d : « pendant le compte à rebours du For Time en durée (3 secondes), faire clignoter le triangle du compte à rebours à chaque seconde (vert actuel > vert plus foncé > vert actuel) »).
               pulse={
-                // Recette du 18/11/2026 (emom-6) : en EMOM en durée, le coin porte le temps restant de la minute (le décompte qui clignote).
-                cornerCountdownMs !== null && (emomTimedWork || durationActive.state === "RUNNING") && !still && cornerCountdownMs > 0 && cornerCountdownMs <= 3000
+                // Précision de Hermann du 18/11/2026 : en EMOM en durée aussi, le coin porte le compte à rebours de la Série (comme le For time).
+                cornerCountdownMs !== null && durationActive.state === "RUNNING" && !still && cornerCountdownMs > 0 && cornerCountdownMs <= 3000
                   ? { key: Math.ceil(cornerCountdownMs / 1000), color: DURATION_BADGE.pulse }
                   : null
               }
@@ -1652,8 +1666,43 @@ const noop = () => undefined;
 // Recette du 17/11/2026 (ft-encours : « La couleur de fond orange du cercle doit être la même que celle du triangle en haut à
 // gauche ») : fond retenu = coin retenu. [#FFE6C2 du Figma — remplacé.]
 const DURATION_FILL = { RUNNING: "#D1F2D9", HELD: "#FFD194" } as const;
-/** Recette du 18/11/2026 (emom-6) : fond du cercle pendant le repos d'un EMOM en durée (orange pâle du repos ; teinte à confirmer). */
-const EMOM_REST_FILL = "#FFEBD1";
+/** Bascule de la Série en durée d'un EMOM, en temps de l'intervalle : effort (`held` faux) ou retenue. */
+export type EmomHoldMark = { readonly atMs: number; readonly held: boolean };
+
+/**
+ * Précision de Hermann du 18/11/2026 (EMOM en durée) : notes des bascules effort / retenue de la fenêtre en cours, pour colorer les
+ * portions de l'anneau. `key` identifie la fenêtre (`null` hors EMOM en durée : aucune note) ; `held`, l'état courant de la Série
+ * (`null` hors Série) ; `elapsedMs`, le temps de l'intervalle. Une nouvelle fenêtre (clé différente) repart à zéro. Renvoie `marks`
+ * lui-même s'il n'y a rien à noter (aucun rendu de plus).
+ */
+export type HoldMarks = { readonly key: string | null; readonly list: readonly EmomHoldMark[] };
+const NO_HOLD_MARKS: HoldMarks = { key: null, list: [] };
+export function advanceHoldMarks(marks: HoldMarks, key: string | null, held: boolean | null, elapsedMs: number): HoldMarks {
+  if (key === null) return marks.key === null ? marks : NO_HOLD_MARKS;
+  const list = marks.key === key ? marks.list : [];
+  const last = list[list.length - 1];
+  if (held === null || (last !== undefined && last.held === held)) return marks.key === key ? marks : { key, list };
+  // Première note de la fenêtre : la Série démarre avec l'intervalle (effort depuis 0).
+  const added: EmomHoldMark[] = last === undefined ? (held ? [{ atMs: 0, held: false }, { atMs: elapsedMs, held: true }] : [{ atMs: 0, held: false }]) : [{ atMs: elapsedMs, held }];
+  return { key, list: [...list, ...added] };
+}
+
+/**
+ * Portions passées de l'anneau d'un EMOM en durée : chaque intervalle entre deux bascules, bleu (effort) ou orange (retenue), jusqu'à
+ * `untilMs` (fin du travail au repos, sinon maintenant). Pendant le travail, la dernière portion est la portion en cours (couleur de
+ * l'anneau) ; au repos, elle est fermée à la fin du travail et la suite avance dans l'orange du repos.
+ */
+export function holdSegments(marks: readonly EmomHoldMark[], untilMs: number, windowMs: number, closed: boolean): RingSegment[] {
+  const part = (ms: number) => Math.min(1, Math.max(0, ms / windowMs));
+  const segments: RingSegment[] = [];
+  marks.forEach((mark, index) => {
+    const next = marks[index + 1];
+    if (next === undefined && !closed) return;
+    const end = Math.min(next === undefined ? untilMs : next.atMs, untilMs);
+    if (end > mark.atMs) segments.push({ from: part(mark.atMs), to: part(end), color: ringColorOf(mark.held ? "SERIES_PAUSE" : "ACTIVITY") });
+  });
+  return segments;
+}
 // `pulse` : vert plus foncé du clignotement des 3 dernières secondes (autres remarques, d, du 17/11/2026).
 const DURATION_BADGE = { running: "#BDEBC9", held: "#FFD194", pulse: "#7FD39A" } as const;
 /** Gris plus foncé du clignotement du coin d'objectif gris (recette EMOM du 18/11/2026 : « si gris : gris foncé et gris »). */

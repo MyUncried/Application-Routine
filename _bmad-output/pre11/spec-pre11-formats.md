@@ -146,7 +146,7 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
    > 1. Retirer le double anneau. Un seul anneau, celui des 60 secondes du tour en cours, qui avance en continu et ne s'arrête jamais, même en cas de micro-pause pendant la série.
    > 2. Reprendre du For time l'appui au centre pour mettre en pause et reprendre, avec le double chrono, de la même manière : position, couleur, flash. Partage le composant, ne le duplique pas.
    > 3. L'appui au centre met en pause uniquement le compteur d'effort cumulé, jamais le chrono de la minute. Le temps de pause intra-série est ainsi déduit sans fausser la durée totale de l'EMOM.
-   > 4. Le chiffre central affiche l'effort effectif cumulé dans la minute (ex. 00:25 / 00:40). Le temps restant avant la minute suivante reste visible en secondaire.
+   > [Points 4 et 5 remplacés le 18/11/2026 par le point 33.] 4. Le chiffre central affiche l'effort effectif cumulé dans la minute (ex. 00:25 / 00:40). Le temps restant avant la minute suivante reste visible en secondaire.
    > 5. Dès que l'effort cumulé atteint l'objectif (ex. 40 s), l'écran passe tout seul en mode Repos (couleur de l'anneau et du fond) pour les secondes restantes jusqu'à la fin de la minute. Il n'y a pas d'effort supérieur à l'objectif : l'appui au centre est sans effet en Repos.
    > Tests et preuves
    > • Un seul anneau est rendu.
@@ -155,6 +155,14 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
    > • Le composant du centre est partagé avec le For time.
    > • Une suite verte ne remplace pas la validation sur iPhone. »
    Mise en œuvre : registre ch07 « EMOM en durée — recette du 18/11/2026 » ; rapport `.github/orchestration/reports/2026-11-18_EMOM-DUREE-RECETTE.md`.
+
+33. EMOM en durée — précision du 18/11/2026 (retour de Hermann sur le commit `18f575f3` ; classe B ; même branche, sans fusion). Remplace les points 4 et 5 du point 32 et ce qui les mettait en œuvre (effort cumulé / objectif au centre, temps restant de la minute dans le coin, fond orange pâle au repos). Texte de Hermann recopié :
+   > « je ne comprends pas ce que tu as fait sur l'EMOM, tu as cassé la logique :
+   > * le chronomètre principal, au centre, c'est l'objectif de l'intervalle (champ "intervalle"). Il ne s'arrête jamais si ce n'est à l'atteinte de l'intervalle. Il est en noir, l'anneau bleu tourne autour du cercle et fait un tour complet en un intervalle. Il n'y a pas la valeur de l'intervalle fixe à l'intérieur du chronomètre.
+   > * Un compte à rebours secondaire est dans le triangle, celui de la série (champ "Objectif de série"). En durée, c'est un compte à rebours.
+   > * Pendant l'exécution du compte à rebours secondaire, le centre du cercle est vert avec le texte "Appuyer pour faire une pause", et appuyer au centre du cercle arrête le compte à rebours secondaire, fait changer la couleur de fond en orange (ainsi que le triangle) et ainsi que l'anneau sur le segment en cours. Appuyer dans le cercle ("Appuyer pour repartir") relance le compte à rebours secondaire, l'anneau repasse en bleu sur le segment en cours et le centre du cercle est vert (ainsi que le triangle). »
+   Libellés du cercle, décisions de Hermann du 18/11/2026 recopiées : « ma formulation partout » ; « "Appuyer pour" sur la première ligne, "faire une pause" sur la seconde ligne » ; « non, pour la reprise "Appuyez" et "pour repartir". Si je n'ai rien mentionné c'est que je ne voulais pas changer ». Donc, dans tous les Formats : « Appuyer pour » / « faire une pause » ; la reprise reste « Appuyez » / « pour repartir ».
+   Mise en œuvre : registre ch07 « EMOM en durée — précision du 18/11/2026 » ; rapport `.github/orchestration/reports/2026-11-18_EMOM-DUREE-RECETTE.md`, section « Reprise après le retour de Hermann ».
 
 ## 8. Suivi des tranches
 

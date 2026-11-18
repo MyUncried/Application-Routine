@@ -143,7 +143,7 @@ describe("For time — exercices en durée à l'écran (16/11/2026)", () => {
     await press("execution-for-time-next");
     expect(service.project()?.exerciseName).toBe("Mouvement planche");
     expect(screen.getByTestId("execution-duration-countdown")).toHaveTextContent("02:00");
-    expect(screen.getByTestId("execution-duration-mention")).toHaveTextContent("Appuyez pour faire pause");
+    expect(screen.getByTestId("execution-duration-mention")).toHaveTextContent("Appuyer pour faire une pause");
     // Règle 8 : exercice en durée du tour qui n'est pas le dernier — « + Tour » inactif. [Suivant inactif — remplacé.]
     expect(screen.queryByTestId("execution-for-time-next")).toBeNull();
     expect(disabled("execution-plus-tour")).toBe(true);
