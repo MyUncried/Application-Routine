@@ -312,6 +312,12 @@ export class ExecutionSignalAdapter {
     // Recette du 10/11/2026 (a1) : « Bravo, séance terminée » après la fanfare, catégorie début et fin de séance.
     if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null, event: "SESSION_END" };
     if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null, event: "STOP_POINT" };
+    // Recette du 17/11/2026 (Hermann : « Quand on appuie sur pause dans le centre du cercle, on doit entendre le double bip (paramétrage partagé avec la pause) et un bip long (celui de la minute) lorsqu'on redémarre ») : reprise d'une durée retenue — le son choisi pour « Toutes les minutes », sinon un bip long (ce son joue même si la minute
+    // est réglée sur « Aucun », son réglage par défaut).
+    // Précision du 18/11/2026 (Hermann : « Normalement le son est le bip long de la minute, mais le réglage est celui du démarrage d'un
+    // exercice ») : bip long par défaut, réglage Son et Vibration de « Démarrage d'un exercice ». [Son choisi pour « Toutes les minutes »,
+    // joué même sur « Aucun » — remplacé.]
+    if (signal.kind === "RELEASE") return { cue: { sound: "BIP_LONG", volume: GUIDANCE.halfTime.volume, vibration: "LIGHT" }, announcement: null, event: "EXERCISE_START" };
     if (signal.phase === "INITIAL_COUNTDOWN") {
       // Nouvelle Exécution : rien n'est hérité de la précédente (recette du 10/11/2026, constat f).
       this.announcedNext = null;

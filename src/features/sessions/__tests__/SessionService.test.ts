@@ -47,7 +47,8 @@ class FakeSessionRepository implements SessionRepository, StructuredSessionRepos
   create = jest.fn<(input: CreateSessionInput) => Promise<Session>>();
   findById = jest.fn<(sessionId: string) => Promise<Session | null>>();
   findSessionStatus = jest.fn<(sessionId: string) => Promise<SessionStatus | null>>();
-  listActive = jest.fn<() => Promise<readonly SessionSummary[]>>();
+  // Recette du 17/11/2026 (nom de Séance unique) : création et modification lisent les Séances actives ; aucune par défaut.
+  listActive = jest.fn<() => Promise<readonly SessionSummary[]>>(async () => []);
   update =
     jest.fn<(sessionId: string, input: UpdateSessionInput) => Promise<UpdateSessionOutcome>>();
   createStructured = jest.fn<(input: StructuredSessionInput) => Promise<StructuredSession>>();

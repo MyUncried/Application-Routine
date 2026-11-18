@@ -150,6 +150,21 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(vibrate).toHaveBeenCalledWith("HEAVY");
   });
 
+  // Recette du 17/11/2026 (Hermann : « Quand on appuie sur pause dans le centre du cercle, on doit entendre le double bip […] et un bip long
+  // (celui de la minute) lorsqu'on redémarre ») : retenue = signal PAUSE (ci-dessus) ; reprise = son de la minute, sinon bip long.
+  // Précision du 18/11/2026 : « le son est le bip long de la minute, mais le réglage est celui du démarrage d'un exercice ».
+  it("reprise d'une durée retenue (For time) : bip long par défaut, réglage de « Démarrage d'un exercice »", () => {
+    const { adapter, play, beeps, said } = setup();
+    play({ kind: "RELEASE" });
+    expect(beeps).toEqual([["BIP_LONG", 0.6]]);
+    expect(said).toEqual([]);
+    adapter.setGuidance({ announcements: { ...ALL_ANNOUNCEMENTS }, events: { ...DEFAULT_GUIDANCE_EVENTS, EXERCISE_START: { sound: "NONE", vibration: true } } });
+    play({ kind: "RELEASE" });
+    adapter.setGuidance({ announcements: { ...ALL_ANNOUNCEMENTS }, events: { ...DEFAULT_GUIDANCE_EVENTS, EXERCISE_START: { sound: "DING", vibration: true } } });
+    play({ kind: "RELEASE" });
+    expect(beeps).toEqual([["BIP_LONG", 0.6], ["DING", 0.6]]);
+  });
+
   it("nouvelle Exécution : aucun bip au début du Compte à rebours, même après une étape chronométrée de la précédente", () => {
     const { play, beeps } = setup();
     play({ phase: "SESSION_END", exerciseName: null, timed: true });

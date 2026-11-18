@@ -1,5 +1,5 @@
-import { memo, type ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { memo, useEffect, useState, type ReactNode } from "react";
+import { Animated, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { hasSvg } from "@/features/execution/ExecutionTimerRing";
 import { RING } from "@/features/execution/timerRing";
@@ -10,8 +10,8 @@ import { RING } from "@/features/execution/timerRing";
  * reliés par une forme arrondie qui épouse la forme circulaire du cercle. Dans l'esprit Apple Watch. ») : cadre en coin,
  * en haut à gauche (répétitions) ou à droite (charge) du cercle. Le carré `SIZE` × `SIZE` est privé d'un disque concentrique
  * à l'anneau (`CLEARANCE` au-delà des repères) : bras horizontal en haut, bras vertical sur le côté, bord intérieur qui suit
- * le cercle ; tous les angles arrondis (contour de même couleur, jointures rondes). La valeur est centrée dans le bras
- * horizontal. Sans le module SVG natif : cadre rectangulaire, comme avant.
+ * le cercle ; tous les angles arrondis (contour de même couleur, jointures rondes). La valeur tient sur deux lignes calées
+ * contre l'angle extérieur (seconde recette du 17/11/2026). [Centrée dans le bras horizontal — remplacé.] Sans le module SVG natif : cadre rectangulaire, comme avant.
  */
 export const BADGE = {
   /** Côté du carré englobant (largeur du cadre rectangulaire précédent). */
@@ -63,14 +63,14 @@ export function ExecutionCornerBadge({
   vertical = "top",
   areaWidth,
   color = BADGE.color,
-  twoLines = false,
+  pulse = null,
   children,
 }: {
   /**
-   * Coin du haut, valeur sur deux lignes (Durée maximum du For time : durée, puis « max » ; recette du 14/11/2026), calée
-   * contre l'angle extérieur comme le compteur du bas.
+   * Troisième recette du 17/11/2026 (Hermann, autres remarques, d : « pendant le compte à rebours du For Time en durée (3 secondes), faire clignoter le triangle du compte à rebours à chaque seconde (vert actuel > vert plus foncé > vert actuel) ») : à chaque changement de `key` (seconde affichée), la forme passe à `color` puis revient (fondu aller-retour) ; `null` :
+   * aucun clignotement.
    */
-  readonly twoLines?: boolean;
+  readonly pulse?: { readonly key: number; readonly color: string } | null;
   /** Fond du coin (vert quand le compteur automatique atteint l'objectif, recette du 13/11/2026). */
   readonly color?: string;
   readonly side: "left" | "right";
@@ -91,6 +91,7 @@ export function ExecutionCornerBadge({
   if (path === null) {
     return (
       <View style={[styles.fallback, position, { backgroundColor: color }]}>
+        {pulse !== null ? <PulseLayer pulseKey={pulse.key} style={[StyleSheet.absoluteFill, { borderRadius: 12, backgroundColor: pulse.color }]} /> : null}
         {children}
       </View>
     );
@@ -98,9 +99,39 @@ export function ExecutionCornerBadge({
   return (
     <View style={[styles.corner, position]} pointerEvents="none">
       <CornerShape path={path} flipX={flipX} flipY={flipY} color={color} />
-      {/* Valeur décalée vers l’angle extérieur, où la forme est la plus épaisse. */}
-      <View style={[styles.value, flipX ? styles.valueRight : styles.valueLeft, flipY ? styles.valueBottom : twoLines ? styles.valueTopTwoLines : styles.valueTop]}>{children}</View>
+      {pulse !== null ? <CornerPulse pulseKey={pulse.key} path={path} flipX={flipX} flipY={flipY} color={pulse.color} /> : null}
+      {/* Seconde recette du 17/11/2026 (Hermann : « En bas et en haut à droite : sur deux lignes, alignées à droite ; en bas et en
+          haut à gauche : sur deux lignes, alignées à gauche ; lorsqu'il n'y a que la durée sans autre information, s'assurer du bon
+          positionnement (en bas sur la deuxième ligne, en haut sur la première ligne) ») : deux lignes calées contre l'angle
+          extérieur, en partant du haut (coins du haut) ou du bas (coins du bas). [Valeur centrée dans le bras horizontal, sauf
+          Durée maximum et compteur « mouv. » — remplacé.] */}
+      <View style={[styles.value, flipX ? styles.valueRight : styles.valueLeft, flipY ? styles.valueBottom : styles.valueTop]}>{children}</View>
     </View>
+  );
+}
+
+/** Couche plus foncée posée sur le coin, visible un instant à chaque seconde (aller-retour en 600 ms). */
+function PulseLayer({ pulseKey, style, children }: { pulseKey: number; style: StyleProp<ViewStyle>; children?: ReactNode }) {
+  const [opacity] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    opacity.setValue(0);
+    Animated.sequence([
+      Animated.timing(opacity, { toValue: 1, duration: 250, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 0, duration: 350, useNativeDriver: true }),
+    ]).start();
+  }, [pulseKey, opacity]);
+  return (
+    <Animated.View pointerEvents="none" style={[style, { opacity }]} testID="execution-corner-pulse">
+      {children}
+    </Animated.View>
+  );
+}
+
+function CornerPulse({ pulseKey, path, flipX, flipY, color }: { pulseKey: number; path: string; flipX: boolean; flipY: boolean; color: string }) {
+  return (
+    <PulseLayer pulseKey={pulseKey} style={StyleSheet.absoluteFill}>
+      <CornerShape path={path} flipX={flipX} flipY={flipY} color={color} />
+    </PulseLayer>
   );
 }
 
@@ -121,15 +152,13 @@ const CornerShape = memo(function CornerShape({ path, flipX, flipY, color }: { p
 
 const styles = StyleSheet.create({
   corner: { position: "absolute", width: BADGE.size, height: BADGE.size },
-  value: { position: "absolute", left: 0, right: 0, height: BADGE.arm, alignItems: "center", justifyContent: "center" },
-  valueLeft: { paddingLeft: 4, paddingRight: 16 },
-  valueRight: { paddingLeft: 16, paddingRight: 4 },
-  valueTop: { top: BADGE.round / 2 },
-  valueTopTwoLines: { top: 10, height: BADGE.arm + 10, alignItems: "flex-start", justifyContent: "flex-start", paddingLeft: 12 },
-  // Coin du bas : valeur sur deux lignes (compteur automatique, « 2 » au-dessus de « tours »).
-  // Recette du 13/11/2026 (Hermann : « Alignés à droite, assurer assez de marge entre le texte et le bas du cadre ») :
-  // valeur calée à droite, 12 au-dessus du bas du coin et 12 du bord droit.
-  valueBottom: { bottom: 12, height: BADGE.arm + 10, alignItems: "flex-end", paddingLeft: 4, paddingRight: 12 },
+  value: { position: "absolute", left: 0, right: 0, height: BADGE.arm + 10 },
+  valueLeft: { alignItems: "flex-start", paddingLeft: 12, paddingRight: 4 },
+  valueRight: { alignItems: "flex-end", paddingLeft: 4, paddingRight: 12 },
+  valueTop: { top: 10, justifyContent: "flex-start" },
+  // Recette du 13/11/2026 (Hermann : « Alignés à droite, assurer assez de marge entre le texte et le bas du cadre ») : 12 au-dessus
+  // du bas du coin et 12 du bord extérieur.
+  valueBottom: { bottom: 12, justifyContent: "flex-end" },
   fallback: {
     position: "absolute",
     height: BADGE.arm,

@@ -13,9 +13,9 @@
 import { phaseGuidanceAt, workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
 import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
-import { leafElapsedMs, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
+import { leafElapsedMs, leafStepRef, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
 import { guidedPhases, type ChildSpec, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
-import { activityCount, FOR_TIME_PILOT, type ForTimeLocal } from "./policies/forTime";
+import { activityCount, FOR_TIME_PILOT, isDurationLeaf, pendingDurationOf, roundKeyOf, type ForTimeLocal } from "./policies/forTime";
 
 export type TimerView =
   | { readonly kind: "COUNTDOWN"; readonly remainingMs: Ms; readonly totalMs: Ms; readonly elapsedMs: Ms }
@@ -74,6 +74,11 @@ export type UpcomingActivity = {
   /** Durée d'une étape chronométrée (compte à rebours) ; `null` sinon. */
   readonly timedMs: Ms | null;
   readonly after: NextView | null;
+  /**
+   * Partie d'un For time (recette du 17/11/2026, Hermann : « Pendant le compte à rebours initial, le contenu du cadre gris (séries /
+   * tours) doit être déjà préparé pour l'exercice suivant. dans ce cas "Buy In" doit être affiché ») ; `null` hors buy-in et buy-out.
+   */
+  readonly segment: "BUY_IN" | "BUY_OUT" | null;
 };
 
 export type Counters = {
@@ -99,6 +104,34 @@ export type FormatView = {
   readonly interrupted: { readonly name: string | null; readonly target: SeriesTarget | null; readonly mode: LeafSpec["mode"] | null } | null;
   /** Précision FT-15 (14/11/2026) : début de chaque étape en temps réalisé, et sa nature (segments de l'anneau). */
   readonly phaseStarts: readonly { readonly atMs: Ms; readonly kind: LeafSpec["kind"] }[];
+  /**
+   * Registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause » (16/11/2026) ; Formats §11.1 :
+   * exercice en durée du tour — à lancer après la Série en répétitions courante (`PENDING`), en cours (`RUNNING`) ou retenu
+   * (`HELD`) — avec son compte à rebours ; `null` sans exercice en durée à lancer ou en cours (écran standard).
+   */
+  readonly duration: {
+    readonly state: "PENDING" | "RUNNING" | "HELD";
+    readonly name: string | null;
+    readonly remainingMs: Ms;
+    readonly totalMs: Ms;
+  } | null;
+  /**
+   * Commande de droite (recette du 17/11/2026) : `NEXT` « Suivant » (buy-in, buy-out, exercice de la boucle avant le dernier du
+   * tour), `ROUND` « + Tour » (dernier exercice du tour), `SUCCESS` (dernier exercice du For time) ; et partie en cours.
+   * `null` hors travail (pause entre séries comprise : étape qui n'est pas un exercice).
+   *
+   * Mission du 17/11/2026 (Hermann, « Bouton de droite, par ordre de priorité ») : exercice en durée en cours (`duration`), le
+   * bouton est affiché inactif — Succès au dernier exercice, Suivant au buy-in et au buy-out, « + Tour » dans les tours ; au dernier
+   * exercice du dernier tour suivi d'un buy-out, « Suivant » compte le tour (`advance` `ROUND`).
+   */
+  readonly command: {
+    readonly kind: "NEXT" | "ROUND" | "SUCCESS";
+    readonly segment: "BUY_IN" | "ROUNDS" | "BUY_OUT";
+    /** Effet de l'appui : étape suivante (`NEXT`) ou tour compté (`ROUND`, « + Tour » et Succès compris). */
+    readonly advance: "NEXT" | "ROUND";
+    /** L'exercice en cours est un exercice en durée : bouton inactif (fin à son terme). */
+    readonly duration: boolean;
+  } | null;
 };
 
 export type ExecutionProjection = {
@@ -329,7 +362,7 @@ function previousCountersOf(plan: ExecutablePlan, state: EngineState): Counters 
     if (spec.kind !== "ACTIVITY") continue;
     const circuit = spec.context?.circuit ?? null;
     return {
-      series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+      series: seriesViewOf(spec),
       tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
       cycle: cycleOf(spec),
     };
@@ -351,7 +384,7 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
     const circuit = spec.context?.circuit ?? null;
     return {
       name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
-      series: spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+      series: seriesViewOf(spec),
       tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
       cycle: cycleOf(spec),
       sideRank: spec.sideRank ?? null,
@@ -360,6 +393,7 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
       loadKg: spec.loadKg ?? null,
       timedMs: spec.end === "TIMED" ? (spec.plannedMs ?? 0) : null,
       after: following === undefined || following.type !== "LEAF" || following.leaf.kind === "SESSION_END" ? null : nextViewOf(plan, following.leaf),
+      segment: BUY_IN_KEY.test(spec.key) ? "BUY_IN" : BUY_OUT_KEY.test(spec.key) ? "BUY_OUT" : null,
     };
   }
   return null;
@@ -404,7 +438,7 @@ function nextViewOf(plan: ExecutablePlan, spec: LeafSpec): NextView {
     plannedMs: spec.plannedMs,
     target: spec.target === undefined ? null : spec.target,
     mode: spec.mode ?? null,
-    series: spec.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+    series: spec.kind === "ACTIVITY" ? seriesViewOf(spec) : null,
     sideRank: spec.sideRank ?? null,
   };
 }
@@ -432,6 +466,51 @@ function outlineOf(plan: ExecutablePlan, state: EngineState): readonly OutlineIt
   });
 }
 
+/**
+ * Série affichée d'une étape. Recette du 17/11/2026 (Hermann, constat d : For time en alternance, « On devrait avoir :
+ * exercice 1 Tour 1 : Série 1/1 Tour 1/2 […] exercice 1 Tour 2 : Série 1/1 Tour 2/2 ») : un exercice de la boucle d'un For time
+ * en alternance fait une Série par tour. Les membres de tour d'un For time sont ceux dont le guidage est retiré
+ * (`phasesSilenced`, plan.ts) ; leur clé d'alternance est `…/circuit:<id>#<tour>/…`. [Série = numéro du tour — remplacé.]
+ */
+function seriesViewOf(spec: LeafSpec): { readonly current: number; readonly total: number } | null {
+  if (spec.series === undefined || spec.series === null || spec.seriesCount === undefined) return null;
+  if (spec.phasesSilenced === true && /\/circuit:[^/#]+#\d+\//.test(spec.key)) return { current: 1, total: 1 };
+  return { current: spec.series, total: spec.seriesCount };
+}
+
+/** Étapes du buy-in et du buy-out d'un Circuit For time (clés du développement D.1). */
+const BUY_IN_KEY = /\/circuit:[^/#]+#buy-in\//;
+const BUY_OUT_KEY = /\/circuit:[^/#]+#buy-out\//;
+
+/**
+ * Commande du For time en cours (recette du 17/11/2026, Hermann) : buy-in et buy-out, « le bouton "Suivant" classique, à la
+ * même taille que le bouton "+ Tour" » ; « "+ Tour" ne doit pas être actif tant qu'on n'arrive pas au dernier exercice du
+ * tour » ; « le bouton de succès pour le dernier exercice du For Time (en boucle ou en Buy-out) ».
+ */
+function forTimeCommandOf(config: ForTimeScopeConfig, index: number): FormatView["command"] {
+  const current = config.items[index];
+  if (current?.type !== "LEAF") return null;
+  const spec = current.leaf;
+  const segment = /\/circuit:[^/#]+#buy-in\//.test(spec.key) ? "BUY_IN" : /\/circuit:[^/#]+#buy-out\//.test(spec.key) ? "BUY_OUT" : "ROUNDS";
+  const round = roundKeyOf(spec);
+  let lastOfRound = true;
+  let nextActivity: LeafSpec | null = null;
+  for (let at = index + 1; at < config.items.length; at += 1) {
+    const item = config.items[at]!;
+    if (item.type !== "LEAF" || item.leaf.kind !== "ACTIVITY") continue;
+    nextActivity ??= item.leaf;
+    if (roundKeyOf(item.leaf) === round) lastOfRound = false;
+  }
+  const duration = isDurationLeaf(spec);
+  if (nextActivity === null) return { kind: "SUCCESS", segment, advance: "ROUND", duration };
+  if (segment !== "ROUNDS") return { kind: "NEXT", segment, advance: "NEXT", duration };
+  // Règle 8 : exercice en durée du tour qui n'est pas le dernier — « + Tour » inactif. [Suivant inactif — remplacé.]
+  if (duration) return { kind: "ROUND", segment, advance: "ROUND", duration };
+  // Règle 5, exception : dernier exercice du dernier tour, un buy-out suit — « Suivant » compte le tour et passe au buy-out.
+  if (lastOfRound && /\/circuit:[^/#]+#buy-out\//.test(nextActivity.key)) return { kind: "NEXT", segment, advance: "ROUND", duration };
+  return lastOfRound ? { kind: "ROUND", segment, advance: "ROUND", duration } : { kind: "NEXT", segment, advance: "NEXT", duration };
+}
+
 /** Élément For time en cours (portée la plus interne pilotée par `FOR_TIME`), `null` sinon. */
 function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatView | null {
   const frame = [...state.frames].reverse().find((candidate) => candidate.spec.pilot === FOR_TIME_PILOT);
@@ -450,6 +529,8 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
     completedActivities: local.doneActivities,
     totalActivities: activityCount(config),
     phaseStarts: local.phaseStarts ?? [],
+    duration: local.phase === "WORK" ? durationOf(plan, state, config, local, atMs) : null,
+    command: local.phase === "WORK" ? forTimeCommandOf(config, local.index) : null,
     interrupted:
       interruptedSpec === undefined
         ? null
@@ -459,6 +540,21 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
             mode: interruptedSpec.mode ?? null,
           },
   };
+}
+
+/** Exercice en durée du tour courant d'un For time (voir `FormatView.duration`). */
+function durationOf(plan: ExecutablePlan, state: EngineState, config: ForTimeScopeConfig, local: ForTimeLocal, atMs: Ms): FormatView["duration"] {
+  const spec = state.leaf?.spec ?? null;
+  if (spec === null) return null;
+  const nameOf = (leaf: LeafSpec) => (leaf.exerciseId === undefined ? null : (plan.exercises[leaf.exerciseId]?.name ?? null));
+  if (isDurationLeaf(spec)) {
+    const totalMs = spec.plannedMs ?? 0;
+    const held = leafStepRef(state)?.held === true;
+    return { state: held ? "HELD" : "RUNNING", name: nameOf(spec), remainingMs: Math.max(0, totalMs - leafElapsedMs(state, atMs)), totalMs };
+  }
+  const pending = pendingDurationOf(config, local.index);
+  if (pending === null) return null;
+  return { state: "PENDING", name: nameOf(pending), remainingMs: pending.plannedMs ?? 0, totalMs: pending.plannedMs ?? 0 };
 }
 
 function timerOf(state: EngineState, atMs: Ms, format: FormatView | null): TimerView {
@@ -509,7 +605,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     phase: spec?.kind ?? null,
     target: leaf === null ? null : leafTarget(leaf),
     exerciseName: spec?.exerciseId === undefined || spec === null ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
-    series: spec?.kind === "ACTIVITY" && spec.series !== undefined && spec.series !== null && spec.seriesCount !== undefined ? { current: spec.series, total: spec.seriesCount } : null,
+    series: spec?.kind === "ACTIVITY" ? seriesViewOf(spec) : null,
     tour: spec?.context?.circuit === null || spec?.context?.circuit === undefined ? null : { current: spec.context.circuit.tour, total: spec.context.circuit.count },
     cycle: spec === null ? null : cycleOf(spec),
     autoRepetitions: autoRepetitionsOf(plan, state, atMs),

@@ -114,6 +114,30 @@ export const executionStrings = {
   partialConfirm: "Terminer l’exercice",
   partialClose: "Revenir à la pause",
   partialNoSeries: "Aucune série en cours.",
+  // Registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause » (16/11/2026) ; Formats §11.1 ; Figma
+  // `8982:15849`, `12514:27223`, `12514:27329`, `11990:24925`.
+  plusTour: "+ Tour",
+  // Recette du 17/11/2026 (ft-barre) ; Figma « Zone — Buy-in ✓ » (`12512:27117`).
+  buyInBadge: "Buy-in ✓",
+  buyOutBadge: "Buy-out ✓",
+  plusTourSign: "+",
+  plusTourWord: "Tour",
+  partialHeldDuration: "Durée tenue",
+  /** Troisième recette du 17/11/2026 (Hermann, ftr3-modale-duree) : titre et lignes des trois modales d'arrêt du For time. */
+  forTimeStopTitle: "Arrêt du For Time",
+  stopObjective: "Objectif",
+  stopResult: "Résultat",
+  /** Objectif d'une série en répétitions : « 12 répétitions ». */
+  stopRepetitions: (count: number) => `${count} ${count > 1 ? "répétitions" : "répétition"}`,
+  /** Titre de la modale de l'Arrêt pendant une série en répétitions (seconde recette du 17/11/2026, Hermann). */
+  partialEnterResult: "Entrer votre résultat",
+  partialBackToExercise: "Revenir à l’exercice",
+  // Recette du 17/11/2026 (Hermann : « Corrige l'alignement du texte "Appuyer pour lancer" sur la première ligne ») : « Appuyez pour lancer »
+  // sur la première ligne, le nom de l'exercice sur la seconde. [« Appuyez » / « pour lancer <nom> » — remplacé.]
+  pressToLaunch: (name: string | null) => ["Appuyez pour lancer", name === null || name === "" ? "l’exercice" : name] as const,
+  pressToHold: ["Appuyez", "pour faire pause"] as const,
+  pressToRelease: ["Appuyez", "pour repartir"] as const,
+  pressEachRound: ["Appuyez", "à chaque tour terminé"] as const,
   closureCapReached: "Limite atteinte",
   closurePartial: (name: string | null) => (name === null || name === "" ? "Répétitions faites" : `Répétitions faites — ${name}`),
   validate: "Valider",

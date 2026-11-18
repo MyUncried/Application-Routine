@@ -264,7 +264,9 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
 
   // Règles de Hermann du 14/11/2026 (FT-3, FT-4) : buy-in et buy-out, nombre de séries libre — la ligne Séries revient ; la ligne
   // Pause reste retirée. [« sans Séries ni Pause » (y-format-cadres, 07/11/2026) — remplacé pour la ligne Séries.]
-  it("For time : Buy-in et Buy-out avec Séries, sans Pause ; Tour garde les deux (FT-4)", () => {
+  // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : • Pause après chaque série. […] ») : le Tour perd aussi
+  // la Pause. [« Tour garde les deux (FT-4) » — remplacé pour la Pause.]
+  it("For time : Buy-in, Buy-out et Tour avec Séries, sans Pause (FT-4 ; recette du 17/11/2026)", () => {
     const forTime = (current: CircuitRole) => ({
       role: { current, admitted: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[], available: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[] },
       inheritedCapText: f.noLimit,
@@ -275,7 +277,56 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
     screen.unmount();
     renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("TOUR"));
     expect(query("execution-sheet-row-series-type")).not.toBeNull();
-    expect(query("execution-sheet-row-pause")).not.toBeNull();
+    expect(query("execution-sheet-row-pause")).toBeNull();
+  });
+
+  /*
+   * Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : • Pause après chaque série. • Pause de changement de
+   * côté. […] • Récupération après un exercice. […] Les valeurs déjà saisies sont ignorées, sans être effacées ni modifiées »).
+   */
+  it.each([
+    ["autonome", { rows: ["timeCap", "stopTarget"] as FormatSheetRow[] }],
+    [
+      "membre en tour",
+      {
+        rows: ["role", "inheritedCap", "stopTarget"] as FormatSheetRow[],
+        role: { current: "TOUR" as CircuitRole, admitted: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[], available: ["BUY_IN", "TOUR", "BUY_OUT"] as CircuitRole[] },
+        inheritedCapText: f.noLimit,
+      },
+    ],
+  ])("For time %s : ni Pause, ni Pause entre les côtés, ni Récupération ; valeurs gardées au ✓", (_label, extra) => {
+    const onApply = jest.fn<(value: ExecutionParametersInput) => void>();
+    const onRecovery = jest.fn<(seconds: number) => void>();
+    const parent = params({
+      sideMode: "RIGHT_LEFT",
+      sideRecoverySeconds: 20,
+      series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 45, loadKg: 0, workPhases: [] },
+    });
+    render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={parent}
+          profileSideRecoverySecondsDefault={0}
+          recovery={{ seconds: 30, onApply: onRecovery }}
+          format={{ key: "FOR_TIME", settings: {}, onApply: jest.fn(), ...extra }}
+          onApply={onApply}
+          onCancel={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+    expect(query("execution-sheet-row-side")).not.toBeNull();
+    expect(query("execution-sheet-row-pause")).toBeNull();
+    expect(query("execution-sheet-row-side-recovery")).toBeNull();
+    expect(query("execution-sheet-recovery")).toBeNull();
+    validate();
+    expect(onRecovery).not.toHaveBeenCalled();
+    expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ sideRecoverySeconds: 20, series: expect.objectContaining({ pauseSeconds: 45 }) }));
+  });
+
+  it("AMRAP autonome (autre Format) : Pause entre les côtés et Récupération inchangées", () => {
+    renderWithRecovery("AMRAP", ["duration", "increment"], {}, params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 }));
+    expect(query("execution-sheet-row-side-recovery")).not.toBeNull();
+    expect(value("execution-sheet-recovery")).toBe(formatPhraseDuration(30));
   });
 
   it("EMOM, séries variables : tableau sans colonne Pause", () => {
@@ -349,5 +400,29 @@ describe("Recette du 08/11/2026 — message du dépassement EMOM sous le cadre S
     renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, { emom: { windowSeconds: null, othersWorkByRank: [] } }, variable([30, 70, 40]));
     expect(get("execution-sheet-format-emom-overflow").props.children).toBe(f.emomSeriesOverflow);
     expect([1, 2, 3].map((n) => red(`execution-sheet-table-row-${n}-target`))).toEqual([false, true, false]);
+  });
+});
+
+// Recette du 17/11/2026 (Hermann, autres remarques, a : « je suis capable de créer un for time avec deux exercices en durée si j'entre les
+// paramètres dans la composition de séance »).
+describe("For time — Durée refusée au dernier exercice de la boucle en Répétitions", () => {
+  it("Durée grisée et message court sous le cadre Exécution ; sans refus, Durée disponible et aucun message", () => {
+    renderSheet("FOR_TIME", ["role", "stopTarget"], {}, { durationRefused: true });
+    expect(get("execution-sheet-mode-control-DURATION").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(get("execution-sheet-duration-refused")).toHaveTextContent("Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.");
+    screen.unmount();
+    renderSheet("FOR_TIME", ["role", "stopTarget"], {});
+    expect(get("execution-sheet-mode-control-DURATION").props.accessibilityState).toMatchObject({ disabled: false });
+    expect(query("execution-sheet-duration-refused")).toBeNull();
+  });
+
+  it("boucle déjà sans Répétitions (séance antérieure) : erreur en rouge, ✓ refusé ; Répétitions choisi : erreur levée, Durée grisée", () => {
+    renderSheet("FOR_TIME", ["role", "stopTarget"], {}, { durationRefused: true }, params({ mode: "DURATION", series: { kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 10 }, pauseSeconds: 0, loadKg: 0, workPhases: [] } } as never));
+    expect(get("execution-sheet-loop-without-repetitions")).toHaveTextContent("Au moins un exercice de la boucle doit être en répétitions : choisissez Répétitions.");
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(get("execution-sheet-mode-control-REPETITIONS"));
+    expect(query("execution-sheet-loop-without-repetitions")).toBeNull();
+    expect(get("execution-sheet-duration-refused")).toBeTruthy();
+    expect(get("execution-sheet-mode-control-DURATION").props.accessibilityState).toMatchObject({ disabled: true });
   });
 });

@@ -271,6 +271,29 @@ export function isLayoutStopPointAllowed(analysis: LayoutStopPointAnalysis, poin
   return before > 0 && total - before > 0;
 }
 
+/**
+ * Recette du 17/11/2026 (Hermann, constat b : « on ne doit pas pouvoir mettre de point d'arrêt dans un circuit For Time »),
+ * dans la ligne de D4 (conception du moteur, 02/11/2026 : Point d'arrêt « refusé à l'intérieur d'un élément à fenêtre ou à
+ * échéance ») : l'emplacement est-il à l'intérieur d'un Circuit For time (buy-in et buy-out compris, membres du Circuit) ?
+ * Aucun Point ne peut y être ajouté ni déposé ; un Point déjà présent n'est pas retiré (rien n'est migré). Les emplacements
+ * avant et après le Circuit (niveau Séance ou Cycle) restent ouverts.
+ */
+export function isInsideForTimeCircuit(layout: LayoutElements, point: StructureStopPointLocation): boolean {
+  const container = stopPointContainerOf(point);
+  if (container === null || container.kind !== "CIRCUIT") return false;
+  for (const element of layout.elements) {
+    const circuits =
+      element.kind === "CIRCUIT"
+        ? [element.circuit]
+        : element.kind === "CYCLE"
+          ? element.cycle.members.flatMap((member) => (member.kind === "CIRCUIT" ? [member.circuit] : []))
+          : [];
+    const circuit = circuits.find((candidate) => candidate.id === container.id);
+    if (circuit !== undefined) return circuit.format?.key === "FOR_TIME";
+  }
+  return false;
+}
+
 /** Points rangés dans l'ordre de la séquence (emplacements inconnus écartés ; même emplacement : ordre d'entrée). */
 function orderedPoints<P extends StructureStopPointLocation>(
   analysis: LayoutStopPointAnalysis,
@@ -575,7 +598,7 @@ export function judgeLayoutStopPointMove<P extends LayoutStopPoint>(
   const point = state.layout.stopPoints.find((candidate) => layoutStopPointId(candidate) === stopPointId);
   if (point === undefined) return null;
   const analysis = analyzeLayoutStopPoints(state.layout, state.isSeparator);
-  if (!isLayoutStopPointAllowed(analysis, target)) {
+  if (!isLayoutStopPointAllowed(analysis, target) || isInsideForTimeCircuit(state.layout, target)) {
     return { status: "REFUSED", reason: "STOP_POINT_NOT_ALLOWED", stopPointIds: [stopPointId] };
   }
   const occupant = state.layout.stopPoints.find((candidate) => candidate !== point && samePoint(candidate, target));

@@ -1671,6 +1671,48 @@
       "note": "PRE-11, correction 3 du 14/11/2026 : export MCP Figma en lecture seule."
     },
     {
+      "key": "execution.forTime.pauseDisabled",
+      "file": "execution-pause-desactive",
+      "figmaNodeId": "8982:15852",
+      "figmaName": "Mettre en pause — désactivé",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "8982:15849",
+      "width": 49,
+      "height": 49,
+      "usage": [
+        "Exécution For time — Pause désactivée (48)"
+      ],
+      "note": "Registre ch07, 16/11/2026 (« désactiver le bouton pause ») : export MCP Figma en lecture seule."
+    },
+    {
+      "key": "execution.forTime.next72",
+      "file": "execution-suivant-72",
+      "figmaNodeId": "12556:29192",
+      "figmaName": "Dérivé de « DSF / Actions / Bouton Suivant — série suivante (72) » et de « Mettre en pause »",
+      "figmaStatus": "DERIVED_DRAWING",
+      "sourceComponentNodeId": "11990:24925",
+      "width": 72,
+      "height": 72,
+      "usage": [
+        "Exécution For time — Suivant du buy-in, du buy-out et des exercices de la boucle avant le dernier du tour (72)"
+      ],
+      "note": "Recette du 17/11/2026 (ft-buyin : « remplacer le bouton \"+Tour\" par le bouton \"Suivant\" classique, à la même taille que le bouton \"+ Tour\" ») ; seconde recette du 17/11/2026 (ftr-mention : « IL doit être fond bleu, symbole blanc, respecter l'épaisseur des traits (cf. bouton pause) ») : disque bleu plein, traits blancs de 6. [Export Figma, fond blanc et contour bleu — remplacé.]"
+    },
+    {
+      "key": "execution.forTime.next72Inactive",
+      "file": "execution-suivant-72-inactif",
+      "figmaNodeId": "12556:29192",
+      "figmaName": "Dérivé de « DSF / Actions / Bouton Suivant — série suivante (72) » et de « Bouton + Tour — Désactivé »",
+      "figmaStatus": "DERIVED_DRAWING",
+      "sourceComponentNodeId": "12548:29211",
+      "width": 72,
+      "height": 72,
+      "usage": [
+        "Exécution For time — Suivant inactif pendant un exercice en durée du buy-in ou du buy-out (72)"
+      ],
+      "note": "Mission du 17/11/2026 (ftr-suivant-boucle, règle 4 : « Buy-in ou buy-out en durée : Suivant inactif ») : fond blanc, contour et symbole #B4B9C4."
+    },
+    {
       "key": "execution.forTime.resetInactive",
       "file": "execution-reinitialiser-inactif",
       "figmaNodeId": "8982:15859",

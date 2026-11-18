@@ -44,6 +44,11 @@ export type FormatSheetContext = {
   readonly settings: FormatSettings;
   /** Rôle dans le circuit : admis par le Format, disponibles (dernier membre de la boucle : Tour seul). */
   readonly role?: { readonly current: CircuitRole; readonly admitted: readonly CircuitRole[]; readonly available: readonly CircuitRole[] };
+  /**
+   * For time : la Durée est refusée à cet Exercice (dernier de la boucle en Répétitions, ou For time autonome) — option grisée et message
+   * court sous le cadre Exécution (`forTimeDurationRefused`, recette du 17/11/2026).
+   */
+  readonly durationRefused?: boolean;
   /** For time membre : borne héritée du Circuit, affichée grisée (« Sans limite », « ≤ 15 min »). */
   readonly inheritedCapText?: string;
   /**

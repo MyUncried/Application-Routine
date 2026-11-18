@@ -62,9 +62,10 @@ export type SignalObjective = { readonly mode: ExecutionMode | null; readonly ta
 export type ExecutionSignal = {
   /**
    * `FINISH` : achèvement normal de la Séance (fin de la Fin de séance), son d'arrivée (recette du 10/11/2026, G10).
-   * `PAUSE` : Pause demandée par l'utilisateur (recette du 10/11/2026, constat a).
+   * `PAUSE` : Pause demandée par l'utilisateur (recette du 10/11/2026, constat a), ou durée retenue d'un For time (appui dans le cercle).
+   * `RELEASE` : durée d'un For time reprise par l'appui dans le cercle (Recette du 17/11/2026 (Hermann : « Quand on appuie sur pause dans le centre du cercle, on doit entendre le double bip (paramétrage partagé avec la pause) et un bip long (celui de la minute) lorsqu'on redémarre »)).
    */
-  readonly kind: SignalKind | "FINISH" | "PAUSE";
+  readonly kind: SignalKind | "FINISH" | "PAUSE" | "RELEASE";
   readonly atMs: number;
   readonly phase: LeafKind | null;
   readonly exerciseName: string | null;
@@ -430,6 +431,7 @@ export class ExecutionService {
     for (const effect of result.effects) {
       if (effect.type === "FINISHED" && effect.reason === "COMPLETED" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "FINISH", atMs: effect.atMs });
       if (effect.type === "PAUSED" && effect.reason === "USER" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: "PAUSE", atMs: effect.atMs });
+      if (effect.type === "HELD" && now - effect.atMs <= SIGNAL_FRESHNESS_MS) this.emitSignal({ kind: effect.held ? "PAUSE" : "RELEASE", atMs: effect.atMs });
     }
     this.cancelStaleAhead();
     if (this.lastSignalCheckMs !== null) this.scheduleAhead(now);
@@ -437,11 +439,11 @@ export class ExecutionService {
     this.notify();
   }
 
-  private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }) {
+  private emitSignal(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE" | "RELEASE"; readonly atMs: number }) {
     this.deps.onSignal?.(this.signalOf(signal));
   }
 
-  private signalOf(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE"; readonly atMs: number }): ExecutionSignal {
+  private signalOf(signal: PlannedSignal | { readonly kind: "FINISH" | "PAUSE" | "RELEASE"; readonly atMs: number }): ExecutionSignal {
     const projection = this.project(signal.atMs);
     return {
       kind: signal.kind,

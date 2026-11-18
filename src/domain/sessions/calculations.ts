@@ -75,7 +75,7 @@ export const AMRAP_INITIAL_DURATION_SECONDS = 12 * 60;
  * - EMOM : N séries × Intervalle, puis sa récupération (« À la suite » : 6 + 1 + 6 = 13 min) ;
  * - Death by : jusqu'à l'échec, borne minimale « ≥ » (sa récupération seule est connue) ;
  * - For time : temps mesuré à l'exécution, borne minimale « ≥ » ; la cadence facultative n'entre
- *   dans aucun calcul de durée, même estimée (§3).
+ *   dans aucun calcul de durée, même estimée (§3) ; sa récupération non plus (recette du 17/11/2026).
  * Les membres d'un Circuit porteur ne comptent pas individuellement : la durée est celle du Circuit
  * (`carrierCircuitDuration`).
  *
@@ -98,8 +98,12 @@ export function progressiveFormatDuration(activity: ActivityDurationFacts): Exer
       return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
     }
     case "DEATH_BY":
-    case "FOR_TIME":
       return { kind: "lowerBound", knownSeconds: recovery, seconds: recovery, events: [] };
+    case "FOR_TIME":
+      // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Récupération après un exercice. […] Le temps total
+      // est donc la somme des temps de travail, sans durée de repos ajoutée. ») : la Récupération enregistrée n'entre pas dans la borne.
+      // [Borne « ≥ » égale à la Récupération de l'Exercice — remplacé.]
+      return { kind: "lowerBound", knownSeconds: 0, seconds: 0, events: [] };
     case "EMOM": {
       // FMT-21 : chaque Exercice EMOM occupe ses N fenêtres de W (N : ses séries, §10).
       const window = intervalSeconds(format);

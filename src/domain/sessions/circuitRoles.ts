@@ -89,6 +89,28 @@ export function isLastRepetitionsMember(draft: Pick<SessionDraft, "exercises">, 
 }
 
 /**
+ * Recette du 17/11/2026 (Hermann, autres remarques, a : « je suis capable de créer un for time avec deux exercices en durée si j'entre les paramètres dans la composition de séance. Par contre le démarrage de la est bloqué ») ; règle du 05/11/2026 (n-charge-colonne : « Pour le seul exercice restant en Répétitions, l'option Durée est désactivée, avec un message court ») et du 16/11/2026 (mp-duree-refusee : « Il faut au moins un exercice en répétition sur les exercices en boucle ») : la Durée est refusée dans la modale de l'Exercice (Composition comme écran du Format) au seul Exercice de la boucle encore en
+ * Répétitions, même seul membre du Circuit (`isLastRepetitionsMember` exige deux membres, pour la suppression). Un exercice For time hors
+ * Circuit n'est pas concerné : à l'écran du Format, un buy-in seul admet Répétitions et Durée (recette du 15/11/2026), la boucle venant ensuite.
+ */
+//
+// Recette du 17/11/2026 (Hermann, captures de « For time a changer » : « le problème de vérification du mode d'exécution n'est pas réglé. C'est au niveau de la composition de séance que le problème se pose ») : la règle vaut aussi pour une séance déjà enregistrée sans Répétitions dans la boucle — l'Exercice de la boucle en Durée
+// est alors concerné (aucun autre membre de la boucle en Répétitions), la modale signale l'erreur et refuse le ✓ tant que Répétitions
+// n'est pas choisi. [Seul l'Exercice encore en Répétitions — remplacé.]
+export function forTimeDurationRefused(draft: Pick<SessionDraft, "exercises">, layout: LayoutLike | undefined, exerciseId: string): boolean {
+  const exercise = exerciseById(draft, exerciseId);
+  if (exercise === undefined || exercise.format?.key !== "FOR_TIME") return false;
+  const circuit = circuitOf(layout, exerciseId);
+  if (circuit === undefined || circuit.format?.key !== "FOR_TIME") return false;
+  const roles = memberRoles(draft, circuit);
+  const index = circuit.exercises.indexOf(exerciseId);
+  if (roles[index] !== "TOUR") return false;
+  return circuit.exercises.every(
+    (id, at) => id === exerciseId || roles[at] !== "TOUR" || (exerciseById(draft, id)?.executionParameters.mode ?? "REPETITIONS") !== "REPETITIONS",
+  );
+}
+
+/**
  * Garde de suppression ou de sortie d'un membre (voir `isLastTourMember`, `isLastRepetitionsMember`). Réponse de
  * Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : `MEMBER_MINIMUM` —
  * membre d'un Superset à deux (`exitBreaksMemberMinimum`).

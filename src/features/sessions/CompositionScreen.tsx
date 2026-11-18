@@ -202,6 +202,7 @@ import {
 } from "@/features/sessions/layoutDragShifts";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { sessionNamePromptShown } from "@/domain/sessions/sessionNaming";
+import { canonicalSessionNameKey } from "@/domain/sessions/validation";
 import {
   StickyHeaderFrame,
   StickyScrollContext,
@@ -1318,7 +1319,29 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // entre la saisie et l'enregistrement (`DuplicateMovementNameError`, écriture concurrente),
   // signalé pour ce qu'il est. Deux créations du brouillon de même nom sont empêchées plus tôt, par
   // le contrôle pendant la saisie et par la validation (`DUPLICATE`).
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "error" | "nameTaken">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "error" | "nameTaken" | "sessionNameTaken">("idle");
+  // Recette du 17/11/2026 (Hermann : « le nom d'une séance doit être unique ») : clé du dernier nom trouvé déjà porté par
+  // une autre Séance active, pendant la saisie ou à l'enregistrement ; le message suit le nom tant qu'il n'a pas changé.
+  const [takenSessionNameKey, setTakenSessionNameKey] = useState<string | null>(null);
+  const draftNameKey = canonicalSessionNameKey(draft.name);
+  const sessionNameTaken = takenSessionNameKey !== null && takenSessionNameKey === draftNameKey;
+  const editedSessionId = draft.sourceSessionId ?? null;
+  useEffect(() => {
+    if (sessionService === null || sessionService === undefined || typeof sessionService.isSessionNameTaken !== "function") return;
+    if (draftNameKey === "") return;
+    let current = true;
+    sessionService
+      .isSessionNameTaken(draft.name, editedSessionId)
+      .then((taken) => {
+        if (current && taken) setTakenSessionNameKey(draftNameKey);
+      })
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+    // `draft.name` n'est relu que lorsque sa clé change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftNameKey, editedSessionId, sessionService]);
   const isSavingRef = useRef(false);
   // Enregistrement réussi : la garde de sortie est levée avant la fermeture (effet ci-dessous),
   // pour que `dismissTo` ne soit jamais intercepté comme un abandon.
@@ -1397,12 +1420,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         throw new Error("SessionService indisponible.");
       }
       const sourceSessionId = draft.sourceSessionId ?? null;
-      const saved =
+      const outcome =
         sourceSessionId !== null
-          ? (await sessionService.updateSession(sourceSessionId, draft)).status === "UPDATED"
-          : (await sessionService.createSession(draft)).ok;
+          ? await sessionService.updateSession(sourceSessionId, draft)
+          : await sessionService.createSession(draft);
+      const saved = "ok" in outcome ? outcome.ok : outcome.status === "UPDATED";
       if (!saved) {
         isSavingRef.current = false;
+        const violations = "violations" in outcome ? outcome.violations : [];
+        if (violations.some((violation) => violation.code === "DUPLICATE" && violation.field === "session.name")) {
+          setTakenSessionNameKey(canonicalSessionNameKey(draft.name));
+          setSaveState("sessionNameTaken");
+          return;
+        }
         setSaveState("error");
         return;
       }
@@ -2219,19 +2249,28 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
   // Décisions de Hermann du 07/11/2026 (EMOM), C12 : contrôle EMOM (travail prévu ≥ intervalle, rang par rang) aussi après toute modification faite dans la
   // Composition — cartes en rouge, message, enregistrement indisponible. Seule la raison EMOM_DURATION est retenue ici.
-  const emomOverflowIds = useMemo(() => {
+  // Recette du 17/11/2026 (Hermann, captures de « For time a changer », créé après le rechargement : « le problème de vérification du mode d'exécution n'est pas réglé. C'est au niveau de la composition de séance que le problème se pose ») : même contrôle pour un For time dont la boucle n'a plus aucun exercice en Répétitions (`NO_REPETITIONS` ; l'ajout d'un
+  // mouvement, sa Durée par défaut, ne passe pas par la modale) — exercices de la boucle en rouge, message, enregistrement indisponible.
+  const { emomOverflowIds, forTimeNoRepetitions } = useMemo(() => {
     const ids = new Set<string>();
-    if (richLayout === null) return ids;
+    let noRepetitions = false;
+    if (richLayout === null) return { emomOverflowIds: ids, forTimeNoRepetitions: noRepetitions };
     const validity = configurationValidity(richLayout);
-    if (validity.status === "valid") return ids;
+    if (validity.status === "valid") return { emomOverflowIds: ids, forTimeNoRepetitions: noRepetitions };
     const circuits = structureCircuits(richLayout);
     for (const issue of validity.issues) {
-      if (issue.reason !== "EMOM_DURATION" || issue.elementId === null) continue;
+      if ((issue.reason !== "EMOM_DURATION" && issue.reason !== "NO_REPETITIONS") || issue.elementId === null) continue;
       const circuit = circuits.find((item) => item.id === issue.elementId);
-      if (circuit === undefined) ids.add(issue.elementId);
+      if (issue.reason === "NO_REPETITIONS") {
+        noRepetitions = true;
+        // Exercices de la boucle (Rôle Tour), ceux qu'il faut repasser en Répétitions.
+        circuit?.exercises.forEach((member, index) => {
+          if (circuitRoleOf(member.format, index) === "TOUR") ids.add(member.id);
+        });
+      } else if (circuit === undefined) ids.add(issue.elementId);
       else for (const member of circuit.exercises) ids.add(member.id);
     }
-    return ids;
+    return { emomOverflowIds: ids, forTimeNoRepetitions: noRepetitions };
   }, [richLayout]);
   const occurrenceCircuitContext: OccurrenceCircuitContext = {
     circuitNature: draft.circuitNature,
@@ -4826,6 +4865,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       onChangeName={(text) => updateDraft({ name: text })}
       onNameFocus={closeOverlay}
       namePrompt={sessionNamePromptShown(draft.exercises)}
+      nameError={sessionNameTaken && !readOnly ? composition.sessionNameTaken : null}
       sessionLabel={sessionLabel}
       sessionColor={sessionColor}
       onOpenLabelPicker={() => {
@@ -5582,16 +5622,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             testID="composition-envelope-bar"
           />
         ) : null}
-        {placement === null && emomOverflowIds.size > 0 ? (
+        {placement === null && forTimeNoRepetitions ? (
+          <Text style={styles.saveErrorText} accessibilityRole="alert" testID="composition-for-time-no-repetitions">
+            {composition.forTimeNoRepetitions}
+          </Text>
+        ) : placement === null && emomOverflowIds.size > 0 ? (
           // Décisions de Hermann du 07/11/2026 (EMOM), C12 : message du contrôle EMOM (bloquant).
           <Text style={styles.saveErrorText} accessibilityRole="alert" testID="composition-emom-overflow">
             {/* [Texte générique de la feuille (« La durée atteint ou dépasse l’intervalle… ») — remplacé le 08/11/2026 (y-rouge).] */}
             {composition.emomOverflow}
           </Text>
         ) : null}
-        {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
+        {placement === null && (saveState === "error" || saveState === "nameTaken" || (saveState === "sessionNameTaken" && sessionNameTaken)) ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
-            {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
+            {saveState === "nameTaken" ? composition.nameTakenError : saveState === "sessionNameTaken" ? composition.sessionNameTaken : composition.saveError}
           </Text>
         ) : null}
         {readOnly ? (

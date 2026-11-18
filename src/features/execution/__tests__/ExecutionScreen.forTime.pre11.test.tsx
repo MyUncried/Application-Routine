@@ -134,11 +134,12 @@ describe("PRE-11 T1 — For time à l'écran", () => {
     });
     // Borne dans le coin du haut à gauche ; l'objectif de la Série passe dans le cercle.
     expect(screen.getByTestId("execution-cap")).toBeTruthy();
-    // Recette du 14/11/2026 : durée sur la ligne du haut, « max » sur celle du bas ; 15/11/2026 (ft-k8) : format des durées.
-    expect(screen.getByTestId("execution-cap-value").props.children).toBe("1′00″");
-    expect(screen.getByTestId("execution-cap")).toHaveTextContent("1′00″max");
-    // Recette du 15/11/2026 (g3) : l'objectif passe dans le coin du bas à droite.
-    expect(screen.getByTestId("execution-objective")).toHaveTextContent("21 rép.");
+    // Recette du 14/11/2026 : durée sur la ligne du haut, « max » sur celle du bas ; seconde recette du 17/11/2026 (« utiliser le format
+    // 00:00 pour toutes les durées »). [« 1′00″ » (ft-k8) — remplacé.]
+    expect(screen.getByTestId("execution-cap-value").props.children).toBe("01:00");
+    expect(screen.getByTestId("execution-cap")).toHaveTextContent("01:00max");
+    // Recette du 15/11/2026 (g3) : l'objectif passe dans le coin du bas à droite ; seconde recette du 17/11/2026 : sur deux lignes.
+    expect(screen.getByTestId("execution-objective")).toHaveTextContent("21rép.");
     let badge = screen.getByTestId("execution-objective").parent;
     while (badge !== null && badge.props.side === undefined) badge = badge.parent;
     expect(badge?.props).toMatchObject({ side: "right", vertical: "bottom" });
@@ -146,13 +147,22 @@ describe("PRE-11 T1 — For time à l'écran", () => {
     // Grand chrono : temps réalisé de l'élément, anneau jusqu'à la borne.
     expect(service.project()?.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 20 * S, nominalMs: 60 * S });
     // Correction 3 : le ✓ valide la Série sans saisie. [« Suivant » — remplacé pour le For time.]
-    await press("execution-validate"); // S1 en 20 s
+    // 16/11/2026 : « + Tour » remplace le ✓ ; For time d'un seul exercice : un tour = une Série. [✓ — remplacé.]
+    await press("execution-plus-tour"); // S1 en 20 s
     await at(60); // borne pendant S2
     expect(screen.getByTestId("execution-closure")).toBeTruthy();
-    expect(screen.getByTestId("execution-closure-time").props.children.join("")).toContain("Limite atteinte");
+    // Recette du 18/11/2026 (Hermann : « Je ne veux pas de cet écran résultat à la fin ») : l'écran reste sur l'exercice.
+    expect(screen.getByTestId("execution-title")).not.toHaveTextContent("Résultat");
+    // Troisième recette du 17/11/2026 (ftr3-modale-duree) : « Arrêt du For Time », Valider seul, Objectif, roulette. [Rappel « Limite
+    // atteinte · durée » — remplacé.]
+    expect(screen.getByTestId("execution-closure-title")).toHaveTextContent("Arrêt du For Time");
+    expect(screen.queryByTestId("execution-closure-cancel")).toBeNull();
+    expect(screen.getByTestId("execution-closure-target")).toHaveTextContent("Objectif21 répétitions");
     await press("execution-closure-value-12");
     await press("execution-closure-validate");
     expect(screen.queryByTestId("execution-closure")).toBeNull();
+    // Recette du 18/11/2026 : l'écran figé se libère à la validation ; l'élément suivant de la séance démarre.
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement B");
     const results = await repository.listResults("exec-ft");
     const element = results.find((change) => change.type === "SCOPE" && (change.result as { format?: string }).format === "FOR_TIME");
     expect(element?.result as ForTimeResult).toMatchObject({ measuredMs: 60 * S, capReached: true, completedActivities: 1, partialRepetitions: 12 });
@@ -177,84 +187,118 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
   const disabled = (testID: string) => screen.getByTestId(testID).props.accessibilityState?.disabled === true;
 
   // Recette du 14/11/2026 (Hermann : « supprimer cette fenêtre résultat, passer directement à la pause »). [Temps final affiché 3 s — remplacé.]
-  it("(3a, 4b) en cours : Réinitialiser inerte ; le ✓ enchaîne sans modale, pause comprise ; à la fin, passage direct à la pause", async () => {
+  // Registre ch07 (16/11/2026) : Arrêt rouge à la place de Réinitialiser, Pause désactivée, « + Tour » à la place du ✓.
+  // [Réinitialiser inerte, Pause 56, ✓ (correction 3) — remplacés.]
+  // Seconde recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time » ; « aucun texte dans les autres cas ») : la série 2
+  // aussitôt, sans pause ; après le For time, l'exercice suivant aussitôt ; aucune mention dans le cercle. [Pause entre les séries et
+  // après le For time, « Appuyez à chaque tour terminé » — remplacés.]
+  it("(3a, 4b) en cours : Arrêt rouge, Pause désactivée ; « + Tour » enchaîne sans modale ni pause ; à la fin, exercice suivant aussitôt", async () => {
     const { at, service } = await started();
-    expect(disabled("execution-reset")).toBe(true);
+    expect(screen.queryByTestId("execution-reset")).toBeNull();
+    expect(disabled("execution-stop")).toBe(false);
+    expect(disabled("execution-pause")).toBe(true);
+    expect(screen.queryByTestId("execution-validate")).toBeNull();
     expect(screen.queryByTestId("execution-next-command")).toBeNull();
-    await press("execution-reset");
-    expect(screen.queryByTestId("execution-dialog-title")).toBeNull();
+    await press("execution-pause");
+    expect(service.project()?.status).toBe("RUNNING");
+    expect(screen.queryByTestId("execution-duration-mention")).toBeNull();
+    expect(disabled("execution-plus-tour")).toBe(false);
     await at(15);
-    await press("execution-validate"); // S1
-    expect(service.project()?.phase).toBe("SERIES_PAUSE");
+    await press("execution-plus-tour"); // S1
     expect(screen.queryByTestId("execution-closure")).toBeNull();
-    await press("execution-validate"); // pause passée
-    expect(service.project()).toMatchObject({ phase: "ACTIVITY", format: { completedActivities: 1 } });
+    expect(service.project()).toMatchObject({ phase: "ACTIVITY", series: { current: 2 }, format: { completedActivities: 1 } });
     await at(30);
+    // Recette du 17/11/2026 (ft-sans-duree) : à la dernière série, la coche Succès remplace « + Tour ».
+    expect(screen.queryByTestId("execution-plus-tour")).toBeNull();
     await press("execution-validate"); // S2 : fin du For time
     expect(screen.queryByTestId("execution-closure")).toBeNull();
-    // Aucun écran de résultat : la pause qui suit l’exercice (hors For time), puis B.
+    // Aucun écran de résultat ; B aussitôt.
     expect(screen.queryByTestId("execution-final-time")).toBeNull();
-    expect(service.project()?.phase).toBe("SERIES_PAUSE");
-    expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    await at(51);
     expect(service.project()?.exerciseName).toBe("Mouvement B");
   });
 
-  it("(3b) Pause puis Redémarrer : la durée de pause ne compte pas ; en Pause, le ✓ est inactif", async () => {
+  // Registre ch07 (16/11/2026, Hermann : « Le chrono continue ») : l'arrière-plan ne met pas le For time en Pause. Une Pause
+  // venue d'ailleurs (reprise sans continuité) garde Arrêt et Redémarrer, « + Tour » désactivé. [(3b) Pause puis Redémarrer, ✓
+  // inactif en Pause — remplacé.]
+  it("(3b) arrière-plan : pas de Pause, le chrono a compté l'absence ; une Pause de reprise garde Arrêt, Redémarrer, + Tour inactif", async () => {
     const { at, service } = await started();
     await at(10);
-    await press("execution-pause");
-    expect(disabled("execution-validate")).toBe(true);
-    expect(screen.getByTestId("execution-stop")).toBeTruthy();
-    expect(screen.getByTestId("execution-resume")).toBeTruthy();
+    await act(async () => {
+      appStateListener?.("background");
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+    expect(service.project()?.status).toBe("RUNNING");
     await at(70);
+    await act(async () => {
+      appStateListener?.("active");
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+    expect(service.project()?.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 70 * S, nominalMs: null });
+    await act(async () => {
+      await service.dispatch({ type: "PAUSE", reason: "USER" });
+    });
+    expect(disabled("execution-plus-tour")).toBe(true);
+    expect(screen.getByTestId("execution-stop")).toBeTruthy();
     await press("execution-resume");
     await at(75);
-    expect(service.project()?.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 15 * S, nominalMs: null });
-    expect(disabled("execution-validate")).toBe(false);
+    expect(service.project()?.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 75 * S, nominalMs: null });
+    expect(disabled("execution-plus-tour")).toBe(false);
   });
 
-  it("(3c, 4c) Arrêt en série : « Répétitions partielles » ; la croix revient en Pause ; confirmé, séance arrêtée avec la saisie", async () => {
-    const { at, repository } = await started();
+  // Registre ch07 (16/11/2026) : l'Arrêt ouvre la modale sans Pause, « le chrono continue derrière la modale ».
+  it("(3c, 4c) Arrêt en série : « Répétitions partielles » sans Pause ; la croix revient à l'exercice ; confirmé, séance arrêtée avec la saisie", async () => {
+    const { at, repository, service } = await started();
     await at(12);
-    await press("execution-pause");
     await press("execution-stop");
     expect(screen.getByTestId("execution-partial")).toBeTruthy();
-    await press("execution-partial-close");
+    expect(service.project()?.status).toBe("RUNNING");
+    // Troisième recette du 17/11/2026 (ftr3-modale-duree) : « Arrêt du For Time », Annuler et Valider, Objectif, demi-roulette.
+    // [« Entrer votre résultat » (seconde recette) — remplacé.]
+    expect(screen.getByTestId("execution-partial-cancel").props.accessibilityLabel).toBe("Revenir à l’exercice");
+    expect(screen.getByTestId("execution-partial-title")).toHaveTextContent("Arrêt du For Time");
+    expect(screen.getByTestId("execution-partial-target")).toHaveTextContent("Objectif10 répétitions");
+    await press("execution-partial-cancel");
     expect(screen.queryByTestId("execution-partial")).toBeNull();
-    expect(screen.getByTestId("execution-resume")).toBeTruthy();
+    expect(service.project()?.status).toBe("RUNNING");
     await press("execution-stop");
     // Recette du 15/11/2026 (k5 : « Mettre la Valeur limite à 99 ») : jusqu'à 99, quelle que soit la cible.
     expect(screen.getByTestId("execution-partial-value-99")).toBeTruthy();
     expect(screen.queryByTestId("execution-partial-value-100")).toBeNull();
     await press("execution-partial-value-7");
-    await press("execution-partial-confirm");
+    await at(20); // le chrono continue derrière la modale
+    await press("execution-partial-validate");
     expect(screen.getByTestId("execution-end")).toBeTruthy();
     // Recette du 15/11/2026 (g7) : la fin de séance partielle montre les répétitions saisies.
     expect(screen.getByTestId("execution-end")).toHaveTextContent(/Partielle · 7 rép./);
     const results = await repository.listResults("exec-ft");
     const element = results.find((change) => change.type === "SCOPE" && (change.result as { format?: string }).format === "FOR_TIME");
+    // Recette du 17/11/2026 (ft-arret-serie : « le temps enregistré doit être celui de l’instant où on a appuyé sur « Arrêt », pas
+    // celui de la validation ») : second appui à 12 s, validation à 20 s. [Temps de la validation — remplacé.]
     expect(element?.result as ForTimeResult).toMatchObject({ completedActivities: 0, partialRepetitions: 7, measuredMs: 12 * S });
   });
 
-  // Recette du 14/11/2026 (Hermann : « Supprimer cette modale, l’arrêt pendant la pause amène directement à l’écran de fin de
-  // séance »). [Même modale, « Aucune série en cours » — remplacé.]
-  it("(4c) Arrêt pendant la pause entre les séries : aucune modale, écran de fin aussitôt ; série 1 acquise", async () => {
-    const { at, repository } = await started();
-    await at(10);
-    await press("execution-validate"); // S1
-    await at(15);
-    await press("execution-pause");
+  // Seconde recette du 17/11/2026 (constat c : « Si j'appuie sur Arrêter, que la modale est ouverte mais que je laisse ensuite courir
+  // l'exercice jusqu'à la fin du temps max […] L'écran Résultat ne doit pas afficher »). [(4c) Arrêt pendant la pause entre les séries
+  // — sans objet : plus de pause dans un For time.]
+  it("(c) Arrêt, modale laissée ouverte jusqu'à la borne : pas d'écran Résultat ; la coche amène à la fin, temps de l'appui", async () => {
+    const { at, repository } = await started(repetitionParameters(21, 2, 0), 60);
+    await at(50);
     await press("execution-stop");
-    expect(screen.queryByTestId("execution-partial")).toBeNull();
+    await press("execution-partial-value-5");
+    await at(65); // borne atteinte derrière la modale
+    expect(screen.queryByTestId("execution-closure")).toBeNull();
+    expect(screen.getByTestId("execution-partial-title")).toHaveTextContent("Arrêt du For Time");
+    await press("execution-partial-validate");
     expect(screen.getByTestId("execution-end")).toBeTruthy();
     const results = await repository.listResults("exec-ft");
     const element = results.find((change) => change.type === "SCOPE" && (change.result as { format?: string }).format === "FOR_TIME");
-    expect(element?.result as ForTimeResult).toMatchObject({ completedActivities: 1, partialRepetitions: null, interruptedKey: null });
+    expect(element?.result as ForTimeResult).toMatchObject({ measuredMs: 50 * S, capReached: false, partialRepetitions: 5 });
   });
 
   // Précision FT-15 de Hermann du 14/11/2026 : « le cercle doit devenir bicolore, et non changer de couleur en entier ».
-  it("(4a) anneau bicolore : portion bleue jusqu'à la pause, puis orange à partir de la position courante ; minute révolue : tout au gris", async () => {
+  // Seconde recette du 17/11/2026 : plus de pause dans un For time — l'anneau reste d'une couleur. [Portion orange de la pause — remplacé ;
+  // le calcul des portions reste couvert par le test suivant.]
+  it("(4a) sans pause : l'anneau reste bleu d'une série à l'autre ; minute révolue : tout au gris", async () => {
     const { at, service } = await started(repetitionParameters(10, 2, 30));
     const segments = () => {
       const projection = service.project()!;
@@ -264,21 +308,11 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
     await at(25);
     expect(ringColorOf(service.project()!.phase)).toBe(RING.progressColor);
     expect(segments()).toEqual({ past: [], currentFrom: 0 });
-    await press("execution-validate"); // S1 à 25 s
+    await press("execution-plus-tour"); // S1 à 25 s ; S2 aussitôt
     await at(40);
-    // Pause : l'arc reste bleu de 0 à 25 s et se prolonge en orange ; même chrono, l'arc garde sa position.
-    expect(ringColorOf(service.project()!.phase)).toBe(REST_RING_COLOR);
-    expect(service.project()!.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 40 * S, nominalMs: null });
-    expect(segments()).toEqual({ past: [{ from: 0, to: 25 / 60, color: RING.progressColor }], currentFrom: 25 / 60 });
-    await at(55); // fin de la pause (30 s) : S2, bleu
     expect(ringColorOf(service.project()!.phase)).toBe(RING.progressColor);
-    expect(segments()).toEqual({
-      past: [
-        { from: 0, to: 25 / 60, color: RING.progressColor },
-        { from: 25 / 60, to: 55 / 60, color: REST_RING_COLOR },
-      ],
-      currentFrom: 55 / 60,
-    });
+    expect(service.project()!.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 40 * S, nominalMs: null });
+    expect(segments().past.every((segment) => segment.color === RING.progressColor)).toBe(true);
     await at(62);
     // Minute révolue : tout l'arc revient au gris, puis repart dans la couleur de la phase en cours.
     const wrapped = ringMotion(service.project()!.timer, true);
@@ -311,7 +345,7 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
   it("(4d) saisie ouverte, app en arrière-plan puis au premier plan : pas de Pause, valeur gardée, Valider actif", async () => {
     const { at, service, repository } = await started(repetitionParameters(21, 2, 0), 60);
     await at(20);
-    await press("execution-validate");
+    await press("execution-plus-tour");
     await at(60); // borne pendant S2 : saisie des répétitions faites
     await press("execution-closure-value-9");
     await act(async () => {
@@ -334,7 +368,7 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
   it("(4d) saisie retrouvée en Pause (version antérieure) : la séance reprend, Valider fonctionne", async () => {
     const { at, service } = await started(repetitionParameters(21, 2, 0), 60);
     await at(20);
-    await press("execution-validate");
+    await press("execution-plus-tour");
     await at(60);
     await act(async () => {
       await service.dispatch({ type: "PAUSE", reason: "USER" });
@@ -363,11 +397,13 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
 // Demande de Hermann du 14/11/2026 (soir) : « Un exercice en durée : il doit avoir dans le triangle haut à gauche la durée cible de
 // l'exercice ».
 describe("exercice en Durée : durée cible dans le coin du haut à gauche (14/11/2026)", () => {
-  it("45 s : « 45″ » dans le coin ; 1 min 30 : « 1′30″ » ; un exercice en Répétitions garde « 10 rép. »", async () => {
+  // Seconde recette du 17/11/2026 (« utiliser le format 00:00 pour toutes les durées » ; textes des triangles sur deux lignes).
+  // [« 45″ », « 1′30″ », « 10 rép. » sur une ligne — remplacés.]
+  it("45 s : « 00:45 » dans le coin ; 1 min 30 : « 01:30 » ; un exercice en Répétitions : « 10 » puis « rép. »", async () => {
     for (const [parameters, expected] of [
-      [durationParameters(45, 1, 0), "45″"],
-      [durationParameters(90, 1, 0), "1′30″"],
-      [repetitionParameters(10, 1, 0), "10 rép."],
+      [durationParameters(45, 1, 0), "00:45"],
+      [durationParameters(90, 1, 0), "01:30"],
+      [repetitionParameters(10, 1, 0), "10rép."],
     ] as const) {
       const { at } = await setup(parameters, null, null);
       await act(async () => {
@@ -399,17 +435,18 @@ describe("pauses : titre « Changez de côté » et durée prévue dans le coin 
     });
   }
 
-  it("Pause au changement de côté : titre « Changez de côté », « 12″ » dans le coin", async () => {
+  // Seconde recette du 17/11/2026 : format 00:00. [« 12″ », « 20″ » — remplacés.]
+  it("Pause au changement de côté : titre « Changez de côté », « 00:12 » dans le coin", async () => {
     await at15(durationParameters(10, 1, 0, { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 12 }));
     expect(screen.getByTestId("execution-title").props.children).toBe("Changez de côté");
-    expect(screen.getByTestId("execution-objective")).toHaveTextContent("12″");
+    expect(screen.getByTestId("execution-objective")).toHaveTextContent("00:12");
     screen.unmount();
   });
 
-  it("Pause entre Séries : titre « Pause », « 20″ » dans le coin", async () => {
+  it("Pause entre Séries : titre « Pause », « 00:20 » dans le coin", async () => {
     await at15(durationParameters(10, 2, 20));
     expect(screen.getByTestId("execution-title").props.children).toBe("Pause");
-    expect(screen.getByTestId("execution-objective")).toHaveTextContent("20″");
+    expect(screen.getByTestId("execution-objective")).toHaveTextContent("00:20");
     screen.unmount();
   });
 });
@@ -417,7 +454,10 @@ describe("pauses : titre « Changez de côté » et durée prévue dans le coin 
 // Recette du 14/11/2026 (Hermann, k5 : « Le cadre gris doit être au milieu, avec 0 à l’intérieur […] Un retour haptique à chaque
 // passage de chiffre sur le cadre gris »).
 describe("répétitions partielles : roulette horizontale (14/11/2026)", () => {
-  it("cadre fixe au milieu, 0 dedans au départ ; le défilement choisit le chiffre sous le cadre, avec un retour haptique par chiffre", async () => {
+  // Troisième recette du 17/11/2026 (ftr3-modale-duree : « demi-roulette horizontale (elle s'arrête à gauche sur le cadre gris, au milieu
+  // de l'écran, et à droite sur les chiffres croissants) ») : cadre au bord gauche de la roulette, posée sur la moitié droite de la
+  // feuille. [Cadre au milieu de la roulette — remplacé.]
+  it("demi-roulette : cadre fixe à gauche, 0 dedans au départ ; le défilement choisit le chiffre sous le cadre, avec un retour haptique par chiffre", async () => {
     const Haptics = jest.requireMock<{ selectionAsync: jest.Mock }>("expo-haptics");
     Haptics.selectionAsync.mockClear();
     const { at } = await setup(repetitionParameters(10, 2, 20), null);
@@ -431,13 +471,13 @@ describe("répétitions partielles : roulette horizontale (14/11/2026)", () => {
     await act(async () => {
       fireEvent(screen.getByTestId("execution-partial-frame").parent!, "layout", { nativeEvent: { layout: { width: 360, height: 56, x: 0, y: 0 } } });
     });
-    expect(screen.getByTestId("execution-partial-frame")).toHaveStyle({ left: 152 });
-    expect(screen.getByTestId("execution-partial-values").props.contentContainerStyle).toEqual(expect.arrayContaining([{ paddingHorizontal: 152 }]));
+    expect(screen.getByTestId("execution-partial-frame")).toHaveStyle({ left: 0 });
+    expect(screen.getByTestId("execution-partial-values").props.contentContainerStyle).toEqual(expect.arrayContaining([{ paddingLeft: 6, paddingRight: 310 }]));
     expect(screen.getByTestId("execution-partial-value-0").props.accessibilityState).toEqual({ selected: true });
-    fireEvent.scroll(screen.getByTestId("execution-partial-values"), { nativeEvent: { contentOffset: { x: 56 * 3 + 10, y: 0 } } });
+    fireEvent.scroll(screen.getByTestId("execution-partial-values"), { nativeEvent: { contentOffset: { x: 44 * 3 + 10, y: 0 } } });
     expect(screen.getByTestId("execution-partial-value-3").props.accessibilityState).toEqual({ selected: true });
     expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
-    fireEvent.scroll(screen.getByTestId("execution-partial-values"), { nativeEvent: { contentOffset: { x: 56 * 3 - 10, y: 0 } } });
+    fireEvent.scroll(screen.getByTestId("execution-partial-values"), { nativeEvent: { contentOffset: { x: 44 * 3 - 10, y: 0 } } });
     expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
   });
 
@@ -456,7 +496,7 @@ describe("répétitions partielles : roulette horizontale (14/11/2026)", () => {
     expect(screen.getByTestId("execution-closure-value-0").props.accessibilityState).toEqual({ selected: true });
     expect(screen.getByTestId("execution-closure-value-99")).toBeTruthy();
     expect(screen.queryByTestId("execution-partial-close")).toBeNull();
-    fireEvent.scroll(screen.getByTestId("execution-closure-values"), { nativeEvent: { contentOffset: { x: 56 * 4, y: 0 } } });
+    fireEvent.scroll(screen.getByTestId("execution-closure-values"), { nativeEvent: { contentOffset: { x: 44 * 4, y: 0 } } });
     expect(screen.getByTestId("execution-closure-value-4").props.accessibilityState).toEqual({ selected: true });
     expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
   });

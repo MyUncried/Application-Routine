@@ -915,7 +915,18 @@ export function ExecutionParametersSheet({
   // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
   const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
-  const forTimeOnceSheet = format?.key === "FOR_TIME" && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
+  /*
+   * Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : • Pause après chaque série. • Pause de changement de
+   * côté. • Repos entre les tours. • Repos entre les séries (mode « À la suite »). • Récupération après un exercice. […] Ces lignes
+   * n'apparaissent ni dans les paramètres d'exécution, ni dans le questionnaire, ni dans le récapitulatif du For time. • Les valeurs déjà
+   * saisies sont ignorées, sans être effacées ni modifiées dans les autres formats. ») : tout Exercice For time (autonome, ou membre d'un
+   * Circuit For time quel que soit son Rôle) — ni Pause, ni Pause entre les côtés, ni Récupération ; valeurs gardées telles quelles.
+   * [Pause retirée pour le seul buy-in / buy-out (`forTimeOnceSheet`, recette du 07/11/2026) — remplacé.]
+   */
+  const forTimeSheet = format?.key === "FOR_TIME";
+  const durationRefused = format?.durationRefused === true && draft.mode !== "DURATION";
+  // Recette du 17/11/2026 (Hermann, captures de « For time a changer » : « le problème de vérification du mode d'exécution n'est pas réglé. C'est au niveau de la composition de séance que le problème se pose ») : boucle déjà sans Répétitions (séance antérieure) — erreur en rouge, ✓ refusé tant que Répétitions n'est pas choisi.
+  const loopWithoutRepetitions = format?.durationRefused === true && draft.mode === "DURATION";
   // Règles de Hermann du 14/11/2026 (For time, FT-3, FT-4) : buy-in et buy-out, nombre de séries libre, identiques ou variables —
   // la ligne Séries revient. [Recette du 07/11/2026 (y-format-cadres) : ligne Séries retirée pour le buy-in et le buy-out — remplacé
   // le 14/11/2026 ; la ligne Pause reste retirée.]
@@ -929,9 +940,10 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeOnceSheet;
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet;
   const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet;
-  const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false);
+  // Recette du 17/11/2026 (For time) : Récupération absente, sa valeur n'est pas réappliquée au ✓ (voir `handleValidate`).
+  const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false) && !forTimeSheet;
   // y-format-cadres (07/11/2026, Hermann, maquette `11264:19453`) : AMRAP, rôle Buy-in — « Récupération grisée, à 0 s, non modifiable ».
   const recoveryLocked = format?.key === "AMRAP" && formatValue?.role === "BUY_IN";
   // y-format-cadres (07/11/2026, Hermann) : « EMOM : retirer la colonne Pause du tableau et redistribuer horizontalement les deux
@@ -1479,7 +1491,10 @@ export function ExecutionParametersSheet({
       // 14/11/2026, recette m2 et m3 : « Les exercices de buy in (et de buy out) sont indépendants ».]
       closeAnimated(() => {
         // PRE-9 (01/11/2026, point 2) : Récupération appliquée au brouillon parent avec les paramètres.
-        recovery?.onApply(appliedRecovery);
+        // Recette du 17/11/2026 (Hermann : « Les valeurs déjà saisies sont ignorées, sans être effacées ni modifiées ») : en For time,
+        // Récupération ni affichée ni réappliquée — la valeur enregistrée reste telle quelle. [0 s appliqué comme une Récupération
+        // absente — remplacé.]
+        if (!forTimeSheet) recovery?.onApply(appliedRecovery);
         // Précision du 14/11/2026 (soir), For time : séries déjà ajustées au Rôle choisi (`chooseRole`) — le Rôle est enregistré
         // d'abord, pour que ces séries ne soient pas lues comme un nouveau nombre de séries de l'ancien bloc (`withForTimeSeries`).
         const roleFirst = format !== undefined && appliedFormat !== null && roleBase.current !== null && appliedFormat.role !== format.role?.current;
@@ -1611,7 +1626,9 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.5 (AC1) ; recette du 19/10 (RC-6) : Pause entre les côtés visible sous Avec,
   // sans chevron de repli. L'Enchainement, porté par l'option Avec, est masqué à N = 1 (Q38,
   // valeur conservée) : Avec y reprend son libellé.
-  const sideSettingsShown = bilateral;
+  // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Pause de changement de côté ») : en For time, la
+  // ligne Pause entre les côtés est absente sous Avec ; `sideRecoverySeconds` reste dans le Brouillon.
+  const sideSettingsShown = bilateral && !forTimeSheet;
   const sideOrderShown = !single;
   // AC3 : tant que la saisie de la Cadence est ouverte (Autre touché), l'option affichée est Autre.
   // Décision du 06/11/2026 : la valeur se saisit au clavier, dans le champ révélé sous la ligne.
@@ -1665,7 +1682,7 @@ export function ExecutionParametersSheet({
   // Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément à renseigner.
   const formatIncrementMissing =
     formatShown("increment") && !formatIncrementLocked && format?.incrementRequired === true && typeof formatSettings.incrementPerRound !== "number";
-  const validateDisabled = (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing) && !sheetCommandsAbsorbed(surface);
+  const validateDisabled = (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing || loopWithoutRepetitions) && !sheetCommandsAbsorbed(surface);
   const formatIntervalSeconds = formatNumber("intervalSeconds", 60);
   const formatDurationSeconds = formatNumber("durationSeconds", 12 * 60);
   const formatTimeCapSeconds = typeof formatSettings.timeCapSeconds === "number" ? formatSettings.timeCapSeconds : null;
@@ -2103,7 +2120,8 @@ export function ExecutionParametersSheet({
       optionWidth={INLINE_OPTION_WIDTHS.wide}
       options={[
         { value: "REPETITIONS", label: t.modes.REPETITIONS },
-        { value: "DURATION", label: t.modes.DURATION },
+        // Recette du 17/11/2026 (Hermann, autres remarques, a : « je suis capable de créer un for time avec deux exercices en durée si j'entre les paramètres dans la composition de séance. Par contre le démarrage de la est bloqué ») ; règle du 05/11/2026 (n-charge-colonne : « Pour le seul exercice restant en Répétitions, l'option Durée est désactivée, avec un message court ») et du 16/11/2026 (mp-duree-refusee : « Il faut au moins un exercice en répétition sur les exercices en boucle ») : Durée grisée, message court sous le cadre.
+        { value: "DURATION", label: t.modes.DURATION, ...(durationRefused ? { disabled: true } : {}) },
       ]}
       value={draft.mode}
       onChange={(mode) => chooseInline((base) => setMode(base, mode))}
@@ -2748,7 +2766,7 @@ export function ExecutionParametersSheet({
                 onCancel={handleCancel}
                 cancelLabel={t.cancelAccessibilityLabel}
                 onValidate={handleValidate}
-                validateEnabled={validation.ok}
+                validateEnabled={validation.ok && !loopWithoutRepetitions}
                 validateDisabled={validateDisabled}
                 validateLabel={validateLabel}
                 testIDPrefix="execution-sheet"
@@ -2827,6 +2845,15 @@ export function ExecutionParametersSheet({
                   </Row>
                   {formatRoleRow}
                 </SheetMotionView>
+                {durationRefused ? (
+                  <Text style={styles.durationRefusedNote} accessibilityRole="alert" testID="execution-sheet-duration-refused">
+                    {strings.screens.formatModel.lastRepetitionsLocked}
+                  </Text>
+                ) : loopWithoutRepetitions ? (
+                  <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-loop-without-repetitions">
+                    {strings.screens.formatModel.loopWithoutRepetitions}
+                  </Text>
+                ) : null}
 
                 {/* PRE-9 (ordre de Hermann du 01/11/2026, point 3 ; CE-UI-10, D-413) : bloc
                     autonome « Phases du mouvement », entre Exécution et Séries — la ligne Avec /
@@ -4470,6 +4497,13 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[8],
   },
   // Recette du 08/11/2026 au soir : message du dépassement EMOM sous le cadre Séries, sans cadre.
+  // Message court de la Durée refusée (même texte et même place, sous le cadre, que l'écran du Format).
+  durationRefusedNote: {
+    ...type.caption,
+    color: colors.textSecondary,
+    paddingHorizontal: spacing[12],
+    marginTop: -spacing[4],
+  },
   emomOverflowAlert: {
     ...type.caption,
     color: colors.danger,
