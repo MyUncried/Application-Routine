@@ -2035,6 +2035,10 @@ La suppression d'une Routine n'a aucun effet sur sa source. La modification de l
 | RM-262 | Avec une seule colonne active, la mention de chaque séance est « à chaque fois » ; le point ne peut pas être retiré (au moins un point par colonne). |
 | RM-263 | Planifications existantes : celles réglées par séance en « x fois sur n » (n ≤ 7) s’affichent dans la grille avec les positions retenues ; si n > 7, le cycle reste calculé comme enregistré et l’ouverture en modification demande de le ramener à 7 au plus. Aucune occurrence passée ou future déjà produite n’est réécrite. |
 | RM-264 | Planifications existantes en unité mois : elles continuent de produire leurs occurrences jusqu’à leur fin ; la modification impose de choisir jours ou semaines. Les planifications sans nom reçoivent un nom vide à compléter à la première modification. |
+| RM-265 | EMOM en durée : l’anneau unique suit les 60 secondes du tour ; l’appui au centre suspend et reprend seulement le compteur d’effort cumulé. Le temps de pause intra-série n’est pas ajouté à l’effort et ne décale pas la minute suivante. |
+| RM-266 | L’effort cumulé est borné par l’objectif. À l’objectif atteint, l’écran passe seul en Repos pour les secondes restantes de la minute ; l’appui au centre est alors sans effet. |
+| RM-267 | Fin de minute avec effort inférieur à l’objectif : la minute se ferme, la suivante démarre, et le tour est enregistré en effort partiel (cumul réalisé sur objectif). |
+| RM-268 | Guidage sonore EMOM en durée : bips selon l’anneau de la minute (trois dernières secondes) ; signal au passage en Repos. |
 
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
 

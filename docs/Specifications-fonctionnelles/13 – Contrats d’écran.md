@@ -4376,6 +4376,26 @@ Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle)
 
 Aucun. Occurrences passées : rejouables (D-525) ; unité « mois » retirée (D-526).
 
+### CE-UI-13 — Exécution — EMOM en durée (D-528, 18/11/2026)
+
+#### 1. Identification
+
+CE-UI-13 ; écran d’exécution d’un EMOM dont les tours sont définis par une durée d’effort. Règles : RM-265 à RM-268.
+
+#### 2. Contenu
+
+- Un seul anneau : les 60 secondes du tour en cours, avancement continu. Aucun second anneau.
+- Centre : composant du For time (même position, même couleur, même flash, même double chrono). Chiffre principal : effort cumulé sur objectif (ex. 00:25 / 00:40) ; secondaire : temps restant avant la minute suivante.
+- Mode Effort : couleurs d’effort de l’anneau et du fond. Mode Repos : couleurs de repos de l’anneau et du fond.
+
+#### 3. Interactions
+
+Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’anneau continue). Appui en Repos : sans effet. Objectif atteint : bascule automatique en Repos jusqu’à la fin de la minute. Fin de minute : tour suivant, effort remis à zéro ; effort inférieur à l’objectif enregistré en effort partiel (RM-267).
+
+#### 4. À vérifier sur appareil
+
+Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
+
 ### Contrôles et layout de planification
 
 #### Règles d'interface propres à la planification
