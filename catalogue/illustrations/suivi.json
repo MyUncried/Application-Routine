@@ -332,12 +332,12 @@
   {
     "sheetId": "REED-003",
     "name": "Pendulaire d’épaule",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/REED-003.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "fa1015d34f1dd26b72da8a2535b9ff1f62f9a802",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "REED-004",
