@@ -177,3 +177,11 @@ Communiqués dans le message de livraison (hash du commit contenant ce rapport, 
 - Correction (classe A, rejoint CE-UI-04/RM : sélection préalable, ✕ abandonne) : la sélection initiale s'affiche dans la feuille « Planifier » elle-même (✕ la ferme) ; la seconde feuille ne sert qu'à « Changer », sur une feuille déjà présentée. `closeAll` et `dismiss(2)` supprimés. Documentation : CE-UI-04 §9 garde « feuille posée sur Planifier » pour Changer ; registre ch07 inchangé (même demande).
 - Tests : `PlanningScreen.integration` (sélection initiale dans la feuille, ✕ ferme Planifier une seule fois) ; planification 7 suites / 39 tests verts.
 - À vérifier sur iPhone : ouverture de Planifier sur le Catalogue des séances, ✕, puis « Changer » (feuille par-dessus, mise en page et ✕).
+
+### Correctif n° 2 du 18/11/2026 — feuille du Catalogue des séances (« Même problème »)
+
+- Écart (Hermann, capture 10 h 39) : même affichage, ✕ inopérant, après le correctif `3787f7b6`. Bundle servi par Metro vérifié : il contenait bien le correctif ; la première hypothèse (présentation de deux feuilles) est donc infirmée comme cause principale.
+- Cause (plausible, cohérente avec la capture et avec le constat déjà fait sur les feuilles de filtres le 04/11/2026, `FilterSheetPrimitives`) : dans une feuille `formSheet`, `react-native-screens` étend la liste défilante à toute la hauteur de la feuille ; la liste remonte derrière l'en-tête (transparent) et, posée après lui, capte le toucher du ✕.
+- Correction (classe D, technique) : composant partagé `src/shared/ui/SheetFixedTop.tsx` — en-tête et zone de contexte posés par-dessus la liste, liste enveloppée, contenu décalé de la hauteur mesurée du haut, ajustement automatique des marges désactivé. Appliqué au Catalogue des séances et au formulaire Planifier (même structure).
+- Tests : planification 7 suites / 39 tests verts ; `tsc` et `eslint` propres.
+- À vérifier sur iPhone : liste sous la zone de contexte, ✕ et coche actifs, défilement derrière la zone fondue ; même chose dans Planifier et via « Changer ».

@@ -46,6 +46,7 @@ import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { InlineStepper, PROFILE_HOLD_POLICY } from "@/shared/ui/ProfileStepper";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
 import { switchNudge } from "@/shared/ui/switchNudge";
 import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
@@ -321,264 +322,276 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   return (
     <ScreenShell>
       {/* Figma `1992:6838` : titre aligné à gauche après la croix ; coche d'enregistrement (D-499). */}
-      <FixedHeader
-        title={formTitle(availableEntries.length)}
-        closeIcon
-        centeredTitle={false}
-        topInset={0}
-        onBack={close}
-        backAccessibilityLabel={t.cancel}
-        validate={{ onPress: save, enabled: canSave, accessibilityLabel: t.save }}
-      />
-      <ContextBand fadeToTransparent>
-        <View style={styles.contentBand}>
-          <View style={styles.contentTexts}>
-            <Text style={styles.contentName} numberOfLines={2} testID="planning-content-name">
-              {contentHeading(availableEntries, projections)}
-            </Text>
-            {single !== undefined ? (
-              <Text style={styles.contentDuration} testID="planning-content-duration">
-                {formatCatalogueSessionDuration(single.duration)}
+      {/* Feuille native : haut fixe posé sur la liste (`SheetFixedTop`, recette du 18/11/2026). */}
+      <SheetFixedTop
+        top={
+          <>
+            <View style={{ backgroundColor: colors.background }}>
+              <FixedHeader
+                title={formTitle(availableEntries.length)}
+                closeIcon
+                centeredTitle={false}
+                topInset={0}
+                onBack={close}
+                backAccessibilityLabel={t.cancel}
+                validate={{ onPress: save, enabled: canSave, accessibilityLabel: t.save }}
+              />
+            </View>
+            <ContextBand fadeToTransparent>
+              <View style={styles.contentBand}>
+                <View style={styles.contentTexts}>
+                  <Text style={styles.contentName} numberOfLines={2} testID="planning-content-name">
+                    {contentHeading(availableEntries, projections)}
+                  </Text>
+                  {single !== undefined ? (
+                    <Text style={styles.contentDuration} testID="planning-content-duration">
+                      {formatCatalogueSessionDuration(single.duration)}
+                    </Text>
+                  ) : null}
+                </View>
+                <Pressable onPress={() => openSelection(form.entries)} accessibilityRole="button" hitSlop={12} testID="planning-change">
+                  <Text style={styles.change}>{t.change}</Text>
+                </Pressable>
+              </View>
+            </ContextBand>
+          </>
+        }
+        renderScroll={(topHeight) => (
+          <ScrollView
+            contentInsetAdjustmentBehavior="never"
+            automaticallyAdjustContentInsets={false}
+            style={styles.scroll}
+            contentContainerStyle={[styles.scrollContent, { paddingTop: topHeight + spacing[16], paddingBottom: summaryHeight + spacing[24] }]}
+            keyboardShouldPersistTaps="handled"
+            testID="planning-form"
+          >
+            {removed > 0 ? (
+              <Text style={styles.notice} testID="planning-unavailable">
+                {fillTemplate(t.unavailableContent, { count: String(removed) })}
               </Text>
             ) : null}
-          </View>
-          <Pressable onPress={() => openSelection(form.entries)} accessibilityRole="button" hitSlop={12} testID="planning-change">
-            <Text style={styles.change}>{t.change}</Text>
-          </Pressable>
-        </View>
-      </ContextBand>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: summaryHeight + spacing[24] }]}
-        keyboardShouldPersistTaps="handled"
-        testID="planning-form"
-      >
-        {removed > 0 ? (
-          <Text style={styles.notice} testID="planning-unavailable">
-            {fillTemplate(t.unavailableContent, { count: String(removed) })}
-          </Text>
-        ) : null}
-
-        {/* Bloc sans titre : Planifié le [date] à [heure] (recette du 17/11/2026 ; [« Début le » — remplacé]). */}
-        <View style={styles.block} testID="planning-slot">
-          <View style={styles.slotRow}>
-            <Text style={styles.rowLabel}>{t.start}</Text>
-            <Text style={styles.linkWord}>{t.on}</Text>
-            <NativeDate
-              value={form.startDate}
-              minimum={todayLocal()}
-              accessibilityLabel={t.datePicker}
-              onChange={changeStartDate}
-              testID="planning-start-date"
-            />
-            <View style={styles.spacer} />
-            <Text style={styles.linkWord}>{t.at}</Text>
-            <NativeTime value={form.time} date={form.startDate} onChange={(time) => update({ time })} testID="planning-start-time" />
-          </View>
-        </View>
-
-        {/* Répétition : interrupteur à droite, chevron de repli à côté du titre (chapitre 10). */}
-        <View style={styles.sectionRow}>
-          <Pressable
-            onPress={() => setRepetitionCollapsed((value) => !value)}
-            disabled={!form.repetitionOn}
-            accessibilityRole="button"
-            accessibilityLabel={repetitionCollapsed ? t.expand : t.collapse}
-            style={styles.sectionTitleRow}
-            testID="planning-repetition-chevron"
-          >
-            <Text style={styles.sectionTitle}>{t.repetition}</Text>
-            <KodjoIcon name={form.repetitionOn && !repetitionCollapsed ? "control-chevron-up" : "control-chevron-down"} />
-          </Pressable>
-          <Switch
-            {...switchOffColors}
-            style={switchNudge}
-            value={form.repetitionOn}
-            onValueChange={(repetitionOn) => {
-              update({ repetitionOn });
-              setRepetitionCollapsed(false);
-            }}
-            accessibilityLabel={t.repetitionToggle}
-            testID="planning-repetition-switch"
-          />
-        </View>
-        {form.repetitionOn && !repetitionCollapsed ? (
-          <View style={styles.block} testID="planning-repetition">
-            <SegmentedControl
-              options={[
-                { value: "DAY", label: t.units.day, disabled: true, accessibilityLabel: fillTemplate(t.unitUnavailable, { unit: t.units.day }) },
-                { value: "WEEK", label: t.units.week },
-                { value: "MONTH", label: t.units.month, disabled: true, accessibilityLabel: fillTemplate(t.unitUnavailable, { unit: t.units.month }) },
-              ]}
-              value="WEEK"
-              onChange={() => undefined}
-              testID="planning-unit"
-            />
-            <Text style={styles.every}>{t.every}</Text>
-            <View style={styles.phraseRow}>
-              <ValuePill
-                label={String(form.every)}
-                active={openStepper === "every"}
-                onPress={() => setOpenStepper((current) => (current === "every" ? null : "every"))}
-                accessibilityLabel={fillTemplate(t.multiplierAccessibility, { count: String(form.every) })}
-                testID="planning-every"
-              />
-              <Text style={styles.linkWord}>{weekUnit(form.every)}</Text>
-              <ValuePill
-                label={form.endKind === "UNTIL" ? t.until : t.during}
-                onPress={() => {
-                  update({ endKind: form.endKind === "UNTIL" ? "FOR" : "UNTIL" });
-                  setOpenStepper(null);
-                }}
-                accessibilityLabel={fillTemplate(t.endKindAccessibility, { value: form.endKind === "UNTIL" ? t.until : t.during })}
-                testID="planning-end-kind"
-              />
-              {form.endKind === "UNTIL" ? (
+            {/* Bloc sans titre : Planifié le [date] à [heure] (recette du 17/11/2026 ; [« Début le » — remplacé]). */}
+            <View style={styles.block} testID="planning-slot">
+              <View style={styles.slotRow}>
+                <Text style={styles.rowLabel}>{t.start}</Text>
+                <Text style={styles.linkWord}>{t.on}</Text>
                 <NativeDate
-                  value={form.endDate}
-                  minimum={form.startDate}
-                  accessibilityLabel={t.endDatePicker}
-                  onChange={changeEndDate}
-                  testID="planning-end-date"
+                  value={form.startDate}
+                  minimum={todayLocal()}
+                  accessibilityLabel={t.datePicker}
+                  onChange={changeStartDate}
+                  testID="planning-start-date"
                 />
-              ) : (
-                <View style={styles.inline}>
-                  <ValuePill
-                    label={String(form.endCount)}
-                    active={openStepper === "count"}
-                    onPress={() => setOpenStepper((current) => (current === "count" ? null : "count"))}
-                    accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
-                    testID="planning-end-count"
-                  />
-                  <Text style={styles.linkWord}>{weekUnit(form.endCount)}</Text>
-                </View>
-              )}
-            </View>
-            {/* Figma `1992:7537` : le stepper se déroule sous la phrase. */}
-            {openStepper === "every" ? (
-              <InlineStepper
-                value={form.every}
-                min={WEEK_MULTIPLIER_MIN}
-                max={WEEK_MULTIPLIER_MAX}
-                policy={PROFILE_HOLD_POLICY}
-                formatValue={(value) => String(value ?? "")}
-                onChange={(every) => update({ every })}
-                accessibilityLabel={fillTemplate(t.multiplierAccessibility, { count: String(form.every) })}
-                testID="planning-every-stepper"
-              />
-            ) : null}
-            {openStepper === "count" && form.endKind === "FOR" ? (
-              <InlineStepper
-                value={form.endCount}
-                min={1}
-                max={520}
-                policy={PROFILE_HOLD_POLICY}
-                formatValue={(value) => String(value ?? "")}
-                onChange={changeEndCount}
-                accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
-                testID="planning-end-count-stepper"
-              />
-            ) : null}
-            <View style={styles.weekdays} testID="planning-weekdays">
-              {WEEKDAYS.map((day: Weekday) => {
-                const selected = form.weekdays.includes(day);
-                return (
-                  <Pressable
-                    key={day}
-                    onPress={() => update({ weekdays: toggleWeekday(form.weekdays, day) })}
-                    accessibilityRole="checkbox"
-                    accessibilityLabel={planningStrings.weekdayNames[day - 1]}
-                    accessibilityState={{ checked: selected }}
-                    style={[styles.weekday, selected ? styles.weekdaySelected : null]}
-                    testID={`planning-weekday-${day}`}
-                  >
-                    <Text style={[styles.weekdayLabel, selected ? styles.weekdayLabelSelected : null]}>{planningStrings.weekdayLetters[day - 1]}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        ) : null}
-
-        {/* Liste ordonnée, sans titre, à partir de deux contenus (CE-UI-05 §7) : poignée, nom, fréquence. */}
-        {availableEntries.length >= 2 ? (
-          <EntryList
-            entries={availableEntries}
-            nameOf={(entry) => projections.get(entry.sessionId)?.name ?? "—"}
-            onMove={(from, to) =>
-              update({ entries: moveEntry(form.entries, form.entries.indexOf(availableEntries[from]!), form.entries.indexOf(availableEntries[to]!)) })
-            }
-            onFrequency={openFrequency}
-            showFrequency={form.repetitionOn}
-          />
-        ) : null}
-
-        {/* Rappel : même forme que Répétition, interrupteur à droite ; options de même largeur (RM-054a). */}
-        <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>{tReminder.title}</Text>
-          <Switch
-            {...switchOffColors}
-            style={switchNudge}
-            value={form.reminderOn}
-            onValueChange={toggleReminder}
-            accessibilityLabel={tReminder.toggle}
-            testID="planning-reminder-switch"
-          />
-        </View>
-        {permissionDenied ? (
-          <Text style={styles.notice} accessibilityLiveRegion="polite" testID="planning-reminder-denied">
-            {tReminder.permissionDenied}
-          </Text>
-        ) : null}
-        {form.reminderOn ? (
-          <View style={styles.block} testID="planning-reminder">
-            {/* RM-054c : aucun délai présélectionné ; la coche attend un choix. */}
-            <SegmentedControl
-              options={[
-                ...REMINDER_PRESETS.map((minutes) => ({ value: String(minutes), label: reminderLabel(minutes) })),
-                { value: "OTHER", label: tReminder.other, accessibilityLabel: tReminder.customTitle },
-              ]}
-              value={customReminder ? "OTHER" : reminder === null ? null : String(reminder)}
-              onChange={(value) => {
-                if (value === "OTHER") {
-                  setCustomChosen(true);
-                  if (reminder !== null && (REMINDER_PRESETS as readonly number[]).includes(reminder)) update({ reminderMinutes: null });
-                } else {
-                  setCustomChosen(false);
-                  update({ reminderMinutes: Number(value) });
-                }
-              }}
-              testID="planning-reminder-options"
-            />
-            {/* Recette du 17/11/2026 (e2, option « Roues natives d'heure ») : délai personnalisé saisi avec les mêmes roues
-                natives que l'heure de « Planifié le », sans feuille par-dessus le formulaire ; 23 h 59 au plus.
-                [Feuille « Rappel personnalisé » (Figma 1992:7187) — remplacée.] */}
-            {customReminder ? (
-              <View style={styles.slotRow} testID="planning-reminder-custom">
-                <Text style={styles.rowLabel}>{tReminder.customTitle}</Text>
                 <View style={styles.spacer} />
-                <NativeTime
-                  value={durationToTime(reminder ?? 0)}
-                  date={form.startDate}
-                  accessibilityLabel={tReminder.customTitle}
-                  onChange={(time) => {
-                    const minutes = timeToDuration(time);
-                    update({ reminderMinutes: minutes === 0 ? null : minutes });
-                  }}
-                  testID="planning-reminder-custom-time"
+                <Text style={styles.linkWord}>{t.at}</Text>
+                <NativeTime value={form.time} date={form.startDate} onChange={(time) => update({ time })} testID="planning-start-time" />
+              </View>
+            </View>
+
+            {/* Répétition : interrupteur à droite, chevron de repli à côté du titre (chapitre 10). */}
+            <View style={styles.sectionRow}>
+              <Pressable
+                onPress={() => setRepetitionCollapsed((value) => !value)}
+                disabled={!form.repetitionOn}
+                accessibilityRole="button"
+                accessibilityLabel={repetitionCollapsed ? t.expand : t.collapse}
+                style={styles.sectionTitleRow}
+                testID="planning-repetition-chevron"
+              >
+                <Text style={styles.sectionTitle}>{t.repetition}</Text>
+                <KodjoIcon name={form.repetitionOn && !repetitionCollapsed ? "control-chevron-up" : "control-chevron-down"} />
+              </Pressable>
+              <Switch
+                {...switchOffColors}
+                style={switchNudge}
+                value={form.repetitionOn}
+                onValueChange={(repetitionOn) => {
+                  update({ repetitionOn });
+                  setRepetitionCollapsed(false);
+                }}
+                accessibilityLabel={t.repetitionToggle}
+                testID="planning-repetition-switch"
+              />
+            </View>
+            {form.repetitionOn && !repetitionCollapsed ? (
+              <View style={styles.block} testID="planning-repetition">
+                <SegmentedControl
+                  options={[
+                    { value: "DAY", label: t.units.day, disabled: true, accessibilityLabel: fillTemplate(t.unitUnavailable, { unit: t.units.day }) },
+                    { value: "WEEK", label: t.units.week },
+                    { value: "MONTH", label: t.units.month, disabled: true, accessibilityLabel: fillTemplate(t.unitUnavailable, { unit: t.units.month }) },
+                  ]}
+                  value="WEEK"
+                  onChange={() => undefined}
+                  testID="planning-unit"
                 />
+                <Text style={styles.every}>{t.every}</Text>
+                <View style={styles.phraseRow}>
+                  <ValuePill
+                    label={String(form.every)}
+                    active={openStepper === "every"}
+                    onPress={() => setOpenStepper((current) => (current === "every" ? null : "every"))}
+                    accessibilityLabel={fillTemplate(t.multiplierAccessibility, { count: String(form.every) })}
+                    testID="planning-every"
+                  />
+                  <Text style={styles.linkWord}>{weekUnit(form.every)}</Text>
+                  <ValuePill
+                    label={form.endKind === "UNTIL" ? t.until : t.during}
+                    onPress={() => {
+                      update({ endKind: form.endKind === "UNTIL" ? "FOR" : "UNTIL" });
+                      setOpenStepper(null);
+                    }}
+                    accessibilityLabel={fillTemplate(t.endKindAccessibility, { value: form.endKind === "UNTIL" ? t.until : t.during })}
+                    testID="planning-end-kind"
+                  />
+                  {form.endKind === "UNTIL" ? (
+                    <NativeDate
+                      value={form.endDate}
+                      minimum={form.startDate}
+                      accessibilityLabel={t.endDatePicker}
+                      onChange={changeEndDate}
+                      testID="planning-end-date"
+                    />
+                  ) : (
+                    <View style={styles.inline}>
+                      <ValuePill
+                        label={String(form.endCount)}
+                        active={openStepper === "count"}
+                        onPress={() => setOpenStepper((current) => (current === "count" ? null : "count"))}
+                        accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
+                        testID="planning-end-count"
+                      />
+                      <Text style={styles.linkWord}>{weekUnit(form.endCount)}</Text>
+                    </View>
+                  )}
+                </View>
+                {/* Figma `1992:7537` : le stepper se déroule sous la phrase. */}
+                {openStepper === "every" ? (
+                  <InlineStepper
+                    value={form.every}
+                    min={WEEK_MULTIPLIER_MIN}
+                    max={WEEK_MULTIPLIER_MAX}
+                    policy={PROFILE_HOLD_POLICY}
+                    formatValue={(value) => String(value ?? "")}
+                    onChange={(every) => update({ every })}
+                    accessibilityLabel={fillTemplate(t.multiplierAccessibility, { count: String(form.every) })}
+                    testID="planning-every-stepper"
+                  />
+                ) : null}
+                {openStepper === "count" && form.endKind === "FOR" ? (
+                  <InlineStepper
+                    value={form.endCount}
+                    min={1}
+                    max={520}
+                    policy={PROFILE_HOLD_POLICY}
+                    formatValue={(value) => String(value ?? "")}
+                    onChange={changeEndCount}
+                    accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
+                    testID="planning-end-count-stepper"
+                  />
+                ) : null}
+                <View style={styles.weekdays} testID="planning-weekdays">
+                  {WEEKDAYS.map((day: Weekday) => {
+                    const selected = form.weekdays.includes(day);
+                    return (
+                      <Pressable
+                        key={day}
+                        onPress={() => update({ weekdays: toggleWeekday(form.weekdays, day) })}
+                        accessibilityRole="checkbox"
+                        accessibilityLabel={planningStrings.weekdayNames[day - 1]}
+                        accessibilityState={{ checked: selected }}
+                        style={[styles.weekday, selected ? styles.weekdaySelected : null]}
+                        testID={`planning-weekday-${day}`}
+                      >
+                        <Text style={[styles.weekdayLabel, selected ? styles.weekdayLabelSelected : null]}>{planningStrings.weekdayLetters[day - 1]}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             ) : null}
-          </View>
-        ) : null}
 
-        {saveFailed ? (
-          <Text style={styles.error} accessibilityLiveRegion="polite" testID="planning-save-error">
-            {t.saveError}
-          </Text>
-        ) : null}
-      </ScrollView>
+            {/* Liste ordonnée, sans titre, à partir de deux contenus (CE-UI-05 §7) : poignée, nom, fréquence. */}
+            {availableEntries.length >= 2 ? (
+              <EntryList
+                entries={availableEntries}
+                nameOf={(entry) => projections.get(entry.sessionId)?.name ?? "—"}
+                onMove={(from, to) =>
+                  update({ entries: moveEntry(form.entries, form.entries.indexOf(availableEntries[from]!), form.entries.indexOf(availableEntries[to]!)) })
+                }
+                onFrequency={openFrequency}
+                showFrequency={form.repetitionOn}
+              />
+            ) : null}
+
+            {/* Rappel : même forme que Répétition, interrupteur à droite ; options de même largeur (RM-054a). */}
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{tReminder.title}</Text>
+              <Switch
+                {...switchOffColors}
+                style={switchNudge}
+                value={form.reminderOn}
+                onValueChange={toggleReminder}
+                accessibilityLabel={tReminder.toggle}
+                testID="planning-reminder-switch"
+              />
+            </View>
+            {permissionDenied ? (
+              <Text style={styles.notice} accessibilityLiveRegion="polite" testID="planning-reminder-denied">
+                {tReminder.permissionDenied}
+              </Text>
+            ) : null}
+            {form.reminderOn ? (
+              <View style={styles.block} testID="planning-reminder">
+                {/* RM-054c : aucun délai présélectionné ; la coche attend un choix. */}
+                <SegmentedControl
+                  options={[
+                    ...REMINDER_PRESETS.map((minutes) => ({ value: String(minutes), label: reminderLabel(minutes) })),
+                    { value: "OTHER", label: tReminder.other, accessibilityLabel: tReminder.customTitle },
+                  ]}
+                  value={customReminder ? "OTHER" : reminder === null ? null : String(reminder)}
+                  onChange={(value) => {
+                    if (value === "OTHER") {
+                      setCustomChosen(true);
+                      if (reminder !== null && (REMINDER_PRESETS as readonly number[]).includes(reminder)) update({ reminderMinutes: null });
+                    } else {
+                      setCustomChosen(false);
+                      update({ reminderMinutes: Number(value) });
+                    }
+                  }}
+                  testID="planning-reminder-options"
+                />
+                {/* Recette du 17/11/2026 (e2, option « Roues natives d'heure ») : délai personnalisé saisi avec les mêmes roues
+                    natives que l'heure de « Planifié le », sans feuille par-dessus le formulaire ; 23 h 59 au plus.
+                    [Feuille « Rappel personnalisé » (Figma 1992:7187) — remplacée.] */}
+                {customReminder ? (
+                  <View style={styles.slotRow} testID="planning-reminder-custom">
+                    <Text style={styles.rowLabel}>{tReminder.customTitle}</Text>
+                    <View style={styles.spacer} />
+                    <NativeTime
+                      value={durationToTime(reminder ?? 0)}
+                      date={form.startDate}
+                      accessibilityLabel={tReminder.customTitle}
+                      onChange={(time) => {
+                        const minutes = timeToDuration(time);
+                        update({ reminderMinutes: minutes === 0 ? null : minutes });
+                      }}
+                      testID="planning-reminder-custom-time"
+                    />
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
+            {saveFailed ? (
+              <Text style={styles.error} accessibilityLiveRegion="polite" testID="planning-save-error">
+                {t.saveError}
+              </Text>
+            ) : null}
+          </ScrollView>
+        )}
+      />
 
       {/* Récapitulatif protégé en bas (D-499) : dégradé de 40 au-dessus, fond opaque jusqu'au bas. */}
       <View style={[styles.summaryZone, { paddingBottom: insets.bottom + spacing[12] }]} onLayout={(event) => setSummaryHeight(event.nativeEvent.layout.height)} pointerEvents="box-none">
@@ -777,7 +790,7 @@ const styles = StyleSheet.create({
   contentDuration: { ...type.supporting, color: colors.textSecondary },
   change: { ...type.label, color: colors.primary },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: layout.screenGutter, paddingTop: spacing[16], gap: spacing[12] },
+  scrollContent: { paddingHorizontal: layout.screenGutter, gap: spacing[12] },
   // Recette du 17/11/2026 (Hermann : « Tous les textes, hors titre de section, doivent avoir la même police et taille de
   // police, celle de "Début" ») : `type.label` pour tout le formulaire. [supporting / body / sectionTitle — remplacés.]
   notice: { ...type.label, color: colors.textSecondary },
