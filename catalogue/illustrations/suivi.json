@@ -43,11 +43,11 @@
     "sheetId": "REED-010",
     "name": "Bird-dog (bras-jambe opposés)",
     "path": "catalogue/illustrations/20261117/REED-010.webp",
-    "generation": "à corriger",
+    "generation": "contrôlée visuellement",
     "sauvegarde": "versionnée",
-    "rattachement": "absent",
-    "commit": "069d53e328738d9427c8cee83da6cf962ccf759b",
-    "anomalie": "La dernière vignette change le bras sans montrer clairement le changement de jambe opposée."
+    "rattachement": "Photo intégrée au catalogue et admise à la diffusion.",
+    "commit": "git log -1 --format=%H -- catalogue/illustrations/20261117/REED-010.webp",
+    "anomalie": "Sur cette branche, projectSheetToMovement initialise media à une liste vide, même lorsque les droits sont confirmés. Affichage sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-YOG-005",
