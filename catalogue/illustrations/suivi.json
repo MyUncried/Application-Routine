@@ -412,12 +412,12 @@
   {
     "sheetId": "FIT-PIL-008",
     "name": "Shoulder Bridge",
-    "path": null,
-    "generation": "à produire",
-    "sauvegarde": "en attente",
-    "rattachement": "absent",
-    "commit": null,
-    "anomalie": null
+    "path": "catalogue/illustrations/20261117/FIT-PIL-008.webp",
+    "generation": "contrôlée visuellement",
+    "sauvegarde": "versionnée",
+    "rattachement": "Photo WebP intégrée à la fiche, octets vérifiés.",
+    "commit": "e5704670296786ef76f26656cd0ad9942d3ec9da",
+    "anomalie": "Rendu sur appareil non vérifié."
   },
   {
     "sheetId": "FIT-CRO-004",
