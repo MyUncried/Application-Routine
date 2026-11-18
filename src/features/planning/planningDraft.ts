@@ -1,6 +1,8 @@
 import {
   addDays,
+  daysBetween,
   EVERY_TIME,
+  mondayOf,
   weekdayOf,
   type LocalDate,
   type LocalTime,
@@ -30,12 +32,33 @@ export type FormDraft = {
   readonly endKind: "UNTIL" | "FOR";
   readonly endDate: LocalDate;
   readonly endCount: number;
-  /** Rappel : `null` = interrupteur sur Non. */
+  /** Interrupteur du rappel. */
+  readonly reminderOn: boolean;
+  /**
+   * Délai choisi ; `null` tant qu'aucun n'est choisi. Recette du 17/11/2026 (e1, Hermann : « ne pas mettre de valeur
+   * par défaut ») : l'activation ne présélectionne rien et l'enregistrement attend un délai (RM-054c).
+   * [Avant : 15 min présélectionnées à l'activation — remplacé.]
+   */
   readonly reminderMinutes: number | null;
 };
 
-/** Délai proposé à l'activation du rappel (exemple Figma `1992:6838` : 15 min ; aucune règle de défaut). */
-export const DEFAULT_REMINDER_MINUTES = 15;
+/** RM-054c : rappel activé sans délai choisi → enregistrement impossible. */
+export function reminderIncomplete(form: Pick<FormDraft, "reminderOn" | "reminderMinutes">): boolean {
+  return form.reminderOn && form.reminderMinutes === null;
+}
+
+/**
+ * Recette du 17/11/2026 (d4, Hermann : « Convertir la date de fin en nombre de semaines, et le nombre de semaines en
+ * date de fin ») : « pendant N semaines » couvre les semaines civiles comptées depuis celle de « Planifié le »
+ * (occurrences.ts) ; la date de fin équivalente est le dimanche de la N-ième semaine.
+ */
+export function weeksUntil(startDate: LocalDate, endDate: LocalDate): number {
+  return Math.max(1, Math.floor(daysBetween(mondayOf(startDate), endDate) / 7) + 1);
+}
+
+export function endDateForWeeks(startDate: LocalDate, count: number): LocalDate {
+  return addDays(mondayOf(startDate), count * 7 - 1);
+}
 
 export const DEFAULT_END_WEEKS = 4;
 
@@ -61,6 +84,7 @@ export function initialDraft(date: LocalDate, entries: readonly RoutineEntry[], 
     endKind: "UNTIL",
     endDate: addDays(date, DEFAULT_END_WEEKS * 7),
     endCount: DEFAULT_END_WEEKS,
+    reminderOn: false,
     reminderMinutes: null,
   };
 }
@@ -79,6 +103,7 @@ export function draftFromRoutine(
     endKind: repetition?.end.kind ?? "UNTIL",
     endDate: repetition?.end.kind === "UNTIL" ? repetition.end.date : addDays(routine.startDate, DEFAULT_END_WEEKS * 7),
     endCount: repetition?.end.kind === "FOR" ? repetition.end.count : DEFAULT_END_WEEKS,
+    reminderOn: (routine.reminderMinutes ?? null) !== null,
     reminderMinutes: routine.reminderMinutes ?? null,
   };
 }
@@ -88,7 +113,7 @@ export function toRoutineDraft(form: FormDraft): RoutineDraft {
     startDate: form.startDate,
     time: form.time,
     entries: form.entries,
-    reminderMinutes: form.reminderMinutes,
+    reminderMinutes: form.reminderOn ? form.reminderMinutes : null,
     repetition: form.repetitionOn
       ? {
           unit: "WEEK",
@@ -122,8 +147,10 @@ export function moveEntry<T>(list: readonly T[], from: number, to: number): T[] 
   return next;
 }
 
+/** Chapitre 10 / recette du 17/11/2026 (d3) : le dernier jour coché ne peut pas être décoché. */
 export function toggleWeekday(weekdays: readonly Weekday[], day: Weekday): Weekday[] {
-  return weekdays.includes(day) ? weekdays.filter((value) => value !== day) : [...weekdays, day].sort((a, b) => a - b);
+  if (weekdays.includes(day)) return weekdays.length === 1 ? [...weekdays] : weekdays.filter((value) => value !== day);
+  return [...weekdays, day].sort((a, b) => a - b);
 }
 
 /** D-223 : titre contextuel selon le nombre de contenus. */

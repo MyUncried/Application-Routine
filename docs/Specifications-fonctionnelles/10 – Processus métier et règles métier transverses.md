@@ -1990,6 +1990,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-045 | Les vues Jour, Semaine et Mois du Calendrier font partie du MVP ; la vue Jour est la vue initiale. |
 | RM-046 | En vue Semaine, la liste et le sélecteur de jour sont synchronisés : le jour en tête de liste devient le jour sélectionné, et sélectionner un jour positionne sa section en tête. |
 | RM-047 | Pour l’unité Semaine, la semaine contenant le début est l’ancrage ; fréquence N semaines, jours sélectionnés, bornes inclusives. Ne définit pas les règles Jour/Mois. |
+| RM-047a | Les deux bornes de fin se convertissent l’une en l’autre : « pendant N semaines » couvre les N semaines civiles comptées depuis celle du début (RM-047) ; la date « jusqu’au » équivalente est le dimanche de la N-ième semaine, et une date de fin donne le nombre de semaines civiles qui la contiennent. Basculer de l’une à l’autre affiche la valeur convertie. (Demande de Hermann, recette du 17/11/2026 : « Convertir la date de fin en nombre de semaines, et le nombre de semaines en date de fin ».) |
 | RM-048 | Une occurrence future peut être exécutée en avance depuis l’action contextuelle disponible sur sa carte. Elle n’est ensuite pas reproposée à son horaire initial. |
 | RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. |
 | RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni sa source planifiée ni les Exécutions historiques. |
@@ -2007,6 +2008,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-054 | Les notifications locales sont planifiées selon la stratégie technique définie au chapitre 12. |
 | RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. |
 | RM-054b | Toucher un rappel ouvre l’écran d’Exécution (CE-EXEC-SESSION-01) de la première Séance prévue à cette occurrence, dans l’ordre de la liste et compte tenu des motifs « x fois sur n ». L’écran s’ouvre sans rien exécuter : seul « Démarrer » lance la séance. Une Exécution déjà ouverte n’est pas quittée. (Décision de Hermann du 18/11/2026.) |
+| RM-054c | Activer le rappel ne présélectionne aucun délai ; tant que le rappel est activé sans délai choisi, la planification ne peut pas être enregistrée (coche inactive). « Autre » se règle avec les roues natives d’heure d’iOS (heures, minutes ; 23 h 59 au plus). (Demande de Hermann, recette du 17/11/2026 : « ne pas mettre de valeur par défaut » ; arbitrage du 18/11/2026 : coche grisée ; roues natives d’heure.) [Avant : 15 min présélectionnées à l’activation ; « Autre » dans une feuille « Rappel personnalisé » — remplacés.] |
 
 ### Planification multi-contenus
 

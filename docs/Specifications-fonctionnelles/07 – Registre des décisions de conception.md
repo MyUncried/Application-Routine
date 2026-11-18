@@ -2812,3 +2812,17 @@ Classe B (évolution validée). Question de Hermann, recopiée : « lorsqu'une n
 - Règle nouvelle **RM-054b** (ch10 « Notifications et rappels ») ; note technique ch12 §12.13 ; annexes Index et Matrice.
 - Choix technique (non arbitré, sans effet métier) : une Exécution déjà ouverte n'est pas quittée ; le toucher affiche seulement l'application.
 - Numéro D- non attribué ici : la numérotation du registre avance en parallèle sur d'autres branches ; à attribuer à l'intégration dans `main`.
+
+## Planification — recette iPhone du 17/11/2026 (corrections du 18/11/2026)
+
+Classe B (évolutions validées) et A (conformités). Constats de Hermann, recopiés du cahier de recette :
+
+- « Remplacer "Début le" par "Planifié le" » ; « Tous les textes, hors titre de section, doivent avoir la même police et taille de police, celle de "Début" » ; « aligner verticalement l'interrupteur avec le texte "Répétition" » ; « date et heure : texte en noir » ; « Aligner verticalement les interrupteurs avec leur titre de section » → CE-UI-05 §7 et §9.
+- « Planifier un parcours : L'option "à chaque fois" ne doit apparaître que si l'interrupteur de répétition est activé » → CE-UI-05 §8.
+- « Ecran Catalogue des séances : La durée de la séance doit être sur la troisième ligne, après le nombre ; la coche de sélection doit être centrée verticalement sur la carte ; la coche de sélection doit être ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l'intérieur qui représente l'ordre de sélection des séances et de leur planification » → CE-UI-04 §5 et §9.
+- « Ouvrir l'écran de catalogue des séances par une modale iOS » ; « Ouvrir l'écran de Planification d'une séance / d'un parcours par une modale iOS » ; arbitrage du 18/11/2026 : « Feuilles iOS » (Planifier en feuille, Catalogue des séances en seconde feuille posée dessus) → CE-UI-04 §9, CE-UI-05 §9.
+- d4 : « Convertir la date de fin en nombre de semaines, et le nombre de semaines en date de fin » → règle nouvelle **RM-047a**.
+- e1 : « ne pas mettre de valeur par défaut » ; arbitrage du 18/11/2026 : coche grisée tant qu'aucun délai n'est choisi. e2 : « Ouvre une modale dans une modale. Cette modale est différente de celle utilisée pour la date. Il faut que les modales d'heures / minutes soient les mêmes » ; arbitrage du 18/11/2026 : roues natives d'heure → règle nouvelle **RM-054c**.
+- Conformités (classe A) : d3 « On peut tout décocher, mais on ne peut pas valider si tout est décoché » (CE-UI-05 §14 : au moins un jour) ; e3 « L'interrupteur est toujours activé malgré la désactivation dans les réglages des notifications » (RM-053) ; f3 « le jour sélectionné doit être le premier présenté au haut de la liste » (RM-046).
+- Non réalisables avec les sélecteurs natifs d'iOS (priorité aux primitives natives, non contournées) : « Modale mois : le jour sélectionné doit être fond bleu et texte blanc » ; « modale heure : mettre "heure" et "minute" après les chiffres ».
+- Numéros D- non attribués ici : à attribuer à l'intégration dans `main`.

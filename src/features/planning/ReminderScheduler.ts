@@ -64,6 +64,11 @@ export class ReminderScheduler {
     return (await this.deps.notifications.requestPermission()) === "granted";
   }
 
+  /** RM-053 : autorisation actuelle, sans jamais la demander (notifications retirées dans Réglages, recette e3). */
+  async isPermitted(): Promise<boolean> {
+    return (await this.deps.notifications.permission()) === "granted";
+  }
+
   /** Réapprovisionne la fenêtre ; les appels successifs sont sérialisés. Sans autorisation, rien n'est programmé. */
   refresh(): Promise<void> {
     this.running = this.running.catch(() => undefined).then(() => this.apply());

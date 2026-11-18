@@ -184,11 +184,14 @@ export default function RootLayout() {
               <Stack.Screen name="library-mine" options={{ presentation: "fullScreenModal" }} />
               {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
               <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
-              {/* Planification (CE-UI-04/05) : modale plein écran sous la barre d'état, sans geste de retour (abandon par ✕). */}
-              <Stack.Screen name="planning" options={{ presentation: "fullScreenModal", gestureEnabled: false }} />
-              {/* Feuilles natives du formulaire : « Fréquence » (CE-UI-11) et « Rappel personnalisé » (Figma 1992:7187). */}
+              {/* Planification (CE-UI-04/05) — recette du 17/11/2026 (f/g) : feuilles natives iOS, sans geste de fermeture
+                  (abandon par ✕) ; « Catalogue des séances » posé dessus. [Modale plein écran, sélection dans le même
+                  écran — remplacées.] */}
+              <Stack.Screen name="planning" options={NATIVE_SHEET_OPTIONS} />
+              <Stack.Screen name="planning-selection" options={NATIVE_SHEET_OPTIONS} />
+              {/* Feuille native du formulaire : « Fréquence » (CE-UI-11). [« Rappel personnalisé » en feuille (Figma 1992:7187)
+                  — remplacé le 17/11/2026 par les roues natives d'heure (e2).] */}
               <Stack.Screen name="planning-frequency" options={{ ...NATIVE_SHEET_OPTIONS, sheetAllowedDetents: "fitToContents" }} />
-              <Stack.Screen name="planning-reminder" options={{ ...NATIVE_SHEET_OPTIONS, sheetAllowedDetents: "fitToContents" }} />
             </Stack>
             </CreationDraftProviders>
           ) : null}

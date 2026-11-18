@@ -1,9 +1,9 @@
 import { DatePicker, Host } from "@expo/ui/swift-ui";
-import { labelsHidden, tint } from "@expo/ui/swift-ui/modifiers";
+import { foregroundStyle, labelsHidden, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PanResponder, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { AppState, PanResponder, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -23,27 +23,29 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import {
   applySelection,
-  DEFAULT_REMINDER_MINUTES,
   draftFromRoutine,
+  endDateForWeeks,
   formTitle,
   frequencyLabel,
   initialDraft,
   moveEntry,
+  reminderIncomplete,
   reminderLabel,
   toggleWeekday,
   toRoutineDraft,
+  weeksUntil,
   type FormDraft,
 } from "@/features/planning/planningDraft";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { formatRoutineSummary } from "@/features/planning/planningSummary";
-import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { InlineStepper, PROFILE_HOLD_POLICY } from "@/shared/ui/ProfileStepper";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { switchNudge } from "@/shared/ui/switchNudge";
 import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
 /**
@@ -52,14 +54,16 @@ import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "
  * sélectionné `1992:7369`, parcours `7594:34531`, fréquence `7594:34653`, sélection `7599:14197` / `7594:34809` ;
  * matrice `MATRICE-PLANIFICATION-2026-10-08`).
  *
- * Parcours : Calendrier → Planifier → « Catalogue des séances » (cases, coche d'en-tête, D-499) → formulaire
+ * Parcours : Calendrier → Planifier → « Catalogue des séances » (feuille posée sur le formulaire, cases rondes numérotées,
+ * coche d'en-tête, D-499) → formulaire
  * « Planifier une séance / un parcours » → coche : Enregistrer. Depuis une occurrence : modification ; Dupliquer :
  * brouillon copié (RM-123) ; depuis le Catalogue : Séance préremplie.
  *
- * Formulaire (ordre CE-UI-05) : Début le [date] à [heure] (sélecteurs natifs) ; Répétition (interrupteur, chevron de
- * repli, Jour · Semaine · Mois, « Toutes les », [N] semaines — stepper déroulé au toucher —, [jusqu'au | pendant],
- * [borne], L M M J V S D) ; liste ordonnée sans titre à partir de deux contenus (poignée, nom, fréquence → feuille
- * « Fréquence ») ; Rappel (interrupteur ; 5' 15' 30' 1h Autre ; Autre → « Rappel personnalisé ») ; récapitulatif
+ * Formulaire (ordre CE-UI-05) : Planifié le [date] à [heure] (sélecteurs natifs) ; Répétition (interrupteur, chevron de
+ * repli, Jour · Semaine · Mois, « Toutes les », [N] semaines — stepper déroulé au toucher —, [jusqu'au | pendant]
+ * convertis l'un en l'autre (RM-047a), [borne], L M M J V S D) ; liste ordonnée sans titre à partir de deux contenus
+ * (poignée, nom, fréquence → feuille « Fréquence », fréquence affichée avec la répétition) ; Rappel (interrupteur ;
+ * 5' 15' 30' 1h Autre, sans délai présélectionné ; Autre → roues natives d'heure, RM-054c) ; récapitulatif
  * protégé en bas. Programme : non affiché (trois écrans non conçus, D-332 ; non demandé). Jour et Mois : présents,
  * indisponibles (règles ouvertes, chapitre 05).
  */
@@ -67,6 +71,11 @@ import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "
 const t = planningStrings.form;
 const tReminder = planningStrings.reminder;
 const ENTRY_ROW_HEIGHT = 48;
+/**
+ * Sélecteurs natifs de date et d'heure. Recette du 17/11/2026 (Hermann : « date et heure : texte en noir ») : texte
+ * noir ; la teinte reste celle de l'application dans le calendrier et les roues ouverts (rendu iOS, à vérifier).
+ */
+const PICKER_MODIFIERS = [labelsHidden(), tint(colors.primary), foregroundStyle(colors.textPrimary)];
 
 type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string };
 
@@ -108,11 +117,11 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [form, setForm] = useState<FormDraft | null>(() =>
     fresh ? initialDraft(params.date !== undefined && params.date >= todayLocal() ? params.date : todayLocal(), initialEntries, new Date()) : null,
   );
-  // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases.
-  const [selecting, setSelecting] = useState(() => fresh && initialEntries.length === 0);
   const [repetitionCollapsed, setRepetitionCollapsed] = useState(false);
   const [openStepper, setOpenStepper] = useState<OpenStepper>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  // « Autre » touché : roues natives d'heure affichées (e2), même sans délai encore choisi.
+  const [customChosen, setCustomChosen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [summaryHeight, setSummaryHeight] = useState(0);
@@ -126,6 +135,54 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // « Catalogue des séances » : feuille posée sur ce formulaire (recette du 17/11/2026, f/g). La sélection validée
+  // remplace la liste (D-499) ; ✕ conserve la liste antérieure, ou ferme aussi « Planifier » si elle est vide.
+  const openSelection = (current: readonly RoutineEntry[]) => {
+    requestPlanningSheet({
+      kind: "selection",
+      initial: current.map((entry) => entry.sessionId),
+      closeAll: current.length === 0,
+      onValidate: (selected) =>
+        setForm((draft) => (draft === null ? draft : { ...draft, entries: applySelection(draft.entries, selected, () => Crypto.randomUUID()) })),
+    });
+    router.push("/planning-selection");
+  };
+  // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases.
+  const selectionOpened = useRef(false);
+  useEffect(() => {
+    if (selectionOpened.current || !fresh || initialEntries.length > 0) return;
+    selectionOpened.current = true;
+    openSelection([]);
+    // Ouverture unique au montage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Recette du 17/11/2026 (e3) : notifications retirées dans Réglages → l'interrupteur revient à Non avec le message
+  // (RM-053), à l'ouverture d'un rappel déjà enregistré comme au retour dans l'application.
+  const reminderOn = form?.reminderOn === true;
+  useEffect(() => {
+    if (!reminderOn) return undefined;
+    let cancelled = false;
+    const check = () => {
+      planning.reminderPermissionGranted().then(
+        (granted) => {
+          if (cancelled || granted) return;
+          setForm((current) => (current === null ? current : { ...current, reminderOn: false }));
+          setPermissionDenied(true);
+        },
+        () => undefined,
+      );
+    };
+    check();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") check();
+    });
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, [reminderOn, planning]);
 
   // Chargement du brouillon d'une modification ou d'une duplication.
   useEffect(() => {
@@ -163,18 +220,13 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     return map;
   }, [catalogue]);
 
-  const activeSessions = useMemo(
-    () => (catalogue.status === "ready" ? catalogue.sessions.filter((projection) => projection.status === "ACTIVE") : []),
-    [catalogue],
-  );
-
   if (form === null || mode === null) return <ScreenShell>{null}</ScreenShell>;
 
   // Contenus indisponibles (Séance archivée ou supprimée) : retirés à l'enregistrement, jamais de référence fantôme.
   const availableEntries = catalogue.status === "ready" ? form.entries.filter((entry) => projections.get(entry.sessionId)?.status === "ACTIVE") : form.entries;
   const draft = toRoutineDraft({ ...form, entries: availableEntries });
   const issues = validateRoutineDraft(draft);
-  const canSave = issues.length === 0 && !saving && catalogue.status === "ready";
+  const canSave = issues.length === 0 && !reminderIncomplete(form) && !saving && catalogue.status === "ready";
   const update = (patch: Partial<FormDraft>) => setForm((current) => (current === null ? current : { ...current, ...patch }));
 
   const close = () => router.back();
@@ -202,28 +254,32 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   };
 
   // RM-052 / RM-053 : autorisation demandée à la première activation ; refus → interrupteur sur Non, information.
+  // RM-054c : l'activation ne présélectionne aucun délai.
   const toggleReminder = (on: boolean) => {
     if (!on) {
-      update({ reminderMinutes: null });
+      update({ reminderOn: false });
       return;
     }
     setPermissionDenied(false);
     planning.ensureReminderPermission().then(
       (granted) => {
-        if (granted) update({ reminderMinutes: DEFAULT_REMINDER_MINUTES });
+        if (granted) update({ reminderOn: true });
         else setPermissionDenied(true);
       },
       () => setPermissionDenied(true),
     );
   };
 
-  const openCustomReminder = () => {
-    requestPlanningSheet({
-      kind: "reminder",
-      minutes: form.reminderMinutes ?? DEFAULT_REMINDER_MINUTES,
-      onValidate: (minutes) => update({ reminderMinutes: minutes }),
-    });
-    router.push("/planning-reminder");
+  // d4 : chaque borne de fin garde l'autre à jour (date ↔ nombre de semaines).
+  const changeEndDate = (endDate: LocalDate) => update({ endDate, endCount: weeksUntil(form.startDate, endDate) });
+  const changeEndCount = (endCount: number) => update({ endCount, endDate: endDateForWeeks(form.startDate, endCount) });
+  const changeStartDate = (startDate: LocalDate) => {
+    if (form.endKind === "FOR") {
+      update({ startDate, endDate: endDateForWeeks(startDate, form.endCount) });
+      return;
+    }
+    const endDate = form.endDate < startDate ? startDate : form.endDate;
+    update({ startDate, endDate, endCount: weeksUntil(startDate, endDate) });
   };
 
   const openFrequency = (entry: RoutineEntry) => {
@@ -239,31 +295,11 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     router.push("/planning-frequency");
   };
 
-  if (selecting) {
-    return (
-      <PlanningSelection
-        sessions={activeSessions}
-        loading={catalogue.status === "loading"}
-        failed={catalogue.status === "error"}
-        initial={form.entries.map((entry) => entry.sessionId)}
-        onCancel={() => {
-          // Fermer sans valider conserve la liste antérieure ; sans liste, la planification est abandonnée.
-          if (form.entries.length === 0) close();
-          else setSelecting(false);
-        }}
-        onValidate={(selected) => {
-          update({ entries: applySelection(form.entries, selected, () => Crypto.randomUUID()) });
-          setSelecting(false);
-        }}
-      />
-    );
-  }
-
   const single = availableEntries.length === 1 ? projections.get(availableEntries[0]!.sessionId) : undefined;
   const summary = formatRoutineSummary(draft);
   const removed = form.entries.length - availableEntries.length;
   const reminder = form.reminderMinutes;
-  const customReminder = reminder !== null && !(REMINDER_PRESETS as readonly number[]).includes(reminder);
+  const customReminder = customChosen || (reminder !== null && !(REMINDER_PRESETS as readonly number[]).includes(reminder));
   const weekUnit = (count: number) => (count === 1 ? planningStrings.weekUnit.singular : planningStrings.weekUnit.plural);
 
   return (
@@ -273,6 +309,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         title={formTitle(availableEntries.length)}
         closeIcon
         centeredTitle={false}
+        topInset={0}
         onBack={close}
         backAccessibilityLabel={t.cancel}
         validate={{ onPress: save, enabled: canSave, accessibilityLabel: t.save }}
@@ -289,7 +326,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               </Text>
             ) : null}
           </View>
-          <Pressable onPress={() => setSelecting(true)} accessibilityRole="button" hitSlop={12} testID="planning-change">
+          <Pressable onPress={() => openSelection(form.entries)} accessibilityRole="button" hitSlop={12} testID="planning-change">
             <Text style={styles.change}>{t.change}</Text>
           </Pressable>
         </View>
@@ -307,7 +344,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           </Text>
         ) : null}
 
-        {/* Bloc sans titre : Début le [date] à [heure]. */}
+        {/* Bloc sans titre : Planifié le [date] à [heure] (recette du 17/11/2026 ; [« Début le » — remplacé]). */}
         <View style={styles.block} testID="planning-slot">
           <View style={styles.slotRow}>
             <Text style={styles.rowLabel}>{t.start}</Text>
@@ -316,7 +353,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               value={form.startDate}
               minimum={todayLocal()}
               accessibilityLabel={t.datePicker}
-              onChange={(startDate) => update({ startDate, endDate: form.endDate < startDate ? startDate : form.endDate })}
+              onChange={changeStartDate}
               testID="planning-start-date"
             />
             <View style={styles.spacer} />
@@ -340,6 +377,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           </Pressable>
           <Switch
             {...switchOffColors}
+            style={switchNudge}
             value={form.repetitionOn}
             onValueChange={(repetitionOn) => {
               update({ repetitionOn });
@@ -385,7 +423,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                   value={form.endDate}
                   minimum={form.startDate}
                   accessibilityLabel={t.endDatePicker}
-                  onChange={(endDate) => update({ endDate })}
+                  onChange={changeEndDate}
                   testID="planning-end-date"
                 />
               ) : (
@@ -421,7 +459,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 max={520}
                 policy={PROFILE_HOLD_POLICY}
                 formatValue={(value) => String(value ?? "")}
-                onChange={(endCount) => update({ endCount })}
+                onChange={changeEndCount}
                 accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
                 testID="planning-end-count-stepper"
               />
@@ -456,6 +494,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               update({ entries: moveEntry(form.entries, form.entries.indexOf(availableEntries[from]!), form.entries.indexOf(availableEntries[to]!)) })
             }
             onFrequency={openFrequency}
+            showFrequency={form.repetitionOn}
           />
         ) : null}
 
@@ -464,7 +503,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           <Text style={styles.sectionTitle}>{tReminder.title}</Text>
           <Switch
             {...switchOffColors}
-            value={reminder !== null}
+            style={switchNudge}
+            value={form.reminderOn}
             onValueChange={toggleReminder}
             accessibilityLabel={tReminder.toggle}
             testID="planning-reminder-switch"
@@ -475,23 +515,44 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             {tReminder.permissionDenied}
           </Text>
         ) : null}
-        {reminder !== null ? (
+        {form.reminderOn ? (
           <View style={styles.block} testID="planning-reminder">
+            {/* RM-054c : aucun délai présélectionné ; la coche attend un choix. */}
             <SegmentedControl
               options={[
                 ...REMINDER_PRESETS.map((minutes) => ({ value: String(minutes), label: reminderLabel(minutes) })),
-                { value: "OTHER", label: customReminder ? reminderLabel(reminder) : tReminder.other, accessibilityLabel: tReminder.customTitle },
+                { value: "OTHER", label: tReminder.other, accessibilityLabel: tReminder.customTitle },
               ]}
-              value={customReminder ? "OTHER" : String(reminder)}
+              value={customReminder ? "OTHER" : reminder === null ? null : String(reminder)}
               onChange={(value) => {
-                if (value === "OTHER") openCustomReminder();
-                else update({ reminderMinutes: Number(value) });
+                if (value === "OTHER") {
+                  setCustomChosen(true);
+                  if (reminder !== null && (REMINDER_PRESETS as readonly number[]).includes(reminder)) update({ reminderMinutes: null });
+                } else {
+                  setCustomChosen(false);
+                  update({ reminderMinutes: Number(value) });
+                }
               }}
               testID="planning-reminder-options"
             />
-            {/* Toucher « Autre » déjà sélectionné rouvre le réglage personnalisé. */}
+            {/* Recette du 17/11/2026 (e2, option « Roues natives d'heure ») : délai personnalisé saisi avec les mêmes roues
+                natives que l'heure de « Planifié le », sans feuille par-dessus le formulaire ; 23 h 59 au plus.
+                [Feuille « Rappel personnalisé » (Figma 1992:7187) — remplacée.] */}
             {customReminder ? (
-              <Pressable onPress={openCustomReminder} accessibilityRole="button" accessibilityLabel={tReminder.customTitle} style={styles.customHit} testID="planning-reminder-custom" />
+              <View style={styles.slotRow} testID="planning-reminder-custom">
+                <Text style={styles.rowLabel}>{tReminder.customTitle}</Text>
+                <View style={styles.spacer} />
+                <NativeTime
+                  value={durationToTime(reminder ?? 0)}
+                  date={form.startDate}
+                  accessibilityLabel={tReminder.customTitle}
+                  onChange={(time) => {
+                    const minutes = timeToDuration(time);
+                    update({ reminderMinutes: minutes === 0 ? null : minutes });
+                  }}
+                  testID="planning-reminder-custom-time"
+                />
+              </View>
             ) : null}
           </View>
         ) : null}
@@ -551,11 +612,14 @@ function EntryList({
   nameOf,
   onMove,
   onFrequency,
+  showFrequency,
 }: {
   readonly entries: readonly RoutineEntry[];
   readonly nameOf: (entry: RoutineEntry) => string;
   readonly onMove: (from: number, to: number) => void;
   readonly onFrequency: (entry: RoutineEntry) => void;
+  /** Recette du 17/11/2026 (Hermann : « L'option "à chaque fois" ne doit apparaître que si l'interrupteur de répétition est activé »). */
+  readonly showFrequency: boolean;
 }) {
   const [drag, setDrag] = useState<{ readonly index: number; readonly dy: number } | null>(null);
   const responders = entries.map((_, index) =>
@@ -606,9 +670,11 @@ function EntryList({
             <Text style={styles.entryName} numberOfLines={1}>
               {name}
             </Text>
-            <Pressable onPress={() => onFrequency(entry)} accessibilityRole="button" hitSlop={8} style={styles.valuePill} testID={`planning-entry-${index}-frequency`}>
-              <Text style={styles.frequency}>{frequencyLabel(entry)}</Text>
-            </Pressable>
+            {showFrequency ? (
+              <Pressable onPress={() => onFrequency(entry)} accessibilityRole="button" hitSlop={8} style={styles.valuePill} testID={`planning-entry-${index}-frequency`}>
+                <Text style={styles.frequency}>{frequencyLabel(entry)}</Text>
+              </Pressable>
+            ) : null}
           </View>
         );
       })}
@@ -637,26 +703,49 @@ function NativeDate({
           displayedComponents={["date"]}
           {...(minimum !== undefined ? { range: { start: timeToDate(minimum, "00:00") } } : {})}
           onDateChange={(date) => onChange(formatLocalDate(date))}
-          modifiers={[labelsHidden(), tint(colors.primary)]}
+          modifiers={PICKER_MODIFIERS}
         />
       </Host>
     </View>
   );
 }
 
-function NativeTime({ value, date, onChange, testID }: { readonly value: LocalTime; readonly date: LocalDate; readonly onChange: (value: LocalTime) => void; readonly testID: string }) {
+function NativeTime({
+  value,
+  date,
+  onChange,
+  accessibilityLabel = planningStrings.form.timePicker,
+  testID,
+}: {
+  readonly value: LocalTime;
+  readonly date: LocalDate;
+  readonly onChange: (value: LocalTime) => void;
+  readonly accessibilityLabel?: string;
+  readonly testID: string;
+}) {
   return (
-    <View accessibilityLabel={planningStrings.form.timePicker} testID={testID}>
+    <View accessibilityLabel={accessibilityLabel} testID={testID}>
       <Host matchContents>
         <DatePicker
           selection={timeToDate(date, value)}
           displayedComponents={["hourAndMinute"]}
           onDateChange={(next) => onChange(dateToTime(next))}
-          modifiers={[labelsHidden(), tint(colors.primary)]}
+          modifiers={PICKER_MODIFIERS}
         />
       </Host>
     </View>
   );
+}
+
+/** Délai de rappel (minutes) ↔ valeur des roues d'heure (« 01:20 » = 1 h 20). */
+export function durationToTime(minutes: number): LocalTime {
+  const bounded = Math.max(0, Math.min(23 * 60 + 59, minutes));
+  return `${String(Math.floor(bounded / 60)).padStart(2, "0")}:${String(bounded % 60).padStart(2, "0")}`;
+}
+
+export function timeToDuration(time: LocalTime): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return (hours ?? 0) * 60 + (minutes ?? 0);
 }
 
 const styles = StyleSheet.create({
@@ -673,21 +762,23 @@ const styles = StyleSheet.create({
   change: { ...type.label, color: colors.primary },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: layout.screenGutter, paddingTop: spacing[16], gap: spacing[12] },
-  notice: { ...type.supporting, color: colors.textSecondary },
+  // Recette du 17/11/2026 (Hermann : « Tous les textes, hors titre de section, doivent avoir la même police et taille de
+  // police, celle de "Début" ») : `type.label` pour tout le formulaire. [supporting / body / sectionTitle — remplacés.]
+  notice: { ...type.label, color: colors.textSecondary },
   block: { backgroundColor: colors.surfaceSubtle, borderRadius: 12, padding: spacing[16], gap: spacing[12] },
   entriesBlock: { paddingVertical: spacing[4], gap: 0 },
   slotRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing[8] },
   spacer: { flex: 1 },
   rowLabel: { ...type.label, color: colors.textPrimary },
-  linkWord: { ...type.supporting, color: colors.textSecondary },
+  linkWord: { ...type.label, color: colors.textSecondary },
   sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: minTouchTarget },
   sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: spacing[16], minHeight: minTouchTarget },
   sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
-  every: { ...type.supporting, color: colors.textSecondary },
+  every: { ...type.label, color: colors.textSecondary },
   phraseRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing[8] },
   inline: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
   valuePill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.background, justifyContent: "center" },
-  value: { ...type.sectionTitle, color: colors.primary },
+  value: { ...type.label, color: colors.primary },
   weekdays: { flexDirection: "row", justifyContent: "space-between" },
   weekday: {
     width: 36,
@@ -708,8 +799,7 @@ const styles = StyleSheet.create({
   handle: { width: 24, alignItems: "center", justifyContent: "center", minHeight: ENTRY_ROW_HEIGHT },
   entryName: { ...type.label, color: colors.textPrimary, flex: 1 },
   frequency: { ...type.label, color: colors.primary },
-  customHit: { position: "absolute", right: spacing[16], top: spacing[16], width: 64, height: 32 },
-  error: { ...type.supporting, color: colors.danger },
+  error: { ...type.label, color: colors.danger },
   summaryZone: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: layout.screenGutter, backgroundColor: colors.background },
   summaryFade: {
     position: "absolute",
@@ -720,5 +810,5 @@ const styles = StyleSheet.create({
     experimental_backgroundImage: `linear-gradient(to bottom, ${colors.background}00 0%, ${colors.background} 100%)`,
   },
   summaryBox: { borderWidth: 1, borderColor: colors.selection, borderRadius: 12, padding: spacing[12], marginTop: spacing[8] },
-  summaryText: { ...type.body, color: colors.textPrimary },
+  summaryText: { ...type.label, color: colors.textPrimary },
 });

@@ -15,7 +15,6 @@ import { toggledView, type SessionCatalogueView } from "@/features/sessions/sess
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { strings } from "@/shared/i18n";
 import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -69,6 +68,7 @@ export function PlanningSelection({
       <FixedHeader
         title={t.title}
         closeIcon
+        topInset={0}
         onBack={onCancel}
         backAccessibilityLabel={t.cancel}
         validate={{ onPress: () => available.length > 0 && onValidate(available), enabled: available.length > 0, accessibilityLabel: t.validate }}
@@ -113,7 +113,8 @@ export function PlanningSelection({
           </Text>
         ) : null}
         {context.visible.map((projection) => {
-          const checked = selected.includes(projection.id);
+          const order = selected.indexOf(projection.id) + 1;
+          const checked = order > 0;
           return (
             <Pressable
               key={projection.id}
@@ -128,7 +129,7 @@ export function PlanningSelection({
                 <SessionCard projection={projection} context="planning" />
               </View>
               <View style={[styles.check, checked ? styles.checkOn : null]} pointerEvents="none" testID={`planning-selection-${projection.id}-${checked ? "checked" : "unchecked"}`}>
-                {checked ? <KodjoIcon name="state-selected" /> : null}
+                {checked ? <Text style={styles.checkOrder}>{order}</Text> : null}
               </View>
             </Pressable>
           );
@@ -139,24 +140,31 @@ export function PlanningSelection({
 }
 
 const CHECK = 24;
+/** En-tête replié de la carte de Séance (D-504 : 72). */
+const CARD_HEADER_HEIGHT = 72;
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
   list: { paddingHorizontal: layout.screenGutter, paddingTop: spacing[16] + CONTEXT_BAND_FADE_HEIGHT, gap: spacing[12] },
   item: { position: "relative" },
+  // Recette du 17/11/2026 (Hermann : « la coche de sélection doit être centrée verticalement sur la carte » ; « doit être
+  // ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l'intérieur qui représente l'ordre de sélection des
+  // séances et de leur planification ») : case ronde, centrée sur l'en-tête de 72 de la carte. [Case carrée en bas à
+  // droite, coche `state-selected` — remplacée.]
   check: {
     position: "absolute",
     right: spacing[12],
-    bottom: spacing[8],
+    top: (CARD_HEADER_HEIGHT - CHECK) / 2,
     width: CHECK,
     height: CHECK,
-    borderRadius: 6,
+    borderRadius: CHECK / 2,
     borderWidth: 1.5,
     borderColor: colors.cardsBorder,
     backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkOn: { borderColor: colors.selection },
+  checkOn: { borderColor: colors.primary, backgroundColor: colors.primary },
+  checkOrder: { ...type.label, color: colors.background },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
 });

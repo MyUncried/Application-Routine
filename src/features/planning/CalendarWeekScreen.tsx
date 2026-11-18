@@ -122,6 +122,9 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
   const sectionOffsets = useRef(new Map<LocalDate, number>());
   const programmaticScroll = useRef(false);
   const requestId = useRef(0);
+  // Recette du 17/11/2026 (f3) : la dernière section doit pouvoir monter en tête ; la réserve basse suit sa hauteur.
+  const [listHeight, setListHeight] = useState(0);
+  const [lastSectionHeight, setLastSectionHeight] = useState(0);
 
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
@@ -247,6 +250,8 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
 
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   const anyItem = days.some((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
+  const lastDay = [...days].reverse().find((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
+  const listPaddingBottom = Math.max(bottomReserve, listHeight - lastSectionHeight);
 
   return (
     <ScreenShell>
@@ -340,7 +345,8 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
       <ScrollView
         ref={scrollRef}
         style={styles.list}
-        contentContainerStyle={[styles.listContent, { paddingBottom: bottomReserve }]}
+        contentContainerStyle={[styles.listContent, { paddingBottom: listPaddingBottom }]}
+        onLayout={(event) => setListHeight(event.nativeEvent.layout.height)}
         onScroll={onScroll}
         onMomentumScrollEnd={() => {
           programmaticScroll.current = false;
@@ -373,7 +379,10 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
           return (
             <View
               key={day}
-              onLayout={(event) => sectionOffsets.current.set(day, event.nativeEvent.layout.y)}
+              onLayout={(event) => {
+                sectionOffsets.current.set(day, event.nativeEvent.layout.y);
+                if (day === lastDay) setLastSectionHeight(event.nativeEvent.layout.height);
+              }}
               testID={`calendar-section-${day}`}
             >
               <View style={styles.sectionHeader}>

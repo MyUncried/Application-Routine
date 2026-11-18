@@ -3,10 +3,13 @@ import type { ContentFrequency } from "@/domain/planning/Routine";
 /**
  * Relais des feuilles natives de la planification (même patron que `filterSheetRelay`) : le formulaire dépose la
  * demande, la route `formSheet` la lit, puis rend la valeur validée par le rappel. Rien n'est persisté ici.
+ * « Catalogue des séances » est une feuille posée sur « Planifier » (recette du 17/11/2026, f/g). `closeAll` : ✕ ferme
+ * aussi « Planifier » (nouvelle planification sans aucun contenu). [« Rappel personnalisé » en feuille — remplacé par
+ * les roues natives d'heure du formulaire, recette du 17/11/2026 (e2).]
  */
 export type PlanningSheetRequest =
   | { readonly kind: "frequency"; readonly name: string; readonly frequency: ContentFrequency; readonly onValidate: (frequency: ContentFrequency) => void }
-  | { readonly kind: "reminder"; readonly minutes: number; readonly onValidate: (minutes: number) => void };
+  | { readonly kind: "selection"; readonly initial: readonly string[]; readonly closeAll: boolean; readonly onValidate: (selected: readonly string[]) => void };
 
 let pending: PlanningSheetRequest | null = null;
 

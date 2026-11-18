@@ -132,6 +132,10 @@ export function SessionCard({
   const duration = formatCatalogueSessionDuration(projection.duration, projection.forTimeBound);
   // D-504 : Démarrer masqué sur une carte archivée et dans les modales de planification.
   const showStart = !archived && context !== "planning";
+  // Recette Planification du 17/11/2026 (Hermann : « La durée de la séance doit être sur la troisième ligne, après le
+  // nombre ») : dans les modales de planification, la durée suit « N circuits · N exercices » ; la droite de la carte
+  // est laissée à la case de sélection. [Durée en haut à droite dans ce contexte — remplacé.]
+  const durationOnMetaLine = context === "planning";
   const startAvailable = onStart !== undefined;
 
   return (
@@ -155,7 +159,7 @@ export function SessionCard({
           <CardVisual projection={projection} />
         </Pressable>
         <View style={[styles.texts, flagged ? styles.textsFlagged : null]} testID={`session-card-${id}-texts`}>
-          <View style={styles.titleRow}>
+          <View style={[styles.titleRow, durationOnMetaLine ? styles.besideSelection : null]}>
             {/* D-504 : chevron à gauche du nom sur toute carte ; → repliée, ↓ dépliée. */}
             <Pressable
               onPress={onToggleExpanded}
@@ -180,12 +184,14 @@ export function SessionCard({
               <Text style={styles.name} numberOfLines={1} testID={`session-card-${id}-name`}>
                 {projection.name}
               </Text>
-              <Text style={styles.duration} numberOfLines={1} testID={`session-card-${id}-duration`}>
-                {duration}
-              </Text>
+              {durationOnMetaLine ? null : (
+                <Text style={styles.duration} numberOfLines={1} testID={`session-card-${id}-duration`}>
+                  {duration}
+                </Text>
+              )}
             </View>
           </View>
-          <View style={[styles.metaRows, showStart ? styles.besideStart : null]}>
+          <View style={[styles.metaRows, showStart ? styles.besideStart : null, durationOnMetaLine ? styles.besideSelection : null]}>
             <CategoryLine categories={projection.categories} testID={`session-card-${id}-categories`} />
             <View style={styles.metaRow}>
               <View style={styles.symbolColumn}>
@@ -198,6 +204,7 @@ export function SessionCard({
                   </Text>
                 ) : null}
                 {formatSessionStructureLine(projection)}
+                {durationOnMetaLine ? <Text testID={`session-card-${id}-duration`}>{`${CATEGORY_SEPARATOR}${duration}`}</Text> : null}
               </Text>
             </View>
           </View>
@@ -460,6 +467,10 @@ const styles = StyleSheet.create({
   },
   besideStart: {
     marginRight: START_WIDTH + spacing[8],
+  },
+  /** Case ronde de la sélection de planification (`PlanningSelection` : 24, à 12 du bord droit). */
+  besideSelection: {
+    marginRight: 24 + spacing[12] + spacing[8],
   },
   titleRow: {
     height: TITLE_ROW_HEIGHT,

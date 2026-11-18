@@ -4194,7 +4194,7 @@ La coche de l’en-tête valide la sélection dans le brouillon et revient au fo
 
 #### 5. Données affichées et source de vérité
 
-Sources actives SESSION/ACTIVITY appartenant à l’utilisateur ; collection d’identifiants retenus. Aucun contenu de démonstration injecté en liste vide. Conserver les règles existantes de classement et les paramètres de carte sans durée/Lecture/Déployer.
+Sources actives SESSION/ACTIVITY appartenant à l’utilisateur ; collection d’identifiants retenus. Aucun contenu de démonstration injecté en liste vide. Conserver les règles existantes de classement et les paramètres de carte sans durée/Lecture/Déployer. [Recette du 17/11/2026 (Hermann : « La durée de la séance doit être sur la troisième ligne, après le nombre ») : la durée figure sur la troisième ligne de la carte, après « N circuits · N exercices » — « sans durée » remplacé.]
 
 #### 6. Classification des valeurs Figma
 
@@ -4211,7 +4211,7 @@ Cases à cocher même pour un seul élément. La coche valide les éléments sé
 #### 9. Layout déterministe
 
 
-Marges 24 et largeur 354 sur 402 ; validation par la coche dans l’en-tête, sans bouton inférieur (D-499, 06/11/2026). Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
+Marges 24 et largeur 354 sur 402 ; validation par la coche dans l’en-tête, sans bouton inférieur (D-499, 06/11/2026). Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. [Recette du 17/11/2026 (Hermann : « Ouvrir l’écran de catalogue des séances par une modale iOS » ; « la coche de sélection doit être centrée verticalement sur la carte » ; « la coche de sélection doit être ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l’intérieur qui représente l’ordre de sélection des séances et de leur planification ») : feuille native iOS posée sur le formulaire CE-UI-05 ; case ronde de 24, centrée verticalement sur la carte, à droite ; cochée : fond bleu KODJO, numéro blanc = rang dans la sélection, qui donne l’ordre initial de la liste du formulaire ; durée sur la troisième ligne (§5). Case carrée en bas à droite, « sans durée » — remplacés.] États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -4287,15 +4287,15 @@ Libellés de structure statiques ; titre dépend du nombre/type ; noms, dates, m
 
 #### 7. Structure de l’écran
 
-Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif en bas. Enregistrer est porté par la coche de l’en-tête (D-499). En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
+Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif en bas. [Recette du 17/11/2026 (Hermann : « Remplacer "Début le" par "Planifié le" ») : libellé « Planifié le ».] Enregistrer est porté par la coche de l’en-tête (D-499). En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
 
 #### 8. Éléments obligatoires
 
-Programme : Aucun par défaut, facultatif. Une date et une heure. Interrupteurs Répétition/Rappel. Répétition sur Oui : Jour/Semaine/Mois, multiplicateur, borne jusqu’au/pendant ; jours de semaine pour Semaine. Rappel sur Oui : 5 min/15 min/30 min/1 h/Autre. Poignées 12×18 et fréquence générique pour chaque ligne à N ≥ 2.
+Programme : Aucun par défaut, facultatif. Une date et une heure. Interrupteurs Répétition/Rappel. Répétition sur Oui : Jour/Semaine/Mois, multiplicateur, borne jusqu’au/pendant ; jours de semaine pour Semaine. Rappel sur Oui : 5 min/15 min/30 min/1 h/Autre. Poignées 12×18 et fréquence générique pour chaque ligne à N ≥ 2. [Recette du 17/11/2026 : rappel activé sans délai présélectionné, « Autre » réglé par les roues natives d’heure (RM-054c) ; la fréquence d’une ligne n’apparaît que si la Répétition est activée (Hermann : « L’option "à chaque fois" ne doit apparaître que si l’interrupteur de répétition est activé ») ; le dernier jour de semaine coché ne se décoche pas (§14) ; bornes converties (RM-047a).]
 
 #### 9. Layout déterministe
 
-Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. Récapitulatif en bas de l’écran, dans la zone protégée libérée par le bouton ; hauteur adaptée au texte, dégradé de 40 px au-dessus et fond opaque jusqu’au bas (D-499, 06/11/2026). Le formulaire défile sous cette zone.
+Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. [Recette du 17/11/2026 (Hermann : « Ouvrir l’écran de Planification d’une séance / d’un parcours par une modale iOS » ; « Tous les textes, hors titre de section, doivent avoir la même police et taille de police, celle de "Début" » ; « aligner verticalement l’interrupteur avec le texte "Répétition" » ; « date et heure : texte en noir ») : feuille native iOS (comme la fiche d’un mouvement) au lieu de ModalFullscreen ; titres de section Semi Bold 16, tous les autres textes du formulaire Medium 14 (valeurs, liaisons, récapitulatif, messages) ; interrupteurs alignés sur leur titre ; texte des sélecteurs de date et d’heure en noir. ModalFullscreen, valeurs 16 et liaisons 12 — remplacés.] Récapitulatif en bas de l’écran, dans la zone protégée libérée par le bouton ; hauteur adaptée au texte, dégradé de 40 px au-dessus et fond opaque jusqu’au bas (D-499, 06/11/2026). Le formulaire défile sous cette zone.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 

@@ -150,7 +150,10 @@ function SessionServiceInitializer({
     });
     return new PlanningService({
       repository: routines,
-      reminders: { refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission() },
+      reminders: {
+        refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission(),
+        isPermitted: () => scheduler.isPermitted(),
+      },
       newId: () => Crypto.randomUUID(),
       now: () => new Date(),
     });

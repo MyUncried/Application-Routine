@@ -612,6 +612,8 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 Ouverture d’un rappel (RM-054b, 18/11/2026) : chaque notification porte, outre l’identité de son occurrence, l’identifiant de la première Séance retenue pour cette occurrence (calculé à la programmation, motifs « x fois sur n » compris). Le toucher est traité au premier plan comme au lancement de l’application (réponse conservée par le système, consommée une seule fois) ; seule l’action par défaut est prise en compte. L’application ouvre alors l’écran d’Exécution de cette Séance, sans créer d’Exécution ; si une Exécution est déjà ouverte dans le processus, elle n’est pas quittée.
 
+Planification en feuilles natives (recette du 17/11/2026) : « Planifier » et « Catalogue des séances » sont deux routes `formSheet` empilées ; le formulaire dépose sa demande de sélection dans le relais des feuilles de planification (`planningSheetRelay`) et reçoit la sélection validée par rappel, comme pour « Fréquence ». Le délai personnalisé du rappel (RM-054c) utilise le `DatePicker` SwiftUI en heures et minutes, lu comme une durée ; la feuille « Rappel personnalisé » est supprimée. L’autorisation des notifications est relue sans être demandée à l’ouverture d’un rappel enregistré et au retour au premier plan (RM-053). Limites du sélecteur natif, non contournées (priorité aux primitives natives) : le style du jour choisi dans le calendrier (fond plein, texte blanc) et l’absence des mots « heure » / « minute » sur les roues relèvent d’iOS.
+
 ## 12.14 Médias
 
 L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).

@@ -19,7 +19,11 @@ export type SaveRoutineResult =
   | { readonly status: "NOT_FOUND" };
 
 /** Rappels locaux (adaptateur `ReminderScheduler`) ; absent : aucun rappel programmé (tests, environnement sans notifications). */
-export type PlanningReminders = { readonly refresh: () => Promise<void>; readonly ensurePermission: () => Promise<boolean> };
+export type PlanningReminders = {
+  readonly refresh: () => Promise<void>;
+  readonly ensurePermission: () => Promise<boolean>;
+  readonly isPermitted: () => Promise<boolean>;
+};
 
 export type PlanningServiceDeps = {
   readonly repository: RoutineRepository;
@@ -43,6 +47,10 @@ export class PlanningService {
   /** RM-052 / RM-053 : autorisation à la première activation d'un rappel. Sans adaptateur : refusée. */
   ensureReminderPermission(): Promise<boolean> {
     return this.deps.reminders?.ensurePermission() ?? Promise.resolve(false);
+  }
+
+  reminderPermissionGranted(): Promise<boolean> {
+    return this.deps.reminders?.isPermitted() ?? Promise.resolve(false);
   }
 
   private async written<T>(result: T): Promise<T> {
