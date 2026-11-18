@@ -117,11 +117,13 @@ const tapStep = (testID: string) => {
   fireEvent(screen.getByTestId(testID), "pressOut");
 };
 
-/** Sélection validée dans la feuille « Catalogue des séances » (route `planning-selection`). */
-function validateSelection(selected: readonly string[]) {
-  expect(mockPush).toHaveBeenLastCalledWith("/planning-selection");
-  const request = pendingPlanningSheet("selection");
-  act(() => request!.onValidate(selected));
+/** Sélection initiale, dans la feuille « Planifier » : cases touchées dans l'ordre, puis la coche. */
+async function validateSelection(selected: readonly string[]) {
+  expect(screen.getByText("Catalogue des séances")).toBeTruthy();
+  expect(mockPush).not.toHaveBeenCalledWith("/planning-selection");
+  for (const id of selected) fireEvent.press(screen.getByTestId(`planning-selection-${id}`));
+  fireEvent.press(screen.getByTestId("screen-header-validate"));
+  await flush();
 }
 
 /** Roues natives d'heure du délai personnalisé : valeur « hh:mm ». */
@@ -194,8 +196,7 @@ describe("Planifier", () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     await renderPlanning({ date: START });
-    expect(pendingPlanningSheet("selection")?.closeAll).toBe(true);
-    validateSelection([b.id, a.id]);
+    await validateSelection([b.id, a.id]);
     expect(screen.getByText("Planifier un parcours")).toBeTruthy();
     // Fréquence affichée seulement avec la répétition (recette du 17/11/2026).
     expect(screen.queryByTestId("planning-entry-0-frequency")).toBeNull();
@@ -288,7 +289,7 @@ describe("Planifier", () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     await renderPlanning({ date: START });
-    validateSelection([a.id, b.id]);
+    await validateSelection([a.id, b.id]);
     fireEvent(screen.getByTestId("planning-repetition-switch"), "valueChange", true);
     fireEvent.press(screen.getByTestId("planning-entry-1-frequency"));
     expect(mockPush).toHaveBeenLastCalledWith("/planning-frequency");
@@ -302,11 +303,20 @@ describe("Planifier", () => {
     expect(routine?.entries.map((entry) => entry.frequency)).toEqual([EVERY_TIME, { x: 2, n: 3, positions: [1, 3] }]);
   });
 
-  it("« Changer » rouvre la sélection avec la liste actuelle, sans fermer Planifier au ✕", async () => {
+  it("« Changer » ouvre la sélection en feuille avec la liste actuelle", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     await renderPlanning({ sessionId: created.id, date: START });
     expect(mockPush).not.toHaveBeenCalledWith("/planning-selection");
     fireEvent.press(screen.getByTestId("planning-change"));
-    expect(pendingPlanningSheet("selection")).toMatchObject({ initial: [created.id], closeAll: false });
+    expect(mockPush).toHaveBeenLastCalledWith("/planning-selection");
+    expect(pendingPlanningSheet("selection")).toMatchObject({ initial: [created.id] });
+  });
+
+  it("fermer la sélection initiale sans contenu ferme Planifier sans rien écrire", async () => {
+    await sessions.createStructured(input("Alpha"));
+    await renderPlanning({ date: START });
+    fireEvent.press(screen.getByTestId("screen-header-back"));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(await planning.listRoutines()).toEqual([]);
   });
 });

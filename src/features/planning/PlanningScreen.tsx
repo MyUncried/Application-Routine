@@ -37,6 +37,7 @@ import {
   type FormDraft,
 } from "@/features/planning/planningDraft";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
+import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { formatRoutineSummary } from "@/features/planning/planningSummary";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -136,27 +137,26 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     reload();
   }, [reload]);
 
-  // « Catalogue des séances » : feuille posée sur ce formulaire (recette du 17/11/2026, f/g). La sélection validée
-  // remplace la liste (D-499) ; ✕ conserve la liste antérieure, ou ferme aussi « Planifier » si elle est vide.
+  // « Changer » : « Catalogue des séances » en feuille posée sur ce formulaire déjà présenté (recette du 17/11/2026,
+  // f/g). La sélection validée remplace la liste (D-499) ; ✕ conserve la liste antérieure.
   const openSelection = (current: readonly RoutineEntry[]) => {
     requestPlanningSheet({
       kind: "selection",
       initial: current.map((entry) => entry.sessionId),
-      closeAll: current.length === 0,
       onValidate: (selected) =>
         setForm((draft) => (draft === null ? draft : { ...draft, entries: applySelection(draft.entries, selected, () => Crypto.randomUUID()) })),
     });
     router.push("/planning-selection");
   };
-  // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases.
-  const selectionOpened = useRef(false);
-  useEffect(() => {
-    if (selectionOpened.current || !fresh || initialEntries.length > 0) return;
-    selectionOpened.current = true;
-    openSelection([]);
-    // Ouverture unique au montage.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases, dans cette même feuille. Recette du 18/11/2026
+  // (Hermann : « Le catalogue des séances s'ouvre en modale mais avec un bug d'affichage. Et la fenêtre ne peut plus se
+  // fermer ») : une seconde feuille poussée pendant la présentation de celle-ci était mal présentée par iOS.
+  // [Seconde feuille ouverte dès l'ouverture, ✕ fermant les deux — remplacé.]
+  const [selecting, setSelecting] = useState(() => fresh && initialEntries.length === 0);
+  const activeSessions = useMemo(
+    () => (catalogue.status === "ready" ? catalogue.sessions.filter((projection) => projection.status === "ACTIVE") : []),
+    [catalogue],
+  );
 
   // Recette du 17/11/2026 (e3) : notifications retirées dans Réglages → l'interrupteur revient à Non avec le message
   // (RM-053), à l'ouverture d'un rappel déjà enregistré comme au retour dans l'application.
@@ -230,6 +230,22 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const update = (patch: Partial<FormDraft>) => setForm((current) => (current === null ? current : { ...current, ...patch }));
 
   const close = () => router.back();
+
+  if (selecting) {
+    return (
+      <PlanningSelection
+        sessions={activeSessions}
+        loading={catalogue.status === "loading"}
+        failed={catalogue.status === "error"}
+        initial={[]}
+        onCancel={close}
+        onValidate={(selected) => {
+          update({ entries: applySelection(form.entries, selected, () => Crypto.randomUUID()) });
+          setSelecting(false);
+        }}
+      />
+    );
+  }
 
   const save = () => {
     if (!canSave || savingRef.current) return;

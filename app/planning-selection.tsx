@@ -7,7 +7,7 @@ import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { useTitleCappedSheetDetent } from "@/shared/ui/nativeSheet";
 
 /**
- * « Catalogue des séances » de la planification (CE-UI-04) — feuille native iOS posée sur « Planifier » (recette du
+ * « Catalogue des séances » ouvert par « Changer » (CE-UI-04) — feuille native iOS posée sur « Planifier » (recette du
  * 17/11/2026, Hermann : « Ouvrir l'écran de catalogue des séances par une modale iOS », option « Feuilles iOS »).
  */
 export default function PlanningSelectionRoute() {
@@ -35,7 +35,7 @@ export default function PlanningSelectionRoute() {
         loading={catalogue.status === "loading"}
         failed={catalogue.status === "error"}
         initial={request.initial}
-        onCancel={() => (request.closeAll ? router.dismiss(2) : router.back())}
+        onCancel={() => router.back()}
         onValidate={(selected) => {
           request.onValidate(selected);
           router.back();

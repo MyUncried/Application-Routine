@@ -169,3 +169,11 @@ Communiqués dans le message de livraison (hash du commit contenant ce rapport, 
 - Non réalisables avec les sélecteurs natifs iOS (consignés ch07/ch12, non contournés) : jour choisi du calendrier en fond plein / texte blanc ; mots « heure » / « minute » sur les roues. Le texte noir des sélecteurs (`foregroundStyle`) reste à vérifier sur iPhone.
 - Tests : `PlanningScreen.integration` réécrit (sélection par relais, rappel sans défaut, roues, conversion, autorisation retirée), `PlanningSelection.test.tsx` (numérotation) ; suite complète : 399 suites, 6 171 réussis, 32 ignorés ; `tsc` propre ; `eslint` sans erreur sur les fichiers touchés.
 - À vérifier sur iPhone : feuilles empilées (ouverture, ✕ sans contenu ferme les deux), alignement des interrupteurs, texte noir des sélecteurs, défilement du Calendrier jusqu'au dernier jour, e3 après retrait dans Réglages.
+
+### Correctif du 18/11/2026 — feuille du Catalogue des séances (recette)
+
+- Écart (Hermann, capture 10 h 21) : « Le catalogue des séances s'ouvre en modale mais avec un bug d'affichage. Et la fenêtre ne peut plus se fermer. »
+- Cause probable (attribution plausible, non démontrée sur appareil) : la feuille « Catalogue des séances » était poussée au montage de « Planifier », pendant la présentation de cette feuille ; iOS l'a présentée seule sur le Calendrier, mise en page faussée, et `router.dismiss(2)` du ✕ visait une feuille absente.
+- Correction (classe A, rejoint CE-UI-04/RM : sélection préalable, ✕ abandonne) : la sélection initiale s'affiche dans la feuille « Planifier » elle-même (✕ la ferme) ; la seconde feuille ne sert qu'à « Changer », sur une feuille déjà présentée. `closeAll` et `dismiss(2)` supprimés. Documentation : CE-UI-04 §9 garde « feuille posée sur Planifier » pour Changer ; registre ch07 inchangé (même demande).
+- Tests : `PlanningScreen.integration` (sélection initiale dans la feuille, ✕ ferme Planifier une seule fois) ; planification 7 suites / 39 tests verts.
+- À vérifier sur iPhone : ouverture de Planifier sur le Catalogue des séances, ✕, puis « Changer » (feuille par-dessus, mise en page et ✕).
