@@ -2,12 +2,14 @@ import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AppState, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { AppState, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import {
+  CYCLE_MAX,
+  DAY_MULTIPLIER_MAX,
+  DAY_MULTIPLIER_MIN,
   formatLocalDate,
   occurrenceInstant,
   REMINDER_MAX_MINUTES,
@@ -22,89 +24,82 @@ import {
   type Weekday,
 } from "@/domain/planning/Routine";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { normalizeRoutineName } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import {
   applySelection,
   draftFromRoutine,
-  endDateForWeeks,
+  effectiveName,
+  everyLabel,
   formTitle,
-  frequencyLabel,
   initialDraft,
-  moveEntry,
-  reminderIncomplete,
   reminderLabel,
   toggleWeekday,
   toRoutineDraft,
-  weeksUntil,
+  unitLabel,
+  withSelection,
   type FormDraft,
 } from "@/features/planning/planningDraft";
+import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
-import { formatRoutineSummary } from "@/features/planning/planningSummary";
+import { formatPlanningSynthesis } from "@/features/planning/planningSummary";
+import { PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
+import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { strings } from "@/shared/i18n";
 import { ModalHeader } from "@/shared/ui/ModalHeaderActions";
-import { InlineStepper, PROFILE_HOLD_POLICY } from "@/shared/ui/ProfileStepper";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
-import { switchNudge } from "@/shared/ui/switchNudge";
-import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "@/shared/ui/tokens";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
- * Planifier (CE-UI-04 + CE-UI-05 + CE-UI-11 ; Figma « Prototype MVP » : création `1992:6838`, date ouverte `1992:6622`,
- * stepper du nombre de semaines `1992:7537`, sans répétition `1992:7716`, rappel personnalisé ouvert `1992:7187` et
- * sélectionné `1992:7369`, parcours `7594:34531`, fréquence `7594:34653`, sélection `7599:14197` / `7594:34809` ;
- * matrice `MATRICE-PLANIFICATION-2026-10-08`).
+ * Planifier un parcours / une séance (CE-UI-12, D-519 à D-526, RM-253 à RM-264 ; 18/11/2026). Figma « Prototype MVP » :
+ * grille `12650:27854`, cycle étendu `12624:29713`, séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé
+ * `12652:28306`, nombre de semaines `12652:28447`.
  *
- * Parcours : Calendrier → Planifier → « Catalogue des séances » (feuille posée sur le formulaire, cases rondes numérotées,
- * coche d'en-tête, D-499) → formulaire
- * « Planifier une séance / un parcours » → coche : Enregistrer. Depuis une occurrence : modification ; Dupliquer :
- * brouillon copié (RM-123) ; depuis le Catalogue : Séance préremplie.
+ * Feuille native iOS (modale, D-522) : en-tête standard (✕, titre, coche) ; zone de contexte avec le nom de la
+ * planification (texte libre, unique, RM-258 / RM-261) et la synthèse en 14 (RM-259) ; quatre cartes grises (D-521) :
+ * Programme et Début le ; Répétition (D-520, RM-257) ; Séance par créneau (grille, D-519) ; Rappel (D-524).
  *
- * Formulaire (ordre CE-UI-05) : Planifié le [date] à [heure] (sélecteurs natifs) ; Répétition (interrupteur, chevron de
- * repli, Jour · Semaine · Mois, « Toutes les », [N] semaines — stepper déroulé au toucher —, [jusqu'au | pendant]
- * convertis l'un en l'autre (RM-047a), [borne], L M M J V S D) ; liste ordonnée sans titre à partir de deux contenus
- * (poignée, nom, fréquence → feuille « Fréquence », fréquence affichée avec la répétition) ; Rappel (interrupteur ;
- * 5' 15' 30' 1h Autre, sans délai présélectionné ; Autre → roues natives d'heure, RM-054c) ; récapitulatif
- * protégé en bas. Programme : non affiché (trois écrans non conçus, D-332 ; non demandé). Jour et Mois : présents,
- * indisponibles (règles ouvertes, chapitre 05).
+ * Parcours : Calendrier → Planifier → « Catalogue des séances » (cases rondes numérotées, coche d'en-tête, D-499) →
+ * formulaire → coche : Enregistrer. Depuis une occurrence : modification ; Dupliquer : brouillon copié (RM-123) ; depuis
+ * une Séance (« Planifier » du glisser à gauche) : Séance préremplie, nom copié (RM-258).
+ *
+ * Date et heure : voile grisé et sélecteurs déjà en place (calendrier natif graphique, roulette heures / minutes),
+ * valeurs « 3 août 2026 » / « 08:00 » en noir — demande de Hermann du 18/11/2026 : « tu peux réutiliser les modales et
+ * format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ». Nombre de semaines et Rappel
+ * « Autre » : roulette native en popover près du champ, sans titre, bouton ni unité (D-520, `PlanningWheelPopover`).
+ *
+ * [Remplacés le 18/11/2026 (D-523) : interrupteurs Répétition et Rappel, unité segmentée Jour · Semaine · Mois, stepper du
+ * nombre de semaines, « pendant », liste réordonnable et feuille « Fréquence » (CE-UI-11), récapitulatif protégé en bas.]
  */
 
 const t = planningStrings.form;
 const tReminder = planningStrings.reminder;
-const ENTRY_ROW_HEIGHT = 48;
-/**
- * Sélecteurs natifs de date et d'heure. Recette du 17/11/2026 (Hermann : « date et heure : texte en noir ») : texte
- * noir ; la teinte reste celle de l'application dans le calendrier et les roues ouverts (rendu iOS, à vérifier).
- */
-/**
- * Recette du 18/11/2026 (k6, k8, k13, Hermann : « La date et l'heure n'ont pas la même taille que "Planifié le" et "à" » ;
- * « Le contraste des modales de sélection de date et d'heure n'est pas bon avec le fond blanc. Mettre un voile grisé en même
- * temps, le temps de la saisie (apparition / disparition en fondu). Centrer horizontalement le calendrier » ; « Appuyer sur
- * Autre doit ouvrir la modale ») : la date et l'heure s'affichent comme les autres valeurs du formulaire ; un appui ouvre le
- * voile standard des roulettes (`WheelPickerOverlay`, fondu) avec, au centre, le calendrier natif (`DatePicker` graphique) ou
- * la roulette native heures / minutes (`DurationWheelPicker`, la même pour l'heure et le rappel « Autre », e2).
- * [Sélecteurs compacts iOS dans la ligne, fenêtre système sans voile — remplacés.]
- */
+/** Calendrier natif de « Début le » et de « jusqu'au » (recette du 18/11/2026, k8). */
 const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
-/** Roulette du rappel « Autre » : pas de 5 minutes jusqu'à 24 h (grille de l'ancienne feuille « Rappel personnalisé »). */
-const REMINDER_GRID: readonly number[] = Array.from({ length: REMINDER_MAX_MINUTES / 5 }, (_, index) => (index + 1) * 5);
 /** Roulette de l'heure : 00:00 à 23:59, à la minute. */
 const TIME_MAX_MINUTES = 23 * 60 + 59;
-/** Délai présélectionné à l'activation du rappel (k12, 18/11/2026). */
+const TIME_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
+/** D-524 : délai présélectionné quand les notifications sont déjà autorisées (recette du 18/11/2026, k12 « Remettre 15' par défaut »). */
 const DEFAULT_REMINDER_MINUTES = 15;
-const WHEEL_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
+/** Rappel « Autre » : heures 0..24, minutes par pas de 5 (grille de l'ancienne feuille), 24 h au plus (D-243). */
+const REMINDER_HOURS = Array.from({ length: 25 }, (_, index) => index);
+const REMINDER_MINUTES_STEP = Array.from({ length: 12 }, (_, index) => index * 5);
+const POINT_SIZE = 18;
+const COLUMN_WIDTH = 26;
 
 type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string };
 
 type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string };
 
-type OpenStepper = "every" | "count" | null;
+type Popover = { readonly kind: "EVERY" | "REMINDER"; readonly anchor: PopoverAnchor };
 
 function todayLocal(): LocalDate {
   return formatLocalDate(new Date());
@@ -114,18 +109,34 @@ function timeToDate(date: LocalDate, time: LocalTime): Date {
   return occurrenceInstant(date, time);
 }
 
+/**
+ * Durée de la synthèse (RM-259) : séances jouées au premier créneau du cycle. Une séance : libellé de sa carte ; plusieurs :
+ * somme, précédée de « ≥ » si une durée n'est pas exacte. [Hypothèse technique, 18/11/2026 : RM-259 ne dit pas quelle durée
+ * afficher quand les créneaux d'un parcours diffèrent ; le premier créneau est celui de la première occurrence.]
+ */
+export function slotDurationLabel(
+  entries: readonly RoutineEntry[],
+  grid: PlanningGrid,
+  projections: ReadonlyMap<string, SessionCatalogueProjection>,
+): string {
+  const played = entries.filter((_, row) => grid.points[row]?.[0] === true).map((entry) => projections.get(entry.sessionId));
+  const known = played.filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
+  if (known.length === 0) return "";
+  if (known.length === 1) return formatCatalogueSessionDuration(known[0]!.duration, known[0]!.forTimeBound);
+  if (known.some((projection) => projection.forTimeBound === null)) return "";
+  const seconds = known.reduce((total, projection) => total + (projection.forTimeBound ?? Math.max(0, projection.duration.seconds)), 0);
+  const exact = known.every((projection) => projection.forTimeBound === undefined && projection.duration.kind === "exact");
+  return exact ? formatPhraseDuration(seconds) : `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(seconds)}`;
+}
 
-export function contentHeading(entries: readonly { sessionId: string }[], projections: ReadonlyMap<string, SessionCatalogueProjection>): string {
-  const names = entries.map((entry) => projections.get(entry.sessionId)?.name ?? "—");
-  if (names.length === 0) return "";
-  if (names.length === 1) return names[0]!;
-  if (names.length === 2) return fillTemplate(t.combinedNameTwo, { first: names[0]!, second: names[1]! });
-  return fillTemplate(t.combinedName, { first: names[0]!, count: String(names.length - 1) });
+function measure(ref: RefObject<View | null>, then: (anchor: PopoverAnchor) => void) {
+  const node = ref.current;
+  if (node === null) return;
+  node.measureInWindow((x, y, width, height) => then({ x, y, width, height }));
 }
 
 export function PlanningScreen({ params }: { readonly params: Params }) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const planning = usePlanningService();
   const { state: catalogue, reload } = useSessionCatalogue();
   // Nouvelle planification : brouillon immédiat ; modification et duplication : brouillon lu ci-dessous.
@@ -137,17 +148,20 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [form, setForm] = useState<FormDraft | null>(() =>
     fresh ? initialDraft(params.date !== undefined && params.date >= todayLocal() ? params.date : todayLocal(), initialEntries, new Date()) : null,
   );
-  const [repetitionCollapsed, setRepetitionCollapsed] = useState(false);
-  const [openStepper, setOpenStepper] = useState<OpenStepper>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
-  // « Autre » touché : roues natives d'heure affichées (e2), même sans délai encore choisi.
+  // « Autre » choisi : la valeur personnalisée remplace le libellé « Autre », même si elle vaut un délai proposé.
   const [customChosen, setCustomChosen] = useState(false);
-  const [picker, setPicker] = useState<"START" | "END" | "TIME" | "REMINDER" | null>(null);
+  const [picker, setPicker] = useState<"START" | "END" | "TIME" | null>(null);
+  const [popover, setPopover] = useState<Popover | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
-  const [summaryHeight, setSummaryHeight] = useState(0);
+  const [otherNames, setOtherNames] = useState<readonly { readonly id: string; readonly key: string }[]>([]);
+  // RM-259 : la synthèse dont les jours ne tenaient pas, mémorisée pour passer à « X jours par semaine ».
+  const [overflowing, setOverflowing] = useState<string | null>(null);
   const savingRef = useRef(false);
-  const [reordering, setReordering] = useState(false);
+  const reminderTouched = useRef(false);
+  const everyRef = useRef<View>(null);
+  const reminderRef = useRef<View>(null);
   // L'écran se ferme par la navigation ; son identité ne doit pas relancer la lecture du brouillon.
   const routerRef = useRef(router);
   useEffect(() => {
@@ -158,30 +172,39 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     reload();
   }, [reload]);
 
-  // « Changer » : « Catalogue des séances » en feuille posée sur ce formulaire déjà présenté (recette du 17/11/2026,
-  // f/g). La sélection validée remplace la liste (D-499) ; ✕ conserve la liste antérieure.
-  const openSelection = (current: readonly RoutineEntry[]) => {
-    requestPlanningSheet({
-      kind: "selection",
-      initial: current.map((entry) => entry.sessionId),
-      onValidate: (selected) =>
-        setForm((draft) => (draft === null ? draft : { ...draft, entries: applySelection(draft.entries, selected, () => Crypto.randomUUID()) })),
-    });
-    router.push("/planning-selection");
-  };
-  // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases, dans cette même feuille. Recette du 18/11/2026
-  // (Hermann : « Le catalogue des séances s'ouvre en modale mais avec un bug d'affichage. Et la fenêtre ne peut plus se
-  // fermer ») : une seconde feuille poussée pendant la présentation de celle-ci était mal présentée par iOS.
-  // [Seconde feuille ouverte dès l'ouverture, ✕ fermant les deux — remplacé.]
-  const [selecting, setSelecting] = useState(() => fresh && initialEntries.length === 0);
-  const activeSessions = useMemo(
-    () => (catalogue.status === "ready" ? catalogue.sessions.filter((projection) => projection.status === "ACTIVE") : []),
-    [catalogue],
-  );
+  // RM-261 : noms des autres planifications, pour signaler un nom déjà pris sous le champ.
+  useEffect(() => {
+    let cancelled = false;
+    planning.listRoutines().then(
+      (routines) => {
+        if (!cancelled) setOtherNames(routines.map((routine) => ({ id: routine.id, key: normalizeRoutineName(routine.name) })));
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [planning]);
 
-  // Recette du 17/11/2026 (e3) : notifications retirées dans Réglages → l'interrupteur revient à Non avec le message
-  // (RM-053), à l'ouverture d'un rappel déjà enregistré comme au retour dans l'application.
-  const reminderOn = form?.reminderOn === true;
+  // D-524 : nouvelle planification — 15 min présélectionnées si les notifications sont déjà autorisées ; sinon « Sans »,
+  // l'autorisation n'étant demandée qu'au premier choix d'un délai (RM-052).
+  useEffect(() => {
+    if (!fresh) return undefined;
+    let cancelled = false;
+    planning.reminderPermissionGranted().then(
+      (granted) => {
+        if (cancelled || !granted || reminderTouched.current) return;
+        setForm((current) => (current === null || current.reminderMinutes !== null ? current : { ...current, reminderMinutes: DEFAULT_REMINDER_MINUTES }));
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [fresh, planning]);
+
+  // Recette du 17/11/2026 (e3) : notifications retirées dans Réglages → le rappel revient à « Sans » avec le message (RM-053).
+  const reminderOn = form !== null && form.reminderMinutes !== null;
   useEffect(() => {
     if (!reminderOn) return undefined;
     let cancelled = false;
@@ -189,7 +212,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       planning.reminderPermissionGranted().then(
         (granted) => {
           if (cancelled || granted) return;
-          setForm((current) => (current === null ? current : { ...current, reminderOn: false }));
+          setForm((current) => (current === null ? current : { ...current, reminderMinutes: null }));
           setPermissionDenied(true);
         },
         () => undefined,
@@ -240,17 +263,18 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     if (catalogue.status === "ready") for (const projection of catalogue.sessions) map.set(projection.id, projection);
     return map;
   }, [catalogue]);
+  const activeSessions = useMemo(
+    () => (catalogue.status === "ready" ? catalogue.sessions.filter((projection) => projection.status === "ACTIVE") : []),
+    [catalogue],
+  );
+  // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases, dans cette même feuille (recette du 18/11/2026).
+  const [selecting, setSelecting] = useState(() => fresh && initialEntries.length === 0);
 
   if (form === null || mode === null) return <ScreenShell>{null}</ScreenShell>;
 
-  // Contenus indisponibles (Séance archivée ou supprimée) : retirés à l'enregistrement, jamais de référence fantôme.
-  const availableEntries = catalogue.status === "ready" ? form.entries.filter((entry) => projections.get(entry.sessionId)?.status === "ACTIVE") : form.entries;
-  const draft = toRoutineDraft({ ...form, entries: availableEntries });
-  const issues = validateRoutineDraft(draft);
-  const canSave = issues.length === 0 && !reminderIncomplete(form) && !saving && catalogue.status === "ready";
   const update = (patch: Partial<FormDraft>) => setForm((current) => (current === null ? current : { ...current, ...patch }));
-
   const close = () => router.back();
+  const nameOf = (sessionId: string) => projections.get(sessionId)?.name;
 
   if (selecting) {
     return (
@@ -261,12 +285,25 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         initial={[]}
         onCancel={close}
         onValidate={(selected) => {
-          update({ entries: applySelection(form.entries, selected, () => Crypto.randomUUID()) });
+          setForm((current) => (current === null ? current : withSelection(current, selected, () => Crypto.randomUUID())));
           setSelecting(false);
         }}
       />
     );
   }
+
+  // Contenus indisponibles (Séance archivée ou supprimée) : retirés à l'enregistrement, jamais de référence fantôme.
+  const available = (entry: RoutineEntry) => catalogue.status !== "ready" || projections.get(entry.sessionId)?.status === "ACTIVE";
+  const rows = form.entries.flatMap((entry, row) => (available(entry) ? [{ entry, points: form.grid.points[row] ?? [] }] : []));
+  const shown: FormDraft = { ...form, entries: rows.map((item) => item.entry), grid: { cycle: form.grid.cycle, points: rows.map((item) => item.points) } };
+  const removed = form.entries.length - rows.length;
+  const name = effectiveName(shown, nameOf);
+  const draft = toRoutineDraft(shown, name);
+  const nameKey = normalizeRoutineName(name);
+  const nameTaken = nameKey !== "" && otherNames.some((other) => other.key === nameKey && (mode.kind !== "edit" || other.id !== mode.routineId));
+  const nameMissing = name.trim() === "";
+  const blocking = [...validateRoutineDraft(draft), ...gridIssues(shown.grid)];
+  const canSave = blocking.length === 0 && !nameTaken && !saving && catalogue.status === "ready";
 
   const save = () => {
     if (!canSave || savingRef.current) return;
@@ -290,98 +327,105 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     );
   };
 
-  // RM-052 / RM-053 : autorisation demandée à la première activation ; refus → interrupteur sur Non, information.
-  // RM-054c, révisée le 18/11/2026 (k12, Hermann : « Remettre 15' par défaut. ») : l'activation présélectionne 15 min.
-  // [« l'activation ne présélectionne aucun délai » (17/11/2026) — remplacé.]
-  const toggleReminder = (on: boolean) => {
-    if (!on) {
-      update({ reminderOn: false });
+  // « Changer » : « Catalogue des séances » en feuille posée sur ce formulaire (recette du 17/11/2026, f/g). La sélection
+  // validée remplace la liste (D-499) ; ✕ conserve la liste antérieure.
+  const openSelection = () => {
+    requestPlanningSheet({
+      kind: "selection",
+      initial: form.entries.map((entry) => entry.sessionId),
+      onValidate: (selected) => setForm((current) => (current === null ? current : withSelection(current, selected, () => Crypto.randomUUID()))),
+    });
+    router.push("/planning-selection");
+  };
+
+  // RM-052 / RM-053 : autorisation demandée au premier choix d'un délai ; refus → « Sans », information.
+  const chooseReminder = (minutes: number | null, custom: boolean) => {
+    reminderTouched.current = true;
+    if (minutes === null) {
+      setCustomChosen(false);
+      update({ reminderMinutes: null });
+      return;
+    }
+    const apply = () => {
+      setCustomChosen(custom);
+      update({ reminderMinutes: minutes });
+    };
+    if (form.reminderMinutes !== null) {
+      apply();
       return;
     }
     setPermissionDenied(false);
     planning.ensureReminderPermission().then(
       (granted) => {
-        if (granted) update({ reminderOn: true, ...(form.reminderMinutes === null ? { reminderMinutes: DEFAULT_REMINDER_MINUTES } : {}) });
+        if (granted) apply();
         else setPermissionDenied(true);
       },
       () => setPermissionDenied(true),
     );
   };
 
-  // d4 : chaque borne de fin garde l'autre à jour (date ↔ nombre de semaines).
-  const changeEndDate = (endDate: LocalDate) => update({ endDate, endCount: weeksUntil(form.startDate, endDate) });
-  const changeEndCount = (endCount: number) => update({ endCount, endDate: endDateForWeeks(form.startDate, endCount) });
-  const changeStartDate = (startDate: LocalDate) => {
-    if (form.endKind === "FOR") {
-      update({ startDate, endDate: endDateForWeeks(startDate, form.endCount) });
-      return;
-    }
-    const endDate = form.endDate < startDate ? startDate : form.endDate;
-    update({ startDate, endDate, endCount: weeksUntil(startDate, endDate) });
+  const openReminderWheel = () => {
+    const start = form.reminderMinutes ?? DEFAULT_REMINDER_MINUTES;
+    chooseReminder(start, true);
+    measure(reminderRef, (rect) => setPopover({ kind: "REMINDER", anchor: { x: rect.x + (rect.width * 4) / 5, y: rect.y, width: rect.width / 5, height: rect.height } }));
   };
 
-  const openFrequency = (entry: RoutineEntry) => {
-    requestPlanningSheet({
-      kind: "frequency",
-      name: projections.get(entry.sessionId)?.name ?? "",
-      frequency: entry.frequency,
-      onValidate: (frequency) =>
-        setForm((current) =>
-          current === null ? current : { ...current, entries: current.entries.map((item) => (item.id === entry.id ? { ...item, frequency } : item)) },
-        ),
-    });
-    router.push("/planning-frequency");
-  };
-
-  const single = availableEntries.length === 1 ? projections.get(availableEntries[0]!.sessionId) : undefined;
-  const summary = formatRoutineSummary(draft);
-  const removed = form.entries.length - availableEntries.length;
+  const changeStartDate = (startDate: LocalDate) => update({ startDate, endDate: form.endDate < startDate ? startDate : form.endDate });
+  const multiplierBounds = form.unit === "WEEK" ? [WEEK_MULTIPLIER_MIN, WEEK_MULTIPLIER_MAX] : [DAY_MULTIPLIER_MIN, DAY_MULTIPLIER_MAX];
+  const everyValues = Array.from({ length: multiplierBounds[1]! - multiplierBounds[0]! + 1 }, (_, index) => multiplierBounds[0]! + index);
   const reminder = form.reminderMinutes;
-  const customReminder = customChosen || (reminder !== null && !(REMINDER_PRESETS as readonly number[]).includes(reminder));
-  const weekUnit = (count: number) => (count === 1 ? planningStrings.weekUnit.singular : planningStrings.weekUnit.plural);
+  const customReminder = reminder !== null && (customChosen || !(REMINDER_PRESETS as readonly number[]).includes(reminder));
+  const fullSynthesis = formatPlanningSynthesis(draft, slotDurationLabel(shown.entries, shown.grid, projections));
+  const synthesis = overflowing === fullSynthesis ? formatPlanningSynthesis(draft, slotDurationLabel(shown.entries, shown.grid, projections), true) : fullSynthesis;
+  const setReminderParts = (hours: number, minutes: number) =>
+    update({ reminderMinutes: Math.max(5, Math.min(REMINDER_MAX_MINUTES, hours * 60 + (hours === 24 ? 0 : minutes))) });
 
   return (
-    // Racine des gestes natifs propre à la feuille (formSheet, présentée hors de la vue racine de l'application), comme
-    // `FormatModelScreen` : sans elle, le déplacement des lignes (`GestureDetector`) lève une erreur (contre-recette du 18/11/2026).
-    <GestureHandlerRootView style={styles.gestureRoot}>
     <ScreenShell>
-      {/* Figma `1992:6838` : titre aligné à gauche après la croix ; coche d'enregistrement (D-499). */}
-      {/* Feuille native : haut standard (en-tête, zone de contexte, halos) posé sur la liste (`NativeSheetTop`, recette du 18/11/2026). */}
       <NativeSheetTop
-        title={formTitle(availableEntries.length)}
+        title={formTitle(rows.length)}
         onClose={close}
         closeAccessibilityLabel={t.cancel}
         validate={{ onPress: save, enabled: canSave, accessibilityLabel: t.save }}
         headerBackground={colors.background}
         band={
-          <>
-            <View style={styles.contentBand}>
-              <View style={styles.contentTexts}>
-                <Text style={styles.contentName} numberOfLines={2} testID="planning-content-name">
-                  {contentHeading(availableEntries, projections)}
-                </Text>
-                {single !== undefined ? (
-                  <Text style={styles.contentDuration} testID="planning-content-duration">
-                    {formatCatalogueSessionDuration(single.duration)}
-                  </Text>
-                ) : null}
-              </View>
-              <Pressable onPress={() => openSelection(form.entries)} accessibilityRole="button" hitSlop={12} testID="planning-change">
-                <Text style={styles.change}>{t.change}</Text>
-              </Pressable>
-            </View>
-          </>
+          <View style={styles.contextBand}>
+            {/* D-522 / RM-258 : nom libre, unique ; copié de la séance quand une seule est planifiée. */}
+            <TextInput
+              value={name}
+              onChangeText={(value) => update({ name: value, nameEdited: true })}
+              placeholder={t.namePlaceholder}
+              placeholderTextColor={colors.textSecondary}
+              accessibilityLabel={t.nameAccessibility}
+              style={styles.name}
+              returnKeyType="done"
+              testID="planning-name"
+            />
+            {nameMissing || nameTaken ? (
+              <Text style={styles.nameError} accessibilityLiveRegion="polite" testID="planning-name-error">
+                {nameTaken ? t.nameTaken : t.nameRequired}
+              </Text>
+            ) : null}
+            {/* RM-259 : synthèse en 14 ; « X jours par semaine » quand les jours ne tiennent pas. */}
+            <Text
+              style={styles.synthesis}
+              onTextLayout={(event) => {
+                if (synthesis === fullSynthesis && event.nativeEvent.lines.length > 2 && overflowing !== fullSynthesis) setOverflowing(fullSynthesis);
+              }}
+              accessibilityLiveRegion="polite"
+              testID="planning-synthesis"
+            >
+              {synthesis}
+            </Text>
+          </View>
         }
         renderScroll={(topHeight) => (
           <ScrollView
             contentInsetAdjustmentBehavior="never"
             automaticallyAdjustContentInsets={false}
             style={styles.scroll}
-            contentContainerStyle={[styles.scrollContent, { paddingTop: topHeight + spacing[16], paddingBottom: summaryHeight + spacing[24] }]}
+            contentContainerStyle={[styles.scrollContent, { paddingTop: topHeight + spacing[8] }]}
             keyboardShouldPersistTaps="handled"
-            // Recette du 17/11/2026 (Hermann : « l'écran doit être figé pendant le déplacement d'une carte ») : comme les blocs
-            // de la Composition (`ForTimeBlocks`), le défilement est coupé tant qu'une ligne est portée.
-            scrollEnabled={!reordering}
             testID="planning-form"
           >
             {removed > 0 ? (
@@ -390,191 +434,136 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               </Text>
             ) : null}
 
-            {/* Bloc sans titre : Planifié le [date] à [heure] (recette du 17/11/2026 ; [« Début le » — remplacé]). */}
-            <View style={styles.block} testID="planning-slot">
-              <View style={styles.slotRow}>
-                <Text style={styles.rowLabel}>{t.start}</Text>
-                <Text style={styles.linkWord}>{t.on}</Text>
-                <ValuePill plain label={formatShortDate(form.startDate)} onPress={() => setPicker("START")} accessibilityLabel={`${t.datePicker}, ${formatShortDate(form.startDate)}`} testID="planning-start-date" />
-                <View style={styles.spacer} />
-                <Text style={styles.linkWord}>{t.at}</Text>
-                <ValuePill plain label={form.time} onPress={() => setPicker("TIME")} accessibilityLabel={`${t.timePicker}, ${form.time}`} testID="planning-start-time" />
+            {/* Carte 1 (D-521) : Programme ; Début le [date] à [heure]. Programme : aucune notion de programme dans KODJO. */}
+            <View style={styles.card} testID="planning-slot">
+              <View style={styles.line}>
+                <Text style={styles.label}>{t.program}</Text>
+                <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${t.programNone}`} testID="planning-program">
+                  <Text style={styles.pillText}>{t.programNone}</Text>
+                </View>
+              </View>
+              <View style={styles.line}>
+                <Text style={styles.label}>{t.start}</Text>
+                <Text style={styles.label}>{t.on}</Text>
+                <Pill plain label={formatShortDate(form.startDate)} onPress={() => setPicker("START")} accessibilityLabel={`${t.datePicker}, ${formatShortDate(form.startDate)}`} testID="planning-start-date" />
+                <Text style={styles.label}>{t.at}</Text>
+                <Pill plain label={form.time} onPress={() => setPicker("TIME")} accessibilityLabel={`${t.timePicker}, ${form.time}`} testID="planning-start-time" />
               </View>
             </View>
 
-            {/* Répétition : interrupteur à droite, chevron de repli à côté du titre (chapitre 10). */}
-            <View style={styles.sectionRow}>
-              <Pressable
-                onPress={() => setRepetitionCollapsed((value) => !value)}
-                disabled={!form.repetitionOn}
-                accessibilityRole="button"
-                accessibilityLabel={repetitionCollapsed ? t.expand : t.collapse}
-                style={styles.sectionTitleRow}
-                testID="planning-repetition-chevron"
-              >
-                <Text style={styles.sectionTitle}>{t.repetition}</Text>
-                <KodjoIcon name={form.repetitionOn && !repetitionCollapsed ? "control-chevron-up" : "control-chevron-down"} />
-              </Pressable>
-              <Switch
-                {...switchOffColors}
-                style={switchNudge}
-                value={form.repetitionOn}
-                onValueChange={(repetitionOn) => {
-                  update({ repetitionOn });
-                  setRepetitionCollapsed(false);
-                }}
-                accessibilityLabel={t.repetitionToggle}
-                testID="planning-repetition-switch"
-              />
-            </View>
-            {form.repetitionOn && !repetitionCollapsed ? (
-              <View style={styles.block} testID="planning-repetition">
-                <SegmentedControl
-                  options={[
-                    { value: "DAY", label: t.units.day, disabled: true, accessibilityLabel: fillTemplate(t.unitUnavailable, { unit: t.units.day }) },
-                    { value: "WEEK", label: t.units.week },
-                    { value: "MONTH", label: t.units.month, disabled: true, accessibilityLabel: fillTemplate(t.unitUnavailable, { unit: t.units.month }) },
-                  ]}
-                  value="WEEK"
-                  onChange={() => undefined}
-                  testID="planning-unit"
-                />
-                <Text style={styles.every}>{t.every}</Text>
-                <View style={styles.phraseRow}>
-                  <ValuePill
-                    label={String(form.every)}
-                    active={openStepper === "every"}
-                    onPress={() => setOpenStepper((current) => (current === "every" ? null : "every"))}
-                    accessibilityLabel={fillTemplate(t.multiplierAccessibility, { count: String(form.every) })}
-                    testID="planning-every"
-                  />
-                  <Text style={styles.linkWord}>{weekUnit(form.every)}</Text>
-                  <ValuePill
-                    label={form.endKind === "UNTIL" ? t.until : t.during}
-                    onPress={() => {
-                      update({ endKind: form.endKind === "UNTIL" ? "FOR" : "UNTIL" });
-                      setOpenStepper(null);
-                    }}
-                    accessibilityLabel={fillTemplate(t.endKindAccessibility, { value: form.endKind === "UNTIL" ? t.until : t.during })}
-                    testID="planning-end-kind"
-                  />
-                  {form.endKind === "UNTIL" ? (
-                    <ValuePill plain label={formatShortDate(form.endDate)} onPress={() => setPicker("END")} accessibilityLabel={`${t.endDatePicker}, ${formatShortDate(form.endDate)}`} testID="planning-end-date" />
-                  ) : (
-                    <View style={styles.inline}>
-                      <ValuePill
-                        label={String(form.endCount)}
-                        active={openStepper === "count"}
-                        onPress={() => setOpenStepper((current) => (current === "count" ? null : "count"))}
-                        accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
-                        testID="planning-end-count"
-                      />
-                      <Text style={styles.linkWord}>{weekUnit(form.endCount)}</Text>
+            {/* Carte 2 (D-520, RM-257) : Répétition sans interrupteur. */}
+            <View style={styles.card} testID="planning-repetition">
+              <View style={styles.repetition}>
+                <Text style={[styles.label, styles.repetitionLabel]}>{t.repetition}</Text>
+                <View style={styles.repetitionValues}>
+                  <View style={styles.wrapLine}>
+                    <Pill
+                      label={form.repetitionOn ? everyLabel(form.unit) : t.none}
+                      onPress={() => update({ repetitionOn: !form.repetitionOn })}
+                      accessibilityLabel={fillTemplate(t.repetitionKindAccessibility, { value: form.repetitionOn ? everyLabel(form.unit) : t.none })}
+                      testID="planning-repetition-kind"
+                    />
+                    {form.repetitionOn ? (
+                      <>
+                        <View ref={everyRef} collapsable={false}>
+                          <Pill
+                            label={String(form.every)}
+                            onPress={() => measure(everyRef, (anchor) => setPopover({ kind: "EVERY", anchor }))}
+                            accessibilityLabel={`${form.every} ${unitLabel(form.unit, form.every)}`}
+                            testID="planning-every"
+                          />
+                        </View>
+                        <Pill
+                          label={unitLabel(form.unit, form.every)}
+                          onPress={() => {
+                            const unit = form.unit === "WEEK" ? "DAY" : "WEEK";
+                            update({ unit });
+                          }}
+                          accessibilityLabel={fillTemplate(t.unitAccessibility, { value: unitLabel(form.unit, form.every) })}
+                          testID="planning-unit"
+                        />
+                      </>
+                    ) : null}
+                  </View>
+                  {form.repetitionOn ? (
+                    <View style={styles.wrapLine}>
+                      <Text style={[styles.pillText, styles.untilWord]}>{t.until}</Text>
+                      <Pill plain label={formatShortDate(form.endDate)} onPress={() => setPicker("END")} accessibilityLabel={`${t.endDatePicker}, ${formatShortDate(form.endDate)}`} testID="planning-end-date" />
                     </View>
-                  )}
-                </View>
-                {/* Figma `1992:7537` : le stepper se déroule sous la phrase. */}
-                {openStepper === "every" ? (
-                  <InlineStepper
-                    value={form.every}
-                    min={WEEK_MULTIPLIER_MIN}
-                    max={WEEK_MULTIPLIER_MAX}
-                    policy={PROFILE_HOLD_POLICY}
-                    formatValue={(value) => String(value ?? "")}
-                    onChange={(every) => update({ every })}
-                    accessibilityLabel={fillTemplate(t.multiplierAccessibility, { count: String(form.every) })}
-                    testID="planning-every-stepper"
-                  />
-                ) : null}
-                {openStepper === "count" && form.endKind === "FOR" ? (
-                  <InlineStepper
-                    value={form.endCount}
-                    min={1}
-                    max={520}
-                    policy={PROFILE_HOLD_POLICY}
-                    formatValue={(value) => String(value ?? "")}
-                    onChange={changeEndCount}
-                    accessibilityLabel={`${form.endCount} ${weekUnit(form.endCount)}`}
-                    testID="planning-end-count-stepper"
-                  />
-                ) : null}
-                <View style={styles.weekdays} testID="planning-weekdays">
-                  {WEEKDAYS.map((day: Weekday) => {
-                    const selected = form.weekdays.includes(day);
-                    return (
-                      <Pressable
-                        key={day}
-                        onPress={() => update({ weekdays: toggleWeekday(form.weekdays, day) })}
-                        accessibilityRole="checkbox"
-                        accessibilityLabel={planningStrings.weekdayNames[day - 1]}
-                        accessibilityState={{ checked: selected }}
-                        style={[styles.weekday, selected ? styles.weekdaySelected : null]}
-                        testID={`planning-weekday-${day}`}
-                      >
-                        <Text style={[styles.weekdayLabel, selected ? styles.weekdayLabelSelected : null]}>{planningStrings.weekdayLetters[day - 1]}</Text>
-                      </Pressable>
-                    );
-                  })}
+                  ) : null}
+                  {/* D-520 : jours de la semaine pour l'unité semaines seulement, de « toutes les » au bord droit. */}
+                  {form.repetitionOn && form.unit === "WEEK" ? (
+                    <View style={styles.weekdays} testID="planning-weekdays">
+                      {WEEKDAYS.map((day: Weekday) => {
+                        const selected = form.weekdays.includes(day);
+                        return (
+                          <Pressable
+                            key={day}
+                            onPress={() => update({ weekdays: toggleWeekday(form.weekdays, day) })}
+                            accessibilityRole="checkbox"
+                            accessibilityLabel={planningStrings.weekdayNames[day - 1]}
+                            accessibilityState={{ checked: selected }}
+                            style={[styles.weekday, selected ? styles.weekdaySelected : null]}
+                            testID={`planning-weekday-${day}`}
+                          >
+                            <Text style={[styles.weekdayLabel, selected ? styles.weekdayLabelSelected : null]}>{planningStrings.weekdayLetters[day - 1]}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  ) : null}
                 </View>
               </View>
-            ) : null}
-
-            {/* Liste ordonnée, sans titre, à partir de deux contenus (CE-UI-05 §7) : poignée, nom, fréquence. */}
-            {availableEntries.length >= 2 ? (
-              <EntryList
-                entries={availableEntries}
-                nameOf={(entry) => projections.get(entry.sessionId)?.name ?? "—"}
-                onMove={(from, to) =>
-                  update({ entries: moveEntry(form.entries, form.entries.indexOf(availableEntries[from]!), form.entries.indexOf(availableEntries[to]!)) })
-                }
-                onFrequency={openFrequency}
-                showFrequency={form.repetitionOn}
-                onDraggingChange={setReordering}
-              />
-            ) : null}
-
-            {/* Rappel : même forme que Répétition, interrupteur à droite ; options de même largeur (RM-054a). */}
-            <View style={styles.sectionRow}>
-              <Text style={styles.sectionTitle}>{tReminder.title}</Text>
-              <Switch
-                {...switchOffColors}
-                style={switchNudge}
-                value={form.reminderOn}
-                onValueChange={toggleReminder}
-                accessibilityLabel={tReminder.toggle}
-                testID="planning-reminder-switch"
-              />
             </View>
-            {permissionDenied ? (
-              <Text style={styles.notice} accessibilityLiveRegion="polite" testID="planning-reminder-denied">
-                {tReminder.permissionDenied}
-              </Text>
-            ) : null}
-            {form.reminderOn ? (
-              <View style={styles.block} testID="planning-reminder">
-                {/* RM-054c : aucun délai présélectionné ; la coche attend un choix. */}
+
+            {/* Carte 3 (D-519, RM-253 à RM-256) : Séance par créneau. */}
+            <View style={styles.card} testID="planning-grid">
+              <Text style={styles.label}>{t.slotsTitle}</Text>
+              <SlotGrid
+                grid={shown.grid}
+                names={shown.entries.map((entry) => nameOf(entry.sessionId) ?? "—")}
+                onChange={(grid) => {
+                  // Les lignes affichées sont celles des séances disponibles : la grille du brouillon suit les mêmes lignes.
+                  const points = form.entries.map((entry, row) => {
+                    const index = shown.entries.indexOf(entry);
+                    return index >= 0 ? grid.points[index]! : form.grid.points[row]!;
+                  });
+                  update({ grid: { cycle: grid.cycle, points } });
+                }}
+                onCycle={(cycle) => update({ grid: withCycle(form.grid, cycle) })}
+                onChangeSessions={openSelection}
+              />
+              {shown.grid.cycle > CYCLE_MAX ? (
+                <Text style={styles.notice} testID="planning-cycle-too-long">
+                  {fillTemplate(t.cycleTooLong, { n: String(shown.grid.cycle) })}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Carte 4 (D-524) : Rappel sans interrupteur — Sans / 15' / 30' / 1h / Autre, de même largeur. */}
+            <View style={[styles.card, styles.reminderCard]} testID="planning-reminder">
+              <Text style={styles.label}>{tReminder.title}</Text>
+              <View ref={reminderRef} collapsable={false} style={styles.reminderOptions}>
                 <SegmentedControl
                   options={[
+                    { value: "NONE", label: tReminder.none },
                     ...REMINDER_PRESETS.map((minutes) => ({ value: String(minutes), label: reminderLabel(minutes) })),
-                    {
-                      value: "OTHER",
-                      label: customReminder && reminder !== null ? reminderLabel(reminder) : tReminder.other,
-                      accessibilityLabel: tReminder.customTitle,
-                    },
+                    { value: "OTHER", label: customReminder ? reminderLabel(reminder) : tReminder.other, accessibilityLabel: tReminder.customTitle },
                   ]}
-                  value={customReminder ? "OTHER" : reminder === null ? null : String(reminder)}
+                  value={reminder === null ? "NONE" : customReminder ? "OTHER" : String(reminder)}
                   onChange={(value) => {
-                    if (value === "OTHER") {
-                      setPicker("REMINDER");
-                    } else {
-                      setCustomChosen(false);
-                      update({ reminderMinutes: Number(value) });
-                    }
+                    if (value === "OTHER") openReminderWheel();
+                    else chooseReminder(value === "NONE" ? null : Number(value), false);
                   }}
                   labelStyle={styles.reminderOption}
                   testID="planning-reminder-options"
                 />
               </View>
+            </View>
+            {permissionDenied ? (
+              <Text style={styles.notice} accessibilityLiveRegion="polite" testID="planning-reminder-denied">
+                {tReminder.permissionDenied}
+              </Text>
             ) : null}
 
             {saveFailed ? (
@@ -586,14 +575,66 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         )}
       />
 
-      {/* Récapitulatif protégé en bas (D-499) : dégradé de 40 au-dessus, fond opaque jusqu'au bas. */}
-      <View style={[styles.summaryZone, { paddingBottom: insets.bottom + spacing[12] }]} onLayout={(event) => setSummaryHeight(event.nativeEvent.layout.height)} pointerEvents="box-none">
-        <View style={styles.summaryFade} pointerEvents="none" />
-        <View style={styles.summaryBox} accessibilityLiveRegion="polite" testID="planning-summary">
-          <Text style={styles.summaryText}>{summary}</Text>
-        </View>
-      </View>
+      {/* D-520 : roulettes natives en popover près du champ — fond grisé, ni titre, ni bouton, ni unité. */}
+      <PlanningWheelPopover
+        anchor={popover?.kind === "EVERY" ? popover.anchor : null}
+        columns={[{ values: everyValues, selected: form.every, onChange: (every) => update({ every }), accessibilityLabel: t.repetition, testID: "planning-every-wheel" }]}
+        onDismiss={() => setPopover(null)}
+        android={
+          <NumberWheelPicker
+            value={form.every}
+            accessibilityLabel={t.repetition}
+            onCancel={() => setPopover(null)}
+            onValidate={(every) => {
+              setPopover(null);
+              update({ every: Math.max(multiplierBounds[0]!, Math.min(multiplierBounds[1]!, every)) });
+            }}
+            cancelAccessibilityLabel={tReminder.cancel}
+            validateAccessibilityLabel={tReminder.validate}
+          />
+        }
+        testID="planning-every-popover"
+      />
+      <PlanningWheelPopover
+        anchor={popover?.kind === "REMINDER" ? popover.anchor : null}
+        columns={[
+          {
+            values: REMINDER_HOURS,
+            selected: Math.floor((reminder ?? DEFAULT_REMINDER_MINUTES) / 60),
+            onChange: (hours) => setReminderParts(hours, (reminder ?? DEFAULT_REMINDER_MINUTES) % 60),
+            accessibilityLabel: tReminder.hours,
+            testID: "planning-reminder-hours",
+          },
+          {
+            values: REMINDER_MINUTES_STEP,
+            selected: ((reminder ?? DEFAULT_REMINDER_MINUTES) % 60) - (((reminder ?? DEFAULT_REMINDER_MINUTES) % 60) % 5),
+            onChange: (minutes) => setReminderParts(Math.floor((reminder ?? DEFAULT_REMINDER_MINUTES) / 60), minutes),
+            format: (value) => String(value).padStart(2, "0"),
+            accessibilityLabel: tReminder.minutes,
+            testID: "planning-reminder-minutes",
+          },
+        ]}
+        onDismiss={() => setPopover(null)}
+        android={
+          <DurationWheelPicker
+            totalSeconds={reminder ?? DEFAULT_REMINDER_MINUTES}
+            valueGrid={Array.from({ length: REMINDER_MAX_MINUTES / 5 }, (_, index) => (index + 1) * 5)}
+            units={TIME_UNITS}
+            minutesAccessibilityLabel={tReminder.hours}
+            secondsAccessibilityLabel={tReminder.minutes}
+            cancelAccessibilityLabel={tReminder.cancel}
+            validateAccessibilityLabel={tReminder.validate}
+            onCancel={() => setPopover(null)}
+            onValidate={(minutes) => {
+              setPopover(null);
+              update({ reminderMinutes: minutes });
+            }}
+          />
+        }
+        testID="planning-reminder-popover"
+      />
 
+      {/* Date et heure : voile et sélecteurs existants (demande de Hermann du 18/11/2026). */}
       <WheelPickerOverlay visible={picker !== null}>
         {picker === "START" || picker === "END" ? (
           <DatePanel
@@ -604,7 +645,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             onValidate={(value) => {
               setPicker(null);
               if (picker === "START") changeStartDate(value);
-              else changeEndDate(value);
+              else update({ endDate: value });
             }}
           />
         ) : picker === "TIME" ? (
@@ -612,7 +653,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             totalSeconds={timeToDuration(form.time)}
             maxTotalSeconds={TIME_MAX_MINUTES}
             title={t.timePicker}
-            units={WHEEL_UNITS}
+            units={TIME_UNITS}
             minutesAccessibilityLabel={tReminder.hours}
             secondsAccessibilityLabel={tReminder.minutes}
             cancelAccessibilityLabel={tReminder.cancel}
@@ -623,172 +664,111 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               update({ time: durationToTime(minutes) });
             }}
           />
-        ) : picker === "REMINDER" ? (
-          <DurationWheelPicker
-            totalSeconds={reminder ?? DEFAULT_REMINDER_MINUTES}
-            valueGrid={REMINDER_GRID}
-            title={tReminder.customTitle}
-            units={WHEEL_UNITS}
-            minutesAccessibilityLabel={tReminder.hours}
-            secondsAccessibilityLabel={tReminder.minutes}
-            cancelAccessibilityLabel={tReminder.cancel}
-            validateAccessibilityLabel={tReminder.validate}
-            onCancel={() => setPicker(null)}
-            onValidate={(minutes) => {
-              setPicker(null);
-              setCustomChosen(true);
-              update({ reminderMinutes: minutes });
-            }}
-          />
         ) : null}
       </WheelPickerOverlay>
     </ScreenShell>
-    </GestureHandlerRootView>
   );
 }
 
-function ValuePill({
+function Pill({
   label,
   onPress,
-  active = false,
   plain = false,
   accessibilityLabel,
   testID,
 }: {
   readonly label: string;
   readonly onPress: () => void;
-  readonly active?: boolean;
   /** Date et heure : texte noir (recette du 17/11/2026, « date et heure : texte en noir »). */
   readonly plain?: boolean;
   readonly accessibilityLabel: string;
   readonly testID: string;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ expanded: active }}
-      hitSlop={6}
-      style={styles.valuePill}
-      testID={testID}
-    >
-      <Text style={plain ? styles.valuePlain : styles.value}>{label}</Text>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} hitSlop={6} style={styles.pill} testID={testID}>
+      <Text style={plain ? styles.pillPlain : styles.pillText}>{label}</Text>
     </Pressable>
   );
 }
 
-/** Déplacement d'une ligne de contenu (geste et décalages), comme `useRowDrag` des blocs de la Composition. */
-function useEntryDrag(entries: readonly RoutineEntry[], onMove: (from: number, to: number) => void, onDraggingChange: (dragging: boolean) => void) {
-  const [drag, setDrag] = useState<{ readonly index: number; readonly dy: number } | null>(null);
-  // Recette du 17/11/2026 (Hermann : « On ne peut plus déplacer les séances, l'appui long fait bouger l'écran, pas la carte ») :
-  // même geste que les lignes des blocs de la Composition (`ForTimeBlocks`, `useRowDrag`) — `Pan` natif activé après l'appui
-  // long, sur toute la ligne ; la ligne portée suit le doigt, les lignes franchies se décalent. [PanResponder de la poignée,
-  // supplanté par le défilement — remplacé.]
-  const dragRef = useRef<{ readonly index: number; readonly dy: number } | null>(null);
-  const setDragState = (next: { readonly index: number; readonly dy: number } | null) => {
-    const was = dragRef.current !== null;
-    dragRef.current = next;
-    setDrag(next);
-    if (was !== (next !== null)) onDraggingChange(next !== null);
-  };
-  const targetOf = (current: { readonly index: number; readonly dy: number }) =>
-    Math.max(0, Math.min(entries.length - 1, current.index + Math.round(current.dy / ENTRY_ROW_HEIGHT)));
-  const gesture = (index: number) =>
-    Gesture.Pan()
-      .enabled(entries.length > 1)
-      .activateAfterLongPress(ENTRY_LONG_PRESS_MS)
-      .runOnJS(true)
-      .onStart(() => setDragState({ index, dy: 0 }))
-      .onUpdate((event) => {
-        const current = dragRef.current;
-        if (current !== null) setDragState({ ...current, dy: event.translationY });
-      })
-      .onEnd((_event, success) => {
-        const current = dragRef.current;
-        setDragState(null);
-        if (!success || current === null) return;
-        const to = targetOf(current);
-        if (to !== current.index) onMove(current.index, to);
-      })
-      .onFinalize(() => {
-        if (dragRef.current !== null) setDragState(null);
-      })
-      .withTestId(`planning-entry-drag-${index}`);
-  /** Décalage vertical d'une ligne pendant le geste. */
-  const offset = (index: number) => {
-    if (drag === null) return 0;
-    if (index === drag.index) return drag.dy;
-    const to = targetOf(drag);
-    if (index > drag.index && index <= to) return -ENTRY_ROW_HEIGHT;
-    if (index < drag.index && index >= to) return ENTRY_ROW_HEIGHT;
-    return 0;
-  };
-  return { drag, gesture, offset };
-}
-
 /**
- * Lignes de contenus (Figma `7594:34531`) : poignée `icon/poignee` à gauche (glisser pour réordonner), nom, fréquence
- * générique à droite (« à chaque fois », « 2 fois sur 3 ») qui ouvre « Fréquence ». VoiceOver : monter / descendre.
+ * Grille créneaux × rotation (D-519, Figma `12650:27854`, `12624:29713`) : en-tête « Changer » (toujours visible) et
+ * colonnes #1 à #7 — actives jusqu'à la longueur du cycle ; une ligne par séance avec sa mention calculée ; un point par
+ * créneau joué. Toucher un numéro de colonne règle la longueur du cycle (RM-253, RM-260) ; toucher un point le bascule,
+ * sauf s'il est le dernier de sa ligne ou de sa colonne (RM-254, RM-262).
+ * [Interprétation, 18/11/2026 : « toucher un numéro de colonne ouvre le sélecteur numéroté » — le numéro touché devient
+ * la longueur du cycle, comme une case numérotée ; aucune fenêtre supplémentaire. À confirmer sur iPhone.]
  */
-function EntryList({
-  entries,
-  nameOf,
-  onMove,
-  onFrequency,
-  showFrequency,
-  onDraggingChange,
+function SlotGrid({
+  grid,
+  names,
+  onChange,
+  onCycle,
+  onChangeSessions,
 }: {
-  readonly entries: readonly RoutineEntry[];
-  readonly nameOf: (entry: RoutineEntry) => string;
-  readonly onMove: (from: number, to: number) => void;
-  readonly onFrequency: (entry: RoutineEntry) => void;
-  /** Recette du 17/11/2026 (Hermann : « L'option "à chaque fois" ne doit apparaître que si l'interrupteur de répétition est activé »). */
-  readonly showFrequency: boolean;
-  /** Une ligne est portée (le formulaire fige son défilement). */
-  readonly onDraggingChange: (dragging: boolean) => void;
+  readonly grid: PlanningGrid;
+  readonly names: readonly string[];
+  readonly onChange: (grid: PlanningGrid) => void;
+  readonly onCycle: (cycle: number) => void;
+  readonly onChangeSessions: () => void;
 }) {
-  const { drag, gesture, offset } = useEntryDrag(entries, onMove, onDraggingChange);
+  const columns = Array.from({ length: CYCLE_MAX }, (_, index) => index);
   return (
-    <View style={[styles.block, styles.entriesBlock]} testID="planning-entries">
-      {entries.map((entry, index) => {
-        const name = nameOf(entry);
-        const dragging = drag?.index === index;
-        const dy = offset(index);
-        return (
-          <GestureDetector key={entry.id} gesture={gesture(index)}>
-          <View
-            style={[styles.entryRow, index > 0 ? styles.entrySeparator : null, dy !== 0 ? { transform: [{ translateY: dy }] } : null, dragging ? styles.entryDragging : null]}
-            testID={`planning-entry-${index}`}
-          >
-            <View
-              accessible
-              accessibilityRole="adjustable"
-              accessibilityLabel={fillTemplate(t.reorderHandle, { name })}
-              accessibilityActions={[
-                ...(index > 0 ? [{ name: "moveUp", label: t.moveUp }] : []),
-                ...(index < entries.length - 1 ? [{ name: "moveDown", label: t.moveDown }] : []),
-              ]}
-              onAccessibilityAction={(event) => {
-                if (event.nativeEvent.actionName === "moveUp") onMove(index, index - 1);
-                if (event.nativeEvent.actionName === "moveDown") onMove(index, index + 1);
-              }}
-              hitSlop={12}
-              style={styles.handle}
-              testID={`planning-entry-${index}-handle`}
+    <View testID="planning-slot-grid">
+      <View style={styles.gridHeader}>
+        <Pressable onPress={onChangeSessions} accessibilityRole="button" hitSlop={8} style={styles.gridNames} testID="planning-change">
+          <Text style={styles.change}>{t.change}</Text>
+        </Pressable>
+        {columns.map((column) => {
+          const active = column < grid.cycle;
+          return (
+            <Pressable
+              key={column}
+              onPress={() => onCycle(column + 1)}
+              accessibilityRole="button"
+              accessibilityLabel={fillTemplate(t.columnAccessibility, { n: String(column + 1) })}
+              accessibilityState={{ selected: column + 1 === grid.cycle }}
+              hitSlop={4}
+              style={styles.gridColumn}
+              testID={`planning-column-${column + 1}`}
             >
-              <KodjoIcon name="composition-reorder" />
+              <Text style={[styles.columnLabel, active ? null : styles.columnInactive]}>{fillTemplate(t.column, { n: String(column + 1) })}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {names.map((name, row) => {
+        const line = grid.points[row] ?? [];
+        return (
+          <View key={`${row}-${name}`} style={[styles.gridRow, row > 0 ? styles.gridSeparator : null]} testID={`planning-row-${row}`}>
+            <View style={styles.gridNames}>
+              <Text style={styles.rowName} numberOfLines={1}>
+                {name}
+              </Text>
+              <Text style={styles.rowMention} testID={`planning-row-${row}-mention`}>
+                {`(${rowMention(line.slice(0, grid.cycle))})`}
+              </Text>
             </View>
-            <Text style={styles.entryName} numberOfLines={1}>
-              {name}
-            </Text>
-            {showFrequency ? (
-              <Pressable onPress={() => onFrequency(entry)} accessibilityRole="button" hitSlop={8} style={styles.valuePill} testID={`planning-entry-${index}-frequency`}>
-                <Text style={styles.frequency}>{frequencyLabel(entry)}</Text>
-              </Pressable>
-            ) : null}
+            {columns.map((column) => {
+              const active = column < grid.cycle;
+              const played = active && line[column] === true;
+              return (
+                <Pressable
+                  key={column}
+                  disabled={!active}
+                  onPress={() => onChange(togglePoint(grid, row, column))}
+                  accessibilityRole="checkbox"
+                  accessibilityLabel={fillTemplate(t.pointAccessibility, { name, n: String(column + 1) })}
+                  accessibilityState={{ checked: played, disabled: !active }}
+                  hitSlop={4}
+                  style={styles.gridColumn}
+                  testID={`planning-point-${row}-${column + 1}`}
+                >
+                  <View style={[styles.point, played ? styles.pointPlayed : null]} />
+                </Pressable>
+              );
+            })}
           </View>
-          </GestureDetector>
         );
       })}
     </View>
@@ -836,12 +816,12 @@ function DatePanel({
   );
 }
 
-/** Date courte de la ligne (« 18 nov. 2026 »), comme l'affichait le sélecteur compact. */
+/** Date courte (« 18 nov. 2026 »), comme l'affichait le sélecteur compact. */
 export function formatShortDate(value: LocalDate): string {
   return timeToDate(value, "12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
-/** Délai de rappel (minutes) ↔ valeur des roues d'heure (« 01:20 » = 1 h 20). */
+/** Minutes depuis minuit ↔ heure (« 08:00 »). */
 export function durationToTime(minutes: number): LocalTime {
   const bounded = Math.max(0, Math.min(23 * 60 + 59, minutes));
   return `${String(Math.floor(bounded / 60)).padStart(2, "0")}:${String(bounded % 60).padStart(2, "0")}`;
@@ -852,45 +832,61 @@ export function timeToDuration(time: LocalTime): number {
   return (hours ?? 0) * 60 + (minutes ?? 0);
 }
 
-/** Appui long avant le déplacement d'une ligne (même délai que les lignes des blocs de la Composition). */
-const ENTRY_LONG_PRESS_MS = 500;
 
 const styles = StyleSheet.create({
-  gestureRoot: { flex: 1 },
-  contentBand: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.screenGutter,
-    gap: spacing[12],
-  },
-  contentTexts: { flex: 1, gap: spacing[4] },
-  contentName: { ...type.screenTitle, color: colors.textPrimary },
-  contentDuration: { ...type.supporting, color: colors.textSecondary },
-  change: { ...type.label, color: colors.primary },
+  contextBand: { paddingHorizontal: layout.screenGutter, gap: spacing[8] },
+  name: { ...type.screenTitle, color: colors.textPrimary, padding: 0 },
+  nameError: { ...type.supporting, color: colors.danger },
+  // D-521 : synthèse en 14 px.
+  synthesis: { ...type.body, color: colors.textSecondary },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: layout.screenGutter, gap: spacing[12] },
-  // Recette du 17/11/2026 (Hermann : « Tous les textes, hors titre de section, doivent avoir la même police et taille de
-  // police, celle de "Début" ») : `type.label` pour tout le formulaire. [supporting / body / sectionTitle — remplacés.]
+  // D-521 : marges d'écran 16, cartes espacées de 12.
+  scrollContent: { paddingHorizontal: layout.screenGutter, paddingBottom: spacing[24], gap: spacing[12] },
   notice: { ...type.label, color: colors.textSecondary },
-  block: { backgroundColor: colors.surfaceSubtle, borderRadius: 12, padding: spacing[16], gap: spacing[12] },
-  entriesBlock: { paddingVertical: spacing[4], gap: 0 },
-  slotRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing[8] },
-  spacer: { flex: 1 },
-  rowLabel: { ...type.label, color: colors.textPrimary },
-  linkWord: { ...type.label, color: colors.textSecondary },
-  sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: minTouchTarget },
-  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: spacing[16], minHeight: minTouchTarget },
-  sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
-  every: { ...type.label, color: colors.textSecondary },
-  phraseRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing[8] },
-  inline: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
-  valuePill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.background, justifyContent: "center" },
-  value: { ...type.label, color: colors.primary },
-  valuePlain: { ...type.label, color: colors.textPrimary },
-  // Recette du 18/11/2026 (k13, Hermann : « la taille de toutes les valeurs de rappel doit être celle du texte "Progression" »,
-  // titre de la carte de Séance) : typographie `listCardTitle` (Semi Bold 15). [`segmentedLabel` Semi Bold 16 — remplacé.]
+  // D-521 : fond et trait de la carte du Profil (`GuidanceSettingsForm`, variante écran), rayon 12, marges 12.
+  card: { backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.background, borderRadius: 12, padding: spacing[12], gap: spacing[12] },
+  line: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing[8] },
+  wrapLine: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing[8] },
+  // Figma `12650:27854` : libellés 16 regular, valeurs 16 semi-bold.
+  label: { ...type.body, fontSize: 16, lineHeight: 20, color: colors.textPrimary },
+  pill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.border, justifyContent: "center" },
+  pillText: { ...type.segmentedLabel, color: colors.primary },
+  // Date et heure : format conservé (noir), à la taille des autres valeurs (demande de Hermann du 18/11/2026).
+  pillPlain: { ...type.segmentedLabel, color: colors.textPrimary },
+  untilWord: { paddingHorizontal: spacing[8] },
+  repetition: { flexDirection: "row", alignItems: "flex-start", gap: spacing[8] },
+  repetitionLabel: { paddingTop: 6 },
+  repetitionValues: { flex: 1, gap: spacing[12] },
+  weekdays: { flexDirection: "row", justifyContent: "space-between" },
+  weekday: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.border,
+    borderWidth: 1,
+    borderColor: colors.cardsBorder,
+  },
+  weekdaySelected: { backgroundColor: colors.selection, borderColor: colors.selection },
+  weekdayLabel: { ...type.label, color: colors.textSecondary },
+  weekdayLabelSelected: { color: colors.background },
+  gridHeader: { flexDirection: "row", alignItems: "center", minHeight: 32 },
+  gridNames: { flex: 1, paddingRight: spacing[4] },
+  gridColumn: { width: COLUMN_WIDTH, alignItems: "center", justifyContent: "center", minHeight: 32 },
+  change: { ...type.listCardTitle, color: colors.primary },
+  columnLabel: { ...type.supporting, fontFamily: type.listCardTitle.fontFamily, color: colors.textPrimary },
+  columnInactive: { color: colors.textSecondary, opacity: 0.6 },
+  gridRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing[4] },
+  gridSeparator: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder },
+  rowName: { ...type.supporting, fontFamily: type.listCardTitle.fontFamily, color: colors.textPrimary },
+  rowMention: { ...type.supporting, fontSize: 10, lineHeight: 13, color: colors.textSecondary },
+  point: { width: POINT_SIZE, height: POINT_SIZE, borderRadius: POINT_SIZE / 2, borderWidth: 1.5, borderColor: colors.cardsBorder },
+  pointPlayed: { backgroundColor: colors.selection, borderColor: colors.selection },
+  reminderCard: { flexDirection: "row", alignItems: "center" },
+  reminderOptions: { flex: 1 },
   reminderOption: { ...type.listCardTitle },
+  error: { ...type.label, color: colors.danger },
   datePanel: {
     alignSelf: "stretch",
     marginHorizontal: layout.screenGutter,
@@ -901,36 +897,4 @@ const styles = StyleSheet.create({
     paddingBottom: spacing[8],
   },
   calendar: { alignItems: "center", paddingHorizontal: spacing[8] },
-  weekdays: { flexDirection: "row", justifyContent: "space-between" },
-  weekday: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.cardsBorder,
-  },
-  weekdaySelected: { backgroundColor: colors.selection, borderColor: colors.selection },
-  weekdayLabel: { ...type.label, color: colors.textPrimary },
-  weekdayLabelSelected: { color: colors.background },
-  entryRow: { flexDirection: "row", alignItems: "center", gap: spacing[12], minHeight: ENTRY_ROW_HEIGHT, backgroundColor: colors.surfaceSubtle },
-  entrySeparator: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder },
-  entryDragging: { zIndex: 1, opacity: 0.9 },
-  handle: { width: 24, alignItems: "center", justifyContent: "center", minHeight: ENTRY_ROW_HEIGHT },
-  entryName: { ...type.label, color: colors.textPrimary, flex: 1 },
-  frequency: { ...type.label, color: colors.primary },
-  error: { ...type.label, color: colors.danger },
-  summaryZone: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: layout.screenGutter, backgroundColor: colors.background },
-  summaryFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: -40,
-    height: 40,
-    experimental_backgroundImage: `linear-gradient(to bottom, ${colors.background}00 0%, ${colors.background} 100%)`,
-  },
-  summaryBox: { borderWidth: 1, borderColor: colors.selection, borderRadius: 12, padding: spacing[12], marginTop: spacing[8] },
-  summaryText: { ...type.label, color: colors.textPrimary },
 });

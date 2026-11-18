@@ -33,6 +33,7 @@ import { applyMigration028 } from "./migrations/migration028";
 import { applyMigration029 } from "./migrations/migration029";
 import { applyMigration030 } from "./migrations/migration030";
 import { applyMigration031 } from "./migrations/migration031";
+import { applyMigration032 } from "./migrations/migration032";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -335,6 +336,12 @@ export async function migrateDatabase(
     if (pending(30)) {
       await applyMigration031(transaction);
       version = 31;
+    }
+
+    // Planification : nom des planifications (18/11/2026, D-522). Un échec laisse `user_version` à 31.
+    if (pending(31)) {
+      await applyMigration032(transaction);
+      version = 32;
     }
 
     if (version !== targetVersion) {

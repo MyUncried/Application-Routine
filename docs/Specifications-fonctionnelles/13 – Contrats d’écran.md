@@ -4448,7 +4448,7 @@ Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
 
 #### 3. Interactions
 
-Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle). Nombre de semaines et Rappel personnalisé : roulette native iOS (`pickerStyle("wheel")`) en popover près du champ, fond grisé, ni titre, ni bouton, ni unité ; aucune primitive native n’est remplacée. Date : sélecteur de date en popover.
+Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle). Nombre de semaines et Rappel personnalisé : roulette native iOS (`pickerStyle("wheel")`) en popover près du champ, fond grisé, ni titre, ni bouton, ni unité ; aucune primitive native n’est remplacée. Date : sélecteur de date en popover. [Remplacé le 18/11/2026 (Hermann : « tu peux réutiliser les modales et format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ») : la date et l'heure s'ouvrent dans le voile grisé déjà en place (calendrier natif graphique, roulette heures / minutes), valeurs en noir à la taille des autres valeurs.]
 
 #### 4. Points à clarifier
 

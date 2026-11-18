@@ -7,10 +7,10 @@
  *
  * Invariant (chapitre 04) : le créneau produit les occurrences ; un contenu ne fait que les filtrer.
  *
- * Unités livrées : créneau unique (répétition désactivée) et unité Semaine (RM-047 : ancrage sur la semaine
- * contenant le début, multiplicateur 1..12 — D-244 —, jours sélectionnés, bornes inclusives). Les unités Jour et
- * Mois existent dans la conception (D-330) mais leurs bornes et règles (fin de mois, rangée des jours) restent
- * ouvertes (chapitre 05, « Limites de spécification ») : elles ne sont pas acceptées par ce modèle.
+ * Unités livrées : créneau unique (répétition « aucune ») et unités Semaine (RM-047 : ancrage sur la semaine
+ * contenant le début, multiplicateur 1..12 — D-244 —, jours sélectionnés, bornes inclusives) et Jour (RM-257, D-526 :
+ * tous les N jours depuis « Début le », jusqu'à une date incluse). L'unité Mois est retirée (D-526, 18/11/2026) : une
+ * Routine en mois enregistrée ailleurs n'est pas interprétée par ce modèle (RM-264).
  *
  * Dates : date civile locale `AAAA-MM-JJ`, heure locale `HH:MM` ; aucune conversion de fuseau.
  */
@@ -28,8 +28,11 @@ export const WEEKDAYS: readonly Weekday[] = [1, 2, 3, 4, 5, 6, 7];
 export const WEEK_MULTIPLIER_MIN = 1;
 export const WEEK_MULTIPLIER_MAX = 12;
 
-/** RM-054a : délais proposés du rappel (5 min, 15 min, 30 min, 1 h) ; « Autre » : délai personnalisé. */
-export const REMINDER_PRESETS = [5, 15, 30, 60] as const;
+/**
+ * D-524 (18/11/2026) : délais proposés du rappel (15 min, 30 min, 1 h), après « Sans » ; « Autre » : délai personnalisé.
+ * [RM-054a : 5 min, 15 min, 30 min, 1 h — « 5 min » retirée.]
+ */
+export const REMINDER_PRESETS = [15, 30, 60] as const;
 /** D-243 : délai maximal du rappel personnalisé, 24 h. */
 export const REMINDER_MAX_MINUTES = 24 * 60;
 
@@ -40,14 +43,34 @@ export const REMINDER_MAX_MINUTES = 24 * 60;
  */
 export type RoutineEnd = { readonly kind: "UNTIL"; readonly date: LocalDate } | { readonly kind: "FOR"; readonly count: number };
 
-export type RoutineRepetition = {
-  readonly unit: "WEEK";
-  /** Toutes les N semaines (1..12). */
-  readonly every: number;
-  /** Jours retenus, au moins un, ordre croissant. */
-  readonly weekdays: readonly Weekday[];
-  readonly end: RoutineEnd;
-};
+export type RoutineRepetition =
+  | {
+      readonly unit: "WEEK";
+      /** Toutes les N semaines (1..12). */
+      readonly every: number;
+      /** Jours retenus, au moins un, ordre croissant. */
+      readonly weekdays: readonly Weekday[];
+      readonly end: RoutineEnd;
+    }
+  | {
+      /** RM-257 : tous les N jours depuis « Début le » ; aucune rangée de jours (D-520). */
+      readonly unit: "DAY";
+      readonly every: number;
+      /** Toujours vide : la rangée des jours n'existe que pour l'unité semaines. */
+      readonly weekdays: readonly Weekday[];
+      /** « jusqu'au » seulement (RM-257). */
+      readonly end: { readonly kind: "UNTIL"; readonly date: LocalDate };
+    };
+
+/**
+ * Multiplicateur de l'unité Jour : mêmes bornes que les semaines (1..12, D-244). [Hypothèse technique, 18/11/2026 :
+ * RM-257 ne borne pas le nombre de jours — à confirmer par Hermann.]
+ */
+export const DAY_MULTIPLIER_MIN = 1;
+export const DAY_MULTIPLIER_MAX = 12;
+
+/** RM-253 : le cycle de rotation compte 1 à 7 créneaux. */
+export const CYCLE_MAX = 7;
 
 /**
  * D-329 : fréquence d'un contenu « x fois sur n », sans unité ; `positions` = rangs retenus parmi 1..n.
@@ -66,6 +89,11 @@ export type RoutineEntry = {
 
 export type Routine = {
   readonly id: string;
+  /**
+   * D-522 / RM-258 : nom libre, unique parmi les planifications de l'utilisateur (RM-261). Vide pour une planification
+   * enregistrée avant le 18/11/2026 : à compléter à la première modification (RM-264).
+   */
+  readonly name: string;
   /** Début le (date incluse). */
   readonly startDate: LocalDate;
   /** Une seule heure par créneau (chapitre 09). */
@@ -100,7 +128,8 @@ export type RoutineValidationIssue =
   | "INVALID_END"
   | "END_BEFORE_START"
   | "INVALID_FREQUENCY"
-  | "INVALID_REMINDER";
+  | "INVALID_REMINDER"
+  | "NAME_REQUIRED";
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -129,6 +158,7 @@ export function isValidFrequency(frequency: ContentFrequency): boolean {
 export function validateRoutineDraft(draft: RoutineDraft): readonly RoutineValidationIssue[] {
   const issues: RoutineValidationIssue[] = [];
   if (draft.entries.length === 0) issues.push("NO_CONTENT");
+  if (draft.name.trim() === "") issues.push("NAME_REQUIRED");
   if (!isLocalDate(draft.startDate)) issues.push("INVALID_DATE");
   if (!isLocalTime(draft.time)) issues.push("INVALID_TIME");
   if (draft.entries.some((entry) => !isValidFrequency(entry.frequency))) issues.push("INVALID_FREQUENCY");
@@ -136,10 +166,11 @@ export function validateRoutineDraft(draft: RoutineDraft): readonly RoutineValid
   if (reminder !== null && (!Number.isInteger(reminder) || reminder < 1 || reminder > REMINDER_MAX_MINUTES)) issues.push("INVALID_REMINDER");
   const repetition = draft.repetition;
   if (repetition !== null) {
-    if (!Number.isInteger(repetition.every) || repetition.every < WEEK_MULTIPLIER_MIN || repetition.every > WEEK_MULTIPLIER_MAX) {
+    const [min, max] = repetition.unit === "WEEK" ? [WEEK_MULTIPLIER_MIN, WEEK_MULTIPLIER_MAX] : [DAY_MULTIPLIER_MIN, DAY_MULTIPLIER_MAX];
+    if (!Number.isInteger(repetition.every) || repetition.every < min || repetition.every > max) {
       issues.push("INVALID_MULTIPLIER");
     }
-    if (repetition.weekdays.length === 0) issues.push("NO_WEEKDAY");
+    if (repetition.unit === "WEEK" && repetition.weekdays.length === 0) issues.push("NO_WEEKDAY");
     if (repetition.end.kind === "UNTIL") {
       if (!isLocalDate(repetition.end.date)) issues.push("INVALID_END");
       else if (isLocalDate(draft.startDate) && repetition.end.date < draft.startDate) issues.push("END_BEFORE_START");

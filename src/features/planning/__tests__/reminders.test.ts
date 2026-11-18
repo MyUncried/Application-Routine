@@ -7,6 +7,7 @@ import { reminderLabel } from "@/features/planning/planningDraft";
 
 const base: Routine = {
   id: "r1",
+  name: "Matin",
   startDate: "2030-08-05", // lundi
   time: "08:00",
   repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: "2030-12-31" } },
@@ -33,7 +34,7 @@ describe("fenêtre glissante des rappels (chapitre 12)", () => {
   });
 
   it("délai : 1 min à 24 h (D-243)", () => {
-    const draft = { startDate: "2030-08-05", time: "08:00", repetition: null, entries: base.entries };
+    const draft = { name: "Matin", startDate: "2030-08-05", time: "08:00", repetition: null, entries: base.entries };
     expect(validateRoutineDraft({ ...draft, reminderMinutes: 1440 })).toEqual([]);
     expect(validateRoutineDraft({ ...draft, reminderMinutes: 1441 })).toEqual(["INVALID_REMINDER"]);
     expect(validateRoutineDraft({ ...draft, reminderMinutes: 0 })).toEqual(["INVALID_REMINDER"]);

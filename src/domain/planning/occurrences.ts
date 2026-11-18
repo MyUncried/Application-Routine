@@ -51,6 +51,7 @@ function slotProducesOn(routine: Routine, date: LocalDate): boolean {
   if (date < routine.startDate) return false;
   const repetition = routine.repetition;
   if (repetition === null) return date === routine.startDate;
+  if (repetition.unit === "DAY") return daysBetween(routine.startDate, date) % repetition.every === 0 && date <= repetition.end.date;
   const week = Math.floor(daysBetween(mondayOf(routine.startDate), mondayOf(date)) / 7);
   if (week % repetition.every !== 0) return false;
   if (!repetition.weekdays.includes(weekdayOf(date))) return false;
@@ -101,9 +102,19 @@ export function occurrencesBetween(routine: Routine, from: LocalDate, to: LocalD
 }
 
 /**
- * Occurrences de plusieurs Routines sur une période, triées par date, heure, puis ordre de création des Routines
- * (stable). RM-049 / CE-UI-03 : seules les occurrences futures (instant ≥ `now`) sont présentées.
+ * Occurrences de plusieurs Routines sur une période, passées comprises, triées par date, heure, puis ordre de création
+ * des Routines (stable). D-525 (18/11/2026) : une occurrence passée sans Exécution ne disparaît pas ; elle peut être
+ * rejouée. [RM-049 : seules les occurrences futures étaient présentées — remplacé.]
  */
+export function periodOccurrences(routines: readonly Routine[], from: LocalDate, to: LocalDate): Occurrence[] {
+  return routines.flatMap((routine) => occurrencesBetween(routine, from, to)).sort(byInstant);
+}
+
+function byInstant(a: Occurrence, b: Occurrence): number {
+  return a.date === b.date ? (a.time === b.time ? 0 : a.time < b.time ? -1 : 1) : a.date < b.date ? -1 : 1;
+}
+
+/** Occurrences futures (instant ≥ `now`) d'une période : fenêtre des rappels. */
 export function upcomingOccurrences(routines: readonly Routine[], from: LocalDate, to: LocalDate, now: Date): Occurrence[] {
   const all = routines.flatMap((routine) => occurrencesBetween(routine, from, to));
   return all

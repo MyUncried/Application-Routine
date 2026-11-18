@@ -1,4 +1,4 @@
-# 2026-11-18 — PLANIFICATION-CE-UI-12 — rapport d'état (arrêt avant code)
+# 2026-11-18 — PLANIFICATION-CE-UI-12 — grille de créneaux (arrêt initial, puis mise en œuvre)
 
 ## Identifiant et objectif
 
@@ -118,3 +118,80 @@ Ils sont indiqués dans le compte rendu de clôture de la conversation, avec le 
   - aucun fichier de ce nom dans le dossier utilisateur ni dans `C:\Dev` ;
   - aucune branche `docs/planification-grille-creneaux` sur GitHub après `git fetch`.
 - Statut inchangé : CLARIFICATION_REQUIRED. J'attends la branche poussée, ou le fichier joint.
+
+## Reprise du 18/11/2026 — mise en œuvre de CE-UI-12
+
+### Point de départ et sources
+
+- Textes reçus : branche `docs/planification-grille-creneaux` (poussée par Hermann). Les commits de la planification ont été repris par `cherry-pick -x` : `4747f15d`, `7ffb7b30`, `10a619fb` et `fc31f4d8` (devenus `3b036654`, `1bab6cd4`, `31670013` et `676aeaa3`). Un conflit sur RM-054a a été résolu : la nouvelle RM-054a est retenue, RM-054b et RM-054c sont conservées. Les commits EMOM de cette branche (D-528, CE-UI-13) n'ont pas été repris : ils sont hors périmètre.
+- Numérotation de Hermann : D-519 à D-527, RM-253 à RM-264, CE-UI-12. Hermann a donné son accord pour toucher l'Agenda (D-525, D-526).
+- Demandes de Hermann pendant le travail :
+  - « c'est toute la page qui a été revue » ;
+  - « tu peux réutiliser les modales et format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ».
+- Figma lu (fichier `G6RY5Ebhgwb4AHIOYDwwvg`) : `12650:27854`, `12624:29713`, `12628:34456`, `12626:2111`, `12652:28035`, `12652:28155`, `12652:28306`, `12652:28447`.
+
+### Réalisé
+
+| Point | Règle | Réalisation |
+|---|---|---|
+| Quatre cartes grises | D-521 | Programme et Début le ; Répétition ; Séance par créneau ; Rappel. Fond `surfaceSubtle` et trait blanc de la carte du Profil, rayon 12, marges 12, marges d'écran 16. |
+| Zone de contexte | D-522, RM-258, RM-261, RM-259 | Nom en champ libre. Il est copié depuis « Planifier » ou depuis une sélection d'une seule séance ; avec plusieurs séances, il est vide et obligatoire. « Nom obligatoire » ou « Ce nom est déjà utilisé » s'affiche sous le champ (casse et espaces de bord ignorés, contrôle aussi dans le service). Synthèse en 14 : durée en premier, sans majuscule ni point final, sans « Prochain créneau », « X jours par semaine » au-delà de deux lignes. Feuille native iOS conservée. |
+| Répétition | D-520, RM-257, D-526 | Pas d'interrupteur. « toutes les » / « tous les » / « aucune » s'accorde avec l'unité. Nombre, unité jours ou semaines (« mois » retiré), « jusqu'au » + date. Rangée des jours pour l'unité semaines seulement. Stepper, « pendant » et contrôle segmenté supprimés. |
+| Grille | D-519, RM-253 à RM-256, RM-260, RM-262 | « Séance par créneau » non gras. En-tête : « Changer » et colonnes #1 à #7, seul #1 actif au départ. Une ligne par séance dans l'ordre de sélection, avec sa mention calculée. Au moins un point par ligne et par colonne. Toucher #k règle le cycle à k. Allonger le cycle pointe les nouvelles colonnes ; le raccourcir retire les colonnes, et une ligne restée vide est jouée partout. |
+| Roulettes | D-520 | Nombre de semaines (1 à 12) et rappel « Autre » (heures 0 à 24, minutes par pas de 5) : `Picker` SwiftUI `pickerStyle("wheel")` dans un panneau posé sous le champ, voile grisé en fondu, ni titre, ni bouton, ni unité. Chaque cran s'applique ; toucher le voile ferme. Hors iOS : branche explicite vers le sélecteur partagé (`NumberWheelPicker`, `DurationWheelPicker`). |
+| Date et heure | Demande de Hermann du 18/11 | Voile et sélecteurs existants (calendrier natif graphique, roulette heures / minutes). Valeurs en noir, à la taille des autres valeurs (16). |
+| Rappel | D-524, RM-052, RM-053 | Sans / 15' / 30' / 1h / Autre, de même largeur, sans interrupteur. « Sans » désactive le rappel. L'autorisation est demandée au premier choix d'un délai ; un refus laisse « Sans » avec l'information. Des notifications retirées dans Réglages ramènent à « Sans ». |
+| Écrans retirés | D-523 | Feuille « Fréquence » (route `planning-frequency`, `PlanningFrequencySheet`, `frequencyDraft`), liste réordonnable par appui long, interrupteurs, stepper, récapitulatif protégé en bas. |
+| Occurrences passées | D-525 (Agenda, accord du 18/11) | La semaine du Calendrier présente aussi les occurrences passées. Elles se lancent comme les autres (bouton existant de la carte). La fenêtre des rappels reste limitée au futur. |
+| Planifications existantes | RM-263, RM-264 | Nom vide à compléter. « pendant N semaines » devient sa date de fin équivalente (mêmes occurrences). Des motifs de n différents passent au plus petit multiple commun (mêmes occurrences). Au-delà de 7, un message demande de ramener le cycle à 7 au plus et l'enregistrement est bloqué. Aucune occurrence n'est réécrite. Aucune planification en mois ne peut exister : l'application n'a jamais écrit cette unité. |
+| Données | D-522 | Migration 032 : `routines.name TEXT NOT NULL DEFAULT ''`, idempotente. `DATABASE_VERSION` passe à 32 ; les assertions de version des tests de migration ont été mises à jour, comme pour chaque migration précédente. |
+
+### Liste PRESERVE / CHANGE / FORBIDDEN
+
+- **PRESERVE, démontré inchangé** :
+  - moteur des occurrences : seule l'unité Jour est ajoutée, `retainedContents` et le rang des occurrences sont intacts ; tests `occurrences.test.ts` d'origine verts ;
+  - Exécutions et Instantanés : aucun fichier touché ;
+  - sélection des contenus : `PlanningSelection.tsx` et `app/planning-selection.tsx` non modifiés, tests verts ;
+  - Catalogue, Composition : aucun fichier touché ;
+  - primitives natives existantes : `DurationWheelPicker`, `NumberWheelPicker`, `WheelPickerOverlay`, `DatePicker`, `SegmentedControl` et `NativeSheetTop` sont réutilisés sans modification.
+- **CHANGE** : écrans de planification d'un parcours et d'une séance seule (`PlanningScreen.tsx`, ses brouillon, synthèse, textes, grille et popover) ; modèle `Routine` (nom, unité Jour) ; service ; dépôt ; migration 032.
+- **Agenda (accord de Hermann du 18/11)** :
+  - `PlanningService.weekOccurrences` présente les occurrences passées (D-525) ;
+  - `formatRecurrence` sait écrire « Tous les jours » ;
+  - `CalendarWeekScreen.tsx` n'est pas modifié.
+- **FORBIDDEN, respecté** :
+  - aucune primitive native remplacée : le popover est un conteneur autour du `Picker` SwiftUI ;
+  - aucun test réécrit en masse : seuls les tests de l'écran retiré par D-523 sont remplacés, et les assertions de version de base mises à jour ;
+  - Catalogue et Composition non touchés.
+
+### Tests
+
+- Ciblés : `planningGrid.test.ts` (au moins un point par ligne et par colonne, cycle 1 à 7, « x fois sur n », raccourcir et allonger, cycle commun, accord « toutes / tous les », nom) ; `planningSummary.test.ts` ; `occurrences.test.ts` (unité Jour, nom obligatoire, occurrences passées) ; `migration032.routineName.test.ts` ; `PlanningScreen.integration.test.tsx`, avec 17 cas sur SQLite réelle.
+- Roulette native réellement utilisée : le test vérifie que le `Picker` SwiftUI reçoit `selection`, `onSelectionChange` et le modificateur `wheel`, qu'aucun `ScrollView` n'est rendu dans le panneau et qu'aucun sélecteur de remplacement (`NumberWheelPicker`, `DurationWheelPicker`) n'est rendu sur iOS.
+- Planification et base : 59 suites, 584 tests réussis. `tsc` propre. `eslint` sans erreur sur les fichiers touchés.
+
+### Points à confirmer par Hermann (non bloquants, appliqués comme indiqué)
+
+1. Toucher #k règle directement le cycle à k ; aucune fenêtre ne s'ouvre. La consigne disait « ouvre le sélecteur numéroté ».
+2. Une colonne vide après un raccourcissement (motif existant) ou après le retrait d'une séance par « Changer » bloque l'enregistrement jusqu'à l'ajout d'un point (RM-254). RM-260 ne dit pas si elle doit se remplir seule.
+3. Rappel par défaut : 15 min si les notifications sont déjà autorisées, sinon « Sans ».
+4. Tous les N jours : bornés à 1..12 comme les semaines.
+5. Durée de la synthèse : celle des séances du créneau #1.
+6. « Programme » affiche « Aucun », sans action : KODJO n'a aucune notion de programme.
+7. Libellé « Séance par créneau » (D-519) ; Figma écrit « Séances par créneau ». Titre de la feuille centré (en-tête standard, recette k2c) ; Figma l'aligne à gauche.
+8. D-527 (RM-260 à RM-264) : appliqué tel que proposé. Mes remarques sont le point 2 et le cas des n différents (plus petit multiple commun).
+
+### Vérifications sur iPhone
+
+Roulettes et popovers (position sous le champ, voile, fermeture au toucher) ; grille à 7 colonnes sur la largeur ; modale iOS ; champ du nom dans la zone de contexte ; « X jours par semaine » ; occurrences passées dans le Calendrier ; date et heure dans le voile.
+
+### Synchronisation code / documentation
+
+- Classe A : D-519 à D-526, RM-253 à RM-264, CE-UI-12.
+- Classe B : demande de Hermann sur la date et l'heure, inscrite dans :
+  - chapitre 07, section « Mise en œuvre de la grille de planification » ;
+  - CE-UI-12 §3, annotation « Remplacé » ;
+  - RM-054c, annotation « Remplacé en partie » (D-520, D-524).
+- Classe D : chapitre 12, note « Planification — grille de créneaux ».
+- Branche `docs/planification-grille-creneaux` : non fusionnée ; ses commits de planification sont repris sur cette branche.
+- Suite complète : lancée puis arrêtée par Claude Code, faute de mémoire sur le poste. Elle n'a pas été relancée. Ce sont donc les suites ciblées ci-dessus qui font foi ; la suite complète reste à relancer.

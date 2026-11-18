@@ -6,6 +6,7 @@ import type { Database } from "../Database";
 
 type RoutineRow = {
   id: string;
+  name: string;
   start_date: string;
   start_time: string;
   repeat_unit: string | null;
@@ -32,7 +33,7 @@ type EntryRow = {
 type ExclusionRow = { routine_id: string; occurrence_key: string };
 
 const ROUTINE_COLUMNS =
-  "id, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, created_at, updated_at";
+  "id, name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, created_at, updated_at";
 
 function parseNumberList(value: string | null): number[] {
   if (value === null || value.trim() === "") return [];
@@ -40,8 +41,10 @@ function parseNumberList(value: string | null): number[] {
 }
 
 function toRepetition(row: RoutineRow): RoutineRepetition | null {
-  // Seule l'unité Semaine est écrite ; une autre unité (Jour/Mois, règles ouvertes) n'est pas interprétée.
-  if (row.repeat_unit !== "WEEK" || row.repeat_every === null) return null;
+  // Unités Semaine et Jour (RM-257). L'unité Mois, retirée (D-526), n'est pas interprétée (RM-264).
+  if (row.repeat_every === null) return null;
+  if (row.repeat_unit === "DAY") return { unit: "DAY", every: row.repeat_every, weekdays: [], end: { kind: "UNTIL", date: row.end_date ?? row.start_date } };
+  if (row.repeat_unit !== "WEEK") return null;
   const end =
     row.end_kind === "FOR" && row.end_count !== null
       ? ({ kind: "FOR", count: row.end_count } as const)
@@ -107,6 +110,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
   private assemble(row: RoutineRow, entries: readonly EntryRow[], exclusions: readonly ExclusionRow[]): Routine {
     return {
       id: row.id,
+      name: row.name,
       startDate: row.start_date,
       time: row.start_time,
       repetition: toRepetition(row),
@@ -125,6 +129,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
       const owner = await this.ownerId(transaction);
       const repetition = routine.repetition;
       const parameters = [
+        routine.name,
         routine.startDate,
         routine.time,
         repetition === null ? null : repetition.unit,
@@ -139,13 +144,13 @@ export class SqliteRoutineRepository implements RoutineRepository {
       const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM routines WHERE id = ? AND owner_id = ?", [routine.id, owner]);
       if (existing === null) {
         await transaction.runAsync(
-          `INSERT INTO routines (start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, updated_at, id, owner_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO routines (name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, updated_at, id, owner_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [...parameters, routine.id, owner, routine.createdAt],
         );
       } else {
         await transaction.runAsync(
-          `UPDATE routines SET start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
+          `UPDATE routines SET name = ?, start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
            end_date = ?, end_count = ?, reminder_minutes = ?, updated_at = ? WHERE id = ?`,
           [...parameters, routine.id],
         );

@@ -116,8 +116,10 @@ async function renderCalendar() {
   await flush();
 }
 
+let planned = 0;
 const plan = async (draft: Partial<RoutineDraft> & Pick<RoutineDraft, "entries">) => {
-  const result = await planning.createRoutine({ startDate: MONDAY, time: "08:00", repetition: null, ...draft });
+  planned += 1;
+  const result = await planning.createRoutine({ name: `Planification ${planned}`, startDate: MONDAY, time: "08:00", repetition: null, ...draft });
   if (result.status !== "SAVED") throw new Error(result.status);
   return result.routine;
 };

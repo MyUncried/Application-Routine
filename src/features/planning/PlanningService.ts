@@ -1,6 +1,6 @@
 import { addDays, mondayOf, validateRoutineDraft, type LocalDate, type Routine, type RoutineDraft, type RoutineValidationIssue } from "@/domain/planning/Routine";
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
-import { upcomingOccurrences, type Occurrence } from "@/domain/planning/occurrences";
+import { periodOccurrences, type Occurrence } from "@/domain/planning/occurrences";
 
 /**
  * `PlanningService` (chapitre 12 §12.4) — gestion des Routines et calcul des occurrences (API-ROU-01 à 05, 09).
@@ -15,7 +15,7 @@ import { upcomingOccurrences, type Occurrence } from "@/domain/planning/occurren
 
 export type SaveRoutineResult =
   | { readonly status: "SAVED"; readonly routine: Routine }
-  | { readonly status: "INVALID"; readonly issues: readonly RoutineValidationIssue[] }
+  | { readonly status: "INVALID"; readonly issues: readonly (RoutineValidationIssue | "NAME_TAKEN")[] }
   | { readonly status: "NOT_FOUND" };
 
 /** Rappels locaux (adaptateur `ReminderScheduler`) ; absent : aucun rappel programmé (tests, environnement sans notifications). */
@@ -66,12 +66,26 @@ export class PlanningService {
     return this.deps.repository.get(routineId);
   }
 
+  /** RM-261 : nom déjà pris par une autre planification (casse et espaces de bord ignorés). */
+  async isNameTaken(name: string, exceptRoutineId?: string): Promise<boolean> {
+    const key = normalizeRoutineName(name);
+    const routines = await this.deps.repository.list();
+    return routines.some((routine) => routine.id !== exceptRoutineId && normalizeRoutineName(routine.name) === key);
+  }
+
+  private async issuesOf(draft: RoutineDraft, exceptRoutineId?: string): Promise<(RoutineValidationIssue | "NAME_TAKEN")[]> {
+    const issues: (RoutineValidationIssue | "NAME_TAKEN")[] = [...validateRoutineDraft(draft)];
+    if (draft.name.trim() !== "" && (await this.isNameTaken(draft.name, exceptRoutineId))) issues.push("NAME_TAKEN");
+    return issues;
+  }
+
   async createRoutine(draft: RoutineDraft): Promise<SaveRoutineResult> {
-    const issues = validateRoutineDraft(draft);
+    const issues = await this.issuesOf(draft);
     if (issues.length > 0) return { status: "INVALID", issues };
     const at = this.deps.now().toISOString();
     const routine: Routine = {
       id: this.deps.newId(),
+      name: draft.name.trim(),
       startDate: draft.startDate,
       time: draft.time,
       repetition: draft.repetition,
@@ -86,12 +100,13 @@ export class PlanningService {
   }
 
   async updateRoutine(routineId: string, draft: RoutineDraft): Promise<SaveRoutineResult> {
-    const issues = validateRoutineDraft(draft);
+    const issues = await this.issuesOf(draft, routineId);
     if (issues.length > 0) return { status: "INVALID", issues };
     const existing = await this.deps.repository.get(routineId);
     if (existing === null) return { status: "NOT_FOUND" };
     const routine: Routine = {
       ...existing,
+      name: draft.name.trim(),
       startDate: draft.startDate,
       time: draft.time,
       repetition: draft.repetition,
@@ -117,6 +132,8 @@ export class PlanningService {
     const routine = await this.deps.repository.get(routineId);
     if (routine === null) return null;
     return {
+      // RM-261 : le nom est unique ; la copie part d'un nom vide, à saisir (RM-258).
+      name: "",
       startDate: routine.startDate,
       time: routine.time,
       repetition: routine.repetition,
@@ -126,14 +143,20 @@ export class PlanningService {
   }
 
   /**
-   * Occurrences futures de la semaine contenant `anyDayOfWeek` (lundi → dimanche). `isPlannable` écarte les
+   * Occurrences de la semaine contenant `anyDayOfWeek` (lundi → dimanche), passées comprises (D-525, 18/11/2026 ; [RM-049 :
+   * occurrences futures seulement — remplacé]). `isPlannable` écarte les
    * contenus dont la Séance n'est plus active ou n'existe plus ; une occurrence sans contenu restant disparaît.
    */
   async weekOccurrences(anyDayOfWeek: LocalDate, isPlannable: (sessionId: string) => boolean): Promise<readonly Occurrence[]> {
     const monday = mondayOf(anyDayOfWeek);
     const routines = await this.deps.repository.list();
-    return upcomingOccurrences(routines, monday, addDays(monday, 6), this.deps.now())
+    return periodOccurrences(routines, monday, addDays(monday, 6))
       .map((occurrence) => ({ ...occurrence, contents: occurrence.contents.filter((content) => isPlannable(content.sessionId)) }))
       .filter((occurrence) => occurrence.contents.length > 0);
   }
+}
+
+/** RM-261 : comparaison des noms sans casse ni espaces de bord. */
+export function normalizeRoutineName(name: string): string {
+  return name.trim().toLocaleLowerCase("fr-FR");
 }
