@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
+import { ContextBand, FixedHeader } from "@/shared/ui/ScreenShell";
+
 import { dimensions } from "@/shared/ui/tokens";
 
 /**
@@ -28,6 +30,66 @@ export function SheetFixedTop({ top, renderScroll }: { readonly top: ReactNode; 
         {top}
       </View>
     </>
+  );
+}
+
+/**
+ * Haut standard d'une feuille native à zone de contexte (recette Planification du 18/11/2026, k2c, Hermann : « UTILISER LE
+ * COMPOSANT DE LA ZONE DE CONTEXTE » ; « utilises-tu un composant unique standard / une fonction standard, qu'il suffit
+ * d'appeler pour présenter une modale, et une pour la zone de contexte ? ») : un seul appel compose les composants
+ * standards, sans option à oublier —
+ * - en-tête `FixedHeader` de modale : ✕ à gauche, titre centré (demande du 05/11/2026), coche `validate` à droite ;
+ * - zone de contexte `ContextBand` du Catalogue : fondu vers la transparence, halo et courbure sous ✕ (`backHalo`) et
+ *   sous la coche (`validateHalo`), de la couleur de l'en-tête ;
+ * - posés par-dessus la liste (`SheetFixedTop`).
+ */
+export function NativeSheetTop({
+  title,
+  onClose,
+  closeAccessibilityLabel,
+  validate,
+  headerBackground,
+  bandColor,
+  bandPadding,
+  band,
+  below,
+  renderScroll,
+}: {
+  readonly title: string;
+  readonly onClose: () => void;
+  readonly closeAccessibilityLabel: string;
+  readonly validate: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
+  /** Fond de l'en-tête, repris par les halos. */
+  readonly headerBackground: string;
+  /** Couleur de la zone (défaut de `ContextBand`). */
+  readonly bandColor?: string;
+  readonly bandPadding?: { readonly top: number; readonly bottom: number };
+  readonly band: ReactNode;
+  /** Contenu fixe sous la zone de contexte (au-dessus de la liste qui défile), facultatif. */
+  readonly below?: ReactNode;
+  readonly renderScroll: (topHeight: number) => ReactNode;
+}) {
+  return (
+    <SheetFixedTop
+      top={
+        <>
+          <View style={{ backgroundColor: headerBackground }}>
+            <FixedHeader title={title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={closeAccessibilityLabel} validate={validate} />
+          </View>
+          <ContextBand
+            fadeToTransparent
+            backHalo={headerBackground}
+            validateHalo={headerBackground}
+            {...(bandColor !== undefined ? { color: bandColor } : {})}
+            {...(bandPadding !== undefined ? { padding: bandPadding } : {})}
+          >
+            {band}
+          </ContextBand>
+          {below ?? null}
+        </>
+      }
+      renderScroll={renderScroll}
+    />
   );
 }
 

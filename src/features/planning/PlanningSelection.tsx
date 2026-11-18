@@ -15,8 +15,8 @@ import { toggledView, type SessionCatalogueView } from "@/features/sessions/sess
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { strings } from "@/shared/i18n";
 import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
+import { ScreenShell } from "@/shared/ui/ScreenShell";
+import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -64,50 +64,80 @@ export function PlanningSelection({
         ? filterLabels[0]!
         : fillTemplate(tSessions.catalogueFilters.activeSummary, { count: String(filterLabels.length) });
 
+  const renderItem = (projection: SessionCatalogueProjection) => {
+    const order = selected.indexOf(projection.id) + 1;
+    const checked = order > 0;
+    return (
+      <Pressable
+        key={projection.id}
+        onPress={() => toggle(projection.id)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked }}
+        accessibilityLabel={`${sessionCardAccessibilityLabel(projection)}, ${checked ? t.checked : t.unchecked}`}
+        style={styles.item}
+        testID={`planning-selection-${projection.id}`}
+      >
+        <View pointerEvents="none">
+          <SessionCard projection={projection} context="planning" />
+        </View>
+        <View style={[styles.check, checked ? styles.checkOn : null]} pointerEvents="none" testID={`planning-selection-${projection.id}-${checked ? "checked" : "unchecked"}`}>
+          {checked ? <Text style={styles.checkOrder}>{order}</Text> : null}
+        </View>
+      </Pressable>
+    );
+  };
+  // Recette du 17/11/2026 (Hermann : « changer ouvre le catalogue avec les séances déjà sélectionnées au dessus de la liste
+  // dans l'ordre, elle ne bouge pas pendant le défilement des autres séances. désélectionner une séance la fait sortir de la
+  // zone figée (la hauteur de cette zone est dynamique) ») : les Séances cochées, dans l'ordre de sélection, sont posées
+  // sous la zone de contexte, hors défilement ; la liste ne montre que les autres.
+  const pinned = selected.map((id) => sessions.find((session) => session.id === id)).filter((session): session is SessionCatalogueProjection => session !== undefined);
+
   return (
     <ScreenShell backgroundColor={palette.background}>
-      {/* Feuille native : haut fixe posé sur la liste (`SheetFixedTop`, recette du 18/11/2026). */}
-      <SheetFixedTop
-        top={
+      {/* Feuille native : haut standard (en-tête, zone de contexte, halos) posé sur la liste (`NativeSheetTop`, recette du 18/11/2026). */}
+      <NativeSheetTop
+        title={t.title}
+        onClose={onCancel}
+        closeAccessibilityLabel={t.cancel}
+        validate={{ onPress: () => available.length > 0 && onValidate(available), enabled: available.length > 0, accessibilityLabel: t.validate }}
+        headerBackground={palette.background}
+        bandColor={palette.context}
+        bandPadding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
+        band={
           <>
-            <View style={{ backgroundColor: palette.background }}>
-              <FixedHeader
-                title={t.title}
-                closeIcon
-                topInset={0}
-                onBack={onCancel}
-                backAccessibilityLabel={t.cancel}
-                validate={{ onPress: () => available.length > 0 && onValidate(available), enabled: available.length > 0, accessibilityLabel: t.validate }}
-              />
-            </View>
-            <ContextBand fadeToTransparent color={palette.context} padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
-              <SessionCommandRow
-                view={view}
-                onToggleView={(touched) => setView((current) => toggledView(current, touched))}
-                counts={loading ? null : { SINGLE: context.singleCount, MULTIPLE: context.multipleCount }}
-                results={isSessionCatalogueFiltered(filters) ? countLabel(context.visible.length, { one: tContext.resultsOne, many: tContext.resultsMany }) : null}
-                query={query}
-                onChangeQuery={setQuery}
-                filterSummary={filterSummary}
-                filterCount={filterLabels.length === 0 ? null : String(filterLabels.length)}
-                onOpenFilters={() => {
-                  requestFilterSheet({
-                    kind: "sessions",
-                    filters,
-                    onApply: (next, labels) => {
-                      setFilters(next);
-                      setFilterLabels(labels);
-                    },
-                  });
-                  router.push("/catalogue-filters");
-                }}
-                onResetFilters={() => {
-                  setFilters(EMPTY_SESSION_FILTERS);
-                  setFilterLabels([]);
-                }}
-              />
-            </ContextBand>
+            <SessionCommandRow
+              view={view}
+              onToggleView={(touched) => setView((current) => toggledView(current, touched))}
+              counts={loading ? null : { SINGLE: context.singleCount, MULTIPLE: context.multipleCount }}
+              results={isSessionCatalogueFiltered(filters) ? countLabel(context.visible.length, { one: tContext.resultsOne, many: tContext.resultsMany }) : null}
+              query={query}
+              onChangeQuery={setQuery}
+              filterSummary={filterSummary}
+              filterCount={filterLabels.length === 0 ? null : String(filterLabels.length)}
+              onOpenFilters={() => {
+                requestFilterSheet({
+                  kind: "sessions",
+                  filters,
+                  onApply: (next, labels) => {
+                    setFilters(next);
+                    setFilterLabels(labels);
+                  },
+                });
+                router.push("/catalogue-filters");
+              }}
+              onResetFilters={() => {
+                setFilters(EMPTY_SESSION_FILTERS);
+                setFilterLabels([]);
+              }}
+            />
           </>
+        }
+        below={
+          pinned.length > 0 ? (
+            <View style={[styles.pinned, { backgroundColor: palette.background }]} testID="planning-selection-pinned">
+              {pinned.map(renderItem)}
+            </View>
+          ) : null
         }
         renderScroll={(topHeight) => (
           <ScrollView
@@ -124,28 +154,7 @@ export function PlanningSelection({
                 {t.empty}
               </Text>
             ) : null}
-            {context.visible.map((projection) => {
-              const order = selected.indexOf(projection.id) + 1;
-              const checked = order > 0;
-              return (
-                <Pressable
-                  key={projection.id}
-                  onPress={() => toggle(projection.id)}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked }}
-                  accessibilityLabel={`${sessionCardAccessibilityLabel(projection)}, ${checked ? t.checked : t.unchecked}`}
-                  style={styles.item}
-                  testID={`planning-selection-${projection.id}`}
-                >
-                  <View pointerEvents="none">
-                    <SessionCard projection={projection} context="planning" />
-                  </View>
-                  <View style={[styles.check, checked ? styles.checkOn : null]} pointerEvents="none" testID={`planning-selection-${projection.id}-${checked ? "checked" : "unchecked"}`}>
-                    {checked ? <Text style={styles.checkOrder}>{order}</Text> : null}
-                  </View>
-                </Pressable>
-              );
-            })}
+            {context.visible.filter((projection) => !selected.includes(projection.id)).map(renderItem)}
           </ScrollView>
         )}
       />
@@ -163,6 +172,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   list: { paddingHorizontal: layout.screenGutter, gap: spacing[12] },
   item: { position: "relative" },
+  pinned: { paddingHorizontal: layout.screenGutter, paddingTop: spacing[8], gap: spacing[12] },
   // Recette du 17/11/2026 (Hermann : « la coche de sélection doit être centrée verticalement sur la carte » ; « doit être
   // ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l'intérieur qui représente l'ordre de sélection des
   // séances et de leur planification ») : case ronde, centrée sur l'en-tête de 72 de la carte. [Case carrée en bas à

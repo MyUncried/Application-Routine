@@ -199,3 +199,60 @@ Communiqués dans le message de livraison (hash du commit contenant ce rapport, 
 - Constat : le correctif n° 3 n'avait repris que la moitié du patron des feuilles de filtres. `FilterSheetFrame` (`FilterSheetPrimitives.tsx`, recette du 04/11/2026, même symptôme) fait deux choses : il enveloppe la liste (`nativeScrollHost`) **et** pose l'en-tête en absolu au premier plan (`nativeHeader`, `zIndex: 2`), avec un `paddingTop` de la liste égal à la hauteur mesurée de cet en-tête et `contentInsetAdjustmentBehavior="never"`. `SheetFixedTop` (`87f25c8b`) reprenait exactement ce dispositif. Sa suppression au correctif n° 3 était une erreur d'analyse de ma part.
 - Correction (classe D) : `PlanningScreen.tsx`, `PlanningSelection.tsx` et `SheetFixedTop.tsx` reviennent à leur état de `87f25c8b`. Le commentaire de `SheetFixedTop` cite désormais `FilterSheetFrame`. `FilterSheetFrame` n'est pas modifié (acquis).
 - Tests : planification 7 suites / 39 tests verts ; `tsc` et `eslint` propres. Jest ne reproduit pas la mise en page des feuilles iOS : la preuve reste la vérification sur iPhone.
+
+## Complément du 18/11/2026 — contre-recette iPhone (cahier du 18/11) et analyse de la spécification des notifications
+
+### Point de départ et périmètre
+
+- Départ : `10acaaa4`. Résultats du cahier lus dans sa base (63 lignes) : KO k2c, k6, k8, k12, k13, k14 ; constats généraux du 17/11 relus — deux n'avaient pas été traités (déplacement des séances ; zone figée de « Changer »).
+- Demande de Hermann : corriger les écarts ; vérifier la compatibilité de la spécification « Notifications de rappel de séance » (18/11/2026, fournie hors dépôt) avec iOS et Android ; étudier la photo du premier exercice dans la notification.
+
+### Corrections
+
+| Écart | Classe | Correction |
+|---|---|---|
+| Constat 17/11 « On ne peut plus déplacer les séances, l'appui long fait bouger l'écran… l'écran doit être figé » | A (CE-UI-05 §13) | Geste `Pan` natif activé après l'appui long sur toute la ligne (patron `useRowDrag` des blocs de la Composition), défilement coupé pendant le geste. [PanResponder de la poignée — remplacé.] |
+| Constat 17/11 « changer ouvre le catalogue avec les séances déjà sélectionnées au dessus de la liste… » | B (CE-UI-04 §9) | Zone figée des Séances cochées, dans l'ordre, sous la zone de contexte ; la liste ne montre que les autres. Cocher une Séance l'ajoute en fin de zone (même règle, appliquée aussi à la première sélection). |
+| k2c composants standards, halos, dégradé, titre centré | B (CE-UI-04 §9, CE-UI-05 §9) | Composant unique `NativeSheetTop` (`SheetFixedTop.tsx`) : `FixedHeader` de modale (titre centré), `ContextBand` fondue avec `backHalo` et nouveau `validateHalo` (halo sous la coche, `ScreenShell.tsx`). |
+| k6, k8 date / heure | B (CE-UI-05 §9) | Valeurs affichées en Medium 14 noir ; un appui ouvre le voile partagé `WheelPickerOverlay` (fondu) : calendrier `DatePicker` graphique centré dans un panneau `ModalHeader`, ou roulette native `DurationWheelPicker` heures / minutes. |
+| k12, k13 rappel | B (RM-054c révisée) | 15 min à l'activation ; « Autre » ouvre la roulette heures / minutes (pas de 5 min, 24 h) ; la valeur remplace « Autre » ; un délai standard rend « Autre ». |
+| k14 redemande d'autorisation | — | Non réalisable : iOS ne présente la demande système qu'une fois par installation ; après un refus, seuls les Réglages la rétablissent. Proposition à Hermann : message KODJO avec un bouton qui ouvre directement la page Réglages de l'application. Non appliquée. |
+| k13, taille « celle du texte "Progression" » | — | Texte de référence non trouvé sur l'écran Planifier. Question posée ; non appliqué. |
+
+Documentation (classe B) : ch10 RM-054c ; ch13 CE-UI-04 §9, CE-UI-05 §8, §9, §13 ; ch12 §12.13 ; ch07 « Contre-recette du 18/11/2026 ».
+
+Tests : `PlanningScreen.integration` (appui long puis glisser ; rappel 15 min par défaut et « Autre » ; date et heure dans le voile) ; `PlanningSelection.test` (zone figée) ; suite complète : 399 suites, 6 175 réussis, 32 ignorés ; `tsc` propre ; `eslint` sans erreur sur les fichiers touchés. Jest ne joue ni la mise en page native ni les gestes réels : vérification sur iPhone nécessaire (lignes k16 à k20 du cahier).
+
+### Analyse de la spécification des notifications (18/11/2026)
+
+Sources vérifiées : types `expo-notifications` 57.0.25 installés (`NotificationContentInput.attachments` marqué « @platform ios ») ; code actuel `ReminderScheduler.ts`, `ExpoLocalNotifications.ts`, `sessionCatalogueProjection.ts`, `domain/categories/defaults.ts`. Les références Apple / Android citées par la spécification n'ont pas été rouvertes ici ; les points qui en dépendent sont marqués « documentation système ».
+
+**Compatible tel quel**
+
+- Titre ≤ 30 et corps ≤ 40 caractères : repères Android, sans limite technique iOS ; les 50 titres du catalogue font au plus 29 caractères (calcul sur le texte de la spécification). Corps : les compléments laissent de 17 (« : ta première séance ! ») à 30 caractères (« t’attend. ») au nom ; au-delà, nom seul : règle applicable.
+- Pas de sous-titre, pas de badge, pas de bouton d'action, rappel non critique (niveau d'interruption par défaut) : conformes à `expo-notifications`.
+- Toucher → séance sans démarrage : déjà en place (RM-054b, écran d'Exécution sans Exécution créée).
+- Catégories `CAT-*` : les dix identifiants de la spécification sont ceux de `defaults.ts` ; la projection du Catalogue dérive déjà les catégories des exercices.
+- Familles jour (`MON`…`SUN`) et créneau (`MORNING`…`NIGHT`), `SINGLE` / `RECUR` (Répétition activée ou non) : calculables à la programmation.
+
+**Écarts avec le produit actuel (décisions à prendre)**
+
+1. *Parcours* : une occurrence KODJO peut contenir plusieurs Séances (une seule notification, titre actuel « A et B » / « A et n autres »). La spécification ne traite que des séances distinctes à la même heure. Il faut décider du corps d'un parcours (nom de la première Séance ? noms joints ?) et de l'accord (« t’attend » / « t’attendent », « est prête » / « sont prêtes »).
+2. *FIRST* et *RESTART* supposent un historique des séances réalisées et manquées : KODJO ne conserve aujourd'hui aucune Exécution terminée (le noyau d'exécution est en mémoire). Ces familles ne sont pas réalisables avant cet historique.
+3. *PROGRAM* : la notion de programme n'existe pas dans KODJO (la Routine et le parcours ne sont pas des programmes). Famille à retirer ou à redéfinir.
+4. *Contenu figé à la programmation* : une notification locale est composée quand elle est programmée, pas quand elle s'affiche. Rotation, « déjà accomplie », absence et renommage ne sont pris en compte qu'à la reprogrammation suivante (ouverture de l'application, enregistrement). Conforme à l'étape 8 de la spécification si la reprogrammation suit aussi chaque Exécution terminée.
+5. *Rotation persistée* : demande un stockage nouveau (derniers modèles utilisés) ; aucun aujourd'hui.
+6. *Son* : le contenu actuel ne demande aucun son (`sound` absent). La spécification veut le réglage système : il faut passer `sound: "default"` (le réglage de l'utilisateur reste maître). Effet sur iPhone à vérifier.
+7. *Android* : aucun canal de notification ni petite icône monochrome configurés aujourd'hui ; à prévoir si l'application est distribuée sur Android (non recetté à ce jour).
+8. *Plafond iOS* (documentation système) : iOS ne garde que les 64 notifications locales programmées les plus proches. La fenêtre glissante actuelle doit rester en dessous ; à rappeler dans la spécification.
+
+**Photo du premier exercice — faisabilité**
+
+- iOS : réalisable avec une notification locale. `expo-notifications` accepte `attachments` (iOS seulement) : fichier local JPEG, PNG ou GIF (10 Mo au plus, documentation système). Le système *déplace* le fichier joint dans son propre stockage (documentation système) : il faut en copier une version par notification (cache de l'application) avant chaque programmation. La miniature s'affiche à droite de la bannière ; l'image entière quand on développe la notification.
+- Android : non réalisable avec `expo-notifications` en SDK 57 (pièces jointes iOS seulement) ; il faudrait du code natif ou des notifications distantes.
+- Source de la photo : les médias des exercices sont des fichiers locaux de l'application (`firstMediaPreviewSource`). Décisions nécessaires : (a) « premier exercice » strictement, ou premier exercice *qui a une photo* (règle déjà utilisée par la vignette de la carte du Catalogue) ; (b) premier média en vidéo : pas d'image, ou image extraite de la vidéo (module supplémentaire) ; (c) parcours : photo de la première Séance de l'occurrence.
+- Non implémenté dans cette livraison : la spécification est une proposition en attente de validation, et les décisions (a) à (c) conditionnent le code.
+
+### Vérifications restant à faire sur iPhone
+
+k16 déplacement par appui long ; k17 zone figée ; k18 en-tête et zone de contexte standards (halos, dégradé, titre centré) ; k19 date et heure dans le voile ; k20 rappel 15 min et « Autre » ; k2d (liste sous la recherche) toujours ouverte.

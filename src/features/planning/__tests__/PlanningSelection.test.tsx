@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen, within } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
@@ -50,5 +50,30 @@ describe("PlanningSelection", () => {
     expect(screen.getByTestId("planning-selection-a-checked")).toHaveTextContent("1");
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     expect(onValidate).toHaveBeenCalledWith(["a"]);
+  });
+
+  it("« Changer » : les séances choisies sont figées au-dessus de la liste, dans l'ordre ; décocher les rend à la liste", () => {
+    render(
+      <TestSafeAreaProvider>
+        <PlanningSelection
+          sessions={[projection("a", "Alpha"), projection("b", "Bravo"), projection("c", "Charlie")]}
+          loading={false}
+          failed={false}
+          initial={["c", "a"]}
+          onCancel={jest.fn()}
+          onValidate={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+    const pinnedIds = () =>
+      within(screen.getByTestId("planning-selection-pinned"))
+        .queryAllByTestId(/^planning-selection-[abc]$/)
+        .map((node) => node.props.testID as string);
+    expect(pinnedIds()).toEqual(["planning-selection-c", "planning-selection-a"]);
+    expect(within(screen.getByTestId("planning-selection-list")).queryAllByTestId(/^planning-selection-[abc]$/).map((node) => node.props.testID)).toEqual(["planning-selection-b"]);
+    fireEvent.press(screen.getByTestId("planning-selection-c"));
+    expect(pinnedIds()).toEqual(["planning-selection-a"]);
+    fireEvent.press(screen.getByTestId("planning-selection-a"));
+    expect(screen.queryByTestId("planning-selection-pinned")).toBeNull();
   });
 });

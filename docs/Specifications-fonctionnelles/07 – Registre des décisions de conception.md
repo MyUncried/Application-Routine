@@ -2826,3 +2826,12 @@ Classe B (évolutions validées) et A (conformités). Constats de Hermann, recop
 - Conformités (classe A) : d3 « On peut tout décocher, mais on ne peut pas valider si tout est décoché » (CE-UI-05 §14 : au moins un jour) ; e3 « L'interrupteur est toujours activé malgré la désactivation dans les réglages des notifications » (RM-053) ; f3 « le jour sélectionné doit être le premier présenté au haut de la liste » (RM-046).
 - Non réalisables avec les sélecteurs natifs d'iOS (priorité aux primitives natives, non contournées) : « Modale mois : le jour sélectionné doit être fond bleu et texte blanc » ; « modale heure : mettre "heure" et "minute" après les chiffres ».
 - Numéros D- non attribués ici : à attribuer à l'intégration dans `main`.
+
+### Contre-recette du 18/11/2026
+
+- k12 « Remettre 15' par défaut. » ; k13 « Appuyer sur Autre doit ouvrir la modale, la valeur choisi doit remplacer Autre, sélectionner un rappel standard fait repasser la valeur à Autre » → **RM-054c** révisée (remplace « ne pas mettre de valeur par défaut » du 17/11).
+- k6 « La date et l'heure n'ont pas la même taille que "Planifié le" et "à" » ; k8 « Mettre un voile grisé en même temps, le temps de la saisie (apparition / disparition en fondu). Centrer horizontalement le calendrier » → CE-UI-05 §9 : valeurs affichées comme le texte du formulaire, sélecteurs natifs ouverts dans le voile partagé des roulettes. La roulette heures / minutes affiche « heures » et « minutes » à côté des chiffres (constat du 17/11 jusqu'ici non réalisable avec le sélecteur compact).
+- k2c « UTILISER LE COMPOSANT DE LA ZONE DE CONTEXTE » (dégradé, halo et courbure sous ✕ et sous la coche, titre centré) → CE-UI-04 §9, CE-UI-05 §9 ; composant unique `NativeSheetTop` pour le haut des deux feuilles.
+- Constats du 17/11 non traités jusqu'ici : « On ne peut plus déplacer les séances… » (classe A, CE-UI-05 §13) ; « changer ouvre le catalogue avec les séances déjà sélectionnée au dessus de la liste… » (classe B, CE-UI-04 §9).
+- k14 « Appuyer de nouveau sur Rappel doit ouvrir de nouveau la fenêtre de message demandant l'activation des rappels » : non réalisable — iOS ne présente la demande d'autorisation qu'une seule fois par installation ; après un refus, seuls les Réglages la rétablissent. Proposition soumise à Hermann (non appliquée).
+- Taille des valeurs du rappel « celle du texte "Progression" » : texte de référence non identifié sur l'écran ; question posée à Hermann (non appliqué).

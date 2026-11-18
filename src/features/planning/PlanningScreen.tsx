@@ -1,14 +1,16 @@
 import { DatePicker, Host } from "@expo/ui/swift-ui";
-import { foregroundStyle, labelsHidden, tint } from "@expo/ui/swift-ui/modifiers";
+import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AppState, PanResponder, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { AppState, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   formatLocalDate,
   occurrenceInstant,
+  REMINDER_MAX_MINUTES,
   REMINDER_PRESETS,
   validateRoutineDraft,
   WEEK_MULTIPLIER_MAX,
@@ -40,13 +42,16 @@ import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { formatRoutineSummary } from "@/features/planning/planningSummary";
+import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { ModalHeader } from "@/shared/ui/ModalHeaderActions";
 import { InlineStepper, PROFILE_HOLD_POLICY } from "@/shared/ui/ProfileStepper";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
+import { ScreenShell } from "@/shared/ui/ScreenShell";
+import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
 import { switchNudge } from "@/shared/ui/switchNudge";
 import { colors, layout, minTouchTarget, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
@@ -77,7 +82,23 @@ const ENTRY_ROW_HEIGHT = 48;
  * Sélecteurs natifs de date et d'heure. Recette du 17/11/2026 (Hermann : « date et heure : texte en noir ») : texte
  * noir ; la teinte reste celle de l'application dans le calendrier et les roues ouverts (rendu iOS, à vérifier).
  */
-const PICKER_MODIFIERS = [labelsHidden(), tint(colors.primary), foregroundStyle(colors.textPrimary)];
+/**
+ * Recette du 18/11/2026 (k6, k8, k13, Hermann : « La date et l'heure n'ont pas la même taille que "Planifié le" et "à" » ;
+ * « Le contraste des modales de sélection de date et d'heure n'est pas bon avec le fond blanc. Mettre un voile grisé en même
+ * temps, le temps de la saisie (apparition / disparition en fondu). Centrer horizontalement le calendrier » ; « Appuyer sur
+ * Autre doit ouvrir la modale ») : la date et l'heure s'affichent comme les autres valeurs du formulaire ; un appui ouvre le
+ * voile standard des roulettes (`WheelPickerOverlay`, fondu) avec, au centre, le calendrier natif (`DatePicker` graphique) ou
+ * la roulette native heures / minutes (`DurationWheelPicker`, la même pour l'heure et le rappel « Autre », e2).
+ * [Sélecteurs compacts iOS dans la ligne, fenêtre système sans voile — remplacés.]
+ */
+const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
+/** Roulette du rappel « Autre » : pas de 5 minutes jusqu'à 24 h (grille de l'ancienne feuille « Rappel personnalisé »). */
+const REMINDER_GRID: readonly number[] = Array.from({ length: REMINDER_MAX_MINUTES / 5 }, (_, index) => (index + 1) * 5);
+/** Roulette de l'heure : 00:00 à 23:59, à la minute. */
+const TIME_MAX_MINUTES = 23 * 60 + 59;
+/** Délai présélectionné à l'activation du rappel (k12, 18/11/2026). */
+const DEFAULT_REMINDER_MINUTES = 15;
+const WHEEL_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
 
 type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string };
 
@@ -93,9 +114,6 @@ function timeToDate(date: LocalDate, time: LocalTime): Date {
   return occurrenceInstant(date, time);
 }
 
-function dateToTime(value: Date): LocalTime {
-  return `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`;
-}
 
 export function contentHeading(entries: readonly { sessionId: string }[], projections: ReadonlyMap<string, SessionCatalogueProjection>): string {
   const names = entries.map((entry) => projections.get(entry.sessionId)?.name ?? "—");
@@ -124,10 +142,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [permissionDenied, setPermissionDenied] = useState(false);
   // « Autre » touché : roues natives d'heure affichées (e2), même sans délai encore choisi.
   const [customChosen, setCustomChosen] = useState(false);
+  const [picker, setPicker] = useState<"START" | "END" | "TIME" | "REMINDER" | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [summaryHeight, setSummaryHeight] = useState(0);
   const savingRef = useRef(false);
+  const [reordering, setReordering] = useState(false);
   // L'écran se ferme par la navigation ; son identité ne doit pas relancer la lecture du brouillon.
   const routerRef = useRef(router);
   useEffect(() => {
@@ -271,7 +291,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   };
 
   // RM-052 / RM-053 : autorisation demandée à la première activation ; refus → interrupteur sur Non, information.
-  // RM-054c : l'activation ne présélectionne aucun délai.
+  // RM-054c, révisée le 18/11/2026 (k12, Hermann : « Remettre 15' par défaut. ») : l'activation présélectionne 15 min.
+  // [« l'activation ne présélectionne aucun délai » (17/11/2026) — remplacé.]
   const toggleReminder = (on: boolean) => {
     if (!on) {
       update({ reminderOn: false });
@@ -280,7 +301,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     setPermissionDenied(false);
     planning.ensureReminderPermission().then(
       (granted) => {
-        if (granted) update({ reminderOn: true });
+        if (granted) update({ reminderOn: true, ...(form.reminderMinutes === null ? { reminderMinutes: DEFAULT_REMINDER_MINUTES } : {}) });
         else setPermissionDenied(true);
       },
       () => setPermissionDenied(true),
@@ -322,38 +343,30 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   return (
     <ScreenShell>
       {/* Figma `1992:6838` : titre aligné à gauche après la croix ; coche d'enregistrement (D-499). */}
-      {/* Feuille native : haut fixe posé sur la liste (`SheetFixedTop`, recette du 18/11/2026). */}
-      <SheetFixedTop
-        top={
+      {/* Feuille native : haut standard (en-tête, zone de contexte, halos) posé sur la liste (`NativeSheetTop`, recette du 18/11/2026). */}
+      <NativeSheetTop
+        title={formTitle(availableEntries.length)}
+        onClose={close}
+        closeAccessibilityLabel={t.cancel}
+        validate={{ onPress: save, enabled: canSave, accessibilityLabel: t.save }}
+        headerBackground={colors.background}
+        band={
           <>
-            <View style={{ backgroundColor: colors.background }}>
-              <FixedHeader
-                title={formTitle(availableEntries.length)}
-                closeIcon
-                centeredTitle={false}
-                topInset={0}
-                onBack={close}
-                backAccessibilityLabel={t.cancel}
-                validate={{ onPress: save, enabled: canSave, accessibilityLabel: t.save }}
-              />
-            </View>
-            <ContextBand fadeToTransparent>
-              <View style={styles.contentBand}>
-                <View style={styles.contentTexts}>
-                  <Text style={styles.contentName} numberOfLines={2} testID="planning-content-name">
-                    {contentHeading(availableEntries, projections)}
+            <View style={styles.contentBand}>
+              <View style={styles.contentTexts}>
+                <Text style={styles.contentName} numberOfLines={2} testID="planning-content-name">
+                  {contentHeading(availableEntries, projections)}
+                </Text>
+                {single !== undefined ? (
+                  <Text style={styles.contentDuration} testID="planning-content-duration">
+                    {formatCatalogueSessionDuration(single.duration)}
                   </Text>
-                  {single !== undefined ? (
-                    <Text style={styles.contentDuration} testID="planning-content-duration">
-                      {formatCatalogueSessionDuration(single.duration)}
-                    </Text>
-                  ) : null}
-                </View>
-                <Pressable onPress={() => openSelection(form.entries)} accessibilityRole="button" hitSlop={12} testID="planning-change">
-                  <Text style={styles.change}>{t.change}</Text>
-                </Pressable>
+                ) : null}
               </View>
-            </ContextBand>
+              <Pressable onPress={() => openSelection(form.entries)} accessibilityRole="button" hitSlop={12} testID="planning-change">
+                <Text style={styles.change}>{t.change}</Text>
+              </Pressable>
+            </View>
           </>
         }
         renderScroll={(topHeight) => (
@@ -363,6 +376,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             style={styles.scroll}
             contentContainerStyle={[styles.scrollContent, { paddingTop: topHeight + spacing[16], paddingBottom: summaryHeight + spacing[24] }]}
             keyboardShouldPersistTaps="handled"
+            // Recette du 17/11/2026 (Hermann : « l'écran doit être figé pendant le déplacement d'une carte ») : comme les blocs
+            // de la Composition (`ForTimeBlocks`), le défilement est coupé tant qu'une ligne est portée.
+            scrollEnabled={!reordering}
             testID="planning-form"
           >
             {removed > 0 ? (
@@ -376,16 +392,10 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               <View style={styles.slotRow}>
                 <Text style={styles.rowLabel}>{t.start}</Text>
                 <Text style={styles.linkWord}>{t.on}</Text>
-                <NativeDate
-                  value={form.startDate}
-                  minimum={todayLocal()}
-                  accessibilityLabel={t.datePicker}
-                  onChange={changeStartDate}
-                  testID="planning-start-date"
-                />
+                <ValuePill plain label={formatShortDate(form.startDate)} onPress={() => setPicker("START")} accessibilityLabel={`${t.datePicker}, ${formatShortDate(form.startDate)}`} testID="planning-start-date" />
                 <View style={styles.spacer} />
                 <Text style={styles.linkWord}>{t.at}</Text>
-                <NativeTime value={form.time} date={form.startDate} onChange={(time) => update({ time })} testID="planning-start-time" />
+                <ValuePill plain label={form.time} onPress={() => setPicker("TIME")} accessibilityLabel={`${t.timePicker}, ${form.time}`} testID="planning-start-time" />
               </View>
             </View>
 
@@ -446,13 +456,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                     testID="planning-end-kind"
                   />
                   {form.endKind === "UNTIL" ? (
-                    <NativeDate
-                      value={form.endDate}
-                      minimum={form.startDate}
-                      accessibilityLabel={t.endDatePicker}
-                      onChange={changeEndDate}
-                      testID="planning-end-date"
-                    />
+                    <ValuePill plain label={formatShortDate(form.endDate)} onPress={() => setPicker("END")} accessibilityLabel={`${t.endDatePicker}, ${formatShortDate(form.endDate)}`} testID="planning-end-date" />
                   ) : (
                     <View style={styles.inline}>
                       <ValuePill
@@ -522,6 +526,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 }
                 onFrequency={openFrequency}
                 showFrequency={form.repetitionOn}
+                onDraggingChange={setReordering}
               />
             ) : null}
 
@@ -548,13 +553,16 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 <SegmentedControl
                   options={[
                     ...REMINDER_PRESETS.map((minutes) => ({ value: String(minutes), label: reminderLabel(minutes) })),
-                    { value: "OTHER", label: tReminder.other, accessibilityLabel: tReminder.customTitle },
+                    {
+                      value: "OTHER",
+                      label: customReminder && reminder !== null ? reminderLabel(reminder) : tReminder.other,
+                      accessibilityLabel: tReminder.customTitle,
+                    },
                   ]}
                   value={customReminder ? "OTHER" : reminder === null ? null : String(reminder)}
                   onChange={(value) => {
                     if (value === "OTHER") {
-                      setCustomChosen(true);
-                      if (reminder !== null && (REMINDER_PRESETS as readonly number[]).includes(reminder)) update({ reminderMinutes: null });
+                      setPicker("REMINDER");
                     } else {
                       setCustomChosen(false);
                       update({ reminderMinutes: Number(value) });
@@ -562,25 +570,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                   }}
                   testID="planning-reminder-options"
                 />
-                {/* Recette du 17/11/2026 (e2, option « Roues natives d'heure ») : délai personnalisé saisi avec les mêmes roues
-                    natives que l'heure de « Planifié le », sans feuille par-dessus le formulaire ; 23 h 59 au plus.
-                    [Feuille « Rappel personnalisé » (Figma 1992:7187) — remplacée.] */}
-                {customReminder ? (
-                  <View style={styles.slotRow} testID="planning-reminder-custom">
-                    <Text style={styles.rowLabel}>{tReminder.customTitle}</Text>
-                    <View style={styles.spacer} />
-                    <NativeTime
-                      value={durationToTime(reminder ?? 0)}
-                      date={form.startDate}
-                      accessibilityLabel={tReminder.customTitle}
-                      onChange={(time) => {
-                        const minutes = timeToDuration(time);
-                        update({ reminderMinutes: minutes === 0 ? null : minutes });
-                      }}
-                      testID="planning-reminder-custom-time"
-                    />
-                  </View>
-                ) : null}
               </View>
             ) : null}
 
@@ -600,6 +589,55 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           <Text style={styles.summaryText}>{summary}</Text>
         </View>
       </View>
+
+      <WheelPickerOverlay visible={picker !== null}>
+        {picker === "START" || picker === "END" ? (
+          <DatePanel
+            title={picker === "START" ? t.datePicker : t.endDatePicker}
+            value={picker === "START" ? form.startDate : form.endDate}
+            minimum={picker === "START" ? todayLocal() : form.startDate}
+            onCancel={() => setPicker(null)}
+            onValidate={(value) => {
+              setPicker(null);
+              if (picker === "START") changeStartDate(value);
+              else changeEndDate(value);
+            }}
+          />
+        ) : picker === "TIME" ? (
+          <DurationWheelPicker
+            totalSeconds={timeToDuration(form.time)}
+            maxTotalSeconds={TIME_MAX_MINUTES}
+            title={t.timePicker}
+            units={WHEEL_UNITS}
+            minutesAccessibilityLabel={tReminder.hours}
+            secondsAccessibilityLabel={tReminder.minutes}
+            cancelAccessibilityLabel={tReminder.cancel}
+            validateAccessibilityLabel={tReminder.validate}
+            onCancel={() => setPicker(null)}
+            onValidate={(minutes) => {
+              setPicker(null);
+              update({ time: durationToTime(minutes) });
+            }}
+          />
+        ) : picker === "REMINDER" ? (
+          <DurationWheelPicker
+            totalSeconds={reminder ?? DEFAULT_REMINDER_MINUTES}
+            valueGrid={REMINDER_GRID}
+            title={tReminder.customTitle}
+            units={WHEEL_UNITS}
+            minutesAccessibilityLabel={tReminder.hours}
+            secondsAccessibilityLabel={tReminder.minutes}
+            cancelAccessibilityLabel={tReminder.cancel}
+            validateAccessibilityLabel={tReminder.validate}
+            onCancel={() => setPicker(null)}
+            onValidate={(minutes) => {
+              setPicker(null);
+              setCustomChosen(true);
+              update({ reminderMinutes: minutes });
+            }}
+          />
+        ) : null}
+      </WheelPickerOverlay>
     </ScreenShell>
   );
 }
@@ -608,12 +646,15 @@ function ValuePill({
   label,
   onPress,
   active = false,
+  plain = false,
   accessibilityLabel,
   testID,
 }: {
   readonly label: string;
   readonly onPress: () => void;
   readonly active?: boolean;
+  /** Date et heure : texte noir (recette du 17/11/2026, « date et heure : texte en noir »). */
+  readonly plain?: boolean;
   readonly accessibilityLabel: string;
   readonly testID: string;
 }) {
@@ -627,9 +668,58 @@ function ValuePill({
       style={styles.valuePill}
       testID={testID}
     >
-      <Text style={styles.value}>{label}</Text>
+      <Text style={plain ? styles.valuePlain : styles.value}>{label}</Text>
     </Pressable>
   );
+}
+
+/** Déplacement d'une ligne de contenu (geste et décalages), comme `useRowDrag` des blocs de la Composition. */
+function useEntryDrag(entries: readonly RoutineEntry[], onMove: (from: number, to: number) => void, onDraggingChange: (dragging: boolean) => void) {
+  const [drag, setDrag] = useState<{ readonly index: number; readonly dy: number } | null>(null);
+  // Recette du 17/11/2026 (Hermann : « On ne peut plus déplacer les séances, l'appui long fait bouger l'écran, pas la carte ») :
+  // même geste que les lignes des blocs de la Composition (`ForTimeBlocks`, `useRowDrag`) — `Pan` natif activé après l'appui
+  // long, sur toute la ligne ; la ligne portée suit le doigt, les lignes franchies se décalent. [PanResponder de la poignée,
+  // supplanté par le défilement — remplacé.]
+  const dragRef = useRef<{ readonly index: number; readonly dy: number } | null>(null);
+  const setDragState = (next: { readonly index: number; readonly dy: number } | null) => {
+    const was = dragRef.current !== null;
+    dragRef.current = next;
+    setDrag(next);
+    if (was !== (next !== null)) onDraggingChange(next !== null);
+  };
+  const targetOf = (current: { readonly index: number; readonly dy: number }) =>
+    Math.max(0, Math.min(entries.length - 1, current.index + Math.round(current.dy / ENTRY_ROW_HEIGHT)));
+  const gesture = (index: number) =>
+    Gesture.Pan()
+      .enabled(entries.length > 1)
+      .activateAfterLongPress(ENTRY_LONG_PRESS_MS)
+      .runOnJS(true)
+      .onStart(() => setDragState({ index, dy: 0 }))
+      .onUpdate((event) => {
+        const current = dragRef.current;
+        if (current !== null) setDragState({ ...current, dy: event.translationY });
+      })
+      .onEnd((_event, success) => {
+        const current = dragRef.current;
+        setDragState(null);
+        if (!success || current === null) return;
+        const to = targetOf(current);
+        if (to !== current.index) onMove(current.index, to);
+      })
+      .onFinalize(() => {
+        if (dragRef.current !== null) setDragState(null);
+      })
+      .withTestId(`planning-entry-drag-${index}`);
+  /** Décalage vertical d'une ligne pendant le geste. */
+  const offset = (index: number) => {
+    if (drag === null) return 0;
+    if (index === drag.index) return drag.dy;
+    const to = targetOf(drag);
+    if (index > drag.index && index <= to) return -ENTRY_ROW_HEIGHT;
+    if (index < drag.index && index >= to) return ENTRY_ROW_HEIGHT;
+    return 0;
+  };
+  return { drag, gesture, offset };
 }
 
 /**
@@ -642,6 +732,7 @@ function EntryList({
   onMove,
   onFrequency,
   showFrequency,
+  onDraggingChange,
 }: {
   readonly entries: readonly RoutineEntry[];
   readonly nameOf: (entry: RoutineEntry) => string;
@@ -649,36 +740,23 @@ function EntryList({
   readonly onFrequency: (entry: RoutineEntry) => void;
   /** Recette du 17/11/2026 (Hermann : « L'option "à chaque fois" ne doit apparaître que si l'interrupteur de répétition est activé »). */
   readonly showFrequency: boolean;
+  /** Une ligne est portée (le formulaire fige son défilement). */
+  readonly onDraggingChange: (dragging: boolean) => void;
 }) {
-  const [drag, setDrag] = useState<{ readonly index: number; readonly dy: number } | null>(null);
-  const responders = entries.map((_, index) =>
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => setDrag({ index, dy: 0 }),
-      onPanResponderMove: (_, gesture) => setDrag({ index, dy: gesture.dy }),
-      onPanResponderRelease: (_, gesture) => {
-        setDrag(null);
-        const to = Math.max(0, Math.min(entries.length - 1, index + Math.round(gesture.dy / ENTRY_ROW_HEIGHT)));
-        if (to !== index) onMove(index, to);
-      },
-      onPanResponderTerminate: () => setDrag(null),
-    }),
-  );
+  const { drag, gesture, offset } = useEntryDrag(entries, onMove, onDraggingChange);
   return (
     <View style={[styles.block, styles.entriesBlock]} testID="planning-entries">
       {entries.map((entry, index) => {
         const name = nameOf(entry);
         const dragging = drag?.index === index;
+        const dy = offset(index);
         return (
+          <GestureDetector key={entry.id} gesture={gesture(index)}>
           <View
-            key={entry.id}
-            style={[styles.entryRow, index > 0 ? styles.entrySeparator : null, dragging ? [styles.entryDragging, { transform: [{ translateY: drag.dy }] }] : null]}
+            style={[styles.entryRow, index > 0 ? styles.entrySeparator : null, dy !== 0 ? { transform: [{ translateY: dy }] } : null, dragging ? styles.entryDragging : null]}
             testID={`planning-entry-${index}`}
           >
             <View
-              {...responders[index]!.panHandlers}
               accessible
               accessibilityRole="adjustable"
               accessibilityLabel={fillTemplate(t.reorderHandle, { name })}
@@ -705,65 +783,57 @@ function EntryList({
               </Pressable>
             ) : null}
           </View>
+          </GestureDetector>
         );
       })}
     </View>
   );
 }
 
-function NativeDate({
+/** Calendrier natif (`DatePicker` graphique) dans le voile standard : en-tête ✕ / titre / coche, brouillon validé par la coche. */
+function DatePanel({
+  title,
   value,
   minimum,
-  onChange,
-  accessibilityLabel,
-  testID,
+  onCancel,
+  onValidate,
 }: {
+  readonly title: string;
   readonly value: LocalDate;
-  readonly minimum?: LocalDate;
-  readonly onChange: (value: LocalDate) => void;
-  readonly accessibilityLabel: string;
-  readonly testID: string;
+  readonly minimum: LocalDate;
+  readonly onCancel: () => void;
+  readonly onValidate: (value: LocalDate) => void;
 }) {
+  const [draft, setDraft] = useState(value);
   return (
-    <View accessibilityLabel={accessibilityLabel} testID={testID}>
-      <Host matchContents>
-        <DatePicker
-          selection={timeToDate(value, "12:00")}
-          displayedComponents={["date"]}
-          {...(minimum !== undefined ? { range: { start: timeToDate(minimum, "00:00") } } : {})}
-          onDateChange={(date) => onChange(formatLocalDate(date))}
-          modifiers={PICKER_MODIFIERS}
-        />
-      </Host>
+    <View style={styles.datePanel} testID="planning-date-panel">
+      <ModalHeader
+        title={title}
+        onCancel={onCancel}
+        cancelLabel={tReminder.cancel}
+        onValidate={() => onValidate(draft)}
+        validateEnabled
+        validateLabel={tReminder.validate}
+        testIDPrefix="planning-date-panel"
+      />
+      <View style={styles.calendar}>
+        <Host matchContents>
+          <DatePicker
+            selection={timeToDate(draft, "12:00")}
+            displayedComponents={["date"]}
+            range={{ start: timeToDate(minimum, "00:00") }}
+            onDateChange={(date) => setDraft(formatLocalDate(date))}
+            modifiers={CALENDAR_MODIFIERS}
+          />
+        </Host>
+      </View>
     </View>
   );
 }
 
-function NativeTime({
-  value,
-  date,
-  onChange,
-  accessibilityLabel = planningStrings.form.timePicker,
-  testID,
-}: {
-  readonly value: LocalTime;
-  readonly date: LocalDate;
-  readonly onChange: (value: LocalTime) => void;
-  readonly accessibilityLabel?: string;
-  readonly testID: string;
-}) {
-  return (
-    <View accessibilityLabel={accessibilityLabel} testID={testID}>
-      <Host matchContents>
-        <DatePicker
-          selection={timeToDate(date, value)}
-          displayedComponents={["hourAndMinute"]}
-          onDateChange={(next) => onChange(dateToTime(next))}
-          modifiers={PICKER_MODIFIERS}
-        />
-      </Host>
-    </View>
-  );
+/** Date courte de la ligne (« 18 nov. 2026 »), comme l'affichait le sélecteur compact. */
+export function formatShortDate(value: LocalDate): string {
+  return timeToDate(value, "12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 }
 
 /** Délai de rappel (minutes) ↔ valeur des roues d'heure (« 01:20 » = 1 h 20). */
@@ -776,6 +846,9 @@ export function timeToDuration(time: LocalTime): number {
   const [hours, minutes] = time.split(":").map(Number);
   return (hours ?? 0) * 60 + (minutes ?? 0);
 }
+
+/** Appui long avant le déplacement d'une ligne (même délai que les lignes des blocs de la Composition). */
+const ENTRY_LONG_PRESS_MS = 500;
 
 const styles = StyleSheet.create({
   contentBand: {
@@ -808,6 +881,17 @@ const styles = StyleSheet.create({
   inline: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
   valuePill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.background, justifyContent: "center" },
   value: { ...type.label, color: colors.primary },
+  valuePlain: { ...type.label, color: colors.textPrimary },
+  datePanel: {
+    alignSelf: "stretch",
+    marginHorizontal: layout.screenGutter,
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingBottom: spacing[8],
+  },
+  calendar: { alignItems: "center", paddingHorizontal: spacing[8] },
   weekdays: { flexDirection: "row", justifyContent: "space-between" },
   weekday: {
     width: 36,

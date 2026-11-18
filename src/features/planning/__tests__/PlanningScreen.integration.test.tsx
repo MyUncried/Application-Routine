@@ -1,10 +1,13 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { State } from "react-native-gesture-handler";
+import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { EVERY_TIME } from "@/domain/planning/Routine";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { PlanningScreen } from "@/features/planning/PlanningScreen";
+import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { pendingPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
@@ -126,10 +129,10 @@ async function validateSelection(selected: readonly string[]) {
   await flush();
 }
 
-/** Roues natives d'heure du délai personnalisé : valeur « hh:mm ». */
-function setCustomReminder(hours: number, minutes: number) {
-  const picker = screen.getByTestId("planning-reminder-custom-time").findAll((node) => typeof node.props.onDateChange === "function")[0]!;
-  act(() => picker.props.onDateChange(new Date(2030, 7, 5, hours, minutes)));
+/** Roulette native heures / minutes ouverte dans le voile : valide une valeur (en minutes). */
+function validateWheel(minutes: number) {
+  expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
+  act(() => screen.UNSAFE_getByType(DurationWheelPicker).props.onValidate(minutes));
 }
 
 const validateEnabled = () => screen.getByTestId("screen-header-validate").props.accessibilityState?.disabled !== true;
@@ -210,6 +213,27 @@ describe("Planifier", () => {
     expect(routine?.entries.map((entry) => entry.sessionId)).toEqual([a.id, b.id]);
   });
 
+  it("appui long puis glisser : la ligne portée change de place, le défilement est rétabli après le geste (figé pendant : non observable avec fireGestureHandler)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    await renderPlanning({ date: START });
+    await validateSelection([a.id, b.id]);
+    expect(screen.getByTestId("planning-form").props.scrollEnabled).toBe(true);
+    act(() => {
+      fireGestureHandler(getByGestureTestId("planning-entry-drag-0"), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationY: 0 },
+        { state: State.ACTIVE, translationY: 30 },
+        { state: State.END, translationY: 50 },
+      ]);
+    });
+    expect(screen.getByTestId("planning-form").props.scrollEnabled).toBe(true);
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    const [routine] = await planning.listRoutines();
+    expect(routine?.entries.map((entry) => entry.sessionId)).toEqual([b.id, a.id]);
+  });
+
   it("modifier une Routine : formulaire prérempli, la modification remplace le créneau", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const saved = await planning.createRoutine({
@@ -231,25 +255,43 @@ describe("Planifier", () => {
     expect(await planning.listRoutines()).toHaveLength(1);
   });
 
-  it("rappel : aucun délai par défaut (coche inactive), 1h, Autre → roues d'heure ; rappels reprogrammés", async () => {
+  it("rappel : 15' par défaut ; « Autre » ouvre la roulette, sa valeur remplace « Autre » ; un délai standard rend « Autre » (k12, k13)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     await renderPlanning({ sessionId: created.id, date: START });
     expect(screen.queryByTestId("planning-reminder")).toBeNull();
     fireEvent(screen.getByTestId("planning-reminder-switch"), "valueChange", true);
     await flush();
-    expect(screen.getByTestId("planning-reminder")).toBeTruthy();
-    expect(validateEnabled()).toBe(false);
-    fireEvent.press(screen.getByText("1h"));
+    expect(screen.getByTestId("planning-reminder-options-15").props.accessibilityState.selected).toBe(true);
     expect(validateEnabled()).toBe(true);
     fireEvent.press(screen.getByText("Autre"));
-    expect(validateEnabled()).toBe(false);
-    setCustomReminder(1, 20);
-    expect(validateEnabled()).toBe(true);
+    validateWheel(80);
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(screen.queryByText("Autre")).toBeNull();
+    expect(within(screen.getByTestId("planning-reminder-options-OTHER")).getByText("1h20")).toBeTruthy();
+    fireEvent.press(screen.getByText("1h"));
+    expect(screen.getByText("Autre")).toBeTruthy();
+    fireEvent.press(screen.getByText("Autre"));
+    validateWheel(80);
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     await flush();
     const [routine] = await planning.listRoutines();
     expect(routine?.reminderMinutes).toBe(80);
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it("date et heure : un appui ouvre le voile — calendrier natif validé par la coche, roulette heures / minutes (k6, k8)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    await renderPlanning({ sessionId: created.id, date: START });
+    fireEvent.press(screen.getByTestId("planning-start-time"));
+    validateWheel(9 * 60 + 30);
+    expect(within(screen.getByTestId("planning-start-time")).getByText("09:30")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-start-date"));
+    const calendar = screen.getByTestId("planning-date-panel").findAll((node) => typeof node.props.onDateChange === "function")[0]!;
+    act(() => calendar.props.onDateChange(new Date(2030, 7, 7, 12, 0)));
+    fireEvent.press(screen.getByTestId("planning-date-panel-validate"));
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(summary()).toContain("9 h 30");
+    expect(summary()).toContain("7 août 2030");
   });
 
   it("rappel refusé par le système : l'interrupteur reste sur Non, information, la planification s'enregistre (RM-053)", async () => {
