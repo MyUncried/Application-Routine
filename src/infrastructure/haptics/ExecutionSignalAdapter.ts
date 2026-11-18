@@ -344,6 +344,10 @@ export class ExecutionSignalAdapter {
         return { cue: GUIDANCE.countdownStart, announcement: sentences(this.announce.session ? "Préparez-vous" : null, this.nextPart(signal)) };
       case "SERIES_PAUSE":
         return { cue: GUIDANCE.seriesPause, announcement: sentences(this.announce.pauses ? "Pause" : null, this.nextPart(signal)) };
+      // Recette EMOM du 18/11/2026 (Hermann : « Appui sur Suivant : double bip de la pause (même paramétrage) ») : le repos révélé d'une
+      // fenêtre EMOM ou Death by a le son de la Pause entre les Séries (même événement « Point d'arrêt »), sans annonce. [Aucun son — remplacé.]
+      case "WINDOW_REST":
+        return { cue: GUIDANCE.seriesPause, announcement: null };
       case "SIDE_RECOVERY":
       case "POST_ACTIVITY_RECOVERY":
       case "BLOCK_REST":
@@ -421,6 +425,7 @@ function transitionEvent(signal: ExecutionSignal): GuidanceEvent | null {
     case "INITIAL_COUNTDOWN":
       return "COUNTDOWN";
     case "SERIES_PAUSE":
+    case "WINDOW_REST":
     case "SIDE_RECOVERY":
     case "POST_ACTIVITY_RECOVERY":
     case "BLOCK_REST":

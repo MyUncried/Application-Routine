@@ -28,20 +28,22 @@ import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/d
 import { EMOM_PILOT, type EmomLocal } from "@/domain/execution/policies/emom";
 import { FOR_TIME_PILOT, type ForTimeLocal } from "@/domain/execution/policies/forTime";
 import {
+  formatKindOfLeaf,
+  planLeafOf,
   projectExecution,
   type ExecutionProjection,
   type NextView,
 } from "@/domain/execution/projection";
+import { seriesLines, type OccurrenceResult } from "@/domain/execution/results";
 import type { Profile } from "@/domain/preferences/Profile";
 import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge";
 import { ExecutionClosureSheet } from "@/features/execution/ExecutionClosureSheet";
-import { ExecutionEmomBanner } from "@/features/execution/ExecutionEmomBanner";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
 import { ExecutionPartialRepetitionsSheet } from "@/features/execution/ExecutionPartialRepetitionsSheet";
-import { REST_RING_COLOR, ringColorOf, ringMotion, ringSegmentsOf } from "@/features/execution/timerRing";
+import { ringColorOf, ringMotion, ringSegmentsOf } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { reclaimExecutionAudio, releaseExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -516,6 +518,7 @@ export function ExecutionScreen({
     const status = active.businessStatus ?? "INTERRUPTED";
     const occurrences = service.occurrences();
     const partials = service.partialRepetitions();
+    const emomOccurrence = (occurrence: OccurrenceResult) => formatKindOfLeaf(active.plan, occurrence.series[0]?.key ?? "") === "EMOM";
     return (
       <View style={[styles.screen, paddings]} testID="execution-end">
         <Text style={styles.sessionName}>{active.plan.sessionName}</Text>
@@ -550,12 +553,29 @@ export function ExecutionScreen({
                   ? t.end.exercisePartial
                   : t.end.exerciseCompleted}{" "}
                 {/* Recette du 15/11/2026 (g7) : répétitions saisies pour la série interrompue. */}
-                {occurrence.series
-                  .flatMap((step) => (partials.has(step.key) ? [partials.get(step.key)!] : []))
-                  .map((count) => `· ${t.repetitions(count)} `)
-                  .join("")}
-                · {formatClock(occurrence.activeMs)}
+                {emomOccurrence(occurrence)
+                  ? ""
+                  : `${occurrence.series
+                      .flatMap((step) => (partials.has(step.key) ? [partials.get(step.key)!] : []))
+                      .map((count) => `· ${t.repetitions(count)} `)
+                      .join("")}· ${formatClock(occurrence.activeMs)}`}
               </Text>
+              {/* Recette EMOM du 18/11/2026 (Hermann : « Séance terminée, appui suivant à chaque série : le récapitulatif n'indique qu'une
+                  minute, pas les séries ni les répétitions » ; « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries /
+                  objectif ») : en EMOM, une ligne par Série — statut, réalisé / objectif ; le temps de travail cumulé n'est plus affiché.
+                  [Statut et temps actif de l'Exercice seuls — remplacé pour l'EMOM.] */}
+              {emomOccurrence(occurrence)
+                ? seriesLines(occurrence, (key) => planLeafOf(active.plan, key), partials).map((line) => (
+                    <Text key={line.series} style={styles.endRowStatus} testID={`execution-end-series-${occurrence.occurrenceKey}-${line.series}`}>
+                      {t.end.seriesLine(
+                        line.series,
+                        line.terminated ? t.end.exerciseCompleted : t.end.seriesNotTerminated,
+                        line.done === null ? "–" : line.mode === "DURATION" ? formatClock(line.done) : String(line.done),
+                        typeof line.target !== "number" ? undefined : line.mode === "DURATION" ? formatClock(line.target) : t.repetitions(line.target),
+                      )}
+                    </Text>
+                  ))
+                : null}
             </View>
           ))}
         </ScrollView>
@@ -578,8 +598,10 @@ export function ExecutionScreen({
   // Recette du 13/11/2026 (Hermann : « Lors d’une pause ou une pause entre les côtés, retirer le sous-titre, et n’écrire
   // que Pause ») : titre « Pause » pour les deux, sans le nom de l’exercice dessous. [« Pause entre les côtés » — remplacé.]
   const pauseLike = projection.phase === "SERIES_PAUSE" || projection.phase === "SIDE_RECOVERY";
+  // Recette EMOM du 18/11/2026 (Hermann : « Le texte Repos doit prendre la place du nom de l’exercice, pas au centre ») : titre « Repos »
+  // pendant le repos d'une fenêtre (EMOM, Death by). [Nom de l'exercice en titre, « Repos » dans le cercle — remplacé.]
   const title =
-    projection.phase === "ACTIVITY" || projection.phase === "WINDOW_REST"
+    projection.phase === "ACTIVITY"
       ? (projection.exerciseName ?? "")
       : pauseLike
         ? // Recette du 14/11/2026 : « Changez de côté » au changement de côté ; « Pause » entre les Séries.
@@ -778,6 +800,17 @@ export function ExecutionScreen({
   const steadyFormat = forTimeBar || emomBar;
   // Bouton de droite de l'EMOM : « Suivant » (travail de la fenêtre terminé, FMT-24), actif pendant une Série en Répétitions.
   const emomNextEnabled = emomRunning && projection.phase === "ACTIVITY" && durationActive === null && projection.commands.next;
+  // Recette EMOM du 18/11/2026 (emom-1, Hermann : « Bouton suivant pas conforme (couleur de fond, épaisseur du trait…) / Bouton Pause pas
+  // conforme (taille doit rester « standard ») et doit être au format inactif ») : pendant le Compte à rebours initial d'une séance qui
+  // commence par un EMOM ou un Death by, la barre est déjà celle du Format — Pause désactivée (48), « Suivant » 72 (disque bleu plein,
+  // symbole blanc épais) qui passe le Compte à rebours. [Barre standard (Pause 72 active, Suivant 48) — remplacé.]
+  const emomAhead = projection.phase === "INITIAL_COUNTDOWN" && windowed(upcoming?.format ?? undefined);
+  const emomCommands = emomBar || emomAhead;
+  const emomRightEnabled = emomAhead ? projection.commands.next : emomNextEnabled;
+  // Clignotement du coin d'objectif aux trois dernières secondes de chaque fenêtre (recette EMOM du 18/11/2026), comme le décompte du
+  // For time : une clé par seconde affichée.
+  const emomPulse =
+    emomRunning && !still && emomView !== null && emomView.remainingMs > 0 && emomView.remainingMs <= 3000 ? Math.ceil(emomView.remainingMs / 1000) : null;
   const inSeries = projection.phase === "ACTIVITY" && projection.mode === "REPETITIONS";
   const onStop = () => {
     // Recette du 14/11/2026 (Hermann, arrêt entre deux séries : « Supprimer cette modale, l’arrêt pendant la pause amène
@@ -950,14 +983,9 @@ export function ExecutionScreen({
                 </View>
               ) : null}
             </Fade>
-            <View style={styles.phaseSlot}>
-              {/* PRE-11 (T2) : « Repos » dans le cercle, en orange, une fois le travail de la fenêtre terminé (Figma `8982:15709`). */}
-              {emomView?.resting === true ? (
-                <Text style={[styles.guidance, styles.emomRest]} numberOfLines={1} testID="execution-emom-rest">
-                  {t.phases.WINDOW_REST}
-                </Text>
-              ) : null}
-            </View>
+            {/* PRE-11 (T2) : « Repos » dans le cercle, en orange (Figma `8982:15709`). Recette EMOM du 18/11/2026 : « Repos » passe en titre.
+                [« Repos » dans le cercle — remplacé.] */}
+            <View style={styles.phaseSlot} />
             <View style={styles.timerSlot}>
               <Text
                 // Recette du 12/11/2026 (Hermann : « le chrono à l’arrêt est en gris, le petit chrono qui tourne est en noir »).
@@ -1040,8 +1068,17 @@ export function ExecutionScreen({
           </View>
         ) : repetitions !== null && ringAreaWidth !== null ? (
           <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
-              <CornerValue text={repetitions} align="left" testID="execution-objective" />
+            <ExecutionCornerBadge
+              side="left"
+              areaWidth={ringAreaWidth}
+              // Recette EMOM du 18/11/2026 (Hermann : « Appui sur suivant : conserver le triangle des objectifs, le mettre en fond vert » ;
+              // « À chaque compte à rebours d’EMOM, faire clignoter le triangle d’objectif (si vert : vert foncé et vert, si gris : gris
+              // foncé et gris). Voir exemple du For Time. ») : fond vert pendant le repos de la fenêtre ; clignotement à chaque seconde des
+              // trois dernières de la fenêtre (EMOM, Death by).
+              {...(emomView?.resting === true ? { color: DURATION_BADGE.running } : {})}
+              pulse={emomPulse === null ? null : { key: emomPulse, color: emomView?.resting === true ? DURATION_BADGE.pulse : OBJECTIVE_PULSE_GREY }}
+            >
+              <CornerValue text={repetitions} align="left" {...(emomView?.resting === true ? { color: MENTION.running } : {})} testID="execution-objective" />
             </ExecutionCornerBadge>
           </Fade>
         ) : null}
@@ -1206,17 +1243,9 @@ export function ExecutionScreen({
         </>
       ) : null}
 
-      {/* PRE-11 (T2, Q1) : bandeau non bloquant d'une fenêtre EMOM non terminée, au-dessus de la barre de commandes. */}
-      {emomRunning && emomView?.banner !== null && emomView?.banner !== undefined && !partialOpen ? (
-        <View style={[styles.emomBannerLayer, { bottom: Math.max(insets.bottom - 16, spacing[8]) + COMMANDS_HEIGHT + spacing[8] }]} pointerEvents="box-none">
-          <ExecutionEmomBanner
-            key={emomView.banner.window}
-            window={emomView.banner.window}
-            onDeclare={(partialRepetitions) => void service.dispatch({ type: "DECLARE", payload: { window: emomView.banner?.window, partialRepetitions } })}
-            onSkip={() => void service.dispatch({ type: "DECLARE", payload: { window: emomView.banner?.window, skip: true } })}
-          />
-        </View>
-      ) : null}
+      {/* PRE-11 (T2, Q1) : bandeau non bloquant d'une fenêtre EMOM non terminée. Recette EMOM du 18/11/2026 (emom-3, Hermann : « Supprimer
+          ce bandeau » ; « Si je n'appuie jamais : Retirer l'écran de saisie de résultat pendant l'effort ») : aucune saisie pendant les
+          fenêtres ; les répétitions des fenêtres non terminées sont demandées à la fin de l'EMOM (« Fin de l'EMOM »). [Bandeau — remplacé.] */}
 
       {/* Barre de commandes du Figma `1992:8132` : Son, Réinitialiser, Mettre en pause, Activité suivante, Voix. */}
       <View style={[styles.commands, veil.mounted ? styles.commandsAboveVeil : null]}>
@@ -1246,7 +1275,7 @@ export function ExecutionScreen({
           // Registre ch07 (16/11/2026), Hermann : « remplacer le bouton réinitialisé par le bouton d’arrêt rouge ». PRE-11 (T2) : EMOM. [Réinitialiser
           // inactif (correction 3 du 14/11/2026) — remplacé pour le For time en cours.]
           <IconCommand label={t.commands.stop} icon={ICONS.stop} size={48} disabled={false} onPress={onStop} testID="execution-stop" />
-        ) : forTimeBar || emomBar ? (
+        ) : forTimeBar || emomCommands ? (
           <IconCommand label={t.commands.resetExercise} icon={ICONS.resetInactive} size={48} disabled dimmed={false} onPress={onReset} testID="execution-reset" />
         ) : (
           <IconCommand
@@ -1272,7 +1301,7 @@ export function ExecutionScreen({
             style={veil.mounted ? [styles.pauseCommand, styles.aboveVeil] : styles.pauseCommand}
             testID={paused ? "execution-resume" : "execution-continue"}
           />
-        ) : forTimeBar || emomBar ? (
+        ) : forTimeBar || emomCommands ? (
           // Registre ch07 (16/11/2026), Hermann : « désactiver le bouton pause » ; Figma « Mettre en pause — désactivé » (48).
           // [Pause orange 56 (correction 3 du 14/11/2026) — remplacé.]
           <IconCommand label={t.commands.pause} icon={ICONS.pauseDisabled} size={48} disabled dimmed={false} onPress={noop} testID="execution-pause" />
@@ -1290,15 +1319,16 @@ export function ExecutionScreen({
             testID="execution-pause"
           />
         )}
-        {emomBar ? (
+        {emomCommands ? (
           // PRE-11 (T2) : « Suivant » (72) — travail de la fenêtre terminé (FMT-24) ; inactif pendant une Série en Durée et le repos.
+          // Compte à rebours initial (recette emom-1 du 18/11/2026) : même bouton, qui passe le Compte à rebours.
           <IconCommand
             label={t.commands.next}
-            icon={emomNextEnabled ? ICONS.next72 : ICONS.next72Inactive}
+            icon={emomRightEnabled ? ICONS.next72 : ICONS.next72Inactive}
             size={72}
-            disabled={!emomNextEnabled}
+            disabled={!emomRightEnabled}
             dimmed={false}
-            onPress={onValidate}
+            onPress={emomAhead ? onNext : onValidate}
             testID="execution-emom-next"
           />
         ) : forTimeBar ? (
@@ -1600,6 +1630,8 @@ const noop = () => undefined;
 const DURATION_FILL = { RUNNING: "#D1F2D9", HELD: "#FFD194" } as const;
 // `pulse` : vert plus foncé du clignotement des 3 dernières secondes (autres remarques, d, du 17/11/2026).
 const DURATION_BADGE = { running: "#BDEBC9", held: "#FFD194", pulse: "#7FD39A" } as const;
+/** Gris plus foncé du clignotement du coin d'objectif gris (recette EMOM du 18/11/2026 : « si gris : gris foncé et gris »). */
+const OBJECTIVE_PULSE_GREY = "#D3D6DE";
 const MENTION = { idle: "#8F8F94", running: "#126B38", held: "#B85408" } as const;
 /** Composant DSF « DSF / Actions / Bouton + Tour » (`12548:29210`) : 72 × 72, Actif (bleu KODJO) et Désactivé. */
 const PLUS_TOUR = { blue: "#0508E5", grey: "#B4B9C4" } as const;
@@ -1631,9 +1663,13 @@ function windowed(kind: string | undefined): boolean {
   return kind === "EMOM" || kind === "DEATH_BY";
 }
 
-/** Formats dont l'écran se fige à la fin du travail (borne, échéance du bloc, fenêtre manquée) — For time, AMRAP, Death by. */
+/**
+ * Formats dont l'écran se fige à la fin du travail (borne, échéance du bloc, fenêtre manquée) — For time, AMRAP, Death by.
+ * Recette EMOM du 18/11/2026 (Hermann : « Faire disparaître la fenêtre nommé Résultat, à la place figer l'écran au dernier exercice
+ * réalisé ») : l'EMOM aussi, pendant sa Clôture « Fin de l'EMOM ». [Écran « Résultat » derrière la feuille — remplacé pour l'EMOM.]
+ */
 function freezesAtEnd(kind: string | undefined): boolean {
-  return forTimeLike(kind) || kind === "DEATH_BY";
+  return forTimeLike(kind) || windowed(kind);
 }
 
 /** Instant de fin du travail d'un For time (borne ou fin normale), s'il vient de se terminer. */
@@ -1795,15 +1831,16 @@ const GOAL_GREEN = "#34C759";
  * dessous, à la taille de « max » et « mouv. » ; une valeur sans unité (durée, « À l'échec ») tient sur une ligne. [Nombre et unité
  * sur une ligne — remplacé.]
  */
-function CornerValue({ text, align, testID }: { text: string; align: "left" | "right"; testID: string }) {
+function CornerValue({ text, align, color, testID }: { text: string; align: "left" | "right"; color?: string; testID: string }) {
   const match = /^([\d\s.,]+)\s(\S.*)$/.exec(text);
+  const tint = color === undefined ? null : { color };
   return (
     <View style={[styles.cornerLines, { alignItems: align === "left" ? "flex-start" : "flex-end" }]} accessible accessibilityLabel={text} testID={testID}>
-      <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+      <Text style={[styles.pillText, tint]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
         {match === null ? text : match[1]}
       </Text>
       {match === null ? null : (
-        <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+        <Text style={[styles.pillText, styles.autoCountUnit, tint]} numberOfLines={1}>
           {match[2]}
         </Text>
       )}
@@ -1819,7 +1856,9 @@ function repetitionsText(projection: ExecutionProjection): string | null {
     projection.timer.kind === "COUNTDOWN"
   )
     return formatClock(projection.timer.totalMs);
-  if (projection.phase !== "ACTIVITY" || projection.seriesTarget === null) return null;
+  // Recette EMOM du 18/11/2026 (« Appui sur suivant : conserver le triangle des objectifs ») : pendant le repos d'une fenêtre, l'objectif
+  // du travail de la fenêtre reste dans le coin.
+  if ((projection.phase !== "ACTIVITY" && projection.phase !== "WINDOW_REST") || projection.seriesTarget === null) return null;
   const target = projection.seriesTarget;
   // Demande de Hermann du 14/11/2026 (soir) : « Un exercice en durée : il doit avoir dans le triangle haut à gauche la durée cible
   // de l'exercice » — durée de la Série au format des durées (`formatPhraseDuration`, « M′SS″ » ou « S″ »). [Rien pour un
@@ -1908,9 +1947,6 @@ const styles = StyleSheet.create({
   estimate: { ...type.supporting, color: colors.textSecondary },
   // Recette r6 : positions du Figma `1992:8132` (écran de 402 × 874, barre d'état de 36).
   runningScreen: { flex: 1, backgroundColor: colors.background },
-  // PRE-11 (T2) : « Repos » d'une fenêtre EMOM (orange de l'anneau de repos) ; bandeau Q1 au-dessus de la barre de commandes.
-  emomRest: { color: REST_RING_COLOR },
-  emomBannerLayer: { position: "absolute", left: 0, right: 0, zIndex: 2 },
   // Recette e1 (h : « le bord du cercle tout en bas est rogné par le cadre gris ») : le haut ne rétrécit plus ; c'est
   // l'espace au-dessus du cadre À suivre qui se resserre sur un écran plus petit.
   top: { flexGrow: 0, flexShrink: 0 },

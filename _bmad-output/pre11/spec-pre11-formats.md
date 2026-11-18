@@ -122,6 +122,20 @@ Le média plein écran (§13.7 de `_bmad-output/pre10-son-voix/spec-guidage-regl
    - **Partiel AMRAP** : « Exercice en cours seul » — les exercices du tour déjà validés sont comptés ; seules les répétitions de l'exercice en cours sont saisies (« 7 tours + Squat 12 »). Tranche « Forme du partiel AMRAP » (§7).
    - **Sons des fenêtres (EMOM, Death by)** : « Sons existants » — bip long de la minute au début de chaque fenêtre (réglage « Démarrage d'un exercice ») ; les 3 bips courts du compte à rebours avant l'échéance ; aucun nouveau son ni réglage. Tranche « Sons propres aux Formats » (§7).
 
+31. Recette EMOM du 18/11/2026 (cahier en ligne, lignes emom-1 à emom-5 et « Autres constats » ; classe B). Textes de Hermann recopiés :
+   > Recette iPhone du 18/11/2026 (cahier en ligne, lignes emom-1 et emom-3 et « Autres constats »), textes de Hermann recopiés :
+   > - emom-1 (KO) : « Bouton suivant pas conforme (couleur de fond, épaisseur du trait…) Bouton Pause pas conforme (taille doit rester « standard ») et doit être au format inactif. »
+   > - emom-3 (KO) : « Supprimer ce bandeau. »
+   > - « Appui sur Suivant : double bip de la pause (même paramétrage) »
+   > - « Appui sur suivant : conserver le triangle des objectifs, le mettre en fond vert »
+   > - « Le texte Repos doit prendre la place du nom de l’exercice, pas au centre. »
+   > - « Séance terminée, appui suivant à chaque série : le récapitulatif n’indique qu’une minute, pas les séries ni les répétitions »
+   > - « Si je n’appuie jamais : Retirer l’écran de saisie de résultat pendant l’effort. Modale de résultat partiel : - remplacer Fenêtre par Série »
+   > - « Faire disparaître la fenêtre nommé Résultat, à la place figer l’écran au dernier exercice réalisé. »
+   > - « À chaque compte à rebours d’EMOM, faire clignoter le triangle d’objectif (si vert : vert foncé et vert, si gris : gris foncé et gris). Voir exemple du For Time. »
+   > - « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries / objectif » (phrase inachevée)
+   Traitement : registre ch07 « EMOM — recette iPhone (18/11/2026) » (barre du Format dès le Compte à rebours ; bandeau supprimé ; « série » au lieu de « fenêtre » ; écran figé pendant la Clôture ; double bip de la Pause, titre « Repos », coin d'objectif vert et clignotant ; synthèse par Série). Interprétations à confirmer : même entrée.
+
 ## 8. Suivi des tranches
 
 (À compléter au fil de l'implémentation.)

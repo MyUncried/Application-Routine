@@ -98,6 +98,10 @@ export const executionStrings = {
     INTERRUPTED: "Séance interrompue",
     exercisePartial: "Partielle",
     exerciseCompleted: "Terminée",
+    // Recette EMOM du 18/11/2026 (Hermann : « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries / objectif ») :
+    // une ligne par Série d'un Exercice exécuté en EMOM — « Série 2 · Non terminée · 4 / 10 rép. ».
+    seriesNotTerminated: "Non terminée",
+    seriesLine: (series: number, status: string, done: string, objective?: string) => `Série ${series} · ${status} · ${objective === undefined ? done : `${done} / ${objective}`}`,
   },
   notLaunchable: "Cette séance ne peut pas encore être exécutée.",
   // PRE-11 (T1, 13/11/2026) : For time exécutable. [« Les Formats AMRAP, EMOM, For time et Death by… » — remplacé.]
@@ -115,10 +119,9 @@ export const executionStrings = {
   /** PRE-11 (T4), arbitrage de Hermann du 18/11/2026 : feuilles du Death by, modèle du For time. */
   deathByStopTitle: "Arrêt du Death by",
   deathByClosureTitle: "Fin du Death by",
-  emomWindowName: (name: string | null, window: number) => `${name ?? ""} · fenêtre ${window}`,
-  emomBanner: (window: number) => `Fenêtre ${window} non terminée — répétitions faites :`,
-  emomBannerValue: "Répétitions faites",
-  emomSkip: "Passer",
+  // Recette EMOM du 18/11/2026 (Hermann : « Modale de résultat partiel : remplacer Fenêtre par Série »). [« · fenêtre N » — remplacé.]
+  emomWindowName: (name: string | null, window: number) => `${name ?? ""} · série ${window}`,
+  // Recette EMOM du 18/11/2026 (emom-3 : « Supprimer ce bandeau ») : libellés du bandeau retirés.
   notLaunchableInvalid: "Cette séance comporte des paramètres à compléter.",
   blocked: "Une séance interrompue doit d’abord être reprise ou arrêtée.",
   // PRE-11 (T1) — For time : borne dans le coin du haut à gauche (Hermann, 13/11/2026), Clôture « Vos résultats »

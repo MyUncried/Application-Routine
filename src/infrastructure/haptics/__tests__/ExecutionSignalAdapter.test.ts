@@ -142,6 +142,16 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(delays).toEqual([500, 500]);
   });
 
+  // Recette EMOM du 18/11/2026 (Hermann : « Appui sur Suivant : double bip de la pause (même paramétrage) »).
+  it("EMOM, « Suivant » qui révèle le repos de la fenêtre : double bip de la Pause, sans annonce", () => {
+    const { play, beeps, said, vibrate } = setup();
+    play({ timed: false });
+    play({ phase: "WINDOW_REST", timed: true, next: nextExercise("Gainage") });
+    expect(beeps).toEqual([["SIFFLET_PUR", 0.55], ["BIP_DOUBLE", 1]]);
+    expect(said).toEqual(["Gainage"]);
+    expect(vibrate.mock.calls.map(([style]) => style).slice(-1)).toEqual(["HEAVY"]);
+  });
+
   it("Pause demandée par l'utilisateur : double bip et vibration forte, sans annonce", () => {
     const { play, beeps, said, vibrate } = setup();
     play({ kind: "PAUSE" });

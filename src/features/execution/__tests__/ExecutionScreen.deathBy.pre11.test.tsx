@@ -132,10 +132,15 @@ describe("PRE-11 T4 — Death by à l'écran", () => {
     await at(20);
     expect(service.project()?.timer).toEqual({ kind: "COUNTDOWN", remainingMs: 40 * S, totalMs: 60 * S, elapsedMs: 20 * S });
     await press("execution-emom-next"); // rang 1 tenu : repos révélé, la fenêtre continue
-    expect(screen.getByTestId("execution-emom-rest")).toHaveTextContent("Repos");
+    // Recette EMOM du 18/11/2026 (même écran) : « Repos » en titre ; l'objectif du rang reste dans le coin.
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Repos");
+    act(() => {
+      fireEvent(screen.getByTestId("execution-ring-area"), "layout", { nativeEvent: { layout: { width: 398, height: 340, x: 0, y: 0 } } });
+    });
+    expect(screen.getByTestId("execution-objective")).toHaveTextContent("3rép.");
     expect(screen.getByTestId("execution-emom-next").props.accessibilityState).toMatchObject({ disabled: true });
     await at(60); // rang 2 : 5 répétitions
-    expect(screen.queryByTestId("execution-emom-rest")).toBeNull();
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement E");
     expect(service.project()?.seriesTarget).toEqual({ kind: "NUMBER", value: 5 });
     await at(120); // rang 2 manqué
     expect(screen.getByTestId("execution-closure-title")).toHaveTextContent("Fin du Death by");

@@ -209,3 +209,46 @@ Hors périmètre : synthèse des résultats en fin de séance (reportée, §13.4
 ## 8. Vérifications sur appareil réel (synthèse)
 
 Rien n'a été vérifié sur iPhone ni à l'écran (aucun navigateur, aucun contrôle visuel automatique). Lignes de recette : emom-1 à emom-10 (3.6), amrap-1 à amrap-10 (4.6), deathby-1 à deathby-10 (5.6). Préalable : Metro de Routine BMAD lancé depuis `C:\Dev\KODJO-FORMATS` (`APP_VARIANT=bmad npx expo start --dev-client --lan --port 8085`), après la recette de la fiche Mouvement en cours sur le Metro de `KODJO-MOUV`.
+
+## 9. Recette du 18/11 — corrections EMOM
+
+Recette iPhone de Hermann (cahier en ligne ; Routine BMAD servie par `KODJO-FORMATS`, tunnel 8085) : emom-1 KO, emom-3 KO, emom-2, emom-4, emom-5 OK, plus des « Autres constats ». Textes recopiés dans la spec PRE-11 §5 point 31 et au registre ch07 « EMOM — recette iPhone (18/11/2026) » (classe B).
+
+### 9.1 Constats et corrections
+
+| Écart | Cause constatée | Correction |
+|---|---|---|
+| emom-1 : Suivant et Pause non conformes | Pendant le Compte à rebours initial, l'élément EMOM n'est pas encore ouvert : barre standard (Pause 72 active, Suivant 48 à contour). Pendant les fenêtres, la barre était déjà celle du For time. | La projection donne le Format de l'élément à venir (`UpcomingActivity.format`) ; une séance qui commence par un EMOM ou un Death by a dès le Compte à rebours la barre du Format (Réinitialiser inactif, Pause désactivée 48, « Suivant » 72 bleu plein qui passe le Compte à rebours). |
+| emom-3 et « Retirer l'écran de saisie pendant l'effort » | Bandeau Q1 pendant la fenêtre suivante. | Bandeau supprimé (`ExecutionEmomBanner.tsx` et ses libellés retirés) ; saisie à la fin de l'EMOM seulement. La commande `DECLARE` du noyau reste, sans écran. |
+| a. Double bip à l'appui sur Suivant | L'étape `WINDOW_REST` n'avait pas de son. | Son et vibration de la Pause entre les Séries (`BIP_DOUBLE`, vibration forte, événement « Point d'arrêt »), sans annonce. EMOM et Death by. |
+| b. Objectif conservé, fond vert | Le coin n'affichait l'objectif que pendant une étape `ACTIVITY`. | Le repos de la fenêtre porte l'objectif et le mode du travail (plan EMOM, rangs Death by) ; coin sur fond vert (#BDEBC9), texte vert foncé. |
+| c. « Repos » en titre | « Repos » dans le cercle, le nom en titre. | Titre « Repos » ; plus rien dans le cercle. |
+| d. et h. Synthèse | La ligne de l'Exercice montrait le temps de travail cumulé, sans Séries ni répétitions. | EMOM : une ligne par Série, « Série k · Terminée · 10 / 10 rép. » ou « Non terminée · 4 / 10 rép. » (`seriesLines`, `results.ts`) ; temps cumulé retiré de la ligne de l'Exercice. |
+| e. « Fenêtre » → « Série » | Feuille « Mouvement · fenêtre k ». | « Mouvement · série k ». |
+| f. Fenêtre « Résultat » | Pendant la Clôture, l'écran derrière la feuille passait à l'étape `CLOSURE` (titre « Résultat ») ; l'EMOM n'était pas dans `freezesAtEnd`. | L'EMOM rejoint `freezesAtEnd` : écran figé au dernier état du travail pendant « Fin de l'EMOM » ; Fin de séance sautée si l'EMOM termine la Séance (comme l'AMRAP). |
+| g. Clignotement du coin d'objectif | — | Aux 3 dernières secondes de chaque fenêtre, clignotement à chaque seconde (`ExecutionCornerBadge.pulse`, celui du décompte du For time) : vert → #7FD39A au repos, gris → #D3D6DE au travail. EMOM et Death by. |
+
+Death by (même écran) : barre au Compte à rebours, a, b, c et g appliqués ; d/h non (rangs, pas de Séries) ; f déjà en place.
+
+### 9.2 Interprétations à confirmer (À CLARIFIER, n'empêchent aucune opération)
+
+1. « nombre de séries / objectif » compris comme « réalisé / objectif » de chaque Série.
+2. Teintes : vert du décompte du For time ; gris foncé #D3D6DE.
+3. « Suivant » pendant le Compte à rebours le passe (comme le bouton standard).
+4. Écran figé : dernier état du travail, donc titre « Repos » si la dernière fenêtre était terminée.
+5. Barre du Format au Compte à rebours non appliquée au For time ni à l'AMRAP (non demandé).
+
+### 9.3 Tests
+
+- `npx tsc --noEmit -p .` : aucune erreur. `npx eslint` sur les fichiers touchés : aucun signalement.
+- Mis à jour ou ajoutés : `ExecutionScreen.emom.pre11.test.tsx` (barre au Compte à rebours ; repos : titre « Repos » et objectif ; aucune saisie pendant les fenêtres ; feuille « · série 2 » sur écran figé, jamais « Résultat » ; synthèse par Série), `ExecutionScreen.deathBy.pre11.test.tsx` (titre « Repos », objectif du rang), `ExecutionSignalAdapter.test.ts` (double bip au repos de la fenêtre).
+- Garde PRE4-1.1/AC1 : premier passage en échec sur `target === null` (libellé de synthèse) ; réécrit, garde verte.
+- `npx jest` dans `KODJO-FORMATS` : 398 suites réussies, 8 en échec (35 tests), toutes du catalogue ; cause : `catalogue/catalogues/kodjo-pilote-60.catalogue.json` modifié dans l'arbre de travail par l'administration lancée depuis ce dossier (révision 2, non commité, hors mission). Même suite dans un worktree temporaire au commit de départ, avec mes fichiers source et le fichier pilote versionné : voir le compte rendu de livraison (résultat complet).
+
+### 9.4 Fichiers modifiés
+
+`src/domain/execution/projection.ts`, `results.ts`, `plan.ts`, `policies/deathBy.ts` ; `src/features/execution/ExecutionScreen.tsx`, `executionStrings.ts`, `ExecutionEmomBanner.tsx` (supprimé) ; `src/infrastructure/haptics/ExecutionSignalAdapter.ts` ; tests ci-dessus ; registre ch07, ch13 (CE-FMT-05, CE-FMT-06), Formats §10.1, conception consolidée (Q1), spec PRE-11 §5 point 31, ce rapport. Chapitres 09 et 12 non modifiés. Non commité : `catalogue/catalogues/kodjo-pilote-60.catalogue.json`.
+
+### 9.5 Vérifications sur iPhone (Routine BMAD, Metro de `KODJO-FORMATS`)
+
+emom-r1 à emom-r8 (barre au Compte à rebours ; aucune saisie pendant les fenêtres ; double bip ; repos ; clignotement ; écran figé et « série k » ; synthèse par Série ; Death by) : lignes du cahier en ligne. Rien n'a été vérifié sur iPhone.

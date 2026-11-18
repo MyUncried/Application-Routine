@@ -620,7 +620,7 @@ Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouve
 
 ### 10.1 Exécution de l'EMOM (18/11/2026)
 
-Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « EMOM — exécution (18/11/2026) ». En résumé : une fenêtre par Série (au tour k pour le Circuit « dans chaque intervalle ») ; deux côtés dans la même fenêtre ; « Suivant » termine le travail en Répétitions et révèle le repos ; une Série en Durée démarre à l'ouverture de la fenêtre et finit à son terme ; la fenêtre suivante commence à l'heure ; fenêtre non terminée déclarée dans un bandeau non bloquant pendant la fenêtre suivante, ou à la fin de l'EMOM ; barre du For time (Arrêt, Pause désactivée) ; bip long au début de chaque fenêtre, 3 bips avant son échéance.
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « EMOM — exécution (18/11/2026) ». En résumé : une fenêtre par Série (au tour k pour le Circuit « dans chaque intervalle ») ; deux côtés dans la même fenêtre ; « Suivant » termine le travail en Répétitions et révèle le repos ; une Série en Durée démarre à l'ouverture de la fenêtre et finit à son terme ; la fenêtre suivante commence à l'heure ; fenêtre non terminée déclarée dans un bandeau non bloquant pendant la fenêtre suivante, ou à la fin de l'EMOM [bandeau supprimé le 18/11/2026, recette : saisie à la fin de l'EMOM seulement — registre ch07 « EMOM — recette iPhone (18/11/2026) »] ; barre du For time (Arrêt, Pause désactivée) ; bip long au début de chaque fenêtre, 3 bips avant son échéance.
 
 ## 11. Application de la règle au For time
 

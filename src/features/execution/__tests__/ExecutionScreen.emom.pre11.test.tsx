@@ -21,8 +21,10 @@ import { ExecutionServiceContext } from "../ExecutionServiceContext";
 
 /**
  * PRE-11 (T2) — EMOM à l'écran : grand chrono = temps restant de la fenêtre, barre du For time (Arrêt, Pause désactivée, Suivant),
- * repos révélé, bandeau Q1 (« Passer »), Clôture « Fin de l'EMOM » des fenêtres non saisies, Arrêt « Arrêt de l'EMOM »
- * (arbitrages de Hermann du 18/11/2026, spec PRE-11 §5 point 30).
+ * repos révélé, Clôture « Fin de l'EMOM » des fenêtres non saisies, Arrêt « Arrêt de l'EMOM » (arbitrages de Hermann du 18/11/2026,
+ * spec PRE-11 §5 point 30). Recette du 18/11/2026 (point 31) : barre du Format dès le Compte à rebours, plus de bandeau, « Repos » en
+ * titre, objectif conservé sur fond vert, écran figé pendant la Clôture, « série » au lieu de « fenêtre », une ligne par Série dans la
+ * synthèse.
  */
 
 jest.mock("expo-router", () => ({
@@ -35,7 +37,7 @@ const S = 1000;
 const T0 = Date.UTC(2026, 10, 18, 19, 0, 0);
 
 
-async function setup() {
+async function setup(options: { readonly initialCountdownSeconds?: number } = {}) {
   jest.spyOn(AppState, "addEventListener").mockImplementation(((_type: string, _listener: (state: AppStateStatus) => void) => ({ remove: () => undefined })) as never);
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
@@ -47,7 +49,7 @@ async function setup() {
       ],
       stopPoints: [],
     },
-    { name: "EMOM PRE-11" },
+    { name: "EMOM PRE-11", ...options },
   );
   const clock = { ms: T0, nowMs: () => clock.ms };
   const timers: { at: number; callback: () => void; id: number }[] = [];
@@ -109,8 +111,8 @@ async function press(testID: string) {
 }
 
 describe("PRE-11 T2 — EMOM à l'écran", () => {
-  async function started() {
-    const context = await setup();
+  async function started(options: { readonly initialCountdownSeconds?: number } = {}) {
+    const context = await setup(options);
     await act(async () => {
       await new Promise((resolve) => setImmediate(resolve));
     });
@@ -118,7 +120,15 @@ describe("PRE-11 T2 — EMOM à l'écran", () => {
     return context;
   }
 
-  it("fenêtres, repos, bandeau « Passer », Clôture « Fin de l'EMOM », puis exercice suivant", async () => {
+  it("Compte à rebours initial : barre de l'EMOM (Pause désactivée 48, Suivant 72) — recette emom-1", async () => {
+    await started({ initialCountdownSeconds: 3 });
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Préparez-vous");
+    expect(screen.queryByTestId("execution-next-command")).toBeNull();
+    expect(screen.getByTestId("execution-emom-next")).toBeTruthy();
+    expect(screen.getByTestId("execution-pause").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("fenêtres, repos, Clôture « Fin de l'EMOM » sur écran figé, synthèse par Série, puis exercice suivant", async () => {
     const { at, repository, service } = await started();
     expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement E");
     expect(screen.getByTestId("execution-timer")).toHaveTextContent("01:00");
@@ -129,26 +139,38 @@ describe("PRE-11 T2 — EMOM à l'écran", () => {
     // Grand chrono : temps restant de la fenêtre (l'écran se rafraîchit sur son propre minuteur).
     expect(service.project()?.timer).toEqual({ kind: "COUNTDOWN", remainingMs: 40 * S, totalMs: 60 * S, elapsedMs: 20 * S });
     await press("execution-emom-next"); // travail terminé : repos révélé, la fenêtre continue
-    expect(screen.getByTestId("execution-emom-rest")).toHaveTextContent("Repos");
-    expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement E");
+    // Recette du 18/11/2026 : « Repos » en titre (plus dans le cercle) ; l'objectif reste dans le coin.
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Repos");
+    act(() => {
+      fireEvent(screen.getByTestId("execution-ring-area"), "layout", { nativeEvent: { layout: { width: 398, height: 340, x: 0, y: 0 } } });
+    });
+    expect(screen.getByTestId("execution-objective")).toHaveTextContent("10rép.");
     expect(screen.getByTestId("execution-emom-next").props.accessibilityState).toMatchObject({ disabled: true });
     await at(60); // fenêtre 2
-    expect(screen.queryByTestId("execution-emom-rest")).toBeNull();
-    expect(screen.queryByTestId("execution-emom-banner")).toBeNull();
-    await at(120); // fenêtre 2 non terminée : bandeau dans la fenêtre 3
-    expect(screen.getByTestId("execution-emom-banner-text")).toHaveTextContent("Fenêtre 2 non terminée — répétitions faites :");
-    await press("execution-emom-banner-skip");
-    expect(screen.queryByTestId("execution-emom-banner")).toBeNull();
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement E");
+    await at(120); // fenêtre 2 non terminée : aucune saisie pendant la fenêtre 3 (bandeau supprimé, emom-3)
+    expect(screen.queryByText(/non terminée/)).toBeNull();
+    expect(screen.queryByTestId("execution-partial-title")).toBeNull();
     await at(130);
     await press("execution-emom-next");
     await at(180); // fin : la fenêtre 2 reste à déclarer
     expect(screen.getByTestId("execution-closure-title")).toHaveTextContent("Fin de l’EMOM");
-    expect(screen.getByTestId("execution-closure-name")).toHaveTextContent("Mouvement E · fenêtre 2");
+    expect(screen.getByTestId("execution-closure-name")).toHaveTextContent("Mouvement E · série 2");
     expect(screen.getByTestId("execution-closure-target")).toHaveTextContent("Objectif10 répétitions");
+    // Écran figé sur le dernier état du travail, jamais « Résultat ».
+    expect(screen.getByTestId("execution-title")).not.toHaveTextContent("Résultat");
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Repos");
     await press("execution-closure-value-4");
     await press("execution-closure-validate");
     expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement B");
     expect(service.project()?.format).toBeNull();
+    await at(400); // fin de la séance : synthèse, une ligne par Série de l'EMOM
+    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getAllByText(/^Série [0-9]/).map((node) => node.props.children)).toEqual([
+      "Série 1 · Terminée · 10 / 10 rép.",
+      "Série 2 · Non terminée · 4 / 10 rép.",
+      "Série 3 · Terminée · 10 / 10 rép.",
+    ]);
     const windows = (await repository.listResults("exec-emom"))
       .flatMap((change) => (change.type === "SCOPE" && typeof (change.result as { window?: number }).window === "number" ? [change.result as EmomWindowResult] : []))
       .sort((a, b) => a.window - b.window);

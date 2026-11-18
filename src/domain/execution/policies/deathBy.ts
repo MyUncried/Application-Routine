@@ -137,6 +137,9 @@ export function windowLeaves(config: DeathByScopeConfig, rank: number, slot: num
     ...(lastActivity.loopOf !== undefined ? { loopOf: lastActivity.loopOf } : {}),
     ...(lastActivity.exerciseId !== undefined ? { exerciseId: lastActivity.exerciseId } : {}),
     ...(lastActivity.occurrenceKey !== undefined ? { occurrenceKey: lastActivity.occurrenceKey } : {}),
+    // Recette EMOM du 18/11/2026 (même écran) : le repos porte l'objectif du rang, affiché dans le coin sur fond vert.
+    ...(lastActivity.mode !== undefined ? { mode: lastActivity.mode } : {}),
+    ...(lastActivity.target !== undefined ? { target: lastActivity.target } : {}),
     ...(lastActivity.context !== undefined ? { context: lastActivity.context } : {}),
   };
   return [{ ...first, windowStart: true }, ...played.slice(1), rest];

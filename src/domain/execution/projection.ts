@@ -82,6 +82,12 @@ export type UpcomingActivity = {
    * tours) doit être déjà préparé pour l'exercice suivant. dans ce cas "Buy In" doit être affiché ») ; `null` hors buy-in et buy-out.
    */
   readonly segment: "BUY_IN" | "BUY_OUT" | null;
+  /**
+   * Recette EMOM du 18/11/2026 (emom-1, Hermann : « Bouton suivant pas conforme (couleur de fond, épaisseur du trait…) / Bouton Pause pas
+   * conforme (taille doit rester « standard ») et doit être au format inactif ») : Format de l'élément à venir, pour que la barre de
+   * commandes du Compte à rebours initial soit déjà celle du Format ; `null` hors Format.
+   */
+  readonly format: FormatView["kind"] | null;
 };
 
 export type Counters = {
@@ -475,9 +481,39 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
       timedMs: spec.end === "TIMED" ? (spec.plannedMs ?? 0) : null,
       after: following === undefined || following.type !== "LEAF" || following.leaf.kind === "SESSION_END" ? null : nextViewOf(plan, following.leaf),
       segment: BUY_IN_KEY.test(spec.key) ? "BUY_IN" : BUY_OUT_KEY.test(spec.key) ? "BUY_OUT" : null,
+      format: formatKindOfLeaf(plan, spec.key),
     };
   }
   return null;
+}
+
+const FORMAT_PILOTS: Readonly<Record<string, FormatView["kind"]>> = { [FOR_TIME_PILOT]: "FOR_TIME", [EMOM_PILOT]: "EMOM", [AMRAP_PILOT]: "AMRAP", [DEATH_BY_PILOT]: "DEATH_BY" };
+const LEAF_FORMATS = new WeakMap<ExecutablePlan, ReadonlyMap<string, FormatView["kind"]>>();
+
+/** Format de la portée la plus interne qui contient l'étape `key` ; `null` hors Format. */
+export function formatKindOfLeaf(plan: ExecutablePlan, key: string): FormatView["kind"] | null {
+  let known = LEAF_FORMATS.get(plan);
+  if (known === undefined) {
+    const found = new Map<string, FormatView["kind"]>();
+    const walk = (items: readonly ChildSpec[], kind: FormatView["kind"] | null) => {
+      for (const item of items) {
+        if (item.type === "LEAF") {
+          if (kind !== null) found.set(item.leaf.key, kind);
+        } else walk((item.scope.config as { items?: readonly ChildSpec[] } | null)?.items ?? [], FORMAT_PILOTS[item.scope.pilot] ?? kind);
+      }
+    };
+    walk(plan.items, null);
+    known = found;
+    LEAF_FORMATS.set(plan, known);
+  }
+  return known.get(key) ?? null;
+}
+
+/** Étape du plan de clé `key` (synthèse de la séance, recette EMOM du 18/11/2026) ; `undefined` si inconnue. */
+export function planLeafOf(plan: ExecutablePlan, key: string): LeafSpec | undefined {
+  const { leaves, index } = planIndex(plan);
+  const at = index.get(key);
+  return at === undefined ? undefined : leaves[at];
 }
 
 /** Suivant mis en avant en Répétitions (recette du 13/11/2026). */

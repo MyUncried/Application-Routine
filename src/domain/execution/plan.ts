@@ -569,6 +569,10 @@ function emomScopeOf(group: EmomGroup): { readonly scope: ScopeSpec | null; read
         ...(lastActivity.occurrenceKey !== undefined ? { occurrenceKey: lastActivity.occurrenceKey } : {}),
         ...(lastActivity.series !== undefined ? { series: lastActivity.series } : {}),
         ...(lastActivity.seriesCount !== undefined ? { seriesCount: lastActivity.seriesCount } : {}),
+        // Recette EMOM du 18/11/2026 (Hermann : « Appui sur suivant : conserver le triangle des objectifs, le mettre en fond vert ») : le repos
+        // porte l'objectif du travail de la fenêtre, affiché dans le coin pendant le repos.
+        ...(lastActivity.mode !== undefined ? { mode: lastActivity.mode } : {}),
+        ...(lastActivity.target !== undefined ? { target: lastActivity.target } : {}),
         ...(lastActivity.context !== undefined ? { context: lastActivity.context } : {}),
       },
     });
