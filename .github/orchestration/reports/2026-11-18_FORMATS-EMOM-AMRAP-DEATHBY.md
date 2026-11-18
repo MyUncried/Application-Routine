@@ -243,7 +243,7 @@ Death by (même écran) : barre au Compte à rebours, a, b, c et g appliqués ; 
 - `npx tsc --noEmit -p .` : aucune erreur. `npx eslint` sur les fichiers touchés : aucun signalement.
 - Mis à jour ou ajoutés : `ExecutionScreen.emom.pre11.test.tsx` (barre au Compte à rebours ; repos : titre « Repos » et objectif ; aucune saisie pendant les fenêtres ; feuille « · série 2 » sur écran figé, jamais « Résultat » ; synthèse par Série), `ExecutionScreen.deathBy.pre11.test.tsx` (titre « Repos », objectif du rang), `ExecutionSignalAdapter.test.ts` (double bip au repos de la fenêtre).
 - Garde PRE4-1.1/AC1 : premier passage en échec sur `target === null` (libellé de synthèse) ; réécrit, garde verte.
-- `npx jest` dans `KODJO-FORMATS` : 398 suites réussies, 8 en échec (35 tests), toutes du catalogue ; cause : `catalogue/catalogues/kodjo-pilote-60.catalogue.json` modifié dans l'arbre de travail par l'administration lancée depuis ce dossier (révision 2, non commité, hors mission). Même suite dans un worktree temporaire au commit de départ, avec mes fichiers source et le fichier pilote versionné : voir le compte rendu de livraison (résultat complet).
+- `npx jest` dans `KODJO-FORMATS` : 398 suites réussies, 8 en échec (35 tests), toutes du catalogue ; cause : `catalogue/catalogues/kodjo-pilote-60.catalogue.json` modifié dans l'arbre de travail par l'administration lancée depuis ce dossier (révision 2, non commité, hors mission). Même suite dans un worktree temporaire (commit de départ `f0e6a93e` + fichiers source de cette correction, fichier pilote versionné) : 406 suites, 6 237 tests réussis, 32 ignorés, aucun échec. Commit de livraison : `0dc5f8a1`.
 
 ### 9.4 Fichiers modifiés
 
