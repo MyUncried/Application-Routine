@@ -1,0 +1,602 @@
+[
+  {
+    "sheetId": "FIT-YOG-002",
+    "name": "Adho Mukha Svanasana (chien tête en bas)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-001",
+    "name": "Air squat",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-003",
+    "name": "Balasana (posture de l’enfant)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-006",
+    "name": "Bhujangasana (cobra)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-010",
+    "name": "Bird-dog (bras-jambe opposés)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-005",
+    "name": "Bitilasana (vache)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-008",
+    "name": "Box jump",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-007",
+    "name": "Burpee",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-004",
+    "name": "Burpee broad jump",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-009",
+    "name": "Course à pied (segment 1 km)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-003",
+    "name": "Deadlift (soulevé de terre)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-002",
+    "name": "Demi-squat",
+    "path": "catalogue/illustrations/20261117/REED-002.json",
+    "generation": "existante",
+    "sauvegarde": "vérifiée",
+    "rattachement": "absent",
+    "commit": "8ea8539fe3299bcd27608f443e07ba1ae4a44bff",
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-006",
+    "name": "Descente excentrique du poignet",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-006",
+    "name": "Double Leg Stretch",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-001",
+    "name": "Élévation de jambe tendue",
+    "path": "catalogue/illustrations/20261117/REED-001.json",
+    "generation": "existante",
+    "sauvegarde": "vérifiée",
+    "rattachement": "absent",
+    "commit": "8ea8539fe3299bcd27608f443e07ba1ae4a44bff",
+    "anomalie": "Appui sur les coudes absent."
+  },
+  {
+    "sheetId": "REED-008",
+    "name": "Équilibre sur un pied",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-005",
+    "name": "Étirement des extenseurs du poignet",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-003",
+    "name": "Étirement des ischio-jambiers allongé",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-008",
+    "name": "Étirement du haut du dos",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-001",
+    "name": "Étirement du mollet — gastrocnémien",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-004",
+    "name": "Étirement du quadriceps sur le côté",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-002",
+    "name": "Étirement du soléaire",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-009",
+    "name": "Étirement du triceps au-dessus de la tête",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-005",
+    "name": "Étirement fessier en figure quatre",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-006",
+    "name": "Farmers carry",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-007",
+    "name": "Flexion dorsale de cheville à l’élastique",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-002",
+    "name": "Front squat",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-009",
+    "name": "Genou vers poitrine",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-010",
+    "name": "Inclinaison latérale de la nuque",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-009",
+    "name": "Kettlebell swing",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-004",
+    "name": "Marjaryasana (chat)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-007",
+    "name": "Ouverture des pectoraux assis",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-STR-006",
+    "name": "Papillon (adducteurs)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-003",
+    "name": "Pendulaire d’épaule",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "REED-004",
+    "name": "Placement des omoplates",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-005",
+    "name": "Push press",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-002",
+    "name": "Roll Up",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-004",
+    "name": "Rolling Like a Ball",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-005",
+    "name": "Rowing (rameur)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-007",
+    "name": "Sandbag walking lunges",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-010",
+    "name": "Setu Bandha (pont)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-008",
+    "name": "Shoulder Bridge",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-004",
+    "name": "Shoulder press",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-010",
+    "name": "Side Kick",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-003",
+    "name": "Single Leg Circle",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-005",
+    "name": "Single Leg Stretch",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-001",
+    "name": "SkiErg",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-003",
+    "name": "Sled pull",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-002",
+    "name": "Sled push",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-007",
+    "name": "Spine Stretch Forward",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-010",
+    "name": "Step-up sur plateforme",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-010",
+    "name": "Strict pull-up (traction stricte)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-009",
+    "name": "Swimming",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-001",
+    "name": "Tadasana (montagne)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-PIL-001",
+    "name": "The Hundred",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-CRO-006",
+    "name": "Thruster",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-009",
+    "name": "Trikonasana (triangle)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-007",
+    "name": "Virabhadrasana II (guerrier II)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-YOG-008",
+    "name": "Vrksasana (arbre)",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  },
+  {
+    "sheetId": "FIT-HYR-008",
+    "name": "Wall balls",
+    "path": null,
+    "generation": "à produire",
+    "sauvegarde": "en attente",
+    "rattachement": "absent",
+    "commit": null,
+    "anomalie": null
+  }
+]
