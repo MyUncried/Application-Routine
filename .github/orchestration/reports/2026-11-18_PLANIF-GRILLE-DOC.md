@@ -55,3 +55,4 @@
 - Non vérifié : rendu visuel (captures non lisibles) ; tests non applicables (documentation et Figma).
 
 - Docs (19/11/2026, suite) : `docs/DSF-BARRE-TITRE-ONGLETS-2026-11-19.md` créé (DSF-SEGMENTES-TITRES et DSF Agenda renvoient vers lui) ; `docs/PROMPT-CLAUDE-CODE-AGENDA-ONGLETS-2026-11-19.md` rédigé (onglets, Agenda, une carte par occurrence). Enchaînement des séances : prompt distinct, non rédigé.
+- Docs : `docs/PROMPT-CLAUDE-CODE-ENCHAINEMENT-SEANCES-2026-11-19.md` rédigé (orchestration au-dessus du moteur, voile de transition ; arrêt volontaire À CLARIFIER).
