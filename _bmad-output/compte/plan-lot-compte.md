@@ -20,7 +20,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 
 - **Identité locale actuelle.** L'Utilisateur local est créé par `migrateDatabase` (`src/infrastructure/database/migrateDatabase.ts:100`). Son identifiant `usr_<32 hex>` est stocké dans `users`, une table singleton. Les agrégats y sont rattachés par `owner_id`.
 - **Ce que le lot ajoute.** Le **Compte** (identité Supabase), distinct de l'Utilisateur interne (§12.7). Les fournisseurs sont Apple et Google (CPT-03).
-- **Données envoyées au serveur.** Seuls l'identité et le lien Compte ↔ Utilisateur quittent le téléphone (CPT-11). Le contenu partagé arrivera avec le chantier partage.
+- **Données envoyées au serveur.** Dans ce lot, seuls l'identité et le lien Compte ↔ Utilisateur sont envoyés (périmètre du lot ; les données d'Exécution arrivent avec le lot sauvegarde, CPT-06). Le contenu partagé arrivera avec le chantier partage.
 - **Fonctionnement hors ligne.** Le compte est obligatoire (CPT-02), mais l'app reste utilisable hors ligne après la première connexion.
 - **Suppression.** Suppression complète côté serveur, données locales conservées, retour à l'écran de connexion (CPT-08 à CPT-10).
 - **Modes de connexion :**
@@ -37,7 +37,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 - `supabase/migrations/0001_accounts.sql`, avec RLS :
   - table `accounts` (`auth_user_id` PK → `auth.users`, `local_user_id`, `created_at`) ;
   - table `catalogues` (`id`, `owner_auth_user_id` unique, `created_at`) : un catalogue par compte, créé automatiquement.
-  - Aucune autre table. **Aucune table d'Exécution** (CPT-11).
+  - Aucune autre table. Pas de table d'Exécution : hors périmètre du lot.
 - `supabase/functions/delete-account/` (Edge Function, clé de service côté serveur uniquement). Dans l'ordre :
   1. supprimer les objets Storage de l'utilisateur ;
   2. supprimer le catalogue, puis `accounts` ;
@@ -95,7 +95,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 3. App : client Supabase, port et passerelle, migration 031, `AccountService` et ses règles de rattachement, tests unitaires.
 4. Porte d'entrée et écran de connexion. Parcours iOS (Apple natif, Google web) et Android (Apple web, Google web), retour par lien profond.
 5. Section Compte du Profil et suppression du compte.
-6. Garde CPT-11 : test qui vérifie que le client n'écrit que dans `accounts` et `catalogues` et qu'aucune donnée d'Exécution n'est sérialisée vers le réseau. Revue des journaux.
+6. Journaux et rapports de plantage : aucune information sensible (règle existante du §12.20).
 7. Documentation et synchronisation code / documentation. Rapport de livraison.
 
 ## MIGRATION / DONNÉES
@@ -110,8 +110,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
   - migration 031 ;
   - règles de rattachement (compte neuf, téléphone vierge, conflit) ;
   - porte d'entrée en ligne et hors ligne ;
-  - suppression : ordre des appels, retour à la connexion, données locales intactes ;
-  - garde CPT-11.
+  - suppression : ordre des appels, retour à la connexion, données locales intactes.
 - **Backend :** RLS (un compte ne lit ni n'écrit les lignes d'un autre) et Edge Function.
 - **Recette sur appareils réels, iPhone et Android :**
   - Apple natif iOS, Apple web Android, Google web sur les deux ;
@@ -214,7 +213,7 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 ### Prérequis ajoutés par cette proposition
 
 - **Politique de confidentialité** publiée (URL), exigée par l'App Store, Google Play et le RGPD. **Rédaction à prévoir, à la charge de Hermann ou d'un juriste.**
-- **Déclarations de données des stores :** « App Privacy » chez Apple, « Data safety » chez Google. Elles sont cohérentes avec CPT-11 : seuls l'identité et le contenu partagé sont collectés.
+- **Déclarations de données des stores :** « App Privacy » chez Apple, « Data safety » chez Google. Pour ce lot : identité et contenu partagé ; à mettre à jour au lot sauvegarde.
 
 ## STATUT
 

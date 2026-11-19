@@ -274,6 +274,16 @@ Rédigé dans `_bmad-output/compte/plan-lot-compte.md`. Statut : **PLAN_READY_FO
   - PR de la documentation vers `main` : https://github.com/MyUncried/Application-Routine/pull/446 ;
   - développement à venir sur `compte/lot-1`, depuis `main` une fois la PR fusionnée.
 
+## 14. Retrait de CPT-11 (19/11/2026)
+
+Hermann : « En quoi est ce utile d'écrire ce type de phrase, alors qu'on sait pertinemment que les données doivent sortir du compte ».
+
+CPT-11 décrivait une limite de périmètre du lot Compte, pas une règle produit. Formulée comme une règle, elle contredisait CPT-06. Elle est **retirée** au chapitre 07, avec son texte d'origine conservé.
+
+Ce qui reste :
+- la règle existante du §12.20 : aucune information sensible dans les journaux ;
+- les conditions RGPD de l'envoi de l'Historique, à définir au lot sauvegarde (§9).
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
