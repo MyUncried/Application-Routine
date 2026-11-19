@@ -49,3 +49,18 @@
 - Liste des Mouvements (46) : vignettes vides. L'affichage reprend `6b1c957`, qui ne couvre que la fiche ouverte et pas la vignette de la liste (comportement non spécifié, classe C).
 - Les 5 illustrations au format 1800 × 600 (FIT-YOG-002, FIT-CRO-001, FIT-YOG-003, FIT-YOG-006, REED-010) s'affichent en bandeau réduit dans le gabarit 402 × 329 (mode `contain`). Les autres sont au gabarit 1206 × 987.
 - Restauration des 14 fiches archivées et mise à jour en révision 5 : en attente.
+
+## Suite — vignettes et bandeaux (demande de l'utilisateur : « oui, les deux »)
+
+### Vignette du Catalogue des Mouvements — `70b206d0`
+- Demande de Hermann, recopiée : « Je vois des photos quand j'ouvre la fiche, mais pas la miniature ».
+- `catalogueIllustrationsByMovement()` (`src/features/catalogue/importedMovements.ts`) lit en une seule fois les photos de catalogue des fiches installées. `useMovementCatalogue` (`MovementCatalogueList.tsx`) les charge avec les entrées. La vignette de la liste (`MovementCatalogueCard`) et celle de la grille (`MovementGridCard`) affichent la photo de catalogue quand le Mouvement n'a aucun média local ; un média local reste prioritaire, comme sur la fiche ouverte. Registre indisponible : vignettes sans photo de catalogue, Catalogue chargé normalement.
+- `jest.setup.js` : simulacre complété. Nouveau test `src/features/activities/__tests__/MovementCatalogue.illustration.test.tsx` (liste, grille, priorité au média local, registre indisponible) : 3/3.
+- `npx tsc --noEmit -p .` : aucune erreur. `npx jest src/domain/catalogue src/features/catalogue src/features/activities src/features/sessions` : 2 988 réussis, 1 échec dans `CompositionScreen.test.tsx` (« D-442 — a card step that removes a point… »). Relancé seul : 430/430 avec la modification, et 430/430 sans elle (échec intermittent, sans lien avec la vignette).
+- Synchronisation documentaire : classe C (vignette de la photo de catalogue non spécifiée, à clarifier), aucun document modifié.
+
+### Cinq illustrations refaites au gabarit 1206 × 987
+- FIT-YOG-002, FIT-CRO-001, FIT-YOG-003, FIT-YOG-006, REED-010 : bandeaux 1800 × 600 à trois positions (départ, mouvement, retour) remplacés par deux phases (départ, mouvement) au gabarit des 55 autres. Six générations, dont une écartée pour REED-010 (orientation inversée entre les phases et jambe au-dessus de la hanche).
+- Branche `assets/illustrations-60-20261117` : commits d'illustration `88dc9eb`, `e4e1487`, `ab32779`, `5ea4b70`, `4c9dca7`, chacun suivi d'un commit de catalogue (révision de fiche +1, suivi mis à jour), tous vérifiés sur `origin`. Contrôle final : 60/60 photos au format 1206 × 987, octets intégrés identiques aux fichiers, catalogue 2.0.0 en révision 67.
+- Catalogue de recette 3.0.0 (`catalogue/illustrations/kodjo-pilote-60.illustre-v3.json`) : photos remplacées pour ces 5 fiches, qui passent en révision 6 (historique contenant 4 et 5) ; catalogue en révision 65 ; 60/60 photos identiques aux fichiers ; fichier revalidé par le parseur.
+- Remarque : sur REED-010, le bout des doigts de la main tendue touche le bord droit de l'image.
