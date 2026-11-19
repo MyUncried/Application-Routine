@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
@@ -98,15 +98,21 @@ export function TransientNotification({
   durationMs = TRANSIENT_NOTIFICATION_DURATION_MS,
   testID = "transient-notification",
 }: TransientNotificationProps) {
+  // Recette iPhone du 19/11/2026 (« le message "Mouvement restauré" reste et ne s'enlève pas ») : les écrans
+  // passent un `onDismiss` recréé à chaque rendu ; en dépendre relançait le délai à chaque rendu de l'hôte, et
+  // un hôte qui se redessine sans cesse ne laissait jamais le message s'effacer. Le délai ne dépend plus que
+  // du message et de la durée ; la dernière fonction reçue est appelée.
+  const dismissRef = useRef(onDismiss);
+  dismissRef.current = onDismiss;
   useEffect(() => {
     if (message === null) {
       return;
     }
-    const timeout = setTimeout(onDismiss, durationMs);
+    const timeout = setTimeout(() => dismissRef.current(), durationMs);
     // Nettoyage systématique : un nouveau message REMPLACE le précédent et
     // relance son propre délai, plutôt que d'hériter du décompte en cours.
     return () => clearTimeout(timeout);
-  }, [message, onDismiss, durationMs]);
+  }, [message, durationMs]);
 
   if (message === null) {
     return null;
