@@ -1,7 +1,6 @@
 import type { Routine } from "@/domain/planning/Routine";
+import { composeReminder } from "@/domain/planning/reminderMessages";
 import { upcomingReminders } from "@/domain/planning/reminders";
-import { planningStrings } from "@/features/planning/planningStrings";
-import { formatSpokenTime } from "@/features/planning/planningSummary";
 
 /**
  * Programmation des rappels de Routine (RM-051 à RM-054a, chapitre 12 « Notifications »).
@@ -11,6 +10,9 @@ import { formatSpokenTime } from "@/features/planning/planningSummary";
  * - RM-053 : refus ou indisponibilité → le rappel reste désactivé ; la planification s'enregistre quand même.
  * - RM-054b : le rappel emporte la première Séance retenue pour son occurrence ; son toucher ouvre l'écran d'Exécution.
  * - Fenêtre glissante : `refresh` annule les rappels de planification programmés et reprogramme la fenêtre courante.
+ * - Textes (recette du 19/11/2026, t6 — spécification des notifications de rappel du 18/11/2026) : accroche du catalogue
+ *   en titre, corps commençant par le nom de la routine, en rotation (`reminderMessages`). [Avant : titre = noms des
+ *   séances, corps « Séance prévue à 8 h. » — remplacé.]
  */
 
 export type NotificationPermission = "granted" | "denied" | "undetermined";
@@ -42,13 +44,15 @@ export type ReminderSchedulerDeps = {
   readonly listRoutines: () => Promise<readonly Routine[]>;
   /** Séances actives par identifiant (nom) ; une Séance absente n'est pas rappelée. */
   readonly activeSessionNames: () => Promise<ReadonlyMap<string, string>>;
+  /** Catégories des exercices de chaque Séance active (famille CAT-* des rappels) ; absent : aucune. */
+  readonly sessionCategoryIds?: () => Promise<ReadonlyMap<string, readonly string[]>>;
   readonly now: () => Date;
 };
 
-export function reminderTitle(names: readonly string[]): string {
-  if (names.length <= 1) return names[0] ?? "";
-  if (names.length === 2) return planningStrings.form.combinedNameTwo.replace("{first}", names[0]!).replace("{second}", names[1]!);
-  return planningStrings.form.combinedName.replace("{first}", names[0]!).replace("{count}", String(names.length - 1));
+/** Nom de la routine (D-522) ; sans nom (planification antérieure au 18/11/2026) : nom de la première séance. */
+export function reminderName(routineName: string, sessionNames: readonly string[]): string {
+  const name = routineName.trim();
+  return name !== "" ? name : (sessionNames[0] ?? "");
 }
 
 export class ReminderScheduler {
@@ -82,19 +86,30 @@ export class ReminderScheduler {
 
   private async apply(): Promise<void> {
     if ((await this.deps.notifications.permission()) !== "granted") return;
-    const [routines, names] = await Promise.all([this.deps.listRoutines(), this.deps.activeSessionNames()]);
+    const [routines, names, categories] = await Promise.all([
+      this.deps.listRoutines(),
+      this.deps.activeSessionNames(),
+      this.deps.sessionCategoryIds?.() ?? Promise.resolve(new Map<string, readonly string[]>()),
+    ]);
+    const routinesById = new Map(routines.map((routine) => [routine.id, routine]));
     const reminders = upcomingReminders(routines, this.deps.now(), (sessionId) => names.has(sessionId));
-    await this.deps.notifications.replaceReminders(
-      reminders.map((reminder) => {
-        const time = `${String(reminder.occurrenceAt.getHours()).padStart(2, "0")}:${String(reminder.occurrenceAt.getMinutes()).padStart(2, "0")}`;
-        return {
-          id: reminder.id,
-          fireAt: reminder.fireAt,
-          sessionId: reminder.sessionIds[0]!,
-          title: reminderTitle(reminder.sessionIds.map((sessionId) => names.get(sessionId)!)),
-          body: planningStrings.reminder.body.replace("{time}", formatSpokenTime(time)),
-        };
-      }),
-    );
+    // Dans l'ordre de déclenchement : un modèle n'est jamais repris sur deux notifications consécutives.
+    let previous: string | null = null;
+    const scheduled = reminders.map((reminder) => {
+      const routine = routinesById.get(reminder.routineId);
+      const message = composeReminder(
+        {
+          plannedAt: reminder.occurrenceAt,
+          name: reminderName(routine?.name ?? "", reminder.sessionIds.map((sessionId) => names.get(sessionId)!)),
+          recurring: routine !== undefined && routine.repetition !== null,
+          categoryIds: reminder.sessionIds.flatMap((sessionId) => categories.get(sessionId) ?? []),
+          rank: reminder.rank,
+        },
+        previous,
+      );
+      previous = message.templateId;
+      return { id: reminder.id, fireAt: reminder.fireAt, sessionId: reminder.sessionIds[0]!, title: message.title, body: message.body };
+    });
+    await this.deps.notifications.replaceReminders(scheduled);
   }
 }

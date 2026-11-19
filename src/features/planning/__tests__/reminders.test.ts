@@ -87,17 +87,30 @@ describe("ReminderScheduler (RM-051 à RM-053)", () => {
     expect(scheduled).toEqual([]);
   });
 
-  it("autorisé : la fenêtre est reprogrammée avec le nom de la séance et l'heure", async () => {
+  it("autorisé : la fenêtre est reprogrammée ; accroche du catalogue en titre, corps commençant par le nom de la routine (t6)", async () => {
     const { port, scheduled } = fakeNotifications("granted", "granted");
     await new ReminderScheduler(deps(port)).refresh();
     expect(scheduled).toHaveLength(1);
+    // Lundi 8 h, planification récurrente, rang 1 : famille RECUR (premier critère de départage).
     expect(scheduled[0]![0]).toEqual({
       id: "r1|2030-08-05T08:00",
       fireAt: new Date(2030, 7, 5, 7, 45),
-      title: "Gainage",
-      body: "Séance prévue à 8 h.",
+      title: "On garde le rythme",
+      body: "Matin t’attend.",
       sessionId: "s1",
     });
+    for (const reminder of scheduled[0]!) expect(reminder.body.startsWith("Matin")).toBe(true);
+  });
+
+  it("routine sans nom (antérieure au 18/11/2026) : nom de la première séance ; catégorie unique : accroche CAT-* possible", async () => {
+    const { port, scheduled } = fakeNotifications("granted", "granted");
+    await new ReminderScheduler({
+      ...deps(port),
+      listRoutines: async () => [{ ...base, name: "" }],
+      sessionCategoryIds: async () => new Map([["s1", ["cardio"]]]),
+    }).refresh();
+    expect(scheduled[0]!.every((reminder) => reminder.body.startsWith("Gainage"))).toBe(true);
+    expect(scheduled[0]!.some((reminder) => ["On fait monter le rythme", "On active le cardio"].includes(reminder.title))).toBe(true);
   });
 
   it("RM-054b : le rappel emporte la première Séance retenue pour son occurrence, motifs x fois sur n compris", async () => {

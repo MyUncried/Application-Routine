@@ -33,6 +33,7 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { MigrationNoticeRepositoryContext } from "@/features/sessions/MigrationNoticeRepositoryContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
+import { sessionCategoryIds } from "@/features/sessions/sessionCatalogueProjection";
 import { ActivityMediaImportService } from "@/domain/media/ActivityMediaImportService";
 import type { MigrationNoticeRepository } from "@/domain/migration/MigrationNotice";
 import { getLocalMediaStore } from "@/infrastructure/media/LocalMediaStore";
@@ -146,6 +147,9 @@ function SessionServiceInitializer({
       listRoutines: () => routines.list(),
       activeSessionNames: async () =>
         new Map((await sessionService.listCatalogueSessions()).filter((record) => record.status === "ACTIVE").map((record) => [record.id, record.name])),
+      // Rappels (recette du 19/11/2026, t6) : catégories des exercices, pour l'accroche CAT-* d'une séance mono-catégorie.
+      sessionCategoryIds: async () =>
+        new Map((await sessionService.listCatalogueSessions()).filter((record) => record.status === "ACTIVE").map((record) => [record.id, sessionCategoryIds(record)])),
       now: () => new Date(),
     });
     return new PlanningService({

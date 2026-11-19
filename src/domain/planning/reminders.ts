@@ -22,6 +22,8 @@ export type PlannedReminder = {
   readonly fireAt: Date;
   /** Contenus retenus, dans l'ordre de la liste. */
   readonly sessionIds: readonly string[];
+  /** Rang de l'occurrence dans sa Routine (à partir de 1) : rotation des textes de rappel (`reminderMessages`). */
+  readonly rank: number;
 };
 
 export function upcomingReminders(
@@ -43,7 +45,7 @@ export function upcomingReminders(
       const occurrenceAt = occurrenceInstant(occurrence.date, occurrence.time);
       const fireAt = new Date(occurrenceAt.getTime() - minutes * 60_000);
       if (fireAt.getTime() <= now.getTime()) continue;
-      reminders.push({ id: `${routine.id}|${occurrence.key}`, routineId: routine.id, occurrenceKey: occurrence.key, occurrenceAt, fireAt, sessionIds });
+      reminders.push({ id: `${routine.id}|${occurrence.key}`, routineId: routine.id, occurrenceKey: occurrence.key, occurrenceAt, fireAt, sessionIds, rank: occurrence.index });
     }
   }
   return reminders.sort((a, b) => a.fireAt.getTime() - b.fireAt.getTime()).slice(0, limit);

@@ -149,7 +149,6 @@ export const planningStrings = {
     deniedMessage: "Pour recevoir ce rappel, autorisez les notifications de Routine.",
     deniedCancel: "Annuler",
     deniedSettings: "Autoriser",
-    body: "Séance prévue à {time}.",
   },
   selection: {
     title: "Catalogue des séances",

@@ -293,6 +293,13 @@ export function shownCircuitCountOf(structure: Pick<CatalogueSessionRecord["stru
   return only.repeatCount === 1 && cyclePasses === 1 ? null : 1;
 }
 
+/** Catégories distinctes des exercices d'une Séance (projection dérivée des exercices, jamais stockée sur la Séance). */
+export function sessionCategoryIds(record: Pick<CatalogueSessionRecord, "structure">): readonly string[] {
+  const ids: string[] = [];
+  for (const exercise of structureExercises(record.structure).filter(isExercise)) if (exercise.categoryId && !ids.includes(exercise.categoryId)) ids.push(exercise.categoryId);
+  return ids;
+}
+
 export function projectSessionForCatalogue(
   record: CatalogueSessionRecord,
   categoriesById: ReadonlyMap<string, CatalogueCategoryRef>,
