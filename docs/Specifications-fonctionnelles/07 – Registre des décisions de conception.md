@@ -3013,6 +3013,20 @@ Classe B (évolution validée : demande explicite de Hermann, cahier de recette,
 - **Hors périmètre.** Death by (autre portée, compteurs inchangés) ; Circuit EMOM composé à la main sous une autre forme (Circuit groupé de plusieurs tours sans Format porteur) : compteurs inchangés, cas signalé, non tranché.
 - **Documents mis à jour (classe B).** Le présent chapitre ; chapitre 13, CE-FMT-05 (compteurs de l'EMOM à plusieurs mouvements) ; spec PRE-11 §5 point 36. Chapitres 09 et 12 non modifiés.
 
+### D-532 — complément : Circuit EMOM « dans chaque intervalle », repère de changement de mouvement et tours au repos (18/11/2026)
+
+Classe B (évolution validée : demande explicite de Hermann, cahier de recette, « Autres remarques », constat e, ligne n° 50, 18/11/2026). Spec PRE-11 §5 point 37.
+
+> « n° 50 Circuit « dans chaque intervalle » A puis B dans la même minute : « Suivant » sur A, puis sur B ; le rang suivant commence à la minute.
+> - deux exercices : le numéro de série ne bouge pas. Il faut qu'on passe d'une série +1 à chaque changement de mouvement, par intervalle, le total de série = nombre de mouvements par intervalle.
+> lorsqu'on appui sur suivant pour une changement de mouvement, il faut figer un cercle sur l'anneau pour marquer l'instant de changement d'exercice.
+> - pendant le repos le nombre de tours disparait. Il faut le nombre de tours visible. »
+
+- **Série.** Déjà couverte par D-532 (Série = position du mouvement dans le tour / M) : « Série 1/2 » sur A, « Série 2/2 » sur B, dans la même minute.
+- **Repère sur l'anneau.** À l'appui sur « Suivant » qui fait passer à un autre mouvement dans le même intervalle, un cercle (la pastille de position, couleur de l'anneau, contour blanc) reste figé à la position de cet instant jusqu'à la fin de l'intervalle ; l'intervalle suivant repart sans repère. EMOM seulement ; pas de repère au changement de côté d'un même mouvement ; Death by (membres « dans chaque intervalle ») non concerné.
+- **Tours au repos.** Le compteur Tour reste affiché pendant le repos de l'intervalle (règle du 13/11/2026 : compteurs de la Série qui vient de se terminer). Non reproduit en test sur la version livrée (ni avant D-532) : test de non-régression ajouté, vérification sur iPhone à faire.
+- **Documents mis à jour (classe B).** Le présent chapitre ; chapitre 13, CE-FMT-05 ; spec PRE-11 §5 point 37. Chapitres 09 et 12 non modifiés.
+
 ## AMRAP — exécution (18/11/2026)
 
 Classe B (évolution validée) pour les commandes, la fin du bloc, le partiel et les sons ; classe A pour le déroulement (FMT-26, FMT-27, D-19, D-20 / RM-PRE5-02 ; conception consolidée D1, D3, Q2, Q3, Q4, §12.1, §12.5 et « Prescriptions et fins — complément du 5 novembre » ; cas T12, T13, T14, T25). Décisions de Hermann recopiées à l'entrée « EMOM — exécution (18/11/2026) » (même demande, mêmes quatre réponses) et, pour les exercices en durée, à l'entrée « For time — exécution : exercices en durée, « + Tour », sans Pause (16/11/2026) » :

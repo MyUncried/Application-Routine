@@ -2776,6 +2776,8 @@ Réemploi du shell Exécution ; cadran de fenêtre et contexte exercice. Positio
 
 [Complété le 18/11/2026 — D-532 (registre ch07, constat a de la recette : « Un tour est un passage de tous les mouvements. Une série est une fenêtre d'un mouvement ») : EMOM à M mouvements, compteurs Série | Tour. « À la suite » : Série k / N, Tour = rang du mouvement / M. « Dans chaque intervalle » et « En alternance » : Série = position du mouvement dans le tour / M (remise à 1 à chaque tour, avance à chaque « Suivant »), Tour k / N (avance après le dernier mouvement). EMOM à un seul mouvement inchangé. Côté Format : « Nombre de tours » et colonnes T1 … TN en « Dans chaque intervalle » / « En alternance », modale « X tours identiques / variables ».]
 
+[Complété le 18/11/2026 — complément de D-532 (registre ch07, constat e, ligne n° 50 : « il faut figer un cercle sur l'anneau pour marquer l'instant de changement d'exercice » ; « pendant le repos […] Il faut le nombre de tours visible ») : Circuit EMOM « dans chaque intervalle », un cercle figé sur l'anneau à chaque changement de mouvement dans l'intervalle, effacé à l'intervalle suivant ; compteur Tour affiché pendant le repos.]
+
 #### 8. Éléments obligatoires
 
 Objectif et fenêtre courante ; temps restant ; distinction travail/repos ; rang distinct de tours acquis Death by.

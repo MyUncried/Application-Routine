@@ -99,6 +99,8 @@ export function ExecutionScreen({
   const [dialog, setDialog] = useState<Dialog>(null);
   // EMOM en durée (précision de Hermann du 18/11/2026) : bascules effort / retenue de la fenêtre en cours, voir `advanceHoldMarks`.
   const [holdMarks, setHoldMarks] = useState<HoldMarks>(NO_HOLD_MARKS);
+  // Constat e) du 18/11/2026 (ligne n° 50) : instants de changement de mouvement dans l'intervalle en cours, voir `advanceMoveMarks`.
+  const [moveMarks, setMoveMarks] = useState<MoveMarks>(NO_MOVE_MARKS);
   // Action de dialogue en cours : le dialogue reste affiché jusqu'à la fin de ses commandes, pour qu'aucun
   // autre dialogue (Pause) n'apparaisse entre-temps (recette PRE-10 du 09/11/2026).
   const [dialogBusy, setDialogBusy] = useState(false);
@@ -754,6 +756,17 @@ export function ExecutionScreen({
   // Mise à jour pendant le rendu (état dérivé de la projection précédente) : un seul rendu de plus, seulement à une bascule.
   if (nextHoldMarks !== holdMarks) setHoldMarks(nextHoldMarks);
   const emomHoldMarks = nextHoldMarks.key === holdKey ? nextHoldMarks.list : NO_HOLD_MARKS.list;
+  // Constat e) de la recette du 18/11/2026 (Hermann, ligne n° 50, Circuit EMOM « dans chaque intervalle » : « lorsqu'on appui sur suivant
+  // pour une changement de mouvement, il faut figer un cercle sur l'anneau pour marquer l'instant de changement d'exercice ») : EMOM
+  // seulement ; un autre mouvement dans le même intervalle (le changement de côté garde le même mouvement : aucun repère).
+  const moveKey = projection.format?.kind === "EMOM" ? holdKey : null;
+  const moveStep = emomView !== null && !emomView.resting && projection.phase === "ACTIVITY" ? { step: stepKey, name: projection.exerciseName } : null;
+  const nextMoveMarks = advanceMoveMarks(moveMarks, moveKey, moveStep, emomView?.elapsedMs ?? 0);
+  if (nextMoveMarks !== moveMarks) setMoveMarks(nextMoveMarks);
+  const ringMarks =
+    moveKey !== null && nextMoveMarks.key === moveKey && emomView !== null && emomView.windowMs > 0
+      ? nextMoveMarks.list.map((atMs) => Math.min(1, atMs / emomView.windowMs))
+      : null;
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
   // Recette du 15/11/2026 (Hermann, g3 : « L’objectif de la série doit passer dans le triangle du bas à droite ») : avec la borne,
   // l'objectif occupe le coin du bas à droite (sauf compteur « mouv. » déjà posé là). [Sous le chrono, dans le cercle — remplacé.]
@@ -1053,6 +1066,7 @@ export function ExecutionScreen({
           // PRE-11, précision FT-15 (14/11/2026) : For time, anneau bicolore — chaque portion de la minute garde la couleur de sa
           // phase ; seule la portion en cours prend la couleur de la phase en cours (et la pastille).
           {...(ringSegments !== null ? { segments: ringSegments } : {})}
+          {...(ringMarks !== null && ringMarks.length > 0 ? { marks: ringMarks } : {})}
           testID="execution-ring"
         >
           {/*
@@ -1753,6 +1767,32 @@ export function advanceHoldMarks(marks: HoldMarks, key: string | null, held: boo
   // Première note de la fenêtre : la Série démarre avec l'intervalle (effort depuis 0).
   const added: EmomHoldMark[] = last === undefined ? (held ? [{ atMs: 0, held: false }, { atMs: elapsedMs, held: true }] : [{ atMs: 0, held: false }]) : [{ atMs: elapsedMs, held }];
   return { key, list: [...list, ...added] };
+}
+
+/**
+ * Constat e) de la recette du 18/11/2026 (ligne n° 50, Circuit EMOM « dans chaque intervalle ») : instants, en temps de l'intervalle, où
+ * « Suivant » a fait passer à un autre mouvement dans le même intervalle. `key` identifie l'intervalle (`null` hors EMOM : aucun
+ * repère) ; `current`, l'étape de travail affichée (`null` au repos ou hors Série). Une nouvelle étape d'un autre mouvement que la
+ * précédente, dans le même intervalle, ajoute un repère ; un nouvel intervalle repart sans repère. Renvoie `marks` lui-même s'il n'y a
+ * rien à noter.
+ */
+export type MoveMarks = {
+  readonly key: string | null;
+  readonly list: readonly number[];
+  readonly last: { readonly step: string; readonly name: string | null } | null;
+};
+const NO_MOVE_MARKS: MoveMarks = { key: null, list: [], last: null };
+export function advanceMoveMarks(
+  marks: MoveMarks,
+  key: string | null,
+  current: { readonly step: string; readonly name: string | null } | null,
+  elapsedMs: number,
+): MoveMarks {
+  if (key === null) return marks.key === null ? marks : NO_MOVE_MARKS;
+  if (marks.key !== key) return { key, list: [], last: current };
+  if (current === null || (marks.last !== null && marks.last.step === current.step)) return marks;
+  const moved = marks.last !== null && marks.last.name !== current.name;
+  return { key, list: moved ? [...marks.list, elapsedMs] : marks.list, last: current };
 }
 
 /**
