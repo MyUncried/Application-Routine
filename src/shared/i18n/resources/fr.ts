@@ -1599,6 +1599,8 @@ export const fr = {
         objective: "Objectifs de durée et de répétition",
         pauses: "Pauses, récupérations et points d’arrêt",
         sides: "Changements de côté",
+        // D-530 / RM-269 (Hermann, 18/11/2026) : libellé de Hermann.
+        rounds: "Annonce des tours",
       },
       events: {
         COUNTDOWN: "Compte à rebours",

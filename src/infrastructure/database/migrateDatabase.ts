@@ -32,6 +32,7 @@ import { applyMigration027 } from "./migrations/migration027";
 import { applyMigration028 } from "./migrations/migration028";
 import { applyMigration029 } from "./migrations/migration029";
 import { applyMigration030 } from "./migrations/migration030";
+import { applyMigration031 } from "./migrations/migration031";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -328,6 +329,12 @@ export async function migrateDatabase(
     if (pending(29)) {
       await applyMigration030(transaction);
       version = 30;
+    }
+
+    // D-530 (18/11/2026) : interrupteur « Annonce des tours ». Un échec laisse `user_version` à 30.
+    if (pending(30)) {
+      await applyMigration031(transaction);
+      version = 31;
     }
 
     if (version !== targetVersion) {

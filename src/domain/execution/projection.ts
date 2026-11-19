@@ -154,7 +154,59 @@ export type FormatView = {
   readonly amrap: { readonly round: number; readonly completedRounds: number; readonly block: number; readonly blocks: number } | null;
   /** PRE-11 (T4) : Death by en cours — rang courant et rangs entièrement acquis ; `null` hors Death by. */
   readonly deathBy: { readonly rank: number; readonly acquiredRanks: number } | null;
+  /**
+   * D-530 / RM-269 (Hermann, 18/11/2026) : l'étape en cours ouvre un tour du For time ou de l'AMRAP (premier exercice du tour, hors
+   * buy-in et buy-out) — rang du tour et objectif de répétitions du tour qui démarre ; `repetitions` vaut `null` quand cet objectif
+   * n'est pas un nombre unique (exercices du tour d'objectifs différents, ou en durée : cas non tranché, voir rapport). Absent ou
+   * `null` ailleurs. Sert seulement à l'annonce des tours.
+   */
+  readonly roundStart?: RoundStart | null;
 };
+
+/** Début d'un tour (D-530) : rang (1 = premier) et objectif de répétitions commun du tour, `null` s'il n'est pas unique. */
+export type RoundStart = { readonly rank: number; readonly repetitions: number | null };
+
+/**
+ * D-530 : objectif de répétitions d'un tour — le nombre commun à toutes ses Séries en Répétitions chiffrées ; `null` si une Série est
+ * en durée, sans objectif chiffré, ou si les objectifs diffèrent.
+ */
+function roundRepetitions(leaves: readonly LeafSpec[]): number | null {
+  const activities = leaves.filter((leaf) => leaf.kind === "ACTIVITY");
+  if (activities.length === 0) return null;
+  const values = new Set<number>();
+  for (const leaf of activities) {
+    if (leaf.mode !== "REPETITIONS" || leaf.target === undefined || leaf.target.kind !== "NUMBER") return null;
+    values.add(leaf.target.value);
+  }
+  return values.size === 1 ? [...values][0]! : null;
+}
+
+/** Rang d'un tour du For time d'après sa clé (`roundKeyOf`) : `…#<k>` (alternance, à la suite) ou `…/s<k>` (une Série). */
+function forTimeRoundRank(roundKey: string): number | null {
+  const match = /#(\d+)$/.exec(roundKey) ?? /\/s(\d+)$/.exec(roundKey);
+  return match === null ? null : Number(match[1]);
+}
+
+/** D-530 : l'étape `index` du For time ouvre-t-elle un tour (premier exercice du tour, hors buy-in et buy-out) ? */
+function forTimeRoundStartOf(config: ForTimeScopeConfig, index: number): RoundStart | null {
+  const current = config.items[index];
+  if (current?.type !== "LEAF" || current.leaf.kind !== "ACTIVITY") return null;
+  if (BUY_IN_KEY.test(current.leaf.key) || BUY_OUT_KEY.test(current.leaf.key)) return null;
+  const round = roundKeyOf(current.leaf);
+  const leaves = childLeaves(config.items).filter((leaf) => roundKeyOf(leaf) === round);
+  if (leaves.find((leaf) => leaf.kind === "ACTIVITY") !== current.leaf) return null;
+  const rank = forTimeRoundRank(round);
+  return rank === null ? null : { rank, repetitions: roundRepetitions(leaves) };
+}
+
+/** D-530 : l'étape en cours de la boucle AMRAP ouvre-t-elle le tour `local.round` (premier exercice du tour) ? */
+function amrapRoundStartOf(leaves: readonly LeafSpec[], local: AmrapLocal): RoundStart | null {
+  if (local.segment !== "LOOP") return null;
+  const current = leaves[local.index];
+  if (current === undefined || current.kind !== "ACTIVITY") return null;
+  if (leaves.slice(0, local.index).some((leaf) => leaf.kind === "ACTIVITY")) return null;
+  return { rank: local.round, repetitions: roundRepetitions(leaves) };
+}
 
 /**
  * PRE-11 (T2) — EMOM (FMT-20 à FMT-25 ; Figma `8982:15709` « Exécution d'une séance — EMOM — repos déclaré ») : rang et nombre des
@@ -679,6 +731,7 @@ function formatOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): FormatVie
     phaseStarts: local.phaseStarts ?? [],
     duration: local.phase === "WORK" ? durationOf(plan, state, config, local, atMs) : null,
     command: local.phase === "WORK" ? forTimeCommandOf(config, local.index) : null,
+    roundStart: local.phase === "WORK" ? forTimeRoundStartOf(config, local.index) : null,
     emom: null,
     amrap: null,
     deathBy: null,
@@ -826,6 +879,7 @@ function amrapFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: strin
     phaseStarts: [],
     duration,
     command: local.phase === "WORK" ? amrapCommandOf(leaves, local) : null,
+    roundStart: local.phase === "WORK" ? amrapRoundStartOf(leaves, local) : null,
     emom: null,
     amrap: { round: local.round, completedRounds: local.completedRounds, block: config.block, blocks: config.blocks },
     deathBy: null,

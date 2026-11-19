@@ -85,7 +85,7 @@ describe("modale Guidage sonore de la Composition", () => {
 
   it("réouverture : valeurs validées pour la séance ; « Fermer » abandonne les changements", async () => {
     const own: GuidanceSettings = {
-      announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: true },
+      announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: true, rounds: true },
       events: { ...DEFAULT_GUIDANCE_EVENTS, HALF_TIME: { sound: "NONE", vibration: true } },
     };
     const { onApply, onClose } = await renderSheet(own);

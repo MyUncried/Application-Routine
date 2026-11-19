@@ -43,7 +43,7 @@ import { layout, spacing } from "@/shared/ui/tokens";
  */
 const SESSION_SETTINGS: readonly ProfileDurationSetting[] = ["sessionInitialCountdownSecondsDefault", "sessionFinalPhaseSecondsDefault"];
 
-/** Les six annonces vocales reprennent les bascules déjà enregistrées du Profil. */
+/** Les sept annonces vocales reprennent les bascules enregistrées du Profil (« Annonce des tours » : D-530, 18/11/2026). */
 const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePreference>> = {
   session: "announceSessionEnabled",
   names: "voiceAnnouncementsEnabled",
@@ -51,6 +51,7 @@ const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePrefer
   objective: "announceObjectiveEnabled",
   pauses: "announcePausesEnabled",
   sides: "announceSidesEnabled",
+  rounds: "announceRoundsEnabled",
 };
 
 type ProfileTab = "profile" | "preferences" | "community";

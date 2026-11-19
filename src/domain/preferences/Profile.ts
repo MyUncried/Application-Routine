@@ -45,6 +45,8 @@ export const DEFAULT_ANNOUNCE_SESSION_ENABLED = true as const;
 export const DEFAULT_ANNOUNCE_SIDES_ENABLED = true as const;
 /** Recette du 10/11/2026 (constat B) : annonce du nom des phases du mouvement, activée par défaut. */
 export const DEFAULT_ANNOUNCE_PHASES_ENABLED = true as const;
+/** D-530 / RM-269 (Hermann, 18/11/2026) : annonce des tours en AMRAP et en For time, activée par défaut. */
+export const DEFAULT_ANNOUNCE_ROUNDS_ENABLED = true as const;
 /**
  * Catalogue des Mouvements (décision de Hermann du 16/11/2026, CE-MVT-03, Bascule) : la liste reste la présentation d'origine ;
  * la grille est choisie par la bascule et le choix est mémorisé.
@@ -83,6 +85,8 @@ export type Profile = {
   readonly announceSidesEnabled: boolean;
   /** Annonce du nom des phases du mouvement. */
   readonly announcePhasesEnabled: boolean;
+  /** Annonce des tours (AMRAP, For time) : « Premier tour, 21 répétitions »… (D-530). */
+  readonly announceRoundsEnabled: boolean;
   /** Catalogue des Mouvements présenté en grille (`true`) ou en liste (`false`, défaut) — choix de la bascule, mémorisé. */
   readonly movementCatalogueGridEnabled: boolean;
   /**
@@ -118,6 +122,7 @@ export function createDefaultProfile(id: string, updatedAt: string): Profile {
     announceSessionEnabled: DEFAULT_ANNOUNCE_SESSION_ENABLED,
     announceSidesEnabled: DEFAULT_ANNOUNCE_SIDES_ENABLED,
     announcePhasesEnabled: DEFAULT_ANNOUNCE_PHASES_ENABLED,
+    announceRoundsEnabled: DEFAULT_ANNOUNCE_ROUNDS_ENABLED,
     movementCatalogueGridEnabled: DEFAULT_MOVEMENT_CATALOGUE_GRID_ENABLED,
     guidanceEvents: DEFAULT_GUIDANCE_EVENTS,
     displayName: null,
@@ -140,6 +145,7 @@ export function profileGuidance(profile: Profile): GuidanceSettings {
       objective: profile.announceObjectiveEnabled,
       pauses: profile.announcePausesEnabled,
       sides: profile.announceSidesEnabled,
+      rounds: profile.announceRoundsEnabled,
     },
     events: profile.guidanceEvents,
   };

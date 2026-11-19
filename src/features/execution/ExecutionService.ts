@@ -38,7 +38,7 @@ import {
   type TransitionResult,
 } from "@/domain/execution/kernel";
 import { compileExecutablePlan, EXECUTABLE_PLAN_VERSION, guidedPhases, launchabilityOf, type ExecutablePlan, type Launchability, type LeafKind } from "@/domain/execution/plan";
-import { projectExecution, type ExecutionProjection } from "@/domain/execution/projection";
+import { projectExecution, type ExecutionProjection, type RoundStart } from "@/domain/execution/projection";
 import { executionEnv } from "@/domain/execution/policies";
 import { businessStatusOf, occurrenceResults, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
 import type { ExecutionMode, SeriesTarget } from "@/domain/activities/ExecutionParameters";
@@ -89,6 +89,11 @@ export type ExecutionSignal = {
    * Hermann du 18/11/2026 : « Bip long de la minute au début de chaque fenêtre »).
    */
   readonly windowStart?: boolean;
+  /**
+   * D-530 / RM-269 (Hermann, 18/11/2026) : l'étape qui commence ouvre un tour du For time ou de l'AMRAP — rang et objectif de
+   * répétitions du tour (`null` s'il n'est pas unique) ; absent ou `null` sinon.
+   */
+  readonly round?: RoundStart | null;
 };
 
 export type ExecutionServiceDeps = {
@@ -467,6 +472,7 @@ export class ExecutionService {
       series: projection?.series ?? null,
       exerciseCount: this.active === null ? 0 : Object.keys(this.active.plan.exercises).length,
       windowStart: signal.kind === "TRANSITION" && this.active?.state.leaf?.spec.windowStart === true && this.active.state.leaf.openedAtMs === signal.atMs,
+      round: signal.kind === "TRANSITION" && projection?.phase === "ACTIVITY" ? (projection.format?.roundStart ?? null) : null,
     };
   }
 
