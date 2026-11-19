@@ -64,3 +64,29 @@
 - Branche `assets/illustrations-60-20261117` : commits d'illustration `88dc9eb`, `e4e1487`, `ab32779`, `5ea4b70`, `4c9dca7`, chacun suivi d'un commit de catalogue (révision de fiche +1, suivi mis à jour), tous vérifiés sur `origin`. Contrôle final : 60/60 photos au format 1206 × 987, octets intégrés identiques aux fichiers, catalogue 2.0.0 en révision 67.
 - Catalogue de recette 3.0.0 (`catalogue/illustrations/kodjo-pilote-60.illustre-v3.json`) : photos remplacées pour ces 5 fiches, qui passent en révision 6 (historique contenant 4 et 5) ; catalogue en révision 65 ; 60/60 photos identiques aux fichiers ; fichier revalidé par le parseur.
 - Remarque : sur REED-010, le bout des doigts de la main tendue touche le bord droit de l'image.
+
+## Suite — une seule notion de médias (décisions de Hermann du 19/11/2026)
+
+Classe B. Décision recopiée : « Je n'ai jamais exprimé le besoin d'avoir les médias d'une part et la photo d'autre part. Dans mon esprit c'était toujours la même chose » ; puis « Fais les deux ».
+
+### Diagnostic
+- Une photo ajoutée sur le téléphone est un fichier `kodjo-media/<uuid>` relié au Mouvement (`movement_media`). Fiche, Catalogue des Mouvements et Formats lisent cette seule liste (D-264).
+- `projectSheetToMovement` installe le Mouvement avec `media: []` depuis l'intégration du chargement de catalogue (10-11/11, CA-3). La photo de la fiche restait dans le registre, invisible des écrans. Les deux contournements du 19/11 (photo sur la fiche, `5912db6` ; vignette, `70b206d0`) ne couvraient pas les Formats.
+
+### Modifications
+- `8a7792aa`, `42ccde18` : retour des deux contournements.
+- `097fd18c` : `src/domain/catalogue/catalogueMedia.ts` (photos intégrées aux droits confirmés → fichiers ; identité d'asset `catalogue-<empreinte du contenu>` ; médias de la fiche en tête, autres médias du Mouvement conservés). `src/infrastructure/media/CatalogueMediaWriter.ts` (écriture base64 par `File.write` d'Expo 57 sous `kodjo-media/`, fichier existant non réécrit). `CatalogueLoadService` : installation, adoption, mise à jour (y compris photo seule changée) et reprise après interruption comparent et écrivent les médias. Écrivain branché dans `CatalogueLoadScreen.tsx` et `useLibraryServices.ts`.
+- Lecture seule A-2 vérifiée : `MovementCatalogueService.update` refuse (`PROTECTED`) l'écriture d'un Mouvement importé ; seul `updateFromSource` (chargement) l'écrit.
+- `61ff1165` : documentation. Chapitre 04 ; chapitre 03 (Espace en étoile) ; registre (KIN-01 et nouvelle section « Médias du Mouvement — une seule notion ») ; format catalogue §9 ; modèle cible Étape 2 (MOUV-D2, point 5, partage personnalisé). Décisions du partage recopiées : retrait par le destinataire « Oui » ; nouvelle version « La conserve » ; limite de taille « À CLARIFIER » après comparatif.
+- Catalogue de recette : nouvelle révision des 60 fiches (révision du catalogue 66) pour que les Mouvements déjà installés sans média reçoivent leur photo.
+
+### Preuves
+- `npx tsc --noEmit -p .` : aucune erreur.
+- `src/features/catalogue/__tests__/catalogueMedia.sqlite.test.ts` (vrais fichiers temporaires, SQLite réelle) : 6/6. Couvre la sélection des photos, l'ordre, l'installation, la mise à jour de la photo seule, une fiche installée sans média puis révisée, et l'absence de réécriture d'une photo identique.
+- `npx jest src/domain src/features src/infrastructure` : 5 990 réussis, 0 échec. Administration (`node --test`) : 33/33.
+
+### Non démontré / reste à faire
+- Rendu sur iPhone non vérifié.
+- Médias distants et vidéos de fiche (MOUV-D2, chargement à la demande) : non implémentés.
+- Partage personnalisé : cible documentée, non développé.
+- Les assets `catalogue-*` remplacés lors d'une mise à jour ne sont pas supprimés (règle existante : aucun fichier supprimé).

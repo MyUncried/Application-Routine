@@ -4,7 +4,7 @@
   "catalogue": {
     "id": "kodjo.pilote-60",
     "title": "Catalogue pilote KODJO — 60 fiches de test",
-    "revision": "65",
+    "revision": "66",
     "owner": null,
     "notes": [
       "Conversion initiale (CA-2) du 2026-11-10 ; ce fichier fait désormais foi et s'édite directement.",
@@ -655,7 +655,7 @@
   "sheets": [
     {
       "sheetId": "REED-001",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -680,6 +680,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -757,7 +763,7 @@
     },
     {
       "sheetId": "REED-002",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -788,6 +794,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -867,7 +879,7 @@
     },
     {
       "sheetId": "REED-003",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -892,6 +904,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -966,7 +984,7 @@
     },
     {
       "sheetId": "REED-004",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -991,6 +1009,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1068,7 +1092,7 @@
     },
     {
       "sheetId": "REED-005",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1093,6 +1117,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1168,7 +1198,7 @@
     },
     {
       "sheetId": "REED-006",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1193,6 +1223,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1268,7 +1304,7 @@
     },
     {
       "sheetId": "REED-007",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1293,6 +1329,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1369,7 +1411,7 @@
     },
     {
       "sheetId": "REED-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1400,6 +1442,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1477,7 +1525,7 @@
     },
     {
       "sheetId": "REED-009",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1502,6 +1550,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1580,7 +1634,7 @@
     },
     {
       "sheetId": "REED-010",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -1617,6 +1671,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration refaite au format de l'emplacement photo (1206 × 987)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1694,7 +1754,7 @@
     },
     {
       "sheetId": "FIT-CRO-001",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -1731,6 +1791,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration refaite au format de l'emplacement photo (1206 × 987)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1810,7 +1876,7 @@
     },
     {
       "sheetId": "FIT-CRO-002",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1841,6 +1907,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -1920,7 +1992,7 @@
     },
     {
       "sheetId": "FIT-CRO-003",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1945,6 +2017,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2024,7 +2102,7 @@
     },
     {
       "sheetId": "FIT-CRO-004",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2049,6 +2127,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2124,7 +2208,7 @@
     },
     {
       "sheetId": "FIT-CRO-005",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2149,6 +2233,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2226,7 +2316,7 @@
     },
     {
       "sheetId": "FIT-CRO-006",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2251,6 +2341,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2332,7 +2428,7 @@
     },
     {
       "sheetId": "FIT-CRO-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2363,6 +2459,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2439,7 +2541,7 @@
     },
     {
       "sheetId": "FIT-CRO-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2470,6 +2572,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2548,7 +2656,7 @@
     },
     {
       "sheetId": "FIT-CRO-009",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2573,6 +2681,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2652,7 +2766,7 @@
     },
     {
       "sheetId": "FIT-CRO-010",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2677,6 +2791,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2753,7 +2873,7 @@
     },
     {
       "sheetId": "FIT-HYR-001",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2778,6 +2898,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2855,7 +2981,7 @@
     },
     {
       "sheetId": "FIT-HYR-002",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2880,6 +3006,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -2960,7 +3092,7 @@
     },
     {
       "sheetId": "FIT-HYR-003",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2985,6 +3117,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3061,7 +3199,7 @@
     },
     {
       "sheetId": "FIT-HYR-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3092,6 +3230,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3171,7 +3315,7 @@
     },
     {
       "sheetId": "FIT-HYR-005",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3196,6 +3340,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3273,7 +3423,7 @@
     },
     {
       "sheetId": "FIT-HYR-006",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3298,6 +3448,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3375,7 +3531,7 @@
     },
     {
       "sheetId": "FIT-HYR-007",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3400,6 +3556,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3481,7 +3643,7 @@
     },
     {
       "sheetId": "FIT-HYR-008",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3506,6 +3668,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3587,7 +3755,7 @@
     },
     {
       "sheetId": "FIT-HYR-009",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3612,6 +3780,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3688,7 +3862,7 @@
     },
     {
       "sheetId": "FIT-HYR-010",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3713,6 +3887,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3792,7 +3972,7 @@
     },
     {
       "sheetId": "FIT-PIL-001",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3817,6 +3997,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3895,7 +4081,7 @@
     },
     {
       "sheetId": "FIT-PIL-002",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3920,6 +4106,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -3998,7 +4190,7 @@
     },
     {
       "sheetId": "FIT-PIL-003",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4023,6 +4215,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4099,7 +4297,7 @@
     },
     {
       "sheetId": "FIT-PIL-004",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4124,6 +4322,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4202,7 +4406,7 @@
     },
     {
       "sheetId": "FIT-PIL-005",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4227,6 +4431,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4305,7 +4515,7 @@
     },
     {
       "sheetId": "FIT-PIL-006",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4330,6 +4540,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4408,7 +4624,7 @@
     },
     {
       "sheetId": "FIT-PIL-007",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4433,6 +4649,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4510,7 +4732,7 @@
     },
     {
       "sheetId": "FIT-PIL-008",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4535,6 +4757,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4613,7 +4841,7 @@
     },
     {
       "sheetId": "FIT-PIL-009",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4638,6 +4866,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4716,7 +4950,7 @@
     },
     {
       "sheetId": "FIT-PIL-010",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4741,6 +4975,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4819,7 +5059,7 @@
     },
     {
       "sheetId": "FIT-YOG-001",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -4844,6 +5084,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -4920,7 +5166,7 @@
     },
     {
       "sheetId": "FIT-YOG-002",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -4957,6 +5203,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration refaite au format de l'emplacement photo (1206 × 987)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5034,7 +5286,7 @@
     },
     {
       "sheetId": "FIT-YOG-003",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -5071,6 +5323,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration refaite au format de l'emplacement photo (1206 × 987)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5147,7 +5405,7 @@
     },
     {
       "sheetId": "FIT-YOG-004",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5172,6 +5430,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5249,7 +5513,7 @@
     },
     {
       "sheetId": "FIT-YOG-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5280,6 +5544,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5357,7 +5627,7 @@
     },
     {
       "sheetId": "FIT-YOG-006",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -5394,6 +5664,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration refaite au format de l'emplacement photo (1206 × 987)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5470,7 +5746,7 @@
     },
     {
       "sheetId": "FIT-YOG-007",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5495,6 +5771,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5572,7 +5854,7 @@
     },
     {
       "sheetId": "FIT-YOG-008",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5597,6 +5879,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5675,7 +5963,7 @@
     },
     {
       "sheetId": "FIT-YOG-009",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5700,6 +5988,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5777,7 +6071,7 @@
     },
     {
       "sheetId": "FIT-YOG-010",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5802,6 +6096,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5880,7 +6180,7 @@
     },
     {
       "sheetId": "FIT-STR-001",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5905,6 +6205,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -5982,7 +6288,7 @@
     },
     {
       "sheetId": "FIT-STR-002",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6007,6 +6313,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6084,7 +6396,7 @@
     },
     {
       "sheetId": "FIT-STR-003",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6109,6 +6421,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6186,7 +6504,7 @@
     },
     {
       "sheetId": "FIT-STR-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6217,6 +6535,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6294,7 +6618,7 @@
     },
     {
       "sheetId": "FIT-STR-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6325,6 +6649,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6401,7 +6731,7 @@
     },
     {
       "sheetId": "FIT-STR-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6432,6 +6762,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6507,7 +6843,7 @@
     },
     {
       "sheetId": "FIT-STR-007",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6532,6 +6868,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6607,7 +6949,7 @@
     },
     {
       "sheetId": "FIT-STR-008",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6632,6 +6974,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6709,7 +7057,7 @@
     },
     {
       "sheetId": "FIT-STR-009",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6734,6 +7082,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
@@ -6809,7 +7163,7 @@
     },
     {
       "sheetId": "FIT-STR-010",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6834,6 +7188,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
         }
       ],
       "provenance": {
