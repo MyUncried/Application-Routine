@@ -19,7 +19,7 @@ import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
-import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
+import { CalendarViewTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -86,38 +86,6 @@ export function plannedCountLabel(count: number): string {
   return fillTemplate(count === 1 ? t.calendar.planned.one : t.calendar.planned.other, { count: String(count) });
 }
 
-/**
- * Barre de titre à onglets du Calendrier (D-532, DSF Barre de titre à onglets du 19/11/2026 ; Figma `12580:27335`) :
- * Journal · Agenda · Vue d'ensemble, au format des onglets des Catalogues — composant partagé `CatalogueNavigation`
- * (trois emplacements fixes, onglet actif en gras sur la forme arrondie raccordée à la zone de contexte `#EAEAFF`).
- * Navigation inchangée : Agenda (ancienne vue Semaine) est la seule vue livrée ; Journal et Vue d'ensemble restent
- * présents et indisponibles, comme Jour et Mois avant eux. [Avant : « Jour | Semaine | Mois », séparés par des traits,
- * vue active en bleu KODJO — remplacé le 19/11/2026.]
- */
-function CalendarViewTabs() {
-  const views = [
-    { value: "day", label: t.calendar.views.day, available: false },
-    { value: "week", label: t.calendar.views.week, available: true },
-    { value: "month", label: t.calendar.views.month, available: false },
-  ] as const;
-  return (
-    <View style={styles.viewTabs}>
-      <CatalogueNavigation
-        options={views.map((view) => ({
-          value: view.value,
-          label: view.label,
-          disabled: !view.available,
-          accessibilityLabel: view.available ? view.label : fillTemplate(t.calendar.viewUnavailable, { view: view.label }),
-        }))}
-        value="week"
-        onChange={() => undefined}
-        selectedColor={colors.catalogueSessionsContext}
-        testID="calendar-view-row"
-      />
-    </View>
-  );
-}
-
 /** Doubles flèches du mois (Figma « icon/mois précédent / suivant », 30 × 24 : deux flèches décalées de 7). */
 function DoubleChevron({ source }: { readonly source: number }) {
   return (
@@ -128,7 +96,14 @@ function DoubleChevron({ source }: { readonly source: number }) {
   );
 }
 
-export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: LocalDate } = {}) {
+export function CalendarWeekScreen({
+  initialDay,
+  onChangeView = () => undefined,
+}: {
+  readonly initialDay?: LocalDate;
+  /** D-535 : onglet Journal de la barre de titre. */
+  readonly onChangeView?: (view: CalendarView) => void;
+} = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const planning = usePlanningService();
@@ -296,7 +271,7 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
 
   return (
     <ScreenShell>
-      <FixedHeader title={t.calendar.title} content={<CalendarViewTabs />} layoutStyle={styles.header} />
+      <FixedHeader title={t.calendar.title} content={<CalendarViewTabs value="agenda" onChange={onChangeView} />} layoutStyle={styles.header} />
       {/* DSF Agenda § 2 : trois lignes centrées, espacées de 6 — mois, semaine, « Aujourd'hui » et Planifier. */}
       <ContextBand fadeToTransparent color={colors.catalogueSessionsContext}>
         <View style={styles.contextLines}>
@@ -578,7 +553,6 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
 const styles = StyleSheet.create({
   // DSF Barre de titre à onglets § 2 : en-tête et barre d'état teintés #F7F7FF, comme le Catalogue des séances.
   header: { backgroundColor: colors.catalogueSessionsBackground },
-  viewTabs: { flex: 1, alignSelf: "stretch" },
   // DSF Agenda § 2 : trois lignes centrées, espacées de 6.
   contextLines: { paddingHorizontal: layout.screenGutter, gap: 6 },
   monthNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
