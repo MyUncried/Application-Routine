@@ -143,6 +143,79 @@ Conséquences sur le plan :
 - aucun écran de déconnexion ;
 - stockage du nom et de l'e-mail du compte dans `account_link`.
 
+## PROPOSITION D'ÉCRANS (19/11/2026, à valider par Hermann)
+
+**Principes :**
+- composants existants et primitives natives (priorité aux primitives natives de l'OS) ;
+- aucune frame Figma n'existe pour ces écrans ; tous les textes sont **à valider** ;
+- les jetons de couleur existants sont réutilisés : danger `#D92D20`, fond `#F7F7FF`.
+
+### É1 — Écran de connexion (porte d'entrée)
+
+**Quand :** premier lancement, et installations existantes au premier lancement après la mise à jour.
+
+**Mise en page :**
+- même fond et même logo que l'écran de démarrage `KodjoSplash` ;
+- **Titre :** « Bienvenue dans KODJO ».
+- **Texte :** « Connectez-vous pour créer vos séances et partager vos mouvements. »
+- **Variante pour une installation existante :** « Vos séances et votre historique restent sur ce téléphone et seront rattachés à votre compte. »
+- **Deux boutons de même taille, en bas d'écran :**
+
+| | Premier bouton | Second bouton |
+|---|---|---|
+| iOS | « Continuer avec Apple » : bouton **natif** Apple (`AppleAuthenticationButton`, noir) | « Continuer avec Google » : style imposé par Google (blanc, logo G) |
+| Android | Google | Apple, au style imposé par Apple |
+
+Les règles d'Apple exigent que son bouton soit au moins aussi visible que les autres.
+
+- **Lien en bas :** « Politique de confidentialité ».
+
+**États :**
+- **Sans réseau :** « Une connexion Internet est nécessaire pour vous connecter la première fois. »
+- **Annulation par l'utilisateur :** retour silencieux à l'écran.
+- **Erreur :** alerte native « La connexion n'a pas abouti. Réessayez. »
+- La page web d'Apple ou de Google (Android, et Google sur iOS) s'ouvre dans la fenêtre système du navigateur. Rien à concevoir.
+
+### É2 — Section Compte (Profil, onglet Profil, écran « Modifier le profil »)
+
+Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le style des groupes du Profil (`GuidanceSection` : titre de section, lignes séparées).
+
+- **Titre de section :** « Compte ».
+- **Ligne fournisseur :** « Connecté avec Apple » ou « Connecté avec Google », avec l'icône du fournisseur.
+- **Ligne Nom :** nom du compte (CPT-13).
+- **Ligne E-mail :** l'e-mail du compte. Pour une adresse relais Apple, mention dessous : « Adresse masquée par Apple ».
+- **Plus bas, isolé :** bouton texte rouge danger « Supprimer mon compte ».
+- Aucun bouton « Se déconnecter » (CPT-15).
+
+### É3 — Confirmation de suppression (alerte native, bouton destructif)
+
+**Titre :** « Supprimer votre compte ? »
+
+**Message :**
+> Votre compte, votre catalogue et les contenus que vous avez partagés seront supprimés de nos serveurs. Les personnes qui les ont déjà reçus les conservent.
+> Vos séances, mouvements et historique restent sur ce téléphone. Pour les effacer, supprimez l'application.
+
+**Boutons :** « Annuler » / « Supprimer » (rouge).
+
+**Ensuite :**
+- **Pendant :** indicateur d'activité.
+- **Sans réseau :** « La suppression du compte nécessite une connexion Internet. »
+- **Succès :** retour à É1.
+
+### É4 — Refus d'un autre compte (alerte native, CPT-14)
+
+**Titre :** « Ce téléphone appartient à un autre compte »
+
+**Message :**
+> Ses données sont rattachées au compte {Apple|Google} {e-mail}. Connectez-vous avec ce compte, ou supprimez l'application pour repartir de zéro avec un autre compte. Supprimer l'application efface les données de ce téléphone.
+
+**Bouton :** « OK ».
+
+### Prérequis ajoutés par cette proposition
+
+- **Politique de confidentialité** publiée (URL), exigée par l'App Store, Google Play et le RGPD. **Rédaction à prévoir, à la charge de Hermann ou d'un juriste.**
+- **Déclarations de données des stores :** « App Privacy » chez Apple, « Data safety » chez Google. Elles sont cohérentes avec CPT-11 : seuls l'identité et le contenu partagé sont collectés.
+
 ## STATUT
 
 PLAN_READY_FOR_REVIEW
