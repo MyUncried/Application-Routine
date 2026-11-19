@@ -4,7 +4,7 @@
   "catalogue": {
     "id": "kodjo.pilote-60",
     "title": "Catalogue pilote KODJO — 60 fiches de test",
-    "revision": "63",
+    "revision": "64",
     "owner": null,
     "notes": [
       "Conversion initiale (CA-2) du 2026-11-10 ; ce fichier fait désormais foi et s'édite directement.",
@@ -757,7 +757,7 @@
     },
     {
       "sheetId": "REED-002",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -782,6 +782,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -1363,7 +1369,7 @@
     },
     {
       "sheetId": "REED-008",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1388,6 +1394,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -1568,7 +1580,7 @@
     },
     {
       "sheetId": "REED-010",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1593,6 +1605,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -1780,7 +1798,7 @@
     },
     {
       "sheetId": "FIT-CRO-002",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -1805,6 +1823,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -2296,7 +2320,7 @@
     },
     {
       "sheetId": "FIT-CRO-007",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2321,6 +2345,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -2397,7 +2427,7 @@
     },
     {
       "sheetId": "FIT-CRO-008",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -2422,6 +2452,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -3013,7 +3049,7 @@
     },
     {
       "sheetId": "FIT-HYR-004",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -3038,6 +3074,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -5183,7 +5225,7 @@
     },
     {
       "sheetId": "FIT-YOG-005",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -5208,6 +5250,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -6108,7 +6156,7 @@
     },
     {
       "sheetId": "FIT-STR-004",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6133,6 +6181,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -6210,7 +6264,7 @@
     },
     {
       "sheetId": "FIT-STR-005",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6235,6 +6289,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
@@ -6311,7 +6371,7 @@
     },
     {
       "sheetId": "FIT-STR-006",
-      "revision": "4",
+      "revision": "5",
       "history": [
         {
           "revision": "1",
@@ -6336,6 +6396,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Republication de l'illustration au format 3.0.0 : nouvelle révision prolongeant celles déjà installées"
+        },
+        {
+          "revision": "5",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Republication de l'illustration : révision prolongeant la révision 4 restée sur le téléphone de recette"
         }
       ],
       "provenance": {
