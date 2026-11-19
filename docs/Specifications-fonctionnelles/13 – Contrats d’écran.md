@@ -4428,6 +4428,10 @@ Une information, un coin, dans tous les formats. Au plus quatre informations, un
 
 Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
 
+### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
+
+Écran « Agenda — Planning (proposition) » (`12580:27335`) : rendu et mises en page décrits dans le [DSF Agenda](../DSF-AGENDA-PLANNING-2026-11-19.md). Aucune règle métier nouvelle ; la propriété « spécialité » d’une routine reste À CLARIFIER (absente du modèle de données).
+
 ### Contrôles et layout de planification
 
 #### Règles d'interface propres à la planification

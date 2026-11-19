@@ -28,3 +28,9 @@
 - Écran « Agenda — Planning (proposition) » inchangé ; collision de mot « Agenda » à arbitrer.
 
 - Figma : contenu du modal « Sélecteur numéroté » reporté dans « Modal — Planifier une séance — Sélectionner une séance » `7599:14197` (arrière-plan conservé) ; écran `12628:34456` supprimé.
+
+## Complément du 19/11/2026 (suite) — Agenda
+
+- Figma : écran « Agenda — Planning (proposition) » repris (onglets, zone de contexte en trois lignes, cartes de jours, carte de routine) ; bande et dégradé des 15 écrans calendrier alignés sur la zone de contexte de « Planifier une séance ».
+- Docs : `docs/DSF-AGENDA-PLANNING-2026-11-19.md` créé ; D-533 (registre, ch07) ; CE-UI-15 (ch13). Classe B pour le rendu, classe C (À CLARIFIER) pour la spécialité, la condition d’« Aujourd’hui » et la logique des teintes.
+- Non vérifié : rendu visuel des écrans (captures non lisibles depuis l’environnement).
