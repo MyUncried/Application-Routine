@@ -4003,7 +4003,7 @@ Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissement
 
 #### 1. Identification
 
-Calendrier ; frames 1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois 1992:5237 ; suppressions 1992:5365/6102.
+Calendrier ; frames 1992:5101,2252:86,1992:6389,1992:5962,2094:86 [supprimé le 19/11/2026, redondant avec 1992:5962],2074:86 ; Mois 1992:5237 ; suppressions 1992:5365/6102.
 
 Règles applicables : RM-045, RM-046, RM-050, RM-072, RM-112, RM-123 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
