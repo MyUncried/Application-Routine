@@ -101,6 +101,18 @@ export function normalizeName(raw: string): string {
 }
 
 /**
+ * Recette du 17/11/2026 (Hermann : « le nom d'une séance doit être unique ») : clé de comparaison des noms de
+ * Séance — espaces normalisés, casse ignorée, accents retirés, comme le nom de Mouvement (C01) et les noms de
+ * Catégorie, d'Étiquette et de Zone (`canonicalCategoryKey`). Le nom enregistré garde sa casse et ses accents.
+ */
+export function canonicalSessionNameKey(raw: string): string {
+  return normalizeName(raw)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
+/**
  * `undefined`/`null`/chaîne blanche deviennent `null`. Sinon, seuls les
  * espaces et retours à la ligne externes sont retirés (`trim`) ; les
  * espaces et retours à la ligne internes sont conservés tels quels — une

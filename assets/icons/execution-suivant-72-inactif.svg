@@ -1,0 +1,6 @@
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Suivant 72 inactif du For time (exercice en durée du buy-in ou du buy-out) : modèle du « + Tour » désactivé, fond blanc,
+     contour et symbole #B4B9C4. -->
+<circle cx="36" cy="36" r="35" fill="#FFFFFF" stroke="#B4B9C4" stroke-width="2"/>
+<path d="M25 24L36 36L25 48M46 24V48" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke="#B4B9C4"/>
+</svg>

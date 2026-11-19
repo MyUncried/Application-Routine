@@ -30,6 +30,7 @@ import {
   type StructuredSessionRepository,
 } from "@/domain/sessions/SessionRepository";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
+import { canonicalSessionNameKey } from "@/domain/sessions/validation";
 import { markMovementCreated } from "@/features/activities/newMovementMarks";
 import { isImportedMovement } from "@/features/catalogue/importedMovements";
 
@@ -71,6 +72,9 @@ export type LoadSessionForEditResult =
  * `NOT_FOUND` : Séance inconnue ou non active. `INVALID` : brouillon de copie
  * refusé par la validation du Domaine (aucune écriture).
  */
+/** Recette du 17/11/2026 : nom de Séance déjà porté par une autre Séance active. */
+export const SESSION_NAME_TAKEN: ValidationViolation = { code: "DUPLICATE", field: "session.name" };
+
 export type DuplicateSessionResult =
   | { readonly status: "DUPLICATED"; readonly session: StructuredSession }
   | { readonly status: "NOT_FOUND" }
@@ -142,6 +146,7 @@ export class SessionService {
     }
     const protectedViolations = await importedMovementViolations(validated.value.movements);
     if (protectedViolations.length > 0) return { ok: false, violations: protectedViolations };
+    if (await this.isSessionNameTaken(validated.value.name, null)) return { ok: false, violations: [SESSION_NAME_TAKEN] };
 
     const session = await this.structuredRepository().createStructured(validated.value);
     markDraftMovementsCreated(draft);
@@ -166,6 +171,7 @@ export class SessionService {
     }
     const protectedViolations = await importedMovementViolations(validated.value.movements);
     if (protectedViolations.length > 0) return { status: "INVALID", violations: protectedViolations };
+    if (await this.isSessionNameTaken(validated.value.name, sessionId)) return { status: "INVALID", violations: [SESSION_NAME_TAKEN] };
 
     const outcome = await this.structuredRepository().updateStructured(sessionId, {
       ...validated.value,
@@ -217,6 +223,19 @@ export class SessionService {
   /** PRE-8 (E.5) : suppression définitive d'une Séance archivée (confirmée par l'interface). */
   async deleteArchivedSession(sessionId: string): Promise<SessionLifecycleOutcome> {
     return this.catalogueRepository().deleteArchived(sessionId);
+  }
+
+  /**
+   * Recette du 17/11/2026 (Hermann : « actuellement deux séances peuvent avoir le même nom, à corriger, le nom d'une
+   * séance doit être unique ») : nom déjà porté par une autre Séance active (clé `canonicalSessionNameKey` : espaces,
+   * casse et accents ignorés), la Séance modifiée exclue. Les Séances archivées ne sont pas comparées, comme pour le
+   * nom d'une copie (`duplicateSession`) — à confirmer. Les doublons déjà enregistrés ne sont pas renommés.
+   */
+  async isSessionNameTaken(name: string, exceptSessionId: string | null): Promise<boolean> {
+    const key = canonicalSessionNameKey(name);
+    return (await this.sessionRepository.listActive()).some(
+      (summary) => summary.id !== exceptSessionId && canonicalSessionNameKey(summary.name) === key,
+    );
   }
 
   /** PRE-9 (A.1) : port structuré, implémenté par le repository SQLite. */

@@ -248,3 +248,11 @@ Correction de périmètre reçue : la mission est une **création** de la vue en
 - **Intégration :** `main` @ `7c0d2d21` (PR #440, `pre11-formats`) intégré sans conflit par le commit `d8ae5fa7`. `pre11-formats` n'ajoute aucune migration : la grille garde `migration030`, version 30.
 - **Tests sur le résultat :** 369 suites, 5 877 réussis, 32 ignorés, 0 échec ; `tsc` propre ; ESLint sans erreur sur les fichiers de la grille.
 - **Reste à faire :** pousser la branche, ouvrir la PR vers `main` et la fusionner, avec l'accord de Hermann.
+
+## Fusion dans main (17/11/2026)
+
+- **Validation de Hermann, recopiée :** « Fusionne ».
+- `main` @ `7c0d2d21` inchangé depuis l’intégration, sans `migration030` : aucune renumérotation.
+- Branche poussée ; PR #441 (https://github.com/MyUncried/Application-Routine/pull/441) « MERGEABLE / CLEAN », aucun contrôle GitHub déclenché.
+- PR fusionnée le 17/11/2026 à 06:32 UTC : `main` = `12f5713c`.
+- **Point ouvert :** `planification/main-20261113` utilise aussi `migration030` ; elle fusionnera en second et devra renuméroter (décision D2).

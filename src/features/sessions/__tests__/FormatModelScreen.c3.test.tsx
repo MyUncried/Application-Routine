@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 
@@ -892,7 +892,8 @@ describe("FormatModelScreen", () => {
       expect(screen.getByTestId("format-summary")).toBeTruthy();
       expect(screen.queryByTestId("format-validate")).toBeNull();
       for (const id of ["format-withLoad", "format-buyIn", "format-buyOut"]) expect(screen.queryByTestId(id)).toBeNull();
-      expect(rowIds()).toEqual(["roundCount", "restBetweenRoundsSeconds", "timeCapSeconds"]);
+      // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time ») : plus de « Repos entre les tours ».
+      expect(rowIds()).toEqual(["roundCount", "timeCapSeconds"]);
       // Demande de Hermann du 15/11/2026 (Figma `12341:27052`) : carte des paramètres pleine largeur, sans rayon, retrait de 12,
       // lignes de 31 — comme les trois blocs.
       expect(StyleSheet.flatten(screen.getByTestId("format-parameters").props.style)).toMatchObject({ marginHorizontal: 0, borderRadius: 0, paddingHorizontal: 12, paddingVertical: 4 });
@@ -939,10 +940,11 @@ describe("FormatModelScreen", () => {
       await pick("Fen", "mv-fentes", "format-loop");
       expect(screen.getByTestId("format-loop-head-2")).toHaveTextContent("Tour 3");
       // Écart (a) : le nombre de séries du buy-in se règle dans la modale ; à deux séries, « Variables » est disponible.
-      // Décision du 16/11/2026 : même modale que dans la Composition — ligne Rôle (Buy-in) et ligne Récupération.
+      // Décision du 16/11/2026 : même modale que dans la Composition — ligne Rôle (Buy-in). Recette du 17/11/2026 (Hermann : « Temps de
+      // repos supprimés en For time : […] Récupération après un exercice. ») : pas de ligne Récupération. [Ligne Récupération — remplacé.]
       await inSheet(0, () => {
         expect(screen.getByTestId("execution-sheet-format-role-row")).toBeTruthy();
-        expect(screen.getByTestId("execution-sheet-recovery", { includeHiddenElements: true })).toBeTruthy();
+        expect(screen.queryByTestId("execution-sheet-recovery", { includeHiddenElements: true })).toBeNull();
         fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
         expect(screen.getByTestId("execution-sheet-series-type-control-VARIABLE").props.accessibilityState).toMatchObject({ disabled: true });
         enterExecutionSheetValue("execution-sheet-series", 2, "integer");
@@ -1013,10 +1015,17 @@ describe("FormatModelScreen", () => {
       await pick("Fen", "mv-fentes", "format-loop");
       await fillForTime(0, ["30", "30", "30"], "DURATION");
       expect(parametersLine(0)).toHaveTextContent(/^durée$/);
-      const alert = jest.spyOn(Alert, "alert");
-      await fillForTime(1, ["30", "30", "30"], "DURATION");
-      expect(alert).toHaveBeenCalledWith(t.lastRepetitionsLocked);
-      alert.mockRestore();
+      // Recette du 17/11/2026 (autres remarques, a) : modale commune à la Composition — pour le dernier exercice en Répétitions, l'option
+      // Durée est grisée, avec le message court sous le cadre Exécution (règle du 05/11/2026). [Durée choisie puis refusée par une
+      // alerte au ✓ — remplacé.]
+      fireEvent.press(screen.getByTestId("format-for-time-1-name-open"));
+      await screen.findByTestId("execution-sheet");
+      expect(screen.getByTestId("execution-sheet-mode-control-DURATION").props.accessibilityState).toMatchObject({ disabled: true });
+      expect(screen.getByTestId("execution-sheet-duration-refused")).toHaveTextContent(t.lastRepetitionsLocked);
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+      });
+      await waitFor(() => expect(screen.queryByTestId("execution-sheet")).toBeNull(), { timeout: 4000 });
       expect(parametersLine(1)).toHaveTextContent(t.table.parametersToComplete);
     });
 
@@ -1033,11 +1042,8 @@ describe("FormatModelScreen", () => {
       await fillForTime(0, ["45", "45", "45"], "DURATION");
       expect(parametersLine(0)).toHaveTextContent(/^durée$/);
       await pick("Fen", "mv-fentes", "format-loop");
-      // Seul autre exercice en Durée : l'exercice en tour reste en Répétitions (au moins un en Répétitions, FMT-31).
-      const alert = jest.spyOn(Alert, "alert");
-      await fillForTime(1, ["30", "30", "30"], "DURATION");
-      expect(alert).toHaveBeenCalledWith(t.lastRepetitionsLocked);
-      alert.mockRestore();
+      // Seul exercice de la boucle : il reste en Répétitions (au moins un en Répétitions, FMT-31) — Durée grisée dans la modale
+      // (recette du 17/11/2026, autres remarques, a). [Durée refusée par une alerte au ✓ — remplacé.]
       await fillForTime(1, ["21", "15", "9"]);
       expect(parametersLine(1)).toHaveTextContent(/^rép\.$/);
     });
@@ -1046,7 +1052,9 @@ describe("FormatModelScreen", () => {
   // Décision de Hermann du 16/11/2026 : « la modale des paramètres d'exécution doit être la même qu'on l'ouvre de la composition de
   // séance ou de l'écran d'un format, les effets de changement de rôle sont aussi identiques ».
   describe("For time — modale identique à celle de la Composition (16/11/2026)", () => {
-    it("ligne Rôle : passer un exercice de la boucle en Buy-out le déplace dans le bloc Buy-out ; ligne Récupération : valeur propre au mouvement enregistrée", async () => {
+    // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Récupération après un exercice. ») : plus de ligne
+    // Récupération dans la modale For time. [« ligne Récupération : valeur propre au mouvement enregistrée » — remplacé.]
+    it("ligne Rôle : passer un exercice de la boucle en Buy-out le déplace dans le bloc Buy-out ; pas de ligne Récupération", async () => {
       mockModel = "FOR_TIME";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
@@ -1060,7 +1068,7 @@ describe("FormatModelScreen", () => {
         const kind = "integer";
         if (screen.queryByTestId("execution-sheet-table-row-1-target", { includeHiddenElements: true }) === null) enterExecutionSheetValue("execution-sheet-target", 30, kind);
         else for (let n = 1; screen.queryByTestId(`execution-sheet-table-row-${n}-target`, { includeHiddenElements: true }) !== null; n += 1) enterExecutionSheetValue(`execution-sheet-table-row-${n}-target`, 30, kind);
-        enterExecutionSheetValue("execution-sheet-recovery", 45);
+        expect(screen.queryByTestId("execution-sheet-recovery", { includeHiddenElements: true })).toBeNull();
       });
       await waitFor(() => expect(within(screen.getByTestId("format-buy-out")).getByText("Fentes avant")).toBeTruthy());
       expect(within(screen.getByTestId("format-loop")).queryByText("Fentes avant")).toBeNull();
@@ -1069,7 +1077,6 @@ describe("FormatModelScreen", () => {
       });
       const fentes = draftRef.current.exercises.find((exercise) => exercise.name === "Fentes avant")!;
       expect(fentes.format?.settings.circuitRole).toBe(2);
-      expect(fentes.postActivityRecoverySeconds).toBe(45);
     });
   });
 
@@ -1097,24 +1104,26 @@ describe("FormatModelScreen", () => {
       expect(structureCircuits(draftRef.current.structure!)[0]!.nature).toBe("SERIES");
     });
 
-    it("deux exercices : « Exécution » en dernière ligne, « En alternance » ; « À la suite » : « Nombre de séries », « Repos entre les séries », colonnes S1…, séries groupées enregistrées, séries = tours", async () => {
+    // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Repos entre les tours. • Repos entre les séries
+    // (mode « À la suite »). ») : ni l'une ni l'autre ligne. [« Repos entre les tours » / « Repos entre les séries » affichés — remplacé.]
+    it("deux exercices : « Exécution » en dernière ligne, « En alternance » ; « À la suite » : « Nombre de séries », sans repos, colonnes S1…, séries groupées enregistrées, séries = tours", async () => {
       mockModel = "FOR_TIME";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
       await screen.findByTestId("format-title");
       await pick("Squ", "mv-squats", "format-loop");
       await pick("Fen", "mv-fentes", "format-loop");
-      expect(rowIds()).toEqual(["roundCount", "restBetweenRoundsSeconds", "timeCapSeconds", "execution"]);
+      expect(rowIds()).toEqual(["roundCount", "timeCapSeconds", "execution"]);
       expect(screen.getByTestId("format-row-execution")).toHaveTextContent(t.executions.ALTERNATED, { exact: false });
       expect(screen.getByTestId("format-row-roundCount")).toHaveTextContent(t.rows.roundCount, { exact: false });
-      expect(screen.getByTestId("format-row-restBetweenRoundsSeconds")).toHaveTextContent(t.rows.restBetweenRoundsSeconds, { exact: false });
+      expect(screen.queryByTestId("format-row-restBetweenRoundsSeconds")).toBeNull();
       expect(screen.getByTestId("format-loop-head-0")).toHaveTextContent("Tour 1");
       await act(async () => {
         fireEvent.press(screen.getByTestId("format-execution-SEQUENCE"));
       });
       expect(screen.getByTestId("format-row-execution")).toHaveTextContent(t.executions.SEQUENCE, { exact: false });
       expect(screen.getByTestId("format-row-roundCount")).toHaveTextContent(t.rows.seriesCount, { exact: false });
-      expect(screen.getByTestId("format-row-restBetweenRoundsSeconds")).toHaveTextContent(t.rows.restBetweenSeriesSeconds, { exact: false });
+      expect(screen.queryByTestId("format-row-restBetweenRoundsSeconds")).toBeNull();
       expect(screen.getByTestId("format-loop-head-0")).toHaveTextContent("S1");
       await fillForTime(0, ["21", "15", "9"]);
       await fillForTime(1, ["21", "15", "9"]);

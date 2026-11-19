@@ -261,6 +261,12 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
   let group: { readonly key: string; readonly element: ForTimeElement; readonly cycle: number | null; readonly tour: number | null; readonly items: ChildSpec[] } | null = null;
   const silenced = forTimeTourMembers(snapshot);
   const leaf = (raw: LeafSpec) => {
+    // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : Pause après chaque série. Pause de changement de
+    // côté. Repos entre les tours. Repos entre les séries (mode « À la suite »). Récupération après un exercice. » ; « À
+    // l'exécution, aucun décompte de repos ne s'intercale » ; « Les valeurs déjà saisies sont ignorées, sans être effacées ») :
+    // dans un élément For time, aucune étape de repos n'est produite ; le second côté et l'exercice suivant enchaînent aussitôt.
+    // [Pauses, changement de côté, repos entre les tours et Récupération joués dans le For time — remplacé.]
+    if (group !== null && FOR_TIME_REST_KINDS.has(raw.kind)) return;
     const spec: LeafSpec = raw.kind === "ACTIVITY" && raw.exerciseId !== undefined && silenced.has(raw.exerciseId) ? { ...raw, phasesSilenced: true } : raw;
     (group === null ? items : group.items).push({ type: "LEAF", leaf: spec });
   };
@@ -373,6 +379,9 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
     ...(snapshot.guidance !== undefined ? { guidance: snapshot.guidance } : {}),
   };
 }
+
+/** Étapes de repos retirées d'un élément For time (recette du 17/11/2026). */
+const FOR_TIME_REST_KINDS: ReadonlySet<LeafKind> = new Set<LeafKind>(["SERIES_PAUSE", "SIDE_RECOVERY", "POST_ACTIVITY_RECOVERY"]);
 
 type ForTimeElement = { readonly id: string; readonly kind: "EXERCISE" | "CIRCUIT"; readonly name: string; readonly capSeconds: number | null };
 

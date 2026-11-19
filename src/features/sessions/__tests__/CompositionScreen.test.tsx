@@ -1710,6 +1710,71 @@ describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () =>
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
+  it("recette du 17/11/2026 — nom de séance déjà utilisé : message sous le nom et près de Continuer ; disparaît quand le nom change", async () => {
+    const service = {
+      createSession: jest.fn(async () => ({ ok: false, violations: [{ code: "DUPLICATE", field: "session.name" }] })),
+      updateSession: jest.fn(),
+      isSessionNameTaken: jest.fn(async () => false),
+    } as unknown as SessionService;
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]}
+              >
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(composition.saveAction));
+    });
+    expect(screen.getByTestId("composition-session-name-taken").props.children).toBe(composition.sessionNameTaken);
+    expect(screen.getByTestId("composition-save-error").props.children).toBe(composition.sessionNameTaken);
+    expect(mockDismissTo).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage du soir");
+    });
+    expect(screen.queryByTestId("composition-session-name-taken")).toBeNull();
+    expect(screen.queryByTestId("composition-save-error")).toBeNull();
+  });
+
+  it("recette du 17/11/2026 — pendant la saisie : un nom déjà porté par une autre séance est signalé sous le nom", async () => {
+    const service = {
+      createSession: jest.fn(),
+      updateSession: jest.fn(),
+      isSessionNameTaken: jest.fn(async (name: string) => name.trim().toLowerCase() === "jambes"),
+    } as unknown as SessionService;
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]}
+              >
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
+    await act(async () => {
+      fireEvent.changeText(screen.getByLabelText(composition.name), "Jambes ");
+    });
+    expect(screen.getByTestId("composition-session-name-taken").props.children).toBe(composition.sessionNameTaken);
+    await act(async () => {
+      fireEvent.changeText(screen.getByLabelText(composition.name), "Jambes 2");
+    });
+    expect(screen.queryByTestId("composition-session-name-taken")).toBeNull();
+  });
+
   it("stays disabled again if the only Activity becomes invalid (defense in depth, mirrors toCreateSessionInput)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "", executionParameters: durationParameters(45) }]);
 

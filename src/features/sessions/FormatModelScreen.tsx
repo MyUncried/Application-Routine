@@ -1393,9 +1393,13 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // `12341:27002`) : carte des paramètres toujours visible — Nombre de tours, Repos entre les tours, Temps limite, puis Exécution
         // (dernière ligne, dès deux exercices en tour). [Questionnaire (lignes Buy-in / Buy-out, « Avec charge ») et Exécution au-dessus
         // de « Nombre de tours » au récapitulatif — remplacés.]
+        // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Repos entre les tours. • Repos entre les séries
+        // (mode « À la suite »). […] Ces lignes n'apparaissent ni dans les paramètres d'exécution, ni dans le questionnaire, ni dans le
+        // récapitulatif du For time. • Les valeurs déjà saisies sont ignorées, sans être effacées ni modifiées ») : Nombre de tours, Temps
+        // limite, puis Exécution ; la réponse `restBetweenRoundsSeconds` reste enregistrée telle quelle. [Ligne « Repos entre les tours » /
+        // « Repos entre les séries » entre « Nombre de tours » et « Temps limite » — remplacé.]
         return [
           stepRow("roundCount", showExecution && sequence ? r.seriesCount : r.roundCount),
-          stepRow("restBetweenRoundsSeconds", showExecution && sequence ? r.restBetweenSeriesSeconds : r.restBetweenRoundsSeconds),
           stepRow("timeCapSeconds", r.timeCapSeconds, { last: !showExecution }),
           ...(showExecution ? [executionRow()] : []),
         ];

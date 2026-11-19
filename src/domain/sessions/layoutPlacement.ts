@@ -29,6 +29,7 @@
 import { currentLayout, withLayout } from "./layoutOperations";
 import {
   analyzeLayoutStopPoints,
+  isInsideForTimeCircuit,
   isLayoutStopPointAllowed,
   layoutRepetitionBoundaryPoints,
   layoutRepetitionConflicts,
@@ -101,6 +102,14 @@ function resolve(context: LayoutPlacementContext): Resolved {
 
 const samePlace = (a: StructureStopPointLocation, b: StructureStopPointLocation) => layoutStopPointKey(a) === layoutStopPointKey(b);
 
+/**
+ * Emplacement libre où un Point peut être ajouté : RM-219, D-442, et hors d'un Circuit For time (recette du 17/11/2026,
+ * constat b, `isInsideForTimeCircuit`). Un Point déjà présent dans un Circuit For time reste rendu, pour pouvoir le retirer.
+ */
+function isOpenSlot(resolved: Resolved, place: StructureStopPointLocation): boolean {
+  return isLayoutStopPointAllowed(resolved.analysis, place) && !isInsideForTimeCircuit(resolved.layout, place);
+}
+
 /** Emplacement réel d'une désignation du sous-brouillon ; `null` si elle ne désigne rien. */
 function placeOf(resolved: Resolved, designation: StopPointLocation): StructureStopPointLocation | null {
   return resolved.slots[designation.position]?.place ?? null;
@@ -141,7 +150,7 @@ export function layoutPlacementSlots(context: LayoutPlacementContext, placement:
     let stopPoint: PlacementStopPointSlot | null = null;
     if (existing !== undefined) {
       stopPoint = existing.id === undefined ? { location: designation, existing: true } : { location: designation, existing: true, stopPointId: existing.id };
-    } else if (isLayoutStopPointAllowed(resolved.analysis, slot.place)) {
+    } else if (isOpenSlot(resolved, slot.place)) {
       if (isPlacementStopPointAdded(placement, designation) || !wouldBeConsecutiveInLayout(resolved.analysis, effective, slot.place)) {
         stopPoint = { location: designation, existing: false };
       }
@@ -265,7 +274,7 @@ function applicable(context: LayoutPlacementContext, placement: PlacementDraft):
   const additions: StructureStopPointLocation[] = [];
   for (const designation of placement.stopPoints) {
     const place = placeOf(resolved, designation);
-    if (place === null || !isLayoutStopPointAllowed(resolved.analysis, place)) continue;
+    if (place === null || !isOpenSlot(resolved, place)) continue;
     const retained: readonly LayoutStopPoint[] = [...kept, ...additions];
     if (retained.some((point) => samePlace(point, place))) continue;
     if (wouldBeConsecutiveInLayout(resolved.analysis, retained, place)) continue;

@@ -41,7 +41,7 @@ import {
   type TourBoundaryChoice,
   type TourBoundaryConflict,
 } from "./StopPoint";
-import { NAME_MAX_LENGTH, normalizeName } from "./validation";
+import { NAME_MAX_LENGTH, canonicalSessionNameKey, normalizeName } from "./validation";
 
 /** Ordre canonique d'affichage et d'exécution des trois zones (D-061). */
 export const STRUCTURAL_ZONES = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"] as const;
@@ -231,10 +231,12 @@ const COPY_SUFFIX_WORD = "copie";
  * plus être enregistrée.
  */
 export function nextCopyName(name: string, takenNames: Iterable<string>): string {
-  const taken = new Set(Array.from(takenNames, normalizeName));
+  // Recette du 17/11/2026 (nom de Séance unique) : même clé que le contrôle d'unicité à l'enregistrement
+  // (casse et accents ignorés), sans quoi la copie pourrait être refusée.
+  const taken = new Set(Array.from(takenNames, canonicalSessionNameKey));
   for (let rank = 1; ; rank += 1) {
     const candidate = copyNameOfRank(name, rank);
-    if (!taken.has(normalizeName(candidate))) {
+    if (!taken.has(canonicalSessionNameKey(candidate))) {
       return candidate;
     }
   }
