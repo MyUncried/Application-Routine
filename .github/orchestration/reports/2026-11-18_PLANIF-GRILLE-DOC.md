@@ -26,3 +26,5 @@
 - Décision D-532 (classe B) ; ch06 et ch13 annotés.
 - Non vérifié : rendu visuel (captures non lisibles depuis l’environnement) ; contrôle géométrique seul. À vérifier par Hermann sur le Figma.
 - Écran « Agenda — Planning (proposition) » inchangé ; collision de mot « Agenda » à arbitrer.
+
+- Figma : contenu du modal « Sélecteur numéroté » reporté dans « Modal — Planifier une séance — Sélectionner une séance » `7599:14197` (arrière-plan conservé) ; écran `12628:34456` supprimé.
