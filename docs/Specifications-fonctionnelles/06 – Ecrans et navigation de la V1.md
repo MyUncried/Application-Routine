@@ -1339,6 +1339,8 @@ Liste hebdomadaire actualisée après suppression
 
 ##### Calendrier — Semaine — Étirements — Actions glissées
 
+[Écran supprimé le 19/11/2026 : redondant avec « P-Calendrier — Semaine — Actions glissées » (1992:5962) après la refonte de la carte de routine, D-533.]
+
 [Source Figma — `2094:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2094-86)
 
 ![Navigation — écran 2094:86](images/navigation-2026-10-27/2094-86.png)
