@@ -43,3 +43,9 @@
 - Après désinstallation puis réinstallation de la bibliothèque par l'utilisateur : 46 fiches installées en révisions 4 et 5 (19/11, version illustrée, constaté sur Pendulaire d'épaule et Chien tête en bas) ; 14 fiches en « Archivé ou supprimé sur ce téléphone » (état `WITHDRAWN_LOCALLY` : registre conservé, Mouvement archivé ou absent) : Demi-squat, Équilibre sur un pied, Bird-dog, Air squat, Front squat, Burpee, Box jump, Burpee broad jump, Balasana, Bitilasana, Bhujangasana, Étirement du quadriceps sur le côté, Étirement fessier en figure quatre, Papillon.
 - Leur registre conserve l'ancienne révision 4 (version locale du 17-18/11). Après restauration depuis les archives, les 11 fiches hors lot 1 auraient reçu la révision 4 illustrée, incohérente avec elle. Ces 11 fiches passent en révision 5 (historique contenant 4) ; les 3 fiches du lot 1 (Air squat, Balasana, Bhujangasana) sont déjà en révision 5. Catalogue révision 64 ; 60 photos inchangées ; fichier revalidé par le parseur.
 - Affichage des photos sur les 46 fiches installées : non confirmé à ce stade. L'erreur reçue montrait une application servie depuis `C:\Dev\KODJO-EMOM-DUREE`, et non depuis le dossier de cette branche.
+
+## Constat sur iPhone (19/11, 01:50, captures de l'utilisateur)
+- Fiche « Adho Mukha Svanasana » (révision 5) : la photo du catalogue s'affiche dans le gabarit photo de la fiche ouverte. Affichage confirmé sur appareil réel pour cette fiche.
+- Liste des Mouvements (46) : vignettes vides. L'affichage reprend `6b1c957`, qui ne couvre que la fiche ouverte et pas la vignette de la liste (comportement non spécifié, classe C).
+- Les 5 illustrations au format 1800 × 600 (FIT-YOG-002, FIT-CRO-001, FIT-YOG-003, FIT-YOG-006, REED-010) s'affichent en bandeau réduit dans le gabarit 402 × 329 (mode `contain`). Les autres sont au gabarit 1206 × 987.
+- Restauration des 14 fiches archivées et mise à jour en révision 5 : en attente.
