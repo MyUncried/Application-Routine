@@ -4356,7 +4356,7 @@ Tester 1 sur 2, 2 sur 3 avec positions 1/3 ou 1/2, x=n, chaque stepper réinitia
 
 #### 1. Identification
 
-CE-UI-12 ; planification d’un parcours (plusieurs séances) et d’une séance seule. Frames Figma : `12650:27854` (grille, cycle 1), `12624:29713` (cycle étendu à 3), `12628:34456` (sélecteur numéroté) ; séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines `12652:28447`, répétition en jours `12665:27227` (rangée des jours de la semaine absente, « tous les 2 jours »). Modale iOS (D-522).
+CE-UI-12 ; planification d’un parcours (plusieurs séances) et d’une séance seule. Frames Figma : `12650:27854` (grille, cycle 1), ~~`12624:29713` (cycle étendu à 3)~~ [retiré le 19/11/2026, écran supprimé], `12628:34456` (sélecteur numéroté) ; séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines `12652:28447`, répétition en jours `12665:27227` (rangée des jours de la semaine absente, « tous les 2 jours »). Modale iOS (D-522).
 
 Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
 
@@ -4506,7 +4506,7 @@ Permettre à l’utilisateur de visualiser les Routines planifiées, de naviguer
 
 ### Calendrier — Contenu
 
-L’écran comporte les vues `Jour`, `Semaine` et `Mois`. L’onglet `Calendrier` ouvre la vue `Jour`.
+L’écran comporte les vues `Jour`, `Semaine` et `Mois`. [Libellés remplacés le 19/11/2026, D-532 : onglets « Journal », « Agenda » et « Vue d’ensemble », au format des onglets du catalogue (onglet actif sur fond arrondi grisé) ; le contenu des vues est inchangé.] L’onglet `Calendrier` ouvre la vue `Jour`.
 
 L’écran affiche :
 
