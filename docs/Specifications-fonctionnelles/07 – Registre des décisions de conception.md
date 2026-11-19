@@ -2410,6 +2410,7 @@ Source : [KODJO-Catalogues-cartes-modales-2026-11-06](../KODJO-Catalogues-cartes
 | D-526 | Unités de répétition : l'option « mois » est retirée (restent jours et semaines). | Hermann, 18/11/2026 — classe B | ch10, ch13 |
 | D-527 | Compléments de la grille de planification (cycle, nom, migration), RM-260 à RM-264 : longueur du cycle, points conservés ou ajoutés, portée de l’unicité du nom, mention à une colonne, planifications existantes. | Claude, 18/11/2026, à partir de D-519 à D-526 ; règles laissées au choix de Claude par Hermann le 19/11/2026 — classe B | ch10, ch13 |
 | D-532 | Calendrier : les trois vues Jour, Semaine et Mois sont nommées Journal, Agenda et Vue d’ensemble. La barre de titre reprend le format des onglets des catalogues (libellés centrés, onglet actif en gras sur fond arrondi). Figma : 14 écrans calendrier mis à jour. | Hermann, 19/11/2026 — classe B ; choix des mots proposé par Hermann, laissé à Claude s’il en trouvait de meilleurs | ch06, ch13 |
+| D-533 | Agenda — Planning (proposition) : navigation en deux lignes (mois en doubles flèches, semaine en flèches simples rapprochées, « Aujourd’hui » en texte seul) ; carte d’une routine : heure « 8h00 », chronomètre devant la durée, ligne 2 « Spécialité · zones corporelles », bloc heure / durée encadré et teinté. Rendu uniquement : voir DSF Agenda ; points À CLARIFIER (spécialité, condition d’« Aujourd’hui », logique des teintes). | Hermann, 19/11/2026 — classe B (rendu) ; classe C pour la spécialité | ch13, DSF Agenda |
 
 
 

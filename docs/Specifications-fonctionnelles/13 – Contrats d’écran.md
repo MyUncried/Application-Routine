@@ -4456,6 +4456,62 @@ Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle)
 
 Aucun. Occurrences passées : rejouables (D-525) ; unité « mois » retirée (D-526).
 
+### CE-UI-13 — Exécution — EMOM en durée (D-528, 18/11/2026)
+
+#### 1. Identification
+
+CE-UI-13 ; écran d’exécution d’un EMOM dont les tours sont définis par une durée d’effort. Règles : RM-265 à RM-268.
+
+#### 2. Contenu
+
+- Un seul anneau : les 60 secondes du tour en cours, avancement continu. Aucun second anneau.
+- Centre : composant du For time (même position, même couleur, même flash, même double chrono). Chiffre principal : effort cumulé sur objectif (ex. 00:25 / 00:40) ; secondaire : temps restant avant la minute suivante.
+- Mode Effort : couleurs d’effort de l’anneau et du fond. Mode Repos : couleurs de repos de l’anneau et du fond.
+
+#### 3. Interactions
+
+Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’anneau continue). Appui en Repos : sans effet. Objectif atteint : bascule automatique en Repos jusqu’à la fin de la minute. Fin de minute : tour suivant, effort remis à zéro ; effort inférieur à l’objectif enregistré en effort partiel (RM-267).
+
+#### 4. À vérifier sur appareil
+
+Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
+
+### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026)
+
+#### 1. Règle
+
+Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas.
+
+#### 2. Emplacements par scénario
+
+| Scénario | Haut gauche | Haut droite | Bas gauche | Bas droite |
+|---|---|---|---|---|
+| Exercice en répétitions | objectif répétitions | — | charge | — |
+| Exercice en durée avec phases | objectif durée | — | charge | nombre de mouvements |
+| Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
+| For time | objectif du tour | temps max | charge | — |
+| AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| AMRAP à un seul mouvement en Max | — | temps limite du bloc | charge | score cumulé |
+| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
+| EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
+| Death by | objectif du rang | intervalle | charge | — |
+| Tabata / 30-30 | durée de la phase | — | charge | — |
+
+#### 3. Précisions
+
+- Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
+- Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
+- Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). À chaque début de tour, annonce vocale ou bip selon D-530 (18/11/2026). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
+- Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
+
+#### 4. Limites
+
+Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
+
+### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
+
+Écran « Agenda — Planning (proposition) » (`12580:27335`) : rendu et mises en page décrits dans le [DSF Agenda](../DSF-AGENDA-PLANNING-2026-11-19.md). Aucune règle métier nouvelle ; la propriété « spécialité » d’une routine reste À CLARIFIER (absente du modèle de données).
+
 ### Contrôles et layout de planification
 
 #### Règles d'interface propres à la planification
