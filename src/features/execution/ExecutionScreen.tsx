@@ -46,6 +46,7 @@ import {
   type PreparedExecution,
 } from "./ExecutionService";
 import { useExecution } from "./ExecutionServiceContext";
+import { nextInChain, type ExecutionChain } from "./executionChain";
 import { executionStrings as t, formatClock } from "./executionStrings";
 
 /** Délai avant de rendre la session audio en fin de séance : fanfare puis « Bravo, séance terminée ». */
@@ -76,8 +77,11 @@ type DialogView = Omit<ComponentProps<typeof ExecutionDialog>, "visible">;
 
 export function ExecutionScreen({
   sessionId,
+  chain = null,
 }: {
   readonly sessionId: string | null;
+  /** D-534 : séance d'une routine à plusieurs séances (orchestration au-dessus du moteur, `executionChain`). */
+  readonly chain?: ExecutionChain | null;
 }) {
   const { service, signals, screenAwake } = useExecution();
   const profileService = useProfileService();
@@ -299,11 +303,21 @@ export function ExecutionScreen({
     }
   }, [prepared, service]);
 
+  /**
+   * D-534 : une séance d'une routine terminée normalement ouvre la suivante (même route, rang + 1, sans empiler) ;
+   * l'Exécution est libérée AVANT la navigation (sinon `ExecutionBlockedError` au démarrage de la suivante). Après la
+   * dernière, ou après un arrêt volontaire, retour au calendrier comme pour une séance isolée.
+   * [À CLARIFIER (D-534) : après un arrêt volontaire, la suite doit être proposée (« Passer à la suivante » ou
+   * « Terminer ») ; formulation et dessin à définir — en attendant, l'arrêt termine la chaîne.]
+   */
   const close = useCallback(() => {
+    const finishedNormally = service.current()?.state.finish?.reason === "COMPLETED";
+    const next = chain !== null && finishedNormally ? nextInChain(chain) : null;
     service.release();
-    if (router.canGoBack()) router.back();
+    if (next !== null) router.replace({ pathname: "/execution", params: next });
+    else if (router.canGoBack()) router.back();
     else router.replace("/");
-  }, [router, service]);
+  }, [chain, router, service]);
 
   /** Ouvre une confirmation : l'Exécution est suspendue pendant l'affichage de la modale (ch13, Réinitialiser et Suivant). */
   const openDialog = useCallback(
@@ -402,6 +416,9 @@ export function ExecutionScreen({
             </Text>
           ) : null}
         </View>
+        {chain !== null && chain.rank >= 2 && prepared?.status === "ready" && !blocked ? (
+          <ChainVeil rank={chain.rank} onPress={start} />
+        ) : null}
       </View>
     );
   }
@@ -1403,7 +1420,46 @@ const executionType = {
   metric: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 30 },
 } as const;
 
+/**
+ * D-534 — écran de transition entre deux séances d'une routine (DSF Agenda § 7 ; Figma « Exécution d'une séance —
+ * Initial — Enchaînement (proposition) ») : l'écran de démarrage de la séance suivante, sous un voile vert translucide
+ * (≈ 35 %, vert des étiquettes « Terminée »), avec au centre un encadré vert plein plus foncé (rayon 16, marge 20) :
+ * « Appuyer pour / démarrer la 2è séance / du parcours », blanc, Inter semi-gras 32. Un toucher n'importe où sur le
+ * voile lance la séance, comme « Démarrer », et fait disparaître le voile.
+ * [Hypothèse à confirmer (prompt D-534) : l'appui lance directement la séance, sans second appui sur « Démarrer ».]
+ */
+function ChainVeil({ rank, onPress }: { readonly rank: number; readonly onPress: () => void }) {
+  const lines = t.chain.lines(rank);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={lines.join(" ")}
+      style={styles.chainVeil}
+      testID="execution-chain-veil"
+    >
+      <View style={styles.chainBox} testID="execution-chain-box">
+        {lines.map((line) => (
+          <Text key={line} style={styles.chainText} maxFontSizeMultiplier={1.2}>
+            {line}
+          </Text>
+        ))}
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  // D-534 : voile vert à 35 % (vert des étiquettes « Terminée », #1A995C) et encadré plein plus foncé.
+  chainVeil: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(26, 153, 92, 0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: layout.screenGutter,
+  },
+  chainBox: { backgroundColor: "#12784A", borderRadius: 16, padding: 20, alignItems: "center" },
+  chainText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 32, lineHeight: 40, color: colors.background, textAlign: "center" },
   screen: {
     flex: 1,
     backgroundColor: colors.background,

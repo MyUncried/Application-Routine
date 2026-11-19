@@ -15,6 +15,7 @@ import { formatRecurrence } from "@/features/planning/planningSummary";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { firstDayOfShiftedMonth, formatAgendaMonth, formatAgendaTime, formatAgendaWeek, sessionsDurationLabel, zonesLine } from "@/features/planning/agendaFormat";
 import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
+import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -280,12 +281,12 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
   };
 
   /**
-   * « Démarrer » : première séance de l'occurrence (contrat PRE-10 `/execution?sessionId=`). L'enchaînement des séances
-   * suivantes (D-534) est porté par l'orchestrateur d'exécution.
+   * « Démarrer » (D-534) : première séance de la liste ordonnée de l'occurrence (contrat PRE-10 `/execution?sessionId=`) ;
+   * plusieurs séances : la chaîne et le rang accompagnent la route, les suivantes s'enchaînent à la fin de chacune.
    */
   const start = (item: CardItem) => {
     setRevealed(null);
-    router.push({ pathname: "/execution", params: { sessionId: item.projections[0]!.id } });
+    router.push({ pathname: "/execution", params: executionParams(item.projections.map((projection) => projection.id)) });
   };
 
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];

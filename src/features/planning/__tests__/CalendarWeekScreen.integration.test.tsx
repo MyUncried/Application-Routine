@@ -198,6 +198,9 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByText("Alpha")).toBeTruthy();
     fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-disclosure`));
     expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`)).toBeNull();
+    // D-534 : « Démarrer » ouvre la première séance de la liste, avec la chaîne et le rang.
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-start`));
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: first.id, chain: `${first.id},${second.id}`, rank: "1" } });
   });
 
   it("Démarrer ouvre l'Exécution PRE-10 ; la carte ouvre la modification ; Dupliquer ouvre un brouillon", async () => {
