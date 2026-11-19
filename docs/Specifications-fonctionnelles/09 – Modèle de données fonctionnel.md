@@ -1023,6 +1023,7 @@ Une Occurrence planifiée à contenu unique possède directement :
 - Une occurrence `Exécutée` référence l'Exécution correspondante.
 - Une occurrence `Non exécutée` ne possède aucune Exécution associée.
 - Une occurrence historisée est conservée même si la Routine d'origine est ensuite modifiée ou supprimée.
+- Une occurrence passée `Non exécutée` reste visible et peut être rejouée sans limite de temps. Rejouée, elle devient `Exécutée`, liée à la nouvelle Exécution, et conserve sa date et son heure prévues d’origine. [Ajouté le 19/11/2026, D-525.]
 
 ## Suivi et synthèse
 
