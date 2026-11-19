@@ -1223,6 +1223,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out ») : For time, dès deux exercices en tour.
   const showExecution = showsExecution(model, movements);
   const execution: ModelExecution = answers.execution ?? options[0] ?? "SEQUENCE";
+  /**
+   * Constat a) de la recette du 18/11/2026 (Hermann, « Concept série / tour de l'EMOM à plusieurs mouvements ») : EMOM à plusieurs
+   * mouvements joué « Dans chaque intervalle » ou « En alternance » — le nombre N se lit en tours (questionnaire « Nombre de tours »,
+   * colonnes T1 … TN). « À la suite » et EMOM à un seul mouvement : séries, inchangé.
+   */
+  const emomRounds = () => model === "EMOM" && showExecution && execution !== "SEQUENCE";
   const executionRow = (last = true) => (
     <Row key="execution" label={t().execution} last={last} testID="format-row-execution">
       <ExecutionMenu options={options} execution={execution} onSelect={(option) => setAnswers((current) => ({ ...current, execution: option }))} />
@@ -1336,8 +1342,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ]).concat(model === "TABATA" && several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
       case "EMOM":
         // MAJ 04/11 §4.2 : ligne « Repos · jusqu'à la cadence » retirée ; §6 quater bis : « Avec charge » avant la durée totale.
+        // Constat a) de la recette du 18/11/2026 (Hermann) : « Dans chaque intervalle » et « En alternance », « Nombre de tours » ; le
+        // libellé suit le mode sélectionné. « À la suite » et un seul mouvement : « Nombre de séries » (inchangé). La réponse reste
+        // `seriesCount`.
         return withExecution([
-          stepRow("seriesCount", r.seriesCount),
+          stepRow("seriesCount", emomRounds() ? r.roundCount : r.seriesCount),
           stepRow("intervalSeconds", r.intervalSeconds),
           ...(stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : []),
           totalRow(!showExecution),
@@ -2503,7 +2512,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               title={t().movements}
               rows={rows}
               count={count}
-              heading={(at) => (rounds ? tt.round : tt.series).replace("{n}", String(at + 1))}
+              // Constat a) du 18/11/2026 : EMOM « Dans chaque intervalle » / « En alternance », colonnes T1 … TN.
+              heading={(at) => (rounds ? tt.round : emomRounds() ? tt.roundShort : tt.series).replace("{n}", String(at + 1))}
               // Recette du 16/11/2026 (fmt-superset, Hermann : « Superset : après avoir ajouté deux mouvements, "+ ajouter" doit se
               // transformer en "Modifier" et être activé ») : le mode catalogue s'ouvre sur les deux mouvements choisis. [« + Ajouter »
               // grisé dès deux mouvements (Complément du 5 novembre 2026, §11) — remplacé.]

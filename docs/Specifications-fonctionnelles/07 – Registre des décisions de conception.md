@@ -2987,6 +2987,32 @@ Classe B (évolution validée : demande explicite de Hermann, cahier de recette,
 - **À clarifier (interprétations).** (a) « Récapitulatif » compris comme la modale des paramètres d'exécution (le récapitulatif du Format n'a pas de ligne « Pause entre les côtés ») ; (b) la phrase de la carte de Composition (« avec 20 s de pause au changement de côté ») n'est pas modifiée, comme pour le For time.
 - **Documents mis à jour (classe B).** Le présent chapitre (entrée « EMOM — exécution (18/11/2026) » annotée) ; spec PRE-11 §5 point 35. Chapitres 09 et 12 non modifiés.
 
+## D-532 — EMOM à plusieurs mouvements : série et tour selon le mode d'exécution (18/11/2026)
+
+Classe B (évolution validée : demande explicite de Hermann, cahier de recette, « Autres remarques », constat a, 18/11/2026). Spec PRE-11 §5 point 36. Numéro vérifié libre le 19/11/2026 (D-531 dernier numéro sur `docs/planification-grille-creneaux` ; aucun D-532 ou suivant dans les PR ouvertes).
+
+> « Définitions (à respecter exactement)
+> M = nombre de mouvements. N = nombre saisi au questionnaire.
+> Un tour est un passage de tous les mouvements. Une série est une fenêtre d'un mouvement.
+> Le tableau est la même grille lue dans les deux sens : les colonnes portent toujours le nombre N saisi au questionnaire.
+>
+> Mode « À la suite » (chaque mouvement enchaîne ses N séries, puis on passe au suivant) : Questionnaire « Nombre de séries » (inchangé) ; Colonnes du tableau S1 … SN (inchangé) ; Lignes du tableau un mouvement par ligne, sans étiquette ; Modale des paramètres d'exécution « X séries identiques / variables » (inchangé).
+> Écran d'exécution, avec M = 3 et N = 3. Le tour est le rang du mouvement ; la série repart à 1 à chaque nouveau mouvement. Mouvement 1 : S1T1, S2T1, S3T1. Mouvement 2 : S1T2, S2T2, S3T2. Mouvement 3 : S1T3, S2T3, S3T3.
+> Défaut à corriger : le tour reste aujourd'hui à 1. Il doit valoir le rang du mouvement en cours.
+>
+> Modes « Dans chaque intervalle » et « En alternance » (passage de tous les mouvements, N fois) : Questionnaire « Nombre de tours » (change : aujourd'hui « Nombre de séries »). Le libellé suit le mode sélectionné et change dès que le mode change. Colonnes du tableau T1 … TN (change : aujourd'hui S1 … SN) ; Lignes du tableau un mouvement par ligne, sans étiquette ; Modale des paramètres d'exécution « X tours identiques / variables » (change : aujourd'hui « X séries … »).
+> Écran d'exécution, avec M = 3 et N = 3. La série est la position du mouvement dans le tour, remise à 1 à chaque nouveau tour ; le tour avance après le dernier mouvement. Tour 1 : S1T1 (mouvement 1), S2T1 (mouvement 2), S3T1 (mouvement 3). Tour 2 : S1T2, S2T2, S3T2. Tour 3 : S1T3, S2T3, S3T3.
+> Le compteur de séries avance à chaque Suivant. Le compteur de tours avance à la fin du dernier mouvement.
+>
+> À ne pas faire : Les noms techniques internes, les données enregistrées et l'historique ne changent pas : seuls l'affichage et les compteurs changent. L'EMOM à un seul mouvement n'est pas modifié. »
+
+- **Compteurs de l'écran d'exécution (Série | Tour).** « À la suite » : Série k / N inchangée, Tour = rang du mouvement / M. « Dans chaque intervalle » et « En alternance » : Série = position du mouvement dans le tour / M, Tour inchangé (k / N). Un mouvement de chaque côté compte pour une seule position (ses deux côtés gardent la même Série). Les mêmes compteurs s'affichent au repos (ceux de la Série qui vient de se terminer, règle du 13/11/2026) et pendant le compte à rebours initial (ceux de la Série à venir).
+- **Questionnaire et tableau de l'EMOM.** « Nombre de tours » et colonnes T1 … TN dès deux mouvements en « Dans chaque intervalle » ou « En alternance » ; « Nombre de séries » et S1 … SN en « À la suite » et pour un seul mouvement. La réponse enregistrée reste le nombre de séries du questionnaire (`seriesCount`).
+- **Modale.** « X tours identiques / variables » pour un membre d'un Circuit porteur EMOM ou d'un Circuit à séries alternées de membres EMOM, depuis l'écran du Format comme depuis la Composition.
+- **Mise en œuvre (choix technique).** Le plan d'exécution compilé porte la nature de chaque Circuit (lecture d'affichage seulement ; le plan n'est pas enregistré) ; étapes, clés, résultats d'étape et historique inchangés ; moteur de fenêtres inchangé.
+- **Hors périmètre.** Death by (autre portée, compteurs inchangés) ; Circuit EMOM composé à la main sous une autre forme (Circuit groupé de plusieurs tours sans Format porteur) : compteurs inchangés, cas signalé, non tranché.
+- **Documents mis à jour (classe B).** Le présent chapitre ; chapitre 13, CE-FMT-05 (compteurs de l'EMOM à plusieurs mouvements) ; spec PRE-11 §5 point 36. Chapitres 09 et 12 non modifiés.
+
 ## AMRAP — exécution (18/11/2026)
 
 Classe B (évolution validée) pour les commandes, la fin du bloc, le partiel et les sons ; classe A pour le déroulement (FMT-26, FMT-27, D-19, D-20 / RM-PRE5-02 ; conception consolidée D1, D3, Q2, Q3, Q4, §12.1, §12.5 et « Prescriptions et fins — complément du 5 novembre » ; cas T12, T13, T14, T25). Décisions de Hermann recopiées à l'entrée « EMOM — exécution (18/11/2026) » (même demande, mêmes quatre réponses) et, pour les exercices en durée, à l'entrée « For time — exécution : exercices en durée, « + Tour », sans Pause (16/11/2026) » :

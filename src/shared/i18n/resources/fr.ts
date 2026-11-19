@@ -681,6 +681,9 @@ export const fr = {
         max: "Max",
         round: "Tour {n}",
         series: "S{n}",
+        // Constat a) de la recette du 18/11/2026 (Hermann, EMOM à plusieurs mouvements, « Dans chaque intervalle » et « En
+        // alternance ») : « Colonnes du tableau T1 … TN ».
+        roundShort: "T{n}",
         // Règles de Hermann du 14/11/2026 (For time, FT-4, FT-12) : séries propres du buy-in et du buy-out, chacun son tableau.
         buyInTitle: "Buy-in",
         buyOutTitle: "Buy-out",

@@ -452,12 +452,7 @@ function previousCountersOf(plan: ExecutablePlan, state: EngineState): Counters 
   for (let index = Math.min(at, passed) - (passed > at ? 0 : 1); index >= 0; index -= 1) {
     const spec = leaves[index]!;
     if (spec.kind !== "ACTIVITY") continue;
-    const circuit = spec.context?.circuit ?? null;
-    return {
-      series: seriesViewOf(spec),
-      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
-      cycle: cycleOf(spec),
-    };
+    return { ...countersOf(plan, spec), cycle: cycleOf(spec) };
   }
   return null;
 }
@@ -473,11 +468,11 @@ function upcomingOf(plan: ExecutablePlan, state: EngineState): UpcomingActivity 
     if (spec.kind !== "ACTIVITY") continue;
     const followingLeaf = leaves[index + 1];
     const following: ChildSpec | undefined = followingLeaf === undefined ? undefined : { type: "LEAF", leaf: followingLeaf };
-    const circuit = spec.context?.circuit ?? null;
+    const counters = countersOf(plan, spec);
     return {
       name: spec.exerciseId === undefined ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
-      series: seriesViewOf(spec),
-      tour: circuit === null ? null : { current: circuit.tour, total: circuit.count },
+      series: counters.series,
+      tour: counters.tour,
       cycle: cycleOf(spec),
       sideRank: spec.sideRank ?? null,
       mode: spec.mode ?? null,
@@ -599,6 +594,31 @@ function seriesViewOf(spec: LeafSpec): { readonly current: number; readonly tota
   if (spec.series === undefined || spec.series === null || spec.seriesCount === undefined) return null;
   if (spec.phasesSilenced === true && /\/circuit:[^/#]+#\d+\//.test(spec.key)) return { current: 1, total: 1 };
   return { current: spec.series, total: spec.seriesCount };
+}
+
+type CounterView = { readonly current: number; readonly total: number };
+
+/**
+ * Compteurs Série et Tour d'une étape. Constat a) de la recette du 18/11/2026 (Hermann, « Concept série / tour de l'EMOM à plusieurs
+ * mouvements » : « Un tour est un passage de tous les mouvements. Une série est une fenêtre d'un mouvement ») — EMOM à M mouvements :
+ * - « À la suite » (Circuit groupé d'un tour, sans Format porteur) : série inchangée, « Le tour est le rang du mouvement » (T = rang / M) ;
+ * - « Dans chaque intervalle » (Circuit porteur EMOM) et « En alternance » (Circuit à séries alternées) : « La série est la position du
+ *   mouvement dans le tour, remise à 1 à chaque nouveau tour » (S = rang / M), tour inchangé.
+ * Affichage seulement : clés, étapes et résultats enregistrés inchangés. Hors EMOM, EMOM à un seul mouvement, autre forme : inchangés.
+ */
+function countersOf(plan: ExecutablePlan, spec: LeafSpec): { readonly series: CounterView | null; readonly tour: CounterView | null } {
+  const circuit = spec.context?.circuit ?? null;
+  const series = spec.kind === "ACTIVITY" ? seriesViewOf(spec) : null;
+  const tour = circuit === null ? null : { current: circuit.tour, total: circuit.count };
+  if (circuit === null || spec.kind !== "ACTIVITY" || spec.exerciseId === undefined) return { series, tour };
+  const info = plan.circuits?.[circuit.id];
+  if (info === undefined || info.exerciseIds.length < 2 || formatKindOfLeaf(plan, spec.key) !== "EMOM") return { series, tour };
+  const rank = info.exerciseIds.indexOf(spec.exerciseId) + 1;
+  if (rank < 1) return { series, tour };
+  const movements = info.exerciseIds.length;
+  if (info.carrier === "EMOM" || (info.carrier === null && info.nature === "SERIES")) return { series: { current: rank, total: movements }, tour };
+  if (info.carrier === null && info.nature === "TOURS" && circuit.count === 1) return { series, tour: { current: rank, total: movements } };
+  return { series, tour };
 }
 
 /** Étapes du buy-in et du buy-out d'un Circuit For time (clés du développement D.1). */
@@ -892,6 +912,7 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
   const stopwatch = sessionStopwatch(state);
   const recoveryLike = spec !== null && spec.kind !== "ACTIVITY";
   const format = formatOf(plan, state, atMs);
+  const counters = spec === null ? { series: null, tour: null } : countersOf(plan, spec);
   return {
     status: state.status,
     format,
@@ -901,8 +922,8 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     phase: spec?.kind ?? null,
     target: leaf === null ? null : leafTarget(leaf),
     exerciseName: spec?.exerciseId === undefined || spec === null ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
-    series: spec?.kind === "ACTIVITY" ? seriesViewOf(spec) : null,
-    tour: spec?.context?.circuit === null || spec?.context?.circuit === undefined ? null : { current: spec.context.circuit.tour, total: spec.context.circuit.count },
+    series: counters.series,
+    tour: counters.tour,
     cycle: spec === null ? null : cycleOf(spec),
     autoRepetitions: autoRepetitionsOf(plan, state, atMs),
     nextHighlighted: nextHighlightedOf(plan, state, atMs),

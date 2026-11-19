@@ -152,8 +152,21 @@ export type ExecutablePlan = {
   readonly sessionName: string;
   readonly items: readonly ChildSpec[];
   readonly exercises: Readonly<Record<string, PlanExerciseInfo>>;
+  /**
+   * Constat a) de la recette du 18/11/2026 (Hermann, compteurs série / tour de l'EMOM à plusieurs mouvements) : nature des Circuits de
+   * l'instantané, lue par l'affichage seulement (le plan n'est pas enregistré ; aucune étape, aucun résultat n'en dépend). Absent :
+   * plan antérieur, compteurs inchangés.
+   */
+  readonly circuits?: Readonly<Record<string, PlanCircuitInfo>>;
   /** Fin de PRE-10 (spec `spec-guidage-reglages` §3.2) : guidage propre à la Séance ; absent = comme le Profil. État initial des interrupteurs Sons et Voix et de l'annonce de l'objectif. */
   readonly guidance?: SessionGuidance;
+};
+
+/** Circuit de l'instantané, pour l'affichage : nature, Format porteur et Exercices dans l'ordre. */
+export type PlanCircuitInfo = {
+  readonly nature: "SERIES" | "TOURS";
+  readonly carrier: string | null;
+  readonly exerciseIds: readonly string[];
 };
 
 export type Launchability =
@@ -449,6 +462,12 @@ export function compileExecutablePlan(snapshot: SessionSnapshot): ExecutablePlan
     sessionName: snapshot.name,
     items,
     exercises: infos,
+    circuits: Object.fromEntries(
+      structureCircuits(snapshot.structure).map((circuit) => [
+        circuit.id,
+        { nature: circuit.nature, carrier: circuit.format?.key ?? null, exerciseIds: circuit.exercises.map((exercise) => exercise.id) },
+      ]),
+    ),
     ...(snapshot.guidance !== undefined ? { guidance: snapshot.guidance } : {}),
   };
 }
