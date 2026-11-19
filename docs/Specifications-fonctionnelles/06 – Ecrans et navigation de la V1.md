@@ -1331,6 +1331,8 @@ Résultat d’un glissement gauche ou du chevron suivant
 
 ##### Calendrier — Semaine — Après suppression d’une planification
 
+[Écran supprimé le 19/11/2026 : état résultat sans intérêt propre ; les liens de prototype de la modale « Supprimer des occurrences » sont retirés.]
+
 [Source Figma — `2074:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2074-86)
 
 ![Navigation — écran 2074:86](images/navigation-2026-10-27/2074-86.png)
