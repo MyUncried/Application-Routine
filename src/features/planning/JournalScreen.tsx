@@ -1,7 +1,6 @@
-import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { formatLocalDate, type Routine } from "@/domain/planning/Routine";
@@ -9,7 +8,7 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { zonesLine } from "@/features/planning/agendaFormat";
-import { CalendarViewTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
+import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import {
   creationDateParts,
   journalCounts,
@@ -27,11 +26,10 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { CONTEXT_TEXT_COLOR, CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
+import { CONTEXT_TEXT_COLOR } from "@/shared/ui/catalogueContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
-import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -126,71 +124,65 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     routine.name.trim() !== "" ? routine.name : sessions.map((session) => session.name).join(", ");
 
   return (
-    <ScreenShell>
-      <FixedHeader title={planningStrings.calendar.title} content={<CalendarViewTabs value="journal" onChange={onChangeView} />} layoutStyle={styles.header} />
-      <ContextBand
-        fadeToTransparent
-        color={colors.catalogueSessionsContext}
-        padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
-      >
-        <CatalogueContextZone
-          summary={
-            <Text style={styles.counts} numberOfLines={1} testID="journal-counts">
-              <Text style={styles.countLabel}>{`${t.active} `}</Text>
-              <Text testID="journal-count-active">{routines === null ? "" : String(counts.active)}</Text>
-              <Text style={styles.countLabel}>{`  ·  ${t.finished} `}</Text>
-              <Text testID="journal-count-finished">{routines === null ? "" : String(counts.finished)}</Text>
-            </Text>
-          }
-          results={null}
-          search={{
-            value: query,
-            onChangeText: setQuery,
-            placeholder: t.searchPlaceholder,
-            accessibilityLabel: t.searchAccessibility,
-            clearLabel: t.searchClear,
-            testID: "journal-search",
-          }}
-          filter={
-            <FilterCommand
-              label={tSessions.filterAction}
-              title={tSessions.catalogueFilters.command}
-              summary={filterSummary}
-              clearLabel={tSessions.catalogueFilters.clearAccessibility}
-              editLabel={tSessions.catalogueFilters.editAccessibility}
-              onOpen={() => {
-                requestFilterSheet({
-                  kind: "sessions",
-                  filters,
-                  onApply: (next, labels) => {
-                    setFilters(next);
-                    setFilterLabels(labels);
-                  },
-                });
-                router.push("/catalogue-filters");
-              }}
-              onClear={() => {
-                setFilters(EMPTY_SESSION_FILTERS);
-                setFilterLabels([]);
-              }}
-              testID="journal-filter"
-            />
-          }
-          sortLabel={t.sort}
-          trailingCommand={
-            <Pressable
-              onPress={() => router.push({ pathname: "/planning", params: { date: today } })}
-              accessibilityRole="button"
-              accessibilityLabel={planningStrings.calendar.plan}
-              hitSlop={6}
-              style={styles.planButton}
-              testID="journal-plan"
-            >
-              <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.planIcon} accessible={false} />
-            </Pressable>
-          }
-        />
-      </ContextBand>
+    // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : barre de titre à onglets du Calendrier et zone de contexte
+    // standard des Catalogues — ligne 1 « Actives N · Terminées N », ligne 2 Rechercher, Filtre, Tri, Planifier.
+    <TabbedScreen
+      title={planningStrings.calendar.title}
+      palette={CALENDAR_PALETTE}
+      tabs={calendarTabs("journal", onChangeView)}
+      context={{
+        kind: "catalogue",
+        summary: (
+          <Text style={styles.counts} numberOfLines={1} testID="journal-counts">
+            <Text style={styles.countLabel}>{`${t.active} `}</Text>
+            <Text testID="journal-count-active">{routines === null ? "" : String(counts.active)}</Text>
+            <Text style={styles.countLabel}>{`  ·  ${t.finished} `}</Text>
+            <Text testID="journal-count-finished">{routines === null ? "" : String(counts.finished)}</Text>
+          </Text>
+        ),
+        results: null,
+        search: {
+          value: query,
+          onChangeText: setQuery,
+          placeholder: t.searchPlaceholder,
+          accessibilityLabel: t.searchAccessibility,
+          clearLabel: t.searchClear,
+          testID: "journal-search",
+        },
+        filter: (
+          <FilterCommand
+            label={tSessions.filterAction}
+            title={tSessions.catalogueFilters.command}
+            summary={filterSummary}
+            clearLabel={tSessions.catalogueFilters.clearAccessibility}
+            editLabel={tSessions.catalogueFilters.editAccessibility}
+            onOpen={() => {
+              requestFilterSheet({
+                kind: "sessions",
+                filters,
+                onApply: (next, labels) => {
+                  setFilters(next);
+                  setFilterLabels(labels);
+                },
+              });
+              router.push("/catalogue-filters");
+            }}
+            onClear={() => {
+              setFilters(EMPTY_SESSION_FILTERS);
+              setFilterLabels([]);
+            }}
+            testID="journal-filter"
+          />
+        ),
+        sortLabel: t.sort,
+        action: {
+          label: planningStrings.calendar.plan,
+          icon: "plan",
+          onPress: () => router.push({ pathname: "/planning", params: { date: today } }),
+          testID: "journal-plan",
+        },
+      }}
+    >
 
       <ScrollView
         style={styles.list}
@@ -245,26 +237,14 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           );
         })}
       </ScrollView>
-    </ScreenShell>
+    </TabbedScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { backgroundColor: colors.catalogueSessionsBackground },
   // Figma : « Actives » et « Terminées » en gris #595E66, nombres en #333 (14).
   counts: { ...type.contextLine, color: CONTEXT_TEXT_COLOR },
   countLabel: { color: colors.textSecondary },
-  planButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  planIcon: { width: 18, height: 18 },
   list: { flex: 1 },
   listContent: { paddingTop: spacing[8] },
   // DSF Journal § 1 : cartes espacées de 8, sans séparateur.

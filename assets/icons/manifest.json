@@ -1537,6 +1537,19 @@
       "runtime": "Exporté le 2026-11-13 (calques du pictogramme seuls) ; CalendarWeekScreen"
     },
     {
+      "key": "icon.agendaStopwatch",
+      "file": "icon-agenda-chronometre",
+      "figmaNodeId": "12580:27335",
+      "figmaName": "Agenda — Planning (proposition) — chronomètre de la carte de routine",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 10.8333,
+      "height": 12.5833,
+      "usage": [
+        "Agenda — carte de routine, bloc heure / durée (chronomètre 14)"
+      ],
+      "runtime": "Exporté le 2026-11-19 par le MCP Figma depuis l’écran 12580:27335 (identifiant du nœud de l’icône non relevé) ; RoutineAgendaCard"
+    },
+    {
       "key": "execution.pause",
       "file": "execution-pause",
       "figmaNodeId": "1992:8175",

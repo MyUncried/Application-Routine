@@ -19,11 +19,12 @@ import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
-import { CalendarViewTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
+import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import { CommandCircle } from "@/shared/ui/CatalogueCommands";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
+import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Calendrier — vue Agenda (ancienne vue Semaine, CE-UI-03 ; D-532 à D-534, CE-UI-15, DSF Agenda — Planning du
@@ -270,74 +271,83 @@ export function CalendarWeekScreen({
   const listPaddingBottom = Math.max(bottomReserve, listHeight - lastSectionHeight);
 
   return (
-    <ScreenShell>
-      <FixedHeader title={t.calendar.title} content={<CalendarViewTabs value="agenda" onChange={onChangeView} />} layoutStyle={styles.header} />
-      {/* DSF Agenda § 2 : trois lignes centrées, espacées de 6 — mois, semaine, « Aujourd'hui » et Planifier. */}
-      <ContextBand fadeToTransparent color={colors.catalogueSessionsContext}>
-        <View style={styles.contextLines}>
-          <View style={styles.monthNavigation}>
-            <Pressable onPress={() => changeMonth(-1)} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={10} testID="calendar-previous-month">
-              <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
-            </Pressable>
-            <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.4} testID="calendar-month-label">
-              {formatAgendaMonth(selectedDay)}
-            </Text>
-            <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={10} testID="calendar-next-month">
-              <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
-            </Pressable>
-          </View>
-          {/* Flèches simples rapprochées du centre (centres à 96 et 306) : entonnoir sous la ligne du mois. */}
-          <View style={styles.weekNavigation}>
-            <Pressable
-              onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
-              accessibilityRole="button"
-              accessibilityLabel={t.calendar.previousWeek}
-              hitSlop={12}
-              testID="calendar-previous-week"
-            >
-              <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
-            </Pressable>
-            <Text style={[styles.periodLabel, styles.weekLabel]} maxFontSizeMultiplier={1.4} numberOfLines={1} adjustsFontSizeToFit testID="calendar-week-label">
-              {formatAgendaWeek(monday)}
-            </Text>
-            <Pressable
-              onPress={() => changeWeek(addDays(monday, 7), addDays(monday, 7))}
-              accessibilityRole="button"
-              accessibilityLabel={t.calendar.nextWeek}
-              hitSlop={12}
-              testID="calendar-next-week"
-            >
-              <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
-            </Pressable>
-          </View>
-          <View style={styles.todayLine}>
-            {/* « Aujourd'hui » en texte seul (DSF § 2). Sa condition d'affichage reste À CLARIFIER : toujours présent. */}
-            <Pressable
-              onPress={() => {
-                const today = todayLocal();
-                changeWeek(mondayOf(today), today);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t.calendar.today}
-              hitSlop={10}
-              testID="calendar-today"
-            >
-              <Text style={styles.todayLabel} maxFontSizeMultiplier={1.4}>
-                {t.calendar.today}
+    // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : même en-tête à onglets et même bande que le Journal et les
+    // Catalogues. DSF Agenda § 2 : trois lignes centrées verticalement dans la bande, espacées de 6 — mois, semaine,
+    // « Aujourd'hui » et Planifier.
+    <TabbedScreen
+      title={t.calendar.title}
+      palette={CALENDAR_PALETTE}
+      tabs={calendarTabs("agenda", onChangeView)}
+      context={{
+        kind: "custom",
+        layout: "centered",
+        content: (
+          <View style={styles.contextLines}>
+            <View style={styles.monthNavigation}>
+              <Pressable onPress={() => changeMonth(-1)} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={10} testID="calendar-previous-month">
+                <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
+              </Pressable>
+              <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.4} testID="calendar-month-label">
+                {formatAgendaMonth(selectedDay)}
               </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
-              accessibilityRole="button"
-              accessibilityLabel={t.calendar.plan}
-              style={styles.planButton}
-              testID="calendar-plan"
-            >
-              <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.planIcon} accessible={false} />
-            </Pressable>
+              <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={10} testID="calendar-next-month">
+                <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
+              </Pressable>
+            </View>
+            {/* Flèches simples rapprochées du centre (centres à 96 et 306) : entonnoir sous la ligne du mois. */}
+            <View style={styles.weekNavigation}>
+              <Pressable
+                onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
+                accessibilityRole="button"
+                accessibilityLabel={t.calendar.previousWeek}
+                hitSlop={12}
+                testID="calendar-previous-week"
+              >
+                <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
+              </Pressable>
+              <Text style={[styles.periodLabel, styles.weekLabel]} maxFontSizeMultiplier={1.4} numberOfLines={1} adjustsFontSizeToFit testID="calendar-week-label">
+                {formatAgendaWeek(monday)}
+              </Text>
+              <Pressable
+                onPress={() => changeWeek(addDays(monday, 7), addDays(monday, 7))}
+                accessibilityRole="button"
+                accessibilityLabel={t.calendar.nextWeek}
+                hitSlop={12}
+                testID="calendar-next-week"
+              >
+                <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
+              </Pressable>
+            </View>
+            <View style={styles.todayLine}>
+              {/* « Aujourd'hui » en texte seul (DSF § 2). Sa condition d'affichage reste À CLARIFIER : toujours présent. */}
+              <Pressable
+                onPress={() => {
+                  const today = todayLocal();
+                  changeWeek(mondayOf(today), today);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t.calendar.today}
+                hitSlop={10}
+                testID="calendar-today"
+              >
+                <Text style={styles.todayLabel} maxFontSizeMultiplier={1.4}>
+                  {t.calendar.today}
+                </Text>
+              </Pressable>
+              {/* Planifier : cercle de commande standard des zones de contexte (`CommandCircle`, 19/11/2026). */}
+              <View style={styles.planSlot}>
+                <CommandCircle
+                  label={t.calendar.plan}
+                  icon="plan"
+                  onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
+                  testID="calendar-plan"
+                />
+              </View>
+            </View>
           </View>
-        </View>
-      </ContextBand>
+        ),
+      }}
+    >
 
       {/* DSF Agenda § 3 : sept cartes 46 × 64 (écart 8), jour sélectionné plein, un point par séance du jour. */}
       <View style={styles.dayBar} accessibilityRole="tablist" testID="calendar-day-bar">
@@ -546,15 +556,15 @@ export function CalendarWeekScreen({
           onCancel={() => setDeleteCandidate(null)}
         />
       ) : null}
-    </ScreenShell>
+    </TabbedScreen>
   );
 }
 
 const styles = StyleSheet.create({
   // DSF Barre de titre à onglets § 2 : en-tête et barre d'état teintés #F7F7FF, comme le Catalogue des séances.
-  header: { backgroundColor: colors.catalogueSessionsBackground },
-  // DSF Agenda § 2 : trois lignes centrées, espacées de 6.
-  contextLines: { paddingHorizontal: layout.screenGutter, gap: 6 },
+  // DSF Agenda § 2 : trois lignes centrées, espacées de 6. Marges gauche et droite de 16 portées par la bande (`ContextBand`).
+  // [Avant : 16 de plus ici, soit 32 de chaque côté — remplacé le 19/11/2026.]
+  contextLines: { gap: 6 },
   monthNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   doubleChevron: { width: 30, height: 24 },
   chevron: { width: 24, height: 24 },
@@ -565,21 +575,10 @@ const styles = StyleSheet.create({
   // Flèches de semaine aux centres x = 96 et x = 306 (bande de 370 : 68 + 24 + 186 + 24 + 68).
   weekNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
   weekLabel: { width: 186, flexShrink: 1 },
-  todayLine: { minHeight: 32, alignItems: "center", justifyContent: "center" },
+  todayLine: { minHeight: dimensions.catalogueCommand.visual, alignItems: "center", justifyContent: "center" },
   todayLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 14, color: "#333333" },
-  planButton: {
-    position: "absolute",
-    right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  planIcon: { width: 18, height: 18 },
+  // Planifier à droite de la ligne 3 (bord droit à 16 de l'écran), cercle de commande standard.
+  planSlot: { position: "absolute", right: 0 },
   // DSF Agenda § 3 : sept cartes 46 × 64, écart 8, rayon 12.
   dayBar: {
     flexDirection: "row",
