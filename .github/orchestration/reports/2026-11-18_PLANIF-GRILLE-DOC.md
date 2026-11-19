@@ -54,3 +54,4 @@
 - Non fait : code de planification et d’exécution ; écran Jour (à remplacer) et Mois non modifiés ; dessin de l’arrêt d’une séance enchaînée.
 - Non vérifié : rendu visuel (captures non lisibles) ; tests non applicables (documentation et Figma).
 
+- Docs (19/11/2026, suite) : `docs/DSF-BARRE-TITRE-ONGLETS-2026-11-19.md` créé (DSF-SEGMENTES-TITRES et DSF Agenda renvoient vers lui) ; `docs/PROMPT-CLAUDE-CODE-AGENDA-ONGLETS-2026-11-19.md` rédigé (onglets, Agenda, une carte par occurrence). Enchaînement des séances : prompt distinct, non rédigé.
