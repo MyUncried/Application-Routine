@@ -263,6 +263,17 @@ La page de tarifs publique n'a pas été lue. Les prix viennent des fichiers de 
 
 Rédigé dans `_bmad-output/compte/plan-lot-compte.md`. Statut : **PLAN_READY_FOR_REVIEW**. Cinq ambiguïtés sont à arbitrer avant `PLAN_APPROVED`. Aucun code n'a été écrit.
 
+## 13. Décisions du 19/11/2026 et intégration
+
+- **CPT-13** : section Compte avec fournisseur, nom et e-mail.
+- **CPT-14** : changement de compte refusé ; même compte sur deux téléphones accepté.
+- **CPT-15** : pas de déconnexion au premier lot.
+- **Maquettes** : Claude propose des écrans, Hermann valide.
+- **Intégration** :
+  - `origin/main` fusionné dans la branche (`7d20877`, sans conflit) ;
+  - PR de la documentation vers `main` : https://github.com/MyUncried/Application-Routine/pull/446 ;
+  - développement à venir sur `compte/lot-1`, depuis `main` une fois la PR fusionnée.
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
