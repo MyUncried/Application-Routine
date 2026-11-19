@@ -1323,6 +1323,8 @@ Détail d’une occurrence et zone `Démarrer`
 
 ##### Calendrier — Jour suivant — Glissement gauche — MVP
 
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal.]
+
 [Source Figma — `2059:267`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2059-267)
 
 ![Navigation — écran 2059:267](images/navigation-2026-10-27/2059-267.png)
