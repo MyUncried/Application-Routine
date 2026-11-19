@@ -132,7 +132,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 ## AMBIGUÏTÉS
 
 Arbitrages de Hermann du 19/11/2026 :
-- **Maquettes :** Claude propose des écrans à partir des composants existants, validés ensuite par Hermann. **Proposition à produire avant `PLAN_APPROVED`.**
+- **Maquettes :** Claude propose des écrans à partir des composants existants, validés ensuite par Hermann. Proposition produite et validée (CPT-16).
 - **Changement de compte :** refus si autre compte ; même compte sur deux téléphones accepté (CPT-14).
 - **Déconnexion :** pas de bouton au premier lot (CPT-15).
 - **Section Compte :** fournisseur, nom et e-mail (CPT-13). Le nom Apple est enregistré à la première connexion.
@@ -143,7 +143,7 @@ Conséquences sur le plan :
 - aucun écran de déconnexion ;
 - stockage du nom et de l'e-mail du compte dans `account_link`.
 
-## PROPOSITION D'ÉCRANS (19/11/2026, à valider par Hermann)
+## PROPOSITION D'ÉCRANS (19/11/2026, validée par Hermann, CPT-16)
 
 **Principes :**
 - composants existants et primitives natives (priorité aux primitives natives de l'OS) ;
