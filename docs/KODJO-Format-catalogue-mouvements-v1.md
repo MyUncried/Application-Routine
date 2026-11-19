@@ -192,7 +192,7 @@ Les autres propriétés restent dans la fiche éditoriale complète, conservée 
   - un champ modifié par le fichier et non localement prend la nouvelle valeur ;
   - un champ modifié localement garde la valeur locale ;
   - les propriétés hors Mouvement entrent dans l'instantané du registre.
-- Le Mouvement n'est écrit que si un champ projeté change, et toujours par le service Catalogue existant. Médias, phases, famille et archivage locaux ne sont jamais modifiés.
+- Le Mouvement n'est écrit que si un champ projeté change, et toujours par le service Catalogue existant. Médias, phases, famille et archivage locaux ne sont jamais modifiés. [Précisé le 19/11/2026 (décision de Hermann, « une seule notion de médias ») : les photos intégrées de la fiche aux droits confirmés sont écrites comme médias du Mouvement à l'installation, à l'adoption et à chaque mise à jour acceptée ; un changement de ces photos suffit à réécrire le Mouvement. Une mise à jour remplace les médias venus de la fiche ; les autres médias du Mouvement restent, après eux. Choix technique : fichier interne `kodjo-media/catalogue-<empreinte>` (identité dérivée du contenu, non réécrit s'il existe), `src/domain/catalogue/catalogueMedia.ts`.]
 - Une décision est recalculée sur l'état actuel au moment où elle est prise, jamais sur un plan ancien.
 - Une fiche absente du fichier n'est jamais supprimée localement.
 
