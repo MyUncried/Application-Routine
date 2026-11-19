@@ -30,3 +30,5 @@
 - Figma : écran « Agenda — Planning (proposition) » repris (onglets, zone de contexte en trois lignes, cartes de jours, carte de routine) ; bande et dégradé des 15 écrans calendrier alignés sur la zone de contexte de « Planifier une séance ».
 - Docs : `docs/DSF-AGENDA-PLANNING-2026-11-19.md` créé ; D-533 (registre, ch07) ; CE-UI-15 (ch13). Classe B pour le rendu, classe C (À CLARIFIER) pour la spécialité, la condition d’« Aujourd’hui » et la logique des teintes.
 - Non vérifié : rendu visuel des écrans (captures non lisibles depuis l’environnement).
+
+- D-533 précisé : la carte de routine remplace la carte de la vue Semaine (Agenda) ; ch06 et ch13 (CE-UI-03) annotés ; états déployé et actions glissées À CLARIFIER.
