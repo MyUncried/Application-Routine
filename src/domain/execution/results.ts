@@ -81,6 +81,28 @@ export type SeriesLine = {
   readonly target: number | null;
 };
 
+/**
+ * Recette du 18/11/2026 (Hermann, amrap-1 : « Synthèse d'exercice, ne pas répéter le nom de l'exercice si c'est le même : Un exercice :
+ * Une ligne avec le nom de l'exercice puis par tour : Tour X + Nb de répétitions + Durée ; plusieurs exercices : une ligne par Tour X puis
+ * par mouvement : Nb de répétitions + durée ») : réalisé d'un mouvement dans un tour d'AMRAP — répétitions faites (objectif d'une Série
+ * terminée, sinon répétitions saisies ; `null` en durée ou si rien n'est connu) et temps actif.
+ */
+export function roundMovementOf(
+  occurrence: OccurrenceResult,
+  leafOf: (key: string) => { readonly mode?: "REPETITIONS" | "DURATION"; readonly target?: { readonly kind: string; readonly value?: number } } | undefined,
+  partials: ReadonlyMap<string, number>,
+): { readonly repetitions: number | null; readonly activeMs: Ms } {
+  let repetitions: number | null = null;
+  for (const step of occurrence.series) {
+    const leaf = leafOf(step.key);
+    if (leaf?.mode === "DURATION") continue;
+    const target = leaf?.target?.kind === "NUMBER" && typeof leaf.target.value === "number" ? leaf.target.value : null;
+    const done = partials.has(step.key) ? partials.get(step.key)! : step.completion === "COMPLETED" ? target : null;
+    if (done !== null) repetitions = (repetitions ?? 0) + done;
+  }
+  return { repetitions, activeMs: occurrence.activeMs };
+}
+
 export function seriesLines(
   occurrence: OccurrenceResult,
   leafOf: (key: string) => { readonly mode?: "REPETITIONS" | "DURATION"; readonly target?: { readonly kind: string; readonly value?: number } } | undefined,

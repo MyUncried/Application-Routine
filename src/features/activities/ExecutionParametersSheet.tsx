@@ -1714,7 +1714,9 @@ export function ExecutionParametersSheet({
       case "formatInterval":
         return { kind: "duration", bounds: { min: 5, max: 3600 } };
       case "formatDuration":
-        return { kind: "duration", bounds: { min: 60, max: 180 * 60 } };
+        // Recette du 18/11/2026 (Hermann, amrap-1 : « Durée de l'exercice : la solution refuse une durée inférieure à 1 minute ») : aucune
+        // règle n'impose 1 min (FMT-26, registre des Formats : minimum 1 s) — durée strictement positive. [Minimum 60 s — remplacé.]
+        return { kind: "duration", bounds: { min: 1, max: 180 * 60 } };
       case "formatTimeCap":
         return { kind: "duration", bounds: { min: 60, max: 180 * 60 } };
       case "phaseCount":

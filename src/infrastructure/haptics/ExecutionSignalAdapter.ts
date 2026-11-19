@@ -407,6 +407,15 @@ export class ExecutionSignalAdapter {
         // Recette du 13/11/2026 (Hermann : « ne pas répéter ce qui ne change pas (le nom de l'exercice, le côté) ;
         // annoncer deuxième série, troisième série, etc. ») : Série suivante du même exercice, seul ce qui change est
         // annoncé. Même Série et même côté (Réinitialiser) : annonce complète, comme avant.
+        // Recette du 18/11/2026 (Hermann, amrap-1 : « Appui sur +Tour - Annonce : ne pas répéter le nom du mouvement s'il ne change pas,
+        // seulement le nombre de répétition / durée ») : début d'un tour (AMRAP, For time) sur le même mouvement que l'étape précédente —
+        // ni le nom, ni la série ; l'objectif seul (côté compris). [Annonce complète « Nom, objectif » — remplacé.]
+        // Seul le cas où la série et le côté sont aussi identiques (tour AMRAP d'un mouvement : Série 1 à chaque tour) est concerné ; une
+        // série ou un côté qui change garde la règle ci-dessous (For time inchangé).
+        if (signal.round != null && previous !== null && previous.name === name && previous.series === (series?.current ?? null) && previous.sideRank === signal.sideRank) {
+          const parts = [this.announce.objective ? objective : null].filter((part): part is string => part !== null);
+          return { cue: signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
+        }
         const continuing = previous !== null && previous.name === name && (previous.series !== (series?.current ?? null) || (previous.sideRank !== null && signal.sideRank !== null && previous.sideRank !== signal.sideRank));
         if (continuing) {
           const sideChanged = previous.sideRank !== signal.sideRank;

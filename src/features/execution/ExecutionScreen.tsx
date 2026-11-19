@@ -28,13 +28,14 @@ import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/d
 import { EMOM_PILOT, type EmomLocal } from "@/domain/execution/policies/emom";
 import { FOR_TIME_PILOT, type ForTimeLocal } from "@/domain/execution/policies/forTime";
 import {
+  amrapRoundLeafOf,
   formatKindOfLeaf,
   planLeafOf,
   projectExecution,
   type ExecutionProjection,
   type NextView,
 } from "@/domain/execution/projection";
-import { seriesLines, type OccurrenceResult } from "@/domain/execution/results";
+import { roundMovementOf, seriesLines, type OccurrenceResult } from "@/domain/execution/results";
 import type { Profile } from "@/domain/preferences/Profile";
 import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
@@ -78,6 +79,11 @@ const RELEASE_AUDIO_AFTER_END_MS = 4000;
  * Rendu : hiérarchie et commandes du contrat ; la conformité visuelle aux nœuds Figma (Roboto Condensed,
  * chrono circulaire, progression segmentée par Tours) reste à qualifier sur iPhone.
  */
+
+/** Synthèse de la séance : ligne d'un Exercice exécuté, ou tours d'un bloc AMRAP regroupés (recette du 18/11/2026, amrap-1). */
+type EndGroup =
+  | { readonly kind: "ROW"; readonly occurrence: OccurrenceResult }
+  | { readonly kind: "AMRAP"; readonly block: string; readonly singleMovement: boolean; readonly occurrences: OccurrenceResult[] };
 
 type Dialog =
   | { readonly kind: "RESET"; readonly target: string }
@@ -525,6 +531,58 @@ export function ExecutionScreen({
     const occurrences = service.occurrences();
     const partials = service.partialRepetitions();
     const emomOccurrence = (occurrence: OccurrenceResult) => formatKindOfLeaf(active.plan, occurrence.series[0]?.key ?? "") === "EMOM";
+    // Recette du 18/11/2026 (Hermann, amrap-1 : « Synthèse d'exercice, ne pas répéter le nom de l'exercice si c'est le même : Un exercice :
+    // Une ligne avec le nom de l'exercice puis par tour : Tour X + Nb de répétitions + Durée ; plusieurs exercices : une ligne par Tour X
+    // puis par mouvement : Nb de répétitions + durée ») : les tours d'un bloc AMRAP sont regroupés. [Une ligne « Nom · Tour X » par tour,
+    // statut et temps — remplacé pour l'AMRAP.] Buy-in et autres formats inchangés.
+    const groups: EndGroup[] = [];
+    for (const occurrence of occurrences) {
+      const round = amrapRoundLeafOf(active.plan, occurrence.series[0]?.key ?? "");
+      const last = groups[groups.length - 1];
+      if (round === null) groups.push({ kind: "ROW", occurrence });
+      else if (last !== undefined && last.kind === "AMRAP" && last.block === round.block) last.occurrences.push(occurrence);
+      else groups.push({ kind: "AMRAP", block: round.block, singleMovement: round.singleMovement, occurrences: [occurrence] });
+    }
+    const roundMovementText = (occurrence: OccurrenceResult) => {
+      const done = roundMovementOf(occurrence, (key) => amrapRoundLeafOf(active.plan, key)?.leaf, partials);
+      return [done.repetitions === null ? null : t.repetitions(done.repetitions), formatClock(done.activeMs)].filter((part): part is string => part !== null).join(" · ");
+    };
+    const nameOfOccurrence = (occurrence: OccurrenceResult) => active.plan.exercises[occurrence.exerciseId]?.name ?? "";
+    const tourOfOccurrence = (occurrence: OccurrenceResult) => occurrence.context?.circuit?.tour ?? 0;
+    const amrapGroup = (group: Extract<EndGroup, { kind: "AMRAP" }>) => {
+      if (group.singleMovement)
+        return (
+          <View key={group.block} style={styles.endRow} testID={`execution-end-amrap-${group.block}`}>
+            <Text style={styles.endRowName} numberOfLines={1}>
+              {nameOfOccurrence(group.occurrences[0]!)}
+            </Text>
+            {group.occurrences.map((occurrence) => (
+              <Text key={occurrence.occurrenceKey} style={styles.endRowStatus} testID={`execution-end-round-${occurrence.occurrenceKey}`}>
+                {`${t.tour} ${tourOfOccurrence(occurrence)} · ${roundMovementText(occurrence)}`}
+              </Text>
+            ))}
+          </View>
+        );
+      const tours = [...new Set(group.occurrences.map(tourOfOccurrence))];
+      return (
+        <View key={group.block} testID={`execution-end-amrap-${group.block}`}>
+          {tours.map((tour) => (
+            <View key={tour} style={styles.endRow} testID={`execution-end-tour-${group.block}-${tour}`}>
+              <Text style={styles.endRowName} numberOfLines={1}>
+                {`${t.tour} ${tour}`}
+              </Text>
+              {group.occurrences
+                .filter((occurrence) => tourOfOccurrence(occurrence) === tour)
+                .map((occurrence) => (
+                  <Text key={occurrence.occurrenceKey} style={styles.endRowStatus} testID={`execution-end-round-${occurrence.occurrenceKey}`}>
+                    {`${nameOfOccurrence(occurrence)} · ${roundMovementText(occurrence)}`}
+                  </Text>
+                ))}
+            </View>
+          ))}
+        </View>
+      );
+    };
     return (
       <View style={[styles.screen, paddings]} testID="execution-end">
         <Text style={styles.sessionName}>{active.plan.sessionName}</Text>
@@ -542,7 +600,7 @@ export function ExecutionScreen({
           style={styles.endList}
           contentContainerStyle={styles.endListContent}
         >
-          {occurrences.map((occurrence) => (
+          {groups.map((group) => group.kind === "AMRAP" ? amrapGroup(group) : ((occurrence) => (
             <View
               key={occurrence.occurrenceKey}
               style={styles.endRow}
@@ -583,7 +641,7 @@ export function ExecutionScreen({
                   ))
                 : null}
             </View>
-          ))}
+          ))(group.occurrence))}
         </ScrollView>
         <Pressable
           onPress={close}

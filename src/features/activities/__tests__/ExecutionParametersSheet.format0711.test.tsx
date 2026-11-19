@@ -102,6 +102,14 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     expect(onFormat).toHaveBeenCalledWith({ durationSeconds: 600, incrementPerRound: 0 }, null);
   });
 
+  it("amrap-1 (18/11/2026) : Durée de l'exercice AMRAP inférieure à 1 minute acceptée", () => {
+    const { onFormat } = renderSheet("AMRAP", ["duration", "increment"], { durationSeconds: 720, incrementPerRound: 0 });
+    enterExecutionSheetValue("execution-sheet-format-duration", 45);
+    expect(value("execution-sheet-format-duration")).toBe(formatPhraseDuration(45));
+    validate();
+    expect(onFormat).toHaveBeenCalledWith({ durationSeconds: 45, incrementPerRound: 0 }, null);
+  });
+
   it("EMOM : Intervalle dans le cadre Séries, saisi au clavier", () => {
     const { onFormat } = renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 });
     expect(within(get("execution-sheet-frame-series")).getByTestId("execution-sheet-format-interval-row", hidden)).toBeTruthy();

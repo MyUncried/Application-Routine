@@ -172,6 +172,8 @@ export type FormatView = {
      * répétitions restent à saisir (clé ; `null` : aucune) ; `null` hors Max.
      */
     readonly max: { readonly score: number; readonly toDeclare: string | null } | null;
+    /** Recette du 18/11/2026 (Hermann, amrap-1 : « Un exercice ») : la boucle ne compte qu'un mouvement. */
+    readonly singleMovement?: boolean;
   } | null;
   /** PRE-11 (T4) : Death by en cours — rang courant et rangs entièrement acquis ; `null` hors Death by. */
   readonly deathBy: { readonly rank: number; readonly acquiredRanks: number } | null;
@@ -589,6 +591,37 @@ export function planLeafOf(plan: ExecutablePlan, key: string): LeafSpec | undefi
   return at === undefined ? undefined : leaves[at];
 }
 
+/** Étape d'un tour de boucle AMRAP (clé `…/r<k>/…`). */
+const AMRAP_ROUND_KEY = /\/r\d+\//;
+
+/** Boucle AMRAP d'un seul mouvement (côtés compris). */
+function isSingleMovementLoop(config: AmrapScopeConfig): boolean {
+  const work = config.loop.map(({ leaf }) => leaf).filter((leaf) => leaf.kind === "ACTIVITY");
+  return work.length > 0 && new Set(work.map((leaf) => leaf.exerciseId)).size === 1;
+}
+
+/**
+ * Étape d'un tour de boucle AMRAP jouée (synthèse de la séance, recette du 18/11/2026, amrap-1) : bloc (`block`, identifiant du bloc
+ * dans le plan), boucle d'un seul mouvement ou non, étape (objectif du tour compris) ; `null` hors tour de boucle AMRAP.
+ */
+export function amrapRoundLeafOf(plan: ExecutablePlan, key: string): { readonly block: string; readonly singleMovement: boolean; readonly leaf: LeafSpec } | null {
+  if (!AMRAP_ROUND_KEY.test(key)) return null;
+  const walk = (items: readonly ChildSpec[]): { readonly block: string; readonly singleMovement: boolean; readonly leaf: LeafSpec } | null => {
+    for (const item of items) {
+      if (item.type === "LEAF") continue;
+      if (item.scope.pilot === AMRAP_PILOT) {
+        const config = item.scope.config as AmrapScopeConfig;
+        const leaf = amrapLeafOf(config, key);
+        if (leaf !== undefined) return { block: item.scope.key, singleMovement: isSingleMovementLoop(config), leaf };
+      }
+      const found = walk((item.scope.config as { items?: readonly ChildSpec[] } | null)?.items ?? []);
+      if (found !== null) return found;
+    }
+    return null;
+  };
+  return walk(plan.items);
+}
+
 /** Suivant mis en avant en Répétitions (recette du 13/11/2026). */
 function nextHighlightedOf(plan: ExecutablePlan, state: EngineState, atMs: Ms): boolean {
   const spec = state.leaf?.spec;
@@ -910,6 +943,7 @@ function amrapFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: strin
       block: config.block,
       blocks: config.blocks,
       max: max ? { score: amrapMaxScore(local), toDeclare: local.phase === "WORK" ? amrapMaxToDeclare(local) : null } : null,
+      singleMovement: isSingleMovementLoop(config),
     },
     deathBy: null,
     interrupted: closing === undefined ? null : { name: nameOf(closing), target: closing.target === undefined ? null : closing.target, mode: closing.mode ?? null },
@@ -1012,7 +1046,9 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     phase: spec?.kind ?? null,
     target: leaf === null ? null : leafTarget(leaf),
     exerciseName: spec?.exerciseId === undefined || spec === null ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
-    series: counters.series,
+    // Recette du 18/11/2026 (Hermann, amrap-1 : « Un exercice : Mettre "Série" en gris, nombre de séries "-" ») : tour d'un AMRAP à un
+    // seul mouvement — Série sans valeur (libellé et « – » en gris). Buy-in et AMRAP en Max (D-531) inchangés.
+    series: format?.kind === "AMRAP" && format.amrap?.singleMovement === true && format.amrap.max === null && spec !== null && AMRAP_ROUND_KEY.test(spec.key) ? null : counters.series,
     // D-531 / RM-272 : AMRAP à un seul mouvement en Max — aucun compteur de tours.
     tour: format?.amrap?.max != null ? null : counters.tour,
     cycle: spec === null ? null : cycleOf(spec),
