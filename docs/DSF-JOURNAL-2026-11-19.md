@@ -25,7 +25,7 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 
 ## 4. Comportement
 
-- Toucher la carte (ou le chevron) la **déploie**.
+- Toucher la carte (ou le chevron) la **déploie** : le déployé est identique à celui de l’Agenda et du catalogue des séances (filet de séparation, puis composition de la séance : exercices, cycles et circuits).
 - Le bouton « Modifier la planification » **ouvre la routine**.
 - Tri par défaut : date de création / modification, la plus récente en haut.
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.
@@ -33,6 +33,5 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 
 ## 5. À clarifier
 
-- Contenu du déployé du Journal (proposé : composition des séances, comme l’Agenda déployé).
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.
 - « Spécialité » : propriété à définir (voir DSF Agenda).
