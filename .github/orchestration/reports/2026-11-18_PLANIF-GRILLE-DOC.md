@@ -14,3 +14,11 @@
 - **Commit final et état Git** : voir le message de livraison (hash et état renseignés après commit).
 
 - **Renumérotation (18/11/2026)** : D-516 à D-518 étant pris par les PR #427 et #431, les décisions de la planification sont D-519 à D-527 ; RM-253 à RM-264 et CE-UI-12 inchangés. D-527 et RM-260 à RM-264 (cycle, nom, migration) sont une proposition de Claude à valider par Hermann.
+
+## Complément du 19/11/2026
+
+- Figma : écran « Répétition en jours (proposition) » `12665:27227` placé à droite de « P-Planifier une séance — Création », rangée décalée de 482 ; écran « cycle étendu à 3 » `12624:29713` supprimé (D-523, CE-UI-12, matrice et prompt annotés, texte d'origine conservé).
+- Figma : 14 écrans calendrier au format onglets du catalogue (onglet actif `11704:29295` cloné, libellés Journal / Agenda / Vue d’ensemble).
+- Décision D-532 (classe B) ; ch06 et ch13 annotés.
+- Non vérifié : rendu visuel (captures non lisibles depuis l’environnement) ; contrôle géométrique seul. À vérifier par Hermann sur le Figma.
+- Écran « Agenda — Planning (proposition) » inchangé ; collision de mot « Agenda » à arbitrer.

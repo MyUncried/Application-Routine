@@ -16,7 +16,7 @@ FORBIDDEN : remplacer une primitive native par une imitation React Native ; ré�
 6. **Rappel sans interrupteur** : Sans / 15 min / 30 min / 1 h / Autre (D-524) : « 5 min » retirée, « Sans » désactive le rappel, roulette de « Autre » sans unité.
 7. **Écrans retirés** (D-523) : anciens écrans Planifier un parcours, Fréquence, Sélectionner plusieurs séances (anciennes versions), Rappel personnalisé sélectionné, Sans répétition.
 
-Références Figma (fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP) : grille `12650:27854`, cycle étendu `12624:29713`, sélecteur numéroté `12628:34456`, séance seule `12652:28035`, date `12652:28155`, Rappel `12652:28306`, semaines `12652:28447`. Le Figma définit le rendu ; il ne crée pas de règle métier.
+Références Figma (fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP) : grille `12650:27854`, ~~cycle étendu `12624:29713`~~ (écran supprimé le 19/11/2026 : le cycle étendu se déduit de la même grille avec plus de colonnes), sélecteur numéroté `12628:34456`, séance seule `12652:28035`, date `12652:28155`, Rappel `12652:28306`, semaines `12652:28447`. Le Figma définit le rendu ; il ne crée pas de règle métier.
 
 ## Décisions complémentaires du 18/11/2026
 Occurrences passées rejouables, elles ne disparaissent pas (D-525, remplace RM-049) ; unité « mois » retirée, restent jours et semaines (D-526). Ces deux points touchent l'Agenda et le calcul des occurrences : n'applique que ce qui relève de la planification et signale tout impact Agenda par `SCOPE_EXPANSION_REQUIRED`.

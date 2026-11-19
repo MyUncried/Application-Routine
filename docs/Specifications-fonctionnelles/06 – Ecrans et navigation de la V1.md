@@ -1249,7 +1249,7 @@ L’écran est accessible depuis l’onglet `Calendrier`.
 
 Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exercice restent sans photo et conservent leur icône de nature, même si un média est associé (D-260). Les deux modales de suppression conservent les cartes Semaine actualisées en arrière-plan.
 
-Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les cinq dessins DSF courants. Ces règles ne déplacent pas les jalons fonctionnels existants.
+[Libellés remplacés le 19/11/2026, D-532 : Journal / Agenda / Vue d’ensemble, format onglets du catalogue.] Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les cinq dessins DSF courants. Ces règles ne déplacent pas les jalons fonctionnels existants.
 
 #### Vues principales et états intégrés
 
