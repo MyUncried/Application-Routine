@@ -143,7 +143,7 @@ describe("registre v2 (base distincte, sans concurrence avec PRE-10)", () => {
     const registry = await SqliteCatalogueRegistry.open(registryDb, () => NOW);
     // v3 (12/11/2026) : tables additives des Bibliothèques personnelles. v4 (18/11/2026) : format 3.0.0, sauvegardes
     // `*_backup_v3` et référentiels. [Avant : version 2, puis 3 — remplacé.]
-    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(4);
+    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(5);
     expect(Object.keys(await dump(registryDb))).toEqual([
       "installed_libraries", "installed_libraries_backup_v3", "installed_references", "installed_sheets", "installed_sheets_backup_v3",
       "library_decisions", "library_operations", "library_operations_backup_v3", "local_author", "pending_operations",

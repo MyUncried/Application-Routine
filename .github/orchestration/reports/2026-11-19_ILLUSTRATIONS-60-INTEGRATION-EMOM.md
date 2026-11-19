@@ -108,3 +108,12 @@ Sources consultées le 19/11/2026. Ce sont en majorité des pages d'aide d'édit
 | Trainerize | non publiée ; pièce jointe client 1 min, messages vidéo 3 min | forum utilisateurs |
 
 Lecture : les applications d'exercice visent des clips courts (15 à 60 s). Elles plafonnent entre 85 et 512 Mo et compressent souvent avant envoi. Les messageries vont jusqu'à 2-4 Go mais compressent les vidéos envoyées comme média. Aucune règle n'est décidée : la limite reste À CLARIFIER (D-335 ne fixe aucun plafond pour l'import local, pas pour la transmission).
+
+## Suite — une seule copie de chaque photo sur le téléphone
+- Décision recopiée : « Fait cette optimisation maintenant, je ne veux pas conserver deux photos sur le téléphone ».
+- `MovementCatalogueFile.ts` : `embeddedMediaDigest` et `compactSheetMedia` (photo intégrée → `kodjo-embedded-digest:<cyrb53>-<longueur>`). `sheetFingerprint` représente la photo par son empreinte, ce qui donne la même valeur pour la fiche complète et pour l'instantané allégé. `cyrb53` est partagé avec `catalogueMedia.ts`.
+- `catalogueLoadPlan.compareSheet` : comparaison sur instantanés allégés, donc pas de faux « média modifié ».
+- `SqliteCatalogueRegistry` : schéma 5. Instantanés (`commit`) et opérations en cours (`beginPending`) enregistrés allégés. Migration des lignes existantes avec empreinte recalculée, sans sauvegarde (le contenu retiré est déjà un média du Mouvement). `migrateToSchema4` limité aux registres antérieurs au schéma 4.
+- Limite connue : pendant l'application d'une Bibliothèque, `library_operations.file_json` contient temporairement le fichier complet ; la ligne est supprimée à la fin de l'opération. Les tables `*_backup_v3` (18/11) datent d'avant les photos.
+- Tests : `catalogueMedia.sqlite.test.ts` 9/9 (dont registre sans `data:image` après installation, même fichier rechargé « à jour », comparaison par empreinte, migration du schéma 4). `npx jest src/domain src/features src/infrastructure` : 5 993/0. Administration : 33/33. `tsc` : aucune erreur.
+- Documentation : registre (section « Médias du Mouvement — une seule notion ») et format catalogue §9.

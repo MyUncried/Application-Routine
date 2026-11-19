@@ -1181,12 +1181,47 @@ export function sheetFingerprint(sheet: CatalogueSheet): string {
     content: sheet.content,
     classification: sheet.classification,
     validation: sheet.validation,
-    media: sheet.media,
+    // Photo intégrée représentée par son empreinte : même résultat pour la fiche complète et pour l'instantané
+    // allégé du registre (`compactSheetMedia`, 19/11/2026).
+    media: sheet.media.map((media) => ({ ...media, url: embeddedMediaDigest(media.url) })),
     phases: sheet.phases,
     // Absente ou `null` : omise, l'empreinte des fiches sans famille est inchangée.
     levelGroup: sheet.levelGroup ?? undefined,
   };
   return canonicalJson(editorial, null);
+}
+
+/** Empreinte courte et déterministe (cyrb53, 53 bits) d'une chaîne. */
+export function cyrb53(text: string): string {
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    h1 = Math.imul(h1 ^ code, 2654435761);
+    h2 = Math.imul(h2 ^ code, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
+/** Préfixe de l'empreinte qui remplace une photo intégrée dans l'instantané d'une fiche installée. */
+export const EMBEDDED_MEDIA_DIGEST_PREFIX = "kodjo-embedded-digest:";
+
+/** Photo intégrée (`data:`) → empreinte de son contenu ; toute autre URL (distante, déjà empreinte) inchangée. */
+export function embeddedMediaDigest(url: string): string {
+  return url.startsWith("data:") ? EMBEDDED_MEDIA_DIGEST_PREFIX + cyrb53(url) + "-" + url.length.toString(36) : url;
+}
+
+/**
+ * Instantané d'une fiche installée sans le contenu de ses photos intégrées (décision de Hermann du 19/11/2026 :
+ * « je ne veux pas conserver deux photos sur le téléphone »). La photo est déjà un média du Mouvement
+ * (`catalogueMedia.ts`) ; l'instantané garde ses métadonnées et l'empreinte, qui suffisent aux comparaisons
+ * (`sheetFingerprint`, `compareSheet`). Fiche sans photo intégrée : rendue telle quelle.
+ */
+export function compactSheetMedia(sheet: CatalogueSheet): CatalogueSheet {
+  if (!sheet.media.some((media) => media.url.startsWith("data:"))) return sheet;
+  return { ...sheet, media: sheet.media.map((media) => ({ ...media, url: embeddedMediaDigest(media.url) })) };
 }
 
 /** JSON canonique (clés triées, ensembles triés) : base commune de l'empreinte et des comparaisons de chargement. */

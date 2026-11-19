@@ -88,7 +88,7 @@ describe("registre v3", () => {
 
     const registry = await SqliteCatalogueRegistry.open(db, () => NOW);
     // v4 (18/11/2026, format 3.0.0) : conversion additive ; Bibliothèque installée conservée.
-    expect((await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(4);
+    expect((await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(5);
     expect(await db.getAllAsync("SELECT catalogue_id, library_id FROM installed_libraries")).toEqual([{ catalogue_id: "c", library_id: "b" }]);
     expect(await registry.personalLibraries()).toEqual([]);
   });

@@ -32,11 +32,18 @@
  * 5. table `installed_references` : référentiels de classification de chaque catalogue (libellés des
  *    spécialités, familles gestuelles, problèmes cliniques, cibles anatomiques) pour les filtres validés.
  * Aucune identité (catalogue, fiche, Mouvement, Bibliothèque) ni décision n'est modifiée.
+ *
+ * Schéma v5 (19/11/2026, décision de Hermann : « je ne veux pas conserver deux photos sur le téléphone ») —
+ * les photos d'une fiche sont des médias du Mouvement (`catalogueMedia.ts`) ; l'instantané installé et l'opération
+ * en cours n'en gardent que l'empreinte (`compactSheetMedia`). Conversion des lignes existantes et empreinte de
+ * fiche recalculée (la photo y est représentée par son empreinte). Sans sauvegarde : le contenu retiré est déjà
+ * enregistré comme média du Mouvement, ou reviendra avec la révision suivante de la fiche.
  */
 import type { Movement } from "@/domain/activities/Movement";
 import {
   normalizeStoredLibrary,
   normalizeStoredSheet,
+  compactSheetMedia,
   parseMovementCatalogueFile,
   sheetFingerprint,
   withoutInternalNotes,
@@ -71,7 +78,7 @@ import {
 import type { Database } from "@/infrastructure/database/Database";
 
 export const CATALOGUE_REGISTRY_DATABASE_NAME = "kodjo-catalogue-registry.db";
-export const CATALOGUE_REGISTRY_SCHEMA_VERSION = 4;
+export const CATALOGUE_REGISTRY_SCHEMA_VERSION = 5;
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS installed_sheets (
@@ -240,6 +247,26 @@ async function migrateToSchema4(transaction: Database): Promise<void> {
   }
 }
 
+/** Schéma 5 : instantanés et opérations en cours sans contenu de photo intégrée, empreinte recalculée. */
+async function migrateToSchema5(transaction: Database): Promise<void> {
+  const installed = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; sheet_json: string }>(
+    "SELECT catalogue_id, sheet_id, sheet_json FROM installed_sheets");
+  for (const row of installed) {
+    const sheet = compactSheetMedia(JSON.parse(row.sheet_json) as CatalogueSheet);
+    await transaction.runAsync(
+      "UPDATE installed_sheets SET sheet_json = ?, fingerprint = ? WHERE catalogue_id = ? AND sheet_id = ?",
+      [JSON.stringify(sheet), sheetFingerprint(sheet), row.catalogue_id, row.sheet_id]);
+  }
+  const pending = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; sheet_json: string }>(
+    "SELECT catalogue_id, sheet_id, sheet_json FROM pending_operations");
+  for (const row of pending) {
+    const sheet = compactSheetMedia(JSON.parse(row.sheet_json) as CatalogueSheet);
+    await transaction.runAsync(
+      "UPDATE pending_operations SET sheet_json = ? WHERE catalogue_id = ? AND sheet_id = ?",
+      [JSON.stringify(sheet), row.catalogue_id, row.sheet_id]);
+  }
+}
+
 type PendingRow = {
   catalogue_id: string; sheet_id: string; kind: "INSTALL" | "UPDATE"; movement_id: string;
   sheet_json: string; movement_json: string; saved_local_values_json: string; created_at: string;
@@ -282,7 +309,8 @@ export class SqliteCatalogueRegistry {
         await transaction.execAsync(SCHEMA_V2);
         await transaction.execAsync(SCHEMA_V3);
         await transaction.execAsync(SCHEMA_V4);
-        if (version >= 1) await migrateToSchema4(transaction);
+        if (version >= 1 && version < 4) await migrateToSchema4(transaction);
+        if (version >= 1) await migrateToSchema5(transaction);
         if (version === 1) {
           // Fiches installées et opérations en cours écrites en v1 : conversion sans perte, même identité.
           const installed = await transaction.getAllAsync<{ catalogue_id: string; sheet_id: string; sheet_json: string }>(
@@ -476,7 +504,7 @@ export class SqliteCatalogueRegistry {
            (catalogue_id, sheet_id, kind, movement_id, sheet_json, movement_json, saved_local_values_json, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [operation.catalogueId, operation.sheetId, operation.kind, operation.movementId,
-          JSON.stringify(operation.sheet), JSON.stringify(operation.movement),
+          JSON.stringify(compactSheetMedia(operation.sheet)), JSON.stringify(operation.movement),
           JSON.stringify(operation.savedLocalValues), this.now()],
       );
     });
@@ -504,7 +532,7 @@ export class SqliteCatalogueRegistry {
            movement_id = excluded.movement_id, revision = excluded.revision,
            fingerprint = excluded.fingerprint, sheet_json = excluded.sheet_json, updated_at = excluded.updated_at`,
         [entry.catalogueId, entry.sheetId, entry.movementId, entry.revision, entry.fingerprint,
-          JSON.stringify(entry.sheet), timestamp, timestamp],
+          JSON.stringify(compactSheetMedia(entry.sheet)), timestamp, timestamp],
       );
       for (const saved of entry.savedLocalValues) {
         await transaction.runAsync(

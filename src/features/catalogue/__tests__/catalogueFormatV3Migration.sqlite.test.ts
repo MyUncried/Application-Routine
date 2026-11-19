@@ -128,7 +128,7 @@ describe("format 3.0.0 — migration des installations existantes", () => {
     const movementsBefore = await movementRows();
 
     const { registry, libraries } = await servicesOn();
-    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(4);
+    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(5);
     // Sauvegarde récupérable : copies exactes des tables avant conversion.
     const after = await dump(registryDb);
     for (const table of ["installed_sheets", "pending_operations", "installed_libraries", "library_operations"]) {

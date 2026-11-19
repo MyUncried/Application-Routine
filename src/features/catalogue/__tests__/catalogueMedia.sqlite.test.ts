@@ -9,7 +9,8 @@ import {
   catalogueMediaFiles,
   withCatalogueMedia,
 } from "@/domain/catalogue/catalogueMedia";
-import type { CatalogueMedia, CatalogueSheet, MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
+import { sheetFingerprint, type CatalogueMedia, type CatalogueSheet, type MovementCatalogueFile } from "@/domain/catalogue/MovementCatalogueFile";
+import { compareSheet } from "@/domain/catalogue/catalogueLoadPlan";
 import { pilotCatalogueV3 } from "@/domain/catalogue/testing/pilotCatalogueV3";
 import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
 import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
@@ -84,6 +85,10 @@ function fileWith(media: readonly CatalogueMedia[], revision = "1", extra: (shee
 
 async function serviceOn() {
   const registry = await SqliteCatalogueRegistry.open(registryDb, () => NOW);
+  return serviceWith(registry);
+}
+
+function serviceWith(registry: SqliteCatalogueRegistry) {
   const movements = new MovementCatalogueService(new SqliteMovementRepository(main, () => `gen-${++sequence}`, () => NOW));
   return new CatalogueLoadService({
     registry,
@@ -193,3 +198,51 @@ describe("installation et mise à jour sur SQLite réelle", () => {
     expect(writes).toHaveLength(1);
   });
 });
+
+describe("une seule copie de la photo sur le téléphone (registre allégé, 19/11/2026)", () => {
+  const storedRows = () =>
+    registryDb.getAllAsync<{ sheet_json: string; fingerprint: string }>("SELECT sheet_json, fingerprint FROM installed_sheets");
+
+  it("après installation, le registre ne contient que l'empreinte de la photo ; le même fichier rechargé est « à jour »", async () => {
+    const service = await serviceOn();
+    const file = fileWith([photo("media-aaaaaa", PHOTO_A)]);
+    await acceptFirst(service, file);
+    const [row] = await storedRows();
+    expect(row!.sheet_json).not.toContain("data:image");
+    expect(row!.sheet_json).toContain("kodjo-embedded-digest:");
+    expect(row!.fingerprint).toBe(sheetFingerprint(file.sheets[0]!));
+    const prepared = await service.prepare(file);
+    expect(prepared.ok && prepared.plan.items[0]!.state).toBe("UP_TO_DATE");
+  });
+
+  it("comparaison : même photo → aucun changement de média ; autre photo → média modifié", async () => {
+    const service = await serviceOn();
+    await acceptFirst(service, fileWith([photo("media-aaaaaa", PHOTO_A)]));
+    const stored = JSON.parse((await storedRows())[0]!.sheet_json) as CatalogueSheet;
+    const same = fileWith([photo("media-aaaaaa", PHOTO_A)], "2").sheets[0]!;
+    const changed = fileWith([photo("media-aaaaaa", PHOTO_B)], "2").sheets[0]!;
+    expect(compareSheet(stored, same, null).filter((entry) => entry.section === "media")).toHaveLength(0);
+    expect(compareSheet(stored, changed, null).filter((entry) => entry.section === "media").length).toBeGreaterThan(0);
+  });
+
+  it("migration d'un registre en schéma 4 : photos retirées des instantanés, empreinte cohérente, fiche « à jour »", async () => {
+    const file = fileWith([photo("media-aaaaaa", PHOTO_A)]);
+    const sheet = file.sheets[0]!;
+    const opened = await SqliteCatalogueRegistry.open(registryDb, () => NOW);
+    const service = serviceWith(opened);
+    const installed = await acceptFirst(service, file);
+    // Ligne telle qu'un registre en schéma 4 l'avait écrite : fiche complète et ancienne empreinte.
+    await registryDb.runAsync("UPDATE installed_sheets SET sheet_json = ?, fingerprint = ?",
+      [JSON.stringify(sheet), "ancienne-empreinte"]);
+    await registryDb.execAsync("PRAGMA user_version = 4");
+    const migrated = await SqliteCatalogueRegistry.open(registryDb, () => NOW);
+    const [row] = await storedRows();
+    expect(row!.sheet_json).not.toContain("data:image");
+    expect(row!.fingerprint).toBe(sheetFingerprint(sheet));
+    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(5);
+    const prepared = await serviceWith(migrated).prepare(file);
+    expect(prepared.ok && prepared.plan.items[0]!.state).toBe("UP_TO_DATE");
+    expect((await movementOf((installed.outcome as { movementId: string }).movementId)).media).toHaveLength(1);
+  });
+});
+

@@ -20,6 +20,7 @@ import {
   canonicalJson,
   projectSheetToMovement,
   sheetBeforeStartingPositionMerge,
+  compactSheetMedia,
   sheetFingerprint,
   type CatalogueSheet,
   type MovementCatalogueFile,
@@ -267,7 +268,9 @@ export function compareSheet(
 ): readonly FieldComparison[] {
   const projectedPaths = new Set<string>(PROJECTED_FIELDS);
   const result: FieldComparison[] = [];
-  for (const [path, [was, now]] of editorialPairs(installed, incoming)) {
+  // Photos intégrées comparées par empreinte : l'instantané installé n'en garde pas le contenu (19/11/2026).
+  const pairs = editorialPairs(installed === null ? null : compactSheetMedia(installed), compactSheetMedia(incoming));
+  for (const [path, [was, now]] of pairs) {
     const section = path.slice(0, path.indexOf(".") < 0 ? path.length : path.indexOf(".")) as EditorialSection;
     if (projectedPaths.has(path)) continue;
     const incomingChanged = installed === null || !same(path, was, now);
