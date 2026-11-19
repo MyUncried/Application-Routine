@@ -534,6 +534,14 @@ export class SqliteMovementRepository implements MovementRepository {
     return rows.map((row) => records.get(row.id)!.movement);
   }
 
+  async countAllOccurrences(): Promise<ReadonlyMap<string, number>> {
+    const rows = await this.database.getAllAsync<{ movement_id: string; count: number }>(
+      `SELECT source_movement_id AS movement_id, COUNT(*) AS count FROM activities
+       WHERE source_movement_id IS NOT NULL GROUP BY source_movement_id`,
+    );
+    return new Map(rows.map((row) => [row.movement_id, row.count]));
+  }
+
   async countOccurrences(id: string, excludingSessionId?: string): Promise<number> {
     if (excludingSessionId === undefined) {
       return countMovementOccurrences(this.database, id);
