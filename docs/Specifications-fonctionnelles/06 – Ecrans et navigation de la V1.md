@@ -1273,11 +1273,15 @@ Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exerci
 
 ##### Calendrier — Jour — MVP
 
+[Écran remplacé le 19/11/2026 (D-535) : devenu « Calendrier — Journal — MVP », liste des routines créées ; voir `docs/DSF-JOURNAL-2026-11-19.md`.]
+
 [Source Figma — `1992:5510`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5510)
 
 ![Navigation — écran 1992:5510](images/navigation-2026-10-27/1992-5510.png)
 
 ##### Calendrier — Jour — Appui long — MVP
+
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
 
 [Source Figma — `1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602)
 
@@ -1289,6 +1293,8 @@ Sélection d’une plage horaire avant planification
 
 ##### Calendrier — Jour — MAJ — MVP
 
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
+
 [Source Figma — `1992:5697`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5697)
 
 ![Navigation — écran 1992:5697](images/navigation-2026-10-27/1992-5697.png)
@@ -1296,6 +1302,8 @@ Sélection d’une plage horaire avant planification
 Résultat attendu après enregistrement
 
 ##### Calendrier — Jour — Créneau à planifier — MVP
+
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
 
 [Source Figma — `1992:5794`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794)
 
@@ -1354,6 +1362,8 @@ Liste hebdomadaire actualisée après suppression
 Même interaction appliquée à une autre occurrence représentée
 
 ##### Calendrier — Jour — État vide
+
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535) ; les liens de navigation Calendrier mènent à « P-Calendrier — Semaine ».]
 
 [Source Figma — `2128:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2128-86)
 
@@ -3217,6 +3227,8 @@ Nœud [10266:20575](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 ### Planification
 
 ##### Calendrier — Jour — Créneau à planifier — MVP
+
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
 
 Nœud [1992:5794](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794) · Export du 06/11/2026.
 

@@ -553,7 +553,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
 | [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | [supprimé le 19/11/2026] Calendrier — Mois | `CE-UI-03` | — |
 | [`1992:5365`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5365) | Modal — Supprimer une planification unique — Calendrier | `CE-UI-02` | — |
-| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
+| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | [supprimé le 19/11/2026] Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
 | [`1992:5962`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5962) | Calendrier — Semaine — Actions glissées | `CE-UI-03` | — |
 | [`1992:6102`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6102) | Modal — Supprimer des occurrences — Calendrier | `CE-UI-02` | — |
 | [`1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249) | Modal — Choisir une séance — Planification — Liste longue | `CE-UI-04` | — |
@@ -3988,7 +3988,7 @@ Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, 
 
 #### 1. Identification
 
-Calendrier Jour ; frames 1992:5510,1992:5602,1992:5697,1992:5794,2059:267 [supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal] ; composants 6374:12704/12705.
+Calendrier Jour ; frames 1992:5510 [remplacé le 19/11/2026 par le Journal, D-535 : « Calendrier — Journal — MVP », voir `docs/DSF-JOURNAL-2026-11-19.md`],1992:5602,1992:5697,1992:5794,2059:267,2128:86 [supprimés le 19/11/2026 : la vue Jour est remplacée par le Journal] ; composants 6374:12704/12705.
 
 Règles applicables : RM-045, RM-049, RM-072, RM-095, RM-112 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
