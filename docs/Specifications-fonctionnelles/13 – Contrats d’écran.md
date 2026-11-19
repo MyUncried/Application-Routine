@@ -3910,7 +3910,7 @@ Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, 
 
 #### 1. Identification
 
-Calendrier Jour ; frames 1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants 6374:12704/12705.
+Calendrier Jour ; frames 1992:5510,1992:5602,1992:5697,1992:5794,2059:267 [supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal] ; composants 6374:12704/12705.
 
 Règles applicables : RM-045, RM-049, RM-072, RM-095, RM-112 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
