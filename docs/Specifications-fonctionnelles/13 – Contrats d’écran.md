@@ -551,7 +551,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
 | [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
-| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | Calendrier — Mois | `CE-UI-03` | — |
+| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | [supprimé le 19/11/2026] Calendrier — Mois | `CE-UI-03` | — |
 | [`1992:5365`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5365) | Modal — Supprimer une planification unique — Calendrier | `CE-UI-02` | — |
 | [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
 | [`1992:5962`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5962) | Calendrier — Semaine — Actions glissées | `CE-UI-03` | — |
@@ -4081,7 +4081,7 @@ Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissement
 
 #### 1. Identification
 
-Calendrier ; frames 1992:5101,2252:86 [supprimé le 19/11/2026 : comportement spécifié, aucun écran dédié],1992:6389,1992:5962,2094:86 [supprimé le 19/11/2026, redondant avec 1992:5962],2074:86 [supprimé le 19/11/2026 : état résultat sans intérêt propre] ; Mois 1992:5237 ; suppressions 1992:5365/6102.
+Calendrier ; frames 1992:5101,2252:86 [supprimé le 19/11/2026 : comportement spécifié, aucun écran dédié],1992:6389,1992:5962,2094:86 [supprimé le 19/11/2026, redondant avec 1992:5962],2074:86 [supprimé le 19/11/2026 : état résultat sans intérêt propre] ; Mois 1992:5237 [supprimé le 19/11/2026] ; suppressions 1992:5365/6102.
 
 Règles applicables : RM-045, RM-046, RM-050, RM-072, RM-112, RM-123 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
