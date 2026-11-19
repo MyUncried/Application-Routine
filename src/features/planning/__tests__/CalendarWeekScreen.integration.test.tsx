@@ -248,4 +248,19 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-day-${THURSDAY}`).props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId(`calendar-day-${MONDAY}`).props.accessibilityState).toMatchObject({ selected: false });
   });
+
+  it("barre de titre à onglets : Journal · Agenda · Vue d’ensemble, Agenda actif, composant partagé des Catalogues (D-532)", async () => {
+    await renderCalendar();
+    const tab = (value: string) => screen.getByTestId(`calendar-view-row-${value}`);
+    expect(screen.getByTestId("calendar-view-row").props.accessibilityRole).toBe("tablist");
+    expect(screen.getByTestId("calendar-view-row-day-label").props.children).toBe("Journal");
+    expect(screen.getByTestId("calendar-view-row-week-label").props.children).toBe("Agenda");
+    expect(screen.getByTestId("calendar-view-row-month-label").props.children).toBe("Vue d’ensemble");
+    expect(tab("week").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByTestId("calendar-view-row-week-shape", { includeHiddenElements: true })).toBeTruthy();
+    // Navigation inchangée : Journal et Vue d'ensemble restent indisponibles.
+    expect(tab("day").props.accessibilityState).toMatchObject({ selected: false, disabled: true });
+    expect(tab("month").props.accessibilityState).toMatchObject({ selected: false, disabled: true });
+    expect(screen.queryByText("Semaine")).toBeNull();
+  });
 });

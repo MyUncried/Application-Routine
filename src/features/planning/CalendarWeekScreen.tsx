@@ -17,6 +17,7 @@ import { SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/Ses
 import { sessionCardAccessibilityLabel } from "@/features/sessions/SessionCatalogueList";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -74,32 +75,33 @@ export function plannedCountLabel(count: number): string {
 }
 
 /**
- * En-tête du Calendrier (Figma `1992:5101`, nœuds `10945:19777` à `10945:19781`) : « Jour | Semaine | Mois », vue
- * active en bleu KODJO Semi Bold. Jour et Mois sont hors de cette tranche : affichés, indisponibles.
+ * Barre de titre à onglets du Calendrier (D-532, DSF Barre de titre à onglets du 19/11/2026 ; Figma `12580:27335`) :
+ * Journal · Agenda · Vue d'ensemble, au format des onglets des Catalogues — composant partagé `CatalogueNavigation`
+ * (trois emplacements fixes, onglet actif en gras sur la forme arrondie raccordée à la zone de contexte `#EAEAFF`).
+ * Navigation inchangée : Agenda (ancienne vue Semaine) est la seule vue livrée ; Journal et Vue d'ensemble restent
+ * présents et indisponibles, comme Jour et Mois avant eux. [Avant : « Jour | Semaine | Mois », séparés par des traits,
+ * vue active en bleu KODJO — remplacé le 19/11/2026.]
  */
 function CalendarViewTabs() {
   const views = [
-    { key: "day", label: t.calendar.views.day, active: false },
-    { key: "week", label: t.calendar.views.week, active: true },
-    { key: "month", label: t.calendar.views.month, active: false },
+    { value: "day", label: t.calendar.views.day, available: false },
+    { value: "week", label: t.calendar.views.week, available: true },
+    { value: "month", label: t.calendar.views.month, available: false },
   ] as const;
   return (
-    <View style={styles.viewTabs} accessibilityRole="tablist" testID="calendar-view-row">
-      {views.map((view, index) => (
-        <View key={view.key} style={styles.viewTabSlot}>
-          {index > 0 ? <View style={styles.viewSeparator} /> : null}
-          <Pressable
-            disabled={!view.active}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: view.active, disabled: !view.active }}
-            accessibilityLabel={view.active ? view.label : fillTemplate(t.calendar.viewUnavailable, { view: view.label })}
-            style={styles.viewTab}
-            testID={`calendar-view-row-${view.key}`}
-          >
-            <Text style={[styles.viewLabel, view.active ? styles.viewLabelActive : null]}>{view.label}</Text>
-          </Pressable>
-        </View>
-      ))}
+    <View style={styles.viewTabs}>
+      <CatalogueNavigation
+        options={views.map((view) => ({
+          value: view.value,
+          label: view.label,
+          disabled: !view.available,
+          accessibilityLabel: view.available ? view.label : fillTemplate(t.calendar.viewUnavailable, { view: view.label }),
+        }))}
+        value="week"
+        onChange={() => undefined}
+        selectedColor={colors.catalogueSessionsContext}
+        testID="calendar-view-row"
+      />
     </View>
   );
 }
@@ -255,11 +257,8 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
 
   return (
     <ScreenShell>
-      <FixedHeader
-        title={t.calendar.title}
-        content={<CalendarViewTabs />}
-      />
-      <ContextBand fadeToTransparent>
+      <FixedHeader title={t.calendar.title} content={<CalendarViewTabs />} layoutStyle={styles.header} />
+      <ContextBand fadeToTransparent color={colors.catalogueSessionsContext}>
         <View style={styles.weekNavigation}>
           <Pressable
             onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
@@ -494,12 +493,9 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
 }
 
 const styles = StyleSheet.create({
-  viewTabs: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center" },
-  viewTabSlot: { flexDirection: "row", alignItems: "center" },
-  viewSeparator: { width: 1.5, height: 12, backgroundColor: colors.textPrimary },
-  viewTab: { minHeight: 44, justifyContent: "center", paddingHorizontal: spacing[14] },
-  viewLabel: { ...type.sectionTitle, fontFamily: "Inter_400Regular", fontWeight: "400", color: colors.textPrimary },
-  viewLabelActive: { fontFamily: "Inter_600SemiBold", fontWeight: "600", color: colors.primary },
+  // DSF Barre de titre à onglets § 2 : en-tête et barre d'état teintés #F7F7FF, comme le Catalogue des séances.
+  header: { backgroundColor: colors.catalogueSessionsBackground },
+  viewTabs: { flex: 1, alignSelf: "stretch" },
   weekNavigation: {
     flexDirection: "row",
     alignItems: "center",
