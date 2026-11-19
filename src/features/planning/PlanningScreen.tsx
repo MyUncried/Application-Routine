@@ -539,28 +539,25 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                   </View>
                   {form.repetitionOn ? (
                     <View style={styles.wrapLine}>
-                      {/* Recette du 19/11/2026 (d4) : « jusqu'au » ↔ « pendant », pour l'unité semaines (D-331). */}
-                      {form.unit === "WEEK" ? (
-                        <Pill
-                          label={form.endKind === "UNTIL" ? t.until : t.during}
-                          onPress={() => setForm((current) => (current === null ? current : withEndKind(current)))}
-                          accessibilityLabel={fillTemplate(t.endKindAccessibility, { value: form.endKind === "UNTIL" ? t.until : t.during })}
-                          testID="planning-end-kind"
-                        />
-                      ) : (
-                        <Text style={[styles.pillText, styles.untilWord]}>{t.until}</Text>
-                      )}
-                      {form.unit === "WEEK" && form.endKind === "FOR" ? (
+                      {/* Recette du 19/11/2026 (d4) : « jusqu'au » ↔ « pendant » (D-331), pour les semaines et, depuis la recette
+                          du 19/11/2026 au soir, pour les jours. */}
+                      <Pill
+                        label={form.endKind === "UNTIL" ? t.until : t.during}
+                        onPress={() => setForm((current) => (current === null ? current : withEndKind(current)))}
+                        accessibilityLabel={fillTemplate(t.endKindAccessibility, { value: form.endKind === "UNTIL" ? t.until : t.during })}
+                        testID="planning-end-kind"
+                      />
+                      {form.endKind === "FOR" ? (
                         <>
                           <View ref={endCountRef} collapsable={false}>
                             <Pill
                               label={String(form.endCount)}
                               onPress={() => openPopover("END_COUNT", endCountRef)}
-                              accessibilityLabel={fillTemplate(t.endCountAccessibility, { count: String(form.endCount), unit: unitLabel("WEEK", form.endCount) })}
+                              accessibilityLabel={fillTemplate(t.endCountAccessibility, { count: String(form.endCount), unit: unitLabel(form.unit, form.endCount) })}
                               testID="planning-end-count"
                             />
                           </View>
-                          <Text style={[styles.pillText, styles.untilWord]}>{unitLabel("WEEK", form.endCount)}</Text>
+                          <Text style={[styles.pillText, styles.untilWord]}>{unitLabel(form.unit, form.endCount)}</Text>
                         </>
                       ) : (
                         <View ref={endDateRef} collapsable={false}>

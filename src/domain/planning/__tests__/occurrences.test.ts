@@ -21,6 +21,15 @@ function routine(overrides: Partial<Routine> = {}): Routine {
 
 const weekOf = (r: Routine, day: string) => occurrencesBetween(r, mondayOf(day), addDays(mondayOf(day), 6)).map((o) => `${o.date} ${o.time}`);
 
+describe("unité Jour — « pendant N jours » (recette du 19/11/2026)", () => {
+  it("N jours depuis « Début le » compris, tous les N jours", () => {
+    const daily = routine({ repetition: { unit: "DAY", every: 2, weekdays: [], end: { kind: "FOR", count: 5 } } });
+    expect(occurrencesBetween(daily, "2026-08-01", "2026-08-31").map((o) => o.date)).toEqual(["2026-08-03", "2026-08-05", "2026-08-07"]);
+    const everyDay = routine({ repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "FOR", count: 1 } } });
+    expect(occurrencesBetween(everyDay, "2026-08-01", "2026-08-31").map((o) => o.date)).toEqual(["2026-08-03"]);
+  });
+});
+
 describe("calendrier civil", () => {
   it("lundi = 1, dimanche = 7 ; lundi de la semaine", () => {
     expect(weekdayOf("2026-08-03")).toBe(1);

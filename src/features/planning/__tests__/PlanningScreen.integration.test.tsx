@@ -475,15 +475,39 @@ describe("Planifier (CE-UI-12)", () => {
     fireEvent.press(screen.getByTestId("planning-end-kind"));
     expect(synthesis()).toContain("jusqu’au 25 août 2030");
     fireEvent.press(screen.getByTestId("planning-end-kind"));
-    // Unité jours : « jusqu'au » seulement.
+    // Unité jours : la borne reste « pendant », recomptée en jours (5 → 25 août : 21 jours) ; retour aux semaines : 3.
     fireEvent.press(screen.getByTestId("planning-unit"));
-    expect(screen.queryByTestId("planning-end-kind")).toBeNull();
-    expect(synthesis()).toContain("jusqu’au 25 août 2030");
+    expect(within(screen.getByTestId("planning-end-kind")).getByText("pendant")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-end-count")).getByText("21")).toBeTruthy();
+    expect(synthesis()).toContain("pendant 21 jours");
     fireEvent.press(screen.getByTestId("planning-unit"));
-    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    expect(synthesis()).toContain("pendant 3 semaines");
     await save();
     const [routine] = await planning.listRoutines();
     expect(routine?.repetition?.end).toEqual({ kind: "FOR", count: 3 });
+  });
+
+  it("unité jours : « pendant » N jours disponible, bascule avec « jusqu'au », enregistré (recette du 19/11 au soir)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    await renderPlanning({ sessionId: created.id, date: START });
+    fireEvent.press(screen.getByTestId("planning-repetition-kind"));
+    fireEvent.press(screen.getByTestId("planning-unit"));
+    expect(within(screen.getByTestId("planning-unit")).getByText("jour")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-end-kind")).getByText("jusqu’au")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    // Lundi 5 août → 2 septembre 2030 inclus : 29 jours.
+    expect(within(screen.getByTestId("planning-end-count")).getByText("29")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-end-count"));
+    turnWheel("planning-end-count-wheel", 10);
+    fireEvent.press(screen.getByTestId("planning-end-count-popover-scrim", { includeHiddenElements: true }));
+    expect(synthesis()).toContain("pendant 10 jours");
+    // Retour à « jusqu'au » : 10e jour depuis le 5 août compris.
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    expect(synthesis()).toContain("jusqu’au 14 août 2030");
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    await save();
+    const [routine] = await planning.listRoutines();
+    expect(routine?.repetition).toMatchObject({ unit: "DAY", end: { kind: "FOR", count: 10 } });
   });
 
   it("jours qui ne tiennent pas : « X jours par semaine » (RM-259)", async () => {

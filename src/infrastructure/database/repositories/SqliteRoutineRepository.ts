@@ -43,12 +43,12 @@ function parseNumberList(value: string | null): number[] {
 function toRepetition(row: RoutineRow): RoutineRepetition | null {
   // Unités Semaine et Jour (RM-257). L'unité Mois, retirée (D-526), n'est pas interprétée (RM-264).
   if (row.repeat_every === null) return null;
-  if (row.repeat_unit === "DAY") return { unit: "DAY", every: row.repeat_every, weekdays: [], end: { kind: "UNTIL", date: row.end_date ?? row.start_date } };
-  if (row.repeat_unit !== "WEEK") return null;
+  if (row.repeat_unit !== "WEEK" && row.repeat_unit !== "DAY") return null;
   const end =
     row.end_kind === "FOR" && row.end_count !== null
       ? ({ kind: "FOR", count: row.end_count } as const)
       : ({ kind: "UNTIL", date: row.end_date ?? row.start_date } as const);
+  if (row.repeat_unit === "DAY") return { unit: "DAY", every: row.repeat_every, weekdays: [], end };
   return {
     unit: "WEEK",
     every: row.repeat_every,

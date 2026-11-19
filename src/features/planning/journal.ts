@@ -1,7 +1,7 @@
 import { normalizeSearchText } from "@/domain/activities/movementSuggestion";
 import { periodOccurrences } from "@/domain/planning/occurrences";
-import { addDays, mondayOf, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
-import { formatRecurrence } from "@/features/planning/planningSummary";
+import { endDateForCount, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { duringLabel, formatRecurrence } from "@/features/planning/planningSummary";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { matchesSessionFilters, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import { matchesSessionQuery } from "@/features/sessions/sessionCatalogueContext";
@@ -13,12 +13,12 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
  */
 const t = planningStrings;
 
-/** Dernière date que la Routine peut produire (« jusqu'au », « pendant N semaines », ou le jour unique). */
+/** Dernière date que la Routine peut produire (« jusqu'au », « pendant N semaines » ou « N jours », ou le jour unique). */
 export function routineLastDate(routine: Routine): LocalDate {
   const repetition = routine.repetition;
   if (repetition === null) return routine.startDate;
   if (repetition.end.kind === "UNTIL") return repetition.end.date;
-  return addDays(mondayOf(routine.startDate), repetition.end.count * 7 - 1);
+  return endDateForCount(repetition.unit, routine.startDate, repetition.end.count);
 }
 
 /**
@@ -72,7 +72,7 @@ export function journalRecurrenceLine(routine: Routine, today: LocalDate): strin
   const end =
     repetition.end.kind === "UNTIL"
       ? `${t.journal.until} ${shortDate(repetition.end.date, today)}`
-      : t.summary.during.replace("{count}", String(repetition.end.count)).replace("{unit}", repetition.end.count === 1 ? t.weekUnit.singular : t.weekUnit.plural);
+      : duringLabel(repetition.unit, repetition.end.count);
   return `${formatRecurrence(routine)} · ${end}`;
 }
 

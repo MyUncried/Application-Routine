@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { EVERY_TIME, type Routine } from "@/domain/planning/Routine";
+import { addDays as addDaysTo, EVERY_TIME, type Routine } from "@/domain/planning/Routine";
 import { creationDateParts, isRoutineActive, journalCounts, journalRecurrenceLine, matchesJournalFilters, routineLastDate, sortJournal } from "@/features/planning/journal";
 import { EMPTY_SESSION_FILTERS } from "@/features/sessions/sessionCatalogueFilters";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -33,6 +33,8 @@ describe("Journal — compteurs Actives / Terminées", () => {
     expect(isRoutineActive(routine({ repetition: null, startDate: "2026-11-20", exclusions: ["2026-11-20T08:00"] }), TODAY)).toBe(false);
     // « pendant N semaines » : borne comptée en semaines.
     expect(routineLastDate(routine({ repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 2 } } }))).toBe("2026-11-15");
+    // « pendant N jours » : N jours depuis « Début le » compris.
+    expect(routineLastDate(routine({ repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "FOR", count: 10 } } }))).toBe(addDaysTo(routine({}).startDate, 9));
     expect(journalCounts([routine({}), routine({ repetition: null, startDate: "2026-11-01" })], TODAY)).toEqual({ active: 1, finished: 1 });
   });
 });
@@ -55,6 +57,7 @@ describe("Journal — tri et carte", () => {
     expect(journalRecurrenceLine(routine({ repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "UNTIL", date: "2026-11-30" } } }), TODAY)).toBe("Tous les jours · jusqu’au 30 nov.");
     expect(journalRecurrenceLine(routine({ repetition: null, startDate: "2026-11-18" }), TODAY)).toBe("Une seule fois · le 18 nov.");
     expect(journalRecurrenceLine(routine({ repetition: { unit: "WEEK", every: 1, weekdays: [2], end: { kind: "FOR", count: 6 } } }), TODAY)).toBe("Chaque mardi · pendant 6 semaines");
+    expect(journalRecurrenceLine(routine({ repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "FOR", count: 10 } } }), TODAY)).toBe("Tous les jours · pendant 10 jours");
     expect(journalRecurrenceLine(routine({ repetition: null, startDate: "2027-01-05" }), TODAY)).toBe("Une seule fois · le 5 janv. 2027");
   });
 });

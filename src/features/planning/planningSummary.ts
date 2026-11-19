@@ -70,7 +70,7 @@ export function formatPlanningSynthesis(draft: SynthesisInput, duration: string,
     }
     segments.push(`${t.summary.at} ${time}`);
     if (repetition.end.kind === "UNTIL") segments.push(t.summary.until.replace("{date}", formatLongDate(repetition.end.date)));
-    else segments.push(t.summary.during.replace("{count}", String(repetition.end.count)).replace("{unit}", repetition.end.count === 1 ? t.weekUnit.singular : t.weekUnit.plural));
+    else segments.push(duringLabel(repetition.unit, repetition.end.count));
     parts.push(segments.join(", "));
   }
   return duration === "" ? parts.join("") : `${duration} ${parts.join("")}`;
@@ -87,4 +87,10 @@ export function formatRecurrence(routine: Pick<RoutineDraft, "repetition">): str
   if (repetition.unit === "DAY") return repetition.every === 1 ? t.calendar.everyDay : t.calendar.everyDays.replace("{count}", String(repetition.every));
   const days = joinFrench([...repetition.weekdays].sort((a, b) => a - b).map((day) => t.weekdayNames[day - 1]!.toLowerCase()));
   return repetition.every === 1 ? `${t.calendar.everyWeekdayPrefix} ${days}` : `${t.summary.everyWeeks.replace("{count}", String(repetition.every))}, ${days}`;
+}
+
+/** Borne « pendant » : « pendant 6 semaines », « pendant 10 jours ». */
+export function duringLabel(unit: "WEEK" | "DAY", count: number): string {
+  const units = unit === "DAY" ? t.dayUnit : t.weekUnit;
+  return t.summary.during.replace("{count}", String(count)).replace("{unit}", count === 1 ? units.singular : units.plural);
 }

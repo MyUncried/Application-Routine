@@ -9,7 +9,7 @@
  *
  * Unités livrées : créneau unique (répétition « aucune ») et unités Semaine (RM-047 : ancrage sur la semaine
  * contenant le début, multiplicateur 1..12 — D-244 —, jours sélectionnés, bornes inclusives) et Jour (RM-257, D-526 :
- * tous les N jours depuis « Début le », jusqu'à une date incluse). L'unité Mois est retirée (D-526, 18/11/2026) : une
+ * tous les N jours depuis « Début le », jusqu'à une date incluse ou pendant N jours). L'unité Mois est retirée (D-526, 18/11/2026) : une
  * Routine en mois enregistrée ailleurs n'est pas interprétée par ce modèle (RM-264).
  *
  * Dates : date civile locale `AAAA-MM-JJ`, heure locale `HH:MM` ; aucune conversion de fuseau.
@@ -58,9 +58,21 @@ export type RoutineRepetition =
       readonly every: number;
       /** Toujours vide : la rangée des jours n'existe que pour l'unité semaines. */
       readonly weekdays: readonly Weekday[];
-      /** « jusqu'au » seulement (RM-257). */
-      readonly end: { readonly kind: "UNTIL"; readonly date: LocalDate };
+      /**
+       * « jusqu'au » ou « pendant N jours » (recette du 19/11/2026 : « avec l'option "jour", l'option "pendant" n'est pas
+       * disponible, c'est à corriger »). [RM-257 : « jusqu'au » seulement — remplacé.]
+       */
+      readonly end: RoutineEnd;
     };
+
+/**
+ * Dernière date couverte par « pendant N » : unité Semaine, N semaines civiles depuis celle de « Début le » (D-331) ;
+ * unité Jour, N jours depuis « Début le » compris. [Hypothèse technique, 19/11/2026 : décompte des jours depuis « Début
+ * le » inclus, par analogie avec les semaines comptées depuis la semaine d'ancrage.]
+ */
+export function endDateForCount(unit: RoutineRepetition["unit"], startDate: LocalDate, count: number): LocalDate {
+  return unit === "DAY" ? addDays(startDate, count - 1) : addDays(mondayOf(startDate), count * 7 - 1);
+}
 
 /**
  * Multiplicateur de l'unité Jour : mêmes bornes que les semaines (1..12, D-244). [Hypothèse technique, 18/11/2026 :

@@ -1,6 +1,7 @@
 import {
   addDays,
   daysBetween,
+  endDateForCount,
   mondayOf,
   occurrenceInstant,
   occurrenceKey,
@@ -20,6 +21,9 @@ import {
  * à l'heure du créneau, si sa date est ≥ Début le et dans la borne :
  * - « jusqu'au » : date incluse ;
  * - « pendant N semaines » : semaines 0..N-1 depuis la semaine d'ancrage.
+ *
+ * Unité Jour (RM-257) : tous les N jours depuis « Début le », jusqu'à une date incluse ou pendant N jours (« Début le »
+ * compris).
  *
  * Rang d'une occurrence pour le motif x/n : rang dans la suite produite par le créneau, à partir de 1 pour la
  * première occurrence (Début le compris), occurrences retirées comprises (un retrait ne décale pas le motif des
@@ -51,7 +55,7 @@ function slotProducesOn(routine: Routine, date: LocalDate): boolean {
   if (date < routine.startDate) return false;
   const repetition = routine.repetition;
   if (repetition === null) return date === routine.startDate;
-  if (repetition.unit === "DAY") return daysBetween(routine.startDate, date) % repetition.every === 0 && date <= repetition.end.date;
+  if (repetition.unit === "DAY") return daysBetween(routine.startDate, date) % repetition.every === 0 && date <= lastPossibleDate(routine);
   const week = Math.floor(daysBetween(mondayOf(routine.startDate), mondayOf(date)) / 7);
   if (week % repetition.every !== 0) return false;
   if (!repetition.weekdays.includes(weekdayOf(date))) return false;
@@ -64,7 +68,7 @@ function lastPossibleDate(routine: Routine): LocalDate {
   const repetition = routine.repetition;
   if (repetition === null) return routine.startDate;
   if (repetition.end.kind === "UNTIL") return repetition.end.date;
-  return addDays(mondayOf(routine.startDate), repetition.end.count * 7 - 1);
+  return endDateForCount(repetition.unit, routine.startDate, repetition.end.count);
 }
 
 function retainedContents(routine: Routine, index: number): OccurrenceContent[] {
