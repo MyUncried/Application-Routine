@@ -1346,6 +1346,8 @@ Même interaction appliquée à une autre occurrence représentée
 
 ##### Calendrier — Semaine — Mardi sélectionné
 
+[Écran supprimé le 19/11/2026 : le comportement de sélection d’un jour est spécifié (CE-UI-03 et DSF Agenda) ; aucun écran dédié.]
+
 [Source Figma — `2252:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2252-86)
 
 ![Navigation — écran 2252:86](images/navigation-2026-10-27/2252-86.png)
