@@ -90,3 +90,21 @@ Classe B. Décision recopiée : « Je n'ai jamais exprimé le besoin d'avoir les
 - Médias distants et vidéos de fiche (MOUV-D2, chargement à la demande) : non implémentés.
 - Partage personnalisé : cible documentée, non développé.
 - Les assets `catalogue-*` remplacés lors d'une mise à jour ne sont pas supprimés (règle existante : aucun fichier supprimé).
+
+### Comparatif — taille d'une vidéo transmise (demande de Hermann du 19/11/2026, pour décision)
+Sources consultées le 19/11/2026. Ce sont en majorité des pages d'aide d'éditeurs et des articles tiers ; les chiffres non officiels sont signalés.
+
+| Application | Limite publiée | Remarque |
+|---|---|---|
+| WhatsApp | 2 Go en « document » ; vidéo envoyée comme média : 16 Mo ou ≈ 100 Mo selon les sources, compressée | chiffres contradictoires, aide officielle non vérifiée |
+| Telegram | 2 Go (4 Go en Premium), aucune limite de durée | articles tiers concordants |
+| iMessage / Signal | ≈ 100 Mo, compression au-delà | non officiel |
+| Medbridge (kiné) | 512 Mo par vidéo personnalisée | aide de l'éditeur |
+| Physitrack (kiné) | non publiée ; compression avant envoi sur iPhone | aide de l'éditeur |
+| CoachRx | 500 Mo, durée conseillée 15 à 60 s | aide de l'éditeur |
+| TeamBuildr | 128 Mo (≈ 60 s en 4K) | aide de l'éditeur |
+| BridgeAthletic | 85 Mo | aide de l'éditeur |
+| CloudFit | 20 s | aide de l'éditeur |
+| Trainerize | non publiée ; pièce jointe client 1 min, messages vidéo 3 min | forum utilisateurs |
+
+Lecture : les applications d'exercice visent des clips courts (15 à 60 s). Elles plafonnent entre 85 et 512 Mo et compressent souvent avant envoi. Les messageries vont jusqu'à 2-4 Go mais compressent les vidéos envoyées comme média. Aucune règle n'est décidée : la limite reste À CLARIFIER (D-335 ne fixe aucun plafond pour l'import local, pas pour la transmission).
