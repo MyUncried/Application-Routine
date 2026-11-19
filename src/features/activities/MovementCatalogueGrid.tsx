@@ -149,6 +149,7 @@ export function MovementCatalogueGrid({
           renderItem={({ item: cell, index }) => (
             <GridCellView
               cell={cell}
+              illustration={state.status === "ready" ? state.illustrations.get(cell.entry.movement.id) : undefined}
               railRight={cell.kind === "MEMBER" && index % GRID_COLUMNS < GRID_COLUMNS - 1 && cells[index + 1]?.pileKey === cell.pileKey}
               onPress={() => (cell.kind === "PILE" ? toggle(cell.pileKey!) : onOpenMovement(cell.entry.movement.id))}
               onCollapse={cell.pileKey !== null ? () => toggle(cell.pileKey!) : undefined}
@@ -197,11 +198,14 @@ function gridCells(items: readonly MovementCatalogueItem[], expanded: ReadonlySe
 
 function GridCellView({
   cell,
+  illustration,
   railRight,
   onPress,
   onCollapse,
 }: {
   readonly cell: GridCell;
+  /** Photo de catalogue du Mouvement installé (vignette sans média local). */
+  readonly illustration?: string;
   /** Le niveau suivant de la même famille est sur la même rangée : le liseré franchit l'écart entre les deux cartes. */
   readonly railRight: boolean;
   readonly onPress: () => void;
@@ -224,7 +228,7 @@ function GridCellView({
         accessibilityHint={cell.kind === "PILE" ? t.pileExpandHint : t.openAccessibilityHint}
         testID={`movement-grid-card-${id}`}
       >
-        <MovementGridCard entry={entry} newState={cell.newState} />
+        <MovementGridCard entry={entry} newState={cell.newState} illustration={illustration} />
       </Pressable>
       {cell.kind === "MEMBER" && onCollapse !== undefined ? (
         <Pressable
@@ -241,10 +245,20 @@ function GridCellView({
 }
 
 /** Carte de grille : photo de 70 en tête, nom sur deux lignes au plus, badge « New » réduit. */
-function MovementGridCard({ entry, newState }: { readonly entry: MovementCatalogueEntry; readonly newState: NewState }) {
+function MovementGridCard({
+  entry,
+  newState,
+  illustration,
+}: {
+  readonly entry: MovementCatalogueEntry;
+  readonly newState: NewState;
+  readonly illustration?: string;
+}) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
-  const preview = firstMediaPreviewSource(movement.media);
+  const local = firstMediaPreviewSource(movement.media);
+  // Média local prioritaire (même règle que la fiche) ; la photo de catalogue est une URI `data:` non résolue.
+  const preview = local ? { ...local, uri: resolveUri(local.uri) } : illustration ? { uri: illustration, isVideo: false } : null;
   const badge = newState === "NO" ? null : NEW_BADGES[newState];
   return (
     <View style={[styles.card, entry.archived ? styles.cardArchived : null]} testID={`movement-grid-surface-${movement.id}`}>
@@ -252,7 +266,7 @@ function MovementGridCard({ entry, newState }: { readonly entry: MovementCatalog
         <View style={[styles.photo, entry.archived ? styles.faded : null]} testID={`movement-grid-photo-${movement.id}`}>
           {preview ? (
             <MediaPreview
-              uri={resolveUri(preview.uri)}
+              uri={preview.uri}
               isVideo={preview.isVideo}
               imageStyle={styles.photoImage}
               fallbackStyle={[styles.photoImage, styles.photoFallback]}
