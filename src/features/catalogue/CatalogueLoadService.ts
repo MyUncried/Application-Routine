@@ -46,6 +46,8 @@ import {
   type SheetLoadItem,
   type SheetLoadState,
 } from "@/domain/catalogue/catalogueLoadPlan";
+import { catalogueMediaFiles, sameMediaLinks, withCatalogueMedia, type CatalogueMediaFile } from "@/domain/catalogue/catalogueMedia";
+import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
 import type { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
 
@@ -61,6 +63,11 @@ export type CatalogueLoadDependencies = {
   readonly newMovementId: () => string;
   /** Familles de niveaux des fiches (11/11/2026) ; absent : les familles ne sont pas appliquées. */
   readonly families?: Pick<MovementCatalogueService, "findMovement" | "listFamilyMembers" | "setFamilyOrder" | "leaveFamily">;
+  /**
+   * Photos de la fiche enregistrées comme médias du Mouvement (décision du 19/11/2026, `catalogueMedia.ts`) : écrit les
+   * fichiers internes et rend les médias à relier. Absent : les médias du Mouvement ne sont pas touchés.
+   */
+  readonly catalogueMedia?: (files: readonly CatalogueMediaFile[]) => Promise<readonly DraftMediaItem[]>;
 };
 
 export type RecoveryReport = {
@@ -135,7 +142,7 @@ export class CatalogueLoadService {
     const abandoned: string[] = [];
     for (const operation of snapshot.pending) {
       const current = local.get(operation.movementId);
-      if (current && sameProjected(current, operation.movement)) {
+      if (current && sameProjected(current, operation.movement) && sameMediaLinks(current, operation.movement)) {
         await this.deps.registry.commit({
           catalogueId: operation.catalogueId,
           sheetId: operation.sheetId,
@@ -179,13 +186,19 @@ export class CatalogueLoadService {
     if (isPendingPersonalAttachment(sheet, item)) return { status: "PERSONAL_RULE_PENDING", movementId: item.movementId as string };
 
     switch (item.state) {
-      case "ADOPTABLE":
+      case "ADOPTABLE": {
+        // Mouvement identique à la fiche : seuls les médias de la fiche peuvent manquer (19/11/2026).
+        const adopted = local === null ? null : await this.withSheetMedia(item.catalogueId, sheet, local);
+        if (local !== null && adopted !== null && !sameMediaLinks(adopted, local)) {
+          return this.write(key, sheet, "UPDATE", adopted, [], "ADOPTED");
+        }
         await this.deps.registry.commit(this.commitOf(key, sheet, item.movementId as string, []));
         return { status: "ADOPTED", movementId: item.movementId as string };
+      }
 
       case "NEW": {
         if (item.blockers.length > 0) return { status: "BLOCKED", blockers: item.blockers };
-        const movement = projectSheetToMovement(sheet, this.deps.newMovementId());
+        const movement = await this.withSheetMedia(item.catalogueId, sheet, projectSheetToMovement(sheet, this.deps.newMovementId()));
         return this.write(key, sheet, "INSTALL", movement, [], "INSTALLED");
       }
 
@@ -207,7 +220,9 @@ export class CatalogueLoadService {
           if (entry.conflict) saved.push({ field, value: localValueOf(current, field) });
           target = withProjectedValue(target, sheet, field);
         }
-        if (sameProjected(target, current)) {
+        // Une mise à jour remplace les médias venus de la fiche ; les autres médias du Mouvement restent (19/11/2026).
+        target = await this.withSheetMedia(item.catalogueId, sheet, target);
+        if (sameProjected(target, current) && sameMediaLinks(target, current)) {
           await this.deps.registry.commit(this.commitOf(key, sheet, current.id, []));
           return { status: "REGISTERED", movementId: current.id };
         }
@@ -315,6 +330,13 @@ export class CatalogueLoadService {
     }
   }
 
+  /** Médias de la fiche reliés au Mouvement (fichiers écrits d'abord) ; sans écrivain injecté : Mouvement inchangé. */
+  private async withSheetMedia(catalogueId: string, sheet: CatalogueSheet, movement: Movement): Promise<Movement> {
+    const writer = this.deps.catalogueMedia;
+    if (!writer) return movement;
+    return withCatalogueMedia(movement, await writer(catalogueMediaFiles(catalogueId, sheet)));
+  }
+
   /** Intention durable → écriture du Mouvement → confirmation atomique du registre. */
   private async write(
     key: { catalogueId: string; sheetId: string },
@@ -322,7 +344,7 @@ export class CatalogueLoadService {
     kind: "INSTALL" | "UPDATE",
     movement: Movement,
     saved: readonly SavedLocalValue[],
-    success: "INSTALLED" | "UPDATED",
+    success: "INSTALLED" | "UPDATED" | "ADOPTED",
   ): Promise<AcceptOutcome> {
     await this.deps.registry.beginPending({ ...key, kind, movementId: movement.id, sheet, movement, savedLocalValues: saved });
     // Une exception laisse l'opération en cours : `recoverInterrupted` la confirmera ou l'abandonnera.
