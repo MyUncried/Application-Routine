@@ -35,14 +35,14 @@ jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve())
 const S = 1000;
 const T0 = Date.UTC(2026, 10, 18, 19, 0, 0);
 
-async function setup() {
+async function setup(parameters = durationParameters(40, 2, 0)) {
   jest.spyOn(AppState, "addEventListener").mockImplementation(((_type: string, _listener: (state: AppStateStatus) => void) => ({ remove: () => undefined })) as never);
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const session = structuredSession(
     {
       elements: [
-        { kind: "EXERCISE", exercise: exerciseActivity("D", durationParameters(40, 2, 0), { format: { key: "EMOM", settings: { intervalSeconds: 60 } } }) },
+        { kind: "EXERCISE", exercise: exerciseActivity("D", parameters, { format: { key: "EMOM", settings: { intervalSeconds: 60 } } }) },
         { kind: "EXERCISE", exercise: exerciseActivity("B", durationParameters(30, 1, 0)) },
       ],
       stopPoints: [],
@@ -190,6 +190,33 @@ describe("Recette du 18/11/2026 (emom-6, précision du 18/11) — EMOM en durée
     // Fin de l'EMOM à 120 s, à l'heure.
     await at(120);
     expect(service.project()?.format).toBeNull();
+  });
+
+  // Recette du 18/11/2026 (emom-9, Hermann : « en passant d'un côté à l'autre, tout l'anneau change de couleur d'un coup. Attendu :
+  // seuls les segments changent de couleur. Le reste de l'anneau garde sa couleur. »).
+  it("emom-9 : au changement de côté, seule la portion de la pause entre les côtés est orange ; le reste de l'anneau garde sa couleur", async () => {
+    const { at, service } = await setup(durationParameters(20, 1, 0, { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 }));
+    expect(ring().color).toBe(BLUE);
+    await at(20);
+    expect(service.project()?.phase).toBe("SIDE_RECOVERY");
+    // Portion en cours orange ; le côté 1 reste bleu.
+    expect(ring().color).toBe(ORANGE);
+    expect(ring().segments).toEqual([{ from: 0, to: 20 / 60, color: BLUE }]);
+    await at(25);
+    expect(service.project()?.phase).toBe("ACTIVITY");
+    // Côté 2 : portion en cours bleue ; la pause reste orange, le côté 1 bleu.
+    expect(ring().color).toBe(BLUE);
+    expect(ring().segments).toEqual([
+      { from: 0, to: 20 / 60, color: BLUE },
+      { from: 20 / 60, to: 25 / 60, color: ORANGE },
+    ]);
+    await at(45);
+    expect(service.project()?.phase).toBe("WINDOW_REST");
+    expect(ring().segments).toEqual([
+      { from: 0, to: 20 / 60, color: BLUE },
+      { from: 20 / 60, to: 25 / 60, color: ORANGE },
+      { from: 25 / 60, to: 45 / 60, color: BLUE },
+    ]);
   });
 
   it("la zone du centre est la même que celle du For time (composant partagé, pas de copie)", async () => {

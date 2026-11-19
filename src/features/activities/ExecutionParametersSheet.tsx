@@ -1628,7 +1628,9 @@ export function ExecutionParametersSheet({
   // valeur conservée) : Avec y reprend son libellé.
   // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Pause de changement de côté ») : en For time, la
   // ligne Pause entre les côtés est absente sous Avec ; `sideRecoverySeconds` reste dans le Brouillon.
-  const sideSettingsShown = bilateral && !forTimeSheet;
+  // Recette du 18/11/2026 (emom-9, Hermann : « Le récapitulatif de l'EMOM en répétitions n'affiche plus la ligne « Pause entre les
+  // côtés ». La valeur éventuellement saisie reste conservée dans le brouillon, sans effet ») : même principe ; EMOM en Durée inchangé.
+  const sideSettingsShown = bilateral && !forTimeSheet && !(emomSheet && draft.mode === "REPETITIONS");
   const sideOrderShown = !single;
   // AC3 : tant que la saisie de la Cadence est ouverte (Autre touché), l'option affichée est Autre.
   // Décision du 06/11/2026 : la valeur se saisit au clavier, dans le champ révélé sous la ligne.

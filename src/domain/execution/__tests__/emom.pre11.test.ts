@@ -188,25 +188,39 @@ describe("PRE-11 T2 — EMOM", () => {
     expect(sim.send({ type: "HOLD" }, 10 * S).outcome).toBe("REJECTED");
   });
 
-  it("Q5 : exercice bilatéral — ses deux côtés et la pause entre eux dans une seule fenêtre", () => {
+  // Recette du 18/11/2026 (emom-9) : en Répétitions, aucune pause entre les côtés — « Suivant » enchaîne, le reste de l'intervalle
+  // est le repos ; la Pause entre les côtés saisie (ou copiée du Profil) reste sans effet. [Q5 : pause entre les côtés jouée dans la
+  // fenêtre, aussi en Répétitions — remplacé.]
+  it("emom-9 : exercice bilatéral en Répétitions — deux côtés enchaînés par « Suivant », sans pause, repos jusqu'à l'échéance", () => {
     const parameters = repetitionParameters(8, 2, 0, { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 });
     const { plan, sim } = single(parameters);
     const scope = plan.items.find((item) => item.type === "SCOPE");
     const config = (scope?.type === "SCOPE" ? scope.scope.config : null) as EmomScopeConfig;
     expect(config.windows).toHaveLength(2);
-    expect(config.items.slice(0, 4).map((item) => (item.type === "LEAF" ? [item.leaf.kind, item.leaf.series ?? null, item.leaf.sideRank ?? null] : null))).toEqual([
+    expect(config.items.slice(0, 3).map((item) => (item.type === "LEAF" ? [item.leaf.kind, item.leaf.series ?? null, item.leaf.sideRank ?? null] : null))).toEqual([
       ["ACTIVITY", 1, 1],
-      ["SIDE_RECOVERY", null, null],
       ["ACTIVITY", 1, 2],
       ["WINDOW_REST", 1, null],
     ]);
+    expect(config.items.some((item) => item.type === "LEAF" && item.leaf.kind === "SIDE_RECOVERY")).toBe(false);
+    // Durée : N × W, aucune pause entre côtés ajoutée.
+    const alone = planOf(structuredSession({ elements: [{ kind: "EXERCISE", exercise: emomExercise("E", parameters) }], stopPoints: [] }));
+    expect(estimatedDuration(alone)).toEqual({ kind: "exact", ms: 2 * 60 * S });
     sim.send({ type: "START" }, 0);
     sim.send({ type: "NEXT", validated: true, target: sim.target }, 10 * S); // côté 1
-    expect(sim.state.leaf?.spec.kind).toBe("SIDE_RECOVERY");
-    sim.at(15);
     expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", sideRank: 2 });
     sim.send({ type: "NEXT", validated: true, target: sim.target }, 25 * S);
     expect(sim.state.leaf?.spec.kind).toBe("WINDOW_REST");
+    sim.at(60);
+    expect(sim.state.leaf?.spec).toMatchObject({ kind: "ACTIVITY", series: 2, sideRank: 1 });
+  });
+
+  it("emom-9 : exercice bilatéral en Durée — la pause entre les côtés reste jouée dans la fenêtre (EMOM en durée inchangé)", () => {
+    const parameters = durationParameters(20, 2, 0, { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 });
+    const { plan } = single(parameters);
+    const scope = plan.items.find((item) => item.type === "SCOPE");
+    const config = (scope?.type === "SCOPE" ? scope.scope.config : null) as EmomScopeConfig;
+    expect(config.items.slice(0, 4).map((item) => (item.type === "LEAF" ? item.leaf.kind : null))).toEqual(["ACTIVITY", "SIDE_RECOVERY", "ACTIVITY", "WINDOW_REST"]);
   });
 
   it("T26 : EMOM en alternance — A f1, B f1, A f2, B f2 ; chaque membre a sa fenêtre et sa Série", () => {

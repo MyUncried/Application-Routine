@@ -738,8 +738,19 @@ export function ExecutionScreen({
   const cornerCountdownMs = durationActive === null ? null : durationActive.remainingMs;
   // Anneau de l'EMOM en durée : portions de l'intervalle où la Série a été retenue (orange), le reste en bleu. Le noyau ne garde que
   // l'état courant de la retenue : les bascules sont notées par l'écran, en temps de l'intervalle, pour la fenêtre en cours.
-  const holdKey = emomTimed && emomView !== null ? `${projection.format?.name ?? ""}#${emomView.window}` : null;
-  const nextHoldMarks = advanceHoldMarks(holdMarks, holdKey, emomTimedWork && durationActive !== null ? durationActive.state === "HELD" : null, emomView?.elapsedMs ?? 0);
+  // Recette du 18/11/2026 (emom-9, Hermann : « en passant d'un côté à l'autre, tout l'anneau change de couleur d'un coup. Attendu :
+  // seuls les segments changent de couleur. Le reste de l'anneau garde sa couleur. ») : les mêmes notes servent à toute fenêtre (EMOM
+  // et Death by, même écran) — la pause entre les côtés est une portion orange, le travail de chaque côté une portion bleue.
+  const holdKey = emomView !== null && windowed(projection.format?.kind) ? `${projection.format?.name ?? ""}#${emomView.window}` : null;
+  const holdState =
+    emomTimedWork && durationActive !== null
+      ? durationActive.state === "HELD"
+      : emomView !== null && !emomView.resting && projection.phase === "SIDE_RECOVERY"
+        ? true
+        : emomView !== null && !emomView.resting && projection.phase === "ACTIVITY" && !emomTimed
+          ? false
+          : null;
+  const nextHoldMarks = advanceHoldMarks(holdMarks, holdKey, holdState, emomView?.elapsedMs ?? 0);
   // Mise à jour pendant le rendu (état dérivé de la projection précédente) : un seul rendu de plus, seulement à une bascule.
   if (nextHoldMarks !== holdMarks) setHoldMarks(nextHoldMarks);
   const emomHoldMarks = nextHoldMarks.key === holdKey ? nextHoldMarks.list : NO_HOLD_MARKS.list;
@@ -851,8 +862,9 @@ export function ExecutionScreen({
   // Précision de Hermann du 18/11/2026 (« appuyer au centre du cercle arrête le compte à rebours secondaire, fait changer la couleur […]
   // ainsi que l'anneau sur le segment en cours » ; « l'anneau repasse en bleu sur le segment en cours ») : EMOM en durée, portions bleues
   // (effort) et orange (retenue) de l'intervalle ; le repos qui suit l'objectif garde l'orange du repos (emom-2).
+  // emom-9 (18/11/2026) : aussi hors EMOM en durée, dès qu'une pause entre les côtés a été notée dans la fenêtre (EMOM, Death by).
   const emomTimedRing =
-    emomTimed && emomView !== null && emomView.windowMs > 0 && emomHoldMarks.length > 0
+    emomView !== null && emomView.windowMs > 0 && emomHoldMarks.length > 0 && (emomTimed || emomHoldMarks.some((mark) => mark.held))
       ? holdSegments(emomHoldMarks, emomView.resting && emomView.workEndedMs !== null ? emomView.workEndedMs : emomView.elapsedMs, emomView.windowMs, emomView.resting)
       : null;
   const ringSegments = forTimeRing ?? emomTimedRing ?? emomRing;

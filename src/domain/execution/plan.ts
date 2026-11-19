@@ -514,7 +514,11 @@ function emitEmomOccurrence(
   leaf: (spec: LeafSpec, window?: number) => void,
 ): void {
   const ledger = buildExecutionLedger(exercise.executionParameters, 0);
-  const sidePause = ledger.find((event) => event.kind === "SIDE_PAUSE")?.seconds ?? 0;
+  // Recette du 18/11/2026 (emom-9, Hermann : « Au passage d'un côté à l'autre, il n'y a aucune pause, ni compte à rebours, ni phase
+  // de récupération entre les côtés. L'utilisateur enchaîne quand il est prêt, avec « Suivant ». […] Ne change pas l'EMOM en durée ») :
+  // en Répétitions, aucune pause entre les côtés dans la fenêtre (valeur du Brouillon et défaut du Profil sans effet).
+  const sidePause =
+    exercise.executionParameters.mode === "REPETITIONS" ? 0 : (ledger.find((event) => event.kind === "SIDE_PAUSE")?.seconds ?? 0);
   const workOf = (step: SeriesPlanStep) =>
     ledger.find((event): event is Extract<LedgerEvent, { kind: "WORK" }> => event.kind === "WORK" && event.series === step.series && event.side === step.side);
   const series = [...new Set(group.map((step) => step.series ?? 0))].sort((a, b) => a - b);

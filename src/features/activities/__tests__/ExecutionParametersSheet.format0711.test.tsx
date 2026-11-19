@@ -323,6 +323,36 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
     expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ sideRecoverySeconds: 20, series: expect.objectContaining({ pauseSeconds: 45 }) }));
   });
 
+  // Recette du 18/11/2026 (emom-9, Hermann : « Le récapitulatif de l'EMOM en répétitions n'affiche plus la ligne « Pause entre les
+  // côtés ». La valeur éventuellement saisie reste conservée dans le brouillon, sans effet ») ; EMOM en durée inchangé.
+  it("emom-9 : EMOM en Répétitions — pas de ligne Pause entre les côtés, valeur gardée au ✓ ; en Durée, la ligne reste", () => {
+    const onApply = jest.fn<(value: ExecutionParametersInput) => void>();
+    const parent = params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 });
+    const { unmount } = render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={parent}
+          profileSideRecoverySecondsDefault={0}
+          format={{ key: "EMOM", rows: ["stopTarget", "interval", "durationReadOnly"], settings: { intervalSeconds: 60 }, onApply: jest.fn() }}
+          onApply={onApply}
+          onCancel={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+    expect(query("execution-sheet-row-side")).not.toBeNull();
+    expect(query("execution-sheet-row-side-recovery")).toBeNull();
+    validate();
+    expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ sideRecoverySeconds: 20 }));
+    unmount();
+    renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, {}, params({
+      mode: "DURATION",
+      sideMode: "RIGHT_LEFT",
+      sideRecoverySeconds: 20,
+      series: { kind: "UNIFORM", count: 1, target: numberTarget(20), pauseSeconds: 0, loadKg: 0, workPhases: [] },
+    }));
+    expect(query("execution-sheet-row-side-recovery")).not.toBeNull();
+  });
+
   it("AMRAP autonome (autre Format) : Pause entre les côtés et Récupération inchangées", () => {
     renderWithRecovery("AMRAP", ["duration", "increment"], {}, params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 }));
     expect(query("execution-sheet-row-side-recovery")).not.toBeNull();
