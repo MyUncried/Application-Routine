@@ -129,13 +129,19 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 - Durée de validité de session Supabase et comportement hors ligne prolongé : à mesurer.
 - Le compte obligatoire impose le réseau au premier lancement. Risque de refus App Store jugé modéré.
 
-## AMBIGUÏTÉS (arbitrages de Hermann nécessaires avant `PLAN_APPROVED`)
+## AMBIGUÏTÉS
 
-1. **Maquettes.** Aucune frame Figma pour l'écran de connexion, la section Compte du Profil et la confirmation de suppression. Faut-il les concevoir dans Figma d'abord, ou une proposition fondée sur les composants existants, validée ensuite ?
-2. **Changement de compte sur un même téléphone.** Le téléphone contient les données de l'Utilisateur du compte X, et l'on se connecte avec un compte Y déjà rattaché à un autre Utilisateur (y compris le cas d'un appareil de recette contenant des données). Faut-il refuser, ou remplacer les données locales après avertissement ?
-3. **Déconnexion.** Proposer « Se déconnecter » dans le Profil, en plus de la suppression ? Apple ne l'exige pas.
-4. **Informations affichées** dans la section Compte : fournisseur, nom, e-mail. Apple peut masquer l'e-mail.
-5. **Branche de développement :** branche dédiée `compte/lot-1` depuis `main`, ou poursuite sur la branche actuelle ?
+Arbitrages de Hermann du 19/11/2026 :
+- **Maquettes :** Claude propose des écrans à partir des composants existants, validés ensuite par Hermann. **Proposition à produire avant `PLAN_APPROVED`.**
+- **Changement de compte :** refus si autre compte ; même compte sur deux téléphones accepté (CPT-14).
+- **Déconnexion :** pas de bouton au premier lot (CPT-15).
+- **Section Compte :** fournisseur, nom et e-mail (CPT-13). Le nom Apple est enregistré à la première connexion.
+- **Branches :** PR de la documentation de cadrage vers `main`, puis développement sur `compte/lot-1` depuis `main` à jour.
+
+Conséquences sur le plan :
+- `AccountService.linkLocalUser` implémente CPT-14 ;
+- aucun écran de déconnexion ;
+- stockage du nom et de l'e-mail du compte dans `account_link`.
 
 ## STATUT
 
