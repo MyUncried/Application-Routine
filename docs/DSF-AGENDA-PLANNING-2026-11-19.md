@@ -1,6 +1,6 @@
 # DSF — Agenda — Planning (proposition) — 19/11/2026
 
-Référence Figma : écran « Agenda — Planning (proposition) » (`12580:27335`, 402 × 874), page Prototype MVP. Le Figma définit le rendu ; il ne crée pas de règle métier. Décision D-533 (chapitre 07) ; contrat d’écran CE-UI-15 (chapitre 13) ; onglets : D-532.
+Référence Figma : écran « Agenda — Planning (proposition) » (`12580:27335`, 402 × 874), page Prototype MVP. Le Figma définit le rendu ; il ne crée pas de règle métier. Cette carte de routine remplace la carte d’occurrence de la vue Semaine (Agenda) du calendrier (CE-UI-03). Décision D-533 (chapitre 07) ; contrat d’écran CE-UI-15 (chapitre 13) ; onglets : D-532.
 
 ## 1. Barre de titre
 
@@ -37,3 +37,5 @@ Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sép
 - Comportement du changement de mois sur la semaine affichée : proposé = première semaine du mois.
 - Logique des couleurs (teinte du cadre) : à définir par Hermann ; les valeurs ci-dessus sont provisoires.
 - « Spécialité » n’existe pas dans le modèle de données fonctionnel : propriété, liste de valeurs et abréviations à définir avant tout développement.
+- États de l’ancienne carte Semaine non repris dans cette carte : séance déployée (détail des exercices, récurrence), zone de déploiement, actions glissées Dupliquer / Supprimer, zone « Démarrer » distincte. À conserver, déplacer ou retirer : à arbitrer.
+- Vues Journal (carte compacte 298 × 46) et Vue d’ensemble : inchangées tant qu’aucune décision ne les concerne.
