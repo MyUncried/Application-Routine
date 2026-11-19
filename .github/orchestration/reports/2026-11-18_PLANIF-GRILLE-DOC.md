@@ -54,4 +54,5 @@
 - Docs : `docs/PROMPT-CLAUDE-CODE-ENCHAINEMENT-SEANCES-2026-11-19.md` rédigé (orchestration au-dessus du moteur, voile de transition ; arrêt volontaire À CLARIFIER).
 - Figma : écran « Calendrier — Semaine — Étirements — Actions glissées » (`2094:86`) supprimé, redondant avec « P-Calendrier — Semaine — Actions glissées » (`1992:5962`) ; ch06, ch13 et DSF Navigation annotés. Les matrices datées (07/10 et antérieures) conservent la référence, comme instantanés historiques.
 - Figma : écran « Calendrier — Semaine — Après suppression d’une planification » (`2074:86`) supprimé ; les 4 liens de prototype de la modale « Supprimer des occurrences » qui y menaient sont retirés (les boucles de prototype ne sont plus maintenues). ch06, ch13 et DSF Navigation annotés.
+- Figma : écran « Calendrier — Semaine — Mardi sélectionné » (`2252:86`) supprimé (comportement déjà spécifié) ; ch06, ch13 et DSF Navigation annotés.
 
