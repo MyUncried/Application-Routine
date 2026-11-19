@@ -1250,6 +1250,8 @@ Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exerci
 
 ##### Calendrier — Mois
 
+[Écran supprimé le 19/11/2026 : la vue Mois (Vue d’ensemble) n’a plus d’écran de référence ; son contenu reste à spécifier.]
+
 [Source Figma — `1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237)
 
 ![Navigation — écran 1992:5237](images/navigation-2026-10-27/1992-5237.png)
