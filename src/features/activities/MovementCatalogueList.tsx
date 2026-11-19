@@ -32,7 +32,6 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
-import { catalogueIllustrationsByMovement } from "@/features/catalogue/importedMovements";
 import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
 import { importedMovementInfo, personalLibraryTitlesContaining } from "@/features/catalogue/importedMovements";
 import {
@@ -124,12 +123,7 @@ const tVariant = strings.screens.activities.editor.movementSuggestion;
 type LoadState =
   | { readonly status: "loading" }
   | { readonly status: "error" }
-  | {
-      readonly status: "ready";
-      readonly entries: readonly MovementCatalogueEntry[];
-      /** Photos de catalogue des Mouvements installés (vignette d'un Mouvement sans média local). */
-      readonly illustrations: ReadonlyMap<string, string>;
-    };
+  | { readonly status: "ready"; readonly entries: readonly MovementCatalogueEntry[] };
 
 /** Entrées du Catalogue des Mouvements, relues à chaque `reloadToken`. */
 export function useMovementCatalogue(reloadToken: number): {
@@ -145,13 +139,9 @@ export function useMovementCatalogue(reloadToken: number): {
   const reload = useCallback(() => {
     const current = ++generation.current;
     if (!catalogue) return;
-    // Photos de catalogue lues avec les entrées ; registre indisponible : vignettes sans photo de catalogue.
-    const illustrations = Promise.resolve()
-      .then(() => catalogueIllustrationsByMovement())
-      .catch((): ReadonlyMap<string, string> => new Map());
-    Promise.all([catalogue.listEntries(), illustrations]).then(
-      ([entries, photos]) => {
-        if (generation.current === current) setState({ status: "ready", entries, illustrations: photos });
+    catalogue.listEntries().then(
+      (entries) => {
+        if (generation.current === current) setState({ status: "ready", entries });
       },
       (error: unknown) => {
         console.error("Le catalogue des mouvements n'a pas pu être chargé.", error);
@@ -1045,7 +1035,6 @@ export function MovementCatalogueList({
             highlighted={(highlight && selected) || catalogueOptions.pileHighlighted === true}
             inSession={inSession}
             newState={newState}
-            illustration={state.status === "ready" ? state.illustrations.get(id) : undefined}
           />
         </SwipeActionsRow>
         {choicesOpen ? (
@@ -1705,10 +1694,7 @@ function MovementCatalogueCard({
   highlighted = false,
   inSession = false,
   newState = "NO",
-  illustration,
 }: {
-  /** Photo de catalogue du Mouvement installé : vignette quand le Mouvement n'a aucun média local. */
-  readonly illustration?: string;
   /** Bibliothèques personnelles : carte sélectionnée (Figma 12206:26333), sans case. */
   readonly highlighted?: boolean;
   readonly entry: MovementCatalogueEntry;
@@ -1726,9 +1712,7 @@ function MovementCatalogueCard({
 }) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
-  const local = firstMediaPreviewSource(movement.media);
-  // Média local prioritaire (même règle que la fiche) ; la photo de catalogue est une URI `data:` non résolue.
-  const preview = local ? { ...local, uri: resolveUri(local.uri) } : illustration ? { uri: illustration, isVideo: false } : null;
+  const preview = firstMediaPreviewSource(movement.media);
   const steps = decodeInstructionSteps(movement.description).slice(0, 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
   const badge = newState === "NO" ? null : NEW_BADGES[newState];
@@ -1740,7 +1724,7 @@ function MovementCatalogueCard({
       <View style={[styles.thumbnail, entry.archived ? styles.faded : null]}>
         {preview ? (
           <MediaPreview
-            uri={preview.uri}
+            uri={resolveUri(preview.uri)}
             isVideo={preview.isVideo}
             imageStyle={styles.thumbnailImage}
             fallbackStyle={[styles.thumbnailImage, styles.thumbnailFallback]}

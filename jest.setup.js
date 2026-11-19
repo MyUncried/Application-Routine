@@ -28,7 +28,6 @@ jest.mock("@/features/catalogue/importedMovements", () => ({
   isImportedMovement: async () => false,
   importedMovementLabel: async () => null,
   importedMovementInfo: async () => null,
-  catalogueIllustrationsByMovement: async () => new Map(),
   personalLibraryTitlesContaining: async () => [],
   sharedCatalogueRegistry: async () => {
     throw new Error("Registre natif indisponible sous Jest : injecter un registre.");

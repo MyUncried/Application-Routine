@@ -17,7 +17,6 @@ import {
   type ClassificationValue,
   type MovementClassification,
 } from "@/domain/catalogue/catalogueFilters";
-import type { CatalogueSheet } from "@/domain/catalogue/MovementCatalogueFile";
 import type { MovementLicense } from "@/domain/catalogue/MovementEditorialProvenance";
 import type { ImportedMovementCheck } from "@/features/activities/MovementCatalogueService";
 import { openCatalogueRegistry } from "@/infrastructure/catalogue/openCatalogueRegistry";
@@ -35,26 +34,6 @@ export function sharedCatalogueRegistry(): Promise<SqliteCatalogueRegistry> {
     });
   }
   return shared;
-}
-
-/** Photo de catalogue affichable d'une fiche installée : photo intégrée dont les droits sont confirmés. */
-function catalogueSheetPhoto(sheet: CatalogueSheet): { readonly url: string } | undefined {
-  return sheet.media.find((item) =>
-    item.kind === "PHOTO" && item.storage === "EMBEDDED" && item.rightsStatus === "PERMISSION_CONFIRMED");
-}
-
-/**
- * Photos de catalogue des Mouvements installés, par identifiant de Mouvement (une seule lecture du registre),
- * pour les vignettes du Catalogue des Mouvements. Mouvement personnel ou fiche sans photo : absent de la table.
- */
-export async function catalogueIllustrationsByMovement(): Promise<ReadonlyMap<string, string>> {
-  const registry = await sharedCatalogueRegistry();
-  const result = new Map<string, string>();
-  for (const record of await registry.allInstalledSheets()) {
-    const photo = catalogueSheetPhoto(record.sheet);
-    if (photo) result.set(record.movementId, photo.url);
-  }
-  return result;
 }
 
 export const isImportedMovement: ImportedMovementCheck = async (movementId) =>
@@ -115,7 +94,8 @@ export async function importedMovementInfo(movementId: string): Promise<Imported
     entry.library.members.some((member) => member.catalogueId === record.catalogueId && member.sheetId === record.sheetId));
   const provenance = record.sheet.provenance;
   const references = (await registry.installedReferences()).get(record.catalogueId);
-  const photo = catalogueSheetPhoto(record.sheet);
+  const photo = record.sheet.media.find((item) =>
+    item.kind === "PHOTO" && item.storage === "EMBEDDED" && item.rightsStatus === "PERMISSION_CONFIRMED");
 
   return {
     ...(photo ? { illustration: { uri: photo.url, label: record.sheet.content.name } } : {}),
