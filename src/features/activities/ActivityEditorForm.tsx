@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccessibilityInfo,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -199,7 +198,6 @@ export type ActivityEditorFormProps = {
   baselineParameters?: ExecutionParametersInput | null;
   /** Service portant l'import de médias ; `null` : section en lecture seule. */
   mediaService: ActivityDefinitionService | null;
-  catalogueIllustration?: { readonly uri: string; readonly label: string };
   /** Identité stable du brouillon (prêts des fichiers préparés). */
   mediaDraftId: string;
   finishLabel: string;
@@ -442,7 +440,6 @@ export function ActivityEditorForm({
   level = null,
   baselineParameters = null,
   mediaService,
-  catalogueIllustration,
   mediaDraftId,
   finishLabel,
   onFinish,
@@ -704,7 +701,7 @@ export function ActivityEditorForm({
   const phrase = segments ? phraseText(segments) : parameters.mode === null ? "" : card.incomplete;
   // Recette iPhone du 04/11/2026 (`hideEmptySections`) : sections sans valeur non rendues.
   const showDescription = !hideEmptySections || value.instructionSteps.some((step) => step.trim().length > 0);
-  const showMedia = !hideEmptySections || value.media.length > 0 || catalogueIllustration !== undefined;
+  const showMedia = !hideEmptySections || value.media.length > 0;
   const showPhases = !hideEmptySections || (movementPhases?.value.phases.length ?? 0) > 0;
   const showParameters = !hideEmptySections || phrase.length > 0;
   const zoneNames = bodyZones.filter((zone) => value.bodyZoneIds.includes(zone.id)).map((zone) => zone.name);
@@ -1069,14 +1066,7 @@ export function ActivityEditorForm({
         // La hauteur suit la largeur du terminal (402 × 329 en référence).
         // KBD (27/10) : le gabarit ne bouge jamais avec le clavier ; la couche éditable passe devant.
         <View style={[styles.movementPhotoTemplate, { height: movementPhotoHeight }]} testID="movement-photo-template">
-          {catalogueIllustration && value.media.length === 0 && contentLocked ? (
-            <Image
-              source={{ uri: catalogueIllustration.uri }}
-              accessibilityLabel={catalogueIllustration.label}
-              resizeMode="contain"
-              style={{ width: windowSize.width, height: movementPhotoHeight }}
-            />
-          ) : renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
+          {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
         </View>
       ) : null}
 
