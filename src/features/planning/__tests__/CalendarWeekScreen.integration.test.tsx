@@ -18,8 +18,9 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
- * Calendrier Semaine sur SQLite réelle (`node:sqlite`) : écran, `PlanningService`, `SessionService` et dépôts
- * réels. Semaine consultée fixée en 2030 (toujours future) ; « maintenant » injecté au service.
+ * Calendrier — vue Agenda (ancienne vue Semaine ; D-532 à D-534, CE-UI-15) sur SQLite réelle (`node:sqlite`) : écran,
+ * `PlanningService`, `SessionService` et dépôts réels. Semaine consultée fixée en 2030 ; « maintenant » injecté au service.
+ * Jest n'exerce pas la mise en page : vérification sur iPhone nécessaire.
  */
 
 const mockPush = jest.fn();
@@ -127,25 +128,31 @@ const plan = async (draft: Partial<RoutineDraft> & Pick<RoutineDraft, "entries">
 const entry = (sessionId: string) => ({ id: `entry-${sessionId}`, sessionId, frequency: EVERY_TIME });
 const sectionDays = () => screen.queryAllByTestId(/^calendar-section-\d{4}-\d{2}-\d{2}$/).map((node) => (node.props.testID as string).slice("calendar-section-".length));
 const items = () => screen.queryAllByTestId(/^calendar-item-[^]*-swipe$/).map((node) => node.props.testID as string);
-const swipeCard = (routineId: string, day: string) =>
-  screen.getByTestId(new RegExp(`^calendar-item-${routineId}\\|${day}T\\d{2}:\\d{2}\\|[^|]+-swipe-card$`));
+const swipeCard = (routineId: string, day: string) => screen.getByTestId(new RegExp(`^calendar-item-${routineId}\\|${day}T\\d{2}:\\d{2}-swipe-card$`));
+/** Carte d'une occurrence de routine (D-534) : `calendar-item-<routine>|<date>T<heure>-card`. */
+const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
   it("semaine vide : message, aucune carte fictive", async () => {
     await renderCalendar();
     expect(screen.getByTestId("calendar-week-empty")).toBeTruthy();
     expect(items()).toEqual([]);
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("5 – 11 août 2030");
+    // DSF Agenda § 2 : mois, puis semaine « du 5 au 11 ».
+    expect(screen.getByTestId("calendar-month-label").props.children).toBe("Août 2030");
+    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 5 au 11");
   });
 
   it("créneau unique : une seule carte, au bon jour, à la bonne heure", async () => {
     const created = await sessions.createStructured(input("Gainage"));
-    await plan({ startDate: THURSDAY, time: "14:30", entries: [entry(created.id)] });
+    const routine = await plan({ startDate: THURSDAY, time: "14:30", entries: [entry(created.id)] });
     await renderCalendar();
     expect(sectionDays()).toEqual([THURSDAY]);
-    expect(screen.getByTestId(`calendar-section-${THURSDAY}-count`).props.children).toBe("1 prévue");
     expect(screen.getByText("Jeudi 8 août")).toBeTruthy();
-    expect(screen.getByTestId(`session-card-${created.id}-time`).props.children).toBe("14:30 · ");
+    // D-533 : heure « 14h30 », nom de la routine en titre, durée sous l'heure.
+    expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-time`).props.children).toBe("14h30");
+    expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-name`).props.children).toBe(routine.name);
+    expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-duration`).props.children).not.toBe("");
+    expect(screen.queryByTestId(`calendar-section-${THURSDAY}-count`)).toBeNull();
     expect(screen.getAllByTestId(`calendar-day-${THURSDAY}-dot`)).toHaveLength(1);
   });
 
@@ -160,7 +167,7 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId("calendar-next-week"));
     await flush();
     // Semaine suivante : seul le lundi est dans la borne (jusqu'au jeudi exclu : MONDAY + 10 = jeudi suivant inclus).
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("12 – 18 août 2030");
+    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 12 au 18");
     expect(sectionDays()).toEqual([addDays(MONDAY, 7), addDays(MONDAY, 10)]);
     fireEvent.press(screen.getByTestId("calendar-next-week"));
     await flush();
@@ -172,23 +179,34 @@ describe("Calendrier Semaine", () => {
     expect(sectionDays()).toEqual([MONDAY, THURSDAY]);
   });
 
-  it("liste ordonnée : deux contenus du même créneau, dans l'ordre de la liste", async () => {
+  it("routine à deux séances : une seule carte par occurrence, séances dans le déployé dans l'ordre de la liste (D-534)", async () => {
     const first = await sessions.createStructured(input("Zeta"));
     const second = await sessions.createStructured(input("Alpha"));
-    await plan({ entries: [entry(first.id), entry(second.id)] });
+    const routine = await plan({ name: "Genou", entries: [entry(first.id), entry(second.id)] });
     await renderCalendar();
-    const names = screen.queryAllByTestId(/^session-card-[^]*-name$/).map((node) => node.props.children as string);
-    expect(names).toEqual(["Zeta", "Alpha"]);
-    expect(screen.getByTestId(`calendar-section-${MONDAY}-count`).props.children).toBe("2 prévues");
+    expect(items()).toHaveLength(1);
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-name`).props.children).toBe("Genou");
+    // Un point par séance du jour.
+    expect(screen.getAllByTestId(`calendar-day-${MONDAY}-dot`)).toHaveLength(2);
+    expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`)).toBeNull();
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-disclosure`));
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-chevron-open`)).toBeTruthy();
+    const expanded = screen.getByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`);
+    expect(expanded).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-session-0`)).toBeTruthy();
+    expect(screen.getByText("Zeta")).toBeTruthy();
+    expect(screen.getByText("Alpha")).toBeTruthy();
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-disclosure`));
+    expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`)).toBeNull();
   });
 
   it("Démarrer ouvre l'Exécution PRE-10 ; la carte ouvre la modification ; Dupliquer ouvre un brouillon", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const routine = await plan({ entries: [entry(created.id)] });
     await renderCalendar();
-    fireEvent.press(screen.getByTestId(`session-card-${created.id}-start`));
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-start`));
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: created.id } });
-    fireEvent.press(screen.getByTestId(`session-card-${created.id}-visual-open`));
+    fireEvent.press(swipeCard(routine.id, MONDAY));
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
@@ -247,6 +265,22 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId(`calendar-day-${THURSDAY}`));
     expect(screen.getByTestId(`calendar-day-${THURSDAY}`).props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId(`calendar-day-${MONDAY}`).props.accessibilityState).toMatchObject({ selected: false });
+  });
+
+  it("navigation : doubles flèches du mois vers le premier jour du mois ; semaine à cheval sur deux mois ; Aujourd'hui en texte (DSF Agenda § 2)", async () => {
+    await renderCalendar();
+    fireEvent.press(screen.getByTestId("calendar-next-month"));
+    await flush();
+    expect(screen.getByTestId("calendar-month-label").props.children).toBe("Septembre 2030");
+    // 1er septembre 2030 : dimanche — semaine du 26 août au 1er septembre.
+    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 26 août au 1er septembre");
+    expect(screen.getByTestId("calendar-day-2030-09-01").props.accessibilityState).toMatchObject({ selected: true });
+    fireEvent.press(screen.getByTestId("calendar-previous-month"));
+    fireEvent.press(screen.getByTestId("calendar-previous-month"));
+    await flush();
+    expect(screen.getByTestId("calendar-month-label").props.children).toBe("Juillet 2030");
+    expect(screen.getByTestId("calendar-today")).toBeTruthy();
+    expect(screen.getByText("Aujourd’hui")).toBeTruthy();
   });
 
   it("barre de titre à onglets : Journal · Agenda · Vue d’ensemble, Agenda actif, composant partagé des Catalogues (D-532)", async () => {

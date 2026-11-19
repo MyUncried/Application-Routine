@@ -13,8 +13,9 @@ import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { formatRecurrence } from "@/features/planning/planningSummary";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
-import { sessionCardAccessibilityLabel } from "@/features/sessions/SessionCatalogueList";
+import { firstDayOfShiftedMonth, formatAgendaMonth, formatAgendaTime, formatAgendaWeek, sessionsDurationLabel, zonesLine } from "@/features/planning/agendaFormat";
+import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
+import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
@@ -24,8 +25,15 @@ import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
- * Calendrier — vue Semaine (CE-UI-03 ; Figma « Prototype MVP » `1992:5101`, déployée `1992:6389`, actions glissées
- * `1992:5962`, suppressions `1992:5365` / `1992:6102`, après suppression `2074:86`).
+ * Calendrier — vue Agenda (ancienne vue Semaine, CE-UI-03 ; D-532 à D-534, CE-UI-15, DSF Agenda — Planning du
+ * 19/11/2026 ; Figma « Agenda — Planning (proposition) » `12580:27335`).
+ *
+ * [Remplacé le 19/11/2026 (D-533, D-534) : la bande à deux lignes (intervalle « 3 – 9 août 2026 », Aujourd'hui en
+ * pilule), les sections « N prévue(s) » et une carte de séance par contenu retenu. Désormais : zone de contexte à trois
+ * lignes (mois en doubles flèches, semaine « du 16 au 22 » en flèches simples, « Aujourd'hui » en texte et Planifier) ;
+ * rangée de sept cartes 46 × 64 ; liste regroupée par jour (trait fin entre deux jours) ; une carte par occurrence de
+ * routine (`RoutineAgendaCard`), séances dans le déployé ; Dupliquer / Supprimer glissés pour la routine. Le reste
+ * ci-dessous décrit le comportement conservé.]
  *
  * - En-tête : navigation Jour | Semaine | Mois (composant partagé des Catalogues). Jour et Mois sont hors de cette
  *   tranche : présents, indisponibles.
@@ -35,18 +43,21 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  * - Une carte par contenu retenu d'une occurrence, dans l'ordre de la liste de la Routine (RM-043). Zone
  *   principale → modification de la Routine ; chevron → déployer (récurrence et composition) ; Démarrer → Exécution
  *   (contrat PRE-10 `/execution?sessionId=`) ; glissé → Dupliquer / Supprimer (CE-UI-03 §12).
- * - Seules les occurrences futures sont affichées (RM-049) ; une Séance archivée ou supprimée n'est plus proposée.
+ * - Occurrences passées présentées et rejouables (D-525, remplace RM-049) ; une Séance archivée ou supprimée n'est
+ *   plus proposée.
  */
 
 const t = planningStrings;
 const DOT_SIZE = 5;
 const MAX_DOTS = 3;
+/** DSF Agenda § 6 : actions glissées de 90 × 52. */
+const AGENDA_ACTION_WIDTH = 90;
 
+/** D-534 : une carte par occurrence de routine ; ses séances (contenus retenus, dans l'ordre de la liste) au déployé. */
 type CardItem = {
   readonly key: string;
   readonly occurrence: Occurrence;
-  readonly sessionId: string;
-  readonly projection: SessionCatalogueProjection;
+  readonly projections: readonly SessionCatalogueProjection[];
   readonly routine: Routine | undefined;
 };
 
@@ -102,6 +113,16 @@ function CalendarViewTabs() {
         selectedColor={colors.catalogueSessionsContext}
         testID="calendar-view-row"
       />
+    </View>
+  );
+}
+
+/** Doubles flèches du mois (Figma « icon/mois précédent / suivant », 30 × 24 : deux flèches décalées de 7). */
+function DoubleChevron({ source }: { readonly source: number }) {
+  return (
+    <View style={styles.doubleChevron}>
+      <Image source={source} style={[styles.chevron, styles.chevronFirst]} accessible={false} />
+      <Image source={source} style={[styles.chevron, styles.chevronSecond]} accessible={false} />
     </View>
   );
 }
@@ -175,23 +196,27 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
   const itemsByDay = useMemo(() => {
     const map = new Map<LocalDate, CardItem[]>();
     for (const occurrence of occurrences) {
-      for (const content of occurrence.contents) {
-        if (!isPlannable(content.sessionId)) continue;
-        const projection = projections.get(content.sessionId);
-        if (projection === undefined) continue;
-        const list = map.get(occurrence.date) ?? [];
-        list.push({
-          key: `${occurrence.routineId}|${occurrence.key}|${content.entryId}`,
-          occurrence,
-          sessionId: content.sessionId,
-          projection,
-          routine: routinesById.get(occurrence.routineId),
-        });
-        map.set(occurrence.date, list);
-      }
+      const shown = occurrence.contents
+        .filter((content) => isPlannable(content.sessionId))
+        .map((content) => projections.get(content.sessionId))
+        .filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
+      if (shown.length === 0) continue;
+      const list = map.get(occurrence.date) ?? [];
+      list.push({ key: `${occurrence.routineId}|${occurrence.key}`, occurrence, projections: shown, routine: routinesById.get(occurrence.routineId) });
+      map.set(occurrence.date, list);
     }
     return map;
   }, [occurrences, isPlannable, projections, routinesById]);
+
+  const bodyZones = useBodyZonesReferential();
+  const zoneName = useMemo(() => new Map(bodyZones.map((zone) => [zone.id, zone.name])), [bodyZones]);
+  /** Titre : nom de la routine ; une routine sans nom (antérieure au 18/11/2026, RM-264) montre ses séances. */
+  const titleOf = (item: CardItem) => {
+    const name = item.routine?.name.trim() ?? "";
+    return name !== "" ? name : item.projections.map((projection) => projection.name).join(", ");
+  };
+  const detailOf = (item: CardItem) =>
+    zonesLine(item.projections.flatMap((projection) => projection.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)));
 
   const changeWeek = (next: LocalDate, day: LocalDate) => {
     setMonday(next);
@@ -249,6 +274,19 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
   };
 
   const dotColor = (projection: SessionCatalogueProjection) => projection.categories[0]?.color ?? colors.selection;
+  const changeMonth = (shift: -1 | 1) => {
+    const first = firstDayOfShiftedMonth(selectedDay, shift);
+    changeWeek(mondayOf(first), first);
+  };
+
+  /**
+   * « Démarrer » : première séance de l'occurrence (contrat PRE-10 `/execution?sessionId=`). L'enchaînement des séances
+   * suivantes (D-534) est porté par l'orchestrateur d'exécution.
+   */
+  const start = (item: CardItem) => {
+    setRevealed(null);
+    router.push({ pathname: "/execution", params: { sessionId: item.projections[0]!.id } });
+  };
 
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   const anyItem = days.some((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
@@ -258,58 +296,78 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
   return (
     <ScreenShell>
       <FixedHeader title={t.calendar.title} content={<CalendarViewTabs />} layoutStyle={styles.header} />
+      {/* DSF Agenda § 2 : trois lignes centrées, espacées de 6 — mois, semaine, « Aujourd'hui » et Planifier. */}
       <ContextBand fadeToTransparent color={colors.catalogueSessionsContext}>
-        <View style={styles.weekNavigation}>
-          <Pressable
-            onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
-            accessibilityRole="button"
-            accessibilityLabel={t.calendar.previousWeek}
-            hitSlop={12}
-            testID="calendar-previous-week"
-          >
-            <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.weekChevron} accessible={false} />
-          </Pressable>
-          <Text style={styles.weekLabel} accessibilityRole="header" testID="calendar-week-label">
-            {formatWeekRange(monday)}
-          </Text>
-          <Pressable
-            onPress={() => changeWeek(addDays(monday, 7), addDays(monday, 7))}
-            accessibilityRole="button"
-            accessibilityLabel={t.calendar.nextWeek}
-            hitSlop={12}
-            testID="calendar-next-week"
-          >
-            <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.weekChevron} accessible={false} />
-          </Pressable>
-        </View>
-        <View style={styles.weekActions}>
-          <Pressable
-            onPress={() => {
-              const today = todayLocal();
-              changeWeek(mondayOf(today), today);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t.calendar.today}
-            style={styles.todayPill}
-            testID="calendar-today"
-          >
-            <Text style={styles.todayLabel}>{t.calendar.today}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
-            accessibilityRole="button"
-            accessibilityLabel={t.calendar.plan}
-            style={styles.planButton}
-            testID="calendar-plan"
-          >
-            <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.planIcon} accessible={false} />
-          </Pressable>
+        <View style={styles.contextLines}>
+          <View style={styles.monthNavigation}>
+            <Pressable onPress={() => changeMonth(-1)} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={10} testID="calendar-previous-month">
+              <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
+            </Pressable>
+            <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.4} testID="calendar-month-label">
+              {formatAgendaMonth(selectedDay)}
+            </Text>
+            <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={10} testID="calendar-next-month">
+              <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
+            </Pressable>
+          </View>
+          {/* Flèches simples rapprochées du centre (centres à 96 et 306) : entonnoir sous la ligne du mois. */}
+          <View style={styles.weekNavigation}>
+            <Pressable
+              onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.previousWeek}
+              hitSlop={12}
+              testID="calendar-previous-week"
+            >
+              <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
+            </Pressable>
+            <Text style={[styles.periodLabel, styles.weekLabel]} maxFontSizeMultiplier={1.4} numberOfLines={1} adjustsFontSizeToFit testID="calendar-week-label">
+              {formatAgendaWeek(monday)}
+            </Text>
+            <Pressable
+              onPress={() => changeWeek(addDays(monday, 7), addDays(monday, 7))}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.nextWeek}
+              hitSlop={12}
+              testID="calendar-next-week"
+            >
+              <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
+            </Pressable>
+          </View>
+          <View style={styles.todayLine}>
+            {/* « Aujourd'hui » en texte seul (DSF § 2). Sa condition d'affichage reste À CLARIFIER : toujours présent. */}
+            <Pressable
+              onPress={() => {
+                const today = todayLocal();
+                changeWeek(mondayOf(today), today);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.today}
+              hitSlop={10}
+              testID="calendar-today"
+            >
+              <Text style={styles.todayLabel} maxFontSizeMultiplier={1.4}>
+                {t.calendar.today}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.plan}
+              style={styles.planButton}
+              testID="calendar-plan"
+            >
+              <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.planIcon} accessible={false} />
+            </Pressable>
+          </View>
         </View>
       </ContextBand>
 
+      {/* DSF Agenda § 3 : sept cartes 46 × 64 (écart 8), jour sélectionné plein, un point par séance du jour. */}
       <View style={styles.dayBar} accessibilityRole="tablist" testID="calendar-day-bar">
         {days.map((day, index) => {
           const items = itemsByDay.get(day) ?? [];
+          const sessionsOfDay = items.flatMap((item) => item.projections.map((projection, rank) => ({ key: `${item.key}|${rank}`, projection })));
           const selected = day === selectedDay;
           return (
             <Pressable
@@ -318,20 +376,25 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
               accessibilityRole="tab"
               accessibilityState={{ selected }}
               accessibilityLabel={
-                items.length > 0
-                  ? fillTemplate(t.calendar.dayAccessibility, { day: formatDayTitle(day), count: plannedCountLabel(items.length) })
+                sessionsOfDay.length > 0
+                  ? fillTemplate(t.calendar.dayAccessibility, { day: formatDayTitle(day), count: plannedCountLabel(sessionsOfDay.length) })
                   : fillTemplate(t.calendar.dayEmptyAccessibility, { day: formatDayTitle(day) })
               }
               style={[styles.dayCell, selected ? styles.dayCellSelected : null]}
               testID={`calendar-day-${day}`}
             >
-              <Text style={[styles.dayShort, selected ? styles.dayTextSelected : null]}>{t.weekdayShort[index]}</Text>
-              <Text style={[styles.dayNumber, selected ? styles.dayTextSelected : null]}>{parseLocalDate(day).getDate()}</Text>
+              {/* Recette du 19/11/2026 (h2) : texte agrandi — l'abrégé et le numéro rétrécissent pour tenir dans la carte. */}
+              <Text style={[styles.dayShort, selected ? styles.dayTextSelected : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+                {t.weekdayShort[index]}
+              </Text>
+              <Text style={[styles.dayNumber, selected ? styles.dayTextSelected : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+                {parseLocalDate(day).getDate()}
+              </Text>
               <View style={styles.dots}>
-                {items.slice(0, MAX_DOTS).map((item) => (
+                {sessionsOfDay.slice(0, MAX_DOTS).map((session) => (
                   <View
-                    key={item.key}
-                    style={[styles.dot, { backgroundColor: selected ? colors.background : dotColor(item.projection) }]}
+                    key={session.key}
+                    style={[styles.dot, { backgroundColor: selected ? colors.background : dotColor(session.projection) }]}
                     testID={`calendar-day-${day}-dot`}
                   />
                 ))}
@@ -375,6 +438,7 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
         {days.map((day) => {
           const items = itemsByDay.get(day) ?? [];
           if (items.length === 0) return null;
+          const first = day === days.find((candidate) => (itemsByDay.get(candidate)?.length ?? 0) > 0);
           return (
             <View
               key={day}
@@ -384,12 +448,11 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
               }}
               testID={`calendar-section-${day}`}
             >
-              <View style={styles.sectionHeader}>
+              {/* DSF Agenda § 4 : un trait fin pleine largeur sépare deux jours, à 5 au-dessus de la date. */}
+              {first ? null : <View style={styles.daySeparator} testID={`calendar-section-${day}-separator`} />}
+              <View style={[styles.sectionHeader, first ? styles.sectionHeaderFirst : null]}>
                 <Text style={styles.sectionTitle} accessibilityRole="header">
                   {formatDayTitle(day)}
-                </Text>
-                <Text style={styles.sectionCount} testID={`calendar-section-${day}-count`}>
-                  {plannedCountLabel(items.length)}
                 </Text>
               </View>
               {items.map((item) => {
@@ -414,29 +477,43 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
                     },
                   },
                 ];
+                const title = titleOf(item);
+                const duration = sessionsDurationLabel(item.projections);
                 return (
                   <View key={item.key} style={styles.item} testID={`calendar-item-${item.key}`}>
+                    {/* DSF Agenda § 6 : la carte glisse de 180 et découvre Dupliquer (gris) et Supprimer (rouge), 90 × 52. */}
                     <SwipeActionsRow
                       actions={actions}
                       revealed={revealed === item.key}
                       onReveal={() => setRevealed(item.key)}
                       onHide={() => setRevealed((current) => (current === item.key ? null : current))}
                       onPress={() => openRoutine(item.occurrence.routineId)}
-                      accessibilityLabel={`${sessionCardAccessibilityLabel(item.projection, isExpanded)}, ${fillTemplate(t.calendar.timeAccessibility, { time: item.occurrence.time })}`}
+                      accessibilityLabel={[title, fillTemplate(t.calendar.timeAccessibility, { time: formatAgendaTime(item.occurrence.time) }), duration].filter((part) => part !== "").join(", ")}
                       accessibilityHint={t.calendar.openRoutine}
                       accessibilityState={{ expanded: isExpanded }}
-                      extraAccessibilityActions={[{ name: "toggle", label: isExpanded ? planningStrings.form.collapse : planningStrings.form.expand, onAction: toggle }]}
-                      actionsHeight={SESSION_CARD_HEADER_HEIGHT}
+                      extraAccessibilityActions={[
+                        { name: "toggle", label: isExpanded ? t.calendar.collapseRoutine : t.calendar.expandRoutine, onAction: toggle },
+                        { name: "start", label: t.calendar.start, onAction: () => start(item) },
+                      ]}
+                      actionsHeight={AGENDA_ROW_HEIGHT}
+                      actionWidth={AGENDA_ACTION_WIDTH}
+                      actionsRadius={0}
                       testID={`calendar-item-${item.key}-swipe`}
                     >
-                      <SessionCard
-                        projection={item.projection}
+                      <RoutineAgendaCard
+                        time={formatAgendaTime(item.occurrence.time)}
+                        duration={duration}
+                        name={title}
+                        detail={detailOf(item)}
                         expanded={isExpanded}
                         onToggleExpanded={toggle}
-                        onOpen={() => openRoutine(item.occurrence.routineId)}
-                        onStart={() => router.push({ pathname: "/execution", params: { sessionId: item.sessionId } })}
-                        timeLabel={item.occurrence.time}
-                      >
+                        onStart={() => start(item)}
+                        testID={`calendar-item-${item.key}-card`}
+                      />
+                    </SwipeActionsRow>
+                    {isExpanded ? (
+                      // DSF Agenda § 6 : complément de composition du catalogue sous la carte (filet, puis séances).
+                      <Pressable onPress={() => openRoutine(item.occurrence.routineId)} accessible={false} style={styles.expanded} testID={`calendar-item-${item.key}-expanded`}>
                         {routine !== undefined && routine.repetition !== null ? (
                           <View style={styles.recurrenceRow}>
                             <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.recurrenceIcon} accessible={false} />
@@ -445,9 +522,14 @@ export function CalendarWeekScreen({ initialDay }: { readonly initialDay?: Local
                             </Text>
                           </View>
                         ) : null}
-                        <SessionCompositionTree tree={item.projection.tree} testID={`calendar-item-${item.key}-composition`} />
-                      </SessionCard>
-                    </SwipeActionsRow>
+                        {item.projections.map((projection, rank) => (
+                          <View key={`${projection.id}-${rank}`} testID={`calendar-item-${item.key}-session-${rank}`}>
+                            {item.projections.length > 1 ? <Text style={styles.expandedSession}>{projection.name}</Text> : null}
+                            <SessionCompositionTree tree={projection.tree} testID={`calendar-item-${item.key}-composition-${rank}`} />
+                          </View>
+                        ))}
+                      </Pressable>
+                    ) : null}
                   </View>
                 );
               })}
@@ -496,34 +578,23 @@ const styles = StyleSheet.create({
   // DSF Barre de titre à onglets § 2 : en-tête et barre d'état teintés #F7F7FF, comme le Catalogue des séances.
   header: { backgroundColor: colors.catalogueSessionsBackground },
   viewTabs: { flex: 1, alignSelf: "stretch" },
-  weekNavigation: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: layout.screenGutter,
-  },
-  weekChevron: { width: 24, height: 24 },
-  weekLabel: { ...type.sectionTitle, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
-  weekActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: spacing[12],
-    paddingHorizontal: layout.screenGutter,
-    marginTop: spacing[16],
-  },
-  todayPill: {
-    minHeight: 32,
-    paddingHorizontal: 15,
-    borderRadius: 16,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.cardsBorder,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  todayLabel: { ...type.label, color: colors.textPrimary },
+  // DSF Agenda § 2 : trois lignes centrées, espacées de 6.
+  contextLines: { paddingHorizontal: layout.screenGutter, gap: 6 },
+  monthNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  doubleChevron: { width: 30, height: 24 },
+  chevron: { width: 24, height: 24 },
+  chevronFirst: { position: "absolute", left: 0, top: 0 },
+  chevronSecond: { position: "absolute", left: 7, top: 0 },
+  // Mois et semaine : Inter 18 semi-gras.
+  periodLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center" },
+  // Flèches de semaine aux centres x = 96 et x = 306 (bande de 370 : 68 + 24 + 186 + 24 + 68).
+  weekNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  weekLabel: { width: 186, flexShrink: 1 },
+  todayLine: { minHeight: 32, alignItems: "center", justifyContent: "center" },
+  todayLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 14, color: "#333333" },
   planButton: {
+    position: "absolute",
+    right: 0,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -534,45 +605,46 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   planIcon: { width: 18, height: 18 },
+  // DSF Agenda § 3 : sept cartes 46 × 64, écart 8, rayon 12.
   dayBar: {
     flexDirection: "row",
-    gap: spacing[4],
+    gap: spacing[8],
     paddingHorizontal: layout.screenGutter,
-    paddingTop: spacing[8],
-    paddingBottom: spacing[12],
+    paddingTop: spacing[4],
   },
   dayCell: {
     flex: 1,
     flexBasis: 0,
     minHeight: 64,
     minWidth: 0,
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: colors.surface,
     alignItems: "center",
-    paddingTop: 10,
+    justifyContent: "center",
+    paddingHorizontal: 2,
+    paddingVertical: spacing[4],
   },
   dayCellSelected: { backgroundColor: colors.selection },
-  dayShort: { ...type.supporting, color: colors.textSecondary },
-  dayNumber: { ...type.sectionTitle, color: colors.textPrimary, marginTop: 4 },
+  dayShort: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, color: "#46464C" },
+  dayNumber: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 22, color: "#46464C" },
   dayTextSelected: { color: colors.background },
-  dots: { flexDirection: "row", gap: 2, marginTop: 4, minHeight: DOT_SIZE, marginBottom: 6 },
+  dots: { flexDirection: "row", gap: 2, marginTop: 2, minHeight: DOT_SIZE },
   dot: { width: DOT_SIZE, height: DOT_SIZE, borderRadius: DOT_SIZE / 2 },
   list: { flex: 1 },
-  listContent: { paddingHorizontal: layout.screenGutter },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 36,
-    marginTop: spacing[12],
-    marginBottom: spacing[8],
-  },
-  sectionTitle: { ...type.sectionTitle, color: colors.textPrimary },
-  sectionCount: { ...type.supporting, color: colors.textSecondary },
-  item: { paddingBottom: spacing[12] },
-  recurrenceRow: { flexDirection: "row", alignItems: "center", gap: spacing[8], paddingHorizontal: spacing[12], paddingTop: spacing[8] },
+  // DSF Agenda § 4 : liste à 14 sous la rangée des jours ; cartes pleine largeur d'écran.
+  listContent: { paddingTop: 14 },
+  daySeparator: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E8F0", marginHorizontal: layout.screenGutter, marginTop: spacing[16] },
+  sectionHeader: { paddingHorizontal: layout.screenGutter, paddingTop: 5, paddingBottom: spacing[8] },
+  sectionHeaderFirst: { paddingTop: 0 },
+  // En-tête de jour : Inter 13 semi-gras gris.
+  sectionTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: colors.textSecondary },
+  // DSF Agenda § 4 : 8 entre deux routines, aucun trait.
+  item: { paddingBottom: spacing[8] },
+  expanded: { marginHorizontal: layout.screenGutter, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder, marginTop: spacing[8], paddingTop: spacing[8], gap: spacing[8] },
+  expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
+  recurrenceRow: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
   recurrenceIcon: { width: 12, height: 12 },
   recurrence: { ...type.supporting, color: colors.textSecondary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
-  error: { ...type.supporting, color: colors.danger, marginTop: spacing[8] },
+  error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
 });

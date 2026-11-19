@@ -56,6 +56,13 @@ export const planningStrings = {
     dayAccessibility: "{day}, {count}",
     dayEmptyAccessibility: "{day}, aucune séance",
     timeAccessibility: "à {time}",
+    // D-533 (19/11/2026) : Agenda — navigation par mois, carte de routine.
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
+    expandRoutine: "Déplier la routine",
+    collapseRoutine: "Replier la routine",
+    start: "Démarrer",
+    done: "Terminée",
   },
   deleteSingle: {
     title: "Supprimer la planification ?",
