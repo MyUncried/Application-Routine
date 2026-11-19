@@ -36,3 +36,13 @@
 - Non vérifié : rendu visuel des écrans (captures non lisibles depuis l’environnement).
 
 - D-533 précisé : la carte de routine remplace la carte de la vue Semaine (Agenda) ; ch06 et ch13 (CE-UI-03) annotés ; états déployé et actions glissées À CLARIFIER.
+
+## Complément du 19/11/2026 (propagation de l’Agenda)
+
+- Figma : zone de contexte, rangée des jours, liste groupée et carte de l’Agenda reportées sur 8 écrans : Semaine `1992:5101`, Actions glissées `1992:5962`, Séance déployée `1992:6389`, Après suppression `2074:86`, Étirements — Actions glissées `2094:86`, Mardi sélectionné `2252:86`, et fonds des modales `1992:5365`, `1992:6102`. Bande (115, y = 92) inchangée.
+- Séance déployée : carte de l’Agenda + filet et liste des exercices clonés de `6227:5381` (catalogue).
+- Docs : DSF Agenda § 6 ; CE-UI-15 annoté. Classe B (rendu).
+- Non fait : écrans Jour (`1992:5510`, `1992:5602`, `1992:5697`, `1992:5794`, `2059:267`, `2128:86`) et Mois (`1992:5237`) : question de périmètre posée à Hermann.
+- Non vérifié : rendu visuel (captures non lisibles depuis l’environnement) ; contrôle géométrique seul. Les jeux de dates des anciens écrans (3–9 août) sont remplacés par ceux de l’Agenda (16–22 novembre).
+- Commit : voir le message de livraison.
+

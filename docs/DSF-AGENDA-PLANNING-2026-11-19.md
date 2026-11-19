@@ -37,5 +37,16 @@ Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sép
 - Comportement du changement de mois sur la semaine affichée : proposé = première semaine du mois.
 - Logique des couleurs (teinte du cadre) : à définir par Hermann ; les valeurs ci-dessus sont provisoires.
 - « Spécialité » n’existe pas dans le modèle de données fonctionnel : propriété, liste de valeurs et abréviations à définir avant tout développement.
-- États de l’ancienne carte Semaine non repris dans cette carte : séance déployée (détail des exercices, récurrence), zone de déploiement, actions glissées Dupliquer / Supprimer, zone « Démarrer » distincte. À conserver, déplacer ou retirer : à arbitrer.
+- États de l’ancienne carte Semaine : voir § 6 pour la déclinaison proposée (déployé, actions glissées) ; la récurrence dans le détail déployé, la zone de déploiement et la zone « Démarrer » distincte ne sont pas repris : à conserver, déplacer ou retirer, à arbitrer.
 - Vues Journal (carte compacte 298 × 46) et Vue d’ensemble : inchangées tant qu’aucune décision ne les concerne.
+
+## 6. Déclinaison aux écrans du calendrier (19/11/2026)
+
+La zone de contexte (§ 2), la rangée des jours (§ 3), la liste regroupée par jour (§ 4) et la carte (§ 5) s’appliquent à tous les écrans de la vue Semaine (Agenda) et aux fonds des modales de suppression. Chaque écran garde son état propre :
+
+- **Séance déployée** : la carte de § 5 reste telle quelle ; seul le complément de composition du catalogue (« P-Catalogue des séances — Séance déployée ») est ajouté en dessous : filet de séparation, puis la liste des exercices de la séance avec ses cycles et circuits. Le détail est inséré dans le flux de la liste ; les routines suivantes sont repoussées.
+- **Actions glissées** : la carte glisse vers la gauche de 180 px et découvre « Dupliquer » (gris) et « Supprimer » (rouge), 90 × 52 chacune, alignées sur la hauteur de la carte.
+- **Après suppression** : la routine supprimée disparaît de la liste et son point de la carte du jour ; les points restants sont recentrés.
+- **Jour sélectionné** : la carte du jour est pleine ; la liste commence à la date sélectionnée.
+
+Ces déclinaisons sont du rendu, sans règle métier nouvelle. Les écrans Jour et Mois ne sont pas modifiés par ce paragraphe.
