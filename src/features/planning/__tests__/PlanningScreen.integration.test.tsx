@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { ScrollView, View } from "react-native";
+import { Alert, AppState, Linking, ScrollView, View } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { EVERY_TIME } from "@/domain/planning/Routine";
@@ -25,8 +25,8 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
  * Planifier un parcours / une séance (CE-UI-12, D-519 à D-526, RM-253 à RM-264) sur SQLite réelle : nom, synthèse, quatre
  * cartes, Répétition sans interrupteur, grille créneaux × rotation, roulettes natives en popover, Rappel sans interrupteur.
  * Jest n'exerce ni la roulette SwiftUI réelle ni la mise en page : vérification sur iPhone nécessaire.
- * [Tests de l'écran CE-UI-05 / CE-UI-11 (interrupteurs, stepper, « pendant », liste réordonnable, feuille « Fréquence ») —
- * retirés avec ces écrans le 18/11/2026, D-523.]
+ * [Tests de l'écran CE-UI-05 / CE-UI-11 (interrupteurs, stepper, liste réordonnable, feuille « Fréquence ») — retirés avec
+ * ces écrans le 18/11/2026, D-523. « pendant » rétabli par la recette du 19/11/2026 (d4).]
  */
 
 const mockBack = jest.fn();
@@ -42,7 +42,7 @@ jest.mock("expo-router", () => {
 
 let database: NodeSqliteDatabase;
 let planning: PlanningService;
-let permission: "granted" | "denied";
+let permission: "granted" | "denied" | "undetermined";
 const refresh = jest.fn(async () => undefined);
 let sessions: SqliteSessionRepository;
 let ids = 0;
@@ -63,7 +63,12 @@ beforeEach(async () => {
   refresh.mockClear();
   planning = new PlanningService({
     repository: new SqliteRoutineRepository(database),
-    reminders: { refresh, ensurePermission: async () => permission === "granted", isPermitted: async () => permission === "granted" },
+    reminders: {
+      refresh,
+      ensurePermission: async () => permission === "granted",
+      isPermitted: async () => permission === "granted",
+      permissionStatus: async () => permission,
+    },
     newId: () => `routine-${++ids}`,
     now: () => new Date(2030, 0, 1),
   });
@@ -129,12 +134,6 @@ async function validateSelection(selected: readonly string[]) {
   for (const id of selected) fireEvent.press(screen.getByTestId(`planning-selection-${id}`));
   fireEvent.press(screen.getByTestId("screen-header-validate"));
   await flush();
-}
-
-/** Roulette heures / minutes du voile (heure de début) : valide une valeur (en minutes). */
-function validateTimeWheel(minutes: number) {
-  expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-  act(() => screen.UNSAFE_getByType(DurationWheelPicker).props.onValidate(minutes));
 }
 
 /** Cran de la roulette native SwiftUI (`Picker`, `pickerStyle("wheel")`). */
@@ -300,7 +299,7 @@ describe("Planifier (CE-UI-12)", () => {
     expect(mention(1)).toBe("(à chaque fois)");
   });
 
-  it("planification existante : nom vide à compléter (RM-264), « pendant » converti en date, motifs n différents ramenés à un cycle commun (RM-263), retraits conservés", async () => {
+  it("planification existante : nom vide à compléter (RM-264), « pendant » conservé, motifs n différents ramenés à un cycle commun (RM-263), retraits conservés", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     const now = new Date().toISOString();
@@ -313,8 +312,9 @@ describe("Planifier (CE-UI-12)", () => {
     await renderPlanning({ routineId: "legacy" });
     expect(screen.getByTestId("planning-name").props.value).toBe("");
     expect(validateEnabled()).toBe(false);
-    // Lundi 5 août 2030 + 6 semaines civiles : dimanche 15 septembre 2030.
-    expect(synthesis()).toContain("jusqu’au 15 septembre 2030");
+    // Recette du 19/11/2026 (d4) : « pendant 6 semaines » reste une durée.
+    expect(within(screen.getByTestId("planning-end-kind")).getByText("pendant")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-end-count")).getByText("6")).toBeTruthy();
     expect(screen.getByTestId("planning-column-6")).toBeTruthy();
     expect(mention(0)).toBe("(à chaque fois)");
     expect(mention(1)).toBe("(4 fois sur 6)");
@@ -322,7 +322,7 @@ describe("Planifier (CE-UI-12)", () => {
     await save();
     const routine = await planning.getRoutine("legacy");
     expect(routine).toMatchObject({ name: "Ancienne", exclusions: ["2030-08-12T08:00"] });
-    expect(routine?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-09-15" });
+    expect(routine?.repetition?.end).toEqual({ kind: "FOR", count: 6 });
     expect(routine?.entries.map((entry) => entry.frequency.positions)).toEqual([
       [1, 2, 3, 4, 5, 6],
       [1, 3, 4, 6],
@@ -350,7 +350,7 @@ describe("Planifier (CE-UI-12)", () => {
     expect(validateEnabled()).toBe(true);
   });
 
-  it("rappel sans interrupteur : Sans / 15' / 30' / 1h / Autre ; « Autre » ouvre la roulette native heures / minutes sans unité (D-524)", async () => {
+  it("rappel sans interrupteur : Sans / 15' / 30' / 1h / Autre ; « Autre » ouvre la roulette native heures / minutes avec ses unités (D-524, recette du 19/11 k13)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     await renderPlanning({ sessionId: created.id, date: START });
     expect(screen.queryByTestId("planning-reminder-switch")).toBeNull();
@@ -363,7 +363,10 @@ describe("Planifier (CE-UI-12)", () => {
     expect(screen.getByTestId("planning-reminder-hours").props.onSelectionChange).toBeInstanceOf(Function);
     expect(screen.getByTestId("planning-reminder-minutes").props.onSelectionChange).toBeInstanceOf(Function);
     expect(screen.UNSAFE_queryAllByType(DurationWheelPicker)).toHaveLength(0);
-    expect(within(panel).queryByText(/heure|minute|Rappel/)).toBeNull();
+    // Recette du 19/11/2026 (k13, e2) : unités à droite des roues ; ni titre ni bouton.
+    expect(screen.getByTestId("planning-reminder-hours-unit").props.text).toBe("heures");
+    expect(screen.getByTestId("planning-reminder-minutes-unit").props.text).toBe("minutes");
+    expect(within(panel).queryByText(/Rappel|Valider|Annuler/)).toBeNull();
     turnWheel("planning-reminder-hours", 1);
     turnWheel("planning-reminder-minutes", 20);
     fireEvent.press(screen.getByTestId("planning-reminder-popover-scrim", { includeHiddenElements: true }));
@@ -376,42 +379,111 @@ describe("Planifier (CE-UI-12)", () => {
     expect(routine?.reminderMinutes).toBeNull();
   });
 
-  it("notifications non autorisées : « Sans » par défaut ; un délai refusé par le système reste « Sans » avec l'information (RM-053)", async () => {
-    permission = "denied";
+  it("notifications jamais demandées : la demande système a lieu au choix d'un délai ; refusée, le rappel reste « Sans » sans texte (RM-052, RM-053)", async () => {
+    permission = "undetermined";
     const created = await sessions.createStructured(input("Gainage"));
     await renderPlanning({ sessionId: created.id, date: START });
     expect(screen.getByTestId("planning-reminder-options-NONE").props.accessibilityState.selected).toBe(true);
+    const alert = jest.spyOn(Alert, "alert");
     fireEvent.press(screen.getByText("30’"));
     await flush();
+    expect(alert).not.toHaveBeenCalled();
     expect(screen.getByTestId("planning-reminder-options-NONE").props.accessibilityState.selected).toBe(true);
-    expect(screen.getByTestId("planning-reminder-denied")).toBeTruthy();
+    expect(screen.queryByTestId("planning-reminder-denied")).toBeNull();
     await save();
     const [routine] = await planning.listRoutines();
     expect(routine?.reminderMinutes).toBeNull();
   });
 
-  it("notifications retirées dans Réglages : un rappel enregistré revient à « Sans » avec l'information (e3)", async () => {
+  it("notifications refusées : choisir un délai ouvre le message natif ; « Autoriser » mène à Réglages et le délai s'applique au retour (recette du 19/11, k14)", async () => {
+    permission = "denied";
+    const listeners: ((state: string) => void)[] = [];
+    jest.spyOn(AppState, "addEventListener").mockImplementation(((_type: string, listener: (state: string) => void) => {
+      listeners.push(listener);
+      return { remove: () => undefined };
+    }) as never);
+    const openSettings = jest.spyOn(Linking, "openSettings").mockResolvedValue(undefined);
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+    const created = await sessions.createStructured(input("Gainage"));
+    await renderPlanning({ sessionId: created.id, date: START });
+    fireEvent.press(screen.getByText("30’"));
+    await flush();
+    expect(alert).toHaveBeenCalledWith("Notifications désactivées", expect.any(String), expect.any(Array));
+    expect(screen.getByTestId("planning-reminder-options-NONE").props.accessibilityState.selected).toBe(true);
+    expect(screen.queryByTestId("planning-reminder-denied")).toBeNull();
+    const buttons = alert.mock.calls[0]![2] as { text: string; onPress?: () => void }[];
+    act(() => buttons.find((button) => button.text === "Autoriser")!.onPress!());
+    expect(openSettings).toHaveBeenCalled();
+    permission = "granted";
+    act(() => listeners.forEach((listener) => listener("active")));
+    await flush();
+    expect(screen.getByTestId("planning-reminder-options-30").props.accessibilityState.selected).toBe(true);
+  });
+
+  it("notifications retirées dans Réglages : un rappel enregistré revient à « Sans », sans texte sous la carte (e3, k14)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const saved = await planning.createRoutine({ name: "Gainage", startDate: START, time: "08:00", repetition: null, entries: [{ id: "e1", sessionId: created.id, frequency: EVERY_TIME }], reminderMinutes: 15 });
     if (saved.status !== "SAVED") throw new Error("setup");
     permission = "denied";
     await renderPlanning({ routineId: saved.routine.id });
     expect(screen.getByTestId("planning-reminder-options-NONE").props.accessibilityState.selected).toBe(true);
-    expect(screen.getByTestId("planning-reminder-denied")).toBeTruthy();
+    expect(screen.queryByTestId("planning-reminder-denied")).toBeNull();
   });
 
-  it("date et heure : voile et sélecteurs existants, valeurs en noir (demande du 18/11/2026)", async () => {
+  it("date et heure : popovers natifs sans titre ni bouton, fermés par le voile ; calendrier en apparence claire ; valeurs en bleu KODJO (recette du 19/11, k8, k19)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     await renderPlanning({ sessionId: created.id, date: START });
+    // k8 : date et heure dans le style des autres valeurs (bleu KODJO).
+    const valueColor = (testID: string) => within(screen.getByTestId(testID)).getByText(/./).props.style.color;
+    expect(valueColor("planning-start-time")).toBe(valueColor("planning-repetition-kind"));
     fireEvent.press(screen.getByTestId("planning-start-time"));
-    validateTimeWheel(9 * 60 + 30);
-    expect(within(screen.getByTestId("planning-start-time")).getByText("09:30")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("planning-start-date"));
-    const calendar = screen.getByTestId("planning-date-panel").findAll((node) => typeof node.props.onDateChange === "function")[0]!;
-    act(() => calendar.props.onDateChange(new Date(2030, 7, 7, 12, 0)));
-    fireEvent.press(screen.getByTestId("planning-date-panel-validate"));
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(screen.UNSAFE_queryAllByType(DurationWheelPicker)).toHaveLength(0);
+    expect(screen.getByTestId("planning-time-hours-unit").props.text).toBe("heures");
+    turnWheel("planning-time-hours", 9);
+    turnWheel("planning-time-minutes", 30);
+    expect(within(screen.getByTestId("planning-start-time")).getByText("09:30")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-time-popover-panel")).queryByText(/Heure|Valider|Annuler/)).toBeNull();
+    fireEvent.press(screen.getByTestId("planning-time-popover-scrim", { includeHiddenElements: true }));
+    expect(screen.queryByTestId("planning-time-hours")).toBeNull();
+    fireEvent.press(screen.getByTestId("planning-start-date"));
+    const panel = screen.getByTestId("planning-date-panel");
+    expect(panel.findAll((node) => node.props.colorScheme === "light").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("planning-date-panel-validate")).toBeNull();
+    const calendar = panel.findAll((node) => typeof node.props.onDateChange === "function")[0]!;
+    act(() => calendar.props.onDateChange(new Date(2030, 7, 7, 12, 0)));
     expect(synthesis()).toContain("le 7 août 2030, à 9h30");
+    fireEvent.press(screen.getByTestId("planning-date-popover-scrim", { includeHiddenElements: true }));
+    expect(screen.queryByTestId("planning-date-panel")).toBeNull();
+  });
+
+  it("borne « pendant » rétablie pour l'unité semaines : bascule avec « jusqu'au », conversion, roulette du nombre de semaines (recette du 19/11, d4)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    await renderPlanning({ sessionId: created.id, date: START });
+    fireEvent.press(screen.getByTestId("planning-repetition-kind"));
+    expect(within(screen.getByTestId("planning-end-kind")).getByText("jusqu’au")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    // Lundi 5 août → 2 septembre 2030 : 5 semaines civiles.
+    expect(within(screen.getByTestId("planning-end-count")).getByText("5")).toBeTruthy();
+    expect(synthesis()).toContain("pendant 5 semaines");
+    fireEvent.press(screen.getByTestId("planning-end-count"));
+    expect(screen.getByTestId("planning-end-count-wheel").props.selection).toBe(5);
+    turnWheel("planning-end-count-wheel", 3);
+    fireEvent.press(screen.getByTestId("planning-end-count-popover-scrim", { includeHiddenElements: true }));
+    expect(synthesis()).toContain("pendant 3 semaines");
+    // Retour à « jusqu'au » : dimanche de la 3e semaine.
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    expect(synthesis()).toContain("jusqu’au 25 août 2030");
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    // Unité jours : « jusqu'au » seulement.
+    fireEvent.press(screen.getByTestId("planning-unit"));
+    expect(screen.queryByTestId("planning-end-kind")).toBeNull();
+    expect(synthesis()).toContain("jusqu’au 25 août 2030");
+    fireEvent.press(screen.getByTestId("planning-unit"));
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    await save();
+    const [routine] = await planning.listRoutines();
+    expect(routine?.repetition?.end).toEqual({ kind: "FOR", count: 3 });
   });
 
   it("jours qui ne tiennent pas : « X jours par semaine » (RM-259)", async () => {

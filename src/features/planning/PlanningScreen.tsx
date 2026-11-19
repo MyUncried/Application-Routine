@@ -3,7 +3,7 @@ import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { AppState, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, AppState, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import {
@@ -30,6 +30,8 @@ import {
   applySelection,
   draftFromRoutine,
   effectiveName,
+  END_COUNT_MAX,
+  END_COUNT_MIN,
   everyLabel,
   formTitle,
   initialDraft,
@@ -37,7 +39,12 @@ import {
   toggleWeekday,
   toRoutineDraft,
   unitLabel,
+  withEndCount,
+  withEndDate,
+  withEndKind,
   withSelection,
+  withStartDate,
+  withUnit,
   type FormDraft,
 } from "@/features/planning/planningDraft";
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
@@ -45,14 +52,12 @@ import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { formatPlanningSynthesis } from "@/features/planning/planningSummary";
-import { PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
+import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
-import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { ModalHeader } from "@/shared/ui/ModalHeaderActions";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
@@ -71,10 +76,10 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  * formulaire → coche : Enregistrer. Depuis une occurrence : modification ; Dupliquer : brouillon copié (RM-123) ; depuis
  * une Séance (« Planifier » du glisser à gauche) : Séance préremplie, nom copié (RM-258).
  *
- * Date et heure : voile grisé et sélecteurs déjà en place (calendrier natif graphique, roulette heures / minutes),
- * valeurs « 3 août 2026 » / « 08:00 » en noir — demande de Hermann du 18/11/2026 : « tu peux réutiliser les modales et
- * format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ». Nombre de semaines et Rappel
- * « Autre » : roulette native en popover près du champ, sans titre, bouton ni unité (D-520, `PlanningWheelPopover`).
+ * Date, heure, nombre de semaines, « pendant » et Rappel « Autre » : sélecteur natif en popover près du champ, sans titre
+ * ni bouton, fermé par un toucher sur le voile (D-520 ; recette du 19/11/2026, k19, k13, e2 : unités des roues du rappel
+ * et de l'heure). Valeurs en bleu KODJO (recette du 19/11/2026, k8 : « mettre les textes de date et d'heure en bleu
+ * Kodjo »). Borne « pendant » rétablie (recette du 19/11/2026, d4).
  *
  * [Remplacés le 18/11/2026 (D-523) : interrupteurs Répétition et Rappel, unité segmentée Jour · Semaine · Mois, stepper du
  * nombre de semaines, « pendant », liste réordonnable et feuille « Fréquence » (CE-UI-11), récapitulatif protégé en bas.]
@@ -87,6 +92,12 @@ const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
 /** Roulette de l'heure : 00:00 à 23:59, à la minute. */
 const TIME_MAX_MINUTES = 23 * 60 + 59;
 const TIME_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
+const TIME_HOURS = Array.from({ length: 24 }, (_, index) => index);
+const TIME_MINUTES = Array.from({ length: 60 }, (_, index) => index);
+const END_COUNTS = Array.from({ length: END_COUNT_MAX - END_COUNT_MIN + 1 }, (_, index) => END_COUNT_MIN + index);
+/** Largeur du calendrier graphique d'iOS dans son panneau. */
+const DATE_PANEL_WIDTH = 360;
+const twoDigits = (value: number) => String(value).padStart(2, "0");
 /** D-524 : délai présélectionné quand les notifications sont déjà autorisées (recette du 18/11/2026, k12 « Remettre 15' par défaut »). */
 const DEFAULT_REMINDER_MINUTES = 15;
 /** Rappel « Autre » : heures 0..24, minutes par pas de 5 (grille de l'ancienne feuille), 24 h au plus (D-243). */
@@ -99,7 +110,7 @@ type Params = { readonly routineId?: string; readonly duplicateOf?: string; read
 
 type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string };
 
-type Popover = { readonly kind: "EVERY" | "REMINDER"; readonly anchor: PopoverAnchor };
+type Popover = { readonly kind: "EVERY" | "END_COUNT" | "REMINDER" | "TIME" | "START" | "END"; readonly anchor: PopoverAnchor };
 
 function todayLocal(): LocalDate {
   return formatLocalDate(new Date());
@@ -148,10 +159,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [form, setForm] = useState<FormDraft | null>(() =>
     fresh ? initialDraft(params.date !== undefined && params.date >= todayLocal() ? params.date : todayLocal(), initialEntries, new Date()) : null,
   );
-  const [permissionDenied, setPermissionDenied] = useState(false);
   // « Autre » choisi : la valeur personnalisée remplace le libellé « Autre », même si elle vaut un délai proposé.
   const [customChosen, setCustomChosen] = useState(false);
-  const [picker, setPicker] = useState<"START" | "END" | "TIME" | null>(null);
   const [popover, setPopover] = useState<Popover | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -160,8 +169,14 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [overflowing, setOverflowing] = useState<string | null>(null);
   const savingRef = useRef(false);
   const reminderTouched = useRef(false);
+  // Délai choisi pendant que les notifications étaient refusées : appliqué au retour de Réglages s'il est autorisé.
+  const pendingReminder = useRef<(() => void) | null>(null);
   const everyRef = useRef<View>(null);
+  const endCountRef = useRef<View>(null);
   const reminderRef = useRef<View>(null);
+  const startDateRef = useRef<View>(null);
+  const timeRef = useRef<View>(null);
+  const endDateRef = useRef<View>(null);
   // L'écran se ferme par la navigation ; son identité ne doit pas relancer la lecture du brouillon.
   const routerRef = useRef(router);
   useEffect(() => {
@@ -203,7 +218,19 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     };
   }, [fresh, planning]);
 
-  // Recette du 17/11/2026 (e3) : notifications retirées dans Réglages → le rappel revient à « Sans » avec le message (RM-053).
+  // Retour de Réglages : le délai choisi s'applique si les notifications sont désormais autorisées (recette du 19/11/2026, k14).
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      const pending = pendingReminder.current;
+      if (state !== "active" || pending === null) return;
+      pendingReminder.current = null;
+      planning.reminderPermissionGranted().then((granted) => (granted ? pending() : undefined), () => undefined);
+    });
+    return () => subscription.remove();
+  }, [planning]);
+
+  // Recette du 17/11/2026 (e3) : notifications retirées dans Réglages → le rappel revient à « Sans » (RM-053 ; recette du
+  // 19/11/2026, k14 : sans texte sous la carte).
   const reminderOn = form !== null && form.reminderMinutes !== null;
   useEffect(() => {
     if (!reminderOn) return undefined;
@@ -213,7 +240,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         (granted) => {
           if (cancelled || granted) return;
           setForm((current) => (current === null ? current : { ...current, reminderMinutes: null }));
-          setPermissionDenied(true);
         },
         () => undefined,
       );
@@ -338,7 +364,39 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     router.push("/planning-selection");
   };
 
-  // RM-052 / RM-053 : autorisation demandée au premier choix d'un délai ; refus → « Sans », information.
+  /**
+   * RM-052 / RM-053 : autorisation demandée au premier choix d'un délai ; refus → « Sans ». Recette du 19/11/2026 (k14,
+   * e3) : choisir de nouveau un délai alors que les notifications sont refusées ouvre un message natif proposant de les
+   * autoriser. iOS ne repose jamais sa demande d'autorisation après un refus : « Autoriser » ouvre directement la page des
+   * notifications de Routine dans Réglages, et le délai s'applique au retour si elles y ont été autorisées.
+   */
+  const withReminderPermission = (apply: () => void) => {
+    if (form.reminderMinutes !== null) {
+      apply();
+      return;
+    }
+    planning.reminderPermissionStatus().then(
+      (status) => {
+        if (status === "granted") apply();
+        else if (status === "undetermined") planning.ensureReminderPermission().then((granted) => (granted ? apply() : undefined), () => undefined);
+        else
+          Alert.alert(tReminder.deniedTitle, tReminder.deniedMessage, [
+            { text: tReminder.deniedCancel, style: "cancel" },
+            {
+              text: tReminder.deniedSettings,
+              onPress: () => {
+                pendingReminder.current = apply;
+                Linking.openSettings().catch(() => {
+                  pendingReminder.current = null;
+                });
+              },
+            },
+          ]);
+      },
+      () => undefined,
+    );
+  };
+
   const chooseReminder = (minutes: number | null, custom: boolean) => {
     reminderTouched.current = true;
     if (minutes === null) {
@@ -346,31 +404,24 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       update({ reminderMinutes: null });
       return;
     }
-    const apply = () => {
+    withReminderPermission(() => {
       setCustomChosen(custom);
       update({ reminderMinutes: minutes });
-    };
-    if (form.reminderMinutes !== null) {
-      apply();
-      return;
-    }
-    setPermissionDenied(false);
-    planning.ensureReminderPermission().then(
-      (granted) => {
-        if (granted) apply();
-        else setPermissionDenied(true);
-      },
-      () => setPermissionDenied(true),
-    );
+    });
   };
 
   const openReminderWheel = () => {
+    reminderTouched.current = true;
     const start = form.reminderMinutes ?? DEFAULT_REMINDER_MINUTES;
-    chooseReminder(start, true);
-    measure(reminderRef, (rect) => setPopover({ kind: "REMINDER", anchor: { x: rect.x + (rect.width * 4) / 5, y: rect.y, width: rect.width / 5, height: rect.height } }));
+    withReminderPermission(() => {
+      setCustomChosen(true);
+      update({ reminderMinutes: start });
+      measure(reminderRef, (rect) => setPopover({ kind: "REMINDER", anchor: { x: rect.x + (rect.width * 4) / 5, y: rect.y, width: rect.width / 5, height: rect.height } }));
+    });
   };
 
-  const changeStartDate = (startDate: LocalDate) => update({ startDate, endDate: form.endDate < startDate ? startDate : form.endDate });
+  const openPopover = (kind: Popover["kind"], ref: RefObject<View | null>) => measure(ref, (anchor) => setPopover({ kind, anchor }));
+  const changeStartDate = (startDate: LocalDate) => setForm((current) => (current === null ? current : withStartDate(current, startDate)));
   const multiplierBounds = form.unit === "WEEK" ? [WEEK_MULTIPLIER_MIN, WEEK_MULTIPLIER_MAX] : [DAY_MULTIPLIER_MIN, DAY_MULTIPLIER_MAX];
   const everyValues = Array.from({ length: multiplierBounds[1]! - multiplierBounds[0]! + 1 }, (_, index) => multiplierBounds[0]! + index);
   const reminder = form.reminderMinutes;
@@ -445,9 +496,13 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               <View style={styles.line}>
                 <Text style={styles.label}>{t.start}</Text>
                 <Text style={styles.label}>{t.on}</Text>
-                <Pill plain label={formatShortDate(form.startDate)} onPress={() => setPicker("START")} accessibilityLabel={`${t.datePicker}, ${formatShortDate(form.startDate)}`} testID="planning-start-date" />
+                <View ref={startDateRef} collapsable={false}>
+                  <Pill label={formatShortDate(form.startDate)} onPress={() => openPopover("START", startDateRef)} accessibilityLabel={`${t.datePicker}, ${formatShortDate(form.startDate)}`} testID="planning-start-date" />
+                </View>
                 <Text style={styles.label}>{t.at}</Text>
-                <Pill plain label={form.time} onPress={() => setPicker("TIME")} accessibilityLabel={`${t.timePicker}, ${form.time}`} testID="planning-start-time" />
+                <View ref={timeRef} collapsable={false}>
+                  <Pill label={form.time} onPress={() => openPopover("TIME", timeRef)} accessibilityLabel={`${t.timePicker}, ${form.time}`} testID="planning-start-time" />
+                </View>
               </View>
             </View>
 
@@ -468,17 +523,14 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                         <View ref={everyRef} collapsable={false}>
                           <Pill
                             label={String(form.every)}
-                            onPress={() => measure(everyRef, (anchor) => setPopover({ kind: "EVERY", anchor }))}
+                            onPress={() => openPopover("EVERY", everyRef)}
                             accessibilityLabel={`${form.every} ${unitLabel(form.unit, form.every)}`}
                             testID="planning-every"
                           />
                         </View>
                         <Pill
                           label={unitLabel(form.unit, form.every)}
-                          onPress={() => {
-                            const unit = form.unit === "WEEK" ? "DAY" : "WEEK";
-                            update({ unit });
-                          }}
+                          onPress={() => setForm((current) => (current === null ? current : withUnit(current, current.unit === "WEEK" ? "DAY" : "WEEK")))}
                           accessibilityLabel={fillTemplate(t.unitAccessibility, { value: unitLabel(form.unit, form.every) })}
                           testID="planning-unit"
                         />
@@ -487,8 +539,34 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                   </View>
                   {form.repetitionOn ? (
                     <View style={styles.wrapLine}>
-                      <Text style={[styles.pillText, styles.untilWord]}>{t.until}</Text>
-                      <Pill plain label={formatShortDate(form.endDate)} onPress={() => setPicker("END")} accessibilityLabel={`${t.endDatePicker}, ${formatShortDate(form.endDate)}`} testID="planning-end-date" />
+                      {/* Recette du 19/11/2026 (d4) : « jusqu'au » ↔ « pendant », pour l'unité semaines (D-331). */}
+                      {form.unit === "WEEK" ? (
+                        <Pill
+                          label={form.endKind === "UNTIL" ? t.until : t.during}
+                          onPress={() => setForm((current) => (current === null ? current : withEndKind(current)))}
+                          accessibilityLabel={fillTemplate(t.endKindAccessibility, { value: form.endKind === "UNTIL" ? t.until : t.during })}
+                          testID="planning-end-kind"
+                        />
+                      ) : (
+                        <Text style={[styles.pillText, styles.untilWord]}>{t.until}</Text>
+                      )}
+                      {form.unit === "WEEK" && form.endKind === "FOR" ? (
+                        <>
+                          <View ref={endCountRef} collapsable={false}>
+                            <Pill
+                              label={String(form.endCount)}
+                              onPress={() => openPopover("END_COUNT", endCountRef)}
+                              accessibilityLabel={fillTemplate(t.endCountAccessibility, { count: String(form.endCount), unit: unitLabel("WEEK", form.endCount) })}
+                              testID="planning-end-count"
+                            />
+                          </View>
+                          <Text style={[styles.pillText, styles.untilWord]}>{unitLabel("WEEK", form.endCount)}</Text>
+                        </>
+                      ) : (
+                        <View ref={endDateRef} collapsable={false}>
+                          <Pill label={formatShortDate(form.endDate)} onPress={() => openPopover("END", endDateRef)} accessibilityLabel={`${t.endDatePicker}, ${formatShortDate(form.endDate)}`} testID="planning-end-date" />
+                        </View>
+                      )}
                     </View>
                   ) : null}
                   {/* D-520 : jours de la semaine pour l'unité semaines seulement, de « toutes les » au bord droit. */}
@@ -560,11 +638,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 />
               </View>
             </View>
-            {permissionDenied ? (
-              <Text style={styles.notice} accessibilityLiveRegion="polite" testID="planning-reminder-denied">
-                {tReminder.permissionDenied}
-              </Text>
-            ) : null}
 
             {saveFailed ? (
               <Text style={styles.error} accessibilityLiveRegion="polite" testID="planning-save-error">
@@ -575,7 +648,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         )}
       />
 
-      {/* D-520 : roulettes natives en popover près du champ — fond grisé, ni titre, ni bouton, ni unité. */}
+      {/* D-520 : roulettes natives en popover près du champ — fond grisé, ni titre, ni bouton. */}
       <PlanningWheelPopover
         anchor={popover?.kind === "EVERY" ? popover.anchor : null}
         columns={[{ values: everyValues, selected: form.every, onChange: (every) => update({ every }), accessibilityLabel: t.repetition, testID: "planning-every-wheel" }]}
@@ -596,12 +669,40 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         testID="planning-every-popover"
       />
       <PlanningWheelPopover
+        anchor={popover?.kind === "END_COUNT" ? popover.anchor : null}
+        columns={[
+          {
+            values: END_COUNTS,
+            selected: form.endCount,
+            onChange: (count) => setForm((current) => (current === null ? current : withEndCount(current, count))),
+            accessibilityLabel: t.during,
+            testID: "planning-end-count-wheel",
+          },
+        ]}
+        onDismiss={() => setPopover(null)}
+        android={
+          <NumberWheelPicker
+            value={form.endCount}
+            accessibilityLabel={t.during}
+            onCancel={() => setPopover(null)}
+            onValidate={(count) => {
+              setPopover(null);
+              setForm((current) => (current === null ? current : withEndCount(current, count)));
+            }}
+            cancelAccessibilityLabel={tReminder.cancel}
+            validateAccessibilityLabel={tReminder.validate}
+          />
+        }
+        testID="planning-end-count-popover"
+      />
+      <PlanningWheelPopover
         anchor={popover?.kind === "REMINDER" ? popover.anchor : null}
         columns={[
           {
             values: REMINDER_HOURS,
             selected: Math.floor((reminder ?? DEFAULT_REMINDER_MINUTES) / 60),
             onChange: (hours) => setReminderParts(hours, (reminder ?? DEFAULT_REMINDER_MINUTES) % 60),
+            unit: tReminder.hours,
             accessibilityLabel: tReminder.hours,
             testID: "planning-reminder-hours",
           },
@@ -609,7 +710,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             values: REMINDER_MINUTES_STEP,
             selected: ((reminder ?? DEFAULT_REMINDER_MINUTES) % 60) - (((reminder ?? DEFAULT_REMINDER_MINUTES) % 60) % 5),
             onChange: (minutes) => setReminderParts(Math.floor((reminder ?? DEFAULT_REMINDER_MINUTES) / 60), minutes),
-            format: (value) => String(value).padStart(2, "0"),
+            format: twoDigits,
+            unit: tReminder.minutes,
             accessibilityLabel: tReminder.minutes,
             testID: "planning-reminder-minutes",
           },
@@ -634,59 +736,85 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         testID="planning-reminder-popover"
       />
 
-      {/* Date et heure : voile et sélecteurs existants (demande de Hermann du 18/11/2026). */}
-      <WheelPickerOverlay visible={picker !== null}>
-        {picker === "START" || picker === "END" ? (
-          <DatePanel
-            title={picker === "START" ? t.datePicker : t.endDatePicker}
-            value={picker === "START" ? form.startDate : form.endDate}
-            minimum={picker === "START" ? todayLocal() : form.startDate}
-            onCancel={() => setPicker(null)}
-            onValidate={(value) => {
-              setPicker(null);
-              if (picker === "START") changeStartDate(value);
-              else update({ endDate: value });
-            }}
-          />
-        ) : picker === "TIME" ? (
+      {/* Heure (recette du 19/11/2026, k19) : roulette native heures / minutes en popover, sans titre ni bouton. */}
+      <PlanningWheelPopover
+        anchor={popover?.kind === "TIME" ? popover.anchor : null}
+        columns={[
+          {
+            values: TIME_HOURS,
+            selected: Math.floor(timeToDuration(form.time) / 60),
+            onChange: (hours) => update({ time: durationToTime(hours * 60 + (timeToDuration(form.time) % 60)) }),
+            format: twoDigits,
+            unit: tReminder.hours,
+            accessibilityLabel: tReminder.hours,
+            testID: "planning-time-hours",
+          },
+          {
+            values: TIME_MINUTES,
+            selected: timeToDuration(form.time) % 60,
+            onChange: (minutes) => update({ time: durationToTime(Math.floor(timeToDuration(form.time) / 60) * 60 + minutes) }),
+            format: twoDigits,
+            unit: tReminder.minutes,
+            accessibilityLabel: tReminder.minutes,
+            testID: "planning-time-minutes",
+          },
+        ]}
+        onDismiss={() => setPopover(null)}
+        android={
           <DurationWheelPicker
             totalSeconds={timeToDuration(form.time)}
             maxTotalSeconds={TIME_MAX_MINUTES}
-            title={t.timePicker}
             units={TIME_UNITS}
             minutesAccessibilityLabel={tReminder.hours}
             secondsAccessibilityLabel={tReminder.minutes}
             cancelAccessibilityLabel={tReminder.cancel}
             validateAccessibilityLabel={tReminder.validate}
-            onCancel={() => setPicker(null)}
+            onCancel={() => setPopover(null)}
             onValidate={(minutes) => {
-              setPicker(null);
+              setPopover(null);
               update({ time: durationToTime(minutes) });
             }}
           />
+        }
+        testID="planning-time-popover"
+      />
+      {/* Dates (recette du 19/11/2026, k19) : calendrier natif en popover, sans titre ni bouton ; le jour touché s'applique. */}
+      <PlanningPopover
+        anchor={popover?.kind === "START" || popover?.kind === "END" ? popover.anchor : null}
+        width={DATE_PANEL_WIDTH}
+        onDismiss={() => setPopover(null)}
+        testID="planning-date-popover"
+      >
+        {popover?.kind === "START" || popover?.kind === "END" ? (
+          <DateCalendar
+            value={popover.kind === "START" ? form.startDate : form.endDate}
+            minimum={popover.kind === "START" ? todayLocal() : form.startDate}
+            onChange={(value) => {
+              if (popover.kind === "START") changeStartDate(value);
+              else setForm((current) => (current === null ? current : withEndDate(current, value)));
+            }}
+          />
         ) : null}
-      </WheelPickerOverlay>
+      </PlanningPopover>
     </ScreenShell>
   );
 }
 
+/** Valeur modifiable, en bleu KODJO — dates et heure comprises (recette du 19/11/2026, k8, remplace le noir du 17/11). */
 function Pill({
   label,
   onPress,
-  plain = false,
   accessibilityLabel,
   testID,
 }: {
   readonly label: string;
   readonly onPress: () => void;
-  /** Date et heure : texte noir (recette du 17/11/2026, « date et heure : texte en noir »). */
-  readonly plain?: boolean;
   readonly accessibilityLabel: string;
   readonly testID: string;
 }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} hitSlop={6} style={styles.pill} testID={testID}>
-      <Text style={plain ? styles.pillPlain : styles.pillText}>{label}</Text>
+      <Text style={styles.pillText}>{label}</Text>
     </Pressable>
   );
 }
@@ -775,43 +903,24 @@ function SlotGrid({
   );
 }
 
-/** Calendrier natif (`DatePicker` graphique) dans le voile standard : en-tête ✕ / titre / coche, brouillon validé par la coche. */
-function DatePanel({
-  title,
-  value,
-  minimum,
-  onCancel,
-  onValidate,
-}: {
-  readonly title: string;
-  readonly value: LocalDate;
-  readonly minimum: LocalDate;
-  readonly onCancel: () => void;
-  readonly onValidate: (value: LocalDate) => void;
-}) {
-  const [draft, setDraft] = useState(value);
+/**
+ * Calendrier natif (`DatePicker` graphique) du popover de date : le jour touché s'applique. Apparence claire forcée : le
+ * panneau est blanc, et en mode sombre le calendrier écrivait en blanc sur blanc (recette du 19/11/2026, k19 : « on ne
+ * voit rien … aucun texte, sauf la date du jour »).
+ */
+function DateCalendar({ value, minimum, onChange }: { readonly value: LocalDate; readonly minimum: LocalDate; readonly onChange: (value: LocalDate) => void }) {
+  if (Platform.OS !== "ios") return null;
   return (
-    <View style={styles.datePanel} testID="planning-date-panel">
-      <ModalHeader
-        title={title}
-        onCancel={onCancel}
-        cancelLabel={tReminder.cancel}
-        onValidate={() => onValidate(draft)}
-        validateEnabled
-        validateLabel={tReminder.validate}
-        testIDPrefix="planning-date-panel"
-      />
-      <View style={styles.calendar}>
-        <Host matchContents>
-          <DatePicker
-            selection={timeToDate(draft, "12:00")}
-            displayedComponents={["date"]}
-            range={{ start: timeToDate(minimum, "00:00") }}
-            onDateChange={(date) => setDraft(formatLocalDate(date))}
-            modifiers={CALENDAR_MODIFIERS}
-          />
-        </Host>
-      </View>
+    <View style={styles.calendar} testID="planning-date-panel">
+      <Host matchContents colorScheme="light">
+        <DatePicker
+          selection={timeToDate(value, "12:00")}
+          displayedComponents={["date"]}
+          range={{ start: timeToDate(minimum, "00:00") }}
+          onDateChange={(date) => onChange(formatLocalDate(date))}
+          modifiers={CALENDAR_MODIFIERS}
+        />
+      </Host>
     </View>
   );
 }
@@ -851,8 +960,6 @@ const styles = StyleSheet.create({
   label: { ...type.body, fontSize: 16, lineHeight: 20, color: colors.textPrimary },
   pill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.border, justifyContent: "center" },
   pillText: { ...type.segmentedLabel, color: colors.primary },
-  // Date et heure : format conservé (noir), à la taille des autres valeurs (demande de Hermann du 18/11/2026).
-  pillPlain: { ...type.segmentedLabel, color: colors.textPrimary },
   untilWord: { paddingHorizontal: spacing[8] },
   repetition: { flexDirection: "row", alignItems: "flex-start", gap: spacing[8] },
   repetitionLabel: { paddingTop: 6 },
@@ -887,14 +994,5 @@ const styles = StyleSheet.create({
   reminderOptions: { flex: 1 },
   reminderOption: { ...type.listCardTitle },
   error: { ...type.label, color: colors.danger },
-  datePanel: {
-    alignSelf: "stretch",
-    marginHorizontal: layout.screenGutter,
-    backgroundColor: colors.background,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingBottom: spacing[8],
-  },
-  calendar: { alignItems: "center", paddingHorizontal: spacing[8] },
+  calendar: { alignItems: "center" },
 });

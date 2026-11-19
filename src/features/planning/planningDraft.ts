@@ -1,5 +1,6 @@
 import {
   addDays,
+  daysBetween,
   EVERY_TIME,
   mondayOf,
   weekdayOf,
@@ -18,9 +19,11 @@ import { planningStrings } from "@/features/planning/planningStrings";
  *
  * - Nom (D-522, RM-258) : tant qu'il n'a pas été saisi, il suit la sélection — une seule séance : son nom ; plusieurs :
  *   vide (obligatoire). Une planification existante garde son nom ; sans nom, elle reste vide, à compléter (RM-264).
- * - Répétition (D-520, RM-257) : « toutes les » / « tous les » / « aucune », nombre, unité (jours ou semaines), « jusqu'au »
- *   date ; jours de la semaine pour l'unité semaines seulement. Une borne « pendant N semaines » enregistrée avant le
- *   18/11/2026 devient sa date de fin équivalente (le dimanche de la N-ième semaine) : mêmes occurrences.
+ * - Répétition (D-520, RM-257) : « toutes les » / « tous les » / « aucune », nombre, unité (jours ou semaines), borne de
+ *   fin ; jours de la semaine pour l'unité semaines seulement. Borne « jusqu'au » date ou « pendant » N semaines (D-331),
+ *   rétablie par la recette du 19/11/2026 (d4 : « l'option "pendant" a disparu, il faut la réintégrer ») ; la bascule
+ *   convertit l'une dans l'autre (recette du 17/11/2026, d4). « pendant » n'existe que pour l'unité semaines : le domaine
+ *   ne connaît que « jusqu'au » pour l'unité Jour (RM-257).
  * - Grille (D-519) : lignes dans l'ordre des entrées.
  * - Rappel (D-524) : `null` = « Sans ».
  *
@@ -42,12 +45,23 @@ export type FormDraft = {
   readonly unit: RepetitionUnit;
   readonly every: number;
   readonly weekdays: readonly Weekday[];
+  readonly endKind: "UNTIL" | "FOR";
   readonly endDate: LocalDate;
+  /** « pendant » : nombre de semaines civiles comptées depuis celle de « Début le » (D-331). */
+  readonly endCount: number;
   /** Délai du rappel en minutes ; `null` : « Sans » (D-524). */
   readonly reminderMinutes: number | null;
 };
 
 export const DEFAULT_END_WEEKS = 4;
+/** Bornes de « pendant N semaines » (stepper de la version du 17/11/2026 : 1 à 520). */
+export const END_COUNT_MIN = 1;
+export const END_COUNT_MAX = 520;
+
+/** Nombre de semaines civiles, depuis celle de « Début le », couvertes jusqu'à `endDate` incluse. */
+export function weeksUntil(startDate: LocalDate, endDate: LocalDate): number {
+  return Math.max(END_COUNT_MIN, Math.min(END_COUNT_MAX, Math.floor(daysBetween(mondayOf(startDate), endDate) / 7) + 1));
+}
 
 /** Date de fin équivalente à « pendant N semaines » (semaines civiles comptées depuis celle de « Début le »). */
 export function endDateForWeeks(startDate: LocalDate, count: number): LocalDate {
@@ -77,7 +91,9 @@ export function initialDraft(date: LocalDate, entries: readonly RoutineEntry[], 
     unit: "WEEK",
     every: 1,
     weekdays: [weekdayOf(date)],
+    endKind: "UNTIL",
     endDate: addDays(date, DEFAULT_END_WEEKS * 7),
+    endCount: weeksUntil(date, addDays(date, DEFAULT_END_WEEKS * 7)),
     reminderMinutes,
   };
 }
@@ -104,7 +120,9 @@ export function draftFromRoutine(
     unit: repetition?.unit ?? "WEEK",
     every: repetition?.every ?? 1,
     weekdays: repetition !== null && repetition.unit === "WEEK" ? repetition.weekdays : [weekdayOf(routine.startDate)],
+    endKind: repetition?.end.kind ?? "UNTIL",
     endDate,
+    endCount: repetition !== null && repetition.end.kind === "FOR" ? repetition.end.count : weeksUntil(routine.startDate, endDate),
     reminderMinutes: routine.reminderMinutes ?? null,
   };
 }
@@ -126,7 +144,12 @@ export function toRoutineDraft(form: FormDraft, name: string): RoutineDraft {
     repetition: !form.repetitionOn
       ? null
       : form.unit === "WEEK"
-        ? { unit: "WEEK", every: form.every, weekdays: [...form.weekdays].sort((a, b) => a - b), end: { kind: "UNTIL", date: form.endDate } }
+        ? {
+            unit: "WEEK",
+            every: form.every,
+            weekdays: [...form.weekdays].sort((a, b) => a - b),
+            end: form.endKind === "FOR" ? { kind: "FOR", count: form.endCount } : { kind: "UNTIL", date: form.endDate },
+          }
         : { unit: "DAY", every: form.every, weekdays: [], end: { kind: "UNTIL", date: form.endDate } },
   };
 }
@@ -188,4 +211,33 @@ export function reminderLabel(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   return rest === 0 ? `${hours}h` : `${hours}h${String(rest).padStart(2, "0")}`;
+}
+
+/** Bascule « jusqu'au » ↔ « pendant » : la valeur de l'autre forme est recalculée (recette du 17/11/2026, d4). */
+export function withEndKind(form: FormDraft): FormDraft {
+  return form.endKind === "UNTIL"
+    ? { ...form, endKind: "FOR", endCount: weeksUntil(form.startDate, form.endDate) }
+    : { ...form, endKind: "UNTIL", endDate: endDateForWeeks(form.startDate, form.endCount) };
+}
+
+export function withEndCount(form: FormDraft, endCount: number): FormDraft {
+  const count = Math.max(END_COUNT_MIN, Math.min(END_COUNT_MAX, endCount));
+  return { ...form, endCount: count, endDate: endDateForWeeks(form.startDate, count) };
+}
+
+export function withEndDate(form: FormDraft, endDate: LocalDate): FormDraft {
+  return { ...form, endDate, endCount: weeksUntil(form.startDate, endDate) };
+}
+
+/** « Début le » changé : « pendant » garde son nombre de semaines ; « jusqu'au » garde sa date si elle reste après. */
+export function withStartDate(form: FormDraft, startDate: LocalDate): FormDraft {
+  if (form.endKind === "FOR") return { ...form, startDate, endDate: endDateForWeeks(startDate, form.endCount) };
+  const endDate = form.endDate < startDate ? startDate : form.endDate;
+  return { ...form, startDate, endDate, endCount: weeksUntil(startDate, endDate) };
+}
+
+/** Unité Jour : « jusqu'au » seulement (RM-257) ; une borne « pendant » devient sa date de fin équivalente. */
+export function withUnit(form: FormDraft, unit: RepetitionUnit): FormDraft {
+  if (unit === "DAY" && form.endKind === "FOR") return { ...form, unit, endKind: "UNTIL", endDate: endDateForWeeks(form.startDate, form.endCount) };
+  return { ...form, unit };
 }

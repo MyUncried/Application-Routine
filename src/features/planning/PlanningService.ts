@@ -23,6 +23,8 @@ export type PlanningReminders = {
   readonly refresh: () => Promise<void>;
   readonly ensurePermission: () => Promise<boolean>;
   readonly isPermitted: () => Promise<boolean>;
+  /** État sans demande ; absent : déduit de `isPermitted` (« granted » ou « undetermined »). */
+  readonly permissionStatus?: () => Promise<"granted" | "denied" | "undetermined">;
 };
 
 export type PlanningServiceDeps = {
@@ -47,6 +49,13 @@ export class PlanningService {
   /** RM-052 / RM-053 : autorisation à la première activation d'un rappel. Sans adaptateur : refusée. */
   ensureReminderPermission(): Promise<boolean> {
     return this.deps.reminders?.ensurePermission() ?? Promise.resolve(false);
+  }
+
+  reminderPermissionStatus(): Promise<"granted" | "denied" | "undetermined"> {
+    const reminders = this.deps.reminders;
+    if (reminders === undefined) return Promise.resolve("denied");
+    if (reminders.permissionStatus !== undefined) return reminders.permissionStatus();
+    return reminders.isPermitted().then((granted) => (granted ? "granted" : "undetermined"));
   }
 
   reminderPermissionGranted(): Promise<boolean> {

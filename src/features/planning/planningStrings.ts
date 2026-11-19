@@ -107,6 +107,7 @@ export const planningStrings = {
     until: "jusqu’au",
     during: "pendant",
     endKindAccessibility: "Borne de fin : {value}. Toucher pour basculer.",
+    endCountAccessibility: "Pendant {count} {unit}",
     multiplierAccessibility: "Toutes les {count} semaines",
     decrease: "Diminuer",
     increase: "Augmenter",
@@ -134,7 +135,12 @@ export const planningStrings = {
     minutes: "minutes",
     cancel: "Annuler",
     validate: "Valider",
-    permissionDenied: "Les notifications sont refusées pour Routine : le rappel reste désactivé. La planification peut être enregistrée.",
+    // Recette du 19/11/2026 (k14, e3) : notifications refusées — message natif proposant de les réactiver ; le texte
+    // sous la carte Rappel est retiré.
+    deniedTitle: "Notifications désactivées",
+    deniedMessage: "Pour recevoir ce rappel, autorisez les notifications de Routine.",
+    deniedCancel: "Annuler",
+    deniedSettings: "Autoriser",
     body: "Séance prévue à {time}.",
   },
   selection: {

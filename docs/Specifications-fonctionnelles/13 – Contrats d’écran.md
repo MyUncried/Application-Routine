@@ -4442,13 +4442,15 @@ Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
 
 - Zone de contexte : nom (texte libre, unique, RM-258) puis synthèse 14 px (RM-259).
 - Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel.
-- Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit.
+- Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit. [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : « jusqu’au » bascule vers « pendant » N semaines pour l’unité semaines.]
 - Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
-- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-524).
+- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-524). [Remplacé en partie le 19/11/2026, recette iPhone du 19/11/2026 (k13, e2, k14) : unités heures / minutes à droite des roues ; plus de texte quand les notifications sont refusées, message natif au choix d’un délai.]
 
 #### 3. Interactions
 
 Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle). Nombre de semaines et Rappel personnalisé : roulette native iOS (`pickerStyle("wheel")`) en popover près du champ, fond grisé, ni titre, ni bouton, ni unité ; aucune primitive native n’est remplacée. Date : sélecteur de date en popover. [Remplacé le 18/11/2026 (Hermann : « tu peux réutiliser les modales et format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ») : la date et l'heure s'ouvrent dans le voile grisé déjà en place (calendrier natif graphique, roulette heures / minutes), valeurs en noir à la taille des autres valeurs.]
+
+[Remplacé le 19/11/2026, recette iPhone du 19/11/2026 (k19, k8, k13) : date, heure, nombre de semaines, « pendant » et Rappel personnalisé s’ouvrent dans le même popover près du champ, sans titre ni bouton, au-dessus du champ quand il ne tient pas dessous ; la valeur touchée s’applique ; un toucher sur le voile ferme. Valeurs en bleu KODJO.]
 
 #### 4. Points à clarifier
 

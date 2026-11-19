@@ -64,6 +64,11 @@ export class ReminderScheduler {
     return (await this.deps.notifications.requestPermission()) === "granted";
   }
 
+  /** État de l'autorisation, sans la demander : « denied » appelle le message vers Réglages (recette du 19/11/2026, k14). */
+  permissionStatus(): Promise<NotificationPermission> {
+    return this.deps.notifications.permission();
+  }
+
   /** RM-053 : autorisation actuelle, sans jamais la demander (notifications retirées dans Réglages, recette e3). */
   async isPermitted(): Promise<boolean> {
     return (await this.deps.notifications.permission()) === "granted";

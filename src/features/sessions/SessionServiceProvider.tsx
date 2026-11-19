@@ -152,6 +152,7 @@ function SessionServiceInitializer({
       repository: routines,
       reminders: {
         refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission(),
+        permissionStatus: () => scheduler.permissionStatus(),
         isPermitted: () => scheduler.isPermitted(),
       },
       newId: () => Crypto.randomUUID(),
