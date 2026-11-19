@@ -42,3 +42,11 @@
 - Non vérifié : rendu visuel (captures non lisibles depuis l’environnement) ; contrôle géométrique seul. Les jeux de dates des anciens écrans (3–9 août) sont remplacés par ceux de l’Agenda (16–22 novembre).
 - Commit : voir le message de livraison.
 
+## Complément du 19/11/2026 (routine à plusieurs séances)
+
+- Diagnostic (branche locale `planification/ce-ui-12-20261118`, commit `a22f9f71`, non poussée) : la Routine est bien enregistrée une fois, avec son nom (RM-258, RM-261), et `occurrences.ts` produit une occurrence à plusieurs contenus ; `CalendarWeekScreen.tsx` (`itemsByDay`) crée une carte par contenu, chacune avec son « Démarrer » (`/execution` avec un seul `sessionId`). Code non modifié ; correction à faire dans cette branche : une carte par occurrence, puis orchestration au-dessus de `ExecutionService`.
+- Décision D-534 (ch07), DSF Agenda § 7, ch13 annoté. Classe B.
+- Figma : écran « Exécution d’une séance — Initial — Enchaînement (proposition) » ; chevron, alignements, bande et trait droit sur la carte de routine (Agenda et 8 écrans calendrier).
+- Non fait : code de planification et d’exécution ; écran Jour (à remplacer) et Mois non modifiés ; dessin de l’arrêt d’une séance enchaînée.
+- Non vérifié : rendu visuel (captures non lisibles) ; tests non applicables (documentation et Figma).
+
