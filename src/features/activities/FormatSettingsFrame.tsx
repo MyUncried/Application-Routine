@@ -49,6 +49,11 @@ export type FormatSheetContext = {
    * court sous le cadre Exécution (`forTimeDurationRefused`, recette du 17/11/2026).
    */
   readonly durationRefused?: boolean;
+  /**
+   * D-531 / RM-271 (Hermann, 19/11/2026) : « À l'échec » (Max) refusé à un membre de la boucle d'un AMRAP de plusieurs mouvements — option
+   * grisée et message court sous le cadre Exécution, comme `durationRefused`. Une valeur déjà à l'échec n'est pas changée d'office.
+   */
+  readonly failureRefused?: boolean;
   /** For time membre : borne héritée du Circuit, affichée grisée (« Sans limite », « ≤ 15 min »). */
   readonly inheritedCapText?: string;
   /**

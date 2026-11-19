@@ -43,6 +43,7 @@ import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge"
 import { assignCorners, badgePlacement, cornerScenarioOf, type CornerItem, type CornerSlot } from "@/features/execution/executionCorners";
 import { ExecutionClosureSheet } from "@/features/execution/ExecutionClosureSheet";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
+import { ExecutionMaxEntrySheet } from "@/features/execution/ExecutionMaxEntrySheet";
 import { ExecutionPartialRepetitionsSheet } from "@/features/execution/ExecutionPartialRepetitionsSheet";
 import { ringColorOf, ringMotion, ringSegmentsOf, type RingSegment } from "@/features/execution/timerRing";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
@@ -779,9 +780,15 @@ export function ExecutionScreen({
   const shownSide = waiting !== null ? waiting.sideRank : projection.phase === "ACTIVITY" ? projection.sideRank : null;
   const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
   // D-529 / CE-UI-14 (Hermann, 18/11/2026) : quatre coins du chronomètre, affectés par la table unique `executionCorners`.
+  // D-531 / RM-272 (Hermann, 19/11/2026) : AMRAP à un seul mouvement en Max — score cumulé en direct en bas à droite (CE-UI-14).
+  const amrapMax = projection.format?.kind === "AMRAP" ? (projection.format.amrap?.max ?? null) : null;
+  const amrapScore = amrapMax !== null && projection.format?.phase === "WORK" && waiting === null ? amrapMax.score : null;
+  // Série close dont les répétitions restent à saisir (feuille au clavier numérique) ; aucune pendant la Clôture ou en Pause.
+  const amrapMaxEntryKey = amrapMax !== null && projection.format?.phase === "WORK" && projection.status === "RUNNING" ? amrapMax.toDeclare : null;
   const cornerScenario = cornerScenarioOf({
     formatKind: projection.format?.kind ?? null,
     formatWork: projection.format?.phase === "WORK",
+    amrapMax: amrapMax !== null,
     emomTimed,
     pauseOrRecovery: projection.phase === "SERIES_PAUSE" || projection.phase === "SIDE_RECOVERY" || projection.phase === "POST_ACTIVITY_RECOVERY",
     guided: projection.guidance !== null,
@@ -806,6 +813,7 @@ export function ExecutionScreen({
   if (cornerLoad !== null) cornerItems.add("LOAD");
   if (autoCount !== null) cornerItems.add("MOVEMENT_COUNT");
   if (restCountdownMs !== null) cornerItems.add("REST_COUNTDOWN");
+  if (amrapScore !== null) cornerItems.add("SCORE");
   if (durationActive !== null) cornerItems.add("SERIES_COUNTDOWN");
   const corners = assignCorners(cornerScenario, cornerItems);
   const slotOf = (item: CornerItem): CornerSlot | null => (Object.keys(corners) as CornerSlot[]).find((slot) => corners[slot] === item) ?? null;
@@ -937,7 +945,10 @@ export function ExecutionScreen({
   const forTimeSegment = projection.format?.command?.segment ?? null;
   const acquiredTours =
     projection.format?.kind === "AMRAP"
-      ? (projection.format.amrap?.completedRounds ?? null)
+      ? // D-531 / RM-272 : AMRAP à un seul mouvement en Max — ni « + Tour » ni compteur de tours.
+        projection.format.amrap?.max != null
+        ? null
+        : (projection.format.amrap?.completedRounds ?? null)
       : projection.format?.kind === "FOR_TIME" && forTimeRounds !== null
         ? forTimeSegment === "BUY_IN"
           ? 0
@@ -1223,6 +1234,21 @@ export function ExecutionScreen({
               <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-rest-countdown">
                 {formatClock(restCountdownMs, true)}
               </Text>
+            </ExecutionCornerBadge>
+          </View>
+        ) : null}
+        {/* D-531 / RM-272 : score cumulé de l'AMRAP à un seul mouvement en Max (somme des séries saisies), en bas à droite. */}
+        {amrapScore !== null && ringAreaWidth !== null && slotOf("SCORE") !== null ? (
+          <View style={styles.badgeLayer}>
+            <ExecutionCornerBadge {...badgePlacement(slotOf("SCORE") ?? "BOTTOM_RIGHT")} areaWidth={ringAreaWidth}>
+              <View style={styles.autoCount}>
+                <Text style={styles.pillText} numberOfLines={1} testID="execution-amrap-score">
+                  {amrapScore}
+                </Text>
+                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+                  {t.repetitionsUnit}
+                </Text>
+              </View>
             </ExecutionCornerBadge>
           </View>
         ) : null}
@@ -1547,6 +1573,18 @@ export function ExecutionScreen({
         />
       ) : null}
 
+      {/* D-531 / RM-272 (Hermann, 19/11/2026) : AMRAP à un seul mouvement en Max — après « Suivant », saisie de la série au clavier
+          numérique, le chronomètre du bloc continuant ; la croix la laisse à la fin du bloc. */}
+      {amrapMaxEntryKey !== null && !partialOpen ? (
+        <ExecutionMaxEntrySheet
+          key={amrapMaxEntryKey}
+          exerciseName={projection.exerciseName}
+          series={amrapMaxSeriesOf(amrapMaxEntryKey)}
+          onConfirm={(repetitions) => void service.dispatch({ type: "DECLARE", payload: { amrapMax: { key: amrapMaxEntryKey, repetitions } } })}
+          onCancel={() => void service.dispatch({ type: "DECLARE", payload: { amrapMax: { key: amrapMaxEntryKey, skip: true } } })}
+        />
+      ) : null}
+
       {/* For time en cours (16/11/2026) : la modale s'ouvre sans Pause ; « le chrono continue derrière la modale ». */}
       {partialOpen && (paused || forTimeRunning || emomRunning || ((forTimeBar || emomBar) && partialStopAtMs !== null)) ? (
         <ExecutionPartialRepetitionsSheet
@@ -1834,6 +1872,12 @@ function inForTimeWork(frames: readonly Frame[]): boolean {
       // PRE-11 (T4) : de même pendant un Death by, dont les fenêtres s'enchaînent à l'heure (FMT-33).
       (frame.spec.pilot === DEATH_BY_PILOT && (frame.local as DeathByLocal | null)?.phase === "WORK"),
   );
+}
+
+/** D-531 / RM-272 : numéro de la série d'une étape de l'AMRAP en Max (rang du tour `…/r<k>/…` : un mouvement, une série par tour). */
+export function amrapMaxSeriesOf(key: string): number | null {
+  const match = /\/r(\d+)\//.exec(key);
+  return match === null ? null : Number(match[1]);
 }
 
 /** PRE-11 (T3) : Formats qui ont l'écran du For time (barre, commandes, exercices en durée) — For time et AMRAP. */

@@ -1,4 +1,4 @@
-import { forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
+import { amrapMaxRefused, forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
@@ -109,6 +109,8 @@ export function formatSheetContextOf(
     ...(roleChangeLoss !== undefined ? { roleChangeLoss } : {}),
     ...(seriesForRole !== undefined ? { seriesForRole } : {}),
     ...(durationRefused ? { durationRefused } : {}),
+    // D-531 / RM-271 (19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements.
+    ...(format.key === "AMRAP" && amrapMaxRefused(draft, draft.structure, exerciseId) ? { failureRefused: true } : {}),
     onApply: (next: FormatSettings, nextRole: CircuitRole | null) =>
       update((current) => {
         const withSettings: SessionDraft = {

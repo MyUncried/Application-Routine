@@ -15,7 +15,18 @@ import type { SeriesTarget } from "@/domain/activities/ExecutionParameters";
 
 import { leafElapsedMs, leafStepRef, leafTarget, needsNextConfirmation, resettable, runningMs, sessionStopwatch, type EngineState, type FinishReason, type Ms, type PauseReason } from "./kernel";
 import { guidedPhases, type AmrapScopeConfig, type ChildSpec, type DeathByScopeConfig, type EmomScopeConfig, type ExecutablePlan, type ForTimeScopeConfig, type LeafKind, type LeafSpec } from "./plan";
-import { AMRAP_PILOT, amrapLeafOf, amrapPendingDuration, isAmrapDurationLeaf, roundLeaves, segmentLeaves, type AmrapLocal } from "./policies/amrap";
+import {
+  AMRAP_PILOT,
+  amrapLeafOf,
+  amrapMaxScore,
+  amrapMaxToDeclare,
+  amrapPendingDuration,
+  isAmrapDurationLeaf,
+  isAmrapMax,
+  roundLeaves,
+  segmentLeaves,
+  type AmrapLocal,
+} from "./policies/amrap";
 import { DEATH_BY_PILOT, deathByLeafOf, windowLeaves, type DeathByLocal } from "./policies/deathBy";
 import { bannerWindow, EMOM_PILOT, type EmomLocal } from "./policies/emom";
 import { activityCount, FOR_TIME_PILOT, isDurationLeaf, pendingDurationOf, roundKeyOf, type ForTimeLocal } from "./policies/forTime";
@@ -151,7 +162,17 @@ export type FormatView = {
   /** PRE-11 (T2) : fenêtre EMOM en cours ; `null` hors EMOM. */
   readonly emom: EmomView | null;
   /** PRE-11 (T3) : bloc AMRAP en cours — tour en cours, tours acquis, bloc et nombre de blocs ; `null` hors AMRAP. */
-  readonly amrap: { readonly round: number; readonly completedRounds: number; readonly block: number; readonly blocks: number } | null;
+  readonly amrap: {
+    readonly round: number;
+    readonly completedRounds: number;
+    readonly block: number;
+    readonly blocks: number;
+    /**
+     * D-531 / RM-272 (Hermann, 19/11/2026) : AMRAP à un seul mouvement en Max — score cumulé (répétitions saisies) et Série close dont les
+     * répétitions restent à saisir (clé ; `null` : aucune) ; `null` hors Max.
+     */
+    readonly max: { readonly score: number; readonly toDeclare: string | null } | null;
+  } | null;
   /** PRE-11 (T4) : Death by en cours — rang courant et rangs entièrement acquis ; `null` hors Death by. */
   readonly deathBy: { readonly rank: number; readonly acquiredRanks: number } | null;
   /**
@@ -867,6 +888,7 @@ function amrapFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: strin
     }
   }
   const closing = local.phase === "CLOSURE" && local.pending[0] !== undefined ? amrapLeafOf(config, local.pending[0]) : undefined;
+  const max = isAmrapMax(config);
   return {
     kind: "AMRAP",
     name: config.name,
@@ -878,10 +900,17 @@ function amrapFormatOf(plan: ExecutablePlan, state: EngineState, scopeKey: strin
     totalActivities: 0,
     phaseStarts: [],
     duration,
-    command: local.phase === "WORK" ? amrapCommandOf(leaves, local) : null,
-    roundStart: local.phase === "WORK" ? amrapRoundStartOf(leaves, local) : null,
+    // D-531 / RM-272 : AMRAP à un seul mouvement en Max — « Suivant » à chaque échec, ni « + Tour » ni annonce de tour (D-530).
+    command: local.phase !== "WORK" ? null : max ? amrapMaxCommandOf(leaves, local) : amrapCommandOf(leaves, local),
+    roundStart: local.phase === "WORK" && !max ? amrapRoundStartOf(leaves, local) : null,
     emom: null,
-    amrap: { round: local.round, completedRounds: local.completedRounds, block: config.block, blocks: config.blocks },
+    amrap: {
+      round: local.round,
+      completedRounds: local.completedRounds,
+      block: config.block,
+      blocks: config.blocks,
+      max: max ? { score: amrapMaxScore(local), toDeclare: local.phase === "WORK" ? amrapMaxToDeclare(local) : null } : null,
+    },
     deathBy: null,
     interrupted: closing === undefined ? null : { name: nameOf(closing), target: closing.target === undefined ? null : closing.target, mode: closing.mode ?? null },
   };
@@ -903,6 +932,13 @@ function amrapCommandOf(leaves: readonly LeafSpec[], local: AmrapLocal): FormatV
   if (duration) return { kind: "ROUND", segment, advance: "ROUND", duration };
   const lastOfRound = leaves.slice(local.index + 1).every((leaf) => leaf.kind !== "ACTIVITY");
   return lastOfRound ? { kind: "ROUND", segment, advance: "ROUND", duration } : { kind: "NEXT", segment, advance: "NEXT", duration };
+}
+
+/** D-531 / RM-272 : AMRAP à un seul mouvement en Max — « Suivant » à chaque échec (et pendant une pause ou une Récupération). */
+function amrapMaxCommandOf(leaves: readonly LeafSpec[], local: AmrapLocal): FormatView["command"] {
+  const current = leaves[local.index];
+  if (current === undefined) return null;
+  return { kind: "NEXT", segment: local.segment === "BUY_IN" ? "BUY_IN" : "ROUNDS", advance: "NEXT", duration: current.kind === "ACTIVITY" && isAmrapDurationLeaf(current) };
 }
 
 /** Exercice en durée du tour courant d'un For time (voir `FormatView.duration`). */
@@ -977,7 +1013,8 @@ export function projectExecution(plan: ExecutablePlan, state: EngineState, atMs:
     target: leaf === null ? null : leafTarget(leaf),
     exerciseName: spec?.exerciseId === undefined || spec === null ? null : (plan.exercises[spec.exerciseId]?.name ?? null),
     series: counters.series,
-    tour: counters.tour,
+    // D-531 / RM-272 : AMRAP à un seul mouvement en Max — aucun compteur de tours.
+    tour: format?.amrap?.max != null ? null : counters.tour,
     cycle: spec === null ? null : cycleOf(spec),
     autoRepetitions: autoRepetitionsOf(plan, state, atMs),
     nextHighlighted: nextHighlightedOf(plan, state, atMs),

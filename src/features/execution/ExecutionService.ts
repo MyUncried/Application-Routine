@@ -198,6 +198,10 @@ export class ExecutionService {
       // PRE-11 (T3) : de même pour l'exercice en cours à l'échéance d'un bloc AMRAP ou à l'Arrêt.
       // PRE-11 (T4) : de même pour la fenêtre manquée d'un Death by, ou son Arrêt.
       if ((result.format === "FOR_TIME" || result.format === "EMOM" || result.format === "AMRAP" || result.format === "DEATH_BY") && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+      // D-531 / RM-272 : AMRAP à un seul mouvement en Max — répétitions saisies de chaque Série close.
+      const maxSeries = (result as { readonly maxSeries?: readonly { readonly key: string; readonly repetitions: number | null }[] }).maxSeries;
+      if (result.format === "AMRAP" && maxSeries !== undefined)
+        for (const entry of maxSeries) if (typeof entry.repetitions === "number") found.set(entry.key, entry.repetitions);
     }
     return found;
   }

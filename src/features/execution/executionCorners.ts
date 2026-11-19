@@ -18,7 +18,7 @@ export type CornerSlot = "TOP_LEFT" | "TOP_RIGHT" | "BOTTOM_LEFT" | "BOTTOM_RIGH
  * - `LOAD` : charge ; pendant une pause ou une récupération, charge de la série suivante.
  * - `MOVEMENT_COUNT` : nombre de mouvements faits d'après le guidage des phases.
  * - `REST_COUNTDOWN` : compte à rebours du repos (EMOM en répétitions uniquement).
- * - `SCORE` : score cumulé (AMRAP à un seul mouvement en Max, D-531 — scénario prévu, non encore exécuté).
+ * - `SCORE` : score cumulé (AMRAP à un seul mouvement en Max, D-531 / RM-272 : somme des séries saisies).
  * - `SERIES_COUNTDOWN` : compte à rebours d'un exercice en durée d'un Format (For time, AMRAP, EMOM en durée). Absent du tableau de
  *   CE-UI-14 : il garde le coin du bas à gauche où Hermann l'a placé (17/11/2026, ft-borne ; 18/11/2026, emom-6 et emom-e1) et y
  *   déclare son exclusivité avec la charge (D-529 : « Toute information nouvelle déclare son exclusivité avec une autre »). À
@@ -104,6 +104,8 @@ export function badgePlacement(slot: CornerSlot): { readonly side: "left" | "rig
 export type CornerScenarioInput = {
   readonly formatKind: "FOR_TIME" | "EMOM" | "AMRAP" | "DEATH_BY" | null;
   readonly formatWork: boolean;
+  /** D-531 / RM-272 : AMRAP à un seul mouvement en Max (score cumulé en bas à droite). Absent : non. */
+  readonly amrapMax?: boolean;
   readonly emomTimed: boolean;
   readonly pauseOrRecovery: boolean;
   readonly guided: boolean;
@@ -113,7 +115,7 @@ export type CornerScenarioInput = {
 export function cornerScenarioOf(input: CornerScenarioInput): CornerScenario {
   if (input.formatKind !== null && input.formatWork) {
     if (input.formatKind === "FOR_TIME") return "FOR_TIME";
-    if (input.formatKind === "AMRAP") return "AMRAP";
+    if (input.formatKind === "AMRAP") return input.amrapMax === true ? "AMRAP_MAX" : "AMRAP";
     if (input.formatKind === "DEATH_BY") return "DEATH_BY";
     return input.emomTimed ? "EMOM_DURATION" : "EMOM_REPETITIONS";
   }

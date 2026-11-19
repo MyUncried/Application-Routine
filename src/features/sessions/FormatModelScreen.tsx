@@ -44,6 +44,7 @@ import {
   showsExecution,
   allowedModes,
   lastRepetitionsLocked,
+  maxLocked,
   emomDurationOverflow,
   hasRequiredRoles,
   initialAnswers,
@@ -1499,6 +1500,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
   const unitRow = focusedCellKey !== null && focusedCellKey.kind === "obj" ? focusedCellKey.row : null;
+  // D-531 / RM-271 (Hermann, 19/11/2026) : Max grisé pour un mouvement d'une boucle de plusieurs mouvements ; l'appui sur le Max grisé
+  // montre le message court sous le tableau, comme la Durée refusée (n-charge-colonne). Ligne touchée ; `null` : aucun message.
+  const [maxNoteRow, setMaxNoteRow] = useState<number | null>(null);
+  const maxNoteShown = maxNoteRow !== null && maxLocked(model, movements, maxNoteRow) && movements[maxNoteRow]?.values.max !== true;
   // Recette du 05/11/2026 (constat f, Hermann : « Death by : le clavier du tableau d'objectifs n'a pas d'unité ») : la barre
   // montre l'unité de Départ et d'Incrément. Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée, choisie au clavier ; un seul mouvement : sur
   // l'Objectif de départ et l'Incrément du questionnaire. [Répétitions seule admise — remplacé.]
@@ -1973,6 +1978,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {t().lastRepetitionsLocked}
           </Text>
         ) : null}
+        {/* D-531 / RM-271 (Hermann, 19/11/2026) : Max grisé dans une boucle de plusieurs mouvements, message court au même endroit. */}
+        {maxNoteShown ? (
+          <Text style={styles.unitNote} accessibilityRole="alert" testID="format-max-locked">
+            {t().maxLocked}
+          </Text>
+        ) : null}
         {/* Complément du 5 novembre 2026 (Hermann), §13 : avertissement non bloquant du Death by, seulement si le premier rang ne tient pas dans l'intervalle. */}
         {model === "DEATH_BY" && deathByFirstRankWarning(answers, movements) ? (
           <Text style={styles.alert} accessibilityRole="alert" testID="format-death-by-warning">
@@ -2444,13 +2455,17 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 }
               />
             );
-          // Max en Répétitions seulement (n-charge-colonne, 05/11/2026).
-          const maxDisabled = mode !== "REPETITIONS";
+          // Max en Répétitions seulement (n-charge-colonne, 05/11/2026). D-531 (19/11/2026) : interdit pour un mouvement d'une boucle de
+          // plusieurs mouvements — grisé ; un Max déjà coché reste décochable (aucune donnée retirée d'office).
+          const loopLocked = !max && maxLocked(model, movements, index);
+          const maxDisabled = mode !== "REPETITIONS" || loopLocked;
           const radio = (
             <Pressable
               key="max"
-              onPress={() => updateValues(index, { ...values, max: !max })}
-              disabled={maxDisabled}
+              onPress={() => (loopLocked ? setMaxNoteRow(index) : updateValues(index, { ...values, max: !max }))}
+              // Max grisé dans la boucle : annoncé désactivé, mais l'appui reste reçu pour montrer le message court (sans `disabled`,
+              // qui écraserait l'état annoncé).
+              disabled={mode !== "REPETITIONS" ? true : undefined}
               accessibilityRole="radio"
               accessibilityState={{ checked: max, disabled: maxDisabled }}
               accessibilityLabel={label(name, tt.max)}

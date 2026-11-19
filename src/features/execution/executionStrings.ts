@@ -115,6 +115,10 @@ export const executionStrings = {
   /** PRE-11 (T3), arbitrage de Hermann du 18/11/2026 : feuilles de l'AMRAP, modèle du For time. */
   amrapStopTitle: "Arrêt de l’AMRAP",
   amrapClosureTitle: "Fin du bloc",
+  // D-531 / RM-272 (Hermann, 19/11/2026) : AMRAP à un seul mouvement en Max — saisie de chaque série au clavier numérique, score cumulé.
+  amrapMaxEntryTitle: "Répétitions de la série",
+  amrapMaxEntryLabel: (series: number) => `Série ${series}`,
+  repetitionsUnit: "rép.",
   emomClosureTitle: "Fin de l’EMOM",
   /** PRE-11 (T4), arbitrage de Hermann du 18/11/2026 : feuilles du Death by, modèle du For time. */
   deathByStopTitle: "Arrêt du Death by",

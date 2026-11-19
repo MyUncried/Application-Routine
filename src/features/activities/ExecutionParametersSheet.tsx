@@ -927,6 +927,9 @@ export function ExecutionParametersSheet({
   const durationRefused = format?.durationRefused === true && draft.mode !== "DURATION";
   // Recette du 17/11/2026 (Hermann, captures de « For time a changer » : « le problème de vérification du mode d'exécution n'est pas réglé. C'est au niveau de la composition de séance que le problème se pose ») : boucle déjà sans Répétitions (séance antérieure) — erreur en rouge, ✓ refusé tant que Répétitions n'est pas choisi.
   const loopWithoutRepetitions = format?.durationRefused === true && draft.mode === "DURATION";
+  // D-531 / RM-271 (Hermann, 19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements, message
+  // court sous le cadre Exécution ; une valeur déjà à l'échec (séance antérieure) n'est pas changée d'office.
+  const failureRefused = format?.failureRefused === true;
   // Règles de Hermann du 14/11/2026 (For time, FT-3, FT-4) : buy-in et buy-out, nombre de séries libre, identiques ou variables —
   // la ligne Séries revient. [Recette du 07/11/2026 (y-format-cadres) : ligne Séries retirée pour le buy-in et le buy-out — remplacé
   // le 14/11/2026 ; la ligne Pause reste retirée.]
@@ -2151,7 +2154,7 @@ export function ExecutionParametersSheet({
       options={
         format?.rows.includes("stopImposed")
           ? stopConditionOptions.map((option) => (option.value === "TARGET" ? { ...option, disabled: true } : option))
-          : format?.rows.includes("stopTarget")
+          : format?.rows.includes("stopTarget") || failureRefused
             ? stopConditionOptions.map((option) => (option.value === "FAILURE" ? { ...option, disabled: true } : option))
             : stopConditionOptions
       }
@@ -2854,6 +2857,11 @@ export function ExecutionParametersSheet({
                 ) : loopWithoutRepetitions ? (
                   <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-loop-without-repetitions">
                     {strings.screens.formatModel.loopWithoutRepetitions}
+                  </Text>
+                ) : null}
+                {failureRefused ? (
+                  <Text style={styles.durationRefusedNote} accessibilityRole="alert" testID="execution-sheet-max-refused">
+                    {strings.screens.formatModel.maxLocked}
                   </Text>
                 ) : null}
 

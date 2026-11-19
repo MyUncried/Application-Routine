@@ -576,6 +576,8 @@ export const fr = {
       backToParameters: "Revenir aux paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
+      // D-531 / RM-271 (Hermann, 19/11/2026) : Max interdit dans une boucle de plusieurs mouvements (AMRAP, For time).
+      maxLocked: "Max n’est pas disponible dans une boucle de plusieurs mouvements.",
       // Recette du 17/11/2026 : boucle d’un For time déjà sans exercice en répétitions (séance antérieure).
       loopWithoutRepetitions: "Au moins un exercice de la boucle doit être en répétitions : choisissez Répétitions.",
       collapsePiles: "Replier les piles",

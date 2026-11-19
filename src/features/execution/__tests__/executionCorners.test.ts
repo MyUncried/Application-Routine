@@ -73,6 +73,8 @@ describe("D-529 / CE-UI-14 — table des quatre coins", () => {
     expect(cornerScenarioOf({ ...base, pauseOrRecovery: true })).toBe("PAUSE");
     expect(cornerScenarioOf({ ...base, formatKind: "FOR_TIME", formatWork: true })).toBe("FOR_TIME");
     expect(cornerScenarioOf({ ...base, formatKind: "AMRAP", formatWork: true })).toBe("AMRAP");
+    // D-531 / RM-272 : AMRAP à un seul mouvement en Max — score cumulé en bas à droite.
+    expect(cornerScenarioOf({ ...base, formatKind: "AMRAP", formatWork: true, amrapMax: true })).toBe("AMRAP_MAX");
     expect(cornerScenarioOf({ ...base, formatKind: "EMOM", formatWork: true })).toBe("EMOM_REPETITIONS");
     expect(cornerScenarioOf({ ...base, formatKind: "EMOM", formatWork: true, emomTimed: true })).toBe("EMOM_DURATION");
     expect(cornerScenarioOf({ ...base, formatKind: "DEATH_BY", formatWork: true })).toBe("DEATH_BY");
