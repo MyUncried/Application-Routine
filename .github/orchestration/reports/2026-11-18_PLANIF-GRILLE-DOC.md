@@ -67,4 +67,4 @@
 - Figma : écran « Calendrier — Journal — MVP » finalisé (cartes teinte `#EAEAFF`, bouton « Modifier la planification » = composant `DSF / Actions / Édition — carré`, lignes 2 et 3 inversées) ; 4 écrans Jour supprimés (`1992:5602`, `1992:5697`, `1992:5794`, `2128:86`) ; 3 liens de navigation Calendrier redirigés vers « P-Calendrier — Semaine » ; trous de mise en page refermés sur la page.
 - Docs : `docs/DSF-JOURNAL-2026-11-19.md` créé ; D-535 (ch07) ; ch06, ch13 et DSF Navigation annotés ; DSF Agenda (§ 6 actions glissées 86 × 54, renvoi au Journal). Classe B ; définition « Actives / Terminées » retenue par Claude (À CLARIFIER : écran de filtre ; déployé du Journal = celui de l’Agenda et du catalogue, décidé par Hermann).
 - Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
-
+- Journal (suite, 19/11/2026) : ligne 2 = symbole des zones corporelles sans cercle ; ligne 3 = « X à venir, jusqu’au jj/mm/aaaa » ; déployé = phrase de récurrence puis séances (DSF Journal, D-535, prompt mis à jour). Code couleur Journal/Agenda : proposé, non arbitré.

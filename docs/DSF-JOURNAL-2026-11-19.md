@@ -19,13 +19,13 @@ Bande de 402 × 115 (inchangée), onglet « Journal » actif (voir DSF Barre de 
 Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EAEAFF` (couleur de l’onglet Journal sélectionné) pour le cadre et la bande, repères épais gauche et droite en bleu-violet moyen.
 - Colonne gauche (cadre) : **date de création** de la routine.
 - Ligne 1 : nom de la routine (16), précédé du chevron de déploiement.
-- Ligne 2 : spécialité · zones corporelles.
-- Ligne 3 : récurrence (ex. « Chaque lundi et jeudi · jusqu’au 28 déc. »).
+- Ligne 2 : spécialité · symbole des zones corporelles (silhouette `icon/zone-corporelle`, 16 × 16, sans cercle) suivi des zones.
+- Ligne 3 : « X à venir, jusqu’au jj/mm/aaaa » (X = nombre d’occurrences à venir).
 - À droite : bouton « Modifier la planification » — composant `DSF / Actions / Édition — carré` (32 × 32, crayon `icon/modifier`, fond `#F3F4F9`, coins 10).
 
 ## 4. Comportement
 
-- Toucher la carte (ou le chevron) la **déploie** : le déployé est identique à celui de l’Agenda et du catalogue des séances (filet de séparation, puis composition de la séance : exercices, cycles et circuits).
+- Toucher la carte (ou le chevron) la **déploie** : le déployé commence par la **phrase de récurrence** de la routine (ch10, RM de la phrase de récurrence ; ex. « Chaque lundi et jeudi »), puis les séances, chacune avec sa composition comme dans l’Agenda et le catalogue (filet de séparation, exercices, cycles et circuits).
 - Le bouton « Modifier la planification » **ouvre la routine**.
 - Tri par défaut : date de création / modification, la plus récente en haut.
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.
@@ -35,3 +35,4 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.
 - « Spécialité » : propriété à définir (voir DSF Agenda).
+- Code couleur des cartes : proposé = bleu s’il reste des occurrences à venir, gris sinon (teinte de l’Agenda pour le futur) ; non arbitré, la teinte actuelle `#EAEAFF` est provisoire. Compteurs : « Actives · Terminées » ne couvre pas une routine jamais planifiée.
