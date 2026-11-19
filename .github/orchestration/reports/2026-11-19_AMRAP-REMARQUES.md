@@ -90,3 +90,13 @@ Texte de Hermann :
 ## Commit final et état Git
 
 Voir § « Commit et état Git ».
+
+## Suite complète
+
+`npx jest --maxWorkers=2` lancée en arrière-plan sur `b79529d9` : **arrêtée par Claude Code pour mémoire système basse**, sans résultat. Non relancée, conformément à la consigne (pas de relance automatique après un arrêt pour mémoire). À relancer sur demande ; la régression ciblée (99 suites, 1 248 tests) est verte.
+
+## Commit et état Git
+
+- `b79529d9` : code, tests, documentation, rapport.
+- Commit documentaire de ce complément : voir `git log` de la branche.
+- Branche `recette/amrap-remarques-20261119` poussée ; pas de PR, pas de fusion.
