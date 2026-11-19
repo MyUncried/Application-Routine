@@ -1,6 +1,7 @@
 # KODJO — Conception Fonctionnalité Communautaire V1
 
 **Statut :** PRÊTE À PLANIFIER  
+**Intégration :** versionné le 19/11/2026 ; inclus entièrement dans le premier lot Compte (CPT-20). Décisions du chapitre 07 qui le précisent : CPT-17 à CPT-19.  
 **Nature :** document autonome de conception
 
 ---
@@ -394,11 +395,11 @@ Elle ne modifie pas :
 - D05 — Visible par défaut, privé par exception.
 - D06 — Confidentialité appliquée à l’historique d’exécution.
 - D07 — Partage direct possible entre Amis.
-- D08 — Récupération explicite sous forme de copie indépendante.
+- D08 — Récupération explicite sous forme de copie indépendante. [Précisé le 19/11/2026 — CPT-17 : les règles actuelles prévalent ; fiche reçue non modifiable et non copiable (MOUV-D3) ; contenu reçu conservé si le compte de l’auteur est supprimé ou si l’accès est retiré hors relation payante.]
 - D09 — Professionnels utilisant les mêmes mécanismes que les autres utilisateurs.
 - D10 — Pas de système de prescription spécifique.
 - D11 — Messagerie différée.
-- D12 — Signalement différé.
+- D12 — Signalement différé. [Remplacé le 19/11/2026 — CPT-19 : signalement minimal (bouton « Signaler », retrait manuel par KODJO) inclus au premier lot.]
 - D13 — Blocage limité aux interactions directes.
 - D14 — Rôles simples Administrateur / Membre.
 - D15 — Pas de publication libre.
