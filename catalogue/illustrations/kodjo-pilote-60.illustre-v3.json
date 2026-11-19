@@ -4,7 +4,7 @@
   "catalogue": {
     "id": "kodjo.pilote-60",
     "title": "Catalogue pilote KODJO — 60 fiches de test",
-    "revision": "66",
+    "revision": "67",
     "owner": null,
     "notes": [
       "Conversion initiale (CA-2) du 2026-11-10 ; ce fichier fait désormais foi et s'édite directement.",
@@ -763,7 +763,7 @@
     },
     {
       "sheetId": "REED-002",
-      "revision": "6",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -800,6 +800,18 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-18",
+          "author": null,
+          "summary": "Révision 7 issue de la version locale de l'administration (17-18/11/2026), installée sur le téléphone de recette, non publiée ; remplacée par la révision 8"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-19",
+          "author": null,
+          "summary": "Illustration et contenu publiés : révision prolongeant la révision 7 du téléphone de recette"
         }
       ],
       "provenance": {
