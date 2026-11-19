@@ -142,6 +142,8 @@ export const executionStrings = {
   buyOutBadge: "Buy-out ✓",
   plusTourSign: "+",
   plusTourWord: "Tour",
+  /** D-529 / CE-UI-14 (18/11/2026) : « Tour · 3 », nombre de tours déjà acquis, sous le « + » du bouton. */
+  plusTourAcquired: (acquired: number) => `Tour · ${acquired}`,
   partialHeldDuration: "Durée tenue",
   /** Troisième recette du 17/11/2026 (Hermann, ftr3-modale-duree) : titre et lignes des trois modales d'arrêt du For time. */
   forTimeStopTitle: "Arrêt du For Time",

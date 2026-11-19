@@ -40,6 +40,7 @@ import { profileGuidance } from "@/domain/preferences/Profile";
 import { parseGuidanceSettings } from "@/domain/preferences/guidanceSettings";
 import { effectiveGuidance, type SessionGuidance } from "@/domain/sessions/sessionGuidance";
 import { ExecutionCornerBadge } from "@/features/execution/ExecutionCornerBadge";
+import { assignCorners, badgePlacement, cornerScenarioOf, type CornerItem, type CornerSlot } from "@/features/execution/executionCorners";
 import { ExecutionClosureSheet } from "@/features/execution/ExecutionClosureSheet";
 import { ExecutionTimerRing } from "@/features/execution/ExecutionTimerRing";
 import { ExecutionPartialRepetitionsSheet } from "@/features/execution/ExecutionPartialRepetitionsSheet";
@@ -742,18 +743,48 @@ export function ExecutionScreen({
   // Mise à jour pendant le rendu (état dérivé de la projection précédente) : un seul rendu de plus, seulement à une bascule.
   if (nextHoldMarks !== holdMarks) setHoldMarks(nextHoldMarks);
   const emomHoldMarks = nextHoldMarks.key === holdKey ? nextHoldMarks.list : NO_HOLD_MARKS.list;
-  const forTimeCap =
-    waiting === null && projection.format?.kind === "FOR_TIME" && projection.format.phase === "WORK" && projection.format.capMs !== null ? projection.format.capMs : null;
   const autoCount = waiting !== null || projection.guidance === null ? null : projection.autoRepetitions;
   // Recette du 15/11/2026 (Hermann, g3 : « L’objectif de la série doit passer dans le triangle du bas à droite ») : avec la borne,
   // l'objectif occupe le coin du bas à droite (sauf compteur « mouv. » déjà posé là). [Sous le chrono, dans le cercle — remplacé.]
-  const objectiveCorner = forTimeCap !== null && repetitions !== null && autoCount === null ? repetitions : null;
+  // D-529 / CE-UI-14 (18/11/2026) : l'objectif reste en haut à gauche dans tous les formats, la borne passe en haut à droite.
+  // [Objectif en bas à droite avec la borne — remplacé.]
   // Recette du 13/11/2026 (Hermann : « Lorsque le compteur de mouvement dépasse l'objectif du nombre de répétitions faire
   // passer la couleur de fond du mouvement en vert ») : vert dès que l'objectif est atteint.
   const goalReps = projection.seriesTarget !== null && projection.seriesTarget.kind === "NUMBER" ? projection.seriesTarget.value : null;
   const goalReached = autoCount !== null && autoCount !== undefined && goalReps !== null && autoCount >= goalReps;
   const shownSide = waiting !== null ? waiting.sideRank : projection.phase === "ACTIVITY" ? projection.sideRank : null;
   const load = waiting !== null || projection.phase !== "ACTIVITY" || projection.loadKg === null ? null : t.load(projection.loadKg);
+  // D-529 / CE-UI-14 (Hermann, 18/11/2026) : quatre coins du chronomètre, affectés par la table unique `executionCorners`.
+  const cornerScenario = cornerScenarioOf({
+    formatKind: projection.format?.kind ?? null,
+    formatWork: projection.format?.phase === "WORK",
+    emomTimed,
+    pauseOrRecovery: projection.phase === "SERIES_PAUSE" || projection.phase === "SIDE_RECOVERY" || projection.phase === "POST_ACTIVITY_RECOVERY",
+    guided: projection.guidance !== null,
+  });
+  // Pause ou récupération : charge de la série suivante (CE-UI-14).
+  const cornerLoad =
+    cornerScenario === "PAUSE" ? (waiting === null && upcoming !== null && upcoming.loadKg !== null ? t.load(upcoming.loadKg) : null) : load;
+  // Limite de temps (haut droite) : temps max du For time, temps limite du bloc AMRAP, intervalle de l'EMOM et du Death by ; valeur fixe.
+  const timeLimitMs =
+    waiting !== null || projection.format === null || projection.format.phase !== "WORK"
+      ? null
+      : projection.format.kind === "FOR_TIME" || projection.format.kind === "AMRAP"
+        ? projection.format.capMs
+        : emomView !== null && emomView.windowMs > 0
+          ? emomView.windowMs
+          : null;
+  // Compte à rebours du repos (bas droite) : EMOM en répétitions uniquement ; en EMOM en durée, le repos reste au centre (D-528).
+  const restCountdownMs = cornerScenario === "EMOM_REPETITIONS" && emomView !== null && emomView.resting && waiting === null ? emomView.remainingMs : null;
+  const cornerItems = new Set<CornerItem>();
+  if (repetitions !== null) cornerItems.add("OBJECTIVE");
+  if (timeLimitMs !== null) cornerItems.add("TIME_LIMIT");
+  if (cornerLoad !== null) cornerItems.add("LOAD");
+  if (autoCount !== null) cornerItems.add("MOVEMENT_COUNT");
+  if (restCountdownMs !== null) cornerItems.add("REST_COUNTDOWN");
+  if (durationActive !== null) cornerItems.add("SERIES_COUNTDOWN");
+  const corners = assignCorners(cornerScenario, cornerItems);
+  const slotOf = (item: CornerItem): CornerSlot | null => (Object.keys(corners) as CornerSlot[]).find((slot) => corners[slot] === item) ?? null;
   if (shownNow !== null && shownNow !== lastShown) setLastShown(shownNow);
   // Recette du 13/11/2026 (Hermann : « Après le compte à rebours, au départ du premier exercice, toutes les informations
   // du cadre (sauf le temps total) disparaissent et réapparaissent. Elles ne doivent pas disparaître. » ; « qu'il n'y ait
@@ -875,6 +906,20 @@ export function ExecutionScreen({
   // inactif pendant un exercice en durée (il se termine à son terme). Avant un exercice en durée, « Suivant » le lance, « comme
   // un appui sur le cercle ». [Inactif tant qu'un exercice en durée du tour reste à lancer — remplacé.]
   const plusTourEnabled = forTimeRunning && durationActive === null && forTimeCommand?.duration !== true && projection.commands.next;
+  // D-529 / CE-UI-14 : tours acquis du For time (Tour en cours − 1 dans les tours, aucun au buy-in, tous au buy-out) et de l'AMRAP
+  // (tours acquis du bloc), montrés dans le bouton « +Tour ». For time d’un seul exercice : un tour = une Série (16/11/2026).
+  const forTimeRounds = projection.tour ?? projection.series;
+  const forTimeSegment = projection.format?.command?.segment ?? null;
+  const acquiredTours =
+    projection.format?.kind === "AMRAP"
+      ? (projection.format.amrap?.completedRounds ?? null)
+      : projection.format?.kind === "FOR_TIME" && forTimeRounds !== null
+        ? forTimeSegment === "BUY_IN"
+          ? 0
+          : forTimeSegment === "BUY_OUT"
+            ? forTimeRounds.total
+            : Math.max(0, forTimeRounds.current - 1)
+        : null;
   const onPlusTour = () => {
     if (typeof projection.target === "string") void service.dispatch({ type: "NEXT", validated: true, advance: "ROUND" }, projection.target);
   };
@@ -1059,15 +1104,15 @@ export function ExecutionScreen({
         </ExecutionTimerRing>
         {/* Recette du 13/11/2026 (Hermann : cadres en coin « dans l'esprit Apple Watch ») : voir ExecutionCornerBadge.
             [Cadres rectangulaires — remplacé.] */}
-        {durationActive !== null && ringAreaWidth !== null ? (
+        {/* D-529 / CE-UI-14 : chaque cadre n'est posé que si la table `executionCorners` lui donne son coin. */}
+        {durationActive !== null && ringAreaWidth !== null && slotOf("SERIES_COUNTDOWN") !== null ? (
           // Formats §11.1 : compte à rebours de l’exercice dans une forme d’angle, vert en cours, orange retenu (Figma « Décompte —
           // durée »). Recette du 17/11/2026 (ft-borne : « laisser la durée max en haut à gauche, et positionner la durée des comptes
           // à rebours en bas à gauche (tout le temps, avec un temps max ou sans) »). [Coin du haut à gauche, à la place de
           // l’objectif et de la borne — remplacé.]
           <View style={styles.badgeLayer}>
             <ExecutionCornerBadge
-              side="left"
-              vertical="bottom"
+              {...badgePlacement(slotOf("SERIES_COUNTDOWN") ?? "BOTTOM_LEFT")}
               areaWidth={ringAreaWidth}
               color={durationActive.state === "RUNNING" ? DURATION_BADGE.running : DURATION_BADGE.held}
               // Troisième recette du 17/11/2026 (Hermann, autres remarques, d : « pendant le compte à rebours du For Time en durée (3 secondes), faire clignoter le triangle du compte à rebours à chaque seconde (vert actuel > vert plus foncé > vert actuel) »).
@@ -1086,28 +1131,34 @@ export function ExecutionScreen({
             </ExecutionCornerBadge>
           </View>
         ) : null}
-        {forTimeCap !== null && ringAreaWidth !== null ? (
+        {timeLimitMs !== null && ringAreaWidth !== null && slotOf("TIME_LIMIT") !== null ? (
+          // D-529 / CE-UI-14 : limite de temps en haut à droite, valeur fixe, cadre gris (recette emom-e1 du 18/11/2026 : « valeur fixe,
+          // le triangle reste gris »). [Borne du For time en haut à gauche (13/11/2026) — remplacé.]
           <View style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="left" areaWidth={ringAreaWidth}>
+            <ExecutionCornerBadge {...badgePlacement(slotOf("TIME_LIMIT") ?? "TOP_RIGHT")} areaWidth={ringAreaWidth}>
               {/* Recette du 14/11/2026 (Hermann : « Mettre la Durée maximum sur deux lignes à l’écran : ligne du haut : la durée ;
                   ligne du bas : « max ». Respecter les tailles de polices comme pour les autres textes des triangles ») : même
                   disposition que le compteur « mouv. ». [« 1:00 max » sur une ligne — remplacé.] */}
-              <View style={styles.capLines} testID="execution-cap">
+              <View style={[styles.capLines, { alignItems: badgePlacement(slotOf("TIME_LIMIT") ?? "TOP_RIGHT").side === "right" ? "flex-end" : "flex-start" }]} testID="execution-cap">
                 {/* Seconde recette du 17/11/2026 (Hermann : « utiliser le format 00:00 pour toutes les durées »). [« 1′00″ » (ft-k8,
                     15/11/2026) — remplacé.] */}
                 <Text style={styles.pillText} numberOfLines={1} testID="execution-cap-value">
-                  {formatClock(forTimeCap)}
+                  {formatClock(timeLimitMs)}
                 </Text>
-                <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
-                  {t.capUnit}
-                </Text>
+                {/* « max » : temps max du For time seulement ; temps limite du bloc AMRAP et intervalle EMOM / Death by : valeur seule. */}
+                {projection.format?.kind === "FOR_TIME" ? (
+                  <Text style={[styles.pillText, styles.autoCountUnit]} numberOfLines={1}>
+                    {t.capUnit}
+                  </Text>
+                ) : null}
               </View>
             </ExecutionCornerBadge>
           </View>
-        ) : repetitions !== null && ringAreaWidth !== null ? (
+        ) : null}
+        {repetitions !== null && ringAreaWidth !== null && slotOf("OBJECTIVE") !== null ? (
           <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
             <ExecutionCornerBadge
-              side="left"
+              {...badgePlacement(slotOf("OBJECTIVE") ?? "TOP_LEFT")}
               areaWidth={ringAreaWidth}
               // Recette EMOM du 18/11/2026 (Hermann : « Appui sur suivant : conserver le triangle des objectifs, le mettre en fond vert » ;
               // « À chaque compte à rebours d’EMOM, faire clignoter le triangle d’objectif (si vert : vert foncé et vert, si gris : gris
@@ -1122,9 +1173,9 @@ export function ExecutionScreen({
         ) : null}
         {/* Recette du 13/11/2026 (Hermann : « on peut ajouter un compteur automatique dans ce cas puisqu'on est supposé
             suivre ce guidage. Il serait posé dans un triangle en bas à droite. ») : répétitions faites d'après les phases. */}
-        {autoCount !== null && ringAreaWidth !== null ? (
+        {autoCount !== null && ringAreaWidth !== null && slotOf("MOVEMENT_COUNT") !== null ? (
           <View style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth} color={goalReached ? GOAL_GREEN : undefined}>
+            <ExecutionCornerBadge {...badgePlacement(slotOf("MOVEMENT_COUNT") ?? "BOTTOM_RIGHT")} areaWidth={ringAreaWidth} color={goalReached ? GOAL_GREEN : undefined}>
               {/* Recette du 13/11/2026 (Hermann : « Il faut écrire 2 tours dans le triangle, éventuellement sur deux lignes, 2
                   au-dessus »). [Nombre seul — remplacé.] */}
               <View style={styles.autoCount}>
@@ -1139,17 +1190,22 @@ export function ExecutionScreen({
             </ExecutionCornerBadge>
           </View>
         ) : null}
-        {objectiveCorner !== null && ringAreaWidth !== null ? (
-          <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="right" vertical="bottom" areaWidth={ringAreaWidth}>
-              <CornerValue text={objectiveCorner} align="right" testID="execution-objective" />
+        {/* D-529 / CE-UI-14 : compte à rebours du repos de l'EMOM en répétitions, en bas à droite. */}
+        {restCountdownMs !== null && ringAreaWidth !== null && slotOf("REST_COUNTDOWN") !== null ? (
+          <View style={styles.badgeLayer}>
+            <ExecutionCornerBadge {...badgePlacement(slotOf("REST_COUNTDOWN") ?? "BOTTOM_RIGHT")} areaWidth={ringAreaWidth}>
+              <Text style={styles.pillText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} testID="execution-rest-countdown">
+                {formatClock(restCountdownMs, true)}
+              </Text>
             </ExecutionCornerBadge>
-          </Fade>
+          </View>
         ) : null}
-        {load !== null && ringAreaWidth !== null ? (
+        {/* D-529 / CE-UI-14 : charge en bas à gauche ; pendant une pause ou une récupération, charge de la série suivante.
+            [Charge en haut à droite (13/11/2026) — remplacé.] */}
+        {cornerLoad !== null && ringAreaWidth !== null && slotOf("LOAD") !== null ? (
           <Fade stepKey={stepKey} out={textOut && !steadyFormat} still={same || steadyFormat} style={styles.badgeLayer}>
-            <ExecutionCornerBadge side="right" areaWidth={ringAreaWidth}>
-              <CornerValue text={load} align="right" testID="execution-load" />
+            <ExecutionCornerBadge {...badgePlacement(slotOf("LOAD") ?? "BOTTOM_LEFT")} areaWidth={ringAreaWidth}>
+              <CornerValue text={cornerLoad} align="left" testID="execution-load" />
             </ExecutionCornerBadge>
           </Fade>
         ) : null}
@@ -1399,9 +1455,9 @@ export function ExecutionScreen({
               testID="execution-validate"
             />
           ) : forTimeRunning ? (
-            <PlusTourButton enabled={plusTourEnabled} onPress={onPlusTour} />
+            <PlusTourButton enabled={plusTourEnabled} onPress={onPlusTour} acquired={acquiredTours} />
           ) : forTimeWork ? (
-            <PlusTourButton enabled={false} onPress={noop} />
+            <PlusTourButton enabled={false} onPress={noop} acquired={acquiredTours} />
           ) : (
             <IconCommand label={t.commands.validate} icon={ICONS.success} size={72} disabled={!projection.commands.next} onPress={onValidate} testID="execution-validate" />
           )
@@ -1758,21 +1814,27 @@ function forTimeWorkEndedAt(frames: readonly Frame[]): number | null {
   return null;
 }
 
-/** Registre ch07 (16/11/2026), Hermann : « +Tour sur deux lignes » — « le + plus gros ». */
-function PlusTourButton({ enabled, onPress }: { readonly enabled: boolean; readonly onPress: () => void }) {
+/**
+ * Registre ch07 (16/11/2026), Hermann : « +Tour sur deux lignes » — « le + plus gros ».
+ * D-529 / CE-UI-14 (Hermann, 18/11/2026) : les tours acquis (For time, AMRAP) figurent dans le bouton — « +Tour · 3 », nombre de tours
+ * déjà acquis (format proposé par Claude, à valider). [« +Tour » seul — remplacé.]
+ */
+function PlusTourButton({ enabled, onPress, acquired }: { readonly enabled: boolean; readonly onPress: () => void; readonly acquired: number | null }) {
   const tint = enabled ? "#FFFFFF" : PLUS_TOUR.grey;
   return (
     <Pressable
       onPress={enabled ? onPress : noop}
       accessibilityRole="button"
-      accessibilityLabel={t.plusTour}
+      accessibilityLabel={acquired === null ? t.plusTour : `${t.plusTour} · ${acquired}`}
       accessibilityState={{ disabled: !enabled }}
       hitSlop={8}
       style={[styles.plusTour, enabled ? styles.plusTourActive : styles.plusTourDisabled]}
       testID="execution-plus-tour"
     >
       <Text style={[styles.plusTourSign, { color: tint }]}>{t.plusTourSign}</Text>
-      <Text style={[styles.plusTourWord, { color: tint }]}>{t.plusTourWord}</Text>
+      <Text style={[styles.plusTourWord, { color: tint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} testID="execution-plus-tour-label">
+        {acquired === null ? t.plusTourWord : t.plusTourAcquired(acquired)}
+      </Text>
     </Pressable>
   );
 }

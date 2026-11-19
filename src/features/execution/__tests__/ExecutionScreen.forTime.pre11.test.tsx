@@ -142,12 +142,17 @@ describe("PRE-11 T1 — For time à l'écran", () => {
     expect(screen.getByTestId("execution-objective")).toHaveTextContent("21rép.");
     let badge = screen.getByTestId("execution-objective").parent;
     while (badge !== null && badge.props.side === undefined) badge = badge.parent;
-    expect(badge?.props).toMatchObject({ side: "right", vertical: "bottom" });
+    // D-529 / CE-UI-14 (18/11/2026) : objectif en haut à gauche, borne en haut à droite. [Objectif en bas à droite (g3) — remplacé.]
+    expect(badge?.props).toMatchObject({ side: "left", vertical: "top" });
+    let capBadge = screen.getByTestId("execution-cap").parent;
+    while (capBadge !== null && capBadge.props.side === undefined) capBadge = capBadge.parent;
+    expect(capBadge?.props).toMatchObject({ side: "right", vertical: "top" });
     await at(20);
     // Grand chrono : temps réalisé de l'élément, anneau jusqu'à la borne.
     expect(service.project()?.timer).toEqual({ kind: "STOPWATCH", elapsedMs: 20 * S, nominalMs: 60 * S });
     // Correction 3 : le ✓ valide la Série sans saisie. [« Suivant » — remplacé pour le For time.]
     // 16/11/2026 : « + Tour » remplace le ✓ ; For time d'un seul exercice : un tour = une Série. [✓ — remplacé.]
+    expect(screen.getByTestId("execution-plus-tour-label")).toHaveTextContent("Tour · 0"); // D-529 : tours acquis dans le bouton
     await press("execution-plus-tour"); // S1 en 20 s
     await at(60); // borne pendant S2
     expect(screen.getByTestId("execution-closure")).toBeTruthy();
