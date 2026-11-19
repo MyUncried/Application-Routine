@@ -81,8 +81,16 @@ Les six points. Mécanisme d'annonce existant réutilisé (`ExecutionSignalAdapt
 
 ## Fichiers modifiés
 
-Voir `git show --stat` du commit final (code listé ci-dessus ; tests : 3 nouveaux, 4 littéraux complétés, 21 fichiers de migration à la version 31).
+`git show --stat dd8fb74a` : 42 fichiers (code listé ci-dessus ; tests : 3 nouveaux, 5 littéraux de réglages complétés dont l'attendu exact de `migration029.test.ts`, 21 fichiers de migration à la version 31 ; spec point 38 ; ce rapport).
+
+## Tests
+
+- `npx tsc --noEmit` : aucune erreur. eslint des fichiers touchés : aucune erreur.
+- Jest `--maxWorkers=2` : `src/infrastructure/haptics` + nouveaux tests service et migration : 9 suites, 63 tests réussis.
+- Jest `--maxWorkers=2` : `src/infrastructure/database`, `src/features/preferences`, `src/domain/preferences`, `src/features/execution`, `src/domain/execution`, `SessionGuidanceSheet`, `CompositionScreen.recette1` : 90 suites, 829 réussis, 1 échec (`migration029.test.ts` : égalité exacte des annonces du Profil, clé `rounds` absente de l'attendu) → attendu complété (`rounds: true`), suite relancée : 3/3 réussis.
+- Suite complète non lancée (prévue en fin de série). Une suite verte ne remplace pas la validation sur iPhone.
 
 ## Commit final et état Git
 
-Renseignés en fin de rapport après commit.
+- Commit de code et de documentation : `dd8fb74a` ; ce complément de rapport : commit documentaire suivant, rattaché à `dd8fb74a`.
+- Branche `recette/annonce-tours-20261119` poussée, à jour avec `origin`, arbre propre. Pas de PR ni de fusion.
