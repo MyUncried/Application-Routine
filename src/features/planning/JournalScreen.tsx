@@ -26,9 +26,9 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { CONTEXT_TEXT_COLOR } from "@/shared/ui/catalogueContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -132,14 +132,13 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
       tabs={calendarTabs("journal", onChangeView)}
       context={{
         kind: "catalogue",
-        summary: (
-          <Text style={styles.counts} numberOfLines={1} testID="journal-counts">
-            <Text style={styles.countLabel}>{`${t.active} `}</Text>
-            <Text testID="journal-count-active">{routines === null ? "" : String(counts.active)}</Text>
-            <Text style={styles.countLabel}>{`  ·  ${t.finished} `}</Text>
-            <Text testID="journal-count-finished">{routines === null ? "" : String(counts.finished)}</Text>
-          </Text>
-        ),
+        // Compteurs au format des Catalogues (`ContextCounters`). [Avant : ligne de texte avec espaces tapées — remplacée.]
+        summary: {
+          counters: [
+            { label: t.active, value: routines === null ? "" : String(counts.active), testID: "journal-count-active" },
+            { label: t.finished, value: routines === null ? "" : String(counts.finished), testID: "journal-count-finished" },
+          ],
+        },
         results: null,
         search: {
           value: query,
@@ -186,6 +185,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
 
       <ScrollView
         style={styles.list}
+        // Comme le Catalogue : la liste remonte sous la part fondue de la bande et défile derrière elle.
         contentContainerStyle={[styles.listContent, { paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }]}
         showsVerticalScrollIndicator={false}
         testID="journal-list"
@@ -243,10 +243,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
 
 const styles = StyleSheet.create({
   // Figma : « Actives » et « Terminées » en gris #595E66, nombres en #333 (14).
-  counts: { ...type.contextLine, color: CONTEXT_TEXT_COLOR },
-  countLabel: { color: colors.textSecondary },
-  list: { flex: 1 },
-  listContent: { paddingTop: spacing[8] },
+  list: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
+  listContent: { paddingTop: spacing[8] + CONTEXT_BAND_FADE_HEIGHT },
   // DSF Journal § 1 : cartes espacées de 8, sans séparateur.
   item: { paddingBottom: spacing[8] },
   expanded: { marginHorizontal: layout.screenGutter, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder, marginTop: spacing[8], paddingTop: spacing[8], gap: spacing[8] },

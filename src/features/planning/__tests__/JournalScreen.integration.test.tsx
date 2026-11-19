@@ -166,7 +166,9 @@ describe("Journal des routines (D-535)", () => {
     await renderJournal();
     expect(text("journal-count-active")).toBe("2");
     expect(text("journal-count-finished")).toBe("1");
-    expect(screen.getByText("Actives ")).toBeTruthy();
+    // Compteurs au format des Catalogues : libellé, nombre à 6, « · » à 8 (ContextCounters).
+    expect(screen.getByText("Actives")).toBeTruthy();
+    expect(screen.getByTestId("context-counters")).toBeTruthy();
   });
 
   it("toucher la carte la déploie (filet puis composition) ; le crayon ouvre la routine", async () => {

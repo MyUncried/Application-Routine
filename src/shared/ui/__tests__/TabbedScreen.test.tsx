@@ -86,6 +86,30 @@ describe("TabbedScreen", () => {
     expect(StyleSheet.flatten(screen.getByTestId("tabbed-screen-centered-context").props.style)).toMatchObject({ flex: 1, justifyContent: "center" });
   });
 
+  it("compteurs en lecture : format des compteurs des Catalogues (libellé gris, nombre #333 à 6, « · » à 8)", () => {
+    render(
+      <TestSafeAreaProvider>
+        <TabbedScreen
+          title="Calendrier"
+          tabs={tabs}
+          palette={{ context: colors.catalogueSessionsContext }}
+          context={{
+            kind: "catalogue",
+            summary: { counters: [{ label: "Actives", value: "13", testID: "a" }, { label: "Terminées", value: "0", testID: "f" }] },
+            results: null,
+            search,
+            filter: null,
+            sortLabel: "Trier",
+          }}
+        />
+      </TestSafeAreaProvider>,
+    );
+    expect(StyleSheet.flatten(screen.getByText("Actives").props.style).color).toBe(colors.textSecondary);
+    expect(StyleSheet.flatten(screen.getByTestId("a").props.style)).toMatchObject({ color: "#333333", marginLeft: 6 });
+    expect(StyleSheet.flatten(screen.getByText("·").props.style)).toMatchObject({ color: "#333333", marginHorizontal: 8 });
+    expect(screen.getByTestId("f").props.children).toBe("0");
+  });
+
   it("zone libre par défaut : marges des Catalogues ; sans zone : bande courte sous les onglets", () => {
     const { rerender } = render(
       <TestSafeAreaProvider>

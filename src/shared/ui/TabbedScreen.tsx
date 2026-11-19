@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
-import { StyleSheet, View, type LayoutChangeEvent } from "react-native";
+import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { CatalogueNavigation, type CatalogueNavigationOption } from "@/features/sessions/CatalogueNavigation";
-import { CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
+import { CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR, CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
+import { colors, spacing, type } from "@/shared/ui/tokens";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -54,7 +55,11 @@ export type TabbedScreenAction = {
 export type TabbedScreenContext =
   | {
       readonly kind: "catalogue";
-      readonly summary: ReactNode;
+      /**
+       * Ligne 1 : compteurs propres à l'écran — soit un élément du Catalogue (bascules), soit des compteurs en lecture
+       * (`counters`), rendus au format des compteurs des Catalogues (`ContextCounters`).
+       */
+      readonly summary: ReactNode | { readonly counters: readonly ContextCounter[] };
       readonly results: string | null;
       readonly search: Parameters<typeof CatalogueContextZone>[0]["search"];
       readonly filter: ReactNode;
@@ -116,7 +121,7 @@ export function TabbedScreen<T extends string>({
         >
           {context.kind === "catalogue" ? (
             <CatalogueContextZone
-              summary={context.summary}
+              summary={isCounters(context.summary) ? <ContextCounters counters={context.summary.counters} /> : context.summary}
               results={context.results}
               search={context.search}
               filter={context.filter}
@@ -143,6 +148,34 @@ export function TabbedScreen<T extends string>({
       )}
       {children}
     </ScreenShell>
+  );
+}
+
+export type ContextCounter = { readonly label: string; readonly value: string; readonly testID: string };
+
+function isCounters(summary: ReactNode | { readonly counters: readonly ContextCounter[] }): summary is { readonly counters: readonly ContextCounter[] } {
+  return typeof summary === "object" && summary !== null && "counters" in summary;
+}
+
+/**
+ * Compteurs en lecture de la ligne 1 (« Actives N · Terminées N »), au format exact des compteurs des Catalogues
+ * (`SessionViewToggle`, D-503) : libellé gris, nombre `#333333` à 6 du libellé, « · » `#333333` à 8 de part et d'autre.
+ */
+export function ContextCounters({ counters }: { readonly counters: readonly ContextCounter[] }) {
+  return (
+    <View style={styles.counters} testID="context-counters">
+      {counters.map((counter, index) => (
+        <View key={counter.testID} style={styles.counterGroup}>
+          {index > 0 ? <Text style={styles.counterSeparator}>{CONTEXT_SEPARATOR}</Text> : null}
+          <Text style={styles.counterLabel} numberOfLines={1}>
+            {counter.label}
+          </Text>
+          <Text style={styles.counterValue} testID={counter.testID}>
+            {counter.value}
+          </Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -175,6 +208,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  // Mêmes styles que les compteurs du Catalogue des séances (`SessionViewToggle`).
+  counters: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start" },
+  counterGroup: { flexDirection: "row", alignItems: "center" },
+  counterSeparator: { ...type.contextLine, color: CONTEXT_TEXT_COLOR, marginHorizontal: CONTEXT_SEPARATOR_GAP },
+  counterLabel: { ...type.contextLine, color: colors.textSecondary },
+  counterValue: { ...type.contextLine, color: CONTEXT_TEXT_COLOR, marginLeft: spacing[6] },
   tabBand: {
     height: TAB_BAND.height,
     overflow: "hidden",

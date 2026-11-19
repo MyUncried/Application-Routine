@@ -111,3 +111,19 @@
 ## Commits et état Git
 
 - Voir le message de clôture : hash du commit, branche non poussée, non fusionnée.
+
+## Complément du 19/11 au soir — zone du Journal encore hors format
+
+- **Constat de Hermann** (capture du Journal, 19:19) : « Et le problème de la zone de contexte qui n'est pas standard ??? ».
+- **Comparaison au Catalogue des séances, propriété par propriété** :
+  - ligne des compteurs écrite à la main (espaces tapées dans le texte) au lieu des écarts standard du Catalogue (`SessionViewToggle`, D-503 : nombre à 6 du libellé, « · » à 8 de part et d'autre) ;
+  - liste qui commence sous la bande au lieu de remonter sous sa part fondue (Catalogue : `marginTop: -CONTEXT_BAND_FADE_HEIGHT`).
+- **Correction** :
+  - `TabbedScreen` accepte des compteurs en lecture (`summary: { counters }`), rendus par `ContextCounters` avec les styles des compteurs du Catalogue ; le Journal l'utilise ;
+  - la liste du Journal remonte sous le fondu, comme le Catalogue.
+- **Écart restant, non tranché** : fond d'écran du Calendrier blanc (fondu de la bande vers le blanc) contre `#F7F7FF` dans le Catalogue. Le DSF Barre de titre ne teinte que l'en-tête et la barre d'état ; non modifié.
+- **Tests** :
+  - `TabbedScreen.test.tsx` : un cas ajouté (format des compteurs) ;
+  - `JournalScreen.integration.test.tsx` : assertion du libellé ajustée (« Actives » sans espace) ;
+  - planification, Catalogue et composant : 140 tests réussis ;
+  - `tsc` et `eslint` propres.
