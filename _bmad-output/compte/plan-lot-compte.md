@@ -1,6 +1,6 @@
 # Plan — Lot Compte (MVP)
 
-**Statut : PLAN_READY_FOR_REVIEW.** Aucun code avant `PLAN_APPROVED`.
+**Statut : PLAN_DRAFT, en réécriture.** Le 19/11/2026, CPT-01 a été révisée : le lot comprend le compte **et les trois partages** (utilisateurs, espaces, publique, modération comprise). Les mentions « hors périmètre : partage, publication, modération » ci-dessous sont **caduques** jusqu'à la réécriture. Ancien statut : **PLAN_READY_FOR_REVIEW.** Aucun code avant `PLAN_APPROVED`.
 
 **Sources :**
 - décisions CPT-01 à CPT-12, chapitre 07, section « Gestion de compte — premier lot » ;
