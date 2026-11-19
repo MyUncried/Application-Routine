@@ -1,22 +1,87 @@
-# Plan — Lot Compte (MVP)
+# Plan — Lot Compte et Communauté (MVP)
 
-**Statut : PLAN_DRAFT, en réécriture.** Le 19/11/2026, CPT-01 a été révisée : le lot comprend le compte **et les trois partages** (utilisateurs, espaces, publique, modération comprise). Les mentions « hors périmètre : partage, publication, modération » ci-dessous sont **caduques** jusqu'à la réécriture. Ancien statut : **PLAN_READY_FOR_REVIEW.** Aucun code avant `PLAN_APPROVED`.
+**Statut : PLAN_DRAFT.** Plan réécrit le 19/11/2026 après la révision de CPT-01. Il est prêt pour revue une fois les questions de la dernière section tranchées. Aucun code avant `PLAN_APPROVED`.
 
-**Sources :**
-- décisions CPT-01 à CPT-12, chapitre 07, section « Gestion de compte — premier lot » ;
-- chapitre 12, §12.7 (Utilisateur / Compte / Fournisseur d'identité), §12.20 et §12.21 ;
-- MOUV-ACC-20261117 et l'exception CPT-09 ;
-- rapport de cadrage `.github/orchestration/reports/2026-11-17_CADRAGE-GESTION-COMPTE.md`, notamment §8, §9 et §11.
+**Sources normatives :**
+- chapitre 07, décisions **CPT-01 à CPT-22** (section « Gestion de compte — premier lot ») ;
+- `docs/KODJO-Conception-Fonctionnalite-Communautaire-V1.md`, précisé par CPT-17 à CPT-22 ;
+- règles Bibliothèques et Mouvements encore en vigueur : MOUV-D2/D3, MOUV-ACC restreint par CPT-17, MOUV-PART, BIB-01 à BIB-13, F4 ;
+- chapitre 12, §12.7 et §12.20 ;
+- rapport `.github/orchestration/reports/2026-11-17_CADRAGE-GESTION-COMPTE.md`.
 
-**Base Git :** branche `claude/blissful-meitner-iauzaf`, `6a2d91c`. Elle contient `main` (`5ed7b5a`).
+## 1. Périmètre du lot (CPT-20)
 
----
+1. **Compte** obligatoire, connexion Apple ou Google, suppression du compte.
+2. **Relations** :
+   - Follow unidirectionnel, désactivable globalement ;
+   - Ami réciproque sur demande ;
+   - blocage ;
+   - recherche par pseudo et profil public minimal avec rôle déclaré (CPT-18).
+3. **Espaces relationnels** : 2 à n membres, sur invitation ou demande d'adhésion, rôles Administrateur et Membre, découvrables mais à contenu privé.
+4. **Partage de contenus** vers un Ami ou dans un espace :
+   - Mouvements, Bibliothèques, Séances, Circuits, Programmes, Modèles ;
+   - ajout explicite par le destinataire ;
+   - contenu reçu conservé selon CPT-17 ;
+   - partage personnalisé : média et texte facultatif (MOUV-PART).
+5. **Publication publique** d'une Bibliothèque, directe (CPT-22).
+6. **Fil d'activité** :
+   - exécutions réalisées visibles par défaut, privées par exception, au moment de l'exécution ou après coup ;
+   - **douleurs jamais affichées** (CPT-21) ;
+   - fil global et fil d'espace, commentaires, réactions ;
+   - pas de publication rétroactive des exécutions antérieures (D16).
+7. **Modération minimale** (CPT-19) : bouton « Signaler », retrait manuel par KODJO, y compris sur les copies conservées (CPT-17).
 
-## TÂCHE
+**Hors lot :** messagerie, QR codes, liens d'invitation, classements, paiements, sauvegarde et synchronisation (lot suivant, CPT-06).
+
+## 2. Découpage en tranches
+
+Toutes les tranches font partie du MVP. Chacune est livrée et recettée sur iPhone et Android avant la suivante.
+
+| Tranche | Contenu | Dépend de |
+|---|---|---|
+| **T1** | Compte (détail ci-dessous), **pseudo** et profil public minimal | — |
+| **T2** | Relations : recherche, Follow et réglage du Follow public, demandes d'Ami, blocage, signalement d'un utilisateur | T1 |
+| **T3** | Partage de contenus vers un Ami : envoi, réception, ajout explicite, médias, conservation CPT-17, mises à jour volontaires, signalement d'un contenu | T2 |
+| **T4** | Espaces relationnels : création, invitation et demande d'adhésion, rôles, partage dans un espace | T3 |
+| **T5** | Fil d'activité : publication des résumés d'exécution sans douleurs, visibilité par défaut et privée, fils global et d'espace, commentaires, réactions | T2 (T4 pour le fil d'espace) |
+| **T6** | Publication publique d'une Bibliothèque et sa découverte (carte « Publique ») | T3 |
+| **Transverse** | Outil de retrait KODJO (CPT-19) : fonction serveur et procédure ; tableau de bord Supabase pour consulter les signalements | T2 |
+
+## 3. Modèle serveur (Supabase, Paris), vue d'ensemble
+
+Le détail sera fixé dans chaque tranche. Les règles d'accès (RLS) sont vérifiées côté serveur pour chaque table.
+
+- `accounts`, `profiles` (pseudo unique, nom affiché, photo, rôle déclaré, Follow public activé ou non), `catalogues`.
+- `follows`, `friend_requests`, `friendships`, `blocks`.
+- `spaces`, `space_members` (rôle), `space_join_requests`, `space_invitations`.
+- `shared_items` : contenu partagé, avec sa charge utile au format d'échange existant `KODJO_MOVEMENT_CATALOGUE`, étendu aux Séances et aux Programmes, son empreinte et sa révision. `shares` : destinataire, Ami ou espace, plus le texte facultatif.
+- Stockage privé des médias, avec URL temporaires selon les droits.
+- `feed_executions` : résumé d'exécution, **sans douleurs ni localisations** (CPT-21), visibilité. `comments`, `reactions`.
+- `reports` (signalements) et `removals` (retraits par KODJO, propagés aux copies).
+
+**Données qui quittent le téléphone :**
+- l'identité et le profil public ;
+- les contenus partagés et leurs médias ;
+- les résumés d'exécution visibles ;
+- les commentaires et réactions.
+
+Les données d'Exécution privées restent sur le téléphone jusqu'au lot sauvegarde.
+
+## 4. Questions à trancher avant `PLAN_APPROVED`
+
+1. **Pseudo.** La recherche se fait par pseudo (document Communautaire, §6.9). Faut-il faire choisir un **pseudo unique** à la création du compte (un écran de plus après É1), ou le proposer à partir du nom du compte, modifiable ensuite ? Le nom transmis par Apple ou Google n'est pas affiché publiquement sans accord.
+2. **Notifications.** Pour les demandes d'Ami, les partages reçus, les commentaires et les invitations d'espace : notifications push (serveur Apple et Google, configuration supplémentaire) ou pastilles dans l'app seulement au départ ?
+3. **Contenu d'un résumé d'exécution dans le fil.** Je propose : titre, type (activité, séance, circuit ou programme), date, durée, nombre d'exercices exécutés, effort perçu ou ressenti. Douleurs exclues (CPT-21).
+4. **Ordre des tranches** : T1 → T2 → T3 → T4 → T5 → T6 vous convient-il, ou faut-il avancer le fil d'activité (T5) ?
+5. **Maquettes** : comme pour É1 à É4, je propose les écrans de chaque tranche avant son développement, à valider par vous. Faut-il les proposer tous maintenant, ou tranche par tranche ?
+
+# Tranche T1 — Compte (détail)
+
+### TÂCHE
 
 Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Google. Rattachement de l'Utilisateur local. Catalogue de compte côté serveur. Suppression du compte. Backend Supabase.
 
-## COMPRÉHENSION
+### COMPRÉHENSION
 
 - **Identité locale actuelle.** L'Utilisateur local est créé par `migrateDatabase` (`src/infrastructure/database/migrateDatabase.ts:100`). Son identifiant `usr_<32 hex>` est stocké dans `users`, une table singleton. Les agrégats y sont rattachés par `owner_id`.
 - **Ce que le lot ajoute.** Le **Compte** (identité Supabase), distinct de l'Utilisateur interne (§12.7). Les fournisseurs sont Apple et Google (CPT-03).
@@ -30,9 +95,9 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 | Apple | Natif (`expo-apple-authentication` puis `signInWithIdToken`) | Page web (`signInWithOAuth`), CPT-03 |
 | Google | Page web (`signInWithOAuth`), CPT-12 | Page web (`signInWithOAuth`), CPT-12 |
 
-## PÉRIMÈTRE / FICHIERS IMPACTÉS
+### PÉRIMÈTRE / FICHIERS IMPACTÉS
 
-### A. Backend (nouveau dossier `supabase/`, versionné, sans secret)
+#### A. Backend (nouveau dossier `supabase/`, versionné, sans secret)
 
 - `supabase/migrations/0001_accounts.sql`, avec RLS :
   - table `accounts` (`auth_user_id` PK → `auth.users`, `local_user_id`, `created_at`) ;
@@ -45,7 +110,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
   4. appeler `auth.admin.deleteUser()`.
 - `supabase/config.toml` : fournisseurs Apple et Google, URLs de redirection par variante d'app.
 
-### B. Application
+#### B. Application
 
 - **Dépendances :** `@supabase/supabase-js` et `expo-apple-authentication@57.0.2`. `expo-web-browser`, `expo-linking` et `expo-sqlite` sont déjà présents.
 - **Configuration :**
@@ -73,15 +138,15 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
   - confirmation de suppression (texte CPT-10 : ce qui est supprimé, ce qui reste, mention des contenus partagés figés CPT-09).
 - **Lexique :** nouvelles clés de texte dans le lexique centralisé.
 
-### C. Documentation
+#### C. Documentation
 
 - Chapitres 06 et 13 : écrans et contrats d'écran Connexion et Compte (classe B, après maquettes).
 - Chapitre 12 : architecture compte (classe D).
 - Procédure d'exploitation : régénération de la clé secrète Apple tous les 6 mois (§11 du cadrage).
 
-**Hors périmètre :** sauvegarde, synchronisation, partage, publication, modération, e-mail et mot de passe.
+**Hors périmètre de T1 :** partage, relations, fil d'activité (tranches T2 à T6) ; sauvegarde et synchronisation (lot suivant) ; e-mail et mot de passe.
 
-## PLAN D'IMPLÉMENTATION
+### PLAN D'IMPLÉMENTATION
 
 1. **Prérequis à la charge de Hermann**, sans code :
    - créer le projet Supabase (région **Paris `eu-west-3`**, formule Pro 25 $/mois en production, Free pour le développement) ;
@@ -98,13 +163,13 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 6. Journaux et rapports de plantage : aucune information sensible (règle existante du §12.20).
 7. Documentation et synchronisation code / documentation. Rapport de livraison.
 
-## MIGRATION / DONNÉES
+### MIGRATION / DONNÉES
 
 - Migration locale **031**, additive : `account_link`. Aucune donnée métier modifiée.
 - **Installations existantes** (appareils de recette) : au premier lancement après mise à jour, l'écran de connexion s'affiche, puis l'Utilisateur local existant est rattaché au compte.
 - **Côté serveur :** migration 0001, deux tables.
 
-## TESTS PRÉVUS
+### TESTS PRÉVUS
 
 - **Jest :**
   - migration 031 ;
@@ -120,7 +185,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 
   Pas de test visuel automatisé.
 
-## RISQUES / EFFETS DE BORD
+### RISQUES / EFFETS DE BORD
 
 - Clé secrète Apple non régénérée : panne de la connexion Apple sur Android. Procédure et rappel nécessaires.
 - La révocation du jeton Apple suppose de conserver un jeton Apple (code d'autorisation natif ou jeton du fournisseur côté OAuth). Mécanisme exact **à vérifier en début d'étape 2**.
@@ -128,7 +193,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 - Durée de validité de session Supabase et comportement hors ligne prolongé : à mesurer.
 - Le compte obligatoire impose le réseau au premier lancement. Risque de refus App Store jugé modéré.
 
-## AMBIGUÏTÉS
+### AMBIGUÏTÉS
 
 Arbitrages de Hermann du 19/11/2026 :
 - **Maquettes :** Claude propose des écrans à partir des composants existants, validés ensuite par Hermann. Proposition produite et validée (CPT-16).
@@ -142,14 +207,14 @@ Conséquences sur le plan :
 - aucun écran de déconnexion ;
 - stockage du nom et de l'e-mail du compte dans `account_link`.
 
-## PROPOSITION D'ÉCRANS (19/11/2026, validée par Hermann, CPT-16)
+### PROPOSITION D'ÉCRANS (19/11/2026, validée par Hermann, CPT-16)
 
 **Principes :**
 - composants existants et primitives natives (priorité aux primitives natives de l'OS) ;
 - aucune frame Figma n'existe pour ces écrans ; tous les textes sont **à valider** ;
 - les jetons de couleur existants sont réutilisés : danger `#D92D20`, fond `#F7F7FF`.
 
-### É1 — Écran de connexion (porte d'entrée)
+#### É1 — Écran de connexion (porte d'entrée)
 
 **Quand :** premier lancement, et installations existantes au premier lancement après la mise à jour.
 
@@ -175,7 +240,7 @@ Les règles d'Apple exigent que son bouton soit au moins aussi visible que les a
 - **Erreur :** alerte native « La connexion n'a pas abouti. Réessayez. »
 - La page web d'Apple ou de Google (Android, et Google sur iOS) s'ouvre dans la fenêtre système du navigateur. Rien à concevoir.
 
-### É2 — Section Compte (Profil, onglet Profil, écran « Modifier le profil »)
+#### É2 — Section Compte (Profil, onglet Profil, écran « Modifier le profil »)
 
 Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le style des groupes du Profil (`GuidanceSection` : titre de section, lignes séparées).
 
@@ -186,7 +251,7 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 - **Plus bas, isolé :** bouton texte rouge danger « Supprimer mon compte ».
 - Aucun bouton « Se déconnecter » (CPT-15).
 
-### É3 — Confirmation de suppression (alerte native, bouton destructif)
+#### É3 — Confirmation de suppression (alerte native, bouton destructif)
 
 **Titre :** « Supprimer votre compte ? »
 
@@ -201,7 +266,7 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 - **Sans réseau :** « La suppression du compte nécessite une connexion Internet. »
 - **Succès :** retour à É1.
 
-### É4 — Refus d'un autre compte (alerte native, CPT-14)
+#### É4 — Refus d'un autre compte (alerte native, CPT-14)
 
 **Titre :** « Ce téléphone appartient à un autre compte »
 
@@ -210,11 +275,11 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 
 **Bouton :** « OK ».
 
-### Prérequis ajoutés par cette proposition
+#### Prérequis ajoutés par cette proposition
 
 - **Politique de confidentialité** publiée (URL), exigée par l'App Store, Google Play et le RGPD. **Rédaction à prévoir, à la charge de Hermann ou d'un juriste.**
 - **Déclarations de données des stores :** « App Privacy » chez Apple, « Data safety » chez Google. Pour ce lot : identité et contenu partagé ; à mettre à jour au lot sauvegarde.
 
 ## STATUT
 
-PLAN_READY_FOR_REVIEW
+PLAN_DRAFT : en attente des réponses aux questions du §4.
