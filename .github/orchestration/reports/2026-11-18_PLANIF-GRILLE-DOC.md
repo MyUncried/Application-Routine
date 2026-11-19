@@ -62,3 +62,9 @@
 - Figma : écran « Calendrier — Jour suivant — Glissement gauche — MVP » (`2059:267`) supprimé (la vue Jour est remplacée par le Journal, à spécifier) ; ch06, ch13 et DSF Navigation annotés.
 - Figma : écran « P-Calendrier — Mois » (`1992:5237`) supprimé ; la Vue d’ensemble n’a plus d’écran de référence (contenu à spécifier) ; ch06, ch13 et DSF Navigation annotés.
 
+## Complément du 19/11/2026 (Journal)
+
+- Figma : écran « Calendrier — Journal — MVP » finalisé (cartes teinte `#EAEAFF`, bouton « Modifier la planification » = composant `DSF / Actions / Édition — carré`, lignes 2 et 3 inversées) ; 4 écrans Jour supprimés (`1992:5602`, `1992:5697`, `1992:5794`, `2128:86`) ; 3 liens de navigation Calendrier redirigés vers « P-Calendrier — Semaine » ; trous de mise en page refermés sur la page.
+- Docs : `docs/DSF-JOURNAL-2026-11-19.md` créé ; D-535 (ch07) ; ch06, ch13 et DSF Navigation annotés ; DSF Agenda (§ 6 actions glissées 86 × 54, renvoi au Journal). Classe B ; définition « Actives / Terminées » retenue par Claude (À CLARIFIER : déployé du Journal, écran de filtre).
+- Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
+
