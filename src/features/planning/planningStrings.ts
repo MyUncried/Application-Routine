@@ -63,10 +63,13 @@ export const planningStrings = {
     collapseRoutine: "Replier la routine",
     start: "Démarrer",
     done: "Terminée",
+    // Recette du 19/11/2026 au soir (s19-passees) : statut d'une occurrence exécutée.
+    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée" },
   },
   // D-535 (19/11/2026) : Journal des routines (DSF Journal, Figma « Calendrier — Journal — MVP »).
   journal: {
-    active: "Actives",
+    // Recette du 19/11/2026 au soir (j1-compteurs) : « Mettre planifiée ». [« Actives » — remplacé.]
+    active: "Planifiées",
     finished: "Terminées",
     once: "Une seule fois",
     on: "le",
@@ -81,6 +84,12 @@ export const planningStrings = {
     sort: "Trier",
     expand: "Déplier la routine",
     collapse: "Replier la routine",
+    // Recette du 19/11/2026 au soir (constat E) : nombre d'occurrences à venir, dates de début et de fin.
+    upcomingNone: "Aucune occurrence à venir",
+    upcomingOne: "1 occurrence à venir",
+    upcomingMany: "{count} occurrences à venir",
+    period: "du {start} au {end}",
+    single: "le {date}",
   },
   deleteSingle: {
     title: "Supprimer la planification ?",

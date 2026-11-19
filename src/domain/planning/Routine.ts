@@ -75,11 +75,11 @@ export function endDateForCount(unit: RoutineRepetition["unit"], startDate: Loca
 }
 
 /**
- * Multiplicateur de l'unité Jour : mêmes bornes que les semaines (1..12, D-244). [Hypothèse technique, 18/11/2026 :
- * RM-257 ne borne pas le nombre de jours — à confirmer par Hermann.]
+ * Multiplicateur de l'unité Jour : 1 à 31 (recette du 19/11/2026 au soir, pj-roulette : « Il n'y a que 12 jours dans
+ * popover, mettre 31 jours »). [1..12, mêmes bornes que les semaines (hypothèse technique du 18/11/2026) — remplacé.]
  */
 export const DAY_MULTIPLIER_MIN = 1;
-export const DAY_MULTIPLIER_MAX = 12;
+export const DAY_MULTIPLIER_MAX = 31;
 
 /** RM-253 : le cycle de rotation compte 1 à 7 créneaux. */
 export const CYCLE_MAX = 7;

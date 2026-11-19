@@ -15,6 +15,7 @@ import { SqliteProfileRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
+import { SqliteOccurrenceExecutionRepository } from "@/infrastructure/database/repositories/SqliteOccurrenceExecutionRepository";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 import { ReminderScheduler } from "@/features/planning/ReminderScheduler";
@@ -152,8 +153,10 @@ function SessionServiceInitializer({
         new Map((await sessionService.listCatalogueSessions()).filter((record) => record.status === "ACTIVE").map((record) => [record.id, sessionCategoryIds(record)])),
       now: () => new Date(),
     });
+    const occurrenceExecutions = new SqliteOccurrenceExecutionRepository(new ExpoDatabase(nativeDatabase));
     return new PlanningService({
       repository: routines,
+      occurrenceExecutions: () => occurrenceExecutions.list(),
       reminders: {
         refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission(),
         permissionStatus: () => scheduler.permissionStatus(),

@@ -4,6 +4,7 @@ import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Alert, AppState, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import {
@@ -46,6 +47,7 @@ import {
   withStartDate,
   withUnit,
   type FormDraft,
+  moveRow,
 } from "@/features/planning/planningDraft";
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
@@ -58,6 +60,7 @@ import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
@@ -162,6 +165,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // « Autre » choisi : la valeur personnalisée remplace le libellé « Autre », même si elle vaut un délai proposé.
   const [customChosen, setCustomChosen] = useState(false);
   const [popover, setPopover] = useState<Popover | null>(null);
+  // Une ligne du tableau est portée (réordonnancement) : le formulaire fige son défilement.
+  const [reordering, setReordering] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [otherNames, setOtherNames] = useState<readonly { readonly id: string; readonly key: string }[]>([]);
@@ -477,6 +482,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             style={styles.scroll}
             contentContainerStyle={[styles.scrollContent, { paddingTop: topHeight + spacing[8] }]}
             keyboardShouldPersistTaps="handled"
+            scrollEnabled={!reordering}
             testID="planning-form"
           >
             {removed > 0 ? (
@@ -607,6 +613,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 }}
                 onCycle={(cycle) => update({ grid: withCycle(form.grid, cycle) })}
                 onChangeSessions={openSelection}
+                onMove={(from, to) =>
+                  setForm((current) =>
+                    current === null ? current : moveRow(current, current.entries.indexOf(shown.entries[from]!), current.entries.indexOf(shown.entries[to]!)),
+                  )
+                }
+                onDraggingChange={setReordering}
               />
               {shown.grid.cycle > CYCLE_MAX ? (
                 <Text style={styles.notice} testID="planning-cycle-too-long">
@@ -824,22 +836,82 @@ function Pill({
  * [Interprétation, 18/11/2026 : « toucher un numéro de colonne ouvre le sélecteur numéroté » — le numéro touché devient
  * la longueur du cycle, comme une case numérotée ; aucune fenêtre supplémentaire. À confirmer sur iPhone.]
  */
+/** Appui long avant de porter une ligne du tableau (même geste que l'ancienne liste des contenus et la Composition). */
+const ROW_LONG_PRESS_MS = 500;
+
+/**
+ * Déplacement d'une ligne du tableau (recette du 19/11/2026 au soir, q19-deplacement) — repris de l'ancienne liste des
+ * contenus (`useEntryDrag`, recette du 17/11/2026) : `Pan` natif activé après l'appui long sur la ligne ; la ligne portée
+ * suit le doigt, les lignes franchies se décalent.
+ */
+function useRowDrag(count: number, rowHeight: number, onMove: (from: number, to: number) => void, onDraggingChange: (dragging: boolean) => void) {
+  const [drag, setDrag] = useState<{ readonly index: number; readonly dy: number } | null>(null);
+  const dragRef = useRef<{ readonly index: number; readonly dy: number } | null>(null);
+  const setDragState = (next: { readonly index: number; readonly dy: number } | null) => {
+    const was = dragRef.current !== null;
+    dragRef.current = next;
+    setDrag(next);
+    if (was !== (next !== null)) onDraggingChange(next !== null);
+  };
+  const targetOf = (current: { readonly index: number; readonly dy: number }) =>
+    Math.max(0, Math.min(count - 1, current.index + Math.round(current.dy / rowHeight)));
+  const gesture = (index: number) =>
+    Gesture.Pan()
+      .enabled(count > 1)
+      .activateAfterLongPress(ROW_LONG_PRESS_MS)
+      .runOnJS(true)
+      .onStart(() => setDragState({ index, dy: 0 }))
+      .onUpdate((event) => {
+        const current = dragRef.current;
+        if (current !== null) setDragState({ ...current, dy: event.translationY });
+      })
+      .onEnd((_event, success) => {
+        const current = dragRef.current;
+        setDragState(null);
+        if (!success || current === null) return;
+        const to = targetOf(current);
+        if (to !== current.index) onMove(current.index, to);
+      })
+      .onFinalize(() => {
+        if (dragRef.current !== null) setDragState(null);
+      })
+      .withTestId(`planning-row-drag-${index}`);
+  const offset = (index: number) => {
+    if (drag === null) return 0;
+    if (index === drag.index) return drag.dy;
+    const to = targetOf(drag);
+    if (index > drag.index && index <= to) return -rowHeight;
+    if (index < drag.index && index >= to) return rowHeight;
+    return 0;
+  };
+  return { drag, gesture, offset };
+}
+
 function SlotGrid({
   grid,
   names,
   onChange,
   onCycle,
   onChangeSessions,
+  onMove,
+  onDraggingChange,
 }: {
   readonly grid: PlanningGrid;
   readonly names: readonly string[];
   readonly onChange: (grid: PlanningGrid) => void;
   readonly onCycle: (cycle: number) => void;
   readonly onChangeSessions: () => void;
+  /** Réordonnancement des lignes (séances) du tableau. */
+  readonly onMove: (from: number, to: number) => void;
+  /** Une ligne est portée : le formulaire fige son défilement. */
+  readonly onDraggingChange: (dragging: boolean) => void;
 }) {
   const columns = Array.from({ length: CYCLE_MAX }, (_, index) => index);
+  const [rowHeight, setRowHeight] = useState(40);
+  const { drag, gesture, offset } = useRowDrag(names.length, rowHeight, onMove, onDraggingChange);
+  const reorderable = names.length > 1;
   return (
-    <View testID="planning-slot-grid">
+    <GestureHandlerRootView testID="planning-slot-grid">
       <View style={styles.gridHeader}>
         <Pressable onPress={onChangeSessions} accessibilityRole="button" hitSlop={8} style={styles.gridNames} testID="planning-change">
           <Text style={styles.change}>{t.change}</Text>
@@ -864,8 +936,34 @@ function SlotGrid({
       </View>
       {names.map((name, row) => {
         const line = grid.points[row] ?? [];
+        const dy = offset(row);
         return (
-          <View key={`${row}-${name}`} style={[styles.gridRow, row > 0 ? styles.gridSeparator : null]} testID={`planning-row-${row}`}>
+          <GestureDetector key={`${row}-${name}`} gesture={gesture(row)}>
+          <View
+            onLayout={row === 0 ? (event) => setRowHeight(Math.max(1, event.nativeEvent.layout.height)) : undefined}
+            style={[styles.gridRow, row > 0 ? styles.gridSeparator : null, dy !== 0 ? { transform: [{ translateY: dy }] } : null, drag?.index === row ? styles.rowDragging : null]}
+            testID={`planning-row-${row}`}
+          >
+            {reorderable ? (
+              <View
+                accessible
+                accessibilityRole="adjustable"
+                accessibilityLabel={fillTemplate(t.reorderHandle, { name })}
+                accessibilityActions={[
+                  ...(row > 0 ? [{ name: "moveUp", label: t.moveUp }] : []),
+                  ...(row < names.length - 1 ? [{ name: "moveDown", label: t.moveDown }] : []),
+                ]}
+                onAccessibilityAction={(event) => {
+                  if (event.nativeEvent.actionName === "moveUp") onMove(row, row - 1);
+                  if (event.nativeEvent.actionName === "moveDown") onMove(row, row + 1);
+                }}
+                hitSlop={8}
+                style={styles.rowHandle}
+                testID={`planning-row-${row}-handle`}
+              >
+                <KodjoIcon name="composition-reorder" />
+              </View>
+            ) : null}
             <View style={styles.gridNames}>
               <Text style={styles.rowName} numberOfLines={1}>
                 {name}
@@ -894,9 +992,10 @@ function SlotGrid({
               );
             })}
           </View>
+          </GestureDetector>
         );
       })}
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -983,6 +1082,9 @@ const styles = StyleSheet.create({
   columnInactive: { color: colors.textSecondary, opacity: 0.6 },
   gridRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing[4] },
   gridSeparator: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder },
+  // Poignée de réordonnancement (`icon/poignee`, comme les lignes de la Composition), devant le nom.
+  rowHandle: { width: 20, alignItems: "flex-start", justifyContent: "center" },
+  rowDragging: { zIndex: 1, opacity: 0.9, backgroundColor: colors.background },
   rowName: { ...type.supporting, fontFamily: type.listCardTitle.fontFamily, color: colors.textPrimary },
   rowMention: { ...type.supporting, fontSize: 10, lineHeight: 13, color: colors.textSecondary },
   point: { width: POINT_SIZE, height: POINT_SIZE, borderRadius: POINT_SIZE / 2, borderWidth: 1.5, borderColor: colors.cardsBorder },

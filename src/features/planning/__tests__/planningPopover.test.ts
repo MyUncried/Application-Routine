@@ -10,14 +10,14 @@ const screenRect = { width: 402, height: 874, top: 59, bottom: 34 };
 
 describe("popoverPosition", () => {
   it("sous le champ quand le panneau y tient", () => {
-    expect(popoverPosition({ x: 100, y: 300, width: 40, height: 32 }, { width: 160, height: 232 }, screenRect)).toEqual({ left: 40, top: 338 });
+    expect(popoverPosition({ x: 100, y: 300, width: 40, height: 32 }, { width: 160, height: 232 }, screenRect)).toEqual({ left: (402 - 160) / 2, top: 338 });
   });
 
   it("au-dessus du champ quand il ne tient pas dessous (Rappel « Autre », en bas de l'écran)", () => {
     const position = popoverPosition({ x: 300, y: 760, width: 70, height: 32 }, { width: 320, height: 232 }, screenRect);
     expect(position.top).toBe(760 - 6 - 232);
-    // Bord droit : le panneau reste dans la marge de 16.
-    expect(position.left).toBe(402 - 16 - 320);
+    // Recette du 19/11 au soir : centré horizontalement sur l'écran, quel que soit le champ.
+    expect(position.left).toBe((402 - 320) / 2);
   });
 
   it("ni dessous ni dessus : collé au bas de la zone utile, sans sortir de l'écran", () => {

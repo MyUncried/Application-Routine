@@ -56,7 +56,7 @@ describe("migration022 — nom du Circuit", () => {
   it("installation neuve : version courante, colonne présente", async () => {
     const database = memory();
     await migrateDatabase(database, () => T);
-    expect(DATABASE_VERSION).toBe(32);
+    expect(DATABASE_VERSION).toBe(33);
     expect(await columns(database)).toContain("name");
   });
 });

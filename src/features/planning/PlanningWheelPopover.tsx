@@ -44,14 +44,17 @@ const UNIT_WIDTH = 76;
 const PANEL_GAP = 6;
 const PANEL_PADDING = spacing[8];
 
-/** Position du panneau : sous le champ s'il y tient, sinon au-dessus ; toujours dans la zone utile de l'écran. */
+/**
+ * Position du panneau : centré horizontalement sur l'écran (recette du 19/11/2026 au soir, s19-popover et s19-date-heure :
+ * « Centrer la modale horizontalement sur l'écran » ; [centré sur le champ, dans les marges — remplacé]) ; sous le champ
+ * s'il y tient, sinon au-dessus ; toujours dans la zone utile de l'écran.
+ */
 export function popoverPosition(
   anchor: PopoverAnchor,
   panel: { readonly width: number; readonly height: number },
   screen: { readonly width: number; readonly height: number; readonly top: number; readonly bottom: number },
 ): { readonly left: number; readonly top: number } {
-  const centered = anchor.x + anchor.width / 2 - panel.width / 2;
-  const left = Math.max(layout.screenGutter, Math.min(screen.width - layout.screenGutter - panel.width, centered));
+  const left = Math.max(0, (screen.width - panel.width) / 2);
   const minTop = screen.top + PANEL_GAP;
   const maxTop = screen.height - screen.bottom - PANEL_GAP - panel.height;
   const below = anchor.y + anchor.height + PANEL_GAP;

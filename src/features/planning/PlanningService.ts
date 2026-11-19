@@ -1,6 +1,7 @@
 import { addDays, mondayOf, validateRoutineDraft, type LocalDate, type Routine, type RoutineDraft, type RoutineValidationIssue } from "@/domain/planning/Routine";
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
 import { periodOccurrences, type Occurrence } from "@/domain/planning/occurrences";
+import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 
 /**
  * `PlanningService` (chapitre 12 §12.4) — gestion des Routines et calcul des occurrences (API-ROU-01 à 05, 09).
@@ -30,6 +31,8 @@ export type PlanningReminders = {
 export type PlanningServiceDeps = {
   readonly repository: RoutineRepository;
   readonly reminders?: PlanningReminders;
+  /** Exécutions rattachées aux occurrences (migration 033) ; absent : aucune (tests, statut « non exécutée »). */
+  readonly occurrenceExecutions?: () => Promise<readonly OccurrenceExecution[]>;
   readonly newId: () => string;
   readonly now: () => Date;
 };
@@ -65,6 +68,11 @@ export class PlanningService {
   private async written<T>(result: T): Promise<T> {
     await this.refreshReminders();
     return result;
+  }
+
+  /** Exécutions rattachées aux occurrences de routine (statuts « Complétée », « Partielle », « Arrêtée »). */
+  listOccurrenceExecutions(): Promise<readonly OccurrenceExecution[]> {
+    return this.deps.occurrenceExecutions?.() ?? Promise.resolve([]);
   }
 
   listRoutines(): Promise<readonly Routine[]> {

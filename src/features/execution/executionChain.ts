@@ -15,15 +15,32 @@ export type ExecutionChain = {
   readonly rank: number;
 };
 
-export type ExecutionRouteParams = { readonly sessionId: string; readonly chain?: string; readonly rank?: string };
+export type ExecutionRouteParams = {
+  readonly sessionId: string;
+  readonly chain?: string;
+  readonly rank?: string;
+  /** Occurrence de routine d'où la séance est lancée (statut de l'occurrence, recette du 19/11/2026 au soir). */
+  readonly routineId?: string;
+  readonly occurrence?: string;
+};
+
+/** Occurrence d'origine : routine et date/heure d'origine. */
+export type ExecutionOrigin = { readonly routineId: string; readonly occurrenceKey: string };
 
 const SEPARATOR = ",";
 
 /** Paramètres de route d'une séance de la chaîne ; une seule séance : paramètres d'une séance isolée (inchangés). */
-export function executionParams(sessionIds: readonly string[], rank = 1): ExecutionRouteParams {
+export function executionParams(sessionIds: readonly string[], rank = 1, origin?: ExecutionOrigin): ExecutionRouteParams {
   const sessionId = sessionIds[rank - 1]!;
-  if (sessionIds.length < 2) return { sessionId };
-  return { sessionId, chain: sessionIds.join(SEPARATOR), rank: String(rank) };
+  const from = origin === undefined ? {} : { routineId: origin.routineId, occurrence: origin.occurrenceKey };
+  if (sessionIds.length < 2) return { sessionId, ...from };
+  return { sessionId, chain: sessionIds.join(SEPARATOR), rank: String(rank), ...from };
+}
+
+/** Occurrence d'origine lue dans les paramètres de route ; absente ou incomplète : `null`. */
+export function parseOrigin(routineId: unknown, occurrence: unknown): ExecutionOrigin | null {
+  if (typeof routineId !== "string" || routineId === "" || typeof occurrence !== "string" || occurrence === "") return null;
+  return { routineId, occurrenceKey: occurrence };
 }
 
 /** Chaîne lue dans les paramètres ; absente, incohérente ou d'une seule séance : `null` (séance isolée). */
@@ -37,7 +54,7 @@ export function parseChain(sessionId: string | null, chain: unknown, rank: unkno
 }
 
 /** Séance suivante de la chaîne, ou `null` après la dernière. */
-export function nextInChain(chain: ExecutionChain): ExecutionRouteParams | null {
+export function nextInChain(chain: ExecutionChain, origin?: ExecutionOrigin | null): ExecutionRouteParams | null {
   if (chain.rank >= chain.sessionIds.length) return null;
-  return executionParams(chain.sessionIds, chain.rank + 1);
+  return executionParams(chain.sessionIds, chain.rank + 1, origin ?? undefined);
 }

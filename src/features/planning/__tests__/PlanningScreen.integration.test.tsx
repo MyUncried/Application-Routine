@@ -285,6 +285,23 @@ describe("Planifier (CE-UI-12)", () => {
     ]);
   });
 
+  it("tableau : réordonner les séances avec leurs points (recette du 19/11 au soir, q19-deplacement)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    await renderPlanning({ date: START });
+    await validateSelection([a.id, b.id]);
+    fireEvent.press(screen.getByTestId("planning-column-2"));
+    fireEvent.press(screen.getByTestId("planning-point-1-1"));
+    expect(mention(1)).toBe("(1 fois sur 2)");
+    fireEvent(screen.getByTestId("planning-row-0-handle"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+    expect(within(screen.getByTestId("planning-row-0")).getByText("Bravo")).toBeTruthy();
+    expect(mention(0)).toBe("(1 fois sur 2)");
+    fireEvent.changeText(screen.getByTestId("planning-name"), "Ordre");
+    await save();
+    const [routine] = await planning.listRoutines();
+    expect(routine?.entries.map((item) => item.sessionId)).toEqual([b.id, a.id]);
+  });
+
   it("grille : raccourcir le cycle retire les colonnes ; une séance restée sans point est jouée partout (RM-260)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));

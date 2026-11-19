@@ -164,10 +164,10 @@ describe("unité Jour et occurrences passées (RM-257, D-525, D-526 ; 18/11/2026
     expect(occurrencesBetween(daily, "2026-08-01", "2026-08-31").map((o) => o.date)).toEqual(["2026-08-03", "2026-08-06", "2026-08-09", "2026-08-12"]);
   });
 
-  it("validation : jours 1..12 sans rangée de jours ; nom obligatoire", () => {
+  it("validation : jours 1..31 sans rangée de jours ; nom obligatoire", () => {
     const base = { name: "Matin", startDate: "2026-08-03", time: "08:00", entries: [{ id: "e", sessionId: "s", frequency: EVERY_TIME }] };
     expect(validateRoutineDraft({ ...base, repetition: { unit: "DAY", every: 2, weekdays: [], end: { kind: "UNTIL", date: "2026-08-23" } } })).toEqual([]);
-    expect(validateRoutineDraft({ ...base, repetition: { unit: "DAY", every: 13, weekdays: [], end: { kind: "UNTIL", date: "2026-08-23" } } })).toEqual(["INVALID_MULTIPLIER"]);
+    expect(validateRoutineDraft({ ...base, repetition: { unit: "DAY", every: 32, weekdays: [], end: { kind: "UNTIL", date: "2026-08-23" } } })).toEqual(["INVALID_MULTIPLIER"]);
     expect(validateRoutineDraft({ ...base, name: "  ", repetition: null })).toEqual(["NAME_REQUIRED"]);
   });
 

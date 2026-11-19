@@ -23,15 +23,16 @@ export function formatAgendaMonth(day: LocalDate): string {
 }
 
 /**
- * DSF § 2, ligne 2 : « du 16 au 22 ». [Hypothèse technique, 19/11/2026 : le DSF ne montre qu'une semaine d'un seul mois ;
- * à cheval sur deux mois, chaque borne porte son mois : « du 27 octobre au 2 novembre ».]
+ * DSF § 2, ligne 2 : « du 16 au 22 » ; à cheval sur deux mois, seul le mois de fin : « du 26 au 1er novembre » (recette du
+ * 19/11/2026 au soir, s19-mois : « Si changement de mois, n'écrire que le mois de fin, pas les deux »).
+ * [Chaque borne portait son mois, « du 27 octobre au 2 novembre » (hypothèse technique du 19/11) — remplacé.]
  */
 export function formatAgendaWeek(monday: LocalDate): string {
   const start = parseLocalDate(monday);
   const end = parseLocalDate(addDays(monday, 6));
   const day = (date: Date) => (date.getDate() === 1 ? "1er" : String(date.getDate()));
   if (start.getMonth() === end.getMonth()) return `du ${day(start)} au ${day(end)}`;
-  return `du ${day(start)} ${t.months[start.getMonth()]} au ${day(end)} ${t.months[end.getMonth()]}`;
+  return `du ${day(start)} au ${day(end)} ${t.months[end.getMonth()]}`;
 }
 
 /**

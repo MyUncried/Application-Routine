@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -153,7 +153,7 @@ describe("Journal des routines (D-535)", () => {
     expect(cards()[0]).toBe(`journal-card-${first.id}`);
   });
 
-  it("compteurs : Actives (occurrence à venir) · Terminées (plus aucune)", async () => {
+  it("compteurs : Planifiées (occurrence à venir) · Terminées (plus aucune)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     await plan({ name: "Avenir", entries: [entry(a.id, "c1")] });
     await plan({ name: "Passée", startDate: "2020-01-06", entries: [entry(a.id, "c2")] });
@@ -167,7 +167,7 @@ describe("Journal des routines (D-535)", () => {
     expect(text("journal-count-active")).toBe("2");
     expect(text("journal-count-finished")).toBe("1");
     // Compteurs au format des Catalogues : libellé, nombre à 6, « · » à 8 (ContextCounters).
-    expect(screen.getByText("Actives")).toBeTruthy();
+    expect(screen.getByText("Planifiées")).toBeTruthy();
     expect(screen.getByTestId("context-counters")).toBeTruthy();
   });
 
@@ -186,6 +186,24 @@ describe("Journal des routines (D-535)", () => {
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
     fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-toggle`));
     expect(screen.queryByTestId(`journal-item-${routine.id}-expanded`)).toBeNull();
+  });
+
+  it("recette du 19/11 au soir : cadre → planification, récapitulation et occurrences à venir au déployé, couleur, glissé Dupliquer / Supprimer (constats A, B, C, E)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const routine = await plan({ name: "Genou", entries: [entry(a.id)] });
+    await renderJournal();
+    fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-frame`));
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
+    fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-toggle`));
+    expect(screen.getByTestId(`journal-item-${routine.id}-summary`)).toBeTruthy();
+    expect(screen.getByTestId(`journal-item-${routine.id}-info`).props.children).toMatch(/occurrences? à venir|Aucune occurrence à venir/);
+    expect(screen.queryByTestId(`journal-card-${routine.id}-planned`) ?? screen.queryByTestId(`journal-card-${routine.id}-idle`)).toBeTruthy();
+    fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
+    fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
+    await flush();
+    expect(await planning.listRoutines()).toEqual([]);
   });
 
   it("recherche : nom de la routine ou de ses séances, sans casse ni accents", async () => {

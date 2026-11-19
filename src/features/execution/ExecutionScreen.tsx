@@ -46,7 +46,7 @@ import {
   type PreparedExecution,
 } from "./ExecutionService";
 import { useExecution } from "./ExecutionServiceContext";
-import { nextInChain, type ExecutionChain } from "./executionChain";
+import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
 import { executionStrings as t, formatClock } from "./executionStrings";
 
 /** Délai avant de rendre la session audio en fin de séance : fanfare puis « Bravo, séance terminée ». */
@@ -78,10 +78,13 @@ type DialogView = Omit<ComponentProps<typeof ExecutionDialog>, "visible">;
 export function ExecutionScreen({
   sessionId,
   chain = null,
+  origin = null,
 }: {
   readonly sessionId: string | null;
   /** D-534 : séance d'une routine à plusieurs séances (orchestration au-dessus du moteur, `executionChain`). */
   readonly chain?: ExecutionChain | null;
+  /** Occurrence de routine d'où la séance est lancée : l'Exécution y est rattachée (recette du 19/11/2026 au soir). */
+  readonly origin?: ExecutionOrigin | null;
 }) {
   const { service, signals, screenAwake } = useExecution();
   const profileService = useProfileService();
@@ -295,13 +298,13 @@ export function ExecutionScreen({
     if (prepared?.status !== "ready" || starting.current) return;
     starting.current = true;
     try {
-      await service.start(prepared);
+      await service.start(prepared, origin === null ? undefined : { ...origin, rank: chain?.rank ?? 1 });
     } catch (error) {
       if (error instanceof ExecutionBlockedError) setBlocked(true);
     } finally {
       starting.current = false;
     }
-  }, [prepared, service]);
+  }, [prepared, service, origin, chain]);
 
   /**
    * D-534 : une séance d'une routine terminée normalement ouvre la suivante (même route, rang + 1, sans empiler) ;
@@ -312,12 +315,52 @@ export function ExecutionScreen({
    */
   const close = useCallback(() => {
     const finishedNormally = service.current()?.state.finish?.reason === "COMPLETED";
-    const next = chain !== null && finishedNormally ? nextInChain(chain) : null;
+    const next = chain !== null && finishedNormally ? nextInChain(chain, origin) : null;
     service.release();
     if (next !== null) router.replace({ pathname: "/execution", params: next });
     else if (router.canGoBack()) router.back();
     else router.replace("/");
-  }, [chain, router, service]);
+  }, [chain, origin, router, service]);
+
+  /**
+   * Recette du 19/11/2026 au soir (s19-voile, constat F) — enchaînement d'un parcours :
+   * - premier départ : l'écran de démarrage présente le parcours (« Séance 1 », « Séance 2 »… et leurs noms), avec
+   *   Démarrer et Retour ;
+   * - séance intermédiaire : pas de « Fin de séance » — la phase finale est passée dès qu'elle commence, l'écran
+   *   « Séance terminée » s'affiche, puis l'écran de transition de la séance suivante s'ouvre seul après
+   *   `CHAIN_AUTO_NEXT_MS` (Fermer l'ouvre tout de suite). La dernière séance garde sa fin habituelle.
+   */
+  const chainRank = chain?.rank ?? 0;
+  const chainIds = chain?.sessionIds.join(",") ?? "";
+  const intermediate = chain !== null && chain.rank < chain.sessionIds.length;
+  const [routeNames, setRouteNames] = useState<readonly string[] | null>(null);
+  useEffect(() => {
+    if (chainRank !== 1) return;
+    let cancelled = false;
+    Promise.all(chainIds.split(",").map((id) => service.prepare(id))).then(
+      (list) => {
+        if (!cancelled) setRouteNames(list.map((item) => (item.status === "ready" ? item.plan.sessionName : "")));
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [chainRank, chainIds, service]);
+
+  const phase = projection?.phase ?? null;
+  const target = typeof projection?.target === "string" ? projection.target : null;
+  useEffect(() => {
+    if (!intermediate || phase !== "SESSION_END" || status !== "RUNNING" || target === null) return;
+    void service.dispatch({ type: "NEXT", confirmed: true }, target);
+  }, [intermediate, phase, status, target, service]);
+
+  const endedNormally = active !== null && active.state.status === "FINISHED" && active.state.finish?.reason === "COMPLETED";
+  useEffect(() => {
+    if (!intermediate || !endedNormally) return;
+    const timer = setTimeout(close, CHAIN_AUTO_NEXT_MS);
+    return () => clearTimeout(timer);
+  }, [intermediate, endedNormally, close]);
 
   /** Ouvre une confirmation : l'Exécution est suspendue pendant l'affichage de la modale (ch13, Réinitialiser et Suivant). */
   const openDialog = useCallback(
@@ -414,6 +457,19 @@ export function ExecutionScreen({
             <Text style={styles.estimate}>
               {estimateLabel(prepared.projection)}
             </Text>
+          ) : null}
+          {chainRank === 1 && routeNames !== null ? (
+            <View style={styles.route} accessibilityRole="list" testID="execution-route">
+              <Text style={styles.routeTitle} accessibilityRole="header">
+                {t.chain.routeTitle}
+              </Text>
+              {routeNames.map((routeName, index) => (
+                <Text key={`${index}-${routeName}`} style={styles.routeItem} numberOfLines={1} testID={`execution-route-${index + 1}`}>
+                  {t.chain.routeItem(index + 1)}
+                  {routeName === "" ? "" : ` · ${routeName}`}
+                </Text>
+              ))}
+            </View>
           ) : null}
         </View>
         {chain !== null && chain.rank >= 2 && prepared?.status === "ready" && !blocked ? (
@@ -1398,6 +1454,9 @@ export function refreshDelayMs(projection: ExecutionProjection | null): number {
   return Math.min(250, Math.max(16, untilBoundary + 20));
 }
 
+/** Séance intermédiaire d'un parcours : délai de « Séance terminée » avant la séance suivante. [Hypothèse technique, 19/11/2026.] */
+export const CHAIN_AUTO_NEXT_MS = 3000;
+
 function estimateLabel(projection: ExecutionProjection): string {
   const prefix =
     projection.estimated.kind === "estimated"
@@ -1499,6 +1558,9 @@ const styles = StyleSheet.create({
   },
   startLabel: { ...type.button, color: colors.background },
   estimate: { ...type.supporting, color: colors.textSecondary },
+  route: { alignSelf: "stretch", marginTop: spacing[24], paddingHorizontal: spacing[24], gap: spacing[8] },
+  routeTitle: { ...type.body, fontFamily: "Inter_600SemiBold", fontWeight: "600", color: colors.textPrimary },
+  routeItem: { ...type.body, color: colors.textPrimary },
   // Recette r6 : positions du Figma `1992:8132` (écran de 402 × 874, barre d'état de 36).
   runningScreen: { flex: 1, backgroundColor: colors.background },
   // Recette e1 (h : « le bord du cercle tout en bas est rogné par le cadre gris ») : le haut ne rétrécit plus ; c'est

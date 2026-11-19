@@ -1,8 +1,9 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { addDays, EVERY_TIME, mondayOf, type RoutineDraft } from "@/domain/planning/Routine";
+import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { CalendarWeekScreen } from "@/features/planning/CalendarWeekScreen";
 import { PlanningService } from "@/features/planning/PlanningService";
@@ -47,6 +48,7 @@ let database: NodeSqliteDatabase;
 let planning: PlanningService;
 let sessions: SqliteSessionRepository;
 let ids = 0;
+let linked: OccurrenceExecution[] = [];
 
 beforeEach(async () => {
   mockPush.mockClear();
@@ -58,8 +60,10 @@ beforeEach(async () => {
   );
   await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mv-squat', 'dos')");
   sessions = new SqliteSessionRepository(database);
+  linked = [];
   planning = new PlanningService({
     repository: new SqliteRoutineRepository(database),
+    occurrenceExecutions: async () => linked,
     newId: () => `routine-${++ids}`,
     now: () => new Date(2030, 0, 1, 12, 0),
   });
@@ -133,6 +137,39 @@ const swipeCard = (routineId: string, day: string) => screen.getByTestId(new Reg
 const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
+  it("statut et navigation de la carte (recette du 19/11 au soir : constats B, D, G ; s19-passees)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    const routine = await plan({ entries: [entry(created.id)] });
+    await renderCalendar();
+    // À venir, non exécutée : bleue, avec Démarrer.
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-UPCOMING`)).toBeTruthy();
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-start`)).toBeTruthy();
+    // Centre : déployer ; cadre de gauche : ouvrir la planification.
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-disclosure`));
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-chevron-open`)).toBeTruthy();
+    // Constat A : la récapitulation des jours planifiés n'est plus dans l'Agenda.
+    expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-recurrence`)).toBeNull();
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-frame`));
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
+    // Exécutée et complète : verte, « Complétée », plus de Démarrer.
+    linked = [{ executionId: "x", routineId: routine.id, occurrenceKey: `${MONDAY}T08:00`, rank: 1, startedAt: "2030-08-05T08:00:00.000Z", businessStatus: "COMPLETED" }];
+    await act(async () => {
+      focusEffectHarness.effect?.();
+    });
+    await flush();
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-COMPLETED`)).toBeTruthy();
+    expect(within(screen.getByTestId(`${card(routine.id, MONDAY)}-status-tag`)).getByText("Complétée")).toBeTruthy();
+    expect(screen.queryByTestId(`${card(routine.id, MONDAY)}-start`)).toBeNull();
+    // Arrêtée : grise, « Arrêtée ».
+    linked = [{ ...linked[0]!, businessStatus: "INTERRUPTED" }];
+    await act(async () => {
+      focusEffectHarness.effect?.();
+    });
+    await flush();
+    expect(within(screen.getByTestId(`${card(routine.id, MONDAY)}-status-tag`)).getByText("Arrêtée")).toBeTruthy();
+  });
+
+
   it("semaine vide : message, aucune carte fictive", async () => {
     await renderCalendar();
     expect(screen.getByTestId("calendar-week-empty")).toBeTruthy();
@@ -200,7 +237,7 @@ describe("Calendrier Semaine", () => {
     expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`)).toBeNull();
     // D-534 : « Démarrer » ouvre la première séance de la liste, avec la chaîne et le rang.
     fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-start`));
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: first.id, chain: `${first.id},${second.id}`, rank: "1" } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: first.id, chain: `${first.id},${second.id}`, rank: "1", routineId: routine.id, occurrence: `${MONDAY}T08:00` } });
   });
 
   it("Démarrer ouvre l'Exécution PRE-10 ; la carte ouvre la modification ; Dupliquer ouvre un brouillon", async () => {
@@ -208,7 +245,7 @@ describe("Calendrier Semaine", () => {
     const routine = await plan({ entries: [entry(created.id)] });
     await renderCalendar();
     fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-start`));
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: created.id } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: created.id, routineId: routine.id, occurrence: `${MONDAY}T08:00` } });
     fireEvent.press(swipeCard(routine.id, MONDAY));
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
@@ -276,7 +313,7 @@ describe("Calendrier Semaine", () => {
     await flush();
     expect(screen.getByTestId("calendar-month-label").props.children).toBe("Septembre 2030");
     // 1er septembre 2030 : dimanche — semaine du 26 août au 1er septembre.
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 26 août au 1er septembre");
+    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 26 au 1er septembre");
     expect(screen.getByTestId("calendar-day-2030-09-01").props.accessibilityState).toMatchObject({ selected: true });
     fireEvent.press(screen.getByTestId("calendar-previous-month"));
     fireEvent.press(screen.getByTestId("calendar-previous-month"));

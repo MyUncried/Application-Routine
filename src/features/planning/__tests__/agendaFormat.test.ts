@@ -12,7 +12,7 @@ describe("agendaFormat", () => {
   it("mois « Novembre 2026 » et semaine « du 16 au 22 »", () => {
     expect(formatAgendaMonth("2026-11-19")).toBe("Novembre 2026");
     expect(formatAgendaWeek("2026-11-16")).toBe("du 16 au 22");
-    expect(formatAgendaWeek("2026-10-26")).toBe("du 26 octobre au 1er novembre");
+    expect(formatAgendaWeek("2026-10-26")).toBe("du 26 au 1er novembre");
     expect(formatAgendaWeek("2026-06-01")).toBe("du 1er au 7");
   });
 

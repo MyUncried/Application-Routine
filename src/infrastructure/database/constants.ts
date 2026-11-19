@@ -174,7 +174,7 @@ export const DATABASE_NAME = "kodjo.db";
  * **Nom des planifications (version 32, `migration032`)** : colonne additive `routines.name` (D-522), vide pour les
  * planifications existantes (RM-264). 001..031 inchangées.
  */
-export const DATABASE_VERSION = 32;
+export const DATABASE_VERSION = 33;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

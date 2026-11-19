@@ -261,3 +261,20 @@ export function withUnit(form: FormDraft, unit: RepetitionUnit): FormDraft {
   const endCount = countUntil(unit, form.startDate, form.endDate);
   return { ...form, unit, endCount, endDate: form.endKind === "FOR" ? endDateForCount(unit, form.startDate, endCount) : form.endDate };
 }
+
+/**
+ * Réordonnancement dans le tableau (recette du 19/11/2026 au soir, q19-deplacement : « Ajouter le réordonnancement dans le
+ * tableau ») : la ligne `from` passe au rang `to` avec ses points ; l'ordre des lignes est l'ordre des séances de
+ * l'occurrence (D-519). [D-523 : ordre de sélection, sans réordonnancement — remplacé.]
+ */
+export function moveRow(form: FormDraft, from: number, to: number): FormDraft {
+  const count = form.entries.length;
+  if (from === to || from < 0 || to < 0 || from >= count || to >= count) return form;
+  const move = <T,>(list: readonly T[]): T[] => {
+    const next = [...list];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved as T);
+    return next;
+  };
+  return { ...form, entries: move(form.entries), grid: { cycle: form.grid.cycle, points: move(form.grid.points) } };
+}

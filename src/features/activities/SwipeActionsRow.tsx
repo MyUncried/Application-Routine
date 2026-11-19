@@ -99,6 +99,7 @@ export function SwipeActionsRow({
   actionsInsets,
   actionWidth = SWIPE_ACTION_WIDTH,
   actionsRadius,
+  actionsRightMargin = 0,
   slideActions = false,
   children,
   testID,
@@ -129,6 +130,8 @@ export function SwipeActionsRow({
   readonly actionWidth?: number;
   /** Recette du 04/11 (CE-FMT-05) : rayon des extrémités du bloc d'actions (12 par défaut). */
   readonly actionsRadius?: number;
+  /** Marge entre le bloc d'actions et le bord droit de la rangée (Agenda, recette du 19/11/2026 au soir) ; la carte glisse d'autant plus. */
+  readonly actionsRightMargin?: number;
   /**
    * Recette du 05/11/2026 (e-replie-glisse, Hermann : « il faut que le cadre des options apparaisse par glissement de droite à
    * gauche aussi en même temps que le circuit, et qu'il disparaisse de la même manière de gauche à droite par glissement ») :
@@ -139,7 +142,7 @@ export function SwipeActionsRow({
   readonly testID: string;
 }) {
   const groupWidth = enabled && !passive ? actions.length * actionWidth : 0;
-  const offset = groupWidth > 0 ? groupWidth + SWIPE_ACTIONS_GAP : 0;
+  const offset = groupWidth > 0 ? groupWidth + SWIPE_ACTIONS_GAP + actionsRightMargin : 0;
   const reduceMotion = useReduceMotion();
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = useRef(false);
@@ -269,6 +272,7 @@ export function SwipeActionsRow({
             styles.actions,
             { width: groupWidth },
             actionsHeight !== undefined ? { bottom: undefined, height: actionsHeight } : null,
+            actionsRightMargin > 0 ? { right: actionsRightMargin } : null,
             actionsInsets === undefined
               ? null
               : { top: -(actionsInsets.top ?? 0), bottom: -(actionsInsets.bottom ?? 0), right: -(actionsInsets.right ?? 0) },

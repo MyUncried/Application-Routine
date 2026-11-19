@@ -4,17 +4,17 @@ import { Image } from "expo-image";
 import { Pressable, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { addDays, formatLocalDate, mondayOf, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { addDays, formatLocalDate, mondayOf, occurrenceInstant, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { groupOccurrenceExecutions, occurrenceExecutionKey, occurrenceExecutionStatus, type OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { OccurrenceDeleteDialog } from "@/features/planning/OccurrenceDeleteDialog";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
-import { formatRecurrence } from "@/features/planning/planningSummary";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { firstDayOfShiftedMonth, formatAgendaMonth, formatAgendaTime, formatAgendaWeek, sessionsDurationLabel, zonesLine } from "@/features/planning/agendaFormat";
-import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
+import { AGENDA_ROW_HEIGHT, RoutineAgendaCard, type AgendaStatus } from "@/features/planning/RoutineAgendaCard";
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
@@ -113,6 +113,9 @@ export function CalendarWeekScreen({
   const [selectedDay, setSelectedDay] = useState<LocalDate>(() => initialDay ?? todayLocal());
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
+  const [executions, setExecutions] = useState<readonly OccurrenceExecution[]>([]);
+  // Instant du dernier chargement : sépare les occurrences passées (rouge) des occurrences à venir (bleu).
+  const [loadedAt, setLoadedAt] = useState(0);
   const [loadFailed, setLoadFailed] = useState(false);
   const [actionFailed, setActionFailed] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
@@ -138,11 +141,13 @@ export function CalendarWeekScreen({
   const load = useCallback(
     (week: LocalDate) => {
       const id = ++requestId.current;
-      Promise.all([planning.listRoutines(), planning.weekOccurrences(week, () => true)]).then(
-        ([list, weekItems]) => {
+      Promise.all([planning.listRoutines(), planning.weekOccurrences(week, () => true), planning.listOccurrenceExecutions()]).then(
+        ([list, weekItems, linked]) => {
           if (id !== requestId.current) return;
           setRoutines(list);
           setOccurrences(weekItems);
+          setExecutions(linked);
+          setLoadedAt(Date.now());
           setLoadFailed(false);
         },
         (error: unknown) => {
@@ -167,6 +172,18 @@ export function CalendarWeekScreen({
   );
 
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
+  const executionsByOccurrence = useMemo(() => groupOccurrenceExecutions(executions), [executions]);
+
+  /**
+   * Recette du 19/11/2026 au soir (constat D, s19-passees, s19-arret) : statut d'exécution de l'occurrence, sinon passée
+   * (rouge) ou à venir (bleu) selon son heure.
+   */
+  const statusOf = (item: CardItem): AgendaStatus => {
+    const linked = executionsByOccurrence.get(occurrenceExecutionKey(item.occurrence.routineId, item.occurrence.key)) ?? [];
+    const status = occurrenceExecutionStatus(item.projections.length, linked);
+    if (status !== "NONE") return status;
+    return occurrenceInstant(item.occurrence.date, item.occurrence.time).getTime() < loadedAt ? "MISSED" : "UPCOMING";
+  };
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);
 
@@ -262,7 +279,15 @@ export function CalendarWeekScreen({
    */
   const start = (item: CardItem) => {
     setRevealed(null);
-    router.push({ pathname: "/execution", params: executionParams(item.projections.map((projection) => projection.id)) });
+    // Recette du 19/11/2026 au soir : l'Exécution est rattachée à l'occurrence (routine, date/heure d'origine, rang).
+    router.push({
+      pathname: "/execution",
+      params: executionParams(
+        item.projections.map((projection) => projection.id),
+        1,
+        { routineId: item.occurrence.routineId, occurrenceKey: item.occurrence.key },
+      ),
+    });
   };
 
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
@@ -465,6 +490,8 @@ export function CalendarWeekScreen({
                 ];
                 const title = titleOf(item);
                 const duration = sessionsDurationLabel(item.projections);
+                const status = statusOf(item);
+                const startable = status === "UPCOMING" || status === "MISSED";
                 return (
                   <View key={item.key} style={styles.item} testID={`calendar-item-${item.key}`}>
                     {/* DSF Agenda § 6 : la carte glisse de 180 et découvre Dupliquer (gris) et Supprimer (rouge), 90 × 52. */}
@@ -479,11 +506,13 @@ export function CalendarWeekScreen({
                       accessibilityState={{ expanded: isExpanded }}
                       extraAccessibilityActions={[
                         { name: "toggle", label: isExpanded ? t.calendar.collapseRoutine : t.calendar.expandRoutine, onAction: toggle },
-                        { name: "start", label: t.calendar.start, onAction: () => start(item) },
+                        ...(startable ? [{ name: "start", label: t.calendar.start, onAction: () => start(item) }] : []),
                       ]}
                       actionsHeight={AGENDA_ROW_HEIGHT}
                       actionWidth={AGENDA_ACTION_WIDTH}
-                      actionsRadius={0}
+                      // Recette du 19/11/2026 au soir (s19-glisse) : coins arrondis du bloc d'actions standard et marge de 16
+                      // avec le bord droit de l'écran. [Coins droits (`actionsRadius={0}`), collé au bord — remplacé.]
+                      actionsRightMargin={layout.screenGutter}
                       testID={`calendar-item-${item.key}-swipe`}
                     >
                       <RoutineAgendaCard
@@ -491,7 +520,9 @@ export function CalendarWeekScreen({
                         duration={duration}
                         name={title}
                         detail={detailOf(item)}
+                        status={status}
                         expanded={isExpanded}
+                        onOpen={() => openRoutine(item.occurrence.routineId)}
                         onToggleExpanded={toggle}
                         onStart={() => start(item)}
                         testID={`calendar-item-${item.key}-card`}
@@ -499,15 +530,8 @@ export function CalendarWeekScreen({
                     </SwipeActionsRow>
                     {isExpanded ? (
                       // DSF Agenda § 6 : complément de composition du catalogue sous la carte (filet, puis séances).
-                      <Pressable onPress={() => openRoutine(item.occurrence.routineId)} accessible={false} style={styles.expanded} testID={`calendar-item-${item.key}-expanded`}>
-                        {routine !== undefined && routine.repetition !== null ? (
-                          <View style={styles.recurrenceRow}>
-                            <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.recurrenceIcon} accessible={false} />
-                            <Text style={styles.recurrence} testID={`calendar-item-${item.key}-recurrence`}>
-                              {formatRecurrence(routine)}
-                            </Text>
-                          </View>
-                        ) : null}
+                      // Recette du 19/11/2026 au soir (constat A) : la ligne de récapitulation des jours planifiés passe au Journal.
+                      <Pressable onPress={toggle} accessible={false} style={styles.expanded} testID={`calendar-item-${item.key}-expanded`}>
                         {item.projections.map((projection, rank) => (
                           <View key={`${projection.id}-${rank}`} testID={`calendar-item-${item.key}-session-${rank}`}>
                             {item.projections.length > 1 ? <Text style={styles.expandedSession}>{projection.name}</Text> : null}
@@ -616,9 +640,6 @@ const styles = StyleSheet.create({
   item: { paddingBottom: spacing[8] },
   expanded: { marginHorizontal: layout.screenGutter, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder, marginTop: spacing[8], paddingTop: spacing[8], gap: spacing[8] },
   expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
-  recurrenceRow: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
-  recurrenceIcon: { width: 12, height: 12 },
-  recurrence: { ...type.supporting, color: colors.textSecondary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
 });

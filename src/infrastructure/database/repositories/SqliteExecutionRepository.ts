@@ -91,6 +91,12 @@ export class SqliteExecutionRepository implements ExecutionRepository {
         ],
       );
       await upsertResults(transaction, record.id, results, 1);
+      if (record.occurrence !== undefined) {
+        await transaction.runAsync(
+          "INSERT INTO occurrence_executions (execution_id, routine_id, occurrence_key, session_rank) VALUES (?, ?, ?, ?)",
+          [record.id, record.occurrence.routineId, record.occurrence.occurrenceKey, record.occurrence.rank],
+        );
+      }
     });
   }
 

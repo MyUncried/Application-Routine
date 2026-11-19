@@ -18,7 +18,7 @@ import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 import { executionParams, nextInChain, parseChain, type ExecutionChain } from "../executionChain";
-import { ExecutionScreen } from "../ExecutionScreen";
+import { CHAIN_AUTO_NEXT_MS, ExecutionScreen } from "../ExecutionScreen";
 import { ExecutionService } from "../ExecutionService";
 import { ExecutionServiceContext } from "../ExecutionServiceContext";
 
@@ -45,7 +45,7 @@ jest.mock("expo-crypto", () => ({
 const S = 1000;
 const T0 = Date.UTC(2026, 10, 19, 8, 0, 0);
 
-async function setup() {
+async function setup(finalPhaseSeconds = 0) {
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const sessionService = new SessionService(new SqliteSessionRepository(database), new SqliteCategoryRepository(database));
@@ -55,7 +55,7 @@ async function setup() {
         ...createEmptyDraft(),
         name,
         initialCountdownSeconds: 3,
-        finalPhaseSeconds: 0,
+        finalPhaseSeconds,
         exercises: [{ ...createExerciseDraft(`${name}-a`), name: `${name} A`, structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(5, 1, 0) }],
       }),
     );
@@ -195,6 +195,10 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(await screen.findByTestId("execution-start")).toBeTruthy();
     // Rang 1 : sans voile, comme aujourd'hui.
     expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
+    // Recette du 19/11 au soir (s19-voile) : le premier écran présente le parcours, avec Démarrer et Retour.
+    expect((await screen.findByTestId("execution-route-1")).props.children).toEqual(["Séance 1", " · Alpha"]);
+    expect(screen.getByTestId("execution-route-2").props.children).toEqual(["Séance 2", " · Bravo"]);
+    expect(screen.getByTestId("execution-back")).toBeTruthy();
     await runToEnd(advance);
     await press("execution-close");
     // release() précède la navigation : la séance suivante peut démarrer (pas d'ExecutionBlockedError).
@@ -222,6 +226,33 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     secondView.unmount();
+  });
+
+  it("séance intermédiaire : pas de « Fin de séance », « Séance terminée » puis la suivante s'ouvre seule (recette du 19/11 au soir, constat F)", async () => {
+    const { advance, show, first, second } = await setup(5);
+    const view = show(first, parseChain(first, `${first},${second}`, "1"));
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    // Compte à rebours 3 s, exercice 5 s : la phase finale de 5 s est passée aussitôt.
+    await advance(9);
+    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance terminée");
+    expect(calls).toEqual([]);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));
+    });
+    expect(calls).toEqual(["release", `replace ${JSON.stringify({ pathname: "/execution", params: { sessionId: second, chain: `${first},${second}`, rank: "2" } })}`]);
+    view.unmount();
+  });
+
+  it("dernière séance du parcours : fin habituelle, avec la « Fin de séance »", async () => {
+    const { advance, show, first, second } = await setup(5);
+    const view = show(second, parseChain(second, `${first},${second}`, "2"));
+    expect(await screen.findByTestId("execution-chain-veil")).toBeTruthy();
+    await press("execution-chain-veil");
+    await advance(9);
+    expect(screen.queryByTestId("execution-end-status")).toBeNull();
+    await advance(6);
+    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+    view.unmount();
   });
 
   it("arrêt volontaire d'une séance de la chaîne : la chaîne s'arrête, retour au calendrier (À CLARIFIER : suite à proposer)", async () => {

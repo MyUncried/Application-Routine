@@ -1,5 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { Image } from "expo-image";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -11,13 +12,18 @@ import { zonesLine } from "@/features/planning/agendaFormat";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import {
   creationDateParts,
+  isRoutineActive,
   journalCounts,
+  journalInfoLine,
   journalRecurrenceLine,
   matchesJournalFilters,
   matchesJournalQuery,
   sortJournal,
 } from "@/features/planning/journal";
-import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
+import { JOURNAL_ROW_HEIGHT, JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
+import { formatRecurrence } from "@/features/planning/planningSummary";
+import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
+import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -38,7 +44,7 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  * par routine, quelle que soit sa récurrence ou son nombre de séances.
  *
  * - Zone de contexte (bande 402 × 115 inchangée, composant partagé des Catalogues `CatalogueContextZone`) : ligne 1
- *   « Actives N · Terminées N » ; ligne 2 Rechercher, Filtre, Tri, Planifier. Aucune navigation par date.
+ *   « Planifiées N · Terminées N » (recette du 19/11 au soir ; [« Actives » — remplacé]) ; ligne 2 Rechercher, Filtre, Tri, Planifier. Aucune navigation par date.
  * - Liste : cartes espacées de 8, sans séparateur, sans date de regroupement, sans bouton d'action ni glissement.
  * - Tri par défaut : création / modification, la plus récente en haut. Le contrôle Tri reste celui des Catalogues
  *   (présent, inactif) : aucun autre ordre n'est défini.
@@ -59,6 +65,9 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
+  const [revealed, setRevealed] = useState<string | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<Routine | null>(null);
+  const [actionFailed, setActionFailed] = useState(false);
   const requestId = useRef(0);
 
   const load = useCallback(() => {
@@ -81,7 +90,10 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     useCallback(() => {
       reloadCatalogue();
       load();
-      return () => cancelPending();
+      return () => {
+        cancelPending();
+        setRevealed(null);
+      };
     }, [reloadCatalogue, cancelPending, load]),
   );
 
@@ -123,9 +135,27 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const titleOf = (routine: Routine, sessions: readonly SessionCatalogueProjection[]) =>
     routine.name.trim() !== "" ? routine.name : sessions.map((session) => session.name).join(", ");
 
+  const openRoutine = (routineId: string) => {
+    setRevealed(null);
+    router.push({ pathname: "/planning", params: { routineId } });
+  };
+
+  const removeRoutine = (routineId: string) => {
+    setDeleteCandidate(null);
+    setActionFailed(false);
+    planning.deleteRoutine(routineId).then(
+      () => load(),
+      (error: unknown) => {
+        console.error("La planification n'a pas pu être supprimée.", error);
+        setActionFailed(true);
+        load();
+      },
+    );
+  };
+
   return (
     // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : barre de titre à onglets du Calendrier et zone de contexte
-    // standard des Catalogues — ligne 1 « Actives N · Terminées N », ligne 2 Rechercher, Filtre, Tri, Planifier.
+    // standard des Catalogues — ligne 1 « Planifiées N · Terminées N », ligne 2 Rechercher, Filtre, Tri, Planifier.
     <TabbedScreen
       title={planningStrings.calendar.title}
       palette={CALENDAR_PALETTE}
@@ -200,6 +230,11 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
             {t.empty}
           </Text>
         ) : null}
+        {actionFailed ? (
+          <Text style={styles.error} accessibilityLiveRegion="polite" testID="journal-action-error">
+            {planningStrings.calendar.actionError}
+          </Text>
+        ) : null}
         {all.length > 0 && visible.length === 0 ? (
           <Text style={styles.message} testID="journal-no-result">
             {t.noResult}
@@ -209,22 +244,72 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           const sessions = sessionsOf(routine);
           const created = creationDateParts(routine.createdAt);
           const isExpanded = expanded.has(routine.id);
+          const name = titleOf(routine, sessions);
+          // Recette du 19/11/2026 au soir (constat C) : glisser vers la gauche découvre Dupliquer et Supprimer, comme l'Agenda.
+          const actions: readonly SwipeAction[] = [
+            {
+              key: "duplicate",
+              label: planningStrings.calendar.duplicate,
+              backgroundColor: colors.movementLevelAction,
+              onPress: () => {
+                setRevealed(null);
+                router.push({ pathname: "/planning", params: { duplicateOf: routine.id } });
+              },
+            },
+            {
+              key: "delete",
+              label: planningStrings.calendar.delete,
+              backgroundColor: colors.danger,
+              onPress: () => {
+                setRevealed(null);
+                setDeleteCandidate(routine);
+              },
+            },
+          ];
           return (
             <View key={routine.id} style={styles.item} testID={`journal-item-${routine.id}`}>
-              <JournalRoutineCard
-                date={created?.day ?? ""}
-                year={created?.year ?? ""}
-                name={titleOf(routine, sessions)}
-                detail={zonesLine(sessions.flatMap((session) => session.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)))}
-                recurrence={journalRecurrenceLine(routine, today)}
-                expanded={isExpanded}
-                onToggleExpanded={() => toggle(routine.id)}
-                onEdit={() => router.push({ pathname: "/planning", params: { routineId: routine.id } })}
-                testID={`journal-card-${routine.id}`}
-              />
+              <SwipeActionsRow
+                actions={actions}
+                revealed={revealed === routine.id}
+                onReveal={() => setRevealed(routine.id)}
+                onHide={() => setRevealed((current) => (current === routine.id ? null : current))}
+                onPress={() => toggle(routine.id)}
+                accessibilityLabel={name}
+                accessibilityState={{ expanded: isExpanded }}
+                extraAccessibilityActions={[{ name: "open", label: t.edit, onAction: () => openRoutine(routine.id) }]}
+                actionsHeight={JOURNAL_ROW_HEIGHT}
+                actionWidth={JOURNAL_ACTION_WIDTH}
+                actionsRightMargin={layout.screenGutter}
+                testID={`journal-item-${routine.id}-swipe`}
+              >
+                <JournalRoutineCard
+                  date={created?.day ?? ""}
+                  year={created?.year ?? ""}
+                  name={name}
+                  detail={zonesLine(sessions.flatMap((session) => session.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)))}
+                  recurrence={journalRecurrenceLine(routine, today)}
+                  planned={isRoutineActive(routine, today)}
+                  expanded={isExpanded}
+                  onOpen={() => openRoutine(routine.id)}
+                  onToggleExpanded={() => toggle(routine.id)}
+                  onEdit={() => openRoutine(routine.id)}
+                  testID={`journal-card-${routine.id}`}
+                />
+              </SwipeActionsRow>
               {isExpanded ? (
-                // Déployé identique à l'Agenda et au catalogue des séances (DSF Journal § 4) : filet, puis composition.
+                // Déployé identique à l'Agenda et au catalogue des séances (DSF Journal § 4) : filet, puis — recette du
+                // 19/11/2026 au soir — récapitulation des jours planifiés (constat A, venue de l'Agenda) et occurrences à
+                // venir avec les dates de début et de fin (constat E), puis composition.
                 <View style={styles.expanded} testID={`journal-item-${routine.id}-expanded`}>
+                  <View style={styles.recurrenceRow}>
+                    <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.recurrenceIcon} accessible={false} />
+                    <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
+                      {formatRecurrence(routine)}
+                    </Text>
+                  </View>
+                  <Text style={styles.recurrence} testID={`journal-item-${routine.id}-info`}>
+                    {journalInfoLine(routine, today, new Date())}
+                  </Text>
                   {sessions.map((session, rank) => (
                     <View key={`${session.id}-${rank}`} testID={`journal-item-${routine.id}-session-${rank}`}>
                       {sessions.length > 1 ? <Text style={styles.expandedSession}>{session.name}</Text> : null}
@@ -237,12 +322,32 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           );
         })}
       </ScrollView>
+
+      {deleteCandidate !== null ? (
+        <DecisionDialog
+          title={planningStrings.deleteSingle.title}
+          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
+          message={planningStrings.deleteSingle.message}
+          messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
+          cancelLabel={planningStrings.deleteSingle.cancel}
+          cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
+          confirmLabel={planningStrings.deleteSingle.confirm}
+          confirmLabelStyle={type.dialogDestructiveActionLabel}
+          confirmBordered={false}
+          onCancel={() => setDeleteCandidate(null)}
+          onConfirm={() => removeRoutine(deleteCandidate.id)}
+          testIDPrefix="journal-delete"
+        />
+      ) : null}
     </TabbedScreen>
   );
 }
 
+/** Actions glissées de la taille de l'Agenda (DSF Agenda § 6 : 90 de large), de la hauteur de la carte. */
+const JOURNAL_ACTION_WIDTH = 90;
+
 const styles = StyleSheet.create({
-  // Figma : « Actives » et « Terminées » en gris #595E66, nombres en #333 (14).
+  // Figma : « Planifiées » (« Actives » sur la maquette) et « Terminées » en gris #595E66, nombres en #333 (14).
   list: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
   listContent: { paddingTop: spacing[8] + CONTEXT_BAND_FADE_HEIGHT },
   // DSF Journal § 1 : cartes espacées de 8, sans séparateur.
@@ -250,4 +355,8 @@ const styles = StyleSheet.create({
   expanded: { marginHorizontal: layout.screenGutter, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder, marginTop: spacing[8], paddingTop: spacing[8], gap: spacing[8] },
   expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
+  error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
+  recurrenceRow: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
+  recurrenceIcon: { width: 12, height: 12 },
+  recurrence: { ...type.supporting, color: colors.textSecondary },
 });

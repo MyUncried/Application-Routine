@@ -1,6 +1,6 @@
 import { normalizeSearchText } from "@/domain/activities/movementSuggestion";
 import { periodOccurrences } from "@/domain/planning/occurrences";
-import { endDateForCount, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { endDateForCount, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import { duringLabel, formatRecurrence } from "@/features/planning/planningSummary";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { matchesSessionFilters, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -59,6 +59,28 @@ function shortDate(day: LocalDate, today: LocalDate): string {
   const date = parseLocalDate(day);
   const label = `${date.getDate()} ${t.monthsShort[date.getMonth()]}`;
   return day.slice(0, 4) === today.slice(0, 4) ? label : `${label} ${date.getFullYear()}`;
+}
+
+/** Occurrences à venir (instant ≥ `now`) de la routine, retraits exclus. */
+export function upcomingOccurrenceCount(routine: Routine, today: LocalDate, now: Date): number {
+  const last = routineLastDate(routine);
+  if (last < today) return 0;
+  return periodOccurrences([routine], today, last).filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime()).length;
+}
+
+/**
+ * Information du déployé (recette du 19/11/2026 au soir, constat E) : « 12 occurrences à venir · du 3 nov. au 28 déc. » ;
+ * créneau unique : « … · le 18 nov. ».
+ */
+export function journalInfoLine(routine: Routine, today: LocalDate, now: Date): string {
+  const count = upcomingOccurrenceCount(routine, today, now);
+  const upcoming = count === 0 ? t.journal.upcomingNone : count === 1 ? t.journal.upcomingOne : t.journal.upcomingMany.replace("{count}", String(count));
+  const last = routineLastDate(routine);
+  const dates =
+    last === routine.startDate
+      ? t.journal.single.replace("{date}", shortDate(routine.startDate, today))
+      : t.journal.period.replace("{start}", shortDate(routine.startDate, today)).replace("{end}", shortDate(last, today));
+  return `${upcoming} · ${dates}`;
 }
 
 /**
