@@ -228,7 +228,9 @@ describe("Journal des routines (D-535)", () => {
     await flush();
     // Constat D (20/11/2026) : le Journal supprime la routine et tous ses créneaux.
     expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
-    expect(screen.getByTestId("journal-delete-cancel")).toBeTruthy();
+    // Recette du 20/11/2026 : « Annuler » à côté de « Confirmer », même format.
+    expect(screen.queryByTestId("journal-delete-cancel")).toBeNull();
+    expect(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Annuler")).toBeTruthy();
     expect(screen.getByText("La routine et son créneau seront supprimés.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
     await flush();

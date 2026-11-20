@@ -422,9 +422,11 @@ describe("Calendrier Semaine", () => {
     const routine = await plan({ entries: [entry(created.id)] });
     await renderCalendar();
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    // r21-supprimer : « Supprimer ce créneau » ; D-537 : « Annuler » en haut à gauche, « Confirmer » pleine largeur.
+    // r21-supprimer : « Supprimer ce créneau » ; recette du 20/11/2026 : « Annuler » et « Confirmer » côte à côte, même format.
     expect(screen.getByText("Supprimer ce créneau")).toBeTruthy();
-    expect(screen.getByTestId("planning-delete-occurrence-cancel")).toBeTruthy();
+    expect(screen.queryByTestId("planning-delete-occurrence-cancel")).toBeNull();
+    expect(within(screen.getByTestId("planning-delete-occurrence-actions")).getByLabelText("Annuler")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-delete-occurrence-actions")).getByLabelText("Confirmer")).toBeTruthy();
     fireEvent.press(screen.getByText("Annuler"));
     expect(sectionDays()).toEqual([MONDAY]);
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });

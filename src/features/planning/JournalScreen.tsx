@@ -367,7 +367,9 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
         // (passés et futurs) peuvent être effacés » ; sans créneau à supprimer : « enlever le texte et mettre dans le titre
         // "la routine <Nom de la routine> sera supprimée" »). Variantes « Titre seul » / « Titre et message ».
         <DecisionDialog
-          cancelOnTop
+          // Recette du 20/11/2026 (Hermann : « Remettre le bouton Annuler à côté du bouton Confirmer, les deux au même format » —
+          // suppression de routine et d'occurrence) : deux actions côte à côte du composant partagé. [« Annuler » en haut à gauche,
+          // « Confirmer » pleine largeur (D-537) — remplacé.]
           title={
             deleteCandidate.plan.count === 0
               ? planningStrings.deleteRoutine.titleNamed.replace("{name}", titleOf(deleteCandidate.routine, sessionsOf(deleteCandidate.routine)))

@@ -669,7 +669,9 @@ export function CalendarWeekScreen({
           venir » — remplacé.] */}
       {deleteCandidate !== null ? (
         <DecisionDialog
-          cancelOnTop
+          // Recette du 20/11/2026 (Hermann : « Remettre le bouton Annuler à côté du bouton Confirmer, les deux au même format » —
+          // suppression de routine et d'occurrence) : deux actions côte à côte du composant partagé. [« Annuler » en haut à gauche,
+          // « Confirmer » pleine largeur (D-537) — remplacé.]
           title={t.deleteOccurrence.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message=""

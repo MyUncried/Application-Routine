@@ -80,3 +80,5 @@ Si l’utilisateur arrête une séance, la suite lui est proposée (« Passer à
 [Mise en œuvre du 20/11/2026 — D-539 mis à jour (branche `docs/planification-grille-creneaux`, commit 8ecd17fc, non fusionnée) : toucher l'icône bleue désactive le filtre sans ouvrir la modale ; la modale s'ouvre toujours sans routine cochée ; bouton « Filtrer N routines » désactivé sans sélection ; « Afficher toutes les routines » retiré. Cartes de la modale : nom aligné sur la date, ligne des créneaux sur l'année (recette du 20/11/2026). Rapport `2026-11-20_AGENDA-FILTRE-ROUTINE-COMPORTEMENT.md`.]
 
 [Mise en œuvre du 20/11/2026 — D-540 (§ 10 de la branche `docs/planification-grille-creneaux`, commit 171f9ca3, non fusionnée) : créneau manqué rattrapable jusqu'au début du créneau suivant de la routine, le dernier 10 jours ; puis « Expirée » (cadre rouge, étiquette rouge, ni « Rattraper » ni « Démarrer ») ; état calculé. Classe A ; rapport `2026-11-20_CYCLE-VIE-ROUTINE.md`.]
+
+[Recette du 20/11/2026 (Hermann) : fenêtre « Supprimer ce créneau » — « Annuler » et « Confirmer » côte à côte, même format. [« Annuler » en haut à gauche, « Confirmer » pleine largeur — remplacé.]]
