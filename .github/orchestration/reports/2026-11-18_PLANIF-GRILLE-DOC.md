@@ -124,3 +124,8 @@
 - Icônes Agenda déplacées dans la planche DSF « Icônes — navigation et catégorie » ; fiche « Planifier et aujourd’hui » alignée sur les boutons 34×34.
 - Non traité : les noms des cartes de catalogue utilisent encore le style générique « Texte / Inter Semi Bold 15 » et non le nouveau jeton (aucun écart visuel).
 - Tests : non applicables.
+
+## Complément 21/11/2026 — comportement du filtre par routine (D-539, classe B)
+- Décision de Hermann : toucher l'icône bleue désactive le filtre sans ouvrir la modale ; la modale s'ouvre toujours vide ; bouton désactivé tant qu'aucune routine n'est cochée ; « Afficher toutes les routines » supprimé.
+- Documents : DSF Agenda § 9, D-539 (registre), prompt du filtre (formulations remplacées conservées entre crochets). Figma : aucun changement (la modale montre déjà l'état avec sélection ; l'état désactivé est celui du bouton primaire du DSF).
+- Tests : non applicables.
