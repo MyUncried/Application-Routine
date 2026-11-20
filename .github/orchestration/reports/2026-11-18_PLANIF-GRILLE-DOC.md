@@ -83,4 +83,5 @@
 - Non fait : fenêtres de choix « Cette occurrence seulement / Toute la routine » et de confirmation de modification globale (textes non fournis).
 - Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
 - Figma (20/11/2026, suite) : doublon « P-Modal — Supprimer une planification unique — Calendrier » supprimé ; bouton crayon « Modifier la planification » retiré des cartes du Journal ; DSF Journal, D-535, D-537 et prompts mis à jour (l'ouverture de la routine passe par le cadre de gauche, à confirmer dans le code).
+- Précisé le 20/11/2026 : dans l'Agenda, toute modification ne concerne que l'occurrence (aucun choix « Cette occurrence / Toute la routine ») ; D-536, DSF Agenda § 8 et les deux prompts corrigés (texte d'origine conservé et annoté). Fenêtre de choix non dessinée, sans objet.
 

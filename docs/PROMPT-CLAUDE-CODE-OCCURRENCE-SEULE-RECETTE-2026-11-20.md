@@ -6,7 +6,7 @@ Mission en deux parties, à la suite du prompt `docs/PROMPT-CLAUDE-CODE-MODIFICA
 
 1. Depuis une occurrence de l'Agenda, on peut modifier : la date, l'heure, l'activation ou la désactivation des pastilles du créneau, l'ajout d'une séance à ce créneau uniquement, le rappel. Le nom reste celui de la routine.
 2. Une séance ajoutée à la main peut être retirée de l'occurrence ; les séances de la routine ne se retirent pas, on les désactive. Une occurrence est « Complétée » quand toutes ses séances **actives** sont faites.
-3. Avant la sauvegarde, un choix « Cette occurrence seulement » / « Toute la routine » (même présentation que la suppression d'occurrences). « Toute la routine » applique la règle du prompt précédent (occurrences non commencées seulement). Dans le Journal, aucune distinction : la modification porte toujours sur la routine entière.
+3. Dans l'Agenda, toute modification ne concerne que l'occurrence, jamais la routine entière : aucun choix ni fenêtre de choix. La routine entière se modifie uniquement depuis le Journal (règle du prompt précédent : occurrences non commencées seulement).
 4. **Protection des modifications manuelles par groupe** : date et heure ; séances (pastilles, séance ajoutée) ; rappel. Un changement global ne remplace que les réglages non modifiés à la main sur l'occurrence. Une occurrence déplacée suit donc un futur changement de séquence, mais pas un futur changement de récurrence.
 5. Une occurrence commencée (une séance lancée) n'est pas modifiable. Une occurrence passée non commencée (rouge) l'est : on peut la reprogrammer ; son bouton affiche « Rattraper ».
 6. Pendant l'édition, seul le créneau de l'occurrence ouverte est coloré (en-tête et pastille) ; les autres créneaux sont grisés.
@@ -33,7 +33,7 @@ Repère le cahier de recette de la planification dans le dépôt ; ajoute (sans 
 5. Ajouter une séance à l'occurrence, puis la retirer : possible ; une séance de la routine ne peut pas être retirée, seulement désactivée.
 6. Modifier la séquence de la routine après ajout ou désactivation manuels : l'occurrence est protégée.
 7. Modifier le rappel d'une occurrence : seule elle change ; un changement global de rappel ne l'écrase pas.
-8. Choix « Toute la routine » depuis l'Agenda : mêmes résultats que B.
+8. Depuis l'Agenda, aucun moyen de modifier la routine entière : seul le Journal le permet (résultats du cas B).
 9. Occurrence commencée : aucune modification possible.
 10. Occurrence rouge : reprogrammable ; « Rattraper » affiché.
 11. Pendant l'édition : seul le créneau ouvert est coloré, les autres sont grisés.
