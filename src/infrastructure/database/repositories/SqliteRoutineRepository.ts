@@ -17,6 +17,7 @@ type RoutineRow = {
   end_count: number | null;
   reminder_minutes: number | null;
   archived_at: string | null;
+  program_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -47,7 +48,7 @@ type OccurrenceRow = {
 };
 
 const ROUTINE_COLUMNS =
-  "id, name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, created_at, updated_at";
+  "id, name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, program_id, created_at, updated_at";
 
 function parseSessions(value: string | null): OccurrenceSession[] | null {
   if (value === null) return null;
@@ -181,9 +182,14 @@ export class SqliteRoutineRepository implements RoutineRepository {
     };
   }
 
-  private extras(row: RoutineRow, occurrences: readonly OccurrenceRow[]): Pick<Routine, "overrides" | "archivedAt"> {
+  private extras(row: RoutineRow, occurrences: readonly OccurrenceRow[]): Pick<Routine, "overrides" | "archivedAt" | "programId"> {
     const own = occurrences.filter((occurrence) => occurrence.routine_id === row.id).map(toOverride);
-    return { ...(own.length > 0 ? { overrides: own } : {}), ...(row.archived_at !== null ? { archivedAt: row.archived_at } : {}) };
+    return {
+      ...(own.length > 0 ? { overrides: own } : {}),
+      ...(row.archived_at !== null ? { archivedAt: row.archived_at } : {}),
+      // PROG-CAT-01 (migration 035) : présent seulement pour une routine rattachée.
+      ...(row.program_id !== null ? { programId: row.program_id } : {}),
+    };
   }
 
   async save(routine: Routine): Promise<void> {
@@ -202,19 +208,20 @@ export class SqliteRoutineRepository implements RoutineRepository {
         repetition !== null && repetition.end.kind === "FOR" ? repetition.end.count : null,
         routine.reminderMinutes,
         routine.archivedAt ?? null,
+        routine.programId ?? null,
         routine.updatedAt,
       ];
       const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM routines WHERE id = ? AND owner_id = ?", [routine.id, owner]);
       if (existing === null) {
         await transaction.runAsync(
-          `INSERT INTO routines (name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, updated_at, id, owner_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO routines (name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, program_id, updated_at, id, owner_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [...parameters, routine.id, owner, routine.createdAt],
         );
       } else {
         await transaction.runAsync(
           `UPDATE routines SET name = ?, start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
-           end_date = ?, end_count = ?, reminder_minutes = ?, archived_at = ?, updated_at = ? WHERE id = ?`,
+           end_date = ?, end_count = ?, reminder_minutes = ?, archived_at = ?, program_id = ?, updated_at = ? WHERE id = ?`,
           [...parameters, routine.id],
         );
         await transaction.runAsync("DELETE FROM routine_entries WHERE routine_id = ?", [routine.id]);

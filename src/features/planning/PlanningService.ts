@@ -223,6 +223,19 @@ export class PlanningService {
   }
 
   /**
+   * PROG-CAT-01 (D-547) : créneaux à venir de la routine — non commencés, instant ≥ maintenant (même règle que
+   * `routineFilterChoices`). Sert à afficher « Garder les routines dans le calendrier ».
+   */
+  async upcomingSlotCount(routineId: string): Promise<number> {
+    const routine = await this.deps.repository.get(routineId);
+    if (routine === null) return 0;
+    const now = this.deps.now().getTime();
+    return routineOccurrences(routine, await this.startedTest()).filter(
+      (occurrence) => !occurrence.started && occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now,
+    ).length;
+  }
+
+  /**
    * D-540, point 2 : routines actives (au moins un créneau à venir ou rattrapable) ; les autres sont terminées. Calculé, jamais
    * enregistré.
    */
@@ -287,6 +300,8 @@ export class PlanningService {
       entries: draft.entries,
       exclusions: [],
       reminderMinutes: draft.reminderMinutes ?? null,
+      // PROG-CAT-01 (D-549) : « + Planifier une séance » depuis un programme crée une routine rattachée.
+      ...(draft.programId !== undefined && draft.programId !== null ? { programId: draft.programId } : {}),
       createdAt: at,
       updatedAt: at,
     };

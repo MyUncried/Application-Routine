@@ -96,6 +96,12 @@ export class SqliteExecutionRepository implements ExecutionRepository {
           "INSERT INTO occurrence_executions (execution_id, routine_id, occurrence_key, session_rank) VALUES (?, ?, ?, ?)",
           [record.id, record.occurrence.routineId, record.occurrence.occurrenceKey, record.occurrence.rank],
         );
+        // PROG-CAT-01 (Hermann, 21/11/2026, point 3 ; migration 035) : programme du moment, figé sur l'exécution. Détacher ou
+        // supprimer la routine ensuite ne retire jamais cette exécution de l'historique du programme.
+        await transaction.runAsync("UPDATE executions SET program_id = (SELECT program_id FROM routines WHERE id = ?) WHERE id = ?", [
+          record.occurrence.routineId,
+          record.id,
+        ]);
       }
     });
   }
