@@ -31,8 +31,8 @@ import { applyMigration026 } from "./migrations/migration026";
 import { applyMigration027 } from "./migrations/migration027";
 import { applyMigration028 } from "./migrations/migration028";
 import { applyMigration029 } from "./migrations/migration029";
-import { applyMigration030 } from "./migrations/migration030";
-import { applyMigration031 } from "./migrations/migration031";
+import { applyMigration030, MIGRATION_030_CATALOGUE_PREFERENCES } from "./migrations/migration030";
+import { applyMigration031, MIGRATION_031_ROUTINES } from "./migrations/migration031";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -86,6 +86,7 @@ export async function migrateDatabase(
   }
 
   if (currentVersion >= targetVersion) {
+    await repairMissingTables(database, currentVersion);
     return;
   }
 
@@ -353,3 +354,32 @@ export async function migrateDatabase(
     await transaction.execAsync(`PRAGMA user_version = ${targetVersion}`);
   });
 }
+
+/**
+ * Recette iPhone du 20/11/2026 (Routine BMAD : « no such table: routines » avec une base déclarée en version 31).
+ * Une base peut annoncer une version sans contenir les tables additives de cette version : elle a été migrée par un
+ * code dont la numérotation différait (branches de travail successives, migration des routines numérotée 030 puis 031).
+ * Pour les seules migrations purement additives 030 et 031, une table absente est créée telle que la migration la
+ * crée ; rien n'est modifié ni supprimé, `user_version` est inchangé. Cause exacte de l'état observé : indéterminée.
+ */
+async function repairMissingTables(database: Database, version: number): Promise<void> {
+  const tables = new Set(
+    (await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'")).map((row) => row.name),
+  );
+  const statements: string[] = [];
+  const missing = (name: string) => !tables.has(name);
+  if (version >= 30 && missing("catalogue_preferences")) statements.push(MIGRATION_030_CATALOGUE_PREFERENCES);
+  if (version >= 31) {
+    for (const statement of MIGRATION_031_ROUTINES) {
+      const table = /^CREATE TABLE (\w+)/.exec(statement)?.[1];
+      const index = /^CREATE INDEX (\w+) ON (\w+)/.exec(statement);
+      if (table !== undefined && missing(table)) statements.push(statement);
+      else if (index && missing(index[2] as string)) statements.push(statement.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS"));
+    }
+  }
+  if (statements.length === 0) return;
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    for (const statement of statements) await transaction.execAsync(statement);
+  });
+}
+
