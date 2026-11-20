@@ -4,15 +4,15 @@ Mission : appliquer D-539 (registre, ch07 ; ch13 annoté ; `docs/DSF-AGENDA-PLAN
 
 ## Besoin
 
-Retrouver en un geste tous les créneaux d'une même routine dans l'Agenda, passés et à venir.
+N'afficher dans l'Agenda que les créneaux d'une ou de plusieurs routines.
 
 ## À faire
 
-1. Icône entonnoir (`icon/filtre-routine`, trait 1,5, zone de tap 34 × 34, sans cercle) à l'extrême droite de la ligne 1 de la zone de contexte, symétrique de « Aujourd'hui ». Gris foncé sans filtre, bleu (couleur de « Planifier ») quand un filtre est actif.
+1. Icône entonnoir (`icon/filtre-routine`, trait 1,5, zone de tap 34 × 34, sans cercle) à l'extrême droite de la ligne 1 de la zone de contexte, symétrique de « Aujourd'hui ». Sans filtre : contour gris foncé. Filtre actif : silhouette pleine, bleue (couleur de « Planifier »), variante du composant `icon/filtre-routine`.
 2. Un tap ouvre la modale « Filtrer par routine », version simplifiée de l'écran Journal : en-tête avec le bouton de fermeture (✕) en haut à gauche et le titre ; une carte par routine au format de la carte du Journal, réduite à la ligne 1 (nom) et à la ligne 3 (« X à venir, jusqu'au jj/mm/aaaa »), avec le cadre de gauche et un sélecteur à cocher à droite (pas de chevron, pas de ligne 2) ; sélection multiple ; en bas, une barre de séparation et le bouton « Filtrer N routines » (« Filtrer 1 routine » au singulier), désactivé tant qu'aucune routine n'est cochée. Routines ayant au moins un créneau, archivées comprises, ordre alphabétique. À la réouverture, les routines du filtre en cours sont cochées. Réutiliser le composant carte du Journal, pas une nouvelle carte.
-3. Vue filtrée : ligne 1 : « Aujourd'hui » à gauche, pastille centrée « Nom de la routine ✕ » (une routine) ou « N routines ✕ » (plusieurs), icône bleue à droite (rouvre la modale) ; le ✕ efface le filtre et ramène à la semaine affichée avant le filtre. Ligne 2 : compteur centré « N créneaux · N faits · N à rattraper · N à venir », « Planifier » inchangé. Flèches de mois et de semaine et rangée des sept jours masquées.
-4. Compteur (toutes routines du filtre confondues) : « faits » = créneaux commencés (au moins une séance lancée) ; « à rattraper » = créneaux passés non commencés ; « à venir » = créneaux futurs non commencés ; total = somme.
-5. Liste filtrée : tous les créneaux des routines choisies, toutes périodes, regroupés par jour, ordre chronologique, ouverte sur le premier créneau à venir. « Aujourd'hui » fait défiler jusqu'au jour courant. Cartes, états, couleurs, déploiement, démarrer / rattraper, modification et suppression glissées inchangés, avec les règles D-536 et D-537.
+3. Bouton de la modale : « Filtrer N routines » (« Filtrer 1 routine » au singulier) ; quand aucune routine n'est cochée, « Afficher toutes les routines », qui retire le filtre.
+4. Vue filtrée : la zone de contexte est inchangée (« Aujourd'hui », mois, semaine, sept jours, « Planifier ») ; seule l'icône change. La liste n'affiche que les créneaux des routines choisies pour la semaine affichée ; un jour sans créneau de ces routines n'apparaît pas ; une semaine sans créneau affiche l'état vide existant. Les points des cartes de jour ne comptent que les séances des routines du filtre. Le filtre reste actif en changeant de semaine ou de mois et avec « Aujourd'hui », et tant qu'il n'est pas retiré.
+5. Cartes, états, couleurs, déploiement, démarrer / rattraper, modification et suppression glissées inchangés, avec les règles D-536 et D-537.
 
 ## PRESERVE / CHANGE / FORBIDDEN
 
@@ -22,7 +22,7 @@ Retrouver en un geste tous les créneaux d'une même routine dans l'Agenda, pass
 
 ## Tests et recette
 
-- Tests : ouverture et fermeture de la modale (✕), sélection multiple, bouton « Filtrer N routines » (libellé, singulier, désactivé sans sélection), cases cochées à la réouverture, application et effacement du filtre (retour à la semaine d'avant), pastille « N routines », compteur (faits, à rattraper, à venir, total) pour une routine avec créneaux commencés, passés non commencés et à venir, liste chronologique ouverte sur le premier créneau à venir, routine archivée présente dans la liste, icône grise puis bleue, modification et suppression d'un créneau depuis la vue filtrée (règles D-536 et D-537), le compteur suit une suppression.
-- À vérifier sur iPhone : zone de tap 34 × 34 de l'icône, lisibilité du compteur sur une seule ligne, défilement jusqu'au premier créneau à venir, modale avec beaucoup de routines (défilement, bouton fixe en bas) et pastille avec un nom de routine très long.
+- Tests : ouverture et fermeture de la modale (✕), sélection multiple, libellés du bouton (pluriel, singulier, « Afficher toutes les routines » sans sélection), cases cochées à la réouverture, filtre appliqué à la liste de la semaine et aux points des cartes de jour, filtre conservé au changement de semaine et de mois et avec « Aujourd'hui », semaine sans créneau (état vide), icône contour puis pleine bleue, modification et suppression d'un créneau depuis la vue filtrée (règles D-536 et D-537).
+- À vérifier sur iPhone : zone de tap 34 × 34 de l'icône, lisibilité de l'icône pleine, modale avec beaucoup de routines (défilement, bouton fixe en bas), routine archivée dans la liste.
 
 Livraison : classe de synchronisation A (le code rejoint D-539). Rapport de mission dans `.github/orchestration/reports/` avec PRESERVE / CHANGE / FORBIDDEN démontrés, commit, état Git.
