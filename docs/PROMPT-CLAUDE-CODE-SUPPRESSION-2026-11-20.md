@@ -9,8 +9,8 @@ Mission : appliquer D-537 (registre, ch07 ; ch03 et ch13 annotés ; `docs/DSF-AG
 4. Supprimer la dernière occurrence à venir laisse la routine dans le Journal, en gris.
 
 ## Journal
-1. Routine sans occurrence commencée : suppression de la routine et de toutes ses occurrences. Message : « La routine et ses N occurrences seront supprimées. »
-2. Routine avec au moins une occurrence commencée : suppression de ses occurrences non commencées, archivage de la routine ; les occurrences commencées restent dans l'historique, l'Agenda passé et les graphiques. Message : « N occurrences non commencées seront supprimées ; La routine sera archivée. »
+1. Routine sans occurrence commencée : suppression de la routine et de toutes ses occurrences. Message : « La routine et ses N créneaux seront supprimés. »
+2. Routine avec au moins une occurrence commencée : suppression de ses occurrences non commencées, archivage de la routine ; les occurrences commencées restent dans l'historique, l'Agenda passé et les graphiques. Message : « N créneaux à venir seront supprimés ; La routine sera archivée. »
 3. Un seul dialogue, au titre « Supprimer cette routine », dont le message dépend de la présence d'historique ; boutons « Confirmer » et « Annuler » (en haut à gauche). Écrans Figma : « P-Modal — Supprimer une routine — Journal » et « P-Modal — Supprimer et archiver une routine — Journal ».
 4. La routine archivée apparaît avec le filtre « Archivées » existant du Journal. Vérifie si elle peut être restaurée et signale-le ; ne l'invente pas.
 
