@@ -36,6 +36,7 @@ import { applyMigration031, MIGRATION_031_ROUTINES } from "./migrations/migratio
 import { applyMigration032 } from "./migrations/migration032";
 import { applyMigration033 } from "./migrations/migration033";
 import { applyMigration034 } from "./migrations/migration034";
+import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -93,6 +94,7 @@ export async function migrateDatabase(
   await repairMissingTables(database, currentVersion);
 
   if (currentVersion >= targetVersion) {
+    if (targetVersion === DATABASE_VERSION) await repairOrphanRows(database, SESSION_TREE_TABLES);
     return;
   }
 
@@ -377,6 +379,11 @@ export async function migrateDatabase(
 
     await transaction.execAsync(`PRAGMA user_version = ${targetVersion}`);
   });
+
+  // Recette iPhone du 20/11/2026 : Exercices, Circuits, Cycles et Points d'arrêt restés après la suppression de leur
+  // Séance quand les clés étrangères étaient inactives dans les transactions de l'appareil (`repairOrphanRows`). Base courante seulement : les preuves des migrations
+  // historiques (`targetVersion` antérieure) lisent la base telle quelle.
+  if (targetVersion === DATABASE_VERSION) await repairOrphanRows(database, SESSION_TREE_TABLES);
 }
 
 /**

@@ -184,3 +184,30 @@ Analyse du code (branche `integration/bmad-planification-20261120`, sans modific
 Attribution : **plausible** (séances archivées non affichées) — non démontrée faute d'accès à la base du téléphone ; autre cause théorique : séances d'un autre `owner_id`, non observée.
 
 Vérification proposée à l'utilisateur : Séances → Filtres → Statut « Archivées » ; supprimer définitivement les séances inutiles ; puis supprimer les Mouvements archivés. Aucun test exécuté (aucune modification de code).
+
+### Suite (20/11/2026, 23:10) — « je n'ai aucune séance archivée » : cause réelle et correction
+
+L'hypothèse précédente (séances archivées) est **écartée** par l'utilisateur.
+
+**Cause (mécanisme démontré dans le code ; nombre exact de lignes sur le téléphone non vérifiable d'ici) :**
+- `ExpoDatabase.withExclusiveTransactionAsync` déléguait à expo-sqlite 57.0.1, dont `Transaction.createAsync` ouvre une **nouvelle connexion** (`useNewConnection: true`, `node_modules/expo-sqlite/src/SQLiteDatabase.ts`). Les pragmas `STANDARD_PRAGMAS` (dont `foreign_keys = ON`) n'étaient appliqués qu'à la connexion principale (`openExpoDatabase`). Toutes les écritures de l'appareil s'exécutaient donc **clés étrangères désactivées** : `DELETE FROM sessions` (suppression d'une Séance) n'emportait ni Exercices, ni Circuits, ni Cycles, ni Points d'arrêt.
+- Le comptage `countMovementOccurrences` compte ces Exercices orphelins → « utilisé par 51 exercices ».
+- Les tests (`NodeSqliteDatabase`, connexion unique, `foreign_keys = ON`) appliquaient la cascade : le défaut était invisible en Jest.
+
+**Historique :** mécanisme présent depuis le premier adaptateur `ExpoDatabase` (au plus tard `d3e4f14d`, 26/10/2026). Symptôme déjà détecté le 29/10 (« base d'appareil abîmée… écrite clés étrangères désactivées », `162a5069`, migration 016 : orphelins supprimés une fois sur décision de Hermann) sans que la cause soit identifiée ; les suppressions de Séances postérieures ont recréé des orphelins. Introduction : 26/10 ou avant ; détection : 29/10 puis 20/11. Attribution : **démontrée** pour le mécanisme ; **plausible** pour les 51 exercices précis (base du téléphone non lue).
+
+**Correction (branche `integration/bmad-planification-20261120`) :**
+- `src/infrastructure/database/ExpoDatabase.ts` : la transaction exclusive ouvre elle-même la connexion dédiée (`openDatabaseAsync(nom, {…options, useNewConnection: true}, dossier)`), applique `CONNECTION_PRAGMAS` (`foreign_keys = ON`) **avant** `BEGIN`, puis `COMMIT`/`ROLLBACK` et fermeture — même séquence qu'expo-sqlite. Repli sur la transaction d'origine si la base n'a pas de chemin (`:memory:`, doubles de test).
+- `src/infrastructure/database/constants.ts` : `CONNECTION_PRAGMAS`.
+- `src/infrastructure/database/repairOrphanRows.ts` (nouveau) + appel dans `migrateDatabase` (version courante seulement) : au démarrage, retire les lignes orphelines de l'arbre des Séances (`cycles`, `tours`, `activities`, `session_stop_points`) exactement comme `ON DELETE CASCADE` l'aurait fait ; aucune écriture si la base est cohérente. Portée limitée à l'arbre des Séances, conforme à la décision du 29/10 ; les autres incohérences préexistantes (ex. `movement_body_zones` vers un Mouvement absent, test 016) restent tolérées et intactes.
+- Tests : `__tests__/repairOrphanRows.test.ts` (règles CASCADE/SET NULL/RESTRICT, clé composite, table WITHOUT ROWID, portée ; schéma réel : Séance supprimée sans cascade → orphelins retirés au démarrage, Mouvement archivé de nouveau supprimable), `__tests__/ExpoDatabase.transaction.test.ts` (ordre pragma → BEGIN → COMMIT/ROLLBACK → fermeture).
+
+**Résultats :** `npx tsc --noEmit` OK ; `npx jest` : 433 suites, 6434 tests réussis, 32 ignorés, 0 échec ; ESLint sans erreur sur les fichiers touchés.
+
+**Synchronisation code/documentation :** classe **A** (le code rejoint la règle déjà écrite : la suppression d'une Séance retire ses Exercices, `SqliteSessionRepository.deleteArchived`, PRE-8 E.5) et **D** (adaptateur SQLite) ; aucun document modifié.
+
+**Effet de bord à surveiller sur iPhone :** les clés étrangères sont désormais réellement appliquées aux écritures de l'appareil (comme en test). Une écriture qui aurait violé une contrainte échouera au lieu de corrompre la base.
+
+**Hors périmètre, non corrigé :** orphelins éventuels d'autres tables écrits pendant la même période (médias/zones de Mouvements supprimés, entrées de Routines supprimées, résultats d'exécution) — non réparés, à décider si un symptôme apparaît.
+
+**À vérifier sur appareil :** relancer Routine BMAD (Metro 8081, `git pull`), supprimer un Mouvement archivé non utilisé par les 2 Séances visibles ; créer, archiver puis supprimer une Séance, et vérifier que ses Mouvements deviennent supprimables.

@@ -188,3 +188,9 @@ export const STANDARD_PRAGMAS: readonly string[] = [
   "PRAGMA foreign_keys = ON",
   "PRAGMA journal_mode = WAL",
 ];
+
+/**
+ * Pragmas propres à chaque connexion, réappliqués sur la connexion dédiée d'une transaction exclusive
+ * (`ExpoDatabase.withExclusiveTransactionAsync`). `journal_mode = WAL` est persistant dans le fichier : inutile.
+ */
+export const CONNECTION_PRAGMAS: readonly string[] = ["PRAGMA foreign_keys = ON"];
