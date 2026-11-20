@@ -6,23 +6,28 @@ Référence Figma : écran « Agenda — Planning (proposition) » (`12580:27335
 
 Format défini par le [DSF Barre de titre à onglets](DSF-BARRE-TITRE-ONGLETS-2026-11-19.md). Onglets Journal · Agenda · Vue d’ensemble, au format des onglets des catalogues (libellés 17 px centrés ; onglet actif en gras sur fond arrondi). L’onglet actif est Agenda. En-tête et barre d’état teintés `#F7F7FF`, comme le catalogue des séances.
 
-## 2. Zone de contexte
+## 2. Zone de contexte et rangée des jours (20/11/2026)
 
-Bande 402 × 115 à y = 92, hauteur inchangée par rapport aux autres écrans. Dégradé lilas `#EAEAFF` opaque jusqu’à 80 % de la hauteur, puis transparent en bas (identique à la zone de contexte de « Planifier une séance »). Marges gauche et droite de 16 px. Trois lignes centrées verticalement, espacées de 6 px :
+Référence Figma : écran « P-Calendrier — Semaine — Carrousel dans la zone de contexte (proposition) » (`12765:24572`). Bande 402 × 115 à y = 92, hauteur inchangée par rapport aux autres écrans. Dégradé lilas `#EAEAFF` opaque jusqu’à 80 % de la hauteur, puis transparent en bas (identique à la zone de contexte de « Planifier une séance »). Marges gauche et droite de 16 px. Deux lignes ; la rangée des sept jours est dans la bande.
 
 | Ligne | Contenu |
 |---|---|
-| 1 — mois | Double flèche de mois à chaque bord ; « Novembre 2026 » au centre, Inter 18 semi-gras. |
-| 2 — semaine | Flèches simples rapprochées du centre (centres à x = 96 et x = 306), de façon à former un entonnoir sous la ligne du mois ; « du 16 au 22 » au centre, même style que le mois ; flèches et texte centrés sur le même axe. |
-| 3 | « Aujourd’hui » en texte seul (Inter 14 normal, gris, sans bouton ni fond), centré ; bouton « Planifier » 32 × 32 à droite (x = 354). |
+| 1 — mois | Bouton « Aujourd’hui » à l’extrême gauche : calendrier portant le numéro du jour courant, sans cercle, zone de tap 34 × 34, bord visible aligné sur le chevron de semaine en dessous. « Novembre 2026 » centré sur l’écran, Inter 18 semi-gras, avec une double flèche de mois de chaque côté, à 10 px du libellé ; les doubles flèches ne sont pas au-dessus des flèches de semaine. Centre vertical à y = 115. |
+| 2 — semaine | Flèche simple de semaine à chaque extrémité (précédente : bord visible aligné à gauche sur l’icône « Aujourd’hui » ; suivante : à gauche du bouton « Planifier »). Entre les deux, les sept jours, centrés entre les glyphes des flèches. Bouton « Planifier » 34 × 34 au bord droit (x = 352, y = 149, comme sur l’écran Journal). Centre vertical à y = 166. |
+
+**Bouton « Aujourd’hui »** : icône `icon/aujourd’hui`, même calendrier que l’icône « Planifier » (trait 1,5), chiffre du jour à la place du « + ». Gris foncé quand le jour sélectionné est le jour courant ; bleu (couleur du bouton « Planifier ») dès que le jour sélectionné est un autre jour. Toucher le bouton revient au jour courant. Dans la maquette, le chiffre affiché est fixe (20) ; il suit la date du jour dans l’application.
+
+**Rangée des jours** : sept cartes 36 × 46, rayon 10, écart 3 px, largeur totale 270 px. Contenu : jour abrégé (11), numéro (18), un point de 4 px par séance du jour en bas de la carte. Carte du jour sélectionné : pleine, violet-bleu opaque, texte blanc. Autres cartes : blanc à 30 % d’opacité.
+
+[Texte d’origine remplacé le 20/11/2026 : « Trois lignes centrées verticalement, espacées de 6 px : 1 — mois : double flèche de mois à chaque bord ; « Novembre 2026 » au centre, Inter 18 semi-gras. 2 — semaine : flèches simples rapprochées du centre (centres à x = 96 et x = 306) ; « du 16 au 22 » au centre, même style que le mois. 3 : « Aujourd’hui » en texte seul (Inter 14 normal, gris, sans bouton ni fond), centré ; bouton « Planifier » 32 × 32 à droite (x = 354). » ; « 3. Rangée des jours : sept cartes 46 × 64 sous la bande, sur toute la largeur (écart 8 px) ; jour abrégé (13), numéro (22 semi-gras), un point de 5 px par séance du jour ; carte du jour sélectionné pleine. » Le libellé « du 16 au 22 » n’est plus affiché.]
 
 ## 3. Rangée des jours
 
-Sept cartes 46 × 64 sous la bande, sur toute la largeur (écart 8 px). Contenu centré verticalement : jour abrégé (13), numéro (22 semi-gras), un point de 5 px par séance du jour. La carte du jour sélectionné est pleine.
+Voir § 2 : la rangée des sept jours est dans la bande de contexte (ligne 2).
 
 ## 4. Liste
 
-Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sépare deux jours, à 5 px au-dessus de la date ; aucun trait entre deux routines. Écart entre routines : 8 px ; ligne de routine : 52 px de haut. Liste à 14 px sous la rangée des jours.
+Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sépare deux jours, à 5 px au-dessus de la date ; aucun trait entre deux routines. Écart entre routines : 8 px ; ligne de routine : 52 px de haut. Liste sous la bande de contexte (premier en-tête de jour à y = 215). [Texte d’origine remplacé le 20/11/2026 : « Liste à 14 px sous la rangée des jours. »]
 
 ## 5. Carte d’une routine
 
@@ -35,7 +40,8 @@ Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sép
 
 ## À clarifier
 
-- Condition d’affichage de « Aujourd’hui » : proposée visible seulement hors de la semaine en cours.
+- ~~Condition d’affichage de « Aujourd’hui » : proposée visible seulement hors de la semaine en cours.~~ [Remplacé le 20/11/2026 : le bouton est toujours visible ; il est bleu quand le jour sélectionné n’est pas le jour courant (§ 2).]
+- Libellé du mois quand la semaine affichée chevauche deux mois : non défini. Changement de semaine ou de mois par balayage : non défini (flèches uniquement).
 - Comportement du changement de mois sur la semaine affichée : proposé = première semaine du mois.
 - Logique des couleurs (teinte du cadre) : à définir par Hermann ; les valeurs ci-dessus sont provisoires.
 - « Spécialité » n’existe pas dans le modèle de données fonctionnel : propriété, liste de valeurs et abréviations à définir avant tout développement.
@@ -44,7 +50,7 @@ Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sép
 
 ## 6. Déclinaison aux écrans du calendrier (19/11/2026)
 
-La zone de contexte (§ 2), la rangée des jours (§ 3), la liste regroupée par jour (§ 4) et la carte (§ 5) s’appliquent à tous les écrans de la vue Semaine (Agenda) et aux fonds des modales de suppression. Chaque écran garde son état propre :
+La zone de contexte et la rangée des jours (§ 2), la liste regroupée par jour (§ 4) et la carte (§ 5) s’appliquent à tous les écrans de la vue Semaine (Agenda) et aux fonds des modales de suppression. Chaque écran garde son état propre :
 
 - **Séance déployée** : la carte de § 5 reste telle quelle ; seul le complément de composition du catalogue (« P-Catalogue des séances — Séance déployée ») est ajouté en dessous : filet de séparation, puis la liste des exercices de la séance avec ses cycles et circuits. Le détail est inséré dans le flux de la liste ; les routines suivantes sont repoussées.
 - **Actions glissées** : la carte glisse vers la gauche de 180 px et découvre « Dupliquer » (gris) et « Supprimer » (rouge), 86 × 54 chacune [90 × 52 avant le 19/11/2026], séparées de la carte par 8 px.

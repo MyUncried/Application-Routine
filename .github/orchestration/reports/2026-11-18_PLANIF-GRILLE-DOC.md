@@ -85,3 +85,11 @@
 - Figma (20/11/2026, suite) : doublon « P-Modal — Supprimer une planification unique — Calendrier » supprimé ; bouton crayon « Modifier la planification » retiré des cartes du Journal ; DSF Journal, D-535, D-537 et prompts mis à jour (l'ouverture de la routine passe par le cadre de gauche, à confirmer dans le code).
 - Précisé le 20/11/2026 : dans l'Agenda, toute modification ne concerne que l'occurrence (aucun choix « Cette occurrence / Toute la routine ») ; D-536, DSF Agenda § 8 et les deux prompts corrigés (texte d'origine conservé et annoté). Fenêtre de choix non dessinée, sans objet.
 - Vocabulaire (20/11/2026) : dans l'interface, « créneau » désigne l'occurrence ; messages : « N créneaux non commencés seront modifiés. », « La routine et ses N créneaux seront supprimés. », « N créneaux non commencés seront modifiés ; La routine sera archivée. » (D-536, D-537, DSF Journal, prompts, deux écrans Figma du Journal).
+
+## Complément du 20/11/2026 (Agenda — zone de contexte)
+
+- Décision D-538 (ch07) ; DSF Agenda § 2 réécrit (§ 3 renvoie au § 2) ; D-533 et ch13 annotés ; texte d'origine conservé entre crochets. Classe B (rendu) ; prompt `docs/PROMPT-CLAUDE-CODE-AGENDA-ZONE-CONTEXTE-2026-11-20.md`.
+- Figma : écran « P-Calendrier — Semaine — Carrousel dans la zone de contexte (proposition) » (`12765:24572`) validé par Hermann (deux lignes : « Aujourd'hui » + mois centré entre doubles flèches ; flèches de semaine, sept cartes 36 × 46, « Planifier » 34 × 34). Composant `icon/aujourd'hui` (jeu à deux variantes : Jour courant gris, Autre jour bleu) créé ; « + » de `icon/planifier` recentré dans le composant.
+- Non fait : les écrans Semaine d'origine (dont `1992:5101`) et l'écran Journal n'ont pas été redessinés ; « Planifier » 32 → 34 reste à aligner sur ces écrans.
+- À CLARIFIER : libellé du mois sur une semaine à cheval sur deux mois ; balayage.
+- Non vérifié : rendu visuel côté Claude (contrôle géométrique, puis capture de Hermann sur la version intermédiaire) ; tests non applicables.
