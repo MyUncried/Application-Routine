@@ -21,12 +21,12 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - Ligne 1 : nom de la routine (16), précédé du chevron de déploiement.
 - Ligne 2 : spécialité · symbole des zones corporelles (silhouette `icon/zone-corporelle`, 16 × 16, sans cercle) suivi des zones.
 - Ligne 3 : « X à venir, jusqu’au jj/mm/aaaa » (X = nombre d’occurrences à venir).
-- À droite : bouton « Modifier la planification » — composant `DSF / Actions / Édition — carré` (32 × 32, crayon `icon/modifier`, fond `#F3F4F9`, coins 10).
+- Pas de bouton à droite de la carte. [Bouton « Modifier la planification » (crayon, composant `DSF / Actions / Édition — carré`) retiré le 20/11/2026 : il n’est plus nécessaire.]
 
 ## 4. Comportement
 
 - Toucher la carte (ou le chevron) la **déploie** : le déployé commence par la **phrase de récurrence** de la routine (ch10, RM de la phrase de récurrence ; ex. « Chaque lundi et jeudi »), puis les séances, chacune avec sa composition comme dans l’Agenda et le catalogue (filet de séparation, exercices, cycles et circuits).
-- Le bouton « Modifier la planification » **ouvre la routine**.
+- Le cadre de gauche (date) **ouvre la routine** [anciennement le bouton « Modifier la planification », retiré le 20/11/2026 ; comportement du cadre à confirmer dans le code].
 - Tri par défaut : date de création / modification, la plus récente en haut.
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.
 - « Active » : la routine a au moins une occurrence en cours ou à venir ; « Terminée » : sa récurrence est arrivée à son terme (plus aucune occurrence à venir). Définition retenue par Claude (19/11/2026) ; une routine sans date de fin reste active.
@@ -37,7 +37,7 @@ La modification porte toujours sur la routine entière, sans choix. Elle ne s’
 
 ## 6. Suppression d’une routine (D-537)
 
-Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N occurrences seront supprimées. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N occurrences non commencées seront supprimées ; La routine sera archivée. »). Dialogues : titre « Supprimer cette routine », message, « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal », « P-Modal — Supprimer et archiver une routine — Journal ». Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
+Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N occurrences seront supprimées. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N occurrences non commencées seront supprimées ; La routine sera archivée. »). Un seul dialogue : titre « Supprimer cette routine », message (selon la présence d’historique), « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal » (sans historique), « P-Modal — Supprimer et archiver une routine — Journal » (avec historique) : deux messages du même dialogue. Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
 
 ## 7. À clarifier
 

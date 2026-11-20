@@ -82,4 +82,5 @@
 - Figma : dialogues « Supprimer des occurrences » et « Supprimer une planification unique » passés au format titre seul (doublon à supprimer, à arbitrer) ; deux écrans créés pour le Journal ; variantes « Titre seul » et « Titre et message » ajoutées à `DSF / Overlays / Confirmation` ; bouton « Rattraper » sur les cartes rouges ; 38 photos de la carte de séance du catalogue ramenées à l’aplat du composant.
 - Non fait : fenêtres de choix « Cette occurrence seulement / Toute la routine » et de confirmation de modification globale (textes non fournis).
 - Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
+- Figma (20/11/2026, suite) : doublon « P-Modal — Supprimer une planification unique — Calendrier » supprimé ; bouton crayon « Modifier la planification » retiré des cartes du Journal ; DSF Journal, D-535, D-537 et prompts mis à jour (l'ouverture de la routine passe par le cadre de gauche, à confirmer dans le code).
 

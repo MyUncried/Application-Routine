@@ -10,8 +10,8 @@ Le Journal remplace la vue Jour. C'est la **liste des routines créées** (pas l
 
 1. Zone de contexte (bande 402 × 115, inchangée) : ligne 1 « Actives N · Terminées N » ; ligne 2 champ Rechercher, contrôle Filtre, contrôle Tri, bouton Planifier. Aucune navigation par date. Onglet « Journal » actif dans la barre de titre existante.
 2. Liste : cartes espacées de 8 px, sans séparateurs, sans dates de regroupement, sans boutons d'action (ni Démarrer ni Terminer). Pas de glissement.
-3. Carte : famille de la carte d'agenda (DSF Agenda § 5), hauteur 72 ; teinte unique `#EAEAFF` (cadre et bande), repères épais en bleu-violet moyen. Cadre : **date de création** de la routine. Ligne 1 : chevron + nom de la routine. Ligne 2 : spécialité · symbole des zones corporelles (silhouette `icon/zone-corporelle`, sans cercle) puis les zones. Ligne 3 : « X à venir, jusqu'au jj/mm/aaaa » (X = occurrences à venir). À droite : bouton « Modifier la planification », composant carré 32 × 32 (crayon, fond `#F3F4F9`, coins 10).
-4. Comportement : toucher la carte ou le chevron la déploie (1re ligne : la phrase de récurrence de la routine, ch10 ; puis les séances, chacune avec sa composition comme dans l'Agenda et le catalogue, en réutilisant le composant existant) ; le bouton crayon ouvre la routine.
+3. Carte : famille de la carte d'agenda (DSF Agenda § 5), hauteur 72 ; teinte unique `#EAEAFF` (cadre et bande), repères épais en bleu-violet moyen. Cadre : **date de création** de la routine. Ligne 1 : chevron + nom de la routine. Ligne 2 : spécialité · symbole des zones corporelles (silhouette `icon/zone-corporelle`, sans cercle) puis les zones. Ligne 3 : « X à venir, jusqu'au jj/mm/aaaa » (X = occurrences à venir). Pas de bouton à droite de la carte (le bouton « Modifier la planification » a été retiré le 20/11/2026).
+4. Comportement : toucher la carte ou le chevron la déploie (1re ligne : la phrase de récurrence de la routine, ch10 ; puis les séances, chacune avec sa composition comme dans l'Agenda et le catalogue, en réutilisant le composant existant) ; le cadre de gauche (date) ouvre la routine.
 5. Tri par défaut : date de création / modification, la plus récente en haut. Recherche par texte. Filtres : spécialité, catégorie, format, zones corporelles, programme (réutilise les composants de filtre des catalogues).
 6. Compteurs : « Active » = au moins une occurrence en cours ou à venir ; « Terminée » = récurrence arrivée à son terme (plus aucune occurrence à venir). Une routine sans date de fin reste active.
 
@@ -21,9 +21,9 @@ Points À CLARIFIER à ne pas trancher : code couleur des cartes (proposé : ble
 
 Règles du projet : primitives natives de l'OS prioritaires (aucun remplacement par une imitation) ; baseline gelée.
 - PRESERVE : moteur de planification et d'occurrences, formulaire de planification, écran d'exécution, vue Agenda, navigation du bas, routes existantes, tests existants.
-- CHANGE : écran Journal (remplace la vue Jour) ; son entrée dans la barre à onglets du calendrier ; le composant de bouton d'édition carré.
+- CHANGE : écran Journal (remplace la vue Jour) ; son entrée dans la barre à onglets du calendrier.
 - FORBIDDEN : réécriture massive des tests, changement de primitive native, modification du modèle de domaine ou de la persistance, retouche de l'Agenda. Tout besoin hors périmètre → `SCOPE_EXPANSION_REQUIRED`.
 
-Tests : la liste affiche une carte par routine (une routine à deux séances = une carte) ; ordre par défaut ; compteurs Actives / Terminées ; déploiement ; le crayon ouvre la routine ; recherche et filtres. Une suite verte ne remplace pas la validation sur iPhone.
+Tests : la liste affiche une carte par routine (une routine à deux séances = une carte) ; ordre par défaut ; compteurs Actives / Terminées ; déploiement ; le cadre de gauche ouvre la routine ; recherche et filtres. Une suite verte ne remplace pas la validation sur iPhone.
 
 Livraison : classe de synchronisation A (le code rejoint D-535). Rapport de mission dans `.github/orchestration/reports/` avec PRESERVE / CHANGE / FORBIDDEN démontrés, commit, état Git. À vérifier sur iPhone : liste de routines, déploiement, ouverture par le crayon, tri, recherche, filtres, routine sans date de fin.
