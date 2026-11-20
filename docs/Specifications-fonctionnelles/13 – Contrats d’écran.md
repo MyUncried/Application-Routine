@@ -6278,3 +6278,35 @@ La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et point
 Retirer les champs et sections supprimés dans MOUV-ADM-20261117 ; masquer les données techniques courantes et proposer un diagnostic. Historiques en lecture seule. Licence : « Non renseignée » ou « Licence ou conditions connues ». Les filtres avancés et états de séance à corriger sont à détailler dans Figma ; accès glossaire reporté aux aides. Aucune conformité visuelle actuelle n’est déclarée.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+## Programmes — catalogue, création et configuration (20/11/2026)
+
+Classe B, D-543 à D-552. Référence : [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md).
+
+### CE-PROG-01 — Catalogue des programmes
+
+- **Écrans Figma :** « PROG — 7 Catalogue des programmes — Liste », « PROG — 8 Catalogue des programmes — État vide », « PROG — 7b Catalogue des programmes — Actions glissées ».
+- **Layout :** onglets Mouvements · Séances · Programmes (Programmes sélectionné) ; couleurs Programmes, contexte et onglet #EFE8FF, fond #F9F6FF y compris derrière les onglets ; ligne « Actifs N · Terminés N » ; « Rechercher » à gauche, filtre, tri et créer à droite ; cartes 370 pt aux marges de 16 : nom, « période · statut », « N planifications · N exercices ».
+- **États :** liste des actifs par défaut ; vide : « Actifs 0 · Terminés 0 », contrôles visibles, texte d'état vide.
+- **Interactions :** toucher une carte ouvre CE-PROG-02 en configuration ; « Actifs » / « Terminés » filtrent ; glisser une carte à gauche révèle Enregistrer comme modèle (violet), Dupliquer (gris), Supprimer (rouge, ouvre CE-PROG-03).
+- **Recette :** la liste par défaut ne montre aucun programme terminé ; les trois actions glissées sont présentes, dans cet ordre ; aucune action Archiver.
+
+### CE-PROG-02 — Créer ou configurer un programme
+
+- **Écran Figma :** « PROG — 13 Créer ou configurer un programme » ; feuille de consentement : « PROG — 13b Suivi de la douleur — Consentement », ouverte par-dessus cette modale.
+- **Layout :** modale iOS au-dessus du catalogue, feuille arrondie aux quatre coins, marges latérales 8, poignée ; en-tête de modale croix · titre · coche ; zone de contexte Programmes (hauteur standard) : nom, objectif ; cartes séparées de 12, cartes à une ligne de 44 : période « Du … au … » (dates bleues sans cadre), titre « Planifications » puis carte (routines, « + Planifier une séance ou un exercice », « Rattacher une routine existante » avec chevron), carte « Suivi de la douleur » avec interrupteur.
+- **États :** titre « Nouveau programme » à la création, nom du programme en configuration ; coche active quand nom, début et fin sont renseignés et cohérents (D-499).
+- **Interactions :** toucher le nom, l'objectif ou une date les modifie ; glisser une routine à gauche la retire du programme sans la supprimer ; « + Planifier… » ouvre la planification, la routine créée est rattachée ; « Rattacher… » liste les routines sans programme ; activer le suivi de la douleur sans consentement ouvre la feuille de consentement (Annuler gris à gauche, Autoriser bleu à droite, côte à côte ; Annuler laisse l'interrupteur désactivé) ; croix : fermeture sans enregistrer.
+- **Recette :** aucun indicateur de résultat, aucune personne, ni Enregistrer comme modèle ni Dupliquer dans la modale.
+
+### CE-PROG-03 — Supprimer un programme
+
+- **Écran Figma :** « PROG — 7c Modal — Supprimer un programme » ; composant « DSF / Overlays / Confirmation », variante « Titre, message et action secondaire ».
+- **Layout :** titre « Supprimer ce programme » ; message selon l'historique (« N créneaux non commencés seront supprimés. Le programme sera terminé. ») ; « Supprimer avec ses routines » (rouge) ; « Garder les routines dans le calendrier » (violet clair, texte bleu) ; « Annuler » (gris) ; sans croix.
+- **Règles :** sans exécution, le programme est supprimé ; avec historique, créneaux non commencés supprimés, programme Terminé ; le bouton violet n'apparaît que si des routines du programme ont des créneaux à venir, et les garde détachées.
+
+### CE-PRF-01 — Profil — onglets et Confidentialité
+
+- **Écrans Figma :** écrans du Profil de la page « Prototype MVP » ; « Profil — Confidentialité ».
+- **Layout :** onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné (#EAEAFF), sans dégradé ni trait sous l'onglet. Confidentialité : « Suivi de la douleur », état déduit des programmes (avec accord : date, programmes concernés, « Retirer mon accord » en bleu, « Effacer mes relevés » en rouge ; sans accord : « non utilisé », sans réglage) ; « Partage communautaire » (interrupteur « Mes nouvelles exécutions sont visibles » activé par défaut ; lignes Pseudo, Nom d'affichage, Profil, Relevés de douleur ; mention de non-rétro-publication).
+- **États :** communauté non activée : la section Partage communautaire se réduit à « Activer la communauté ».
