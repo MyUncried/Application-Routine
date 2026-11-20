@@ -128,7 +128,10 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     if (!layout) {
       return;
     }
-    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: false }).start();
+    // Recette du 20/11/2026 (Hermann : « La barre de navigation est saccadée (déplacement du cadre) ») : translation animée par
+    // le pilote natif, indépendante du fil JavaScript occupé par l'écran qui s'ouvre. [`left` animé sans pilote natif —
+    // remplacé.] Même trajet, même durée.
+    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: true }).start();
   }, [activeRouteKey, isIndicatorReady, indicatorX]);
 
   function handleItemLayout(routeKey: string, event: LayoutChangeEvent) {
@@ -198,7 +201,7 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           <Animated.View
             pointerEvents="none"
             testID="navigation-active-indicator"
-            style={[styles.activeIndicator, { left: indicatorX }]}
+            style={[styles.activeIndicator, { transform: [{ translateX: indicatorX }] }]}
           />
         ) : null}
         {items}
@@ -263,6 +266,7 @@ const styles = StyleSheet.create({
   // Cadre actif, sous les destinations (premier enfant), centré verticalement dans la barre.
   activeIndicator: {
     position: "absolute",
+    left: 0,
     top: (BAR_INNER_HEIGHT - NAVIGATION_ACTIVE_FRAME.height) / 2,
     width: NAVIGATION_ACTIVE_FRAME.width,
     height: NAVIGATION_ACTIVE_FRAME.height,

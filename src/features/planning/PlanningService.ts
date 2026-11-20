@@ -372,10 +372,33 @@ export class PlanningService {
     return this.rangeOccurrences(monday, addDays(monday, 6), isPlannable);
   }
 
+  /**
+   * Données de l'Agenda en une lecture (recette du 20/11/2026 : liste lente à apparaître) : routines, créneaux de [`from`,
+   * `to`] et Exécutions liées. [Avant : routines et Exécutions lues deux fois par chargement — choix technique.]
+   */
+  async agendaData(
+    from: LocalDate,
+    to: LocalDate,
+  ): Promise<{ readonly routines: readonly Routine[]; readonly occurrences: readonly Occurrence[]; readonly executions: readonly OccurrenceExecution[] }> {
+    const [routines, executions] = await Promise.all([this.deps.repository.list(), this.listOccurrenceExecutions()]);
+    const keys = new Set(executions.map((execution) => occurrenceExecutionKey(execution.routineId, execution.occurrenceKey)));
+    const occurrences = this.inRange(routines, (routineId, key) => keys.has(occurrenceExecutionKey(routineId, key)), from, to, () => true);
+    return { routines, occurrences, executions };
+  }
+
   /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
   async rangeOccurrences(from: LocalDate, to: LocalDate, isPlannable: (sessionId: string) => boolean): Promise<readonly Occurrence[]> {
     const routines = await this.deps.repository.list();
-    const isStarted = await this.startedTest();
+    return this.inRange(routines, await this.startedTest(), from, to, isPlannable);
+  }
+
+  private inRange(
+    routines: readonly Routine[],
+    isStarted: IsOccurrenceStarted,
+    from: LocalDate,
+    to: LocalDate,
+    isPlannable: (sessionId: string) => boolean,
+  ): Occurrence[] {
     const now = this.deps.now();
     // D-540 : l'état « expiré » dépend du créneau suivant de la routine, éventuellement hors de la période.
     return routines

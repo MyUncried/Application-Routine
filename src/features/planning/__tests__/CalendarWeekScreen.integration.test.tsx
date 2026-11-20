@@ -147,6 +147,22 @@ const swipeCard = (routineId: string, day: string) => screen.getByTestId(new Reg
 const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
+  it("recette du 20/11/2026 : pas de message « semaine vide » tant que la semaine n'est pas chargée", async () => {
+    let release: () => void = () => undefined;
+    const real = planning.agendaData.bind(planning);
+    const spy = jest.spyOn(planning, "agendaData").mockImplementation((from, to) => new Promise((resolve) => {
+      release = () => resolve(real(from, to));
+    }));
+    await renderCalendar();
+    expect(screen.queryByTestId("calendar-week-empty")).toBeNull();
+    await act(async () => {
+      release();
+    });
+    await flush();
+    expect(screen.getByTestId("calendar-week-empty")).toBeTruthy();
+    spy.mockRestore();
+  });
+
   it("D-540 : créneau manqué au-delà du délai de rattrapage — cadre rouge, étiquette « Expirée », ni Rattraper ni Démarrer", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     // Lundi de la semaine en cours (heure passée pour l'écran) ; le service est au 1er janvier 2030 : plus de 10 jours après.

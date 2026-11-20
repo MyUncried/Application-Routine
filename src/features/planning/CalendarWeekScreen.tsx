@@ -137,6 +137,10 @@ export function CalendarWeekScreen({
   const [executions, setExecutions] = useState<readonly OccurrenceExecution[]>([]);
   // Instant du dernier chargement : sépare les occurrences passées (rouge) des occurrences à venir (bleu).
   const [loadedAt, setLoadedAt] = useState(0);
+  // Recette du 20/11/2026 (Hermann : « la liste apparaît avec un temps de décalage. Elle affiche d'abord "Aucune séance
+  // planifiée cette semaine", puis affiche la liste ») : début de la fenêtre effectivement chargée ; le message « semaine
+  // vide » n'apparaît qu'une fois la semaine affichée chargée.
+  const [loadedStart, setLoadedStart] = useState<LocalDate | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [actionFailed, setActionFailed] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
@@ -173,17 +177,14 @@ export function CalendarWeekScreen({
   const load = useCallback(
     (window: AgendaRange) => {
       const id = ++requestId.current;
-      Promise.all([
-        planning.listRoutines(),
-        planning.rangeOccurrences(window.start, addDays(window.start, window.weeks * 7 - 1), () => true),
-        planning.listOccurrenceExecutions(),
-      ]).then(
-        ([list, weekItems, linked]) => {
+      planning.agendaData(window.start, addDays(window.start, window.weeks * 7 - 1)).then(
+        ({ routines: list, occurrences: weekItems, executions: linked }) => {
           if (id !== requestId.current) return;
           setRoutines(list);
           setOccurrences(weekItems);
           setExecutions(linked);
           setLoadedAt(Date.now());
+          setLoadedStart(window.start);
           setLoadFailed(false);
         },
         (error: unknown) => {
@@ -543,7 +544,7 @@ export function CalendarWeekScreen({
             {t.calendar.actionError}
           </Text>
         ) : null}
-        {!loadFailed && !anyItem ? (
+        {!loadFailed && !anyItem && loadedStart === range.start ? (
           <Text style={styles.message} testID="calendar-week-empty">
             {t.calendar.emptyWeek}
           </Text>

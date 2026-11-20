@@ -1,11 +1,9 @@
 import {
   addDays,
-  daysBetween,
   endDateForCount,
   mondayOf,
   occurrenceInstant,
   occurrenceKey,
-  weekdayOf,
   type LocalDate,
   type LocalTime,
   type OccurrenceOverride,
@@ -78,17 +76,42 @@ export type IsOccurrenceStarted = (routineId: string, occurrenceKey: string) => 
 
 const NEVER_STARTED: IsOccurrenceStarted = () => false;
 
-/** Vrai si le créneau produit une occurrence ce jour-là (avant filtrage par les contenus et les retraits). */
-function slotProducesOn(routine: Routine, date: LocalDate): boolean {
-  if (date < routine.startDate) return false;
+/**
+ * Dates produites par le créneau (avant filtrage par les contenus et les retraits), dans l'ordre chronologique. Mêmes règles
+ * que ci-dessus (RM-047, RM-257, D-331). Performance (recette du 20/11/2026, Agenda lent) : seuls les jours produits sont
+ * calculés, en jours numériques, au lieu d'examiner chaque jour de la vie de la routine. [Choix technique ; résultat
+ * identique.]
+ */
+function producedDates(routine: Routine): LocalDate[] {
   const repetition = routine.repetition;
-  if (repetition === null) return date === routine.startDate;
-  if (repetition.unit === "DAY") return daysBetween(routine.startDate, date) % repetition.every === 0 && date <= lastPossibleDate(routine);
-  const week = Math.floor(daysBetween(mondayOf(routine.startDate), mondayOf(date)) / 7);
-  if (week % repetition.every !== 0) return false;
-  if (!repetition.weekdays.includes(weekdayOf(date))) return false;
-  if (repetition.end.kind === "UNTIL") return date <= repetition.end.date;
-  return week < repetition.end.count;
+  if (repetition === null) return [routine.startDate];
+  const start = dayNumber(routine.startDate);
+  const last = dayNumber(lastPossibleDate(routine));
+  const dates: LocalDate[] = [];
+  if (repetition.unit === "DAY") {
+    for (let day = start; day <= last; day += repetition.every) dates.push(fromDayNumber(day));
+    return dates;
+  }
+  const monday = dayNumber(mondayOf(routine.startDate));
+  const weekdays = [...repetition.weekdays].sort((a, b) => a - b);
+  const weekLimit = repetition.end.kind === "FOR" ? repetition.end.count : Number.POSITIVE_INFINITY;
+  for (let week = 0; week < weekLimit && monday + week * 7 <= last; week += repetition.every) {
+    for (const weekday of weekdays) {
+      const day = monday + week * 7 + weekday - 1;
+      if (day >= start && day <= last) dates.push(fromDayNumber(day));
+    }
+  }
+  return dates;
+}
+
+/** Jour civil en nombre de jours (UTC, sans heure : aucun effet de fuseau ni de changement d'heure). */
+function dayNumber(value: LocalDate): number {
+  return Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10))) / 86_400_000;
+}
+
+function fromDayNumber(day: number): LocalDate {
+  const date = new Date(day * 86_400_000);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
 /** Dernière date que le créneau peut produire (toute Routine livrée est bornée). */
@@ -160,11 +183,9 @@ export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStar
   const excluded = new Set(routine.exclusions);
   const result: Occurrence[] = [];
   const matched = new Set<LocalDate>();
-  const last = lastPossibleDate(routine);
   let index = 0;
   // Parcours depuis le début : le rang de chaque occurrence dépend de toutes celles qui la précèdent.
-  for (let date = routine.startDate; date <= last; date = addDays(date, 1)) {
-    if (!slotProducesOn(routine, date)) continue;
+  for (const date of producedDates(routine)) {
     index += 1;
     const saved = savedByDay.get(date);
     if (saved !== undefined) matched.add(date);
