@@ -4066,7 +4066,7 @@ Swipe contextuel en Semaine selon§4.7 ; Mois : tap jour/chevrons, pas de déplo
 
 #### 14. Validation
 
-Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence / Toutes les occurrences à venir / Annuler. La seconde action porte les occurrences futures de la Routine, pas d’autres Routines de la même source. Historique et source conservés.
+Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence / Toutes les occurrences à venir / Annuler. La seconde action porte les occurrences futures de la Routine, pas d’autres Routines de la même source. Historique et source conservés. [Remplacé le 20/11/2026, D-537 : dans l’Agenda, seule l’occurrence est supprimée (« Supprimer cette occurrence », « Confirmer », « Annuler » en haut à gauche) ; le choix « Toutes les occurrences à venir » disparaît ; une occurrence commencée ne peut pas être supprimée.]
 
 #### 15. Brouillon et persistance
 
@@ -4543,7 +4543,7 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 
 Pour une planification unique, `Supprimer` ouvre un dialogue centré comportant `Annuler` et `Confirmer`. Après confirmation, la planification est supprimée ; la source associée et les Exécutions historiques sont conservées.
 
-Pour une planification périodique, le dialogue à trois choix présente sur sa première ligne les deux actions destructives `Seulement cette occurrence` et `Toutes les occurrences à venir`, puis `Annuler` en pleine largeur sur une seconde ligne. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées.
+Pour une planification périodique, le dialogue à trois choix présente sur sa première ligne les deux actions destructives `Seulement cette occurrence` et `Toutes les occurrences à venir`, puis `Annuler` en pleine largeur sur une seconde ligne. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées. [Remplacé le 20/11/2026, D-537 : le dialogue à trois choix est remplacé par un dialogue à titre seul « Supprimer cette occurrence » avec « Confirmer » et « Annuler » en haut à gauche.]
 
 ### Planifier une séance, un exercice ou plusieurs contenus
 

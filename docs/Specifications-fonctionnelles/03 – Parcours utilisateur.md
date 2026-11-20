@@ -501,6 +501,8 @@ Les modifications s'appliquent uniquement aux occurrences futures.
 2. Pour une planification périodique, choisir **Seulement cette occurrence** ou **Toutes les occurrences à venir** ; **Annuler** occupe une seconde ligne en pleine largeur.
 3. Confirmer la suppression.
 
+[Remplacé le 20/11/2026, D-537 : dans l’Agenda, la suppression ne porte que sur l’occurrence ; le dialogue présente le titre « Supprimer cette occurrence », un bouton « Confirmer » et un bouton « Annuler » en haut à gauche, sans choix « Toutes les occurrences à venir ». Texte d’origine conservé ci-dessus.]
+
 Les occurrences futures cessent d'être générées. Les Exécutions déjà enregistrées sont conservées. Les occurrences planifiées passées non exécutées ne sont pas présentées dans l'interface du MVP.
 Les exécutions déjà réalisées sont conservées.
 

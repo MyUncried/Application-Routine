@@ -76,3 +76,10 @@
 - Non fait : modale de choix et état rouge « Rattraper » (Figma) ; stockage de la date réelle d'exécution à confirmer dans le code.
 - Non vérifié : tests non applicables (documentation).
 
+## Complément du 20/11/2026 (suppression, photos du catalogue)
+
+- Décision D-537 (ch07) ; ch03 et ch13 annotés (dialogue à trois choix remplacé) ; DSF Journal § 6, DSF Agenda § 8. Classe B ; titre des dialogues du Journal retenu par Claude.
+- Figma : dialogues « Supprimer des occurrences » et « Supprimer une planification unique » passés au format titre seul (doublon à supprimer, à arbitrer) ; deux écrans créés pour le Journal ; variantes « Titre seul » et « Titre et message » ajoutées à `DSF / Overlays / Confirmation` ; bouton « Rattraper » sur les cartes rouges ; 38 photos de la carte de séance du catalogue ramenées à l’aplat du composant.
+- Non fait : fenêtres de choix « Cette occurrence seulement / Toute la routine » et de confirmation de modification globale (textes non fournis).
+- Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
+

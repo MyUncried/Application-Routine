@@ -35,7 +35,11 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 
 La modification porte toujours sur la routine entière, sans choix. Elle ne s’applique qu’aux occurrences **non commencées** ; les occurrences commencées (une séance lancée) restent inchangées, séquence et statut. Un changement global ne remplace que les réglages non modifiés à la main sur l’occurrence, par groupe : date et heure ; séances ; rappel. À la sauvegarde : « N occurrences non commencées (à venir ou à rattraper) seront modifiées ; les occurrences déjà commencées restent inchangées ». Les occurrences à venir déjà modifiées à la main (exceptions) restent comptées dans « X à venir ».
 
-## 6. À clarifier
+## 6. Suppression d’une routine (D-537)
+
+Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N occurrences seront supprimées. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N occurrences non commencées seront supprimées ; La routine sera archivée. »). Dialogues : titre « Supprimer cette routine », message, « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal », « P-Modal — Supprimer et archiver une routine — Journal ». Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
+
+## 7. À clarifier
 
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.
 - « Spécialité » : propriété à définir (voir DSF Agenda).
