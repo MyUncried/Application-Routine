@@ -43,3 +43,5 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - modifier la routine : confirmation « N créneaux à venir seront modifiés. » ; seules les occurrences non commencées changent, et seulement dans les groupes non modifiés à la main (D-536) ;
 - supprimer : sans historique, « La routine et ses N créneaux seront supprimés. » ; avec historique, « N créneaux non commencés seront supprimés ; La routine sera archivée. » ; sans créneau à supprimer, titre « La routine <nom> sera supprimée » sans message ; « Annuler » en haut à gauche, « Confirmer » pleine largeur (D-537, `DSF / Overlays / Confirmation` « Titre seul » / « Titre et message ») ;
 - routine archivée : visible avec le filtre « Archivées » seulement.]
+
+[Recette du 20/11/2026 (Hermann) : repère « P » d'un parcours après le nom, cercle affiné, comme l'Agenda. Classe B ; rapport `2026-11-20_JOURNAL-REPERE-PARCOURS.md`.]

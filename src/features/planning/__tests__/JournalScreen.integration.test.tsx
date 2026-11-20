@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { EVERY_TIME, type RoutineDraft } from "@/domain/planning/Routine";
@@ -149,6 +150,11 @@ describe("Journal des routines (D-535)", () => {
     expect(text(`journal-card-${second.id}-slots`)).toBe("1 créneau, le 5 août");
     expect(screen.getByTestId(`journal-card-${second.id}-parcours`)).toBeTruthy();
     expect(screen.queryByTestId(`journal-card-${first.id}-parcours`)).toBeNull();
+    // Recette du 20/11/2026 : « P » après le nom, cercle affiné (1), comme l'Agenda.
+    const titleLine = screen.getByTestId(`journal-card-${second.id}-name`).parent!.parent!;
+    const order = titleLine.findAll((node) => typeof node.type === "string" && /-(name|parcours)$/.test(String(node.props.testID ?? ""))).map((node) => String(node.props.testID).replace(/^.*-/, ""));
+    expect(order.indexOf("name")).toBeLessThan(order.indexOf("parcours"));
+    expect(StyleSheet.flatten(screen.getByTestId(`journal-card-${second.id}-parcours`).props.style).borderWidth).toBe(1);
     expect(text(`journal-card-${second.id}-year`)).toBe("2026");
     expect(screen.queryByText("Démarrer")).toBeNull();
     expect(screen.queryByText("Terminer")).toBeNull();

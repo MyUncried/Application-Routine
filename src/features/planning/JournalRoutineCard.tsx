@@ -149,10 +149,12 @@ export function JournalRoutineCard({
       >
         <View style={styles.titleLine}>
           <Image source={CHEVRON} style={[styles.chevron, expanded ? styles.chevronDown : null]} accessible={false} testID={`${testID}-chevron${expanded ? "-open" : ""}`} />
-          {parcours ? <ParcoursBadge testID={`${testID}-parcours`} /> : null}
+          {/* Recette du 20/11/2026 (Hermann : « Je vois bien le P … à droite du nom dans l'agenda, mais pas dans le journal, c'est
+              à corriger ») : repère « P » après le nom, cercle affiné, comme l'Agenda. [Devant le nom, trait de 1,5 — remplacé.] */}
           <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
             {name}
           </Text>
+          {parcours ? <ParcoursBadge placement="after" stroke={1} testID={`${testID}-parcours`} /> : null}
         </View>
         {detail === "" ? null : (
           <View style={styles.zonesLine}>
@@ -199,7 +201,8 @@ const styles = StyleSheet.create({
   titleLine: { flexDirection: "row", alignItems: "center", gap: 2 },
   chevron: { width: 16, height: 16 },
   chevronDown: { transform: [{ rotate: "90deg" }] },
-  name: { flex: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
+  // Nom à sa largeur (au plus la place disponible) : le repère « P » le suit immédiatement.
+  name: { flexShrink: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
   // Pastille des zones devant la ligne 2, comme la carte de mouvement sélectionné.
   zonesLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   zones: { flexShrink: 1 },
