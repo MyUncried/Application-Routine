@@ -368,7 +368,7 @@ Un exercice possède notamment :
 Les exercices sont exécutés dans l'ordre où elles apparaissent dans la séance.
 
 ### Évaluations et résultats — D-427 à D-429
-Standard : aucune évaluation avant et Ressenti triétat obligatoire après. Enrichi uniquement pour une exécution lancée dans le contexte d'un Programme avec option active (tout lancement indépendant reste standard) : douleur initiale 0–10 obligatoire et sans localisation avant démarrage ; douleur finale 0–10 obligatoire, jamais présélectionnée, et effort perçu 1–10 obligatoire après, à la place du Ressenti. Si douleur finale > 0, au moins une localisation parmi les zones corporelles KODJO (plusieurs possibles, latéralité si applicable) ; zéro doit être choisi explicitement. Commencer ou Enregistrer est bloqué tant que des champs obligatoires manquent. Paramétrage de l'option : À CLARIFIER.
+Standard : aucune évaluation avant et Ressenti triétat obligatoire après. Enrichi uniquement pour une exécution lancée dans le contexte d'un Programme avec option active (tout lancement indépendant reste standard) : douleur initiale 0–10 obligatoire et sans localisation avant démarrage ; douleur finale 0–10 obligatoire, jamais présélectionnée, et effort perçu 1–10 obligatoire après, à la place du Ressenti. Si douleur finale > 0, au moins une localisation parmi les zones corporelles KODJO (plusieurs possibles, latéralité si applicable) ; zéro doit être choisi explicitement. Commencer ou Enregistrer est bloqué tant que des champs obligatoires manquent. Paramétrage de l'option : À CLARIFIER. [Précisé le 20/11/2026 — D-551 : l'option « Suivi de la douleur » s'active programme par programme dans la modale de création ou de configuration ; le consentement est donné une fois dans Profil › Confidentialité ; relevés locaux, jamais interprétés ni partagés. [Spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md#5-suivi-de-la-douleur).]
 
 Formats imposés : modale Répétitions partielles (8928:15098), interruption ou série sous cible ; saisie proposée zéro, minimum zéro, résultat supérieur à cible autorisé ; validation enregistre et poursuit automatiquement le plan ; fermeture sans validation annule, n'enregistre rien, revient à l'étape sans progresser.
 
@@ -579,7 +579,7 @@ Référence : document de conception `Programme / Modèle de Programme` V1.2, §
 
 Trois écrans du parcours Programme n'existent pas encore et doivent être signalés comme tels :
 
-- la **création** d'un programme (nom, intention, période) ;
+- la **création** d'un programme (nom, intention, période) ; [Conçue le 20/11/2026 — D-548, D-549 : modale « Créer ou configurer un programme » ; voir [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md#4-créer-ou-configurer-un-programme).]
 - la **proposition de rattachement** automatique des occurrences existantes tombant dans la période ;
 - l'**avertissement** lorsqu'une occurrence tombe hors de la période du programme choisi.
 

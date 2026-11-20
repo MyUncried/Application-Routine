@@ -301,7 +301,7 @@ Aucun bouton Recherche dans la barre ; composant mutualisé entre les écrans, S
 
 L’onglet `Calendrier` permet de visualiser les **Séances et Exercices planifiés** et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
-L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Préférences globales de l’application.
+L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Préférences globales de l’application. [Précisé le 20/11/2026 — D-552 : trois onglets, Compte · Préférences · Confidentialité.]
 
 La barre de navigation principale utilise le composant DSF canonique décrit plus haut. L’onglet actif est matérialisé par la variante active correspondante ; aucune substitution par glyphe ou emoji système n’est autorisée.
 

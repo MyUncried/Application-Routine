@@ -37,6 +37,7 @@ Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèque
 
 - [Catalogues, cartes et validation des modales — 5 et 6 novembre 2026](KODJO-Catalogues-cartes-modales-2026-11-06.md) : coche d’en-tête des modales, mode catalogue direct, couleurs par catalogue, onglets, cartes Séance et Mouvement, carte dépliée, écart du code (D-499 à D-509).
 - [Badge « New » dans le catalogue des mouvements — 6 novembre 2026](KODJO-Badge-Nouveau-catalogue-mouvements-2026-11-06.md) : intégrée le 6/11/2026 (D-510).
+- [Programme — catalogue, création et configuration — 20 novembre 2026](KODJO-Programme-catalogue-creation-configuration-2026-11-20.md) : catalogue, actions glissées, suppression, modale de création et de configuration, suivi de la douleur, onglet Confidentialité du Profil (D-543 à D-552).
 - [Spécification active](KODJO-Formats-entrainement-2026-11-02.md) : création commune Catalogue/Composition, menu trois options, tableaux EMOM par série, Superset alterné, charges locales et règles Death by Répétitions/Durée. [Complément final du 5 novembre](sources/formats-2026-11-05/KODJO-Complement-Parcours-creation-2026-11-05.md), appliqué à la base finale du 4 novembre. Validation EMOM bloquante ; Death by averti au premier rang incompatible puis borné à l’exécution.
 - [Contrats CE-FMT-01 à 04](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-fmt-01).
 - [Galerie et état des captures](Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#formats-galerie).
