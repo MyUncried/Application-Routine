@@ -14,12 +14,12 @@ Mission : appliquer D-540 (registre, ch07 ; `docs/DSF-AGENDA-PLANNING-2026-11-19
 ## PRESERVE / CHANGE / FORBIDDEN
 
 - PRESERVE : règles de figement D-536, suppression d'un créneau D-537 (1)(2), historique et graphiques, carte de routine, séances (le statut « Archivées » des séances n'est pas concerné), filtres multicritères du Journal, tout le reste de l'Agenda.
-- CHANGE : calcul de l'état des créneaux et des routines, liste par défaut et statut du filtre du Journal, action glissée, message de suppression, rendu gris du créneau expiré.
-- FORBIDDEN : enregistrer l'état en base ; ajouter un réglage ; toucher aux séances archivées ; promouvoir en règle un comportement non décidé. Le rendu gris du créneau expiré n'est pas encore dessiné : utilise le gris des éléments inactifs existants et signale-le.
+- CHANGE : calcul de l'état des créneaux et des routines, liste par défaut et statut du filtre du Journal, action glissée, message de suppression, étiquette « Expiré » (rouge) à la place du bouton « Rattraper ».
+- FORBIDDEN : enregistrer l'état en base ; ajouter un réglage ; toucher aux séances archivées ; promouvoir en règle un comportement non décidé. Le rendu de l'étiquette « Expiré » est dessiné dans Figma (« P-Calendrier — Semaine — Créneau expiré (proposition) ») : suis-le.
 
 ## Tests et recette
 
 - Tests : créneau manqué rattrapable jusqu'au créneau suivant puis expiré ; créneau suivant exécuté ou non ; dernier créneau expiré à 10 jours ; suppression du créneau suivant (règle recalculée) ; routine active (créneau rattrapable seul, date de fin passée) puis terminée ; prolongation de la date de fin ; liste par défaut du Journal et filtre « Terminées » ; compteurs ; action glissée sans « Archiver » ; suppression d'une routine avec historique ; créneaux expirés non modifiés par un changement de routine.
-- À vérifier sur iPhone : rendu gris du créneau expiré, bascule d'un créneau à minuit, liste du Journal après suppression.
+- À vérifier sur iPhone : étiquette « Expiré » (lisibilité sur le cadre rouge), bascule d'un créneau à minuit, liste du Journal après suppression.
 
 Livraison : classe de synchronisation A (le code rejoint D-540). Rapport de mission dans `.github/orchestration/reports/` avec PRESERVE / CHANGE / FORBIDDEN démontrés, commit, état Git.
