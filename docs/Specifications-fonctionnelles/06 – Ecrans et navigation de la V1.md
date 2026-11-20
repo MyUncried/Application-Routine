@@ -1646,6 +1646,8 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 ##### Suivi — Séances — Liste condensée
 
+[Écran supprimé de Figma le 20/11/2026 (décision de Hermann) : l’historique des séances est présenté dans l’Agenda (D-533, D-534).]
+
 [Source Figma — `1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843)
 
 ![Navigation — écran 1992:8843](images/navigation-2026-10-27/1992-8843.png)
@@ -1655,6 +1657,8 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 `Terminée`, `Partielle`, `Interrompue`
 
 ##### Référence historique hors MVP — Suivi — Séances — Vue déployée
+
+[Écran supprimé de Figma le 20/11/2026 (décision de Hermann) : l’historique des séances est présenté dans l’Agenda (D-533, D-534).]
 
 [Source Figma — `1992:8996`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8996)
 
@@ -2695,8 +2699,8 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 
 | N° | Écran | Capture | Variantes visibles | Node Figma |
 | --- | --- | --- | --- | --- |
-| Suivi — Séances | Suivi : Séances — Liste condensée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
-| Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
+| Suivi — Séances | Suivi : Séances — Liste condensée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` [supprimé le 20/11/2026] |
+| Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` [supprimé le 20/11/2026] |
 
 ### Conventions communes d’interface
 - **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]

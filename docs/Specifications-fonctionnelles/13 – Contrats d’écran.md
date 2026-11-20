@@ -536,7 +536,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`4968:8188`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8188) | Exécution d'un exercice — Démarrée | `CE-T03-10` | — |
 | [`1992:8718`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8718) | Synthèse de séance — Terminée —  Évaluation initiale | `CE-UI-08` | — |
 | [`4968:8055`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8055) | Synthèse d'exécution — Exercice Terminé —  Évaluation initiale | `CE-T03-14` | — |
-| [`1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843) | Suivi — Séances — Liste condensée | `CE-T03-15` | — |
+| [`1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843) | Suivi — Séances — Liste condensée [écran supprimé le 20/11/2026 : historique présenté dans l’Agenda] | `CE-T03-15` | — |
 | [`1992:9910`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910) | Catalogue des séances — Liste par défaut | `CE-T03-01` | — |
 | [`1992:10014`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10014) | Catalogue des séances — Séance déployée | `CE-T03-01` | — |
 | [`3786:5093`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3786-5093) | Catalogue des Exercices — Liste | `CE-T03-02` | —  **Retiré du catalogue cible le 27/10/2026 ; preuve historique.** |
