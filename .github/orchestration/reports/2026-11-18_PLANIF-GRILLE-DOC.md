@@ -136,3 +136,10 @@
 - Figma : message de la modale de suppression avec historique remplacé (écran renommé « Supprimer une routine avec historique ») ; écran « P-Calendrier — Semaine — Créneau expiré (proposition) » créé (cadre gris clair, nom en gris secondaire, sans bouton). Aucune action glissée « Archiver » n'existe sur les écrans Journal. Vérification géométrique uniquement.
 - Non traité : prompt de suppression d'origine non réécrit (remplacé par le nouveau prompt).
 - Tests : non applicables.
+
+## Complément 20/11/2026 (suite 4) — troisième onglet « Plan » (D-541, classe B)
+- Décision de Hermann : le troisième onglet s'appelle « Plan » et présente une grille d'une semaine (routines en lignes, jours en colonnes) dans le centre de l'écran ; pas de vue mois ni quinze jours. Retenus par Claude (classe C) : routines affichées, filtre commun avec l'Agenda, toucher une case.
+- Figma : onglet renommé sur les 15 écrans du calendrier ; écrans « Grille du mois (proposition) » (à supprimer, non validé) et « Routines et jours (proposition) » dessinés. Vérification géométrique uniquement.
+- Documents : D-541, D-532 annoté, DSF Barre de titre, nouveau DSF Plan, prompt `PROMPT-CLAUDE-CODE-PLAN-2026-11-20.md`.
+- À clarifier : plusieurs créneaux d'une même routine le même jour.
+- Tests : non applicables.
