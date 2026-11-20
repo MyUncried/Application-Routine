@@ -133,5 +133,6 @@
 ## Complément 20/11/2026 (suite 3) — cycle de vie d'une routine (D-540, classe B)
 - Décisions de Hermann : créneau manqué rattrapable jusqu'au créneau suivant, sinon 10 jours ; ensuite « expiré » ; routine active/terminée calculée ; plus d'archivage de routine ; filtre « Terminées » ; durée sans réglage de profil. Retenus par Claude (classe C) : état expiré non modifié par la routine et supprimé avec elle, libellé du message de suppression.
 - Documents : registre (D-540, D-537 et D-539 annotés), DSF Journal § 2 et § 6, DSF Agenda § 10, prompt `PROMPT-CLAUDE-CODE-CYCLE-VIE-ROUTINE-2026-11-20.md`.
-- Non traité : Figma (état expiré gris, libellé des deux modales de suppression, action glissée du Journal) ; prompt de suppression d'origine non réécrit (remplacé par le nouveau prompt).
+- Figma : message de la modale de suppression avec historique remplacé (écran renommé « Supprimer une routine avec historique ») ; écran « P-Calendrier — Semaine — Créneau expiré (proposition) » créé (cadre gris clair, nom en gris secondaire, sans bouton). Aucune action glissée « Archiver » n'existe sur les écrans Journal. Vérification géométrique uniquement.
+- Non traité : prompt de suppression d'origine non réécrit (remplacé par le nouveau prompt).
 - Tests : non applicables.

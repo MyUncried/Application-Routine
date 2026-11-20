@@ -11,7 +11,7 @@ Mission : appliquer D-537 (registre, ch07 ; ch03 et ch13 annotés ; `docs/DSF-AG
 ## Journal
 1. Routine sans occurrence commencée : suppression de la routine et de toutes ses occurrences. Message : « La routine et ses N créneaux seront supprimés. »
 2. Routine avec au moins une occurrence commencée : suppression de ses occurrences non commencées, archivage de la routine ; les occurrences commencées restent dans l'historique, l'Agenda passé et les graphiques. Message : « N créneaux non commencés seront modifiés ; La routine sera archivée. »
-3. Un seul dialogue, au titre « Supprimer cette routine », dont le message dépend de la présence d'historique ; boutons « Confirmer » et « Annuler » (en haut à gauche). Écrans Figma : « P-Modal — Supprimer une routine — Journal » et « P-Modal — Supprimer et archiver une routine — Journal ».
+3. Un seul dialogue, au titre « Supprimer cette routine », dont le message dépend de la présence d'historique ; boutons « Confirmer » et « Annuler » (en haut à gauche). Écrans Figma : « P-Modal — Supprimer une routine — Journal » et « P-Modal — Supprimer une routine avec historique — Journal (renommé ; message remplacé par D-540) ».
 4. La routine archivée apparaît avec le filtre « Archivées » existant du Journal. Vérifie si elle peut être restaurée et signale-le ; ne l'invente pas.
 
 Dialogue : reprends le composant `DSF / Overlays / Confirmation` (variantes « Titre seul » et « Titre et message ») ; pas de nouvelle primitive.

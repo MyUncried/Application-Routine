@@ -86,6 +86,6 @@ Références Figma : « P-Calendrier — Semaine — Filtre par routine — Choi
 ## 10. Créneau manqué, expiré et routine terminée (D-540, 20/11/2026)
 
 - **Rattrapable** : un créneau non commencé dont la date est passée reste rouge, avec « Rattraper », jusqu’au début du créneau suivant de la même routine (créneau exécuté ou non entre-temps). Le dernier créneau d’une routine reste rattrapable 10 jours après sa date.
-- **Expiré** : ensuite, le créneau devient gris, sans « Rattraper » ni « Démarrer ». Il reste visible dans l’Agenda passé, n’est pas modifié par un changement de la routine et est supprimé avec elle. L’état est calculé à l’affichage ; supprimer le créneau suivant recalcule la règle. Rendu de l’état expiré : à dessiner.
+- **Expiré** : ensuite, le créneau devient gris, sans « Rattraper » ni « Démarrer ». Il reste visible dans l’Agenda passé, n’est pas modifié par un changement de la routine et est supprimé avec elle. L’état est calculé à l’affichage ; supprimer le créneau suivant recalcule la règle. Rendu de l’état expiré : écran « P-Calendrier — Semaine — Créneau expiré (proposition) » — cadre et bande gris clair de l’état « prévu », heure et nom en gris secondaire, aucun bouton à droite (le texte « Démarrer » et le bouton « Rattraper » disparaissent).
 - **Routine active ou terminée** : voir DSF Journal § 2. Pas d’archivage ni de restauration des routines.
 - La durée de 10 jours est une constante, sans réglage dans le profil.
