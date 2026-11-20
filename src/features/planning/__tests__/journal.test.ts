@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { addDays as addDaysTo, EVERY_TIME, type Routine } from "@/domain/planning/Routine";
-import { creationDateParts, isRoutineActive, journalCounts, journalRecurrenceLine, journalSlotsLine, matchesJournalFilters, routineLastDate, sortJournal } from "@/features/planning/journal";
+import { creationDateParts, isJournalRoutineVisible, isRoutineActive, journalCounts, journalRecurrenceLine, journalSlotsLine, matchesJournalFilters, routineLastDate, sortJournal } from "@/features/planning/journal";
 import { EMPTY_SESSION_FILTERS } from "@/features/sessions/sessionCatalogueFilters";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 
@@ -23,19 +23,38 @@ const routine = (patch: Partial<Routine>): Routine => ({
 });
 
 describe("Journal — compteurs Actives / Terminées", () => {
-  it("active : une occurrence aujourd'hui ou à venir ; terminée : plus aucune", () => {
-    expect(isRoutineActive(routine({}), TODAY)).toBe(true);
-    expect(isRoutineActive(routine({ repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2026-11-18" } } }), TODAY)).toBe(false);
-    // Créneau unique d'aujourd'hui : en cours.
-    expect(isRoutineActive(routine({ repetition: null, startDate: TODAY }), TODAY)).toBe(true);
-    expect(isRoutineActive(routine({ repetition: null, startDate: "2026-11-18" }), TODAY)).toBe(false);
+  it("D-540 : active — un créneau à venir ou rattrapable, même date de fin passée ; terminée sinon", () => {
+    const now = new Date(2026, 10, 19, 12, 0);
+    const started = () => true;
+    expect(isRoutineActive(routine({}), now)).toBe(true);
+    // Date de fin passée, dernier créneau (lundi 16) non commencé : rattrapable 10 jours → active.
+    expect(isRoutineActive(routine({ repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2026-11-18" } } }), now)).toBe(true);
+    // … le même, commencé : plus rien à faire → terminée.
+    expect(isRoutineActive(routine({ repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2026-11-18" } } }), now, started)).toBe(false);
+    // Créneau unique d'aujourd'hui : à venir.
+    expect(isRoutineActive(routine({ repetition: null, startDate: TODAY }), now)).toBe(true);
+    // Créneau unique d'il y a 18 jours, jamais fait : expiré (10 jours) → terminée.
+    expect(isRoutineActive(routine({ repetition: null, startDate: "2026-11-01" }), now)).toBe(false);
     // Fin future, mais la seule occurrence restante a été retirée : terminée.
-    expect(isRoutineActive(routine({ repetition: null, startDate: "2026-11-20", exclusions: ["2026-11-20T08:00"] }), TODAY)).toBe(false);
+    expect(isRoutineActive(routine({ repetition: null, startDate: "2026-11-20", exclusions: ["2026-11-20T08:00"] }), now)).toBe(false);
     // « pendant N semaines » : borne comptée en semaines.
     expect(routineLastDate(routine({ repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 2 } } }))).toBe("2026-11-15");
     // « pendant N jours » : N jours depuis « Début le » compris.
     expect(routineLastDate(routine({ repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "FOR", count: 10 } } }))).toBe(addDaysTo(routine({}).startDate, 9));
-    expect(journalCounts([routine({}), routine({ repetition: null, startDate: "2026-11-01" })], TODAY)).toEqual({ active: 1, finished: 1 });
+    const list = [routine({}), routine({ id: "old", repetition: null, startDate: "2026-11-01" })];
+    expect(journalCounts(list, (item) => isRoutineActive(item, now))).toEqual({ active: 1, finished: 1 });
+  });
+});
+
+describe("D-540 — filtre « Actives » / « Terminées » du Journal", () => {
+  it("par défaut, actives seules ; « Terminées » (ARCHIVED) les terminées ; les deux, toutes ; statut des séances ignoré", () => {
+    expect(isJournalRoutineVisible(true, [], EMPTY_SESSION_FILTERS)).toBe(true);
+    expect(isJournalRoutineVisible(false, [], EMPTY_SESSION_FILTERS)).toBe(false);
+    const finished = { ...EMPTY_SESSION_FILTERS, statuses: new Set(["ARCHIVED" as const]) };
+    expect(isJournalRoutineVisible(false, [], finished)).toBe(true);
+    expect(isJournalRoutineVisible(true, [], finished)).toBe(false);
+    const both = { ...EMPTY_SESSION_FILTERS, statuses: new Set(["ACTIVE" as const, "ARCHIVED" as const]) };
+    expect(isJournalRoutineVisible(false, [], both) && isJournalRoutineVisible(true, [], both)).toBe(true);
   });
 });
 

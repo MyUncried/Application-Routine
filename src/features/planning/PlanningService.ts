@@ -15,7 +15,7 @@ import {
   type RoutineValidationIssue,
 } from "@/domain/planning/Routine";
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
-import { periodOccurrences, routineOccurrences, routineSessionsAt, type IsOccurrenceStarted, type Occurrence } from "@/domain/planning/occurrences";
+import { isRoutineActiveAt, routineOccurrences, routineSessionsAt, withExpiry, type IsOccurrenceStarted, type Occurrence } from "@/domain/planning/occurrences";
 import { occurrenceExecutionKey, type OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 
 /**
@@ -128,7 +128,7 @@ export class PlanningService {
    * D-536, point 1 : enregistre en entier les occurrences commencées qui ne le sont pas encore (séquence, séances, date,
    * heure et rappel en vigueur). Début : première Exécution liée.
    */
-  private async frozen(routine: Routine): Promise<Routine> {
+  private async frozen(routine: Routine, options: { readonly expired?: boolean } = {}): Promise<Routine> {
     const executions = await this.listOccurrenceExecutions();
     const startedAt = new Map<string, string>();
     for (const execution of executions) {
@@ -136,12 +136,16 @@ export class PlanningService {
       const current = startedAt.get(execution.occurrenceKey);
       if (current === undefined || execution.startedAt < current) startedAt.set(execution.occurrenceKey, execution.startedAt);
     }
-    if (startedAt.size === 0) return routine;
     const saved = new Map((routine.overrides ?? []).map((item) => [item.key, item]));
     let changed = false;
-    for (const occurrence of routineOccurrences(routine, (_, key) => startedAt.has(key))) {
+    // D-540 : un créneau expiré n'est pas modifié par un changement de la routine — enregistré en entier, non commencé
+    // (modification de la routine depuis le Journal seulement).
+    for (const occurrence of withExpiry(routineOccurrences(routine, (_, key) => startedAt.has(key)), this.deps.now())) {
       const at = startedAt.get(occurrence.key);
-      if (at === undefined || (saved.get(occurrence.key)?.startedAt ?? null) !== null) continue;
+      const current = saved.get(occurrence.key);
+      if (at === undefined && !(options.expired === true && occurrence.expired)) continue;
+      if ((current?.startedAt ?? null) !== null) continue;
+      if (at === undefined && current !== undefined && current.date !== null && current.sessions !== null && current.reminderOverridden) continue;
       saved.set(occurrence.key, {
         key: occurrence.key,
         index: occurrence.index,
@@ -150,7 +154,7 @@ export class PlanningService {
         sessions: occurrence.sessions,
         reminderOverridden: true,
         reminderMinutes: occurrence.reminderMinutes,
-        startedAt: at,
+        startedAt: at ?? null,
       });
       changed = true;
     }
@@ -213,7 +217,19 @@ export class PlanningService {
   async pendingSlotCount(routineId: string): Promise<number> {
     const routine = await this.deps.repository.get(routineId);
     if (routine === null) return 0;
-    return routineOccurrences(routine, await this.startedTest()).filter((occurrence) => !occurrence.started).length;
+    // D-540 : un créneau expiré n'est pas modifié par un changement de la routine, ni compté.
+    return withExpiry(routineOccurrences(routine, await this.startedTest()), this.deps.now()).filter((occurrence) => !occurrence.started && !occurrence.expired)
+      .length;
+  }
+
+  /**
+   * D-540, point 2 : routines actives (au moins un créneau à venir ou rattrapable) ; les autres sont terminées. Calculé, jamais
+   * enregistré.
+   */
+  async routineActivity(): Promise<ReadonlyMap<string, boolean>> {
+    const isStarted = await this.startedTest();
+    const now = this.deps.now();
+    return new Map((await this.deps.repository.list()).map((routine) => [routine.id, isRoutineActiveAt(routine, now, isStarted)]));
   }
 
   /**
@@ -284,7 +300,7 @@ export class PlanningService {
     const stored = await this.deps.repository.get(routineId);
     if (stored === null) return { status: "NOT_FOUND" };
     // D-536 : les occurrences commencées gardent la séquence de leur lancement.
-    const existing = await this.frozen(stored);
+    const existing = await this.frozen(stored, { expired: true });
     const routine: Routine = {
       ...existing,
       name: draft.name.trim(),
@@ -309,12 +325,16 @@ export class PlanningService {
     if (stored === null) return false;
     const routine = await this.frozen(stored);
     const isStarted = await this.startedTest();
-    if (!routineOccurrences(routine, isStarted).some((occurrence) => occurrence.started)) return this.written(await this.deps.repository.delete(routineId));
+    const occurrences = routineOccurrences(routine, isStarted);
+    if (!occurrences.some((occurrence) => occurrence.started)) return this.written(await this.deps.repository.delete(routineId));
+    // D-540 (20/11/2026) : plus d'archivage — les créneaux non commencés (expirés compris) sont retirés ; la routine, sans créneau
+    // à venir ni rattrapable, est terminée (état calculé). [D-537 : routine archivée (`archivedAt`) — remplacé.]
+    const removed = occurrences.filter((occurrence) => !occurrence.started).map((occurrence) => occurrence.key);
     const at = this.deps.now().toISOString();
     await this.deps.repository.save({
       ...routine,
+      exclusions: [...new Set([...routine.exclusions, ...removed])],
       overrides: (routine.overrides ?? []).filter((item) => item.startedAt !== null),
-      archivedAt: at,
       updatedAt: at,
     });
     return this.written(true);
@@ -355,7 +375,13 @@ export class PlanningService {
   /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
   async rangeOccurrences(from: LocalDate, to: LocalDate, isPlannable: (sessionId: string) => boolean): Promise<readonly Occurrence[]> {
     const routines = await this.deps.repository.list();
-    return periodOccurrences(routines, from, to, await this.startedTest())
+    const isStarted = await this.startedTest();
+    const now = this.deps.now();
+    // D-540 : l'état « expiré » dépend du créneau suivant de la routine, éventuellement hors de la période.
+    return routines
+      .flatMap((routine) => withExpiry(routineOccurrences(routine, isStarted), now))
+      .filter((occurrence) => occurrence.date >= from && occurrence.date <= to)
+      .sort((a, b) => (a.date === b.date ? (a.time === b.time ? 0 : a.time < b.time ? -1 : 1) : a.date < b.date ? -1 : 1))
       .map((occurrence) => ({ ...occurrence, contents: occurrence.contents.filter((content) => isPlannable(content.sessionId)) }))
       .filter((occurrence) => occurrence.contents.length > 0);
   }

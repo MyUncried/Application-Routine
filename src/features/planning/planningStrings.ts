@@ -68,13 +68,18 @@ export const planningStrings = {
     catchUp: "Rattraper",
     done: "Terminée",
     // Recette du 19/11/2026 au soir (s19-passees) : statut d'une occurrence exécutée.
-    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée" },
+    // D-540 (20/11/2026) : « Expirée » — créneau manqué dont le délai de rattrapage est passé.
+    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée" },
   },
   // D-535 (19/11/2026) : Journal des routines (DSF Journal, Figma « Calendrier — Journal — MVP »).
   journal: {
     // Recette du 19/11/2026 au soir (j1-compteurs) : « Mettre planifiée ». [« Actives » — remplacé.]
-    active: "Planifiées",
+    // D-540 (20/11/2026) : compteurs « Actives · Terminées ». [« Planifiées » (recette du 19/11 au soir) — remplacé.]
+    active: "Actives",
     finished: "Terminées",
+    // D-540 : statut du filtre du Journal (portant sur la routine). [« Archivées » — remplacé pour les routines.]
+    filterActive: "Actives",
+    filterFinished: "Terminées",
     once: "Une seule fois",
     on: "le",
     until: "jusqu’au",
@@ -123,8 +128,10 @@ export const planningStrings = {
     messageMany: "La routine et ses {count} créneaux seront supprimés.",
     // Constat E (Hermann, 20/11/2026) : « Suppression avec historique : « N créneaux non commencés seront supprimés ; La
     // routine sera archivée. » ».
-    archiveOne: "1 créneau non commencé sera supprimé ; La routine sera archivée.",
-    archiveMany: "{count} créneaux non commencés seront supprimés ; La routine sera archivée.",
+    // D-540 (20/11/2026) : « N créneaux non commencés seront supprimés. La routine sera terminée. » [« … ; La routine sera
+    // archivée. » — remplacé.]
+    archiveOne: "1 créneau non commencé sera supprimé. La routine sera terminée.",
+    archiveMany: "{count} créneaux non commencés seront supprimés. La routine sera terminée.",
     // r21-j-supprimer (Hermann) : aucun créneau à supprimer — « enlever le texte et mettre dans le titre "la routine <Nom de
     // la routine> sera supprimée" ».
     titleNamed: "La routine {name} sera supprimée",

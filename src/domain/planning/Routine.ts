@@ -125,7 +125,10 @@ export type Routine = {
    * D-536 (modèle validé le 20/11/2026, q21-modele) : occurrences modifiées à la main ou commencées. Absent : aucune.
    */
   readonly overrides?: readonly OccurrenceOverride[];
-  /** D-537 : routine archivée (supprimée alors qu'elle avait un historique) ; absent ou `null` : non archivée. */
+  /**
+   * [D-537 : routine archivée — plus utilisé depuis D-540 (20/11/2026), qui supprime l'archivage des routines. Colonne conservée
+   * (migration 034), jamais écrite ni lue par les règles.]
+   */
   readonly archivedAt?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;

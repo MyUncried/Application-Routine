@@ -47,6 +47,7 @@ export function PendingFilterSheet({
     <SessionFilterSheet
       native={native}
       filters={request.filters}
+      {...(request.statusLabels !== undefined ? { statusLabels: request.statusLabels } : {})}
       onApply={(filters, labels) => leave(() => request.onApply(filters, labels))}
       onClose={() => leave()}
     />

@@ -6,11 +6,10 @@ import { formatLocalDate, parseLocalDate, type Routine } from "@/domain/planning
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { CALENDAR_PALETTE } from "@/features/planning/CalendarViewTabs";
-import { creationDateParts, isJournalRoutineVisible, matchesJournalQuery, routineLastDate } from "@/features/planning/journal";
+import { creationDateParts, matchesJournalQuery, matchesRoutineSessionFilters, routineLastDate } from "@/features/planning/journal";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
-import { isSessionCatalogueFiltered } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
@@ -75,19 +74,17 @@ export function RoutineFilterSheet({
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
-  const filtered = isSessionCatalogueFiltered(filters);
   const sessionsOf = (routine: Routine) =>
     routine.entries.map((entry) => sessions.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
-  // Même règle que le Journal ; une routine archivée reste proposée (D-539 : « archivées comprises »).
+  // Recherche et filtres du Journal ; les routines terminées restent proposées (D-540, point 6), le statut est ignoré ici.
   const visible = useMemo(
     () =>
       choices.filter((choice) => {
         const routineSessions = sessionsOf(choice.routine);
-        const unarchived = { ...choice.routine, archivedAt: null };
-        return matchesJournalQuery(choice.routine, routineSessions, query) && isJournalRoutineVisible(unarchived, routineSessions, filters, filtered);
+        return matchesJournalQuery(choice.routine, routineSessions, query) && matchesRoutineSessionFilters(routineSessions, filters);
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [choices, sessions, query, filters, filtered],
+    [choices, sessions, query, filters],
   );
   const kept = selected.filter((id) => choices.some((choice) => choice.routine.id === id));
   const toggle = (id: string) => setSelected((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]));

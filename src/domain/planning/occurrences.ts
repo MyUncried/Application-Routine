@@ -66,6 +66,11 @@ export type Occurrence = {
   /** D-536, point 1 : une séance a été lancée ; l'occurrence est figée. */
   readonly started: boolean;
   readonly manual: OccurrenceManualGroups;
+  /**
+   * D-540 : créneau non commencé dont le délai de rattrapage est passé (« Expirée »). Calculé à l'affichage
+   * (`withExpiry`), jamais enregistré ; `false` tant qu'il n'a pas été calculé.
+   */
+  readonly expired: boolean;
 };
 
 /** Occurrence commencée connue par ses Exécutions (lien de la migration 033) sans être enregistrée (données antérieures). */
@@ -127,6 +132,7 @@ function effectiveOccurrence(
     sessions,
     reminderMinutes: saved?.reminderOverridden === true ? saved.reminderMinutes : routine.reminderMinutes,
     started: (saved?.startedAt ?? null) !== null || isStarted(routine.id, key),
+    expired: false,
     manual: {
       dateTime: (saved?.date ?? null) !== null || (saved?.time ?? null) !== null,
       sessions: (saved?.sessions ?? null) !== null,
@@ -145,7 +151,8 @@ function effectiveOccurrence(
  * de récurrence) ; modifiée seulement dans ses séances ou son rappel, elle suit la récurrence et disparaît avec elle.
  * [Rattachement par jour d'origine et sort d'une occurrence seulement réglée qui n'est plus produite : interprétations
  * techniques.]
- * D-537 : une Routine archivée ne présente plus que ses occurrences commencées.
+ * [D-537 : « une Routine archivée ne présente plus que ses occurrences commencées » — remplacé par D-540 (20/11/2026) : plus
+ * d'archivage ; les créneaux non commencés d'une routine supprimée avec historique sont retirés.]
  */
 export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStarted = NEVER_STARTED): Occurrence[] {
   const savedByDay = new Map<LocalDate, OccurrenceOverride>();
@@ -172,8 +179,40 @@ export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStar
     const occurrence = effectiveOccurrence(routine, saved.key, day, saved.index, saved, isStarted);
     if (occurrence !== null) result.push(occurrence);
   }
-  const archived = (routine.archivedAt ?? null) !== null;
-  return result.filter((occurrence) => !archived || occurrence.started).sort(byInstant);
+  return result.sort(byInstant);
+}
+
+/**
+ * D-540 (Hermann, 20/11/2026) : le dernier créneau d'une routine, sans suivant, reste rattrapable 10 jours après sa date.
+ * Constante de la spécification, sans réglage.
+ */
+export const LAST_SLOT_CATCH_UP_DAYS = 10;
+
+/**
+ * D-540, point 1 : un créneau non commencé dont l'heure est passée reste rattrapable jusqu'au début du créneau suivant de la
+ * même routine (non supprimé), qu'il ait été exécuté ou non ; le dernier, jusqu'à la fin du 10ᵉ jour après sa date. Ensuite il
+ * est expiré. `occurrences` : toutes les occurrences d'une routine, dans l'ordre chronologique (`routineOccurrences`).
+ * [« 10 jours après sa date » = jusqu'à minuit à la fin du 10ᵉ jour : interprétation technique.]
+ */
+export function withExpiry(occurrences: readonly Occurrence[], now: Date): Occurrence[] {
+  const at = now.getTime();
+  return occurrences.map((occurrence, index) => {
+    if (occurrence.started) return occurrence;
+    const start = occurrenceInstant(occurrence.date, occurrence.time).getTime();
+    if (start >= at) return occurrence;
+    const next = occurrences[index + 1];
+    const deadline =
+      next !== undefined ? occurrenceInstant(next.date, next.time).getTime() : occurrenceInstant(addDays(occurrence.date, LAST_SLOT_CATCH_UP_DAYS + 1), "00:00").getTime();
+    return at >= deadline ? { ...occurrence, expired: true } : occurrence;
+  });
+}
+
+/**
+ * D-540, point 2 : routine active = au moins un créneau à venir ou rattrapable (non commencé et non expiré), même si sa date de
+ * fin est passée ; terminée sinon. État calculé, jamais enregistré.
+ */
+export function isRoutineActiveAt(routine: Routine, now: Date, isStarted: IsOccurrenceStarted = NEVER_STARTED): boolean {
+  return withExpiry(routineOccurrences(routine, isStarted), now).some((occurrence) => !occurrence.started && !occurrence.expired);
 }
 
 /**

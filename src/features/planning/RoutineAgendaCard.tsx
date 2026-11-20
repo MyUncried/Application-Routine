@@ -26,12 +26,15 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  * La carte grandit avec le texte agrandi (hauteur minimale 52) au lieu de couper ses lignes (recette du 19/11/2026, h2).
  */
 
-export type AgendaStatus = "UPCOMING" | "MISSED" | "COMPLETED" | "PARTIAL" | "STOPPED";
+/** D-540 : `EXPIRED` — créneau manqué dont le délai de rattrapage est passé. */
+export type AgendaStatus = "UPCOMING" | "MISSED" | "EXPIRED" | "COMPLETED" | "PARTIAL" | "STOPPED";
 
 /** Cadre, trait et bande (bande = cadre à 18 %). Gris, vert et rouge : Figma ; bleu et orange : même construction. */
 const TINTS: Readonly<Record<AgendaStatus, { readonly frame: string; readonly bar: string; readonly band: string }>> = {
   UPCOMING: { frame: "#E3ECFF", bar: "#8EAAE8", band: "rgba(227, 236, 255, 0.18)" },
   MISSED: { frame: "#FCE5E5", bar: "#E58F8F", band: "rgba(252, 229, 229, 0.18)" },
+  // D-540 (DSF Agenda § 10) : le créneau expiré garde le cadre, la bande et les traits rouges de la séance manquée.
+  EXPIRED: { frame: "#FCE5E5", bar: "#E58F8F", band: "rgba(252, 229, 229, 0.18)" },
   COMPLETED: { frame: "#E0F5E8", bar: "#8FCCA8", band: "rgba(224, 245, 232, 0.18)" },
   PARTIAL: { frame: "#FDECD9", bar: "#EDB16E", band: "rgba(253, 236, 217, 0.18)" },
   STOPPED: { frame: "#F0F0F5", bar: "#B8BAC9", band: "rgba(240, 240, 245, 0.18)" },
@@ -42,6 +45,9 @@ const TAGS: Readonly<Partial<Record<AgendaStatus, { readonly label: string; read
   COMPLETED: { label: planningStrings.calendar.status.completed, background: "#E5F5ED", text: "#1A995C" },
   PARTIAL: { label: planningStrings.calendar.status.partial, background: "#FDECD9", text: "#B5620B" },
   STOPPED: { label: planningStrings.calendar.status.stopped, background: "#EDEEF3", text: "#6B6E80" },
+  // D-540 (DSF Agenda § 10, Figma « P-Calendrier — Semaine — Créneau expiré (proposition) ») : étiquette 76 × 24, fond #FCE6E6,
+  // texte #B33838, à la place de « Rattraper ».
+  EXPIRED: { label: planningStrings.calendar.status.expired, background: "#FCE6E6", text: "#B33838" },
 };
 
 export const AGENDA_ROW_HEIGHT = 52;

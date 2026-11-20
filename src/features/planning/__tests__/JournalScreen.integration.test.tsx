@@ -5,6 +5,7 @@ import { StyleSheet } from "react-native";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { EVERY_TIME, type RoutineDraft } from "@/domain/planning/Routine";
 import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import * as filterSheetRelay from "@/features/activities/filterSheetRelay";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { JournalScreen } from "@/features/planning/JournalScreen";
 import { PlanningService } from "@/features/planning/PlanningService";
@@ -167,7 +168,7 @@ describe("Journal des routines (D-535)", () => {
     expect(cards()[0]).toBe(`journal-card-${first.id}`);
   });
 
-  it("compteurs : Planifiées (occurrence à venir) · Terminées (plus aucune)", async () => {
+  it("D-540 : compteurs Actives · Terminées ; liste par défaut = routines actives", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     await plan({ name: "Avenir", entries: [entry(a.id, "c1")] });
     await plan({ name: "Passée", startDate: "2020-01-06", entries: [entry(a.id, "c2")] });
@@ -181,8 +182,11 @@ describe("Journal des routines (D-535)", () => {
     expect(text("journal-count-active")).toBe("2");
     expect(text("journal-count-finished")).toBe("1");
     // Compteurs au format des Catalogues : libellé, nombre à 6, « · » à 8 (ContextCounters).
-    expect(screen.getByText("Planifiées")).toBeTruthy();
+    expect(screen.getByText("Actives")).toBeTruthy();
     expect(screen.getByTestId("context-counters")).toBeTruthy();
+    // Liste par défaut : la routine terminée (« Passée », créneau de 2020 expiré) n'apparaît pas.
+    expect(screen.queryByText("Passée")).toBeNull();
+    expect(screen.getByText("Avenir")).toBeTruthy();
   });
 
   it("toucher la carte la déploie (récapitulation puis composition) ; plus de crayon (recette du 20/11/2026)", async () => {
@@ -231,7 +235,7 @@ describe("Journal des routines (D-535)", () => {
     expect(await planning.listRoutines()).toEqual([]);
   });
 
-  it("D-537 et r21-j-supprimer : avec historique, seuls les créneaux non commencés sont comptés et supprimés, la routine est archivée (filtre « Archivées »)", async () => {
+  it("D-537, D-540 et r21-j-supprimer : avec historique, seuls les créneaux non commencés sont comptés et supprimés, la routine devient terminée", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const routine = await plan({
       name: "Genou",
@@ -244,23 +248,37 @@ describe("Journal des routines (D-535)", () => {
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     await flush();
     expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
-    expect(screen.getByText("3 créneaux non commencés seront supprimés ; La routine sera archivée.")).toBeTruthy();
+    // D-540 : « … La routine sera terminée. » (plus d'archivage).
+    expect(screen.getByText("3 créneaux non commencés seront supprimés. La routine sera terminée.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
     await flush();
-    const archived = await planning.getRoutine(routine.id);
-    expect(archived?.archivedAt).not.toBeNull();
-    expect(archived?.overrides?.map((item) => [item.key, item.startedAt !== null])).toEqual([["2030-08-05T08:00", true]]);
+    const finished = await planning.getRoutine(routine.id);
+    expect(finished?.archivedAt ?? null).toBeNull();
+    expect(finished?.overrides?.map((item) => [item.key, item.startedAt !== null])).toEqual([["2030-08-05T08:00", true]]);
     // Seule l'occurrence commencée reste (historique, Agenda passé).
     expect((await planning.rangeOccurrences("2030-08-01", "2030-08-31", () => true)).map((item) => item.key)).toEqual(["2030-08-05T08:00"]);
-    // Archivée : hors de la liste par défaut.
+    // Terminée : hors de la liste par défaut ; compteurs « Actives 0 · Terminées 1 ».
     expect(cards()).toEqual([]);
+    expect(screen.getByTestId("journal-count-active")).toBeTruthy();
   });
 
   it("r21-j-supprimer : aucun créneau à supprimer — titre « La routine <nom> sera supprimée », sans message", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const routine = await plan({ name: "Genou", entries: [entry(a.id)] });
     linked = [{ executionId: "x", routineId: routine.id, occurrenceKey: "2030-08-05T08:00", rank: 1, startedAt: "2030-08-05T08:01:00.000Z", businessStatus: "PARTIAL" }];
+    const sheet = jest.spyOn(filterSheetRelay, "requestFilterSheet");
     await renderJournal();
+    // D-540 : son seul créneau est commencé — routine terminée, absente de la liste par défaut ; statut « Terminées » du filtre.
+    expect(screen.queryByTestId(`journal-item-${routine.id}-swipe-card`)).toBeNull();
+    fireEvent.press(screen.getByTestId("journal-filter"));
+    const request = sheet.mock.calls.at(-1)![0];
+    if (request.kind !== "sessions") throw new Error(request.kind);
+    expect(request.statusLabels).toEqual({ active: "Actives", archived: "Terminées" });
+    await act(async () => {
+      request.onApply({ ...request.filters, statuses: new Set(["ARCHIVED"]) }, ["Terminées"]);
+    });
+    await flush();
+    sheet.mockRestore();
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     await flush();
     expect(screen.getByText("La routine Genou sera supprimée")).toBeTruthy();

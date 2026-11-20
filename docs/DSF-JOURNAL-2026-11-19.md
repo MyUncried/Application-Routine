@@ -45,3 +45,5 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - routine archivée : visible avec le filtre « Archivées » seulement.]
 
 [Recette du 20/11/2026 (Hermann) : repère « P » d'un parcours après le nom, cercle affiné, comme l'Agenda. Classe B ; rapport `2026-11-20_JOURNAL-REPERE-PARCOURS.md`.]
+
+[Mise en œuvre du 20/11/2026 — D-540 (§ 2 et § 6 de la branche `docs/planification-grille-creneaux`, commit 171f9ca3, non fusionnée) : routine active (créneau à venir ou rattrapable) ou terminée, état calculé ; liste par défaut = actives ; statut « Terminées » du filtre ; compteurs « Actives · Terminées » ; plus d'archivage : suppression avec historique = créneaux non commencés retirés, « N créneaux non commencés seront supprimés. La routine sera terminée. ». Classe A ; rapport `2026-11-20_CYCLE-VIE-ROUTINE.md`.]

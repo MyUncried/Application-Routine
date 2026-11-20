@@ -11,7 +11,6 @@ import { zonesLine } from "@/features/planning/agendaFormat";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import {
   creationDateParts,
-  isRoutineActive,
   journalCounts,
   journalSlotsLine,
   isJournalRoutineVisible,
@@ -26,7 +25,6 @@ import type { RoutineDeletionPlan } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
-import { isSessionCatalogueFiltered } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
@@ -60,6 +58,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const planning = usePlanningService();
   const { state: catalogue, reload: reloadCatalogue, cancelPending } = useSessionCatalogue();
   const [routines, setRoutines] = useState<readonly Routine[] | null>(null);
+  const [activeRoutines, setActiveRoutines] = useState<ReadonlyMap<string, boolean>>(new Map());
   const [loadFailed, setLoadFailed] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [query, setQuery] = useState("");
@@ -84,10 +83,12 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
 
   const load = useCallback(() => {
     const id = ++requestId.current;
-    planning.listRoutines().then(
-      (list) => {
+    // D-540 : état actif / terminé calculé par le service (créneaux commencés, rattrapables, expirés).
+    Promise.all([planning.listRoutines(), planning.routineActivity()]).then(
+      ([list, activity]) => {
         if (id !== requestId.current) return;
         setRoutines(list);
+        setActiveRoutines(activity);
         setLoadFailed(false);
       },
       (error: unknown) => {
@@ -119,13 +120,13 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
 
   const today = formatLocalDate(new Date());
   const all = useMemo(() => sortJournal(routines ?? []), [routines]);
-  const counts = journalCounts(all, today);
+  const isActive = (routine: Routine) => activeRoutines.get(routine.id) === true;
+  const counts = journalCounts(all, isActive);
   const sessionsOf = (routine: Routine) =>
     routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
-  const filtered = isSessionCatalogueFiltered(filters);
   const visible = all.filter((routine) => {
     const sessions = sessionsOf(routine);
-    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(routine, sessions, filters, filtered);
+    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(isActive(routine), sessions, filters);
   });
 
   const tSessions = strings.screens.sessions;
@@ -201,6 +202,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
               requestFilterSheet({
                 kind: "sessions",
                 filters,
+                // D-540 : au Journal, le statut porte sur la routine — « Actives » / « Terminées ».
+                statusLabels: { active: t.filterActive, archived: t.filterFinished },
                 onApply: (next, labels) => {
                   setFilters(next);
                   setFilterLabels(labels);
@@ -309,7 +312,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                   parcours={routine.entries.length > 1}
                   detail={zonesLine(sessions.flatMap((session) => session.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)))}
                   slots={journalSlotsLine(routine, today, new Date())}
-                  planned={isRoutineActive(routine, today)}
+                  planned={isActive(routine)}
                   expanded={isExpanded}
                   onOpen={() => openRoutine(routine.id)}
                   onToggleExpanded={() => toggle(routine.id)}

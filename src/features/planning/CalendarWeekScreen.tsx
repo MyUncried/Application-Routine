@@ -218,7 +218,9 @@ export function CalendarWeekScreen({
     const linked = executionsByOccurrence.get(occurrenceExecutionKey(item.occurrence.routineId, item.occurrence.key)) ?? [];
     const status = occurrenceExecutionStatus(item.projections.length, linked);
     if (status !== "NONE") return status;
-    return occurrenceInstant(item.occurrence.date, item.occurrence.time).getTime() < loadedAt ? "MISSED" : "UPCOMING";
+    if (occurrenceInstant(item.occurrence.date, item.occurrence.time).getTime() >= loadedAt) return "UPCOMING";
+    // D-540 : passé le délai de rattrapage (créneau suivant de la routine, ou 10 jours pour le dernier), « Expirée ».
+    return item.occurrence.expired ? "EXPIRED" : "MISSED";
   };
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);

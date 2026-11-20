@@ -94,7 +94,9 @@ describe("D-536 — modification de la routine depuis le Journal (cas B)", () =>
   it("une occurrence commencée reste à sa date d'origine quand la récurrence change (q21-modele)", async () => {
     linked = [link("2030-08-08T08:00", 1, "PARTIAL")];
     await planning.updateRoutine("r1", draft({ repetition: { unit: "WEEK", every: 1, weekdays: [2], end: { kind: "UNTIL", date: "2030-08-29" } } }));
+    // D-540 : le 5 août, expiré (le 8 est passé), n'est pas modifié par le changement de la routine : il reste.
     expect((await all()).map((occurrence) => occurrence.key)).toEqual([
+      "2030-08-05T08:00",
       "2030-08-06T08:00",
       "2030-08-08T08:00",
       "2030-08-13T08:00",
@@ -193,18 +195,61 @@ describe("D-537 — suppression", () => {
     expect(await planning.excludeOccurrence("r1", "2030-08-08T08:00")).toBe(true);
   });
 
-  it("Journal : sans historique, la routine est supprimée ; avec, archivée et seuls les créneaux non commencés disparaissent", async () => {
+  it("Journal : sans historique, la routine est supprimée ; avec, ses créneaux non commencés sont retirés et elle est terminée (D-540)", async () => {
     expect(await planning.deletionPlan("r1")).toEqual({ history: false, count: 8 });
     linked = [link("2030-08-05T08:00", 1, "COMPLETED")];
     expect(await planning.deletionPlan("r1")).toEqual({ history: true, count: 7 });
     expect(await planning.deleteRoutine("r1")).toBe(true);
-    expect((await planning.getRoutine("r1"))?.archivedAt).not.toBeNull();
+    // D-540 : plus d'archivage ; la routine reste, sans créneau à venir ni rattrapable → terminée.
+    expect((await planning.getRoutine("r1"))?.archivedAt ?? null).toBeNull();
     expect((await all()).map((occurrence) => occurrence.key)).toEqual(["2030-08-05T08:00"]);
+    expect((await planning.routineActivity()).get("r1")).toBe(false);
+    // Prolonger la date de fin la réactive (état calculé).
+    await planning.updateRoutine("r1", draft({ repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: "2030-09-30" } } }));
+    expect((await planning.routineActivity()).get("r1")).toBe(true);
     linked = [];
     const other = await planning.createRoutine(draft({ name: "Autre", entries: [{ ...A, id: "e-a2" }] }));
     if (other.status !== "SAVED") throw new Error(other.status);
     expect(await planning.deleteRoutine(other.routine.id)).toBe(true);
     expect(await planning.getRoutine(other.routine.id)).toBeNull();
+  });
+});
+
+describe("D-540 — créneau rattrapable, expiré ; routine active ou terminée", () => {
+  // Maintenant : samedi 10 août 2030, 12 h. Lundis et jeudis du 5 au 29 août.
+  it("rattrapable jusqu'au début du créneau suivant (exécuté ou non), puis expiré", async () => {
+    const byKeyNow = async (key: string) => (await all()).find((occurrence) => occurrence.key === key);
+    // 5 août : le créneau suivant (8 août) a commencé → expiré. 8 août : rattrapable jusqu'au 12.
+    expect((await byKeyNow("2030-08-05T08:00"))?.expired).toBe(true);
+    expect((await byKeyNow("2030-08-08T08:00"))?.expired).toBe(false);
+    linked = [link("2030-08-08T08:00", 1, "COMPLETED")];
+    expect((await byKeyNow("2030-08-05T08:00"))?.expired).toBe(true);
+    // Supprimer le créneau suivant recalcule la règle : le 5 redevient rattrapable jusqu'au 12.
+    linked = [];
+    await planning.excludeOccurrence("r1", "2030-08-08T08:00");
+    expect((await byKeyNow("2030-08-05T08:00"))?.expired).toBe(false);
+  });
+
+  it("dernier créneau : rattrapable 10 jours après sa date, puis expiré ; routine active puis terminée", async () => {
+    const at = (day: number) =>
+      new PlanningService({ repository: new SqliteRoutineRepository(database), newId: () => "x", now: () => new Date(2030, 7, day, 12, 0), occurrenceExecutions: () => Promise.resolve(linked) });
+    // Créneau unique le 5 août.
+    await planning.updateRoutine("r1", draft({ repetition: null }));
+    const occurrence = async (day: number) => (await at(day).rangeOccurrences("2030-08-01", "2030-08-31", () => true))[0];
+    expect((await occurrence(15))?.expired).toBe(false);
+    expect((await occurrence(16))?.expired).toBe(true);
+    expect((await at(15).routineActivity()).get("r1")).toBe(true);
+    expect((await at(16).routineActivity()).get("r1")).toBe(false);
+  });
+
+  it("un créneau expiré n'est ni modifié par un changement de la routine ni compté dans « N créneaux … modifiés »", async () => {
+    // 5 août expiré (le 8 est passé) ; 8 août rattrapable ; 6 à venir.
+    expect(await planning.pendingSlotCount("r1")).toBe(7);
+    await planning.updateRoutine("r1", draft({ entries: [B, A] }));
+    expect(sessionsOf(await byKey("2030-08-05T08:00"))).toEqual(["s-a", "s-b"]);
+    expect(sessionsOf(await byKey("2030-08-08T08:00"))).toEqual(["s-b", "s-a"]);
+    // Supprimé avec la routine (sans historique : suppression complète).
+    expect(await planning.deletionPlan("r1")).toEqual({ history: false, count: 8 });
   });
 });
 
@@ -216,7 +261,7 @@ describe("D-539 — routines proposées par le filtre de l'Agenda", () => {
     const empty = await planning.createRoutine(draft({ name: "Zéro", entries: [{ ...A, id: "e-a4" }], repetition: null }));
     if (empty.status !== "SAVED") throw new Error(empty.status);
     await planning.excludeOccurrence(empty.routine.id, "2030-08-05T08:00");
-    // « Genou » archivée avec un créneau commencé.
+    // « Genou » terminée (supprimée avec un créneau commencé, D-540).
     linked = [link("2030-08-05T08:00", 1, "COMPLETED")];
     await planning.deleteRoutine("r1");
     const choices = await planning.routineFilterChoices();

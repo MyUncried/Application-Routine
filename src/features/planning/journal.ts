@@ -1,5 +1,5 @@
 import { normalizeSearchText } from "@/domain/activities/movementSuggestion";
-import { periodOccurrences } from "@/domain/planning/occurrences";
+import { isRoutineActiveAt, periodOccurrences, type IsOccurrenceStarted } from "@/domain/planning/occurrences";
 import { endDateForCount, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import { duringLabel, formatRecurrence } from "@/features/planning/planningSummary";
 import { planningStrings } from "@/features/planning/planningStrings";
@@ -22,18 +22,16 @@ export function routineLastDate(routine: Routine): LocalDate {
 }
 
 /**
- * DSF Journal § 4 : « Active » — au moins une occurrence en cours ou à venir (aujourd'hui compris) ; « Terminée » —
- * plus aucune occurrence à venir. [Définition retenue par Claude le 19/11/2026 (D-535). Toute Routine livrée est bornée
- * par une date de fin ou un nombre de semaines : « sans date de fin » ne peut pas se produire aujourd'hui.]
+ * D-540 (Hermann, 20/11/2026) : « Active » — au moins un créneau à venir ou rattrapable, même si la date de fin est passée ;
+ * « Terminée » sinon. État calculé (`isRoutineActiveAt`). [D-535 : « au moins une occurrence en cours ou à venir (aujourd'hui
+ * compris) » — remplacé.]
  */
-export function isRoutineActive(routine: Routine, today: LocalDate): boolean {
-  const last = routineLastDate(routine);
-  if (last < today) return false;
-  return periodOccurrences([routine], today, last).length > 0;
+export function isRoutineActive(routine: Routine, now: Date, isStarted?: IsOccurrenceStarted): boolean {
+  return isRoutineActiveAt(routine, now, isStarted);
 }
 
-export function journalCounts(routines: readonly Routine[], today: LocalDate): { readonly active: number; readonly finished: number } {
-  const active = routines.filter((routine) => isRoutineActive(routine, today)).length;
+export function journalCounts(routines: readonly Routine[], isActive: (routine: Routine) => boolean): { readonly active: number; readonly finished: number } {
+  const active = routines.filter(isActive).length;
   return { active, finished: routines.length - active };
 }
 
@@ -145,17 +143,22 @@ export function matchesJournalFilters(sessions: readonly SessionCatalogueProject
 }
 
 /**
- * D-537 (20/11/2026) : une routine archivée n'apparaît qu'avec le filtre « Archivées » du Journal ; ses autres filtres
- * portent alors sur ses séances, quel que soit leur statut. Les autres routines gardent la règle ci-dessus.
+ * Filtres du Journal hors statut, sur les séances de la routine, quel que soit le statut des séances (D-540 : au Journal, le
+ * statut porte sur la routine). Aucun critère choisi : toute routine est retenue.
  */
-export function isJournalRoutineVisible(
-  routine: Routine,
-  sessions: readonly SessionCatalogueProjection[],
-  filters: SessionCatalogueFilters,
-  filtered: boolean,
-): boolean {
-  if ((routine.archivedAt ?? null) === null) return !filtered || matchesJournalFilters(sessions, filters);
-  if (!filters.statuses.has("ARCHIVED")) return false;
-  const anyStatus: SessionCatalogueFilters = { ...filters, statuses: new Set(["ACTIVE", "ARCHIVED"]) };
-  return sessions.length === 0 || matchesJournalFilters(sessions, anyStatus);
+export function matchesRoutineSessionFilters(sessions: readonly SessionCatalogueProjection[], filters: SessionCatalogueFilters): boolean {
+  const criteria = filters.categoryIds.size + filters.bodyZoneIds.size + filters.labelIds.size + filters.formats.size;
+  if (criteria === 0) return true;
+  return matchesJournalFilters(sessions, { ...filters, statuses: new Set(["ACTIVE", "ARCHIVED"]) });
+}
+
+/**
+ * D-540 (20/11/2026) : liste par défaut du Journal = routines actives ; le statut « Terminées » du filtre (valeur `ARCHIVED`
+ * de la feuille partagée) montre les terminées ; les deux statuts, toutes. [D-537 : routine archivée visible avec
+ * « Archivées » seulement — remplacé.]
+ */
+export function isJournalRoutineVisible(active: boolean, sessions: readonly SessionCatalogueProjection[], filters: SessionCatalogueFilters): boolean {
+  const statuses = filters.statuses.size === 0 ? new Set(["ACTIVE"]) : filters.statuses;
+  if (!statuses.has(active ? "ACTIVE" : "ARCHIVED")) return false;
+  return matchesRoutineSessionFilters(sessions, filters);
 }

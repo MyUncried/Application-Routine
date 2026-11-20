@@ -24,7 +24,8 @@ const routine = (id: string, name: string, end: string): Routine => ({
 });
 const choices: RoutineFilterChoice[] = [
   { routine: routine("r1", "Dos et mobilité", "2030-12-28"), upcoming: 6 },
-  { routine: { ...routine("r2", "Genou", "2030-11-30"), archivedAt: "2030-09-01T10:00:00.000Z" }, upcoming: 0 },
+  // D-540 : routine terminée (aucun créneau à venir), toujours proposée.
+  { routine: routine("r2", "Genou", "2030-11-30"), upcoming: 0 },
 ];
 
 function renderSheet() {
@@ -45,7 +46,7 @@ describe("Filtrer par routine (D-539)", () => {
     expect(routineFilterSlotsLine(choices[0]!)).toBe("6 à venir, jusqu’au 28/12/2030");
   });
 
-  it("cartes réduites (nom, ligne 3, case), archivée comprise ; sélection multiple ; ✕ ferme sans valider", () => {
+  it("cartes réduites (nom, ligne 3, case), terminée comprise ; sélection multiple ; ✕ ferme sans valider", () => {
     const { onClose, onValidate } = renderSheet();
     expect(screen.getByText("Filtrer par routine")).toBeTruthy();
     expect(screen.getByTestId("routine-filter-card-r2-name").props.children).toBe("Genou");

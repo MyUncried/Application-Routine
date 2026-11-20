@@ -147,6 +147,21 @@ const swipeCard = (routineId: string, day: string) => screen.getByTestId(new Reg
 const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
+  it("D-540 : créneau manqué au-delà du délai de rattrapage — cadre rouge, étiquette « Expirée », ni Rattraper ni Démarrer", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    // Lundi de la semaine en cours (heure passée pour l'écran) ; le service est au 1er janvier 2030 : plus de 10 jours après.
+    const now = new Date();
+    const monday = mondayOf(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`);
+    const routine = await plan({ entries: [entry(created.id)], startDate: monday, time: "00:01" });
+    await renderCalendar();
+    fireEvent.press(screen.getByTestId("calendar-today"));
+    await flush();
+    const id = card(routine.id, monday, "00:01");
+    expect(screen.getByTestId(`${id}-status-EXPIRED`)).toBeTruthy();
+    expect(within(screen.getByTestId(`${id}-status-tag`)).getByText("Expirée")).toBeTruthy();
+    expect(screen.queryByTestId(`${id}-start`)).toBeNull();
+  });
+
   it("D-539 : filtre par routine — icône, liste et points filtrés, conservé en changeant de semaine, de mois et avec « Aujourd'hui », icône bleue = filtre désactivé sans modale", async () => {
     const a = await sessions.createStructured(input("Gainage"));
     const b = await sessions.createStructured(input("Étirements"));
