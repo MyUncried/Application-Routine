@@ -72,6 +72,7 @@
 ## Complément du 20/11/2026 (modification des occurrences)
 
 - Décision D-536 (ch07) : figement des occurrences commencées, application des modifications de routine aux occurrences non commencées, protection par groupe (date et heure ; séances ; rappel), modification d'une occurrence seule dans l'Agenda, bouton « Rattraper ». DSF Journal § 5, DSF Agenda § 8, `docs/PROMPT-CLAUDE-CODE-MODIFICATION-OCCURRENCES-2026-11-20.md`. Classe B.
-- Non fait : écran de modification d'une occurrence (Figma), modale de choix, état rouge « Rattraper » ; stockage de la date réelle d'exécution à confirmer dans le code.
+- Précisé le 20/11/2026 : une séance ajoutée à la main se retire, les séances de la routine se désactivent ; créneaux non concernés grisés (règle de rendu, sans écran).
+- Non fait : modale de choix et état rouge « Rattraper » (Figma) ; stockage de la date réelle d'exécution à confirmer dans le code.
 - Non vérifié : tests non applicables (documentation).
 
