@@ -22,7 +22,7 @@ Repère le cahier de recette de la planification dans le dépôt ; ajoute (sans 
 3. Occurrence en cours (une séance lancée) : inchangée.
 4. Occurrence rouge d'une semaine passée : prend la nouvelle séquence, affiche « Rattraper », reste rouge tant qu'elle n'est pas lancée.
 5. Occurrence à venir exécutée en avance : inchangée.
-6. À la sauvegarde : confirmation « N créneaux à venir seront modifiés. ».
+6. À la sauvegarde : confirmation « N créneaux non commencés seront modifiés. ».
 7. Après un rattrapage : statut selon l'issue ; date prévue conservée, date réelle d'exécution enregistrée.
 
 **C) Modification d'une occurrence seule.**
