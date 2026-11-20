@@ -171,3 +171,16 @@ Lecture : les applications d'exercice visent des clips courts (15 à 60 s). Elle
 - Réparation ajustée : elle s'exécute **avant** les migrations, car 032 et 034 modifient la table des routines. Les tables de 031 sont recréées seulement pour une base en version 31 exactement ; à partir de 32 la forme 031 ne suffit plus. Test : base en version 31 sans routines → tables recréées, puis 032 à 034 appliquées, schéma identique à une base neuve, données conservées.
 - Demande de modification de l'écran Figma « PROG — 7 Catalogue des programmes » : retirée par Hermann (« erreur de message »), non traitée.
 - Vérifications : dépendances réinstallées (`npm ci`) ; `tsc` sans erreur ; `npx jest src app` : 6 415/0 ; administration 33/33.
+
+## Diagnostic du 20/11/2026 (22:50) — « Suppression impossible : utilisé par 51 exercices » avec 2 séances visibles
+
+Constat (captures iPhone) : catalogue Séances = 2 séances ; un Mouvement archivé ne peut pas être supprimé (« utilisé par 51 exercices »).
+
+Analyse du code (branche `integration/bmad-planification-20261120`, sans modification applicative) :
+- `SqliteMovementRepository.deleteArchived` compte **toutes** les lignes `activities` du Mouvement (`countMovementOccurrences`), séances archivées comprises ; l'archivage d'un Mouvement, lui, ne compte que les séances actives (`countMovementActiveOccurrences`, décision PRE-9 du 03/11/2026). C'est pourquoi le Mouvement a pu être archivé mais pas supprimé.
+- Un exercice ne peut pas survivre à sa séance : `activities.session_id` → `sessions(id) ON DELETE CASCADE`, et la migration 016 a supprimé les orphelins. Les 51 exercices appartiennent donc à des séances encore en base.
+- Le catalogue Séances n'affiche par défaut que les séances **actives** (`sessionCatalogueFilters.ts` : aucun statut choisi = Actives). Les séances « supprimées » par balayage sont en réalité archivées ; la suppression définitive se fait depuis le filtre Archivées (`SqliteSessionRepository.deleteArchived`).
+
+Attribution : **plausible** (séances archivées non affichées) — non démontrée faute d'accès à la base du téléphone ; autre cause théorique : séances d'un autre `owner_id`, non observée.
+
+Vérification proposée à l'utilisateur : Séances → Filtres → Statut « Archivées » ; supprimer définitivement les séances inutiles ; puis supprimer les Mouvements archivés. Aucun test exécuté (aucune modification de code).
