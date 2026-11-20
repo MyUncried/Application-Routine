@@ -110,3 +110,10 @@
 - Figma (20/11/2026) : écrans « Choix de la routine » et « Vue filtrée » replacés à droite de l'écran carrousel (les deux modales du Journal décalées d'autant) ; écrans « P-Suivi — Séances — Liste condensée » (`1992:8843`) et « Suivi — Séances — Vue déployée » (`1992:8996`) supprimés de la page Prototype MVP (historique présenté dans l'Agenda). Les copies de ces écrans des pages « Suivi » et « Conception — Hors MVP » sont conservées. Annotés : ch06, ch13, DSF Navigation ; les matrices et rapports datés (septembre-octobre 2026) restent inchangés (instantanés). Classe B.
 - Non vérifié : rendu visuel ; tests non applicables.
 - Livraison du 20/11/2026 : deux prompts à appliquer dans l'ordre (zone de contexte D-538, puis filtre par routine D-539) ; le premier réserve l'emplacement de l'icône du second. Documentation relue : DSF Agenda § 2 et § 9, ch07 (D-538, D-539), ch13 à jour.
+
+## Complément 20/11/2026 — déploiement de la zone de contexte (D-538) et décisions de Hermann
+- Décisions (classe B) : libellé du mois = mois comptant le plus de jours de la semaine affichée (règle ISO 8601 du jeudi appliquée au mois) ; balayage de la rangée des jours = changement de semaine, à valider à l'usage ; déploiement sur tous les écrans.
+- Figma : zone de contexte (Aujourd'hui, mois, flèches, sept jours, filtre, Planifier 34×34) copiée sur les quatre écrans Semaine (déployé, actions glissées, séance déployée, modale de suppression) ; liste remontée à y=111 ; Planifier 34×34 à (352,149) sur le Journal et ses deux modales de suppression. Aucune interaction de prototype perdue (aucune réaction dans les éléments remplacés). Vérification géométrique uniquement (positions identiques à l'écran de référence) ; aucun rendu vu.
+- Documents : DSF Agenda (À clarifier remplacé, original conservé entre crochets), D-538 du registre, prompt zone de contexte.
+- Non traité, à arbitrer : fonds périmés des deux anciennes modales (Jour) — non modifiées.
+- Tests : non applicables (documentation et maquettes).

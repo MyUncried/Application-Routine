@@ -24,9 +24,9 @@ Mission : appliquer D-538 (registre, ch07 ; ch13 annoté ; `docs/DSF-AGENDA-PLAN
 
 ## Points À CLARIFIER à ne pas trancher
 
-- Libellé du mois quand la semaine affichée chevauche deux mois : non défini. Signale ce que le code affiche aujourd'hui.
-- Changement de semaine ou de mois par balayage : non défini ; flèches uniquement.
-- Comportement du changement de mois sur la semaine affichée : proposé = première semaine du mois (déjà au DSF Agenda).
+- Décidé (Hermann, 20/11/2026) : libellé du mois = le mois qui compte le plus de jours dans la semaine affichée (4 sur 7 ou plus, soit le mois du jeudi). Les flèches de mois affichent la semaine dont le libellé est le mois visé.
+- Décidé : balayage horizontal sur la rangée des jours = semaine précédente/suivante ; uniquement sur la rangée (le balayage des cartes de la liste reste celui des actions glissées). À tester à l'usage : signale tout conflit de gestes.
+- Décidé : la même zone de contexte s'applique à tous les écrans Semaine (déployé, actions glissées, séance déployée, modale de suppression).
 
 ## Tests et recette
 
