@@ -137,6 +137,8 @@
 - Non traité : prompt de suppression d'origine non réécrit (remplacé par le nouveau prompt).
 - Tests : non applicables.
 
+## Complément 20/11/2026 (suite 5) — Calendrier à deux onglets (D-542, classe B) : le troisième onglet est retiré de 13 écrans ; Journal et Agenda centrés ; vue Plan conservée comme analyse (3 écrans, 3 onglets) ; DSF Plan et prompt Plan marqués suspendus ; D-541 annoté. Vérification géométrique uniquement, tests non applicables.
+
 ## Complément 20/11/2026 (suite 4) — troisième onglet « Plan » (D-541, classe B)
 - Décision de Hermann : le troisième onglet s'appelle « Plan » et présente une grille d'une semaine (routines en lignes, jours en colonnes) dans le centre de l'écran ; pas de vue mois ni quinze jours. Retenus par Claude (classe C) : routines affichées, filtre commun avec l'Agenda, toucher une case.
 - Figma : onglet renommé sur les 15 écrans du calendrier ; écrans « Grille du mois (proposition) » (à supprimer, non validé) et « Routines et jours (proposition) » dessinés. Vérification géométrique uniquement.

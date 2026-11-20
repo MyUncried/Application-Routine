@@ -1,5 +1,7 @@
 # Claude Code — Calendrier : troisième onglet « Plan » (20/11/2026)
 
+> SUSPENDU le 20/11/2026 (D-542) : le troisième onglet est retiré. Ne pas appliquer ce prompt.
+
 Mission : appliquer D-541 (registre, ch07 ; D-532 annoté ; `docs/DSF-PLAN-2026-11-20.md` ; `docs/DSF-BARRE-TITRE-ONGLETS-2026-11-19.md`), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. S'appuie sur la zone de contexte de l'Agenda (D-538) et sur le cycle de vie des créneaux (D-540). Référence Figma : « P-Calendrier — Vue d'ensemble — Routines et jours (proposition) » (l'écran garde l'ancien nom de l'onglet). Le Figma définit le rendu ; il ne crée pas de règle métier. Expo v57 : lire la documentation versionnée avant d'écrire du code.
 
 ## À faire
