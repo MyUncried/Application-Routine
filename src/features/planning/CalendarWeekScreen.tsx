@@ -14,7 +14,7 @@ import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeAc
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { firstDayOfShiftedMonth, formatAgendaMonth, formatAgendaTime, formatAgendaWeek, sessionsDurationLabel, zonesLine } from "@/features/planning/agendaFormat";
+import { firstDayOfShiftedMonth, formatAgendaMonth, formatAgendaTime, sessionsDurationLabel, zonesLine } from "@/features/planning/agendaFormat";
 import { AGENDA_ROW_HEIGHT, RoutineAgendaCard, type AgendaStatus } from "@/features/planning/RoutineAgendaCard";
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
@@ -24,8 +24,9 @@ import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/pl
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
+import { TodayIcon } from "@/features/planning/TodayIcon";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
-import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Calendrier — vue Agenda (ancienne vue Semaine, CE-UI-03 ; D-532 à D-534, CE-UI-15, DSF Agenda — Planning du
@@ -51,7 +52,8 @@ import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
  */
 
 const t = planningStrings;
-const DOT_SIZE = 5;
+/** D-538 : point de 4 par séance du jour. [5 — remplacé.] */
+const DOT_SIZE = 4;
 const MAX_DOTS = 3;
 /** DSF Agenda § 6 : actions glissées de 90 × 52. */
 const AGENDA_ACTION_WIDTH = 90;
@@ -363,113 +365,110 @@ export function CalendarWeekScreen({
         kind: "custom",
         layout: "centered",
         content: (
-          <View style={styles.contextLines}>
-            <View style={styles.monthNavigation}>
-              <Pressable onPress={() => changeMonth(-1)} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={10} testID="calendar-previous-month">
+          // D-538 (20/11/2026, DSF Agenda § 2 ; Figma `12765:24572`) : deux lignes dans la bande 402 × 115, la rangée des sept
+          // jours dans la bande. Positions de la maquette, relatives au contenu de la bande (marges de 16 portées par la bande).
+          // [Trois lignes (mois, semaine « du 16 au 22 », « Aujourd'hui » en texte et Planifier) et rangée de cartes 46 × 64 sous
+          // la bande — remplacé.]
+          <View style={styles.context} pointerEvents="box-none" testID="calendar-context">
+            {/* Ligne 1, à gauche : « Aujourd'hui », calendrier portant le numéro du jour courant, zone de tap 34 × 34. */}
+            <Pressable
+              onPress={() => {
+                const today = todayLocal();
+                changeWeek(mondayOf(today), today);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.today}
+              style={styles.todayButton}
+              testID="calendar-today"
+            >
+              <TodayIcon day={parseLocalDate(todayLocal()).getDate()} current={selectedDay === todayLocal()} testID="calendar-today-icon" />
+            </Pressable>
+            {/* Ligne 1, au centre de l'écran : mois entre deux doubles flèches, à 10 du libellé. */}
+            <View style={styles.monthNavigation} pointerEvents="box-none">
+              <Pressable onPress={() => changeMonth(-1)} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={6} testID="calendar-previous-month">
                 <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
               </Pressable>
-              <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.4} testID="calendar-month-label">
+              <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.2} numberOfLines={1} testID="calendar-month-label">
                 {formatAgendaMonth(selectedDay)}
               </Text>
-              <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={10} testID="calendar-next-month">
+              <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={6} testID="calendar-next-month">
                 <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
               </Pressable>
             </View>
-            {/* Flèches simples rapprochées du centre (centres à 96 et 306) : entonnoir sous la ligne du mois. */}
-            <View style={styles.weekNavigation}>
-              <Pressable
-                onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
-                accessibilityRole="button"
-                accessibilityLabel={t.calendar.previousWeek}
-                hitSlop={12}
-                testID="calendar-previous-week"
-              >
-                <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
-              </Pressable>
-              <Text style={[styles.periodLabel, styles.weekLabel]} maxFontSizeMultiplier={1.4} numberOfLines={1} adjustsFontSizeToFit testID="calendar-week-label">
-                {formatAgendaWeek(monday)}
-              </Text>
-              <Pressable
-                onPress={() => changeWeek(addDays(monday, 7), addDays(monday, 7))}
-                accessibilityRole="button"
-                accessibilityLabel={t.calendar.nextWeek}
-                hitSlop={12}
-                testID="calendar-next-week"
-              >
-                <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
-              </Pressable>
+            {/* Ligne 1, à droite : emplacement du filtre par routine (D-539), zone de tap 34 × 34. */}
+            <View style={styles.filterSlot} pointerEvents="box-none" testID="calendar-filter-slot" />
+            {/* Ligne 2 : flèche de semaine, sept cartes de jour, flèche de semaine, Planifier. */}
+            <Pressable
+              onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.previousWeek}
+              hitSlop={6}
+              style={styles.previousWeek}
+              testID="calendar-previous-week"
+            >
+              <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
+            </Pressable>
+            <View style={styles.dayBar} accessibilityRole="tablist" testID="calendar-day-bar">
+              {days.map((day, index) => {
+                const items = itemsByDay.get(day) ?? [];
+                const sessionsOfDay = items.flatMap((item) => item.projections.map((projection, rank) => ({ key: `${item.key}|${rank}`, projection })));
+                const selected = day === selectedDay;
+                return (
+                  <Pressable
+                    key={day}
+                    onPress={() => selectDay(day)}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={
+                      sessionsOfDay.length > 0
+                        ? fillTemplate(t.calendar.dayAccessibility, { day: formatDayTitle(day), count: plannedCountLabel(sessionsOfDay.length) })
+                        : fillTemplate(t.calendar.dayEmptyAccessibility, { day: formatDayTitle(day) })
+                    }
+                    style={[styles.dayCell, selected ? styles.dayCellSelected : null]}
+                    testID={`calendar-day-${day}`}
+                  >
+                    <Text style={[styles.dayShort, selected ? styles.dayTextSelected : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                      {t.weekdayShort[index]}
+                    </Text>
+                    <Text style={[styles.dayNumber, selected ? styles.dayTextSelected : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                      {parseLocalDate(day).getDate()}
+                    </Text>
+                    <View style={styles.dots}>
+                      {sessionsOfDay.slice(0, MAX_DOTS).map((session) => (
+                        <View
+                          key={session.key}
+                          style={[styles.dot, { backgroundColor: selected ? colors.background : dotColor(session.projection) }]}
+                          testID={`calendar-day-${day}-dot`}
+                        />
+                      ))}
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
-            <View style={styles.todayLine}>
-              {/* « Aujourd'hui » en texte seul (DSF § 2). Sa condition d'affichage reste À CLARIFIER : toujours présent. */}
-              <Pressable
-                onPress={() => {
-                  const today = todayLocal();
-                  changeWeek(mondayOf(today), today);
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={t.calendar.today}
-                hitSlop={10}
-                testID="calendar-today"
-              >
-                <Text style={styles.todayLabel} maxFontSizeMultiplier={1.4}>
-                  {t.calendar.today}
-                </Text>
-              </Pressable>
-              {/* Planifier : cercle de commande standard des zones de contexte (`CommandCircle`, 19/11/2026). */}
-              <View style={styles.planSlot}>
-                <CommandCircle
-                  label={t.calendar.plan}
-                  icon="plan"
-                  onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
-                  testID="calendar-plan"
-                />
-              </View>
+            <Pressable
+              onPress={() => changeWeek(addDays(monday, 7), addDays(monday, 7))}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.nextWeek}
+              hitSlop={6}
+              style={styles.nextWeek}
+              testID="calendar-next-week"
+            >
+              <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
+            </Pressable>
+            {/* Planifier : cercle de commande standard des zones de contexte (`CommandCircle`), x = 352, y = 149. */}
+            <View style={styles.planSlot}>
+              <CommandCircle
+                label={t.calendar.plan}
+                icon="plan"
+                onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
+                testID="calendar-plan"
+              />
             </View>
           </View>
         ),
       }}
     >
-
-      {/* DSF Agenda § 3 : sept cartes 46 × 64 (écart 8), jour sélectionné plein, un point par séance du jour. */}
-      <View style={styles.dayBar} accessibilityRole="tablist" testID="calendar-day-bar">
-        {days.map((day, index) => {
-          const items = itemsByDay.get(day) ?? [];
-          const sessionsOfDay = items.flatMap((item) => item.projections.map((projection, rank) => ({ key: `${item.key}|${rank}`, projection })));
-          const selected = day === selectedDay;
-          return (
-            <Pressable
-              key={day}
-              onPress={() => selectDay(day)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              accessibilityLabel={
-                sessionsOfDay.length > 0
-                  ? fillTemplate(t.calendar.dayAccessibility, { day: formatDayTitle(day), count: plannedCountLabel(sessionsOfDay.length) })
-                  : fillTemplate(t.calendar.dayEmptyAccessibility, { day: formatDayTitle(day) })
-              }
-              style={[styles.dayCell, selected ? styles.dayCellSelected : null]}
-              testID={`calendar-day-${day}`}
-            >
-              {/* Recette du 19/11/2026 (h2) : texte agrandi — l'abrégé et le numéro rétrécissent pour tenir dans la carte. */}
-              <Text style={[styles.dayShort, selected ? styles.dayTextSelected : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-                {t.weekdayShort[index]}
-              </Text>
-              <Text style={[styles.dayNumber, selected ? styles.dayTextSelected : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-                {parseLocalDate(day).getDate()}
-              </Text>
-              <View style={styles.dots}>
-                {sessionsOfDay.slice(0, MAX_DOTS).map((session) => (
-                  <View
-                    key={session.key}
-                    style={[styles.dot, { backgroundColor: selected ? colors.background : dotColor(session.projection) }]}
-                    testID={`calendar-day-${day}-dot`}
-                  />
-                ))}
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
 
       <SwipeScrollLockContext.Provider value={lockList}>
       <ScrollView
@@ -650,52 +649,37 @@ const styles = StyleSheet.create({
   // DSF Barre de titre à onglets § 2 : en-tête et barre d'état teintés #F7F7FF, comme le Catalogue des séances.
   // DSF Agenda § 2 : trois lignes centrées, espacées de 6. Marges gauche et droite de 16 portées par la bande (`ContextBand`).
   // [Avant : 16 de plus ici, soit 32 de chaque côté — remplacé le 19/11/2026.]
-  contextLines: { gap: 6 },
-  monthNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  // D-538 : bande de 115, centres des lignes à y = 23 (ligne 1) et y = 74 (ligne 2) dans la bande ; x relatifs au contenu (16).
+  context: { height: 115 },
+  todayButton: { position: "absolute", left: -5, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
+  monthNavigation: { position: "absolute", left: 40, right: 40, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
   doubleChevron: { width: 30, height: 24 },
   chevron: { width: 24, height: 24 },
   chevronFirst: { position: "absolute", left: 0, top: 0 },
   chevronSecond: { position: "absolute", left: 7, top: 0 },
-  // Mois et semaine : Inter 18 semi-gras.
-  periodLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center" },
-  // Flèches de semaine aux centres x = 96 et x = 306 (bande de 370 : 68 + 24 + 186 + 24 + 68).
-  weekNavigation: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
-  weekLabel: { width: 186, flexShrink: 1 },
-  todayLine: { minHeight: dimensions.catalogueCommand.visual, alignItems: "center", justifyContent: "center" },
-  todayLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 14, color: "#333333" },
-  // Planifier à droite de la ligne 3 (bord droit à 16 de l'écran), cercle de commande standard.
-  planSlot: { position: "absolute", right: 0 },
-  // DSF Agenda § 3 : sept cartes 46 × 64, écart 8, rayon 12.
-  dayBar: {
-    flexDirection: "row",
-    gap: spacing[8],
-    paddingHorizontal: layout.screenGutter,
-    paddingTop: spacing[4],
-  },
-  dayCell: {
-    flex: 1,
-    flexBasis: 0,
-    minHeight: 64,
-    minWidth: 0,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 2,
-    paddingVertical: spacing[4],
-  },
+  // Mois : Inter 18 semi-gras.
+  periodLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
+  filterSlot: { position: "absolute", left: 345, top: 6, width: 34, height: 34 },
+  previousWeek: { position: "absolute", left: -5.75, top: 62 },
+  nextWeek: { position: "absolute", left: 302, top: 62 },
+  planSlot: { position: "absolute", left: 336, top: 57 },
+  // Rangée des jours : sept cartes 36 × 46, rayon 10, écart 3 (270), à x = 41 de l'écran.
+  dayBar: { position: "absolute", left: 25, top: 51, width: 270, height: 46, flexDirection: "row", gap: 3 },
+  dayCell: { width: 36, height: 46, borderRadius: 10, backgroundColor: "rgba(255, 255, 255, 0.3)", alignItems: "center", overflow: "hidden" },
   dayCellSelected: { backgroundColor: colors.selection },
-  dayShort: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, color: "#46464C" },
-  dayNumber: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 22, color: "#46464C" },
+  dayShort: { position: "absolute", top: 3, left: 0, right: 0, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11, lineHeight: 14, color: colors.textLabel, textAlign: "center" },
+  dayNumber: { position: "absolute", top: 14, left: 0, right: 0, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, lineHeight: 22, color: colors.textLabel, textAlign: "center" },
   dayTextSelected: { color: colors.background },
-  dots: { flexDirection: "row", gap: 2, marginTop: 2, minHeight: DOT_SIZE },
+  // Un point de 4 par séance du jour en bas de la carte (y = 39), écart 3.
+  dots: { position: "absolute", top: 39, left: 0, right: 0, flexDirection: "row", justifyContent: "center", gap: 3 },
   dot: { width: DOT_SIZE, height: DOT_SIZE, borderRadius: DOT_SIZE / 2 },
   list: { flex: 1 },
-  // DSF Agenda § 4 : liste à 14 sous la rangée des jours ; cartes pleine largeur d'écran.
-  listContent: { paddingTop: 14 },
+  // D-538 : premier en-tête de jour à y = 215 (8 sous la bande), son texte à 11,5 du haut de l'en-tête ; cartes pleine
+  // largeur d'écran. [Liste à 14 sous la rangée des jours — remplacé.]
+  listContent: { paddingTop: spacing[8] },
   daySeparator: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E8F0", marginHorizontal: layout.screenGutter, marginTop: spacing[16] },
   sectionHeader: { paddingHorizontal: layout.screenGutter, paddingTop: 5, paddingBottom: spacing[8] },
-  sectionHeaderFirst: { paddingTop: 0 },
+  sectionHeaderFirst: { paddingTop: 11 },
   // En-tête de jour : Inter 13 semi-gras gris.
   sectionTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: colors.textSecondary },
   // DSF Agenda § 4 : 8 entre deux routines, aucun trait.

@@ -189,9 +189,11 @@ describe("Calendrier Semaine", () => {
     await renderCalendar();
     expect(screen.getByTestId("calendar-week-empty")).toBeTruthy();
     expect(items()).toEqual([]);
-    // DSF Agenda § 2 : mois, puis semaine « du 5 au 11 ».
+    // D-538 : mois ; le libellé « du 5 au 11 » n'est plus affiché, la semaine se lit dans la rangée des sept jours.
     expect(screen.getByTestId("calendar-month-label").props.children).toBe("Août 2030");
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 5 au 11");
+    expect(screen.queryByTestId("calendar-week-label")).toBeNull();
+    expect(screen.getByTestId("calendar-day-2030-08-05")).toBeTruthy();
+    expect(screen.getByTestId("calendar-day-2030-08-11")).toBeTruthy();
   });
 
   it("créneau unique : une seule carte, au bon jour, à la bonne heure", async () => {
@@ -219,7 +221,7 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId("calendar-next-week"));
     await flush();
     // Semaine suivante : seul le lundi est dans la borne (jusqu'au jeudi exclu : MONDAY + 10 = jeudi suivant inclus).
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 12 au 18");
+    expect(screen.getByTestId("calendar-day-2030-08-12")).toBeTruthy();
     expect(sectionDays()).toEqual([addDays(MONDAY, 7), addDays(MONDAY, 10)]);
     fireEvent.press(screen.getByTestId("calendar-next-week"));
     await flush();
@@ -246,7 +248,7 @@ describe("Calendrier Semaine", () => {
       nativeEvent: { contentOffset: { x: 0, y: 400 }, contentSize: { width: 400, height: 3000 }, layoutMeasurement: { width: 400, height: 600 } },
     });
     await flush();
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 12 au 18");
+    expect(screen.getByTestId("calendar-day-2030-08-18")).toBeTruthy();
     expect(screen.getByTestId(`calendar-day-${addDays(MONDAY, 7)}`).props.accessibilityState).toEqual({ selected: true });
     // La liste n'est ni rechargée ni replacée : la semaine précédente reste au-dessus.
     expect(allSectionDays()[0]).toBe(MONDAY);
@@ -353,20 +355,34 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-day-${MONDAY}`).props.accessibilityState).toMatchObject({ selected: false });
   });
 
-  it("navigation : doubles flèches du mois vers le premier jour du mois ; semaine à cheval sur deux mois ; Aujourd'hui en texte (DSF Agenda § 2)", async () => {
+  it("navigation : doubles flèches du mois vers le premier jour du mois ; semaine à cheval sur deux mois ; bouton « Aujourd'hui » (D-538)", async () => {
     await renderCalendar();
     fireEvent.press(screen.getByTestId("calendar-next-month"));
     await flush();
     expect(screen.getByTestId("calendar-month-label").props.children).toBe("Septembre 2030");
-    // 1er septembre 2030 : dimanche — semaine du 26 août au 1er septembre.
-    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 26 au 1er septembre");
+    // 1er septembre 2030 : dimanche — semaine du 26 août au 1er septembre ; le mois affiché est celui du jour choisi.
+    expect(screen.getByTestId("calendar-day-2030-08-26")).toBeTruthy();
     expect(screen.getByTestId("calendar-day-2030-09-01").props.accessibilityState).toMatchObject({ selected: true });
     fireEvent.press(screen.getByTestId("calendar-previous-month"));
     fireEvent.press(screen.getByTestId("calendar-previous-month"));
     await flush();
     expect(screen.getByTestId("calendar-month-label").props.children).toBe("Juillet 2030");
-    expect(screen.getByTestId("calendar-today")).toBeTruthy();
-    expect(screen.getByText("Aujourd’hui")).toBeTruthy();
+    // D-538 : « Aujourd'hui » est une icône calendrier portant le numéro du jour courant ; bleue sur un autre jour, grise sur
+    // le jour courant ; elle ramène au jour courant et à sa semaine.
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    expect(screen.getByTestId("calendar-today").props.accessibilityLabel).toBe("Aujourd’hui");
+    expect(screen.getByTestId("calendar-today-icon-number").props.children).toBe(now.getDate());
+    expect(screen.getByTestId("calendar-today-icon-other")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("calendar-today"));
+    await flush();
+    expect(screen.getByTestId("calendar-today-icon-current")).toBeTruthy();
+    expect(screen.getByTestId(`calendar-day-${today}`).props.accessibilityState).toMatchObject({ selected: true });
+    // Cartes de jour 36 × 46 ; jour choisi plein (violet-bleu), autres blancs à 30 %.
+    const cell = StyleSheet.flatten(screen.getByTestId(`calendar-day-${today}`).props.style);
+    expect(cell).toMatchObject({ width: 36, height: 46, borderRadius: 10, backgroundColor: "#5F60EE" });
+    const otherDay = addDays(mondayOf(today), mondayOf(today) === today ? 1 : 0);
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-day-${otherDay}`).props.style)).toMatchObject({ width: 36, height: 46, backgroundColor: "rgba(255, 255, 255, 0.3)" });
   });
 
   it("barre de titre à onglets : Journal · Agenda · Vue d’ensemble, Agenda actif, composant partagé des Catalogues (D-532)", async () => {
