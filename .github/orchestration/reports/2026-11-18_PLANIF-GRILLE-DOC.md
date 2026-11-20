@@ -106,3 +106,4 @@
 - Précisé le 20/11/2026 : la modale « Filtrer par routine » affiche la zone de contexte du Journal sans « Planifier » (compteurs, recherche, filtre, tri) ; DSF Agenda § 9, D-539 et prompt mis à jour ; écran Figma « Choix de la routine » complété.
 - Précisé le 20/11/2026 : modale du filtre sans compteurs ni trait de séparation en bas ; fond de la zone de contexte du Journal depuis le haut de la modale, en-tête posé dessus. DSF Agenda § 9, D-539 et prompt corrigés ; écran Figma « Choix de la routine » mis à jour.
 - Précisé le 20/11/2026 : dans la modale du filtre, boutons de filtre et de tri alignés à droite, champ de recherche élargi.
+- Précisé le 20/11/2026 : modale du filtre sans halo blanc ni fond blanc de l’en-tête ; bouton « Filtrer N routines » à la position standard des boutons primaires (y = 802, 354 de large). Aucune règle modifiée.
