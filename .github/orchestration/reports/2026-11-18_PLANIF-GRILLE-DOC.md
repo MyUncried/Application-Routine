@@ -101,3 +101,4 @@
 - Correction : le composant `icon/aujourd’hui` n'était rattaché à aucune page lors de sa création ; il est maintenant dans le cadre « Icônes — Agenda ».
 - Non fait : écrans Semaine d'origine et Journal non redessinés ; ordre de la liste et compteur à confirmer par Hermann.
 - Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
+- Précisé le 20/11/2026 : la fenêtre de choix devient une modale simplifiée du Journal (cartes réduites au nom et à « X à venir, jusqu'au… », sélecteur à cocher, sélection multiple, barre de séparation et bouton « Filtrer N routines ») ; pastille « N routines ✕ » ; D-539, DSF Agenda § 9 et prompt mis à jour. Écrans Figma « Choix de la routine » et « Vue filtrée » redessinés.
