@@ -139,8 +139,9 @@ export const planningStrings = {
     close: "Fermer",
     applyOne: "Filtrer 1 routine",
     applyMany: "Filtrer {count} routines",
-    // [Libellé sans sélection : retenu par Claude, D-539.]
-    showAll: "Afficher toutes les routines",
+    // D-539 mis à jour le 20/11/2026 (Hermann) : un toucher sur l'icône bleue désactive le filtre. [« Afficher toutes les
+    // routines », bouton sans sélection — retiré.]
+    disable: "Désactiver le filtre par routine",
     slots: "{count} à venir, jusqu’au {date}",
     empty: "Aucune routine planifiée.",
     noResult: "Aucune routine ne correspond.",

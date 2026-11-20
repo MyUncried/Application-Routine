@@ -147,7 +147,7 @@ const swipeCard = (routineId: string, day: string) => screen.getByTestId(new Reg
 const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
-  it("D-539 : filtre par routine — icône, liste et points filtrés, conservé en changeant de semaine, de mois et avec « Aujourd'hui », retiré sans sélection", async () => {
+  it("D-539 : filtre par routine — icône, liste et points filtrés, conservé en changeant de semaine, de mois et avec « Aujourd'hui », icône bleue = filtre désactivé sans modale", async () => {
     const a = await sessions.createStructured(input("Gainage"));
     const b = await sessions.createStructured(input("Étirements"));
     const weekly = { unit: "WEEK" as const, every: 1, weekdays: [1, 4] as (1 | 4)[], end: { kind: "UNTIL" as const, date: addDays(MONDAY, 30) } };
@@ -159,7 +159,7 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId("calendar-routine-filter"));
     expect(mockPush).toHaveBeenLastCalledWith("/agenda-routine-filter");
     const request = pendingPlanningSheet("routineFilter");
-    expect(request?.initial).toEqual([]);
+    expect(request).not.toBeNull();
     await act(async () => {
       request!.onValidate([two.id]);
     });
@@ -179,15 +179,17 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId("calendar-today"));
     await flush();
     expect(screen.getByTestId("calendar-routine-filter-active")).toBeTruthy();
-    // Réouverture : la routine du filtre est cochée ; validée sans sélection, le filtre est retiré.
+    // D-539 mis à jour le 20/11/2026 : toucher l'icône bleue désactive le filtre sans ouvrir la modale.
+    mockPush.mockClear();
+    releasePlanningSheet();
     fireEvent.press(screen.getByTestId("calendar-routine-filter"));
-    const again = pendingPlanningSheet("routineFilter");
-    expect(again?.initial).toEqual([two.id]);
-    await act(async () => {
-      again!.onValidate([]);
-    });
     await flush();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(pendingPlanningSheet("routineFilter")).toBeNull();
     expect(screen.getByTestId("calendar-routine-filter-inactive")).toBeTruthy();
+    // Rouvrir : la modale est de nouveau proposée.
+    fireEvent.press(screen.getByTestId("calendar-routine-filter"));
+    expect(mockPush).toHaveBeenLastCalledWith("/agenda-routine-filter");
     expect(one.id).not.toBe(two.id);
   });
 
@@ -204,6 +206,9 @@ describe("Calendrier Semaine", () => {
     await flush();
     expect(screen.getByTestId("calendar-week-empty")).toBeTruthy();
     expect(items().some((id) => id.includes(one.id))).toBe(false);
+    // Pour changer de filtre : désactiver (icône bleue), puis rouvrir.
+    fireEvent.press(screen.getByTestId("calendar-routine-filter"));
+    await flush();
     fireEvent.press(screen.getByTestId("calendar-routine-filter"));
     await act(async () => {
       pendingPlanningSheet("routineFilter")!.onValidate([one.id]);

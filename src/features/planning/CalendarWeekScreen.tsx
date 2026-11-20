@@ -415,13 +415,19 @@ export function CalendarWeekScreen({
             {/* Ligne 1, à droite : filtre par routine (D-539, DSF Agenda § 9), entonnoir sans cercle, zone de tap 34 × 34 ;
                 contour gris sans filtre, silhouette pleine bleue filtre actif. */}
             <Pressable
+              // D-539 mis à jour le 20/11/2026 (Hermann) : sans filtre, ouvre la modale ; icône bleue (filtre actif) :
+              // désactive le filtre, sans ouvrir la modale. [Réouverture de la modale avec les routines cochées — remplacé.]
               onPress={() => {
                 setRevealed(null);
-                requestPlanningSheet({ kind: "routineFilter", initial: routineFilter === null ? [] : [...routineFilter], onValidate: changeRoutineFilter });
+                if (routineFilter !== null) {
+                  changeRoutineFilter([]);
+                  return;
+                }
+                requestPlanningSheet({ kind: "routineFilter", onValidate: changeRoutineFilter });
                 router.push("/agenda-routine-filter");
               }}
               accessibilityRole="button"
-              accessibilityLabel={t.routineFilter.open}
+              accessibilityLabel={routineFilter === null ? t.routineFilter.open : t.routineFilter.disable}
               accessibilityState={{ selected: routineFilter !== null }}
               {...(routineFilter !== null ? { accessibilityValue: { text: t.routineFilter.active } } : {})}
               style={styles.filterSlot}

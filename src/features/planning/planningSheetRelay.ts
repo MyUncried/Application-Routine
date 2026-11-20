@@ -6,8 +6,8 @@
  */
 export type PlanningSheetRequest =
   | { readonly kind: "selection"; readonly initial: readonly string[]; readonly onValidate: (selected: readonly string[]) => void }
-  /** D-539 : modale « Filtrer par routine » de l'Agenda ; liste vide validée = filtre retiré. */
-  | { readonly kind: "routineFilter"; readonly initial: readonly string[]; readonly onValidate: (selected: readonly string[]) => void };
+  /** D-539 (mis à jour le 20/11/2026) : modale « Filtrer par routine » de l'Agenda, toujours ouverte sans routine cochée. */
+  | { readonly kind: "routineFilter"; readonly onValidate: (selected: readonly string[]) => void };
 
 let pending: PlanningSheetRequest | null = null;
 

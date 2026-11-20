@@ -27,22 +27,21 @@ const choices: RoutineFilterChoice[] = [
   { routine: { ...routine("r2", "Genou", "2030-11-30"), archivedAt: "2030-09-01T10:00:00.000Z" }, upcoming: 0 },
 ];
 
-function renderSheet(initial: readonly string[] = []) {
+function renderSheet() {
   const onClose = jest.fn();
   const onValidate = jest.fn();
   render(
     <TestSafeAreaProvider>
-      <RoutineFilterSheet choices={choices} loading={false} sessions={new Map()} initial={initial} onClose={onClose} onValidate={onValidate} />
+      <RoutineFilterSheet choices={choices} loading={false} sessions={new Map()} onClose={onClose} onValidate={onValidate} />
     </TestSafeAreaProvider>,
   );
   return { onClose, onValidate };
 }
 
 describe("Filtrer par routine (D-539)", () => {
-  it("libellés : « Filtrer N routines », « Filtrer 1 routine », « Afficher toutes les routines » ; ligne 3", () => {
+  it("libellés : « Filtrer N routines », « Filtrer 1 routine » ; ligne 3", () => {
     expect(routineFilterButtonLabel(2)).toBe("Filtrer 2 routines");
     expect(routineFilterButtonLabel(1)).toBe("Filtrer 1 routine");
-    expect(routineFilterButtonLabel(0)).toBe("Afficher toutes les routines");
     expect(routineFilterSlotsLine(choices[0]!)).toBe("6 à venir, jusqu’au 28/12/2030");
   });
 
@@ -52,8 +51,13 @@ describe("Filtrer par routine (D-539)", () => {
     expect(screen.getByTestId("routine-filter-card-r2-name").props.children).toBe("Genou");
     expect(screen.queryByTestId("routine-filter-card-r1-chevron")).toBeNull();
     expect(screen.getByTestId("routine-filter-card-r1-check-unchecked")).toBeTruthy();
-    expect(screen.getByText("Afficher toutes les routines")).toBeTruthy();
+    // D-539 mis à jour : sans sélection, le bouton est désactivé (plus de « Afficher toutes les routines »).
+    expect(screen.queryByText("Afficher toutes les routines")).toBeNull();
+    expect(screen.getByTestId("routine-filter-apply").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("routine-filter-apply"));
+    expect(onValidate).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("routine-filter-card-r1"));
+    expect(screen.getByTestId("routine-filter-apply").props.accessibilityState).toMatchObject({ disabled: false });
     expect(screen.getByText("Filtrer 1 routine")).toBeTruthy();
     fireEvent.press(screen.getByTestId("routine-filter-card-r2"));
     expect(screen.getByText("Filtrer 2 routines")).toBeTruthy();
@@ -63,9 +67,10 @@ describe("Filtrer par routine (D-539)", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("réouverture : les routines du filtre en cours sont cochées ; recherche ; filtre du Catalogue des séances", () => {
-    renderSheet(["r2"]);
-    expect(screen.getByTestId("routine-filter-card-r2-check-checked")).toBeTruthy();
+  it("ouverture : aucune routine cochée (sans mémoire du filtre précédent) ; recherche ; filtre du Catalogue des séances", () => {
+    renderSheet();
+    expect(screen.getByTestId("routine-filter-card-r1-check-unchecked")).toBeTruthy();
+    expect(screen.getByTestId("routine-filter-card-r2-check-unchecked")).toBeTruthy();
     fireEvent.changeText(screen.getByTestId("routine-filter-search"), "dos");
     expect(screen.queryByTestId("routine-filter-card-r2")).toBeNull();
     expect(screen.getByTestId("routine-filter-card-r1")).toBeTruthy();

@@ -52,7 +52,6 @@ export default function AgendaRoutineFilterRoute() {
         choices={choices ?? []}
         loading={choices === null}
         sessions={sessions}
-        initial={request.initial}
         onClose={() => router.back()}
         onValidate={(selected) => {
           request.onValidate(selected);

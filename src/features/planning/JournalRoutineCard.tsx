@@ -91,20 +91,24 @@ export function JournalRoutineCard({
       >
         <View style={[styles.band, { backgroundColor: tintOf.band }]} />
         <View style={[styles.bar, styles.barRight, { backgroundColor: tintOf.bar }]} />
-        <View style={[styles.frame, { backgroundColor: tintOf.frame }]} testID={`${testID}-frame`}>
+        {/* Recette du 20/11/2026 (Hermann, modale du filtre) : « l'espace entre les deux premières lignes est trop important :
+            aligner verticalement le nom de la routine avec la date ; aligner verticalement la ligne du nombre de créneaux avec
+            l'année » → mêmes hauteurs de ligne et même écart dans les deux colonnes. [Écart 4 au cadre, 2 au texte, hauteurs
+            libres — remplacé.] */}
+        <View style={[styles.frame, styles.selectionColumn, { backgroundColor: tintOf.frame }]} testID={`${testID}-frame`}>
           <View style={[styles.bar, { backgroundColor: tintOf.bar }]} />
-          <Text style={styles.date} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-date`}>
+          <Text style={[styles.date, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-date`}>
             {date}
           </Text>
-          <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-year`}>
+          <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-year`}>
             {year}
           </Text>
         </View>
-        <View style={[styles.body, styles.selectionBody]}>
-          <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
+        <View style={[styles.body, styles.selectionBody, styles.selectionColumn]}>
+          <Text style={[styles.name, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
             {name}
           </Text>
-          <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
+          <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
             {slots}
           </Text>
         </View>
@@ -202,5 +206,9 @@ const styles = StyleSheet.create({
   // D-539 : carte réduite de 52 ; case à cocher à x = 340 du contenu (26 du bord droit de l'écran, trait compris).
   selectionRow: { minHeight: JOURNAL_SELECTION_ROW_HEIGHT },
   selectionBody: { paddingRight: spacing[8] },
+  // Colonnes alignées ligne à ligne : écart 2, ligne 1 (date, nom ; 15) en 18, ligne 2 (année, créneaux ; 12) en 15.
+  selectionColumn: { gap: 2, paddingVertical: spacing[4], justifyContent: "center" },
+  selectionLine1: { lineHeight: 18 },
+  selectionLine2: { lineHeight: 15 },
   selectionCheck: { justifyContent: "center", paddingRight: layout.screenGutter + 10 },
 });

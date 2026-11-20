@@ -33,10 +33,13 @@ export function routineFilterSlotsLine(choice: RoutineFilterChoice): string {
   return fillTemplate(planningStrings.routineFilter.slots, { count: String(choice.upcoming), date: numericDate(routineLastDate(choice.routine)) });
 }
 
-/** Libellé du bouton (D-539) : « Filtrer N routines », « Filtrer 1 routine », « Afficher toutes les routines » sans sélection. */
+/**
+ * Libellé du bouton (D-539, mis à jour le 20/11/2026) : « Filtrer N routines », « Filtrer 1 routine ». Sans sélection, le
+ * bouton est désactivé. [« Afficher toutes les routines » — retiré.] [« Filtrer 0 routines » sur le bouton désactivé :
+ * formule appliquée telle quelle, à confirmer.]
+ */
 export function routineFilterButtonLabel(count: number): string {
   const t = planningStrings.routineFilter;
-  if (count === 0) return t.showAll;
   return count === 1 ? t.applyOne : t.applyMany.replace("{count}", String(count));
 }
 
@@ -47,22 +50,20 @@ export function routineFilterButtonLabel(count: number): string {
  *   dessus, puis Rechercher (largeur disponible), Filtre et Tri à droite, sans compteurs ni « Planifier » ; même
  *   fonctionnement que le Journal (recherche, feuille des filtres du Catalogue des séances, tri inactif) ;
  * - une carte du Journal par routine, réduite au nom et à « X à venir, jusqu'au jj/mm/aaaa », case à cocher à droite ;
- *   sélection multiple ; à l'ouverture, les routines du filtre en cours sont cochées ;
- * - en bas, « Filtrer N routines » (« Filtrer 1 routine ») ; sans sélection, « Afficher toutes les routines », qui retire le
- *   filtre.
+ *   sélection multiple ; la modale s'ouvre toujours sans routine cochée (elle n'est ouverte que filtre inactif) ;
+ * - en bas, « Filtrer N routines » (« Filtrer 1 routine »), désactivé sans sélection.
+ * [D-539 mis à jour le 20/11/2026 (Hermann) : précoche du filtre en cours et « Afficher toutes les routines » — retirés.]
  */
 export function RoutineFilterSheet({
   choices,
   loading,
   sessions,
-  initial,
   onClose,
   onValidate,
 }: {
   readonly choices: readonly RoutineFilterChoice[];
   readonly loading: boolean;
   readonly sessions: ReadonlyMap<string, SessionCatalogueProjection>;
-  readonly initial: readonly string[];
   readonly onClose: () => void;
   readonly onValidate: (selected: readonly string[]) => void;
 }) {
@@ -70,7 +71,7 @@ export function RoutineFilterSheet({
   const tJournal = planningStrings.journal;
   const tSessions = strings.screens.sessions;
   const router = useRouter();
-  const [selected, setSelected] = useState<readonly string[]>(() => initial);
+  const [selected, setSelected] = useState<readonly string[]>([]);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
@@ -192,7 +193,14 @@ export function RoutineFilterSheet({
       />
       {/* Bouton primaire en bas, sans trait de séparation (DSF Agenda § 9). */}
       <PrimaryActionZone testID="routine-filter-action-zone">
-        <PrimaryActionButton label={routineFilterButtonLabel(kept.length)} onPress={() => onValidate(kept)} testID="routine-filter-apply" />
+        <PrimaryActionButton
+          label={routineFilterButtonLabel(kept.length)}
+          disabled={kept.length === 0}
+          onPress={() => {
+            if (kept.length > 0) onValidate(kept);
+          }}
+          testID="routine-filter-apply"
+        />
       </PrimaryActionZone>
     </ScreenShell>
   );
