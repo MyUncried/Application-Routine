@@ -5,7 +5,7 @@ import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { CheckBox } from "@/shared/ui/CheckBox";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, layout, spacing } from "@/shared/ui/tokens";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Carte d'une routine du Journal (D-535, DSF Journal § 3 ; Figma « Calendrier — Journal — MVP » `1992:5510`) — même
@@ -187,12 +187,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   date: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: colors.textPrimary },
-  secondary: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, color: colors.textSecondary },
+  // DSF Agenda § 5 (décision de Hermann du 20/11/2026) : tailles des cartes des catalogues — « Card name » = `type.listCardTitle`
+  // (Inter Semi Bold 15), « Card metadata » = `type.supporting` (Inter Regular 12), sans interligne fixe comme la carte de
+  // séance (`SessionCard`) : hauteurs inchangées. [16 et 13 en dur — remplacés.]
+  secondary: { ...type.supporting, lineHeight: undefined, color: colors.textSecondary },
   body: { flex: 1, paddingLeft: spacing[8], paddingRight: layout.screenGutter + BAR_WIDTH, paddingVertical: spacing[4], justifyContent: "center", gap: 2 },
   titleLine: { flexDirection: "row", alignItems: "center", gap: 2 },
   chevron: { width: 16, height: 16 },
   chevronDown: { transform: [{ rotate: "90deg" }] },
-  name: { flex: 1, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary },
+  name: { flex: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
   // Pastille des zones devant la ligne 2, comme la carte de mouvement sélectionné.
   zonesLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   zones: { flexShrink: 1 },

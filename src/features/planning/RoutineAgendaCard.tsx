@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { planningStrings } from "@/features/planning/planningStrings";
-import { colors, layout, spacing } from "@/shared/ui/tokens";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Carte d'une routine de l'Agenda (D-533, D-534 ; DSF Agenda — Planning § 5 ; Figma `12580:27335`, lignes d'agenda
@@ -186,14 +186,17 @@ const styles = StyleSheet.create({
   durationLine: { flexDirection: "row", alignItems: "center", gap: 3 },
   chronometerBox: { width: 14, height: 14, alignItems: "center", justifyContent: "center" },
   chronometer: { width: 10.8333, height: 12.5833 },
-  secondary: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, color: colors.textSecondary, flexShrink: 1 },
+  // DSF Agenda § 5 (décision de Hermann du 20/11/2026) : tailles des cartes des catalogues — « Card name » = `type.listCardTitle`
+  // (Inter Semi Bold 15), « Card metadata » = `type.supporting` (Inter Regular 12), sans interligne fixe comme la carte de
+  // séance (`SessionCard`) : hauteurs inchangées. [16 et 13 en dur — remplacés.]
+  secondary: { ...type.supporting, lineHeight: undefined, color: colors.textSecondary, flexShrink: 1 },
   // Trois zones tactiles sur toute la hauteur : les marges appartiennent au centre (gauche) et à la zone droite.
   body: { flex: 1, flexDirection: "row", alignItems: "stretch" },
   center: { flex: 1, paddingLeft: spacing[8], paddingVertical: spacing[4], justifyContent: "center", gap: 2 },
   titleLine: { flexDirection: "row", alignItems: "center", gap: 2 },
   chevron: { width: CHEVRON_SIZE, height: CHEVRON_SIZE },
   chevronDown: { transform: [{ rotate: "90deg" }] },
-  name: { flex: 1, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary },
+  name: { flex: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
   detail: {},
   // Action alignée en bas avec la ligne 2.
   action: { justifyContent: "flex-end", paddingVertical: spacing[4], paddingLeft: spacing[8], paddingRight: layout.screenGutter },
