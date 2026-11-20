@@ -308,6 +308,8 @@ describe("Journal des routines (D-535)", () => {
     fireEvent.press(screen.getByTestId("journal-plan"));
     expect(mockPush).toHaveBeenLastCalledWith(expect.objectContaining({ pathname: "/planning" }));
     expect(screen.getByTestId("calendar-view-row-day").props.accessibilityState).toMatchObject({ selected: true });
+    // D-542 : deux onglets seulement.
+    expect(screen.queryByTestId("calendar-view-row-month")).toBeNull();
     fireEvent.press(screen.getByTestId("calendar-view-row-week"));
     expect(onChangeView).toHaveBeenCalledWith("agenda");
   });

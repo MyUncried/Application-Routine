@@ -12,7 +12,7 @@ import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
  * Haut d'écran à onglets (« EcranAOnglets », demande de Hermann du 19/11/2026 : « Crée ce composant partagé pour le haut
  * d'écran […] ET APPLIQUE LE PARTOUT OÙ IL DOIT ÊTRE UTILISÉ » ; choix B : Catalogues compris). Un seul assemblage pour
  * tous les écrans à barre de titre à onglets (DSF Barre de titre à onglets du 19/11/2026, D-532) : Catalogues
- * (Mouvements · Séances · Programmes), Calendrier (Journal · Agenda · Vue d'ensemble), Profil (Profil · Préférences ·
+ * (Mouvements · Séances · Programmes), Calendrier (Journal · Agenda ; D-542 : « Vue d'ensemble » retirée le 20/11/2026), Profil (Profil · Préférences ·
  * Communauté).
  *
  * Assemblage repris à l'identique du Catalogue validé (`CatalogueScreen`) — aucune valeur nouvelle :
@@ -41,6 +41,8 @@ export type TabbedScreenTabs<T extends string> = {
   readonly value: T;
   readonly onChange: (value: T) => void;
   readonly testID: string;
+  /** D-542 : emplacements de cette part de la largeur, centrés (Calendrier à deux onglets). Absent : Catalogues, inchangé. */
+  readonly slotFraction?: number;
 };
 
 /** Bouton d'action de la ligne 2 : Créer (catalogues) ou Planifier (calendrier), cercle standard. */
@@ -106,6 +108,7 @@ export function TabbedScreen<T extends string>({
               value={tabs.value}
               onChange={tabs.onChange}
               selectedColor={palette.context}
+              {...(tabs.slotFraction !== undefined ? { slotFraction: tabs.slotFraction } : {})}
               testID={tabs.testID}
             />
           </View>

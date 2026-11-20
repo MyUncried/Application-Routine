@@ -27,3 +27,5 @@ Bande 402 × 115 à y = 92 (la hauteur ne change pas d’un écran à l’autre)
 ## 4. Accessibilité et état
 
 Chaque libellé est un onglet (rôle `tab`) ; l’onglet actif est annoncé comme sélectionné. La zone tactile de chaque onglet couvre au moins 44 × 44 px.
+
+[Mise en œuvre du 20/11/2026 — D-542 (branche `docs/planification-grille-creneaux`, commit bce52a34, non fusionnée) : le Calendrier n'a plus que deux onglets, Journal · Agenda, centrés (emplacements d'un tiers de la largeur, centres à x = 139,5 et 262,5) ; « Vue d’ensemble » retirée, aucun écran « Plan ». Les Catalogues gardent leurs trois onglets. Classe A ; rapport `2026-11-20_CALENDRIER-DEUX-ONGLETS.md`.]

@@ -38,9 +38,9 @@ export const planningStrings = {
   },
   calendar: {
     title: "Calendrier",
-    // D-532 (19/11/2026) : onglets Journal · Agenda · Vue d’ensemble. [Avant : Jour, Semaine, Mois.]
-    views: { day: "Journal", week: "Agenda", month: "Vue d’ensemble" },
-    viewUnavailable: "{view} — vue non disponible dans cette version",
+    // D-532 (19/11/2026) ; D-542 (20/11/2026) : onglets Journal · Agenda. [Avant : Jour, Semaine, Mois ; puis troisième
+    // onglet « Vue d’ensemble », indisponible — retiré.]
+    views: { day: "Journal", week: "Agenda" },
     today: "Aujourd’hui",
     plan: "Planifier",
     previousWeek: "Semaine précédente",

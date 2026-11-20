@@ -483,18 +483,24 @@ describe("Calendrier Semaine", () => {
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-day-${otherDay}`).props.style)).toMatchObject({ width: 36, height: 46, backgroundColor: "rgba(255, 255, 255, 0.3)" });
   });
 
-  it("barre de titre à onglets : Journal · Agenda · Vue d’ensemble, Agenda actif, composant partagé des Catalogues (D-532)", async () => {
+  it("barre de titre à onglets : Journal · Agenda seulement (D-542), Agenda actif, composant partagé des Catalogues (D-532)", async () => {
     await renderCalendar();
     const tab = (value: string) => screen.getByTestId(`calendar-view-row-${value}`);
     expect(screen.getByTestId("calendar-view-row").props.accessibilityRole).toBe("tablist");
     expect(screen.getByTestId("calendar-view-row-day-label").props.children).toBe("Journal");
     expect(screen.getByTestId("calendar-view-row-week-label").props.children).toBe("Agenda");
-    expect(screen.getByTestId("calendar-view-row-month-label").props.children).toBe("Vue d’ensemble");
+    // D-542 : plus de troisième onglet.
+    expect(screen.queryByTestId("calendar-view-row-month")).toBeNull();
+    expect(screen.queryByText("Vue d’ensemble")).toBeNull();
+    // Emplacements d'un tiers de la largeur, centrés (centres à x = 139,5 et 262,5).
+    expect(StyleSheet.flatten(screen.getByTestId("calendar-view-row").props.style)).toMatchObject({ justifyContent: "center" });
+    const slot = StyleSheet.flatten(screen.getByTestId("calendar-view-row-day-slot").props.style);
+    expect(slot.flex).toBe(0);
+    expect(parseFloat(String(slot.flexBasis))).toBeCloseTo(100 / 3, 5);
     expect(tab("week").props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId("calendar-view-row-week-shape", { includeHiddenElements: true })).toBeTruthy();
-    // D-535 (19/11/2026) : Journal disponible (il remplace la vue Jour) ; Vue d'ensemble reste indisponible.
+    // D-535 (19/11/2026) : Journal disponible (il remplace la vue Jour).
     expect(tab("day").props.accessibilityState).toMatchObject({ selected: false, disabled: false });
-    expect(tab("month").props.accessibilityState).toMatchObject({ selected: false, disabled: true });
     expect(screen.queryByText("Semaine")).toBeNull();
   });
 });
