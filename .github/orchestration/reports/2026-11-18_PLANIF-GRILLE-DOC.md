@@ -117,3 +117,10 @@
 - Documents : DSF Agenda (À clarifier remplacé, original conservé entre crochets), D-538 du registre, prompt zone de contexte.
 - Non traité, à arbitrer : fonds périmés des deux anciennes modales (Jour) — non modifiées.
 - Tests : non applicables (documentation et maquettes).
+
+## Complément 20/11/2026 (suite) — jetons de texte des cartes du calendrier et de la planification
+- Décision de Hermann (classe B, rendu) : nom de la routine et lignes dessous prennent les tailles des cartes des catalogues (nom Inter Semi Bold 15, lignes Inter Regular 12), avec un jeton chacun : `KODJO / DSF / Card name` (créé) et `KODJO / DSF / Card metadata` (existant).
+- Figma : appliqués aux 68 cartes « Ligne d’agenda » et « Ligne — Routine » de la page Prototype MVP (68 noms, 272 lignes), modales de suppression et de sélection comprises ; plus aucun texte 16 Semi Bold ni 13 Regular dans ces cartes. Positions inchangées ; vérification géométrique uniquement, aucun rendu vu.
+- Icônes Agenda déplacées dans la planche DSF « Icônes — navigation et catégorie » ; fiche « Planifier et aujourd’hui » alignée sur les boutons 34×34.
+- Non traité : les noms des cartes de catalogue utilisent encore le style générique « Texte / Inter Semi Bold 15 » et non le nouveau jeton (aucun écart visuel).
+- Tests : non applicables.
