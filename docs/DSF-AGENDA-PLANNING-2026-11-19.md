@@ -60,3 +60,10 @@ Une routine planifiée avec plusieurs séances et un nom produit **une seule car
 « Démarrer » enchaîne les séances dans l’ordre de la liste, sans modifier le moteur d’exécution : chaque séance reste une exécution complète et indépendante, avec son propre historique. Entre deux séances, l’écran de transition est l’écran de démarrage de la séance suivante, recouvert d’un voile vert translucide portant, dans un encadré vert plein, le texte « Appuyer pour démarrer la 2è séance du parcours » (rang calculé). Aucune information sur la séance ou le parcours n’est ajoutée aux écrans d’exécution eux-mêmes. Écran Figma : « Exécution d’une séance — Initial — Enchaînement (proposition) ».
 
 Si l’utilisateur arrête une séance, la suite lui est proposée (« Passer à la suivante » ou « Terminer ») : formulation et dessin à définir. Après une reprise sur interruption, seule la séance interrompue est reprise.
+
+## 8. États du bouton, modification d’une occurrence (D-536, 20/11/2026)
+
+- **Pastille d’action** : « Démarrer » (occurrence non commencée, d’aujourd’hui ou à venir) ; « Rattraper » (occurrence passée non commencée, journée terminée, cadre rouge) ; pour une occurrence commencée, étiquette « Complétée », « Partielle » ou « Arrêtée » à la place du bouton. La pastille a une hauteur fixe et une largeur qui suit son texte.
+- **Modification d’une occurrence** : date, heure, activation ou désactivation des pastilles du créneau, ajout d’une séance à ce créneau uniquement (pas de retrait : on désactive), rappel. Un choix « Cette occurrence seulement » / « Toute la routine » précède la sauvegarde, comme pour la suppression. Seul le créneau de l’occurrence ouverte est coloré (en-tête et pastille), les autres sont grisés. Une occurrence commencée n’est pas modifiable. Écran de modification : à dessiner.
+- Règles de figement et de protection des exceptions : D-536.
+

@@ -68,3 +68,10 @@
 - Docs : `docs/DSF-JOURNAL-2026-11-19.md` créé ; D-535 (ch07) ; ch06, ch13 et DSF Navigation annotés ; DSF Agenda (§ 6 actions glissées 86 × 54, renvoi au Journal). Classe B ; définition « Actives / Terminées » retenue par Claude (À CLARIFIER : écran de filtre ; déployé du Journal = celui de l’Agenda et du catalogue, décidé par Hermann).
 - Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
 - Journal (suite, 19/11/2026) : ligne 2 = symbole des zones corporelles sans cercle ; ligne 3 = « X à venir, jusqu’au jj/mm/aaaa » ; déployé = phrase de récurrence puis séances (DSF Journal, D-535, prompt mis à jour). Code couleur Journal/Agenda : proposé, non arbitré.
+
+## Complément du 20/11/2026 (modification des occurrences)
+
+- Décision D-536 (ch07) : figement des occurrences commencées, application des modifications de routine aux occurrences non commencées, protection par groupe (date et heure ; séances ; rappel), modification d'une occurrence seule dans l'Agenda, bouton « Rattraper ». DSF Journal § 5, DSF Agenda § 8, `docs/PROMPT-CLAUDE-CODE-MODIFICATION-OCCURRENCES-2026-11-20.md`. Classe B.
+- Non fait : écran de modification d'une occurrence (Figma), modale de choix, état rouge « Rattraper » ; stockage de la date réelle d'exécution à confirmer dans le code.
+- Non vérifié : tests non applicables (documentation).
+

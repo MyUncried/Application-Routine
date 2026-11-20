@@ -31,7 +31,11 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.
 - « Active » : la routine a au moins une occurrence en cours ou à venir ; « Terminée » : sa récurrence est arrivée à son terme (plus aucune occurrence à venir). Définition retenue par Claude (19/11/2026) ; une routine sans date de fin reste active.
 
-## 5. À clarifier
+## 5. Modifier la routine depuis le Journal (D-536)
+
+La modification porte toujours sur la routine entière, sans choix. Elle ne s’applique qu’aux occurrences **non commencées** ; les occurrences commencées (une séance lancée) restent inchangées, séquence et statut. Un changement global ne remplace que les réglages non modifiés à la main sur l’occurrence, par groupe : date et heure ; séances ; rappel. À la sauvegarde : « N occurrences non commencées (à venir ou à rattraper) seront modifiées ; les occurrences déjà commencées restent inchangées ». Les occurrences à venir déjà modifiées à la main (exceptions) restent comptées dans « X à venir ».
+
+## 6. À clarifier
 
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.
 - « Spécialité » : propriété à définir (voir DSF Agenda).
