@@ -22,7 +22,7 @@ Sept cartes 46 × 64 sous la bande, sur toute la largeur (écart 8 px). Contenu 
 
 ## 4. Liste
 
-Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sépare deux jours, à 5 px au-dessus de la date ; aucun trait entre deux routines. Écart entre routines : 8 px ; ligne de routine : 52 px de haut. Liste à 14 px sous la rangée des jours.
+Regroupée par jour. [Recette du 20/11/2026 (constat C) : la liste continue sur les semaines suivantes ; le carrousel des jours suit le défilement.] En-tête de jour Inter 13. Un trait fin pleine largeur sépare deux jours, à 5 px au-dessus de la date ; aucun trait entre deux routines. Écart entre routines : 8 px ; ligne de routine : 52 px de haut. Liste à 14 px sous la rangée des jours.
 
 ## 5. Carte d’une routine
 
@@ -46,10 +46,10 @@ Regroupée par jour. En-tête de jour Inter 13. Un trait fin pleine largeur sép
 
 La zone de contexte (§ 2), la rangée des jours (§ 3), la liste regroupée par jour (§ 4) et la carte (§ 5) s’appliquent à tous les écrans de la vue Semaine (Agenda) et aux fonds des modales de suppression. Chaque écran garde son état propre :
 
-- **Séance déployée** : la carte de § 5 reste telle quelle ; seul le complément de composition du catalogue (« P-Catalogue des séances — Séance déployée ») est ajouté en dessous : filet de séparation, puis la liste des exercices de la séance avec ses cycles et circuits. Le détail est inséré dans le flux de la liste ; les routines suivantes sont repoussées.
+- **Séance déployée** : la carte de § 5 reste telle quelle ; seul le complément de composition du catalogue (« P-Catalogue des séances — Séance déployée ») est ajouté en dessous : filet de séparation, puis la liste des exercices de la séance avec ses cycles et circuits. [Recette du 20/11/2026 (r20-recap) : sans filet ni espace quand rien ne le précède ; le nom de chaque séance est toujours affiché, même seule. Routine à plusieurs séances : repère « P » cerclé devant le nom de la carte (constat A).] Le détail est inséré dans le flux de la liste ; les routines suivantes sont repoussées.
 - **Actions glissées** : la carte glisse vers la gauche de 180 px et découvre « Dupliquer » (gris) et « Supprimer » (rouge), 86 × 54 chacune [90 × 52 avant le 19/11/2026], séparées de la carte par 8 px. [Précisé le 19/11/2026 au soir (s19-glisse) : coins du bloc arrondis, marge de 16 px avec le bord droit de l'écran.]
 - **Récurrence au déployé** : [retirée de l'Agenda le 19/11/2026 au soir (constat A) ; elle est affichée dans le déployé du Journal.]
-- **Après suppression** : la routine supprimée disparaît de la liste et son point de la carte du jour ; les points restants sont recentrés.
+- **Après suppression** : la routine supprimée disparaît de la liste et son point de la carte du jour ; les points restants sont recentrés. [Recette du 20/11/2026 (constat D) : l'Agenda ne supprime que l'occurrence (« Supprimer cette occurrence »), la routine reste au Journal.]
 - **Jour sélectionné** : la carte du jour est pleine ; la liste commence à la date sélectionnée.
 
 Ces déclinaisons sont du rendu, sans règle métier nouvelle. Les écrans Jour et Mois ne sont pas modifiés par ce paragraphe.

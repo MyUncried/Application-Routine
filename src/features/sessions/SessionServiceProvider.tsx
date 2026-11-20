@@ -143,6 +143,7 @@ function SessionServiceInitializer({
   // Séances actives lus par `SessionService`.
   const planningService = useMemo(() => {
     const routines = new SqliteRoutineRepository(new ExpoDatabase(nativeDatabase));
+    const occurrenceExecutions = new SqliteOccurrenceExecutionRepository(new ExpoDatabase(nativeDatabase));
     const scheduler = new ReminderScheduler({
       notifications: expoLocalNotifications,
       listRoutines: () => routines.list(),
@@ -151,9 +152,10 @@ function SessionServiceInitializer({
       // Rappels (recette du 19/11/2026, t6) : catégories des exercices, pour l'accroche CAT-* d'une séance mono-catégorie.
       sessionCategoryIds: async () =>
         new Map((await sessionService.listCatalogueSessions()).filter((record) => record.status === "ACTIVE").map((record) => [record.id, sessionCategoryIds(record)])),
+      // Familles « première séance » et « reprise après absence » (q19-rappels, 20/11/2026).
+      occurrenceExecutions: () => occurrenceExecutions.list(),
       now: () => new Date(),
     });
-    const occurrenceExecutions = new SqliteOccurrenceExecutionRepository(new ExpoDatabase(nativeDatabase));
     return new PlanningService({
       repository: routines,
       occurrenceExecutions: () => occurrenceExecutions.list(),

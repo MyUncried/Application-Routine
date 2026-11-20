@@ -140,7 +140,10 @@ describe("Journal des routines (D-535)", () => {
     await renderJournal();
     expect(cards()).toEqual([`journal-card-${second.id}`, `journal-card-${first.id}`]);
     expect(text(`journal-card-${second.id}-name`)).toBe("Genou");
-    expect(text(`journal-card-${second.id}-recurrence`)).toBe("Une seule fois · le 5 août 2030");
+    // Recette du 20/11/2026 (r20-j-deploye) : ligne 3 = créneaux à venir, sans année ; repère « P » d'un parcours (constat A).
+    expect(text(`journal-card-${second.id}-slots`)).toBe("1 créneau, le 5 août");
+    expect(screen.getByTestId(`journal-card-${second.id}-parcours`)).toBeTruthy();
+    expect(screen.queryByTestId(`journal-card-${first.id}-parcours`)).toBeNull();
     expect(text(`journal-card-${second.id}-year`)).toBe("2026");
     expect(screen.queryByText("Démarrer")).toBeNull();
     expect(screen.queryByText("Terminer")).toBeNull();
@@ -171,7 +174,7 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.getByTestId("context-counters")).toBeTruthy();
   });
 
-  it("toucher la carte la déploie (filet puis composition) ; le crayon ouvre la routine", async () => {
+  it("toucher la carte la déploie (récapitulation puis composition) ; plus de crayon (recette du 20/11/2026)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     const routine = await plan({ name: "Genou", entries: [entry(a.id), entry(b.id)] });
@@ -182,8 +185,9 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.getByTestId(`journal-item-${routine.id}-session-0`)).toBeTruthy();
     expect(screen.getByTestId(`journal-item-${routine.id}-composition-1`)).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-edit`));
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
+    // r20-j-navigation, r20-j-deploye : « Retirer le crayon » ; plus de ligne « occurrences à venir » au déployé.
+    expect(screen.queryByTestId(`journal-card-${routine.id}-edit`)).toBeNull();
+    expect(screen.queryByTestId(`journal-item-${routine.id}-info`)).toBeNull();
     fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-toggle`));
     expect(screen.queryByTestId(`journal-item-${routine.id}-expanded`)).toBeNull();
   });
@@ -196,11 +200,14 @@ describe("Journal des routines (D-535)", () => {
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
     fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-toggle`));
     expect(screen.getByTestId(`journal-item-${routine.id}-summary`)).toBeTruthy();
-    expect(screen.getByTestId(`journal-item-${routine.id}-info`).props.children).toMatch(/occurrences? à venir|Aucune occurrence à venir/);
+    expect(text(`journal-card-${routine.id}-slots`)).toMatch(/^(\d+ créneaux, du .+ au .+|1 créneau, le .+|Aucun créneau à venir)$/);
     expect(screen.queryByTestId(`journal-card-${routine.id}-planned`) ?? screen.queryByTestId(`journal-card-${routine.id}-idle`)).toBeTruthy();
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    // Constat D (20/11/2026) : le Journal supprime la routine et tous ses créneaux.
+    expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByText("La routine et son créneau seront supprimés.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
     await flush();
     expect(await planning.listRoutines()).toEqual([]);

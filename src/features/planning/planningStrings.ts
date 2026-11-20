@@ -5,6 +5,8 @@
  * modifier le catalogue partagé `fr.ts` pendant les chantiers parallèles.
  */
 export const planningStrings = {
+  /** Repère « P » d'une routine à plusieurs séances (recette du 20/11/2026, constat A), lu par VoiceOver. */
+  parcours: "Parcours",
   months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
   monthsShort: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
   /** Lundi = index 0. */
@@ -85,6 +87,10 @@ export const planningStrings = {
     expand: "Déplier la routine",
     collapse: "Replier la routine",
     // Recette du 19/11/2026 au soir (constat E) : nombre d'occurrences à venir, dates de début et de fin.
+    // Ligne 3 de la carte (recette du 20/11/2026, r20-j-deploye) : « N créneaux, du X mois au Y mois ».
+    slotsNone: "Aucun créneau à venir",
+    slotsOne: "1 créneau, le {date}",
+    slotsMany: "{count} créneaux, du {start} au {end}",
     upcomingNone: "Aucune occurrence à venir",
     upcomingOne: "1 occurrence à venir",
     upcomingMany: "{count} occurrences à venir",
@@ -94,6 +100,23 @@ export const planningStrings = {
   deleteSingle: {
     title: "Supprimer la planification ?",
     message: "La séance reste dans le catalogue. Les séances déjà exécutées resteront dans l’historique.",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+  },
+  /**
+   * Recette du 20/11/2026 (constat D — Hermann : « Dans l'agenda on ne supprime que l'occurrence ; Dans le Journal on
+   * supprime toutes les occurrences ») ; libellés de D-537 et du constat E (« Suppression sans historique : « La routine et
+   * ses N créneaux seront supprimés. » »).
+   */
+  deleteOccurrence: {
+    title: "Supprimer cette occurrence",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+  },
+  deleteRoutine: {
+    title: "Supprimer cette routine",
+    messageOne: "La routine et son créneau seront supprimés.",
+    messageMany: "La routine et ses {count} créneaux seront supprimés.",
     cancel: "Annuler",
     confirm: "Confirmer",
   },

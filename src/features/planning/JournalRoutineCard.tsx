@@ -1,8 +1,9 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { planningStrings } from "@/features/planning/planningStrings";
-import { EditSquareButton } from "@/shared/ui/EditSquareButton";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, layout, spacing } from "@/shared/ui/tokens";
 
 /**
@@ -18,6 +19,11 @@ import { colors, layout, spacing } from "@/shared/ui/tokens";
  *   de l'Agenda ; sinon (rien de planifié ni d'exécuté, ou séances exécutées sans rien à venir) → gris ;
  * - glissé vers la gauche : Dupliquer et Supprimer (constat C), porté par l'écran.
  * [Teinte unique #EAEAFF ; toucher la carte entière la déployait ; ni glissement — remplacé.]
+ *
+ * Recette du 20/11/2026 (r20-j-deploye, r20-j-navigation — Hermann) : « Retirer le crayon » ; « Mettre le symbole des
+ * zones corporelles avant le texte de la deuxième ligne » ; « Mettre en troisième ligne le texte du nombre
+ * d'occurrences », formulé « N créneaux, du X mois au Y mois » (`journalSlotsLine`). [Ligne 3 : récurrence ; crayon à
+ * droite — remplacé.]
  */
 
 export const JOURNAL_ROW_HEIGHT = 72;
@@ -35,27 +41,29 @@ export function JournalRoutineCard({
   date,
   year,
   name,
+  parcours = false,
   detail,
-  recurrence,
+  slots,
   planned,
   expanded,
   onOpen,
   onToggleExpanded,
-  onEdit,
   testID,
 }: {
   readonly date: string;
   readonly year: string;
   readonly name: string;
+  /** Routine à plusieurs séances : repère « P » devant le nom (recette du 20/11/2026, constat A). */
+  readonly parcours?: boolean;
   readonly detail: string;
-  readonly recurrence: string;
+  /** Ligne 3 : créneaux à venir (« 12 créneaux, du 26 nov. au 28 déc. »). */
+  readonly slots: string;
   /** Au moins une occurrence à venir : teinte bleue. */
   readonly planned: boolean;
   readonly expanded: boolean;
   /** Cadre de gauche : ouvrir la planification. */
   readonly onOpen: () => void;
   readonly onToggleExpanded: () => void;
-  readonly onEdit: () => void;
   readonly testID: string;
 }) {
   const t = planningStrings.journal;
@@ -82,7 +90,7 @@ export function JournalRoutineCard({
       <Pressable
         onPress={onToggleExpanded}
         accessibilityRole="button"
-        accessibilityLabel={[name, detail, recurrence].filter((part) => part !== "").join(", ")}
+        accessibilityLabel={[name, detail, slots].filter((part) => part !== "").join(", ")}
         accessibilityHint={expanded ? t.collapse : t.expand}
         accessibilityState={{ expanded }}
         style={styles.body}
@@ -90,22 +98,23 @@ export function JournalRoutineCard({
       >
         <View style={styles.titleLine}>
           <Image source={CHEVRON} style={[styles.chevron, expanded ? styles.chevronDown : null]} accessible={false} testID={`${testID}-chevron${expanded ? "-open" : ""}`} />
+          {parcours ? <ParcoursBadge testID={`${testID}-parcours`} /> : null}
           <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
             {name}
           </Text>
         </View>
         {detail === "" ? null : (
-          <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
-            {detail}
-          </Text>
+          <View style={styles.zonesLine}>
+            <KodjoIcon name="card-body-zone-badge" testID={`${testID}-zones-badge`} />
+            <Text style={[styles.secondary, styles.zones]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
+              {detail}
+            </Text>
+          </View>
         )}
-        <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-recurrence`}>
-          {recurrence}
+        <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
+          {slots}
         </Text>
       </Pressable>
-      <View style={styles.edit}>
-        <EditSquareButton onPress={onEdit} accessibilityLabel={`${t.edit}, ${name}`} testID={`${testID}-edit`} />
-      </View>
     </View>
   );
 }
@@ -128,11 +137,12 @@ const styles = StyleSheet.create({
   },
   date: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: colors.textPrimary },
   secondary: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, color: colors.textSecondary },
-  body: { flex: 1, paddingLeft: spacing[8], paddingRight: spacing[8], paddingVertical: spacing[4], justifyContent: "center", gap: 2 },
+  body: { flex: 1, paddingLeft: spacing[8], paddingRight: layout.screenGutter + BAR_WIDTH, paddingVertical: spacing[4], justifyContent: "center", gap: 2 },
   titleLine: { flexDirection: "row", alignItems: "center", gap: 2 },
   chevron: { width: 16, height: 16 },
   chevronDown: { transform: [{ rotate: "90deg" }] },
   name: { flex: 1, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary },
-  // Crayon à 16 du bord droit de l'écran (Figma : x = 338 dans la liste de 370), centré verticalement.
-  edit: { justifyContent: "center", paddingRight: layout.screenGutter },
+  // Pastille des zones devant la ligne 2, comme la carte de mouvement sélectionné.
+  zonesLine: { flexDirection: "row", alignItems: "center", gap: 4 },
+  zones: { flexShrink: 1 },
 });

@@ -1,6 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Image } from "expo-image";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -14,8 +13,8 @@ import {
   creationDateParts,
   isRoutineActive,
   journalCounts,
-  journalInfoLine,
-  journalRecurrenceLine,
+  journalSlotsLine,
+  routineSlotCount,
   matchesJournalFilters,
   matchesJournalQuery,
   sortJournal,
@@ -286,36 +285,35 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                   date={created?.day ?? ""}
                   year={created?.year ?? ""}
                   name={name}
+                  parcours={routine.entries.length > 1}
                   detail={zonesLine(sessions.flatMap((session) => session.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)))}
-                  recurrence={journalRecurrenceLine(routine, today)}
+                  slots={journalSlotsLine(routine, today, new Date())}
                   planned={isRoutineActive(routine, today)}
                   expanded={isExpanded}
                   onOpen={() => openRoutine(routine.id)}
                   onToggleExpanded={() => toggle(routine.id)}
-                  onEdit={() => openRoutine(routine.id)}
                   testID={`journal-card-${routine.id}`}
                 />
               </SwipeActionsRow>
               {isExpanded ? (
-                // Déployé identique à l'Agenda et au catalogue des séances (DSF Journal § 4) : filet, puis — recette du
-                // 19/11/2026 au soir — récapitulation des jours planifiés (constat A, venue de l'Agenda) et occurrences à
-                // venir avec les dates de début et de fin (constat E), puis composition.
+                // Déployé (DSF Journal § 4) : récapitulation des jours planifiés (recette du 19/11/2026 au soir, constat A),
+                // puis composition. Recette du 20/11/2026 (r20-j-deploye — Hermann) : « conserver chaque lundi... retirer le
+                // symbole, retirer la phrase sur le nombre de créneaux » ; « Retirer la première ligne de séparation » ;
+                // « réduire un peu l'espace vertical entre le nom de la séance et la dernière ligne de la séance précédente
+                // (cas du parcours) ». [Filet en tête, symbole du calendrier et ligne « N occurrences à venir · du … au … »
+                // — remplacés.]
                 <View style={styles.expanded} testID={`journal-item-${routine.id}-expanded`}>
-                  <View style={styles.recurrenceRow}>
-                    <Image source={require("../../../assets/icons/icon-planifier.svg")} style={styles.recurrenceIcon} accessible={false} />
-                    <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
-                      {formatRecurrence(routine)}
-                    </Text>
-                  </View>
-                  <Text style={styles.recurrence} testID={`journal-item-${routine.id}-info`}>
-                    {journalInfoLine(routine, today, new Date())}
+                  <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
+                    {formatRecurrence(routine)}
                   </Text>
-                  {sessions.map((session, rank) => (
-                    <View key={`${session.id}-${rank}`} testID={`journal-item-${routine.id}-session-${rank}`}>
-                      {sessions.length > 1 ? <Text style={styles.expandedSession}>{session.name}</Text> : null}
-                      <SessionCompositionTree tree={session.tree} testID={`journal-item-${routine.id}-composition-${rank}`} />
-                    </View>
-                  ))}
+                  <View style={styles.expandedSessions}>
+                    {sessions.map((session, rank) => (
+                      <View key={`${session.id}-${rank}`} testID={`journal-item-${routine.id}-session-${rank}`}>
+                        {sessions.length > 1 ? <Text style={styles.expandedSession}>{session.name}</Text> : null}
+                        <SessionCompositionTree tree={session.tree} testID={`journal-item-${routine.id}-composition-${rank}`} />
+                      </View>
+                    ))}
+                  </View>
                 </View>
               ) : null}
             </View>
@@ -324,14 +322,20 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
       </ScrollView>
 
       {deleteCandidate !== null ? (
+        // Recette du 20/11/2026 (constat D — « Dans le Journal on supprime toutes les occurrences ») : la routine et tous ses
+        // créneaux. [« Supprimer la planification ? » — remplacé.]
         <DecisionDialog
-          title={planningStrings.deleteSingle.title}
+          title={planningStrings.deleteRoutine.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-          message={planningStrings.deleteSingle.message}
+          message={
+            routineSlotCount(deleteCandidate) === 1
+              ? planningStrings.deleteRoutine.messageOne
+              : planningStrings.deleteRoutine.messageMany.replace("{count}", String(routineSlotCount(deleteCandidate)))
+          }
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
-          cancelLabel={planningStrings.deleteSingle.cancel}
+          cancelLabel={planningStrings.deleteRoutine.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
-          confirmLabel={planningStrings.deleteSingle.confirm}
+          confirmLabel={planningStrings.deleteRoutine.confirm}
           confirmLabelStyle={type.dialogDestructiveActionLabel}
           confirmBordered={false}
           onCancel={() => setDeleteCandidate(null)}
@@ -352,11 +356,11 @@ const styles = StyleSheet.create({
   listContent: { paddingTop: spacing[8] + CONTEXT_BAND_FADE_HEIGHT },
   // DSF Journal § 1 : cartes espacées de 8, sans séparateur.
   item: { paddingBottom: spacing[8] },
-  expanded: { marginHorizontal: layout.screenGutter, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder, marginTop: spacing[8], paddingTop: spacing[8], gap: spacing[8] },
+  expanded: { marginHorizontal: layout.screenGutter, marginTop: spacing[8], gap: spacing[8] },
+  // Séances d'un parcours rapprochées (r20-j-deploye, 20/11/2026).
+  expandedSessions: { gap: spacing[4] },
   expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
-  recurrenceRow: { flexDirection: "row", alignItems: "center", gap: spacing[8] },
-  recurrenceIcon: { width: 12, height: 12 },
   recurrence: { ...type.supporting, color: colors.textSecondary },
 });

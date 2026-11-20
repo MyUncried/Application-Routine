@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { addDays, EVERY_TIME, mondayOf, type RoutineDraft } from "@/domain/planning/Routine";
@@ -130,7 +131,12 @@ const plan = async (draft: Partial<RoutineDraft> & Pick<RoutineDraft, "entries">
 };
 
 const entry = (sessionId: string) => ({ id: `entry-${sessionId}`, sessionId, frequency: EVERY_TIME });
-const sectionDays = () => screen.queryAllByTestId(/^calendar-section-\d{4}-\d{2}-\d{2}$/).map((node) => (node.props.testID as string).slice("calendar-section-".length));
+const allSectionDays = () => screen.queryAllByTestId(/^calendar-section-\d{4}-\d{2}-\d{2}$/).map((node) => (node.props.testID as string).slice("calendar-section-".length));
+/** Sections de la semaine du carrousel (la liste continue sur les semaines suivantes depuis le 20/11/2026, constat C). */
+const sectionDays = () => {
+  const week = new Set(screen.queryAllByTestId(/^calendar-day-\d{4}-\d{2}-\d{2}$/).map((node) => (node.props.testID as string).slice("calendar-day-".length)));
+  return allSectionDays().filter((day) => week.has(day));
+};
 const items = () => screen.queryAllByTestId(/^calendar-item-[^]*-swipe$/).map((node) => node.props.testID as string);
 const swipeCard = (routineId: string, day: string) => screen.getByTestId(new RegExp(`^calendar-item-${routineId}\\|${day}T\\d{2}:\\d{2}-swipe-card$`));
 /** Carte d'une occurrence de routine (D-534) : `calendar-item-<routine>|<date>T<heure>-card`. */
@@ -216,6 +222,40 @@ describe("Calendrier Semaine", () => {
     expect(sectionDays()).toEqual([MONDAY, THURSDAY]);
   });
 
+  it("liste continue : après la fin de la semaine, la semaine suivante ; le carrousel suit le défilement (recette du 20/11/2026, constat C)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    await plan({
+      entries: [entry(created.id)],
+      repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: addDays(MONDAY, 10) } },
+    });
+    await renderCalendar();
+    expect(allSectionDays()).toEqual([MONDAY, THURSDAY, addDays(MONDAY, 7), addDays(MONDAY, 10)]);
+    allSectionDays().forEach((day, index) => {
+      fireEvent(screen.getByTestId(`calendar-section-${day}`), "layout", { nativeEvent: { layout: { x: 0, y: index * 200, width: 400, height: 200 } } });
+    });
+    fireEvent.scroll(screen.getByTestId("calendar-week-list"), {
+      nativeEvent: { contentOffset: { x: 0, y: 400 }, contentSize: { width: 400, height: 3000 }, layoutMeasurement: { width: 400, height: 600 } },
+    });
+    await flush();
+    expect(screen.getByTestId("calendar-week-label").props.children).toBe("du 12 au 18");
+    expect(screen.getByTestId(`calendar-day-${addDays(MONDAY, 7)}`).props.accessibilityState).toEqual({ selected: true });
+    // La liste n'est ni rechargée ni replacée : la semaine précédente reste au-dessus.
+    expect(allSectionDays()[0]).toBe(MONDAY);
+  });
+
+  it("déployé : nom de la séance même seule, sans filet ; repère « P » d'un parcours seulement (recette du 20/11/2026, r20-recap, constat A)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const single = await plan({ name: "Matin", entries: [{ ...entry(a.id), id: "entry-single" }] });
+    const parcours = await plan({ name: "Genou", time: "10:00", entries: [entry(a.id), entry(b.id)] });
+    await renderCalendar();
+    expect(screen.queryByTestId(`${card(single.id, MONDAY)}-parcours`)).toBeNull();
+    expect(screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-parcours`)).toBeTruthy();
+    fireEvent.press(screen.getByTestId(`${card(single.id, MONDAY)}-disclosure`));
+    expect(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-session-0-name`).props.children).toBe("Alpha");
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded`).props.style).borderTopWidth).toBeUndefined();
+  });
+
   it("routine à deux séances : une seule carte par occurrence, séances dans le déployé dans l'ordre de la liste (D-534)", async () => {
     const first = await sessions.createStructured(input("Zeta"));
     const second = await sessions.createStructured(input("Alpha"));
@@ -252,24 +292,24 @@ describe("Calendrier Semaine", () => {
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
   });
 
-  it("supprimer une planification unique : confirmation puis disparition", async () => {
+  it("supprimer depuis l'Agenda : seule l'occurrence est retirée, la routine reste (recette du 20/11/2026, constat D)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const routine = await plan({ entries: [entry(created.id)] });
     await renderCalendar();
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    expect(screen.getByText("Supprimer la planification ?")).toBeTruthy();
+    expect(screen.getByText("Supprimer cette occurrence")).toBeTruthy();
     fireEvent.press(screen.getByText("Annuler"));
     expect(sectionDays()).toEqual([MONDAY]);
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     fireEvent.press(screen.getByText("Confirmer"));
     await flush();
     expect(sectionDays()).toEqual([]);
-    expect(await planning.getRoutine(routine.id)).toBeNull();
-    // La Séance source est conservée (RM-050).
+    // La routine reste (au Journal) ; son unique créneau est retiré. La Séance source est conservée (RM-050).
+    expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([`${MONDAY}T08:00`]);
     expect(await sessions.findById(created.id)).not.toBeNull();
   });
 
-  it("planification périodique : « Seulement cette occurrence » puis « Toutes les occurrences à venir »", async () => {
+  it("planification périodique : un seul choix, l'occurrence ; les autres restent (constat D)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const routine = await plan({
       entries: [entry(created.id)],
@@ -277,19 +317,14 @@ describe("Calendrier Semaine", () => {
     });
     await renderCalendar();
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    expect(screen.getByText("Supprimer des occurrences ?")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("occurrence-delete-this"));
+    expect(screen.queryByText("Toutes les occurrences à venir")).toBeNull();
+    fireEvent.press(screen.getByText("Confirmer"));
     await flush();
     expect(sectionDays()).toEqual([THURSDAY]);
     expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([`${MONDAY}T08:00`]);
-
-    fireEvent(swipeCard(routine.id, THURSDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    fireEvent.press(screen.getByTestId("occurrence-delete-all"));
-    await flush();
-    expect(sectionDays()).toEqual([]);
     fireEvent.press(screen.getByTestId("calendar-next-week"));
     await flush();
-    expect(sectionDays()).toEqual([]);
+    expect(sectionDays()).toEqual([addDays(MONDAY, 7), addDays(MONDAY, 10)]);
   });
 
   it("Séance archivée : ses occurrences ne sont plus proposées", async () => {

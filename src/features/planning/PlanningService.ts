@@ -166,8 +166,13 @@ export class PlanningService {
    */
   async weekOccurrences(anyDayOfWeek: LocalDate, isPlannable: (sessionId: string) => boolean): Promise<readonly Occurrence[]> {
     const monday = mondayOf(anyDayOfWeek);
+    return this.rangeOccurrences(monday, addDays(monday, 6), isPlannable);
+  }
+
+  /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
+  async rangeOccurrences(from: LocalDate, to: LocalDate, isPlannable: (sessionId: string) => boolean): Promise<readonly Occurrence[]> {
     const routines = await this.deps.repository.list();
-    return periodOccurrences(routines, monday, addDays(monday, 6))
+    return periodOccurrences(routines, from, to)
       .map((occurrence) => ({ ...occurrence, contents: occurrence.contents.filter((content) => isPlannable(content.sessionId)) }))
       .filter((occurrence) => occurrence.contents.length > 0);
   }

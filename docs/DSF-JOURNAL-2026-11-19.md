@@ -19,13 +19,13 @@ Bande de 402 × 115 (inchangée), onglet « Journal » actif (voir DSF Barre de 
 Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EAEAFF` (couleur de l’onglet Journal sélectionné) pour le cadre et la bande, repères épais gauche et droite en bleu-violet moyen. [Remplacé le 19/11/2026 au soir (constat E) : bleu pour une routine planifiée (au moins une occurrence à venir), gris sinon.]
 - Colonne gauche (cadre) : **date de création** de la routine.
 - Ligne 1 : nom de la routine (16), précédé du chevron de déploiement.
-- Ligne 2 : spécialité · zones corporelles.
-- Ligne 3 : récurrence (ex. « Chaque lundi et jeudi · jusqu’au 28 déc. »).
-- À droite : bouton « Modifier la planification » — composant `DSF / Actions / Édition — carré` (32 × 32, crayon `icon/modifier`, fond `#F3F4F9`, coins 10).
+- Ligne 2 : spécialité · zones corporelles. [Recette du 20/11/2026 (r20-j-deploye) : précédée du symbole des zones corporelles.]
+- Ligne 3 : récurrence (ex. « Chaque lundi et jeudi · jusqu’au 28 déc. »). [Remplacé le 20/11/2026 (r20-j-deploye) : « N créneaux, du X mois au Y mois », « Aucun créneau à venir » ; la récurrence reste au déployé. Routine à plusieurs séances : repère « P » cerclé devant le nom (constat A).]
+- À droite : bouton « Modifier la planification » — composant `DSF / Actions / Édition — carré` (32 × 32, crayon `icon/modifier`, fond `#F3F4F9`, coins 10). [Retiré le 20/11/2026 (r20-j-navigation, r20-j-deploye : « Retirer le crayon ») ; le cadre de gauche ouvre la planification.]
 
 ## 4. Comportement
 
-- Toucher la carte (ou le chevron) la **déploie** : le déployé est identique à celui de l’Agenda et du catalogue des séances (filet de séparation, puis composition de la séance : exercices, cycles et circuits). [Recette du 19/11/2026 au soir : cadre de gauche → planification, centre → déployer, droite → crayon (constat B) ; le déployé commence par la récapitulation des jours planifiés (constat A) et « N occurrences à venir · du … au … » (constat E) ; glisser vers la gauche découvre Dupliquer et Supprimer (constat C).]
+- Toucher la carte (ou le chevron) la **déploie** : le déployé est identique à celui de l’Agenda et du catalogue des séances (filet de séparation, puis composition de la séance : exercices, cycles et circuits). [Recette du 19/11/2026 au soir : cadre de gauche → planification, centre → déployer, droite → crayon (constat B) ; le déployé commence par la récapitulation des jours planifiés (constat A) et « N occurrences à venir · du … au … » (constat E) ; glisser vers la gauche découvre Dupliquer et Supprimer (constat C).] [Recette du 20/11/2026 (r20-j-deploye) : sans filet en tête ; récapitulation sans symbole ; plus de ligne « N occurrences à venir » ; séances d'un parcours rapprochées. Supprimer (constat D) : « Supprimer cette routine », « La routine et ses N créneaux seront supprimés. »]
 - Le bouton « Modifier la planification » **ouvre la routine**.
 - Tri par défaut : date de création / modification, la plus récente en haut.
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.

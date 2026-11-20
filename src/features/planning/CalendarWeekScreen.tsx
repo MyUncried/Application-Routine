@@ -9,7 +9,6 @@ import { groupOccurrenceExecutions, occurrenceExecutionKey, occurrenceExecutionS
 import type { Occurrence } from "@/domain/planning/occurrences";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
-import { OccurrenceDeleteDialog } from "@/features/planning/OccurrenceDeleteDialog";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
@@ -97,6 +96,12 @@ function DoubleChevron({ source }: { readonly source: number }) {
   );
 }
 
+/** Liste continue de l'Agenda (constat C, 20/11/2026) : semaines chargées d'abord, ajoutées en fin de défilement, au plus. [Choix technique.] */
+const AGENDA_WEEKS_INITIAL = 4;
+const AGENDA_WEEKS_STEP = 4;
+const AGENDA_WEEKS_MAX = 52;
+type AgendaRange = { readonly start: LocalDate; readonly weeks: number };
+
 export function CalendarWeekScreen({
   initialDay,
   onChangeView = () => undefined,
@@ -110,6 +115,12 @@ export function CalendarWeekScreen({
   const planning = usePlanningService();
   const { state: catalogue, reload: reloadCatalogue, cancelPending } = useSessionCatalogue();
   const [monday, setMonday] = useState<LocalDate>(() => mondayOf(initialDay ?? todayLocal()));
+  // Recette du 20/11/2026 (constat C — Hermann : « Quand on défile les routines de l'agenda, la liste s'arrête à la fin de
+  // la semaine. Elle doit continuer à la semaine suivante, et le carrousel de jours se mettre à jour. ») : la liste couvre
+  // `range.weeks` semaines depuis `range.start`, prolongée en fin de défilement ; `monday` (carrousel) suit le défilement.
+  // [Liste limitée à la semaine du carrousel — remplacé.]
+  const [range, setRange] = useState<AgendaRange>(() => ({ start: mondayOf(initialDay ?? todayLocal()), weeks: AGENDA_WEEKS_INITIAL }));
+  const rangeRef = useRef(range);
   const [selectedDay, setSelectedDay] = useState<LocalDate>(() => initialDay ?? todayLocal());
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
@@ -139,9 +150,13 @@ export function CalendarWeekScreen({
   const isPlannable = useCallback((sessionId: string) => projections.get(sessionId)?.status === "ACTIVE", [projections]);
 
   const load = useCallback(
-    (week: LocalDate) => {
+    (window: AgendaRange) => {
       const id = ++requestId.current;
-      Promise.all([planning.listRoutines(), planning.weekOccurrences(week, () => true), planning.listOccurrenceExecutions()]).then(
+      Promise.all([
+        planning.listRoutines(),
+        planning.rangeOccurrences(window.start, addDays(window.start, window.weeks * 7 - 1), () => true),
+        planning.listOccurrenceExecutions(),
+      ]).then(
         ([list, weekItems, linked]) => {
           if (id !== requestId.current) return;
           setRoutines(list);
@@ -163,12 +178,12 @@ export function CalendarWeekScreen({
   useFocusEffect(
     useCallback(() => {
       reloadCatalogue();
-      load(monday);
+      load(rangeRef.current);
       return () => {
         cancelPending();
         setRevealed(null);
       };
-    }, [reloadCatalogue, cancelPending, load, monday]),
+    }, [reloadCatalogue, cancelPending, load]),
   );
 
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
@@ -186,6 +201,8 @@ export function CalendarWeekScreen({
   };
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);
+  /** Jours de la liste continue (constat C). */
+  const listDays = useMemo(() => Array.from({ length: range.weeks * 7 }, (_, index) => addDays(range.start, index)), [range]);
 
   const itemsByDay = useMemo(() => {
     const map = new Map<LocalDate, CardItem[]>();
@@ -213,19 +230,32 @@ export function CalendarWeekScreen({
     zonesLine(item.projections.flatMap((projection) => projection.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)));
 
   const changeWeek = (next: LocalDate, day: LocalDate) => {
+    const window = { start: next, weeks: AGENDA_WEEKS_INITIAL };
+    rangeRef.current = window;
     setMonday(next);
     setSelectedDay(day);
+    setRange(window);
     setExpanded(new Set());
     setRevealed(null);
     sectionOffsets.current.clear();
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-    load(next);
+    load(window);
+  };
+
+  /** Fin de la liste approchée : semaines suivantes (constat C), jusqu'à `AGENDA_WEEKS_MAX`. */
+  const extendRange = () => {
+    const current = rangeRef.current;
+    if (current.weeks >= AGENDA_WEEKS_MAX) return;
+    const window = { start: current.start, weeks: Math.min(AGENDA_WEEKS_MAX, current.weeks + AGENDA_WEEKS_STEP) };
+    rangeRef.current = window;
+    setRange(window);
+    load(window);
   };
 
   const selectDay = (day: LocalDate) => {
     setSelectedDay(day);
     // RM-046 : la section du jour (ou la suivante s'il est vide) passe en tête de liste.
-    const target = days.filter((candidate) => candidate >= day).find((candidate) => sectionOffsets.current.has(candidate));
+    const target = listDays.filter((candidate) => candidate >= day).find((candidate) => sectionOffsets.current.has(candidate));
     const y = target === undefined ? undefined : sectionOffsets.current.get(target);
     if (y !== undefined) {
       programmaticScroll.current = true;
@@ -234,14 +264,20 @@ export function CalendarWeekScreen({
   };
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    // Moins d'un écran de contenu sous la vue (réserve basse exclue) : semaines suivantes.
+    if (contentOffset.y + 2 * layoutMeasurement.height >= contentSize.height - listPaddingBottom) extendRange();
     if (programmaticScroll.current) return;
-    const y = event.nativeEvent.contentOffset.y + spacing[8];
+    const y = contentOffset.y + spacing[8];
     let top: LocalDate | null = null;
-    for (const day of days) {
+    for (const day of listDays) {
       const offset = sectionOffsets.current.get(day);
       if (offset !== undefined && offset <= y) top = day;
     }
-    if (top !== null && top !== selectedDay) setSelectedDay(top);
+    if (top === null || top === selectedDay) return;
+    setSelectedDay(top);
+    // Le carrousel passe à la semaine du jour en tête de liste, sans recharger ni replacer la liste.
+    if (mondayOf(top) !== monday) setMonday(mondayOf(top));
   };
 
   const openRoutine = (routineId: string) => {
@@ -258,11 +294,11 @@ export function CalendarWeekScreen({
     setDeleteCandidate(null);
     setActionFailed(false);
     action().then(
-      () => load(monday),
+      () => load(rangeRef.current),
       (error: unknown) => {
         console.error("L'action de planification a échoué.", error);
         setActionFailed(true);
-        load(monday);
+        load(rangeRef.current);
       },
     );
   };
@@ -291,8 +327,9 @@ export function CalendarWeekScreen({
   };
 
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
-  const anyItem = days.some((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
-  const lastDay = [...days].reverse().find((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
+  // Message « semaine vide » : première semaine de la liste sans occurrence ; les semaines suivantes s'affichent dessous.
+  const anyItem = listDays.slice(0, 7).some((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
+  const lastDay = [...listDays].reverse().find((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
   const listPaddingBottom = Math.max(bottomReserve, listHeight - lastSectionHeight);
 
   return (
@@ -446,10 +483,10 @@ export function CalendarWeekScreen({
             {t.calendar.emptyWeek}
           </Text>
         ) : null}
-        {days.map((day) => {
+        {listDays.map((day) => {
           const items = itemsByDay.get(day) ?? [];
           if (items.length === 0) return null;
-          const first = day === days.find((candidate) => (itemsByDay.get(candidate)?.length ?? 0) > 0);
+          const first = day === listDays.find((candidate) => (itemsByDay.get(candidate)?.length ?? 0) > 0);
           return (
             <View
               key={day}
@@ -519,6 +556,7 @@ export function CalendarWeekScreen({
                         time={formatAgendaTime(item.occurrence.time)}
                         duration={duration}
                         name={title}
+                        parcours={(item.routine?.entries.length ?? 0) > 1}
                         detail={detailOf(item)}
                         status={status}
                         expanded={isExpanded}
@@ -531,10 +569,15 @@ export function CalendarWeekScreen({
                     {isExpanded ? (
                       // DSF Agenda § 6 : complément de composition du catalogue sous la carte (filet, puis séances).
                       // Recette du 19/11/2026 au soir (constat A) : la ligne de récapitulation des jours planifiés passe au Journal.
+                      // Recette du 20/11/2026 (r20-recap — Hermann) : « retirer toute séparation verticale et l'espace vertical
+                      // associé, s'il n'y a pas de texte avant » ; « toujours mettre le nom de la séance, même lorsqu'il n'y en
+                      // n'a qu'une dans la routine ». [Filet en tête ; nom seulement pour un parcours — remplacé.]
                       <Pressable onPress={toggle} accessible={false} style={styles.expanded} testID={`calendar-item-${item.key}-expanded`}>
                         {item.projections.map((projection, rank) => (
                           <View key={`${projection.id}-${rank}`} testID={`calendar-item-${item.key}-session-${rank}`}>
-                            {item.projections.length > 1 ? <Text style={styles.expandedSession}>{projection.name}</Text> : null}
+                            <Text style={styles.expandedSession} testID={`calendar-item-${item.key}-session-${rank}-name`}>
+                              {projection.name}
+                            </Text>
                             <SessionCompositionTree tree={projection.tree} testID={`calendar-item-${item.key}-composition-${rank}`} />
                           </View>
                         ))}
@@ -548,36 +591,27 @@ export function CalendarWeekScreen({
         })}
       </ScrollView>
 
-      {deleteCandidate !== null && deleteCandidate.routine.repetition === null ? (
+      {/* Recette du 20/11/2026 (constat D — Hermann : « Dans l'agenda on ne supprime que l'occurrence ») : un seul
+          dialogue, titre seul ; l'occurrence est retirée, la routine reste (au Journal, grise s'il n'y a plus rien à venir).
+          [Planification unique supprimée en entier ; choix « Seulement cette occurrence » / « Toutes les occurrences à
+          venir » — remplacé.] */}
+      {deleteCandidate !== null ? (
         <DecisionDialog
-          title={t.deleteSingle.title}
+          title={t.deleteOccurrence.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-          message={t.deleteSingle.message}
+          message=""
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
-          cancelLabel={t.deleteSingle.cancel}
+          cancelLabel={t.deleteOccurrence.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
-          confirmLabel={t.deleteSingle.confirm}
+          confirmLabel={t.deleteOccurrence.confirm}
           confirmLabelStyle={type.dialogDestructiveActionLabel}
           confirmBordered={false}
           onCancel={() => setDeleteCandidate(null)}
           onConfirm={() => {
-            const routineId = deleteCandidate.routine.id;
-            runAction(() => planning.deleteRoutine(routineId));
-          }}
-          testIDPrefix="planning-delete-single"
-        />
-      ) : null}
-      {deleteCandidate !== null && deleteCandidate.routine.repetition !== null ? (
-        <OccurrenceDeleteDialog
-          onThisOne={() => {
             const { routine, occurrenceKey } = deleteCandidate;
             runAction(() => planning.excludeOccurrence(routine.id, occurrenceKey));
           }}
-          onAllUpcoming={() => {
-            const routineId = deleteCandidate.routine.id;
-            runAction(() => planning.deleteRoutine(routineId));
-          }}
-          onCancel={() => setDeleteCandidate(null)}
+          testIDPrefix="planning-delete-occurrence"
         />
       ) : null}
     </TabbedScreen>
@@ -638,7 +672,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: colors.textSecondary },
   // DSF Agenda § 4 : 8 entre deux routines, aucun trait.
   item: { paddingBottom: spacing[8] },
-  expanded: { marginHorizontal: layout.screenGutter, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder, marginTop: spacing[8], paddingTop: spacing[8], gap: spacing[8] },
+  expanded: { marginHorizontal: layout.screenGutter, marginTop: spacing[8], gap: spacing[8] },
   expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },

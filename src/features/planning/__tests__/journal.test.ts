@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { addDays as addDaysTo, EVERY_TIME, type Routine } from "@/domain/planning/Routine";
-import { creationDateParts, isRoutineActive, journalCounts, journalRecurrenceLine, matchesJournalFilters, routineLastDate, sortJournal } from "@/features/planning/journal";
+import { creationDateParts, isRoutineActive, journalCounts, journalRecurrenceLine, journalSlotsLine, matchesJournalFilters, routineLastDate, sortJournal } from "@/features/planning/journal";
 import { EMPTY_SESSION_FILTERS } from "@/features/sessions/sessionCatalogueFilters";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 
@@ -71,5 +71,19 @@ describe("Journal — filtres (feuille du Catalogue des séances)", () => {
     expect(matchesJournalFilters([genou, cardio], byCategory)).toBe(true);
     expect(matchesJournalFilters([genou], byCategory)).toBe(false);
     expect(matchesJournalFilters([genou], { ...EMPTY_SESSION_FILTERS, bodyZoneIds: new Set(["genou"]) })).toBe(true);
+  });
+});
+
+describe("Journal — ligne 3 de la carte : créneaux à venir (recette du 20/11/2026, r20-j-deploye)", () => {
+  const now = new Date(2026, 10, 19, 9, 0); // jeudi 19 novembre, 9 h : le créneau de 8 h du jour est passé
+  it("« N créneaux, du X au Y », sans année ni date de début de la routine", () => {
+    // Lundis et jeudis du 23/11 au 28/12 : 23, 26, 30 nov. ; 3, 7, 10, 14, 17, 21, 24, 28 déc.
+    expect(journalSlotsLine(routine({}), TODAY, now)).toBe("11 créneaux, du 23 nov. au 28 déc.");
+  });
+  it("un seul créneau : « 1 créneau, le X »", () => {
+    expect(journalSlotsLine(routine({ repetition: null, startDate: "2027-01-04" }), TODAY, now)).toBe("1 créneau, le 4 janv.");
+  });
+  it("aucun créneau à venir", () => {
+    expect(journalSlotsLine(routine({ repetition: null, startDate: TODAY }), TODAY, now)).toBe("Aucun créneau à venir");
   });
 });

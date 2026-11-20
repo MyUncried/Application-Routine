@@ -1,4 +1,6 @@
 import type { Routine } from "@/domain/planning/Routine";
+import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import { reminderHistoryFamily } from "@/domain/planning/reminderHistory";
 import { composeReminder } from "@/domain/planning/reminderMessages";
 import { upcomingReminders } from "@/domain/planning/reminders";
 
@@ -46,6 +48,8 @@ export type ReminderSchedulerDeps = {
   readonly activeSessionNames: () => Promise<ReadonlyMap<string, string>>;
   /** Catégories des exercices de chaque Séance active (famille CAT-* des rappels) ; absent : aucune. */
   readonly sessionCategoryIds?: () => Promise<ReadonlyMap<string, readonly string[]>>;
+  /** Exécutions liées aux occurrences (familles FIRST et RESTART, `reminderHistory`) ; absent : aucune accroche d'historique. */
+  readonly occurrenceExecutions?: () => Promise<readonly OccurrenceExecution[]>;
   readonly now: () => Date;
 };
 
@@ -86,13 +90,25 @@ export class ReminderScheduler {
 
   private async apply(): Promise<void> {
     if ((await this.deps.notifications.permission()) !== "granted") return;
-    const [routines, names, categories] = await Promise.all([
+    const [routines, names, categories, executions] = await Promise.all([
       this.deps.listRoutines(),
       this.deps.activeSessionNames(),
       this.deps.sessionCategoryIds?.() ?? Promise.resolve(new Map<string, readonly string[]>()),
+      this.deps.occurrenceExecutions?.() ?? Promise.resolve(null),
     ]);
     const routinesById = new Map(routines.map((routine) => [routine.id, routine]));
-    const reminders = upcomingReminders(routines, this.deps.now(), (sessionId) => names.has(sessionId));
+    const now = this.deps.now();
+    const reminders = upcomingReminders(routines, now, (sessionId) => names.has(sessionId));
+    // FIRST / RESTART (q19-rappels, 20/11/2026) : sur le premier rappel à venir de chaque routine seulement.
+    const history = new Map<string, "FIRST" | "RESTART" | null>();
+    if (executions !== null) {
+      for (const reminder of reminders) {
+        if (history.has(reminder.routineId)) continue;
+        const routine = routinesById.get(reminder.routineId);
+        history.set(reminder.id, routine === undefined ? null : reminderHistoryFamily(routine, executions, now));
+        history.set(reminder.routineId, null);
+      }
+    }
     // Dans l'ordre de déclenchement : un modèle n'est jamais repris sur deux notifications consécutives.
     let previous: string | null = null;
     const scheduled = reminders.map((reminder) => {
@@ -104,6 +120,7 @@ export class ReminderScheduler {
           recurring: routine !== undefined && routine.repetition !== null,
           categoryIds: reminder.sessionIds.flatMap((sessionId) => categories.get(sessionId) ?? []),
           rank: reminder.rank,
+          history: history.get(reminder.id) ?? null,
         },
         previous,
       );

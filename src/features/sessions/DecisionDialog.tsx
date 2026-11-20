@@ -97,7 +97,8 @@ export function DecisionDialog({
       <View style={styles.backdrop} testID={`${testIDPrefix}-backdrop`}>
         <View style={styles.card} accessibilityRole="alert" testID={`${testIDPrefix}-card`}>
           <Text style={[styles.title, titleStyle]}>{title}</Text>
-          <Text style={[styles.message, messageStyle]}>{message}</Text>
+          {/* Message vide : dialogue « titre seul » (suppression d'une occurrence, recette du 20/11/2026, constat D). */}
+          {message === "" ? null : <Text style={[styles.message, messageStyle]}>{message}</Text>}
           <View style={styles.actions} testID={`${testIDPrefix}-actions`}>
             <Pressable
               onPress={onCancel}

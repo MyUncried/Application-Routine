@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { colors, layout, spacing } from "@/shared/ui/tokens";
 
@@ -55,6 +56,7 @@ export function RoutineAgendaCard({
   time,
   duration,
   name,
+  parcours = false,
   detail,
   status,
   expanded,
@@ -66,6 +68,8 @@ export function RoutineAgendaCard({
   readonly time: string;
   readonly duration: string;
   readonly name: string;
+  /** Routine à plusieurs séances : repère « P » devant le nom (recette du 20/11/2026, constat A). */
+  readonly parcours?: boolean;
   readonly detail: string;
   readonly status: AgendaStatus;
   readonly expanded: boolean;
@@ -116,6 +120,7 @@ export function RoutineAgendaCard({
         >
           <View style={styles.titleLine}>
             <Image source={CHEVRON} style={[styles.chevron, expanded ? styles.chevronDown : null]} accessible={false} testID={`${testID}-chevron${expanded ? "-open" : ""}`} />
+            {parcours ? <ParcoursBadge testID={`${testID}-parcours`} /> : null}
             <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
               {name}
             </Text>

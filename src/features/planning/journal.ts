@@ -68,6 +68,35 @@ export function upcomingOccurrenceCount(routine: Routine, today: LocalDate, now:
   return periodOccurrences([routine], today, last).filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime()).length;
 }
 
+/** Créneaux de la routine, passés et à venir, retraits exclus (message de suppression du Journal, constat D du 20/11/2026). */
+export function routineSlotCount(routine: Routine): number {
+  return periodOccurrences([routine], routine.startDate, routineLastDate(routine)).length;
+}
+
+/** « 26 nov. », sans année. */
+function dayMonth(day: LocalDate): string {
+  const date = parseLocalDate(day);
+  return `${date.getDate()} ${t.monthsShort[date.getMonth()]}`;
+}
+
+/**
+ * Ligne 3 de la carte (recette du 20/11/2026, r20-j-deploye — Hermann : « Replacer le terme occurrences par créneau
+ * "N créneaux, du X mois au Y mois" et c'est tout, pas de date de début ni d'année, et "Aucun créneau à venir" s'il n'y
+ * en n'a pas ») : créneaux à venir, du premier au dernier. [Interprétation technique : « du … au … » borne les créneaux à
+ * venir ; un seul créneau : « 1 créneau, le 26 nov. ».]
+ */
+export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date): string {
+  const last = routineLastDate(routine);
+  const upcoming =
+    last < today ? [] : periodOccurrences([routine], today, last).filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime());
+  if (upcoming.length === 0) return t.journal.slotsNone;
+  if (upcoming.length === 1) return t.journal.slotsOne.replace("{date}", dayMonth(upcoming[0]!.date));
+  return t.journal.slotsMany
+    .replace("{count}", String(upcoming.length))
+    .replace("{start}", dayMonth(upcoming[0]!.date))
+    .replace("{end}", dayMonth(upcoming[upcoming.length - 1]!.date));
+}
+
 /**
  * Information du déployé (recette du 19/11/2026 au soir, constat E) : « 12 occurrences à venir · du 3 nov. au 28 déc. » ;
  * créneau unique : « … · le 18 nov. ».

@@ -180,3 +180,7 @@ Chaque ligne indique la famille, l’identifiant stable, le **titre** et le **co
 - KODJO, projection des catégories de séance : https://github.com/MyUncried/Application-Routine/blob/main/src/features/sessions/sessionCatalogueProjection.ts
 
 **Périmètre documentaire :** ce fichier est un livrable indépendant, pas une modification du dépôt GitHub, de Figma ou d’une baseline ZIP.
+
+---
+
+[Mise en œuvre — 20/11/2026 (q19-rappels, Hermann : « Active ces deux familles ») : FIRST et RESTART sont calculées depuis le lien occurrence ↔ Exécution (migration 033), par routine, sur le premier rappel à venir ; PROGRAM reste non retenue (aucun programme). Rotation : rang de l'occurrence, sans mémoire persistée (interprétation technique du 19/11/2026, inchangée).]

@@ -60,7 +60,7 @@ import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTable";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
@@ -961,7 +961,9 @@ function SlotGrid({
                 style={styles.rowHandle}
                 testID={`planning-row-${row}-handle`}
               >
-                <KodjoIcon name="composition-reorder" />
+                <View style={styles.rowHandleDots}>
+                  <DragHandleDots />
+                </View>
               </View>
             ) : null}
             <View style={styles.gridNames}>
@@ -1084,6 +1086,8 @@ const styles = StyleSheet.create({
   gridSeparator: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.cardsBorder },
   // Poignée de réordonnancement (`icon/poignee`, comme les lignes de la Composition), devant le nom.
   rowHandle: { width: 20, alignItems: "flex-start", justifyContent: "center" },
+  // r20-ordre (20/11/2026) : six points de la modale des paramètres d'exécution, même taille et même répartition.
+  rowHandleDots: { ...DRAG_HANDLE_SIZE, justifyContent: "space-between", paddingVertical: 2 },
   rowDragging: { zIndex: 1, opacity: 0.9, backgroundColor: colors.background },
   rowName: { ...type.supporting, fontFamily: type.listCardTitle.fontFamily, color: colors.textPrimary },
   rowMention: { ...type.supporting, fontSize: 10, lineHeight: 13, color: colors.textSecondary },

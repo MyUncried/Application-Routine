@@ -8,8 +8,9 @@
  *   consécutives ; GEN toujours éligible.
  *
  * Mise en œuvre (à confirmer, voir le rapport de mission) :
- * - Familles non retenues faute de donnée : RESTART et FIRST (supposent de savoir si une occurrence a été réalisée ou
- *   manquée — lien occurrence ↔ Exécution absent, D-525) ; PROGRAM (aucune notion de programme dans KODJO).
+ * - Famille non retenue : PROGRAM (aucune notion de programme dans KODJO). [RESTART et FIRST non retenues faute du lien
+ *   occurrence ↔ Exécution — remplacé le 20/11/2026 (q19-rappels, Hermann : « Active ces deux familles ») : voir
+ *   `reminderHistory`.]
  * - Rotation « déterministe et persistée » : dérivée du rang de l'occurrence dans sa routine (identique à chaque
  *   reprogrammation, sans nouvelle persistance) ; ordre de départage de la spécification : RECUR / SINGLE, CAT-*, jour,
  *   moment, GEN.
@@ -18,6 +19,8 @@
 
 export type ReminderFamily =
   | "GEN"
+  | "FIRST"
+  | "RESTART"
   | "SINGLE"
   | "RECUR"
   | "MON"
@@ -39,12 +42,18 @@ const NAME = "{nom}";
 export const REMINDER_TITLE_MAX = 30;
 export const REMINDER_BODY_MAX = 40;
 
-/** Catalogue de la spécification (§ 3), hors FIRST, PROGRAM et RESTART (non éligibles, voir l'en-tête). */
+/** Catalogue de la spécification (§ 3), hors PROGRAM (non éligible, voir l'en-tête). */
 export const REMINDER_TEMPLATES: readonly ReminderTemplate[] = [
   { id: "GEN-01", family: "GEN", title: "Un défi t’attend", body: `${NAME} : c’est maintenant !` },
   { id: "GEN-02", family: "GEN", title: "Chaque séance compte", body: `${NAME} t’attend.` },
   { id: "GEN-03", family: "GEN", title: "À toi de jouer", body: `${NAME} : c’est parti !` },
   { id: "GEN-04", family: "GEN", title: "Allez, on s’y met", body: `${NAME} est prête.` },
+  { id: "FIRST-01", family: "FIRST", title: "C’est parti pour une première", body: `${NAME} t’attend.` },
+  { id: "FIRST-02", family: "FIRST", title: "Le premier pas compte", body: `${NAME} : c’est le moment !` },
+  { id: "FIRST-03", family: "FIRST", title: "À toi de jouer", body: `${NAME} : ta première séance !` },
+  { id: "RESTART-01", family: "RESTART", title: "On reprend le mouvement", body: `${NAME} t’attend.` },
+  { id: "RESTART-02", family: "RESTART", title: "À ton rythme", body: `${NAME} : on s’y remet !` },
+  { id: "RESTART-03", family: "RESTART", title: "Un nouveau départ", body: `${NAME} t’attend.` },
   { id: "SINGLE-01", family: "SINGLE", title: "Un défi t’attend", body: `${NAME} : c’est maintenant !` },
   { id: "SINGLE-02", family: "SINGLE", title: "Tout est prêt", body: `${NAME} t’attend.` },
   { id: "SINGLE-03", family: "SINGLE", title: "Allez, on s’y met", body: `${NAME} est prête.` },
@@ -117,6 +126,11 @@ export type ReminderContext = {
   readonly categoryIds: readonly string[];
   /** Rang de l'occurrence dans sa routine (à partir de 1) : base de la rotation. */
   readonly rank: number;
+  /**
+   * Accroche d'historique due (§ 4, étapes 3 et 4 : RESTART avant FIRST, prioritaires sur la rotation) ; absente ou
+   * `null` : aucune.
+   */
+  readonly history?: "FIRST" | "RESTART" | null;
 };
 
 export type ReminderMessage = { readonly templateId: string; readonly title: string; readonly body: string };
@@ -164,6 +178,10 @@ export function composeReminder(context: ReminderContext, previousTemplateId: st
   const families = eligibleFamilies(context);
   const rotation = Math.max(0, context.rank - 1);
   const candidates: ReminderTemplate[] = [];
+  if (context.history != null) {
+    const variants = REMINDER_TEMPLATES.filter((template) => template.family === context.history);
+    for (let offset = 0; offset < variants.length; offset += 1) candidates.push(variants[(rotation + offset) % variants.length]!);
+  }
   for (let shift = 0; shift < families.length; shift += 1) {
     const family = families[(rotation + shift) % families.length]!;
     const variants = REMINDER_TEMPLATES.filter((template) => template.family === family);

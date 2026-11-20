@@ -200,7 +200,11 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(screen.getByTestId("execution-route-2").props.children).toEqual(["Séance 2", " · Bravo"]);
     expect(screen.getByTestId("execution-back")).toBeTruthy();
     await runToEnd(advance);
-    await press("execution-close");
+    // Recette du 20/11/2026 (constat F) : pas de bouton sur « Séance terminée » d'une séance intermédiaire.
+    expect(screen.queryByTestId("execution-close")).toBeNull();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));
+    });
     // release() précède la navigation : la séance suivante peut démarrer (pas d'ExecutionBlockedError).
     expect(calls).toEqual(["release", `replace ${JSON.stringify({ pathname: "/execution", params: { sessionId: second, chain: `${first},${second}`, rank: "2" } })}`]);
     expect(mockBack).not.toHaveBeenCalled();
@@ -235,6 +239,7 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     // Compte à rebours 3 s, exercice 5 s : la phase finale de 5 s est passée aussitôt.
     await advance(9);
     expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance terminée");
+    expect(screen.queryByTestId("execution-close")).toBeNull();
     expect(calls).toEqual([]);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));

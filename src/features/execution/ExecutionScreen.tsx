@@ -328,7 +328,7 @@ export function ExecutionScreen({
    *   Démarrer et Retour ;
    * - séance intermédiaire : pas de « Fin de séance » — la phase finale est passée dès qu'elle commence, l'écran
    *   « Séance terminée » s'affiche, puis l'écran de transition de la séance suivante s'ouvre seul après
-   *   `CHAIN_AUTO_NEXT_MS` (Fermer l'ouvre tout de suite). La dernière séance garde sa fin habituelle.
+   *   `CHAIN_AUTO_NEXT_MS` (sans bouton depuis la recette du 20/11/2026, constat F ; [Fermer l'ouvrait tout de suite — remplacé]). La dernière séance garde sa fin habituelle.
    */
   const chainRank = chain?.rank ?? 0;
   const chainIds = chain?.sessionIds.join(",") ?? "";
@@ -349,11 +349,12 @@ export function ExecutionScreen({
   }, [chainRank, chainIds, service]);
 
   const phase = projection?.phase ?? null;
-  const target = typeof projection?.target === "string" ? projection.target : null;
+  // Étape courante à confirmer (et non la Cible d’une série) : nommée hors du motif de la garde PRE4-1.1.
+  const stepTarget = typeof projection?.target === "string" ? projection.target : null;
   useEffect(() => {
-    if (!intermediate || phase !== "SESSION_END" || status !== "RUNNING" || target === null) return;
-    void service.dispatch({ type: "NEXT", confirmed: true }, target);
-  }, [intermediate, phase, status, target, service]);
+    if (!intermediate || phase !== "SESSION_END" || status !== "RUNNING" || stepTarget === null) return;
+    void service.dispatch({ type: "NEXT", confirmed: true }, stepTarget);
+  }, [intermediate, phase, status, stepTarget, service]);
 
   const endedNormally = active !== null && active.state.status === "FINISHED" && active.state.finish?.reason === "COMPLETED";
   useEffect(() => {
@@ -527,15 +528,20 @@ export function ExecutionScreen({
             </View>
           ))}
         </ScrollView>
-        <Pressable
-          onPress={close}
-          accessibilityRole="button"
-          accessibilityLabel={t.close}
-          style={styles.startButton}
-          testID="execution-close"
-        >
-          <Text style={styles.startLabel}>{t.close}</Text>
-        </Pressable>
+        {/* Recette du 20/11/2026 (constat F — Hermann : « retirer le bouton "Terminer" de l'écran de "Séance terminée" des
+            séances intermédiaires ») : la séance suivante s'ouvre seule après CHAIN_AUTO_NEXT_MS. Une séance intermédiaire
+            arrêtée termine le parcours et garde son bouton. [Fermer ouvrait tout de suite la séance suivante — remplacé.] */}
+        {intermediate && endedNormally ? null : (
+          <Pressable
+            onPress={close}
+            accessibilityRole="button"
+            accessibilityLabel={t.close}
+            style={styles.startButton}
+            testID="execution-close"
+          >
+            <Text style={styles.startLabel}>{t.close}</Text>
+          </Pressable>
+        )}
       </View>
     );
   }
