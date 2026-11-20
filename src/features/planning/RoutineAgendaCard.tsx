@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -120,14 +121,21 @@ export function RoutineAgendaCard({
         >
           <View style={styles.titleLine}>
             <Image source={CHEVRON} style={[styles.chevron, expanded ? styles.chevronDown : null]} accessible={false} testID={`${testID}-chevron${expanded ? "-open" : ""}`} />
-            {parcours ? <ParcoursBadge testID={`${testID}-parcours`} /> : null}
+            {/* Recette du 20/11/2026 (Hermann) : « mettre le symbole du Parcours après le nom, pas avant, et affiner le trait
+                du cercle ». [Repère devant le nom, trait de 1,5 — remplacé.] [Trait de 1 : valeur technique.] */}
             <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
               {name}
             </Text>
+            {parcours ? <ParcoursBadge placement="after" stroke={1} testID={`${testID}-parcours`} /> : null}
           </View>
-          <Text style={[styles.secondary, styles.detail]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
-            {detail}
-          </Text>
+          {/* Même recette : « mettre le symbole de la zone corporelle avant le texte de la deuxième ligne » (pastille des zones
+              de la carte du Journal). */}
+          <View style={styles.detailLine}>
+            {detail === "" ? null : <KodjoIcon name="card-body-zone-badge" testID={`${testID}-zones-badge`} />}
+            <Text style={[styles.secondary, styles.detail]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
+              {detail}
+            </Text>
+          </View>
         </Pressable>
         {/* Recette du 20/11/2026 (Hermann) : « La zone tactile doit être découpée en trois zones (toute la hauteur de la
             carte) : gauche (carte), centre (zone du nom et de la ligne du dessous), droit (zone de la pastille) » ; « lorsque
@@ -196,7 +204,9 @@ const styles = StyleSheet.create({
   titleLine: { flexDirection: "row", alignItems: "center", gap: 2 },
   chevron: { width: CHEVRON_SIZE, height: CHEVRON_SIZE },
   chevronDown: { transform: [{ rotate: "90deg" }] },
-  name: { flex: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
+  // Nom à sa largeur (au plus la place disponible) : le repère « P » le suit immédiatement.
+  name: { flexShrink: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
+  detailLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   detail: {},
   // Action alignée en bas avec la ligne 2.
   action: { justifyContent: "flex-end", paddingVertical: spacing[4], paddingLeft: spacing[8], paddingRight: layout.screenGutter },

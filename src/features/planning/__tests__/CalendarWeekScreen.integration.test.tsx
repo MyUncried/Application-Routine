@@ -335,6 +335,11 @@ describe("Calendrier Semaine", () => {
     await renderCalendar();
     expect(screen.queryByTestId(`${card(single.id, MONDAY)}-parcours`)).toBeNull();
     expect(screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-parcours`)).toBeTruthy();
+    // Recette du 20/11/2026 : repère « P » après le nom, trait du cercle affiné (1).
+    const titleLine = screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-name`).parent!.parent!;
+    const ids = titleLine.findAll((node) => typeof node.props.testID === "string" && /-(name|parcours)$/.test(node.props.testID as string) && typeof node.type === "string").map((node) => (node.props.testID as string).replace(/^.*-/, ""));
+    expect(ids.indexOf("name")).toBeLessThan(ids.indexOf("parcours"));
+    expect(StyleSheet.flatten(screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-parcours`).props.style).borderWidth).toBe(1);
     fireEvent.press(screen.getByTestId(`${card(single.id, MONDAY)}-disclosure`));
     expect(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-session-0-name`).props.children).toBe("Alpha");
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded`).props.style).borderTopWidth).toBeUndefined();
