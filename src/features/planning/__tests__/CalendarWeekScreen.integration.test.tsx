@@ -156,7 +156,8 @@ describe("Calendrier Semaine", () => {
     // Constat A : la récapitulation des jours planifiés n'est plus dans l'Agenda.
     expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-recurrence`)).toBeNull();
     fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-frame`));
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
+    // D-536, point 4 (20/11/2026) : depuis l'Agenda, seule l'occurrence se modifie.
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id, occurrenceKey: `${MONDAY}T08:00` } });
     // Exécutée et complète : verte, « Complétée », plus de Démarrer.
     linked = [{ executionId: "x", routineId: routine.id, occurrenceKey: `${MONDAY}T08:00`, rank: 1, startedAt: "2030-08-05T08:00:00.000Z", businessStatus: "COMPLETED" }];
     await act(async () => {
@@ -166,6 +167,14 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-COMPLETED`)).toBeTruthy();
     expect(within(screen.getByTestId(`${card(routine.id, MONDAY)}-status-tag`)).getByText("Complétée")).toBeTruthy();
     expect(screen.queryByTestId(`${card(routine.id, MONDAY)}-start`)).toBeNull();
+    // Occurrence commencée : ni modification (D-536, point 1) ni suppression (D-537, point 1) ; la zone de la pastille ne
+    // fait rien (recette du 20/11/2026 : trois zones tactiles).
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-frame`));
+    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-action-zone`));
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.queryByText("Supprimer ce créneau")).toBeNull();
     // Arrêtée : grise, « Arrêtée ».
     linked = [{ ...linked[0]!, businessStatus: "INTERRUPTED" }];
     await act(async () => {
@@ -287,7 +296,7 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-start`));
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: created.id, routineId: routine.id, occurrence: `${MONDAY}T08:00` } });
     fireEvent.press(swipeCard(routine.id, MONDAY));
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id, occurrenceKey: `${MONDAY}T08:00` } });
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
   });
@@ -297,7 +306,9 @@ describe("Calendrier Semaine", () => {
     const routine = await plan({ entries: [entry(created.id)] });
     await renderCalendar();
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-    expect(screen.getByText("Supprimer cette occurrence")).toBeTruthy();
+    // r21-supprimer : « Supprimer ce créneau » ; D-537 : « Annuler » en haut à gauche, « Confirmer » pleine largeur.
+    expect(screen.getByText("Supprimer ce créneau")).toBeTruthy();
+    expect(screen.getByTestId("planning-delete-occurrence-cancel")).toBeTruthy();
     fireEvent.press(screen.getByText("Annuler"));
     expect(sectionDays()).toEqual([MONDAY]);
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });

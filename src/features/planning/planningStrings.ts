@@ -64,6 +64,8 @@ export const planningStrings = {
     expandRoutine: "Déplier la routine",
     collapseRoutine: "Replier la routine",
     start: "Démarrer",
+    // D-536, point 5 (20/11/2026) : occurrence passée non commencée.
+    catchUp: "Rattraper",
     done: "Terminée",
     // Recette du 19/11/2026 au soir (s19-passees) : statut d'une occurrence exécutée.
     status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée" },
@@ -109,7 +111,9 @@ export const planningStrings = {
    * ses N créneaux seront supprimés. » »).
    */
   deleteOccurrence: {
-    title: "Supprimer cette occurrence",
+    // Recette du 20/11/2026 (r21-supprimer — Hermann : « remplacer le texte par "Supprimer ce créneau" »). [« Supprimer cette
+    // occurrence » — remplacé.]
+    title: "Supprimer ce créneau",
     cancel: "Annuler",
     confirm: "Confirmer",
   },
@@ -117,6 +121,22 @@ export const planningStrings = {
     title: "Supprimer cette routine",
     messageOne: "La routine et son créneau seront supprimés.",
     messageMany: "La routine et ses {count} créneaux seront supprimés.",
+    // Constat E (Hermann, 20/11/2026) : « Suppression avec historique : « N créneaux non commencés seront supprimés ; La
+    // routine sera archivée. » ».
+    archiveOne: "1 créneau non commencé sera supprimé ; La routine sera archivée.",
+    archiveMany: "{count} créneaux non commencés seront supprimés ; La routine sera archivée.",
+    // r21-j-supprimer (Hermann) : aucun créneau à supprimer — « enlever le texte et mettre dans le titre "la routine <Nom de
+    // la routine> sera supprimée" ».
+    titleNamed: "La routine {name} sera supprimée",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+  },
+  /** Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ». */
+  modifyRoutine: {
+    // [Titre : interprétation technique, aucun texte demandé.]
+    title: "Modifier cette routine",
+    messageOne: "1 créneau à venir sera modifié.",
+    messageMany: "{count} créneaux à venir seront modifiés.",
     cancel: "Annuler",
     confirm: "Confirmer",
   },

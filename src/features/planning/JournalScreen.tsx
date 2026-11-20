@@ -14,8 +14,7 @@ import {
   isRoutineActive,
   journalCounts,
   journalSlotsLine,
-  routineSlotCount,
-  matchesJournalFilters,
+  isJournalRoutineVisible,
   matchesJournalQuery,
   sortJournal,
 } from "@/features/planning/journal";
@@ -23,6 +22,7 @@ import { JOURNAL_ROW_HEIGHT, JournalRoutineCard } from "@/features/planning/Jour
 import { formatRecurrence } from "@/features/planning/planningSummary";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import type { RoutineDeletionPlan } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -34,6 +34,7 @@ import { strings } from "@/shared/i18n";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
+import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -65,9 +66,21 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
   const [revealed, setRevealed] = useState<string | null>(null);
-  const [deleteCandidate, setDeleteCandidate] = useState<Routine | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<{ readonly routine: Routine; readonly plan: RoutineDeletionPlan } | null>(null);
   const [actionFailed, setActionFailed] = useState(false);
   const requestId = useRef(0);
+  // Recette du 20/11/2026 (constat A — Hermann : « Quand on fait glisser gauche dans le journal ou l'agenda, la liste doit
+  // rester figée. ») : verrou partagé des cartes à actions glissées (`SwipeScrollLockContext`), comme les Catalogues.
+  const listRef = useRef<ScrollView>(null);
+  const [swipeLocked, setSwipeLocked] = useState(false);
+  const lockList = useCallback((locked: boolean) => {
+    try {
+      listRef.current?.setNativeProps({ scrollEnabled: !locked });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+    setSwipeLocked(locked);
+  }, []);
 
   const load = useCallback(() => {
     const id = ++requestId.current;
@@ -112,7 +125,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const filtered = isSessionCatalogueFiltered(filters);
   const visible = all.filter((routine) => {
     const sessions = sessionsOf(routine);
-    return matchesJournalQuery(routine, sessions, query) && (!filtered || matchesJournalFilters(sessions, filters));
+    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(routine, sessions, filters, filtered);
   });
 
   const tSessions = strings.screens.sessions;
@@ -212,7 +225,10 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
       }}
     >
 
+      <SwipeScrollLockContext.Provider value={lockList}>
       <ScrollView
+        ref={listRef}
+        scrollEnabled={!swipeLocked}
         style={styles.list}
         // Comme le Catalogue : la liste remonte sous la part fondue de la bande et défile derrière elle.
         contentContainerStyle={[styles.listContent, { paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }]}
@@ -261,7 +277,12 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
               backgroundColor: colors.danger,
               onPress: () => {
                 setRevealed(null);
-                setDeleteCandidate(routine);
+                planning.deletionPlan(routine.id).then(
+                  (plan) => {
+                    if (plan !== null) setDeleteCandidate({ routine, plan });
+                  },
+                  () => setActionFailed(true),
+                );
               },
             },
           ];
@@ -302,15 +323,28 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                 // « réduire un peu l'espace vertical entre le nom de la séance et la dernière ligne de la séance précédente
                 // (cas du parcours) ». [Filet en tête, symbole du calendrier et ligne « N occurrences à venir · du … au … »
                 // — remplacés.]
+                // Recette du 20/11/2026 (r21-j-deploye — Hermann) : « Lorsqu'il n'y a pas de planification, retirer la ligne
+                // vierge qui suit le cadre, retirer la séparation horizontale » ; « mettre le nom de la / des séance/s dans tous
+                // les cas dans la zone déployée ». [Ligne de récurrence vide conservée ; nom réservé aux parcours — remplacé.]
+                // [« Pas de planification » = pas de répétition (récurrence vide) ; filet retiré sous la première séance :
+                // interprétations techniques.]
                 <View style={styles.expanded} testID={`journal-item-${routine.id}-expanded`}>
-                  <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
-                    {formatRecurrence(routine)}
-                  </Text>
+                  {formatRecurrence(routine) === "" ? null : (
+                    <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
+                      {formatRecurrence(routine)}
+                    </Text>
+                  )}
                   <View style={styles.expandedSessions}>
                     {sessions.map((session, rank) => (
                       <View key={`${session.id}-${rank}`} testID={`journal-item-${routine.id}-session-${rank}`}>
-                        {sessions.length > 1 ? <Text style={styles.expandedSession}>{session.name}</Text> : null}
-                        <SessionCompositionTree tree={session.tree} testID={`journal-item-${routine.id}-composition-${rank}`} />
+                        <Text style={styles.expandedSession} testID={`journal-item-${routine.id}-session-${rank}-name`}>
+                          {session.name}
+                        </Text>
+                        <SessionCompositionTree
+                          tree={session.tree}
+                          divider={!(rank === 0 && formatRecurrence(routine) === "")}
+                          testID={`journal-item-${routine.id}-composition-${rank}`}
+                        />
                       </View>
                     ))}
                   </View>
@@ -320,18 +354,24 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           );
         })}
       </ScrollView>
+      </SwipeScrollLockContext.Provider>
 
       {deleteCandidate !== null ? (
         // Recette du 20/11/2026 (constat D — « Dans le Journal on supprime toutes les occurrences ») : la routine et tous ses
         // créneaux. [« Supprimer la planification ? » — remplacé.]
+        // D-537 et recette du 20/11/2026 (r21-j-supprimer — Hermann : « le message ne doit pas inclure les créneaux déjà
+        // exécutés dans le nombre annoncé, et ces créneaux ne doivent pas être supprimés. Seul les créneaux non exécutés
+        // (passés et futurs) peuvent être effacés » ; sans créneau à supprimer : « enlever le texte et mettre dans le titre
+        // "la routine <Nom de la routine> sera supprimée" »). Variantes « Titre seul » / « Titre et message ».
         <DecisionDialog
-          title={planningStrings.deleteRoutine.title}
-          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-          message={
-            routineSlotCount(deleteCandidate) === 1
-              ? planningStrings.deleteRoutine.messageOne
-              : planningStrings.deleteRoutine.messageMany.replace("{count}", String(routineSlotCount(deleteCandidate)))
+          cancelOnTop
+          title={
+            deleteCandidate.plan.count === 0
+              ? planningStrings.deleteRoutine.titleNamed.replace("{name}", titleOf(deleteCandidate.routine, sessionsOf(deleteCandidate.routine)))
+              : planningStrings.deleteRoutine.title
           }
+          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
+          message={deletionMessage(deleteCandidate.plan)}
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
           cancelLabel={planningStrings.deleteRoutine.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
@@ -339,12 +379,20 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           confirmLabelStyle={type.dialogDestructiveActionLabel}
           confirmBordered={false}
           onCancel={() => setDeleteCandidate(null)}
-          onConfirm={() => removeRoutine(deleteCandidate.id)}
+          onConfirm={() => removeRoutine(deleteCandidate.routine.id)}
           testIDPrefix="journal-delete"
         />
       ) : null}
     </TabbedScreen>
   );
+}
+
+/** Message du dialogue de suppression (D-537) : sans historique, « La routine et ses N créneaux… » ; avec, archivage. */
+export function deletionMessage(plan: RoutineDeletionPlan): string {
+  const tDelete = planningStrings.deleteRoutine;
+  if (plan.count === 0) return "";
+  if (plan.history) return plan.count === 1 ? tDelete.archiveOne : tDelete.archiveMany.replace("{count}", String(plan.count));
+  return plan.count === 1 ? tDelete.messageOne : tDelete.messageMany.replace("{count}", String(plan.count));
 }
 
 /** Actions glissées de la taille de l'Agenda (DSF Agenda § 6 : 90 de large), de la hauteur de la carte. */

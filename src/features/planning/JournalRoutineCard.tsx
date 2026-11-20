@@ -111,9 +111,13 @@ export function JournalRoutineCard({
             </Text>
           </View>
         )}
-        <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
-          {slots}
-        </Text>
+        {/* Recette du 20/11/2026 (r21-j-carte — Hermann : « Ligne 3 : il faut le symbole du calendrier »). */}
+        <View style={styles.zonesLine}>
+          <KodjoIcon name="navigation-calendar-inactive" size={13} testID={`${testID}-slots-badge`} />
+          <Text style={[styles.secondary, styles.zones]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
+            {slots}
+          </Text>
+        </View>
       </Pressable>
     </View>
   );

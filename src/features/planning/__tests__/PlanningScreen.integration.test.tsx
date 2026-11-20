@@ -148,6 +148,12 @@ const played = (row: number, column: number) => screen.getByTestId(`planning-poi
 const save = async () => {
   fireEvent.press(screen.getByTestId("screen-header-validate"));
   await flush();
+  // Modification depuis le Journal (D-536, constat E du 20/11/2026) : confirmation « N créneaux à venir seront modifiés. ».
+  const confirm = screen.queryByTestId("planning-modify-confirm");
+  if (confirm !== null) {
+    fireEvent.press(confirm);
+    await flush();
+  }
 };
 
 describe("Planifier (CE-UI-12)", () => {
@@ -314,6 +320,62 @@ describe("Planifier (CE-UI-12)", () => {
     fireEvent.press(screen.getByTestId("planning-column-2"));
     expect(played(1, 1) && played(1, 2)).toBe(true);
     expect(mention(1)).toBe("(à chaque fois)");
+  });
+
+  it("occurrence seule depuis l'Agenda (D-536, point 4) : nom figé, sans répétition, seul le créneau ouvert se modifie, sans confirmation", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [
+        { id: "ea", sessionId: a.id, frequency: { x: 1, n: 2, positions: [1] } },
+        { id: "eb", sessionId: b.id, frequency: EVERY_TIME },
+      ],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    // 12 août : deuxième occurrence, colonne #2 du cycle (Alpha n'y joue pas).
+    await renderPlanning({ routineId: created.routine.id, occurrenceKey: "2030-08-12T08:00" });
+    expect(screen.getByTestId("planning-name").props.editable).toBe(false);
+    expect(screen.queryByTestId("planning-repetition")).toBeNull();
+    expect(screen.getByTestId("planning-column-1-muted")).toBeTruthy();
+    expect(screen.queryByTestId("planning-column-2-muted")).toBeNull();
+    expect(screen.getByTestId("planning-point-0-1").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.queryByTestId("planning-row-0-handle")).toBeNull();
+    // Activer Alpha dans ce créneau, puis désactiver Bravo.
+    fireEvent.press(screen.getByTestId("planning-point-0-2"));
+    fireEvent.press(screen.getByTestId("planning-point-1-2"));
+    expect([played(0, 2), played(1, 2)]).toEqual([true, false]);
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
+    const occurrences = await planning.rangeOccurrences("2030-08-01", "2030-08-31", () => true);
+    expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([[a.id, b.id], [a.id], [a.id, b.id], [b.id]]);
+    // La routine elle-même est inchangée.
+    expect((await planning.getRoutine(created.routine.id))?.entries.map((entry) => entry.frequency.positions)).toEqual([[1], [1]]);
+  });
+
+  it("modification depuis le Journal : confirmation « N créneaux à venir seront modifiés. » (constat E du 20/11/2026)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [{ id: "ea", sessionId: a.id, frequency: EVERY_TIME }],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    await renderPlanning({ routineId: created.routine.id });
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    expect(screen.getByText("4 créneaux à venir seront modifiés.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-modify-cancel"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
   });
 
   it("planification existante : nom vide à compléter (RM-264), « pendant » conservé, motifs n différents ramenés à un cycle commun (RM-263), retraits conservés", async () => {

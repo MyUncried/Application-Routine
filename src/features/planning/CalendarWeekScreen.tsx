@@ -4,6 +4,8 @@ import { Image } from "expo-image";
 import { Pressable, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
+
 import { addDays, formatLocalDate, mondayOf, occurrenceInstant, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import { groupOccurrenceExecutions, occurrenceExecutionKey, occurrenceExecutionStatus, type OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
@@ -133,6 +135,17 @@ export function CalendarWeekScreen({
   const [revealed, setRevealed] = useState<string | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<DeleteCandidate | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+  // Recette du 20/11/2026 (constat A — Hermann : « Quand on fait glisser gauche dans le journal ou l'agenda, la liste doit
+  // rester figée. ») : verrou partagé des cartes à actions glissées (`SwipeScrollLockContext`), comme les Catalogues.
+  const [swipeLocked, setSwipeLocked] = useState(false);
+  const lockList = useCallback((locked: boolean) => {
+    try {
+      scrollRef.current?.setNativeProps({ scrollEnabled: !locked });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+    setSwipeLocked(locked);
+  }, []);
   const sectionOffsets = useRef(new Map<LocalDate, number>());
   const programmaticScroll = useRef(false);
   const requestId = useRef(0);
@@ -280,9 +293,15 @@ export function CalendarWeekScreen({
     if (mondayOf(top) !== monday) setMonday(mondayOf(top));
   };
 
-  const openRoutine = (routineId: string) => {
+  /**
+   * D-536, point 4 (20/11/2026) : depuis l'Agenda, toute modification ne concerne que l'occurrence, sans choix ; la routine
+   * entière se modifie depuis le Journal. Une occurrence commencée n'est pas modifiable (point 1). [Ouverture de la
+   * planification entière — remplacé.]
+   */
+  const openOccurrence = (item: CardItem) => {
     setRevealed(null);
-    router.push({ pathname: "/planning", params: { routineId } });
+    if (item.occurrence.started) return;
+    router.push({ pathname: "/planning", params: { routineId: item.occurrence.routineId, occurrenceKey: item.occurrence.key } });
   };
 
   const duplicate = (routineId: string) => {
@@ -452,8 +471,10 @@ export function CalendarWeekScreen({
         })}
       </View>
 
+      <SwipeScrollLockContext.Provider value={lockList}>
       <ScrollView
         ref={scrollRef}
+        scrollEnabled={!swipeLocked}
         style={styles.list}
         contentContainerStyle={[styles.listContent, { paddingBottom: listPaddingBottom }]}
         onLayout={(event) => setListHeight(event.nativeEvent.layout.height)}
@@ -513,17 +534,22 @@ export function CalendarWeekScreen({
                     else next.add(item.key);
                     return next;
                   });
+                // D-537, point 1 : une occurrence commencée n'est jamais supprimée — pas d'action Supprimer.
                 const actions: readonly SwipeAction[] = [
                   { key: "duplicate", label: t.calendar.duplicate, backgroundColor: colors.movementLevelAction, onPress: () => duplicate(item.occurrence.routineId) },
-                  {
-                    key: "delete",
-                    label: t.calendar.delete,
-                    backgroundColor: colors.danger,
-                    onPress: () => {
-                      setRevealed(null);
-                      if (routine !== undefined) setDeleteCandidate({ routine, occurrenceKey: item.occurrence.key });
-                    },
-                  },
+                  ...(item.occurrence.started
+                    ? []
+                    : [
+                        {
+                          key: "delete",
+                          label: t.calendar.delete,
+                          backgroundColor: colors.danger,
+                          onPress: () => {
+                            setRevealed(null);
+                            if (routine !== undefined) setDeleteCandidate({ routine, occurrenceKey: item.occurrence.key });
+                          },
+                        },
+                      ]),
                 ];
                 const title = titleOf(item);
                 const duration = sessionsDurationLabel(item.projections);
@@ -537,7 +563,7 @@ export function CalendarWeekScreen({
                       revealed={revealed === item.key}
                       onReveal={() => setRevealed(item.key)}
                       onHide={() => setRevealed((current) => (current === item.key ? null : current))}
-                      onPress={() => openRoutine(item.occurrence.routineId)}
+                      onPress={() => openOccurrence(item)}
                       accessibilityLabel={[title, fillTemplate(t.calendar.timeAccessibility, { time: formatAgendaTime(item.occurrence.time) }), duration].filter((part) => part !== "").join(", ")}
                       accessibilityHint={t.calendar.openRoutine}
                       accessibilityState={{ expanded: isExpanded }}
@@ -560,7 +586,7 @@ export function CalendarWeekScreen({
                         detail={detailOf(item)}
                         status={status}
                         expanded={isExpanded}
-                        onOpen={() => openRoutine(item.occurrence.routineId)}
+                        onOpen={() => openOccurrence(item)}
                         onToggleExpanded={toggle}
                         onStart={() => start(item)}
                         testID={`calendar-item-${item.key}-card`}
@@ -590,6 +616,7 @@ export function CalendarWeekScreen({
           );
         })}
       </ScrollView>
+      </SwipeScrollLockContext.Provider>
 
       {/* Recette du 20/11/2026 (constat D — Hermann : « Dans l'agenda on ne supprime que l'occurrence ») : un seul
           dialogue, titre seul ; l'occurrence est retirée, la routine reste (au Journal, grise s'il n'y a plus rien à venir).
@@ -597,6 +624,7 @@ export function CalendarWeekScreen({
           venir » — remplacé.] */}
       {deleteCandidate !== null ? (
         <DecisionDialog
+          cancelOnTop
           title={t.deleteOccurrence.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message=""

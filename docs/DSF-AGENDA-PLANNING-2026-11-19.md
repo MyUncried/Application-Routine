@@ -63,3 +63,10 @@ Une routine planifiée avec plusieurs séances et un nom produit **une seule car
 Si l’utilisateur arrête une séance, la suite lui est proposée (« Passer à la suivante » ou « Terminer ») : formulation et dessin à définir. Après une reprise sur interruption, seule la séance interrompue est reprise.
 
 [Complété le 19/11/2026 au soir (s19-voile, constat F) : le premier écran de démarrage présente le parcours (« Séance 1 », « Séance 2 »… avec leurs noms), avec Démarrer et Retour ; les séances intermédiaires n’ont pas de « Fin de séance » — l’écran « Séance terminée » s’affiche, puis l’écran de transition de la séance suivante s’ouvre automatiquement.]
+
+[Contre-recette du 20/11/2026 et missions D-536 / D-537 (classe B, registre ch07) :
+- carte : trois zones tactiles sur toute la hauteur — gauche (cadre) : modifier ce créneau ; centre (nom et ligne 2) : déplier ; droite (pastille) : « Démarrer » ou « Rattraper », sinon rien ;
+- « Rattraper » sur une occurrence passée non commencée ;
+- le cadre ouvre la modification du seul créneau (date, heure, pastilles du créneau, séance ajoutée, rappel ; nom de la routine non modifiable ; pas de répétition) ; seul le créneau ouvert est coloré, les autres sont grisés ; une occurrence commencée ne s'ouvre pas ;
+- supprimer : « Supprimer ce créneau », « Annuler » en haut à gauche, « Confirmer » pleine largeur ; pas d'action Supprimer sur une occurrence commencée ;
+- glisser vers la gauche : la liste reste figée (constat A).]

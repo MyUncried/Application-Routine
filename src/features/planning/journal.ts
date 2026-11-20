@@ -143,3 +143,19 @@ export function matchesJournalQuery(routine: Routine, sessions: readonly Session
 export function matchesJournalFilters(sessions: readonly SessionCatalogueProjection[], filters: SessionCatalogueFilters): boolean {
   return sessions.some((session) => matchesSessionFilters(session, filters));
 }
+
+/**
+ * D-537 (20/11/2026) : une routine archivée n'apparaît qu'avec le filtre « Archivées » du Journal ; ses autres filtres
+ * portent alors sur ses séances, quel que soit leur statut. Les autres routines gardent la règle ci-dessus.
+ */
+export function isJournalRoutineVisible(
+  routine: Routine,
+  sessions: readonly SessionCatalogueProjection[],
+  filters: SessionCatalogueFilters,
+  filtered: boolean,
+): boolean {
+  if ((routine.archivedAt ?? null) === null) return !filtered || matchesJournalFilters(sessions, filters);
+  if (!filters.statuses.has("ARCHIVED")) return false;
+  const anyStatus: SessionCatalogueFilters = { ...filters, statuses: new Set(["ACTIVE", "ARCHIVED"]) };
+  return sessions.length === 0 || matchesJournalFilters(sessions, anyStatus);
+}

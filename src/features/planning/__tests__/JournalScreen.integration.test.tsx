@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { EVERY_TIME, type RoutineDraft } from "@/domain/planning/Routine";
+import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { JournalScreen } from "@/features/planning/JournalScreen";
 import { PlanningService } from "@/features/planning/PlanningService";
@@ -45,6 +46,8 @@ let planning: PlanningService;
 let sessions: SqliteSessionRepository;
 let ids = 0;
 let clock = 0;
+/** Exécutions liées aux occurrences (D-536 : une occurrence liée est commencée). */
+let linked: OccurrenceExecution[] = [];
 const onChangeView = jest.fn();
 
 beforeEach(async () => {
@@ -59,11 +62,13 @@ beforeEach(async () => {
   await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mv-squat', 'dos')");
   sessions = new SqliteSessionRepository(database);
   clock = 0;
+  linked = [];
   // Horloge du service : chaque écriture est postérieure à la précédente (dates de création distinctes).
   planning = new PlanningService({
     repository: new SqliteRoutineRepository(database),
     newId: () => `routine-${++ids}`,
     now: () => new Date(Date.UTC(2026, 10, 1 + clock++, 9, 0)),
+    occurrenceExecutions: () => Promise.resolve(linked),
   });
 });
 
@@ -199,18 +204,61 @@ describe("Journal des routines (D-535)", () => {
     fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-frame`));
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id } });
     fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-toggle`));
-    expect(screen.getByTestId(`journal-item-${routine.id}-summary`)).toBeTruthy();
+    // r21-j-deploye (20/11/2026) : sans répétition, ni ligne vierge ni filet ; le nom de la séance est toujours affiché.
+    expect(screen.queryByTestId(`journal-item-${routine.id}-summary`)).toBeNull();
+    expect(text(`journal-item-${routine.id}-session-0-name`)).toBe("Alpha");
+    expect(screen.queryByTestId(`journal-item-${routine.id}-composition-0-divider`)).toBeNull();
+    // r21-j-carte : symbole du calendrier devant la ligne 3.
+    expect(screen.getByTestId(`journal-card-${routine.id}-slots-badge`)).toBeTruthy();
     expect(text(`journal-card-${routine.id}-slots`)).toMatch(/^(\d+ créneaux, du .+ au .+|1 créneau, le .+|Aucun créneau à venir)$/);
     expect(screen.queryByTestId(`journal-card-${routine.id}-planned`) ?? screen.queryByTestId(`journal-card-${routine.id}-idle`)).toBeTruthy();
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await flush();
     // Constat D (20/11/2026) : le Journal supprime la routine et tous ses créneaux.
     expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByTestId("journal-delete-cancel")).toBeTruthy();
     expect(screen.getByText("La routine et son créneau seront supprimés.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
     await flush();
     expect(await planning.listRoutines()).toEqual([]);
+  });
+
+  it("D-537 et r21-j-supprimer : avec historique, seuls les créneaux non commencés sont comptés et supprimés, la routine est archivée (filtre « Archivées »)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const routine = await plan({
+      name: "Genou",
+      entries: [entry(a.id)],
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+    });
+    // Première occurrence commencée (lancée depuis l'Agenda).
+    linked = [{ executionId: "x", routineId: routine.id, occurrenceKey: "2030-08-05T08:00", rank: 1, startedAt: "2030-08-05T08:01:00.000Z", businessStatus: "COMPLETED" }];
+    await renderJournal();
+    fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await flush();
+    expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByText("3 créneaux non commencés seront supprimés ; La routine sera archivée.")).toBeTruthy();
+    fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
+    await flush();
+    const archived = await planning.getRoutine(routine.id);
+    expect(archived?.archivedAt).not.toBeNull();
+    expect(archived?.overrides?.map((item) => [item.key, item.startedAt !== null])).toEqual([["2030-08-05T08:00", true]]);
+    // Seule l'occurrence commencée reste (historique, Agenda passé).
+    expect((await planning.rangeOccurrences("2030-08-01", "2030-08-31", () => true)).map((item) => item.key)).toEqual(["2030-08-05T08:00"]);
+    // Archivée : hors de la liste par défaut.
+    expect(cards()).toEqual([]);
+  });
+
+  it("r21-j-supprimer : aucun créneau à supprimer — titre « La routine <nom> sera supprimée », sans message", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const routine = await plan({ name: "Genou", entries: [entry(a.id)] });
+    linked = [{ executionId: "x", routineId: routine.id, occurrenceKey: "2030-08-05T08:00", rank: 1, startedAt: "2030-08-05T08:01:00.000Z", businessStatus: "PARTIAL" }];
+    await renderJournal();
+    fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await flush();
+    expect(screen.getByText("La routine Genou sera supprimée")).toBeTruthy();
+    expect(within(screen.getByTestId("journal-delete-card")).queryByText(/créneau/)).toBeNull();
   });
 
   it("recherche : nom de la routine ou de ses séances, sans casse ni accents", async () => {

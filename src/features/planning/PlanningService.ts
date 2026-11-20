@@ -1,7 +1,21 @@
-import { addDays, mondayOf, validateRoutineDraft, type LocalDate, type Routine, type RoutineDraft, type RoutineValidationIssue } from "@/domain/planning/Routine";
+import {
+  addDays,
+  isLocalDate,
+  isLocalTime,
+  mondayOf,
+  REMINDER_MAX_MINUTES,
+  validateRoutineDraft,
+  type LocalDate,
+  type LocalTime,
+  type OccurrenceOverride,
+  type OccurrenceSession,
+  type Routine,
+  type RoutineDraft,
+  type RoutineValidationIssue,
+} from "@/domain/planning/Routine";
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
-import { periodOccurrences, type Occurrence } from "@/domain/planning/occurrences";
-import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import { periodOccurrences, routineOccurrences, routineSessionsAt, type IsOccurrenceStarted, type Occurrence } from "@/domain/planning/occurrences";
+import { occurrenceExecutionKey, type OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 
 /**
  * `PlanningService` (chapitre 12 §12.4) — gestion des Routines et calcul des occurrences (API-ROU-01 à 05, 09).
@@ -12,12 +26,36 @@ import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions
  * - Supprimer : la Routine (RM-050) — sources et Exécutions conservées.
  * - Retirer une occurrence : R-04, persisté par date/heure d'origine.
  * - Dupliquer : brouillon complet, jamais persisté avant Enregistrer (RM-123, API-ROU-09).
+ *
+ * D-536 / D-537 (20/11/2026, modèle validé par Hermann, q21-modele) :
+ * - une occurrence est commencée dès qu'une Exécution lui est liée (lien écrit au lancement, migration 033) ;
+ * - toute écriture sur la Routine (modification depuis le Journal, modification d'une occurrence, suppression) fige d'abord
+ *   ses occurrences commencées non encore enregistrées : elles sont enregistrées en entier avec la séquence en vigueur, qui
+ *   est celle de leur lancement puisque la Routine n'a pas changé depuis [choix technique : figement à la première écriture
+ *   qui suit le lancement, sans écriture dans le moteur d'exécution] ;
+ * - modifier la Routine ne touche donc que les occurrences non commencées et les groupes non modifiés à la main ;
+ * - supprimer une Routine sans historique la supprime ; avec historique, ses occurrences non commencées sont supprimées et
+ *   elle est archivée.
+ * [Remplace « La modification agit sur la Routine (D-022 : pas d'exception d'occurrence) » ci-dessus.]
  */
 
 export type SaveRoutineResult =
   | { readonly status: "SAVED"; readonly routine: Routine }
   | { readonly status: "INVALID"; readonly issues: readonly (RoutineValidationIssue | "NAME_TAKEN")[] }
   | { readonly status: "NOT_FOUND" };
+
+/** Modification d'une occurrence seule (Agenda, D-536 point 4) : valeurs voulues pour chaque groupe. */
+export type OccurrenceChange = {
+  readonly date: LocalDate;
+  readonly time: LocalTime;
+  readonly sessions: readonly OccurrenceSession[];
+  readonly reminderMinutes: number | null;
+};
+
+export type SaveOccurrenceResult = { readonly status: "SAVED" } | { readonly status: "INVALID" } | { readonly status: "STARTED" } | { readonly status: "NOT_FOUND" };
+
+/** Suppression depuis le Journal (D-537) : historique présent → archivage ; `count` : créneaux non commencés supprimés. */
+export type RoutineDeletionPlan = { readonly history: boolean; readonly count: number };
 
 /** Rappels locaux (adaptateur `ReminderScheduler`) ; absent : aucun rappel programmé (tests, environnement sans notifications). */
 export type PlanningReminders = {
@@ -79,6 +117,112 @@ export class PlanningService {
     return this.deps.repository.list();
   }
 
+  /** Occurrences commencées connues par leurs Exécutions (D-536, point 1). */
+  private async startedTest(): Promise<IsOccurrenceStarted> {
+    const keys = new Set((await this.listOccurrenceExecutions()).map((execution) => occurrenceExecutionKey(execution.routineId, execution.occurrenceKey)));
+    return (routineId, occurrenceKey) => keys.has(occurrenceExecutionKey(routineId, occurrenceKey));
+  }
+
+  /**
+   * D-536, point 1 : enregistre en entier les occurrences commencées qui ne le sont pas encore (séquence, séances, date,
+   * heure et rappel en vigueur). Début : première Exécution liée.
+   */
+  private async frozen(routine: Routine): Promise<Routine> {
+    const executions = await this.listOccurrenceExecutions();
+    const startedAt = new Map<string, string>();
+    for (const execution of executions) {
+      if (execution.routineId !== routine.id) continue;
+      const current = startedAt.get(execution.occurrenceKey);
+      if (current === undefined || execution.startedAt < current) startedAt.set(execution.occurrenceKey, execution.startedAt);
+    }
+    if (startedAt.size === 0) return routine;
+    const saved = new Map((routine.overrides ?? []).map((item) => [item.key, item]));
+    let changed = false;
+    for (const occurrence of routineOccurrences(routine, (_, key) => startedAt.has(key))) {
+      const at = startedAt.get(occurrence.key);
+      if (at === undefined || (saved.get(occurrence.key)?.startedAt ?? null) !== null) continue;
+      saved.set(occurrence.key, {
+        key: occurrence.key,
+        index: occurrence.index,
+        date: occurrence.date,
+        time: occurrence.time,
+        sessions: occurrence.sessions,
+        reminderOverridden: true,
+        reminderMinutes: occurrence.reminderMinutes,
+        startedAt: at,
+      });
+      changed = true;
+    }
+    return changed ? { ...routine, overrides: [...saved.values()] } : routine;
+  }
+
+  /** Occurrence `occurrenceKey` de la Routine (modification d'une occurrence seule depuis l'Agenda). */
+  async getOccurrence(routineId: string, occurrenceKey: string): Promise<{ readonly routine: Routine; readonly occurrence: Occurrence } | null> {
+    const routine = await this.deps.repository.get(routineId);
+    if (routine === null) return null;
+    const occurrence = routineOccurrences(routine, await this.startedTest()).find((item) => item.key === occurrenceKey);
+    return occurrence === undefined ? null : { routine, occurrence };
+  }
+
+  /**
+   * D-536, point 4 : modification d'une occurrence seule. Chaque groupe égal à ce que donne la Routine redevient « suit la
+   * routine » ; seuls les groupes modifiés sont enregistrés (q21-modele). Refusée pour une occurrence commencée (point 1).
+   */
+  async updateOccurrence(routineId: string, occurrenceKey: string, change: OccurrenceChange): Promise<SaveOccurrenceResult> {
+    const current = await this.deps.repository.get(routineId);
+    if (current === null) return { status: "NOT_FOUND" };
+    const routine = await this.frozen(current);
+    const occurrence = routineOccurrences(routine, await this.startedTest()).find((item) => item.key === occurrenceKey);
+    if (occurrence === undefined) return { status: "NOT_FOUND" };
+    if (occurrence.started) return { status: "STARTED" };
+    const reminder = change.reminderMinutes;
+    const reminderValid = reminder === null || (Number.isInteger(reminder) && reminder >= 1 && reminder <= REMINDER_MAX_MINUTES);
+    if (!isLocalDate(change.date) || !isLocalTime(change.time) || !change.sessions.some((session) => session.active) || !reminderValid) {
+      return { status: "INVALID" };
+    }
+    const originDate = occurrenceKey.slice(0, 10);
+    const defaults = routineSessionsAt(routine, occurrence.index);
+    const sameSessions =
+      defaults.length === change.sessions.length &&
+      defaults.every((session, rank) => {
+        const other = change.sessions[rank]!;
+        return other.sessionId === session.sessionId && other.entryId === session.entryId && other.origin === session.origin && other.active === session.active;
+      });
+    const moved = change.date !== originDate || change.time !== routine.time;
+    const next: OccurrenceOverride = {
+      key: occurrenceKey,
+      index: occurrence.index,
+      date: moved ? change.date : null,
+      time: moved ? change.time : null,
+      sessions: sameSessions ? null : change.sessions,
+      reminderOverridden: reminder !== routine.reminderMinutes,
+      reminderMinutes: reminder !== routine.reminderMinutes ? reminder : null,
+      startedAt: null,
+    };
+    const others = (routine.overrides ?? []).filter((item) => item.key !== occurrenceKey);
+    const empty = next.date === null && next.sessions === null && !next.reminderOverridden;
+    await this.deps.repository.save({ ...routine, overrides: empty ? others : [...others, next] });
+    return this.written({ status: "SAVED" } as const);
+  }
+
+  /**
+   * D-536, point 2 : créneaux non commencés de la Routine, passés compris, auxquels s'applique une modification depuis le
+   * Journal (message « N créneaux à venir seront modifiés. », Hermann, 20/11/2026).
+   */
+  async pendingSlotCount(routineId: string): Promise<number> {
+    const routine = await this.deps.repository.get(routineId);
+    if (routine === null) return 0;
+    return routineOccurrences(routine, await this.startedTest()).filter((occurrence) => !occurrence.started).length;
+  }
+
+  /** D-537 : historique (au moins une occurrence commencée) et nombre de créneaux non commencés supprimés. */
+  async deletionPlan(routineId: string): Promise<RoutineDeletionPlan | null> {
+    const routine = await this.deps.repository.get(routineId);
+    if (routine === null) return null;
+    const occurrences = routineOccurrences(routine, await this.startedTest());
+    return { history: occurrences.some((occurrence) => occurrence.started), count: occurrences.filter((occurrence) => !occurrence.started).length };
+  }
+
   getRoutine(routineId: string): Promise<Routine | null> {
     return this.deps.repository.get(routineId);
   }
@@ -119,8 +263,10 @@ export class PlanningService {
   async updateRoutine(routineId: string, draft: RoutineDraft): Promise<SaveRoutineResult> {
     const issues = await this.issuesOf(draft, routineId);
     if (issues.length > 0) return { status: "INVALID", issues };
-    const existing = await this.deps.repository.get(routineId);
-    if (existing === null) return { status: "NOT_FOUND" };
+    const stored = await this.deps.repository.get(routineId);
+    if (stored === null) return { status: "NOT_FOUND" };
+    // D-536 : les occurrences commencées gardent la séquence de leur lancement.
+    const existing = await this.frozen(stored);
     const routine: Routine = {
       ...existing,
       name: draft.name.trim(),
@@ -136,11 +282,30 @@ export class PlanningService {
     return this.written({ status: "SAVED", routine } as const);
   }
 
+  /**
+   * D-537 (Journal) : sans occurrence commencée, la Routine est supprimée avec ses occurrences ; sinon ses occurrences non
+   * commencées sont supprimées et elle est archivée, ses occurrences commencées restant dans l'historique.
+   */
   async deleteRoutine(routineId: string): Promise<boolean> {
-    return this.written(await this.deps.repository.delete(routineId));
+    const stored = await this.deps.repository.get(routineId);
+    if (stored === null) return false;
+    const routine = await this.frozen(stored);
+    const isStarted = await this.startedTest();
+    if (!routineOccurrences(routine, isStarted).some((occurrence) => occurrence.started)) return this.written(await this.deps.repository.delete(routineId));
+    const at = this.deps.now().toISOString();
+    await this.deps.repository.save({
+      ...routine,
+      overrides: (routine.overrides ?? []).filter((item) => item.startedAt !== null),
+      archivedAt: at,
+      updatedAt: at,
+    });
+    return this.written(true);
   }
 
+  /** D-537 (Agenda) : retire une occurrence ; refusé pour une occurrence commencée. */
   async excludeOccurrence(routineId: string, occurrenceKey: string): Promise<boolean> {
+    const found = await this.getOccurrence(routineId, occurrenceKey);
+    if (found !== null && found.occurrence.started) return false;
     return this.written(await this.deps.repository.addExclusion(routineId, occurrenceKey, this.deps.now().toISOString()));
   }
 
@@ -172,7 +337,7 @@ export class PlanningService {
   /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
   async rangeOccurrences(from: LocalDate, to: LocalDate, isPlannable: (sessionId: string) => boolean): Promise<readonly Occurrence[]> {
     const routines = await this.deps.repository.list();
-    return periodOccurrences(routines, from, to)
+    return periodOccurrences(routines, from, to, await this.startedTest())
       .map((occurrence) => ({ ...occurrence, contents: occurrence.contents.filter((content) => isPlannable(content.sessionId)) }))
       .filter((occurrence) => occurrence.contents.length > 0);
   }

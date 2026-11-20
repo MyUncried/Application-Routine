@@ -37,9 +37,11 @@ export function upcomingReminders(
   const horizon = addDays(today, options.horizonDays ?? REMINDER_WINDOW_DAYS);
   const reminders: PlannedReminder[] = [];
   for (const routine of routines) {
-    const minutes = routine.reminderMinutes;
-    if (minutes === null) continue;
+    // D-536 (20/11/2026) : date, heure et rappel propres à chaque occurrence (modifiables sur une occurrence seule) ; une
+    // occurrence commencée n'a plus de rappel.
     for (const occurrence of occurrencesBetween(routine, today, horizon)) {
+      const minutes = occurrence.reminderMinutes;
+      if (minutes === null || occurrence.started) continue;
       const sessionIds = occurrence.contents.map((content) => content.sessionId).filter(isPlannable);
       if (sessionIds.length === 0) continue;
       const occurrenceAt = occurrenceInstant(occurrence.date, occurrence.time);

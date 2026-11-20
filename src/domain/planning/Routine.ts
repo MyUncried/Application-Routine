@@ -121,8 +121,50 @@ export type Routine = {
   readonly exclusions: readonly string[];
   /** D-060 / RM-044 : zéro ou un rappel, en minutes avant l'occurrence ; `null` : interrupteur Rappel sur Non. */
   readonly reminderMinutes: number | null;
+  /**
+   * D-536 (modèle validé le 20/11/2026, q21-modele) : occurrences modifiées à la main ou commencées. Absent : aucune.
+   */
+  readonly overrides?: readonly OccurrenceOverride[];
+  /** D-537 : routine archivée (supprimée alors qu'elle avait un historique) ; absent ou `null` : non archivée. */
+  readonly archivedAt?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
+};
+
+/**
+ * Séance d'une occurrence enregistrée (D-536, point 4) : séance de la routine (`ROUTINE`, désactivable, jamais retirée)
+ * ou ajoutée à la main à ce seul créneau (`ADDED`, retirable). `active` faux : pastille désactivée, la séance n'est pas
+ * jouée et ne compte pas pour « Complétée » (point 5).
+ */
+export type OccurrenceSession = {
+  readonly sessionId: string;
+  /** Entrée de la routine d'origine ; `null` pour une séance ajoutée à la main. */
+  readonly entryId: string | null;
+  readonly origin: "ROUTINE" | "ADDED";
+  readonly active: boolean;
+};
+
+/**
+ * Occurrence enregistrée (D-536 ; Hermann, 20/11/2026 : « Une occurrence modifiée à la main est enregistrée avec les seuls
+ * groupes modifiés (date et heure ; séances, actives ou non, ajoutées ou de la routine ; rappel) ; les autres groupes
+ * continuent de suivre la routine. Une occurrence commencée est enregistrée en entier. ») Chaque groupe vaut `null` (ou
+ * `reminderOverridden` faux) tant qu'il suit la routine.
+ */
+export type OccurrenceOverride = {
+  /** Date/heure d'origine `AAAA-MM-JJTHH:MM` : identité, inchangée quand l'occurrence est déplacée. */
+  readonly key: string;
+  /** Rang dans la suite du créneau, conservé pour une occurrence que la routine ne produit plus. */
+  readonly index: number;
+  /** Groupe « date et heure » : `null` = suit la routine. */
+  readonly date: LocalDate | null;
+  readonly time: LocalTime | null;
+  /** Groupe « séances » : `null` = suit la routine. */
+  readonly sessions: readonly OccurrenceSession[] | null;
+  /** Groupe « rappel ». */
+  readonly reminderOverridden: boolean;
+  readonly reminderMinutes: number | null;
+  /** Non `null` : occurrence commencée (lancement de sa première séance), figée — D-536, point 1. */
+  readonly startedAt: string | null;
 };
 
 /** Brouillon du formulaire de planification (CE-UI-05) : la Routine sans identité ni horodatage. */

@@ -129,21 +129,34 @@ export function RoutineAgendaCard({
             {detail}
           </Text>
         </Pressable>
-        <View style={styles.action}>
-          {tag !== undefined ? (
-            <View style={[styles.tag, { backgroundColor: tag.background }]} testID={`${testID}-status-tag`}>
+        {/* Recette du 20/11/2026 (Hermann) : « La zone tactile doit être découpée en trois zones (toute la hauteur de la
+            carte) : gauche (carte), centre (zone du nom et de la ligne du dessous), droit (zone de la pastille) » ; « lorsque
+            la pastille à droite n'est pas "Démarrer", appuyer sur cette zone ne doit pas ouvrir un écran mais elle ne doit
+            rien faire ». [Pastille seule tactile, le reste de la droite ouvrait la planification — remplacé.] */}
+        {tag !== undefined ? (
+          <Pressable onPress={() => undefined} accessible={false} style={styles.action} testID={`${testID}-action-zone`}>
+            <View style={[styles.tag, { backgroundColor: tag.background }]} accessible accessibilityLabel={tag.label} testID={`${testID}-status-tag`}>
               <Text style={[styles.tagLabel, { color: tag.text }]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1}>
                 {tag.label}
               </Text>
             </View>
-          ) : (
-            <Pressable onPress={onStart} accessibilityRole="button" accessibilityLabel={planningStrings.calendar.start} hitSlop={8} style={styles.start} testID={`${testID}-start`}>
+          </Pressable>
+        ) : (
+          // D-536, point 5 (20/11/2026) : « Rattraper » sur une occurrence passée non commencée, « Démarrer » sinon.
+          <Pressable
+            onPress={onStart}
+            accessibilityRole="button"
+            accessibilityLabel={status === "MISSED" ? planningStrings.calendar.catchUp : planningStrings.calendar.start}
+            style={styles.action}
+            testID={`${testID}-start`}
+          >
+            <View style={styles.start}>
               <Text style={styles.startLabel} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1}>
-                {planningStrings.calendar.start}
+                {status === "MISSED" ? planningStrings.calendar.catchUp : planningStrings.calendar.start}
               </Text>
-            </Pressable>
-          )}
-        </View>
+            </View>
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -174,15 +187,16 @@ const styles = StyleSheet.create({
   chronometerBox: { width: 14, height: 14, alignItems: "center", justifyContent: "center" },
   chronometer: { width: 10.8333, height: 12.5833 },
   secondary: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, color: colors.textSecondary, flexShrink: 1 },
-  body: { flex: 1, flexDirection: "row", alignItems: "stretch", paddingLeft: spacing[8], paddingRight: layout.screenGutter, gap: spacing[8] },
-  center: { flex: 1, paddingVertical: spacing[4], justifyContent: "center", gap: 2 },
+  // Trois zones tactiles sur toute la hauteur : les marges appartiennent au centre (gauche) et à la zone droite.
+  body: { flex: 1, flexDirection: "row", alignItems: "stretch" },
+  center: { flex: 1, paddingLeft: spacing[8], paddingVertical: spacing[4], justifyContent: "center", gap: 2 },
   titleLine: { flexDirection: "row", alignItems: "center", gap: 2 },
   chevron: { width: CHEVRON_SIZE, height: CHEVRON_SIZE },
   chevronDown: { transform: [{ rotate: "90deg" }] },
   name: { flex: 1, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary },
   detail: {},
   // Action alignée en bas avec la ligne 2.
-  action: { justifyContent: "flex-end", paddingVertical: spacing[4] },
+  action: { justifyContent: "flex-end", paddingVertical: spacing[4], paddingLeft: spacing[8], paddingRight: layout.screenGutter },
   // Pilule « Démarrer » (D-504) : 76 × 24, fond #F7F7FF, ombre des actions contextuelles.
   start: {
     ...pill,

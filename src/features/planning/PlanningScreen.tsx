@@ -50,6 +50,8 @@ import {
   moveRow,
 } from "@/features/planning/planningDraft";
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
+import { occurrenceForm, occurrenceSessions, toggleOccurrencePoint, withOccurrenceSelection, type OccurrenceEditing } from "@/features/planning/occurrenceDraft";
+import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
@@ -109,9 +111,10 @@ const REMINDER_MINUTES_STEP = Array.from({ length: 12 }, (_, index) => index * 5
 const POINT_SIZE = 18;
 const COLUMN_WIDTH = 26;
 
-type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string };
+type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string; readonly occurrenceKey?: string };
 
-type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string };
+/** `occurrence` : modification d'une occurrence seule depuis l'Agenda (D-536, point 4, 20/11/2026). */
+type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string } | { readonly kind: "occurrence"; readonly editing: OccurrenceEditing };
 
 type Popover = { readonly kind: "EVERY" | "END_COUNT" | "REMINDER" | "TIME" | "START" | "END"; readonly anchor: PopoverAnchor };
 
@@ -169,6 +172,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [reordering, setReordering] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  // Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ».
+  const [modifyCount, setModifyCount] = useState<number | null>(null);
   const [otherNames, setOtherNames] = useState<readonly { readonly id: string; readonly key: string }[]>([]);
   // RM-259 : la synthèse dont les jours ne tenaient pas, mémorisée pour passer à « X jours par semaine ».
   const [overflowing, setOverflowing] = useState<string | null>(null);
@@ -262,7 +267,19 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // Chargement du brouillon d'une modification ou d'une duplication.
   useEffect(() => {
     let cancelled = false;
-    if (params.routineId !== undefined) {
+    if (params.routineId !== undefined && params.occurrenceKey !== undefined) {
+      planning.getOccurrence(params.routineId, params.occurrenceKey).then((found) => {
+        if (cancelled) return;
+        // D-536, point 1 : une occurrence commencée n'est pas modifiable.
+        if (found === null || found.occurrence.started) {
+          routerRef.current.back();
+          return;
+        }
+        const built = occurrenceForm(found.routine, found.occurrence, () => Crypto.randomUUID());
+        setMode({ kind: "occurrence", editing: built.editing });
+        setForm(built.form);
+      }, () => routerRef.current.back());
+    } else if (params.routineId !== undefined) {
       const routineId = params.routineId;
       planning.getRoutine(routineId).then((routine) => {
         if (cancelled) return;
@@ -287,7 +304,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     return () => {
       cancelled = true;
     };
-  }, [params.routineId, params.duplicateOf, planning]);
+  }, [params.routineId, params.duplicateOf, params.occurrenceKey, planning]);
 
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
@@ -331,17 +348,50 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const name = effectiveName(shown, nameOf);
   const draft = toRoutineDraft(shown, name);
   const nameKey = normalizeRoutineName(name);
-  const nameTaken = nameKey !== "" && otherNames.some((other) => other.key === nameKey && (mode.kind !== "edit" || other.id !== mode.routineId));
-  const nameMissing = name.trim() === "";
-  const blocking = [...validateRoutineDraft(draft), ...gridIssues(shown.grid)];
+  // Occurrence seule : le nom reste celui de la routine (ni saisie ni contrôle) ; au moins une séance active dans le créneau.
+  const editing = mode.kind === "occurrence" ? mode.editing : null;
+  const nameTaken =
+    editing === null && nameKey !== "" && otherNames.some((other) => other.key === nameKey && (mode.kind !== "edit" || other.id !== mode.routineId));
+  const nameMissing = editing === null && name.trim() === "";
+  const blocking =
+    editing === null
+      ? [...validateRoutineDraft(draft), ...gridIssues(shown.grid)]
+      : [
+          ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED"),
+          ...(shown.grid.points.some((row) => row[editing.column] === true) ? [] : ["EMPTY_SLOT" as const]),
+        ];
   const canSave = blocking.length === 0 && !nameTaken && !saving && catalogue.status === "ready";
 
   const save = () => {
     if (!canSave || savingRef.current) return;
+    // D-536, point 2 : modification de la routine depuis le Journal — confirmation du nombre de créneaux concernés.
+    if (mode.kind === "edit" && modifyCount === null) {
+      planning.pendingSlotCount(mode.routineId).then(
+        (count) => (count > 0 ? setModifyCount(count) : commit()),
+        () => commit(),
+      );
+      return;
+    }
+    commit();
+  };
+
+  const commit = () => {
+    if (savingRef.current) return;
+    setModifyCount(null);
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
-    const request = mode.kind === "edit" ? planning.updateRoutine(mode.routineId, draft) : planning.createRoutine(draft);
+    const request: Promise<{ readonly status: string }> =
+      mode.kind === "occurrence"
+        ? planning.updateOccurrence(mode.editing.routineId, mode.editing.key, {
+            date: form.startDate,
+            time: form.time,
+            sessions: occurrenceSessions(shown, mode.editing),
+            reminderMinutes: form.reminderMinutes,
+          })
+        : mode.kind === "edit"
+          ? planning.updateRoutine(mode.routineId, draft)
+          : planning.createRoutine(draft);
     request.then(
       (result) => {
         savingRef.current = false;
@@ -364,7 +414,16 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     requestPlanningSheet({
       kind: "selection",
       initial: form.entries.map((entry) => entry.sessionId),
-      onValidate: (selected) => setForm((current) => (current === null ? current : withSelection(current, selected, () => Crypto.randomUUID()))),
+      onValidate: (selected) => {
+        if (editing !== null) {
+          // Occurrence seule : les séances de la routine restent (désactivables) ; ajout ou retrait des séances ajoutées.
+          const next = withOccurrenceSelection(form, editing, selected, () => Crypto.randomUUID());
+          setMode({ kind: "occurrence", editing: next.editing });
+          setForm(next.form);
+          return;
+        }
+        setForm((current) => (current === null ? current : withSelection(current, selected, () => Crypto.randomUUID())));
+      },
     });
     router.push("/planning-selection");
   };
@@ -452,6 +511,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               onChangeText={(value) => update({ name: value, nameEdited: true })}
               placeholder={t.namePlaceholder}
               placeholderTextColor={colors.textSecondary}
+              // Occurrence seule (D-536, point 1 du prompt de la mission 2) : « Le nom reste celui de la routine. »
+              editable={editing === null}
               accessibilityLabel={t.nameAccessibility}
               style={styles.name}
               returnKeyType="done"
@@ -512,7 +573,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               </View>
             </View>
 
-            {/* Carte 2 (D-520, RM-257) : Répétition sans interrupteur. */}
+            {/* Carte 2 (D-520, RM-257) : Répétition sans interrupteur. Absente pour une occurrence seule : la récurrence ne se
+                change pas depuis l'Agenda (D-536, point 4). */}
+            {editing !== null ? null : (
             <View style={styles.card} testID="planning-repetition">
               <View style={styles.repetition}>
                 <Text style={[styles.label, styles.repetitionLabel]}>{t.repetition}</Text>
@@ -596,6 +659,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 </View>
               </View>
             </View>
+            )}
 
             {/* Carte 3 (D-519, RM-253 à RM-256) : Séance par créneau. */}
             <View style={styles.card} testID="planning-grid">
@@ -603,6 +667,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               <SlotGrid
                 grid={shown.grid}
                 names={shown.entries.map((entry) => nameOf(entry.sessionId) ?? "—")}
+                focusColumn={editing?.column}
                 onChange={(grid) => {
                   // Les lignes affichées sont celles des séances disponibles : la grille du brouillon suit les mêmes lignes.
                   const points = form.entries.map((entry, row) => {
@@ -656,6 +721,28 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           </ScrollView>
         )}
       />
+
+      {modifyCount !== null ? (
+        <DecisionDialog
+          cancelOnTop
+          title={planningStrings.modifyRoutine.title}
+          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
+          message={
+            modifyCount === 1
+              ? planningStrings.modifyRoutine.messageOne
+              : planningStrings.modifyRoutine.messageMany.replace("{count}", String(modifyCount))
+          }
+          messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
+          cancelLabel={planningStrings.modifyRoutine.cancel}
+          cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
+          confirmLabel={planningStrings.modifyRoutine.confirm}
+          confirmLabelStyle={type.dialogDestructiveActionLabel}
+          confirmBordered={false}
+          onCancel={() => setModifyCount(null)}
+          onConfirm={commit}
+          testIDPrefix="planning-modify"
+        />
+      ) : null}
 
       {/* D-520 : roulettes natives en popover près du champ — fond grisé, ni titre, ni bouton. */}
       <PlanningWheelPopover
@@ -890,6 +977,7 @@ function useRowDrag(count: number, rowHeight: number, onMove: (from: number, to:
 function SlotGrid({
   grid,
   names,
+  focusColumn,
   onChange,
   onCycle,
   onChangeSessions,
@@ -898,6 +986,11 @@ function SlotGrid({
 }: {
   readonly grid: PlanningGrid;
   readonly names: readonly string[];
+  /**
+   * Occurrence seule (D-536, point 4) : « Seul le créneau de l'occurrence ouverte est coloré (en-tête et pastille), les autres
+   * sont grisés » ; seule cette colonne se modifie, sans réordonnancement ni changement de cycle.
+   */
+  readonly focusColumn?: number;
   readonly onChange: (grid: PlanningGrid) => void;
   readonly onCycle: (cycle: number) => void;
   readonly onChangeSessions: () => void;
@@ -909,7 +1002,8 @@ function SlotGrid({
   const columns = Array.from({ length: CYCLE_MAX }, (_, index) => index);
   const [rowHeight, setRowHeight] = useState(40);
   const { drag, gesture, offset } = useRowDrag(names.length, rowHeight, onMove, onDraggingChange);
-  const reorderable = names.length > 1;
+  const focused = focusColumn !== undefined;
+  const reorderable = names.length > 1 && !focused;
   return (
     <GestureHandlerRootView testID="planning-slot-grid">
       <View style={styles.gridHeader}>
@@ -918,9 +1012,11 @@ function SlotGrid({
         </Pressable>
         {columns.map((column) => {
           const active = column < grid.cycle;
+          const muted = focused && column !== focusColumn;
           return (
             <Pressable
               key={column}
+              disabled={focused}
               onPress={() => onCycle(column + 1)}
               accessibilityRole="button"
               accessibilityLabel={fillTemplate(t.columnAccessibility, { n: String(column + 1) })}
@@ -929,7 +1025,9 @@ function SlotGrid({
               style={styles.gridColumn}
               testID={`planning-column-${column + 1}`}
             >
-              <Text style={[styles.columnLabel, active ? null : styles.columnInactive]}>{fillTemplate(t.column, { n: String(column + 1) })}</Text>
+              <Text style={[styles.columnLabel, active && !muted ? null : styles.columnInactive]} testID={muted ? `planning-column-${column + 1}-muted` : undefined}>
+                {fillTemplate(t.column, { n: String(column + 1) })}
+              </Text>
             </Pressable>
           );
         })}
@@ -977,11 +1075,12 @@ function SlotGrid({
             {columns.map((column) => {
               const active = column < grid.cycle;
               const played = active && line[column] === true;
+              const muted = focused && column !== focusColumn;
               return (
                 <Pressable
                   key={column}
-                  disabled={!active}
-                  onPress={() => onChange(togglePoint(grid, row, column))}
+                  disabled={!active || muted}
+                  onPress={() => onChange(focused ? toggleOccurrencePoint(grid, row, column) : togglePoint(grid, row, column))}
                   accessibilityRole="checkbox"
                   accessibilityLabel={fillTemplate(t.pointAccessibility, { name, n: String(column + 1) })}
                   accessibilityState={{ checked: played, disabled: !active }}
@@ -989,7 +1088,7 @@ function SlotGrid({
                   style={styles.gridColumn}
                   testID={`planning-point-${row}-${column + 1}`}
                 >
-                  <View style={[styles.point, played ? styles.pointPlayed : null]} />
+                  <View style={[styles.point, played ? styles.pointPlayed : null, muted ? styles.pointMuted : null]} />
                 </Pressable>
               );
             })}
@@ -1093,6 +1192,8 @@ const styles = StyleSheet.create({
   rowMention: { ...type.supporting, fontSize: 10, lineHeight: 13, color: colors.textSecondary },
   point: { width: POINT_SIZE, height: POINT_SIZE, borderRadius: POINT_SIZE / 2, borderWidth: 1.5, borderColor: colors.cardsBorder },
   pointPlayed: { backgroundColor: colors.selection, borderColor: colors.selection },
+  // Créneaux autres que celui de l'occurrence ouverte : grisés (D-536, point 4). [Opacité : choix technique, sans maquette.]
+  pointMuted: { opacity: 0.3 },
   reminderCard: { flexDirection: "row", alignItems: "center" },
   reminderOptions: { flex: 1 },
   reminderOption: { ...type.listCardTitle },

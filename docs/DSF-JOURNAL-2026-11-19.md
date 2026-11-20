@@ -35,3 +35,11 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.
 - « Spécialité » : propriété à définir (voir DSF Agenda).
+
+[Contre-recette du 20/11/2026 et missions D-536 / D-537 (classe B, registre ch07) :
+- carte, ligne 3 : précédée du symbole du calendrier (r21-j-carte) ;
+- déployé : sans répétition, ni ligne vide ni filet sous le cadre ; nom de chaque séance toujours affiché (r21-j-deploye) ;
+- glisser vers la gauche : la liste reste figée (constat A) ;
+- modifier la routine : confirmation « N créneaux à venir seront modifiés. » ; seules les occurrences non commencées changent, et seulement dans les groupes non modifiés à la main (D-536) ;
+- supprimer : sans historique, « La routine et ses N créneaux seront supprimés. » ; avec historique, « N créneaux non commencés seront supprimés ; La routine sera archivée. » ; sans créneau à supprimer, titre « La routine <nom> sera supprimée » sans message ; « Annuler » en haut à gauche, « Confirmer » pleine largeur (D-537, `DSF / Overlays / Confirmation` « Titre seul » / « Titre et message ») ;
+- routine archivée : visible avec le filtre « Archivées » seulement.]
