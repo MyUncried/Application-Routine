@@ -92,6 +92,13 @@ export const executionStrings = {
   },
   saveError: "La progression n’a pas pu être enregistrée.",
   retry: "Réessayer",
+  // D-534 (19/11/2026) : écran de transition entre deux séances d'une routine, sur trois lignes (rang calculé : 2è, 3è…).
+  chain: {
+    lines: (rank: number): readonly string[] => ["Appuyer pour", `démarrer la ${rank}è séance`, "du parcours"],
+    // Recette du 19/11/2026 au soir (s19-voile) : présentation du parcours au premier départ.
+    routeTitle: "Parcours",
+    routeItem: (rank: number) => `Séance ${rank}`,
+  },
   end: {
     COMPLETED: "Séance terminée",
     PARTIAL: "Séance partiellement exécutée",

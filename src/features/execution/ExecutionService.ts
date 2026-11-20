@@ -23,6 +23,7 @@
  */
 
 import type { ExecutionRepository } from "@/domain/execution/ExecutionRepository";
+import type { OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
 import {
   createInitialState,
   ENGINE_STATE_VERSION,
@@ -210,8 +211,11 @@ export class ExecutionService {
     return { status: "ready", snapshot, plan, projection: projectExecution(plan, createInitialState("preview"), 0) };
   }
 
-  /** Démarrer : crée l'Exécution (instantané figé) puis lance le Compte à rebours initial. */
-  start(prepared: Extract<PreparedExecution, { status: "ready" }>): Promise<void> {
+  /**
+   * Démarrer : crée l'Exécution (instantané figé) puis lance le Compte à rebours initial. `occurrence` : séance lancée
+   * depuis une occurrence de routine, enregistrée avec l'Exécution (statut de l'occurrence, recette du 19/11/2026).
+   */
+  start(prepared: Extract<PreparedExecution, { status: "ready" }>, occurrence?: OccurrenceLink): Promise<void> {
     return this.enqueue(async () => {
       if (this.active !== null && this.active.state.status !== "FINISHED") throw new ExecutionBlockedError("An execution is already active.");
       if ((await this.deps.repository.findUnfinished()) !== null) throw new ExecutionBlockedError("An unfinished execution must be resumed or stopped first.");
@@ -232,6 +236,7 @@ export class ExecutionService {
           state: started.state,
           startedAt,
           clockWallMs: reading,
+          ...(occurrence !== undefined ? { occurrence } : {}),
         },
         started.results,
       );

@@ -11,11 +11,10 @@ import {
 } from "@/features/preferences/profilePhoto";
 import { ProfileLibrariesSection } from "@/features/catalogue/ProfileLibrariesSection";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
-import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
-import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -236,124 +235,121 @@ export function ProfileEditScreen() {
   return (
     // Figma 12119:25611 (alignement du 11/11/2026) : fond d'écran #F7F7FF, en-tête à trois onglets
     // (Profil sélectionné) sur une bande #EAEAFF → #F7F7FF, à la place du titre et du Retour.
-    <ScreenShell backgroundColor={PROFILE_BACKGROUND}>
-      <FixedHeader
-        title={t.title}
-        content={
-          <View style={styles.headerTabs}>
-            <CatalogueNavigation<ProfileTab>
-              options={[
-                { value: "profile", label: t.tabs.profile },
-                { value: "preferences", label: t.tabs.preferences },
-                {
-                  value: "community",
-                  label: t.tabs.community,
-                  disabled: true,
-                  accessibilityLabel: t.tabs.communityUnavailableAccessibilityLabel,
-                },
-              ]}
-              value="profile"
-              // « Préférences » ramène à l'écran Profil, qui porte les réglages et préférences (13/11 : plus de garde
-              // d'abandon, tout est déjà enregistré).
-              onChange={(tab) => {
-                // 14/11 : écran de l'onglet Profil (barre de navigation) — on rejoint Préférences par son adresse, un
-                // retour arrière d'onglet ramènerait au premier onglet. [Avant : router.back() — remplacé.]
-                if (tab === "preferences") router.navigate("/profile");
-              }}
-              selectedColor={PROFILE_TAB_CONTEXT}
-              testID="profile-edit-tabs"
-            />
-          </View>
-        }
-      />
-      {/* Zone de contexte canonique des Catalogues (`ContextBand` : fondu par couches D-224, géométrie CE-CAT-CTX-01,
+    <TabbedScreen
+      title={t.title}
+      palette={{ context: PROFILE_TAB_CONTEXT, background: PROFILE_BACKGROUND }}
+      tabs={{
+        options: [
+          { value: "profile", label: t.tabs.profile },
+          { value: "preferences", label: t.tabs.preferences },
+          {
+            value: "community",
+            label: t.tabs.community,
+            disabled: true,
+            accessibilityLabel: t.tabs.communityUnavailableAccessibilityLabel,
+          },
+        ],
+        value: "profile" as ProfileTab,
+        // « Préférences » ramène à l'écran Profil, qui porte les réglages et préférences (13/11 : plus de garde
+        // d'abandon, tout est déjà enregistré).
+        onChange: (tab: ProfileTab) => {
+          // 14/11 : écran de l'onglet Profil (barre de navigation) — on rejoint Préférences par son adresse, un
+          // retour arrière d'onglet ramènerait au premier onglet. [Avant : router.back() — remplacé.]
+          if (tab === "preferences") router.navigate("/profile");
+        },
+        testID: "profile-edit-tabs",
+      }}
+      // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026).
+      /* Zone de contexte canonique des Catalogues (`ContextBand` : fondu par couches D-224, géométrie CE-CAT-CTX-01,
           hauteur standard), couleur de l'onglet sélectionné (recettes du 12/11 : « UTILISE LES COMPOSANTS STANDARDS »).
           Recette c2 du 13/11 (Hermann : « la photo et le nom ne sont pas dans la zone de contexte » ; « se référer à
           Figma, écran "P-Profil — Modifier le profil — Sections sans bibliothèque" », 12116:25015, « J'ai retiré
           "Compte gratuit" ») : sur une ligne, photo (pastille appareil photo), nom, puis à droite le rond de la
           silhouette choisie — un appui change de silhouette. Pseudo « @… » de la maquette non affiché : prévu après la
           fusion de PRE-10 (x-c2-pseudo).
-          [Avant : silhouettes homme et femme côte à côte dans la zone, photo et nom dessous dans le corps — remplacé.] */}
-      <ContextBand
-        fadeToTransparent
-        color={PROFILE_TAB_CONTEXT}
-        padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
-      >
-        {draft ? (
-          <View pointerEvents="box-none" style={styles.identityRow} testID="profile-edit-identity">
-            <View style={styles.avatarFrame}>
-              <View style={styles.avatar} testID="profile-edit-avatar">
-                {hasPhoto ? (
-                  <Image source={{ uri: draft.photoUri! }} style={styles.avatarImage} testID="profile-edit-avatar-image" />
-                ) : (
-                  <>
-                    <View style={styles.avatarBackground}>
-                      <KodjoIcon name="profile-avatar-initials" testID="profile-edit-avatar-background" />
-                    </View>
-                    <Text
-                      style={styles.avatarInitials}
-                      accessibilityLabel={t.photo.initialsAccessibilityLabel}
-                      testID="profile-edit-avatar-initials"
-                    >
-                      {computeInitials(draft.displayName)}
-                    </Text>
-                  </>
-                )}
+          [Avant : silhouettes homme et femme côte à côte dans la zone, photo et nom dessous dans le corps — remplacé.] */
+      context={{
+        kind: "custom",
+        content: (
+          <>
+            {draft ? (
+              <View pointerEvents="box-none" style={styles.identityRow} testID="profile-edit-identity">
+                <View style={styles.avatarFrame}>
+                  <View style={styles.avatar} testID="profile-edit-avatar">
+                    {hasPhoto ? (
+                      <Image source={{ uri: draft.photoUri! }} style={styles.avatarImage} testID="profile-edit-avatar-image" />
+                    ) : (
+                      <>
+                        <View style={styles.avatarBackground}>
+                          <KodjoIcon name="profile-avatar-initials" testID="profile-edit-avatar-background" />
+                        </View>
+                        <Text
+                          style={styles.avatarInitials}
+                          accessibilityLabel={t.photo.initialsAccessibilityLabel}
+                          testID="profile-edit-avatar-initials"
+                        >
+                          {computeInitials(draft.displayName)}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+                  {/* Pastille bleue (« Action — Modifier la photo ») : seule commande de la photo (recette c2 du 11/11,
+                      « retirer le texte Modifier la photo » ; « faire l'icône de la photo plus petit » : 22 / 12). */}
+                  <Pressable
+                    onPress={handlePickPhoto}
+                    accessibilityRole="button"
+                    accessibilityLabel={photoAccessibilityLabel}
+                    hitSlop={(minTouchTarget - PHOTO_BADGE_SIZE) / 2}
+                    style={styles.photoBadge}
+                    testID="profile-edit-photo-action"
+                  >
+                    <KodjoIcon name="profile-photo-camera" size={PHOTO_BADGE_ICON} />
+                  </Pressable>
+                </View>
+    
+                {/* Recette c2 du 12/11 : libellé « Nom » retiré ; le nom reste le nom accessible du champ. */}
+                <TextInput
+                  value={draft.displayName}
+                  onChangeText={(text) => {
+                    setNameError(null);
+                    patchDraft({ displayName: text });
+                  }}
+                  onEndEditing={(event) => void saveName(event.nativeEvent.text)}
+                  returnKeyType="done"
+                  placeholder={t.name.placeholder}
+                  placeholderTextColor={colors.textSecondary}
+                  accessibilityLabel={t.name.label}
+                  style={styles.nameInput}
+                  testID="profile-edit-name-input"
+                />
+    
+                {/* Figma 12116:25028 « Choix — Silhouette du profil (touchez pour changer) » : un seul rond, la silhouette
+                    choisie (homme par défaut), contour et tracé bleus. */}
+                <Pressable
+                  onPress={() => selectSilhouette(currentSilhouette === "femme" ? "homme" : "femme")}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.silhouette[currentSilhouette]}
+                  accessibilityHint={t.silhouette.toggleHint}
+                  hitSlop={(minTouchTarget - SILHOUETTE_CIRCLE) / 2}
+                  style={styles.silhouetteCircle}
+                  testID="profile-edit-silhouette"
+                >
+                  {/* 13/11 (Hermann : « fond de la silhouette en bleu », « la silhouette est toujours fond transparent ») :
+                      silhouette PLEINE bleue des Zones corporelles (`body-zone-<silhouette>-plein`, même tracé, déjà au
+                      Design System) — le tracé du Profil n'est qu'un contour, sans remplissage à teinter.
+                      [Avant : `profile-silhouette-<silhouette>` (contour seul) — remplacé.] */}
+                  <KodjoIcon
+                    name={`body-zone-${currentSilhouette}-plein`}
+                    size={SILHOUETTE_ICON}
+                    testID={`profile-edit-silhouette-${currentSilhouette}-icon`}
+                  />
+                </Pressable>
               </View>
-              {/* Pastille bleue (« Action — Modifier la photo ») : seule commande de la photo (recette c2 du 11/11,
-                  « retirer le texte Modifier la photo » ; « faire l'icône de la photo plus petit » : 22 / 12). */}
-              <Pressable
-                onPress={handlePickPhoto}
-                accessibilityRole="button"
-                accessibilityLabel={photoAccessibilityLabel}
-                hitSlop={(minTouchTarget - PHOTO_BADGE_SIZE) / 2}
-                style={styles.photoBadge}
-                testID="profile-edit-photo-action"
-              >
-                <KodjoIcon name="profile-photo-camera" size={PHOTO_BADGE_ICON} />
-              </Pressable>
-            </View>
-
-            {/* Recette c2 du 12/11 : libellé « Nom » retiré ; le nom reste le nom accessible du champ. */}
-            <TextInput
-              value={draft.displayName}
-              onChangeText={(text) => {
-                setNameError(null);
-                patchDraft({ displayName: text });
-              }}
-              onEndEditing={(event) => void saveName(event.nativeEvent.text)}
-              returnKeyType="done"
-              placeholder={t.name.placeholder}
-              placeholderTextColor={colors.textSecondary}
-              accessibilityLabel={t.name.label}
-              style={styles.nameInput}
-              testID="profile-edit-name-input"
-            />
-
-            {/* Figma 12116:25028 « Choix — Silhouette du profil (touchez pour changer) » : un seul rond, la silhouette
-                choisie (homme par défaut), contour et tracé bleus. */}
-            <Pressable
-              onPress={() => selectSilhouette(currentSilhouette === "femme" ? "homme" : "femme")}
-              accessibilityRole="button"
-              accessibilityLabel={t.silhouette[currentSilhouette]}
-              accessibilityHint={t.silhouette.toggleHint}
-              hitSlop={(minTouchTarget - SILHOUETTE_CIRCLE) / 2}
-              style={styles.silhouetteCircle}
-              testID="profile-edit-silhouette"
-            >
-              {/* 13/11 (Hermann : « fond de la silhouette en bleu », « la silhouette est toujours fond transparent ») :
-                  silhouette PLEINE bleue des Zones corporelles (`body-zone-<silhouette>-plein`, même tracé, déjà au
-                  Design System) — le tracé du Profil n'est qu'un contour, sans remplissage à teinter.
-                  [Avant : `profile-silhouette-<silhouette>` (contour seul) — remplacé.] */}
-              <KodjoIcon
-                name={`body-zone-${currentSilhouette}-plein`}
-                size={SILHOUETTE_ICON}
-                testID={`profile-edit-silhouette-${currentSilhouette}-icon`}
-              />
-            </Pressable>
-          </View>
-        ) : null}
-      </ContextBand>
+            ) : null}
+          </>
+        ),
+      }}
+    >
 
       {draft ? (
         // CE-UI-01 L2004 (R1/UI-96E7FD739BF0) : l'écran défile dans les Safe
@@ -392,7 +388,7 @@ export function ProfileEditScreen() {
       ) : null}
 
       {/* 13/11/2026 : « Enregistrer » et le dialogue d'abandon retirés — tout est enregistré immédiatement. */}
-    </ScreenShell>
+    </TabbedScreen>
   );
 }
 
@@ -401,12 +397,6 @@ const styles = StyleSheet.create({
     flex: 1,
     // Recette c1 : le corps remonte sous la part fondue de la zone de contexte et défile derrière elle.
     marginTop: -CONTEXT_BAND_FADE_HEIGHT,
-  },
-  // Figma 12119:25611 — les onglets occupent toute la hauteur de l'en-tête et reposent sur son bord bas
-  // (même patron que le Catalogue, `CatalogueScreen.headerNavigation`).
-  headerTabs: {
-    flex: 1,
-    alignSelf: "stretch",
   },
   bodyContent: {
     // A01 (recette PRE-8 A/B) : marge standard partagée.

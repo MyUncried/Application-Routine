@@ -2,6 +2,8 @@
 
 [Source reçue](archives/complements-2026-10-07/demande-source.md) · [Traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md) · décisions D-324 à D-326. Complément au DSF Cadence ; aucune refonte de shell.
 
+**Mise à jour du 19/11/2026 (D-532) :** [remplacé pour la navigation entre les vues d’un domaine — Catalogue Mouvements / Séances / Programmes, Calendrier Journal / Agenda / Vue d’ensemble : barre de titre à onglets, voir [DSF Barre de titre à onglets](DSF-BARRE-TITRE-ONGLETS-2026-11-19.md) ; le contrôle segmenté décrit ci-dessous reste valable pour les autres sélecteurs.]
+
 **Mise à jour du 18/10/2026 — spécification v3.0 :**
 - Remplacé pour la présentation : au §3, pour les contrôles de la feuille des paramètres, la typographie des libellés de segmentés (D-413 : options inactives en texte gris Regular) et les exceptions Changement de côté (options Avec / Sans, D-406) et Ordre des côtés (libellé visible Enchainement, notation à flèches de Figma, D-413) ; la description des cadres de paramètres existants (rayon 12, fond opaque, contour), remplacée par les six blocs de D-413. Le standard Catalogue Exercices / Séances, ses variantes et les titres d’écran sont inchangés.
 - Comportements : règles RM-235 à RM-250 du chapitre 10, [Charge, côtés, cadence et condition d’arrêt — règles du 18/10/2026](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#charge-côtés-cadence-et-condition-darrêt--règles-du-18102026) (décisions D-403 à D-413 du [registre](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#parametres-execution-20261018)) ; ce DSF n’en reprend pas l’énoncé. Les valeurs des captures restent illustratives.

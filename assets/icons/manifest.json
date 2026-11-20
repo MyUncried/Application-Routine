@@ -1526,15 +1526,67 @@
     {
       "key": "icon.plan",
       "file": "icon-planifier",
-      "figmaNodeId": "11004:44092",
+      "figmaNodeId": "11004:43991",
       "figmaName": "icon/planifier",
       "figmaStatus": "EXACT_EXPORT",
-      "width": 18,
-      "height": 18,
+      "width": 24,
+      "height": 24,
       "usage": [
         "Calendrier — Semaine (1992:5101), action contextuelle Planifier"
       ],
-      "runtime": "Exporté le 2026-11-13 (calques du pictogramme seuls) ; CalendarWeekScreen"
+      "runtime": "Exporté le 2026-11-13 (calques du pictogramme seuls) ; tracé de la maquette du 20/11/2026 (D-538, « + » recentré sous le bandeau, y = 16,5), affiché en 18 ; CalendarWeekScreen, JournalScreen (CommandCircle)"
+    },
+    {
+      "key": "icon.today",
+      "file": "icon-aujourdhui",
+      "figmaNodeId": "12779:24842",
+      "figmaName": "icon/aujourd’hui",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — zone de contexte, bouton « Aujourd’hui » (D-538)"
+      ],
+      "note": "Calendrier du composant sans le chiffre du jour : le chiffre (Inter gras 9) est un texte posé par TodayIcon, car il suit la date du jour. Teinté #333333 (jour courant) ou #0508E5 (autre jour)."
+    },
+    {
+      "key": "icon.routineFilter",
+      "file": "icon-filtre-routine",
+      "figmaNodeId": "12794:49374",
+      "figmaName": "icon/filtre-routine — État=Inactif",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — filtre par routine, sans filtre (D-539)"
+      ],
+      "note": "Tracé de l’export Figma (18 × 16,5) recentré dans la boîte de 24 du composant ; contour #333333, trait 1,5."
+    },
+    {
+      "key": "icon.routineFilterActive",
+      "file": "icon-filtre-routine-actif",
+      "figmaNodeId": "12794:49376",
+      "figmaName": "icon/filtre-routine — État=Actif (filtre en cours)",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — filtre par routine actif (D-539)"
+      ],
+      "note": "Même tracé, silhouette pleine #0508E5."
+    },
+    {
+      "key": "icon.agendaStopwatch",
+      "file": "icon-agenda-chronometre",
+      "figmaNodeId": "12580:27335",
+      "figmaName": "Agenda — Planning (proposition) — chronomètre de la carte de routine",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 10.8333,
+      "height": 12.5833,
+      "usage": [
+        "Agenda — carte de routine, bloc heure / durée (chronomètre 14)"
+      ],
+      "runtime": "Exporté le 2026-11-19 par le MCP Figma depuis l’écran 12580:27335 (identifiant du nœud de l’icône non relevé) ; RoutineAgendaCard"
     },
     {
       "key": "execution.pause",

@@ -17,6 +17,7 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 
 const weekly: Routine = {
   id: "r1",
+  name: "Parcours du matin",
   startDate: "2026-08-03",
   time: "08:00",
   repetition: { unit: "WEEK", every: 2, weekdays: [1, 4], end: { kind: "UNTIL", date: "2026-08-23" } },
@@ -36,12 +37,15 @@ describe("migration031 — Routines", () => {
     await migrateDatabase(database, undefined, 30);
     const before = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(31);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 31 });
+    expect(DATABASE_VERSION).toBe(34);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 34 });
     const after = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
+    // Jusqu'à la version courante : la 033 ajoute le lien occurrence ↔ Exécution, la 034 les occurrences enregistrées.
     expect(after.map((row) => row.name).filter((name) => !before.some((row) => row.name === name))).toEqual([
+      "occurrence_executions",
       "routine_entries",
       "routine_exclusions",
+      "routine_occurrences",
       "routines",
     ]);
   });
@@ -105,6 +109,7 @@ describe("SqliteRoutineRepository", () => {
         now: () => new Date(2026, 7, 1, 12, 0),
       });
       const saved = await service.createRoutine({
+        name: "Matin",
         startDate: "2026-08-03",
         time: "08:00",
         repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: "2026-08-31" } },

@@ -12,12 +12,11 @@ import {
   isNotificationPermissionDenied,
   type NotificationPermissionStatus,
 } from "@/features/preferences/notificationPermission";
-import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { strings } from "@/shared/i18n";
 import { catalogueColors } from "@/shared/ui/catalogueContext";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileNumberField } from "@/shared/ui/ProfileNumberField";
-import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { layout, spacing } from "@/shared/ui/tokens";
 
 /**
@@ -54,10 +53,6 @@ const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePrefer
 };
 
 type ProfileTab = "profile" | "preferences" | "community";
-
-/** Figma « Bande — Onglets » : 14 de haut, `#EAEAFF` sur 80 % puis fondu vers `#F7F7FF`. */
-const TAB_BAND = { height: 14, solid: 11 } as const;
-const TAB_BAND_FADE = [0.25, 0.5, 0.75] as const;
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -139,30 +134,23 @@ export function ProfileScreen() {
   };
 
   return (
-    <ScreenShell backgroundColor={palette.background}>
-      <FixedHeader
-        title={t.title}
-        content={
-          <View style={styles.headerNavigation}>
-            <CatalogueNavigation<ProfileTab>
-              options={[
-                { value: "profile", label: t.tabs.profile },
-                { value: "preferences", label: t.tabs.preferences },
-                { value: "community", label: t.tabs.community, disabled: true, accessibilityLabel: t.tabs.communityUnavailable },
-              ]}
-              value="preferences"
-              onChange={changeTab}
-              selectedColor={palette.context}
-              testID="profile-tabs"
-            />
-          </View>
-        }
-      />
-      <View style={[styles.tabBand, { backgroundColor: palette.context }]} pointerEvents="none" accessible={false} testID="profile-tab-band">
-        {TAB_BAND_FADE.map((opacity, index) => (
-          <View key={opacity} style={[styles.tabBandFade, { top: TAB_BAND.solid + index, backgroundColor: palette.background, opacity }]} />
-        ))}
-      </View>
+    // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : onglets Profil · Préférences · Communauté et, sans zone de
+    // contexte, la bande courte sous les onglets (Figma « Bande — Onglets » : 14 de haut, `#EAEAFF` sur 80 % puis fondu vers
+    // `#F7F7FF`).
+    <TabbedScreen
+      title={t.title}
+      palette={{ context: palette.context, background: palette.background }}
+      tabs={{
+        options: [
+          { value: "profile", label: t.tabs.profile },
+          { value: "preferences", label: t.tabs.preferences },
+          { value: "community", label: t.tabs.community, disabled: true, accessibilityLabel: t.tabs.communityUnavailable },
+        ],
+        value: "preferences" as ProfileTab,
+        onChange: changeTab,
+        testID: "profile-tabs",
+      }}
+    >
       {profile ? (
         <ScrollView
           style={styles.body}
@@ -197,7 +185,7 @@ export function ProfileScreen() {
           />
         </ScrollView>
       ) : null}
-    </ScreenShell>
+    </TabbedScreen>
   );
 }
 
@@ -212,20 +200,6 @@ function withSeparators(groupTestID: string, rows: readonly ReactNode[]): ReactN
 }
 
 const styles = StyleSheet.create({
-  headerNavigation: {
-    flex: 1,
-    alignSelf: "stretch",
-  },
-  tabBand: {
-    height: TAB_BAND.height,
-    overflow: "hidden",
-  },
-  tabBandFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: 1,
-  },
   body: {
     flex: 1,
   },

@@ -15,6 +15,7 @@ import { SqliteProfileRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
+import { SqliteOccurrenceExecutionRepository } from "@/infrastructure/database/repositories/SqliteOccurrenceExecutionRepository";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 import { ReminderScheduler } from "@/features/planning/ReminderScheduler";
@@ -33,6 +34,7 @@ import { ReferentialServiceContext } from "@/features/reference-data/Referential
 import { MigrationNoticeRepositoryContext } from "@/features/sessions/MigrationNoticeRepositoryContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
+import { sessionCategoryIds } from "@/features/sessions/sessionCatalogueProjection";
 import { ActivityMediaImportService } from "@/domain/media/ActivityMediaImportService";
 import type { MigrationNoticeRepository } from "@/domain/migration/MigrationNotice";
 import { getLocalMediaStore } from "@/infrastructure/media/LocalMediaStore";
@@ -141,17 +143,25 @@ function SessionServiceInitializer({
   // Séances actives lus par `SessionService`.
   const planningService = useMemo(() => {
     const routines = new SqliteRoutineRepository(new ExpoDatabase(nativeDatabase));
+    const occurrenceExecutions = new SqliteOccurrenceExecutionRepository(new ExpoDatabase(nativeDatabase));
     const scheduler = new ReminderScheduler({
       notifications: expoLocalNotifications,
       listRoutines: () => routines.list(),
       activeSessionNames: async () =>
         new Map((await sessionService.listCatalogueSessions()).filter((record) => record.status === "ACTIVE").map((record) => [record.id, record.name])),
+      // Rappels (recette du 19/11/2026, t6) : catégories des exercices, pour l'accroche CAT-* d'une séance mono-catégorie.
+      sessionCategoryIds: async () =>
+        new Map((await sessionService.listCatalogueSessions()).filter((record) => record.status === "ACTIVE").map((record) => [record.id, sessionCategoryIds(record)])),
+      // Familles « première séance » et « reprise après absence » (q19-rappels, 20/11/2026).
+      occurrenceExecutions: () => occurrenceExecutions.list(),
       now: () => new Date(),
     });
     return new PlanningService({
       repository: routines,
+      occurrenceExecutions: () => occurrenceExecutions.list(),
       reminders: {
         refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission(),
+        permissionStatus: () => scheduler.permissionStatus(),
         isPermitted: () => scheduler.isPermitted(),
       },
       newId: () => Crypto.randomUUID(),

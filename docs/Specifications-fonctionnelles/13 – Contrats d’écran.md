@@ -554,9 +554,9 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
 | [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
-| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | Calendrier — Mois | `CE-UI-03` | — |
+| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | [supprimé le 19/11/2026] Calendrier — Mois | `CE-UI-03` | — |
 | [`1992:5365`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5365) | Modal — Supprimer une planification unique — Calendrier | `CE-UI-02` | — |
-| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
+| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | [supprimé le 19/11/2026] Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
 | [`1992:5962`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5962) | Calendrier — Semaine — Actions glissées | `CE-UI-03` | — |
 | [`1992:6102`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6102) | Modal — Supprimer des occurrences — Calendrier | `CE-UI-02` | — |
 | [`1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249) | Modal — Choisir une séance — Planification — Liste longue | `CE-UI-04` | — |
@@ -3999,7 +3999,7 @@ Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, 
 
 #### 1. Identification
 
-Calendrier Jour ; frames 1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants 6374:12704/12705.
+Calendrier Jour ; frames 1992:5510 [remplacé le 19/11/2026 par le Journal, D-535 : « Calendrier — Journal — MVP », voir `docs/DSF-JOURNAL-2026-11-19.md`],1992:5602,1992:5697,1992:5794,2059:267,2128:86 [supprimés le 19/11/2026 : la vue Jour est remplacée par le Journal] ; composants 6374:12704/12705.
 
 Règles applicables : RM-045, RM-049, RM-072, RM-095, RM-112 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -4092,7 +4092,7 @@ Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissement
 
 #### 1. Identification
 
-Calendrier ; frames 1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois 1992:5237 ; suppressions 1992:5365/6102.
+Calendrier ; frames 1992:5101,2252:86 [supprimé le 19/11/2026 : comportement spécifié, aucun écran dédié],1992:6389,1992:5962,2094:86 [supprimé le 19/11/2026, redondant avec 1992:5962],2074:86 [supprimé le 19/11/2026 : état résultat sans intérêt propre] ; Mois 1992:5237 [supprimé le 19/11/2026] ; suppressions 1992:5365/6102.
 
 Règles applicables : RM-045, RM-046, RM-050, RM-072, RM-112, RM-123 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -4133,7 +4133,7 @@ Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; st
 
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
-Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
+[Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
 
 *Texte identique à celui de la section [« CE-T03-15 — Suivi général — Exécution ACTIVITY »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-15--suivi-général--exécution-activity) ; il n’est pas recopié ici.*
 
@@ -4270,6 +4270,8 @@ Tester 0/1/2, mêmes types et mixte, bascule de segment sans perte, cocher/déco
 
 ### CE-UI-05 — Planification — formulaire et états de paramètres
 
+> [Remplacé en partie le 18/11/2026, D-519 à D-523 : la mise en page, la ligne Répétition, le Rappel et le nombre de semaines sont définis par CE-UI-12 ; les frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 sont retirés ou remplacés. Texte d’origine conservé.]
+
 #### 1. Identification
 
 CE-UI-05 ; formulaire de Routine à un ou plusieurs contenus. Frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 ; fréquence CE-UI-11 ; sélection CE-UI-04.
@@ -4354,6 +4356,8 @@ Tester contenu unique Séance/Exercice et liste mixte, ordre, suppression du tit
 
 ### CE-UI-11 — Planification — fréquence d’un contenu
 
+> [Remplacé le 18/11/2026, D-519 : la fréquence d’un contenu se règle par les points de la grille (CE-UI-12, RM-253 à RM-256). Texte d’origine conservé.]
+
 #### 1. Identification
 
 CE-UI-11 — Planification — fréquence d’un contenu. Frame MVP 7594:34653, communautaire 7567:13761. Feuille au-dessus de CE-UI-05.
@@ -4437,6 +4441,88 @@ n pastilles ; fréquence sans unité ; aucune occurrence ajoutée au créneau ; 
 Tester 1 sur 2, 2 sur 3 avec positions 1/3 ou 1/2, x=n, chaque stepper réinitialisant toutes les pastilles, annuler/valider, indépendance des contenus. Les tests du comportement de x et des bornes attendent leur spécification.
 
 <a id="controles-planification"></a>
+### CE-UI-12 — Planification — grille de créneaux (D-519 à D-523, 18/11/2026)
+
+#### 1. Identification
+
+CE-UI-12 ; planification d’un parcours (plusieurs séances) et d’une séance seule. Frames Figma : `12650:27854` (grille, cycle 1), ~~`12624:29713` (cycle étendu à 3)~~ [retiré le 19/11/2026, écran supprimé], `7599:14197` (« Modal — Planifier une séance — Sélectionner une séance », contenu = sélecteur numéroté ; ancien écran `12628:34456` supprimé le 19/11/2026) ; séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines `12652:28447`, répétition en jours `12665:27227` (rangée des jours de la semaine absente, « tous les 2 jours »). Modale iOS (D-522).
+
+Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
+
+#### 2. Contenu
+
+- Zone de contexte : nom (texte libre, unique, RM-258) puis synthèse 14 px (RM-259).
+- Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel.
+- Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit. [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : « jusqu’au » bascule vers « pendant » N semaines pour l’unité semaines.]
+- Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
+- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-524). [Remplacé en partie le 19/11/2026, recette iPhone du 19/11/2026 (k13, e2, k14) : unités heures / minutes à droite des roues ; plus de texte quand les notifications sont refusées, message natif au choix d’un délai.]
+
+#### 3. Interactions
+
+Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle). Nombre de semaines et Rappel personnalisé : roulette native iOS (`pickerStyle("wheel")`) en popover près du champ, fond grisé, ni titre, ni bouton, ni unité ; aucune primitive native n’est remplacée. Date : sélecteur de date en popover. [Remplacé le 18/11/2026 (Hermann : « tu peux réutiliser les modales et format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ») : la date et l'heure s'ouvrent dans le voile grisé déjà en place (calendrier natif graphique, roulette heures / minutes), valeurs en noir à la taille des autres valeurs.]
+
+[Remplacé le 19/11/2026, recette iPhone du 19/11/2026 (k19, k8, k13) : date, heure, nombre de semaines, « pendant » et Rappel personnalisé s’ouvrent dans le même popover près du champ, sans titre ni bouton, au-dessus du champ quand il ne tient pas dessous ; la valeur touchée s’applique ; un toucher sur le voile ferme. Valeurs en bleu KODJO.]
+
+#### 4. Points à clarifier
+
+Aucun. Occurrences passées : rejouables (D-525) ; unité « mois » retirée (D-526).
+
+### CE-UI-13 — Exécution — EMOM en durée (D-528, 18/11/2026)
+
+#### 1. Identification
+
+CE-UI-13 ; écran d’exécution d’un EMOM dont les tours sont définis par une durée d’effort. Règles : RM-265 à RM-268.
+
+#### 2. Contenu
+
+- Un seul anneau : les 60 secondes du tour en cours, avancement continu. Aucun second anneau.
+- Centre : composant du For time (même position, même couleur, même flash, même double chrono). Chiffre principal : effort cumulé sur objectif (ex. 00:25 / 00:40) ; secondaire : temps restant avant la minute suivante.
+- Mode Effort : couleurs d’effort de l’anneau et du fond. Mode Repos : couleurs de repos de l’anneau et du fond.
+
+#### 3. Interactions
+
+Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’anneau continue). Appui en Repos : sans effet. Objectif atteint : bascule automatique en Repos jusqu’à la fin de la minute. Fin de minute : tour suivant, effort remis à zéro ; effort inférieur à l’objectif enregistré en effort partiel (RM-267).
+
+#### 4. À vérifier sur appareil
+
+Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
+
+### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026)
+
+#### 1. Règle
+
+Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas.
+
+#### 2. Emplacements par scénario
+
+| Scénario | Haut gauche | Haut droite | Bas gauche | Bas droite |
+|---|---|---|---|---|
+| Exercice en répétitions | objectif répétitions | — | charge | — |
+| Exercice en durée avec phases | objectif durée | — | charge | nombre de mouvements |
+| Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
+| For time | objectif du tour | temps max | charge | — |
+| AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| AMRAP à un seul mouvement en Max | — | temps limite du bloc | charge | score cumulé |
+| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
+| EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
+| Death by | objectif du rang | intervalle | charge | — |
+| Tabata / 30-30 | durée de la phase | — | charge | — |
+
+#### 3. Précisions
+
+- Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
+- Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
+- Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). À chaque début de tour, annonce vocale ou bip selon D-530 (18/11/2026). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
+- Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
+
+#### 4. Limites
+
+Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
+
+### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
+
+Écran « Agenda — Planning (proposition) » (`12580:27335`) : rendu et mises en page décrits dans le [DSF Agenda](../DSF-AGENDA-PLANNING-2026-11-19.md). Aucune règle métier nouvelle ; la propriété « spécialité » d’une routine reste À CLARIFIER (absente du modèle de données). [19/11/2026 — la zone de contexte, la rangée des jours, la liste et la carte de cet écran s’appliquent aux écrans Semaine du calendrier (déployé, actions glissées, après suppression, jour sélectionné, fonds des modales de suppression) : voir DSF Agenda § 6. Les écrans Jour et Mois ne sont pas concernés à ce stade.] [19/11/2026 — D-534 : une carte par occurrence de routine, enchaînement des séances et écran de transition : DSF Agenda § 7. L’écran Jour doit être remplacé (décision de Hermann).]
+
 ### Contrôles et layout de planification
 
 #### Règles d'interface propres à la planification
@@ -4515,7 +4601,7 @@ Permettre à l’utilisateur de visualiser les Routines planifiées, de naviguer
 
 ### Calendrier — Contenu
 
-L’écran comporte les vues `Jour`, `Semaine` et `Mois`. L’onglet `Calendrier` ouvre la vue `Jour`.
+L’écran comporte les vues `Jour`, `Semaine` et `Mois`. [Libellés remplacés le 19/11/2026, D-532 : onglets « Journal », « Agenda » et « Vue d’ensemble », au format des onglets du catalogue (onglet actif sur fond arrondi grisé) ; le contenu des vues est inchangé.] L’onglet `Calendrier` ouvre la vue `Jour`.
 
 L’écran affiche :
 

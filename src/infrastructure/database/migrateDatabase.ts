@@ -33,6 +33,9 @@ import { applyMigration028 } from "./migrations/migration028";
 import { applyMigration029 } from "./migrations/migration029";
 import { applyMigration030, MIGRATION_030_CATALOGUE_PREFERENCES } from "./migrations/migration030";
 import { applyMigration031, MIGRATION_031_ROUTINES } from "./migrations/migration031";
+import { applyMigration032 } from "./migrations/migration032";
+import { applyMigration033 } from "./migrations/migration033";
+import { applyMigration034 } from "./migrations/migration034";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -85,8 +88,11 @@ export async function migrateDatabase(
     );
   }
 
+  // Recette iPhone du 20/11/2026 : tables additives 030 et 031 absentes d'une base qui les annonce, recréées
+  // avant toute migration suivante (032 et 034 modifient la table des Routines).
+  await repairMissingTables(database, currentVersion);
+
   if (currentVersion >= targetVersion) {
-    await repairMissingTables(database, currentVersion);
     return;
   }
 
@@ -338,6 +344,24 @@ export async function migrateDatabase(
       version = 31;
     }
 
+    // Planification : nom des planifications (18/11/2026, D-522). Un échec laisse `user_version` à 31.
+    if (pending(31)) {
+      await applyMigration032(transaction);
+      version = 32;
+    }
+
+    // Planification : lien occurrence ↔ Exécution (19/11/2026, statuts des occurrences). Un échec laisse `user_version` à 32.
+    if (pending(32)) {
+      await applyMigration033(transaction);
+      version = 33;
+    }
+
+    // Planification : occurrences enregistrées et archivage des routines (20/11/2026, D-536, D-537). Un échec laisse `user_version` à 33.
+    if (pending(33)) {
+      await applyMigration034(transaction);
+      version = 34;
+    }
+
     if (version !== targetVersion) {
       throw new Error(`Database migration stopped at version ${version} instead of ${targetVersion}.`);
     }
@@ -359,8 +383,8 @@ export async function migrateDatabase(
  * Recette iPhone du 20/11/2026 (Routine BMAD : « no such table: routines » avec une base déclarée en version 31).
  * Une base peut annoncer une version sans contenir les tables additives de cette version : elle a été migrée par un
  * code dont la numérotation différait (branches de travail successives, migration des routines numérotée 030 puis 031).
- * Pour les seules migrations purement additives 030 et 031, une table absente est créée telle que la migration la
- * crée ; rien n'est modifié ni supprimé, `user_version` est inchangé. Cause exacte de l'état observé : indéterminée.
+ * Pour les migrations purement additives 030 (version 30 ou plus) et 031 (version 31 exactement), une table absente
+ * est créée telle que la migration la crée, avant les migrations suivantes ; rien n'est modifié ni supprimé, `user_version` est inchangé. Cause exacte de l'état observé : indéterminée.
  */
 async function repairMissingTables(database: Database, version: number): Promise<void> {
   const tables = new Set(
@@ -369,7 +393,9 @@ async function repairMissingTables(database: Database, version: number): Promise
   const statements: string[] = [];
   const missing = (name: string) => !tables.has(name);
   if (version >= 30 && missing("catalogue_preferences")) statements.push(MIGRATION_030_CATALOGUE_PREFERENCES);
-  if (version >= 31) {
+  // Version 31 seulement : à partir de 32, les Routines ont reçu d'autres colonnes (032, 034) ; une table absente
+  // à ce stade n'est pas recréée ici (la forme 031 ne suffirait pas).
+  if (version === 31) {
     for (const statement of MIGRATION_031_ROUTINES) {
       const table = /^CREATE TABLE (\w+)/.exec(statement)?.[1];
       const index = /^CREATE INDEX (\w+) ON (\w+)/.exec(statement);

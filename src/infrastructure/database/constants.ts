@@ -170,7 +170,15 @@ export const DATABASE_NAME = "kodjo.db";
  * `routine_exclusions` (Routine multi-contenus, Calendrier Semaine). 001..030 inchangées. [Le chantier « catalogue
  * connecté » prévoyait une migration « ≥ 029 » non développée : elle prendra la prochaine version disponible.]
  */
-export const DATABASE_VERSION = 31;
+/**
+ * **Nom des planifications (version 32, `migration032`)** : colonne additive `routines.name` (D-522), vide pour les
+ * planifications existantes (RM-264). 001..031 inchangées.
+ */
+/**
+ * **Occurrences enregistrées et archivage (version 34, `migration034`)** : table additive `routine_occurrences` (occurrence
+ * modifiée à la main ou commencée, D-536) et colonne `routines.archived_at` (D-537). 001..033 inchangées.
+ */
+export const DATABASE_VERSION = 34;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -55,6 +55,7 @@ import {
   type PreparedExecution,
 } from "./ExecutionService";
 import { useExecution } from "./ExecutionServiceContext";
+import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
 import { executionStrings as t, formatClock } from "./executionStrings";
 
 /** Délai avant de rendre la session audio en fin de séance : fanfare puis « Bravo, séance terminée ». */
@@ -85,8 +86,14 @@ type DialogView = Omit<ComponentProps<typeof ExecutionDialog>, "visible">;
 
 export function ExecutionScreen({
   sessionId,
+  chain = null,
+  origin = null,
 }: {
   readonly sessionId: string | null;
+  /** D-534 : séance d'une routine à plusieurs séances (orchestration au-dessus du moteur, `executionChain`). */
+  readonly chain?: ExecutionChain | null;
+  /** Occurrence de routine d'où la séance est lancée : l'Exécution y est rattachée (recette du 19/11/2026 au soir). */
+  readonly origin?: ExecutionOrigin | null;
 }) {
   const { service, signals, screenAwake } = useExecution();
   const profileService = useProfileService();
@@ -390,19 +397,70 @@ export function ExecutionScreen({
     if (prepared?.status !== "ready" || starting.current) return;
     starting.current = true;
     try {
-      await service.start(prepared);
+      await service.start(prepared, origin === null ? undefined : { ...origin, rank: chain?.rank ?? 1 });
     } catch (error) {
       if (error instanceof ExecutionBlockedError) setBlocked(true);
     } finally {
       starting.current = false;
     }
-  }, [prepared, service]);
+  }, [prepared, service, origin, chain]);
 
+  /**
+   * D-534 : une séance d'une routine terminée normalement ouvre la suivante (même route, rang + 1, sans empiler) ;
+   * l'Exécution est libérée AVANT la navigation (sinon `ExecutionBlockedError` au démarrage de la suivante). Après la
+   * dernière, ou après un arrêt volontaire, retour au calendrier comme pour une séance isolée.
+   * [À CLARIFIER (D-534) : après un arrêt volontaire, la suite doit être proposée (« Passer à la suivante » ou
+   * « Terminer ») ; formulation et dessin à définir — en attendant, l'arrêt termine la chaîne.]
+   */
   const close = useCallback(() => {
+    const finishedNormally = service.current()?.state.finish?.reason === "COMPLETED";
+    const next = chain !== null && finishedNormally ? nextInChain(chain, origin) : null;
     service.release();
-    if (router.canGoBack()) router.back();
+    if (next !== null) router.replace({ pathname: "/execution", params: next });
+    else if (router.canGoBack()) router.back();
     else router.replace("/");
-  }, [router, service]);
+  }, [chain, origin, router, service]);
+
+  /**
+   * Recette du 19/11/2026 au soir (s19-voile, constat F) — enchaînement d'un parcours :
+   * - premier départ : l'écran de démarrage présente le parcours (« Séance 1 », « Séance 2 »… et leurs noms), avec
+   *   Démarrer et Retour ;
+   * - séance intermédiaire : pas de « Fin de séance » — la phase finale est passée dès qu'elle commence, l'écran
+   *   « Séance terminée » s'affiche, puis l'écran de transition de la séance suivante s'ouvre seul après
+   *   `CHAIN_AUTO_NEXT_MS` (sans bouton depuis la recette du 20/11/2026, constat F ; [Fermer l'ouvrait tout de suite — remplacé]). La dernière séance garde sa fin habituelle.
+   */
+  const chainRank = chain?.rank ?? 0;
+  const chainIds = chain?.sessionIds.join(",") ?? "";
+  const intermediate = chain !== null && chain.rank < chain.sessionIds.length;
+  const [routeNames, setRouteNames] = useState<readonly string[] | null>(null);
+  useEffect(() => {
+    if (chainRank !== 1) return;
+    let cancelled = false;
+    Promise.all(chainIds.split(",").map((id) => service.prepare(id))).then(
+      (list) => {
+        if (!cancelled) setRouteNames(list.map((item) => (item.status === "ready" ? item.plan.sessionName : "")));
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [chainRank, chainIds, service]);
+
+  const phase = projection?.phase ?? null;
+  // Étape courante à confirmer (et non la Cible d’une série) : nommée hors du motif de la garde PRE4-1.1.
+  const stepTarget = typeof projection?.target === "string" ? projection.target : null;
+  useEffect(() => {
+    if (!intermediate || phase !== "SESSION_END" || status !== "RUNNING" || stepTarget === null) return;
+    void service.dispatch({ type: "NEXT", confirmed: true }, stepTarget);
+  }, [intermediate, phase, status, stepTarget, service]);
+
+  const endedNormally = active !== null && active.state.status === "FINISHED" && active.state.finish?.reason === "COMPLETED";
+  useEffect(() => {
+    if (!intermediate || !endedNormally) return;
+    const timer = setTimeout(close, CHAIN_AUTO_NEXT_MS);
+    return () => clearTimeout(timer);
+  }, [intermediate, endedNormally, close]);
 
   /** Ouvre une confirmation : l'Exécution est suspendue pendant l'affichage de la modale (ch13, Réinitialiser et Suivant). */
   const openDialog = useCallback(
@@ -508,7 +566,23 @@ export function ExecutionScreen({
               {estimateLabel(prepared.projection)}
             </Text>
           ) : null}
+          {chainRank === 1 && routeNames !== null ? (
+            <View style={styles.route} accessibilityRole="list" testID="execution-route">
+              <Text style={styles.routeTitle} accessibilityRole="header">
+                {t.chain.routeTitle}
+              </Text>
+              {routeNames.map((routeName, index) => (
+                <Text key={`${index}-${routeName}`} style={styles.routeItem} numberOfLines={1} testID={`execution-route-${index + 1}`}>
+                  {t.chain.routeItem(index + 1)}
+                  {routeName === "" ? "" : ` · ${routeName}`}
+                </Text>
+              ))}
+            </View>
+          ) : null}
         </View>
+        {chain !== null && chain.rank >= 2 && prepared?.status === "ready" && !blocked ? (
+          <ChainVeil rank={chain.rank} onPress={start} />
+        ) : null}
       </View>
     );
   }
@@ -579,15 +653,20 @@ export function ExecutionScreen({
             </View>
           ))}
         </ScrollView>
-        <Pressable
-          onPress={close}
-          accessibilityRole="button"
-          accessibilityLabel={t.close}
-          style={styles.startButton}
-          testID="execution-close"
-        >
-          <Text style={styles.startLabel}>{t.close}</Text>
-        </Pressable>
+        {/* Recette du 20/11/2026 (constat F — Hermann : « retirer le bouton "Terminer" de l'écran de "Séance terminée" des
+            séances intermédiaires ») : la séance suivante s'ouvre seule après CHAIN_AUTO_NEXT_MS. Une séance intermédiaire
+            arrêtée termine le parcours et garde son bouton. [Fermer ouvrait tout de suite la séance suivante — remplacé.] */}
+        {intermediate && endedNormally ? null : (
+          <Pressable
+            onPress={close}
+            accessibilityRole="button"
+            accessibilityLabel={t.close}
+            style={styles.startButton}
+            testID="execution-close"
+          >
+            <Text style={styles.startLabel}>{t.close}</Text>
+          </Pressable>
+        )}
       </View>
     );
   }
@@ -1883,6 +1962,9 @@ export function refreshDelayMs(projection: ExecutionProjection | null): number {
   return Math.min(250, Math.max(16, untilBoundary + 20));
 }
 
+/** Séance intermédiaire d'un parcours : délai de « Séance terminée » avant la séance suivante. [Hypothèse technique, 19/11/2026.] */
+export const CHAIN_AUTO_NEXT_MS = 3000;
+
 function estimateLabel(projection: ExecutionProjection): string {
   const prefix =
     projection.estimated.kind === "estimated"
@@ -1905,7 +1987,46 @@ const executionType = {
   metric: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 30 },
 } as const;
 
+/**
+ * D-534 — écran de transition entre deux séances d'une routine (DSF Agenda § 7 ; Figma « Exécution d'une séance —
+ * Initial — Enchaînement (proposition) ») : l'écran de démarrage de la séance suivante, sous un voile vert translucide
+ * (≈ 35 %, vert des étiquettes « Terminée »), avec au centre un encadré vert plein plus foncé (rayon 16, marge 20) :
+ * « Appuyer pour / démarrer la 2è séance / du parcours », blanc, Inter semi-gras 32. Un toucher n'importe où sur le
+ * voile lance la séance, comme « Démarrer », et fait disparaître le voile.
+ * [Hypothèse à confirmer (prompt D-534) : l'appui lance directement la séance, sans second appui sur « Démarrer ».]
+ */
+function ChainVeil({ rank, onPress }: { readonly rank: number; readonly onPress: () => void }) {
+  const lines = t.chain.lines(rank);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={lines.join(" ")}
+      style={styles.chainVeil}
+      testID="execution-chain-veil"
+    >
+      <View style={styles.chainBox} testID="execution-chain-box">
+        {lines.map((line) => (
+          <Text key={line} style={styles.chainText} maxFontSizeMultiplier={1.2}>
+            {line}
+          </Text>
+        ))}
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  // D-534 : voile vert à 35 % (vert des étiquettes « Terminée », #1A995C) et encadré plein plus foncé.
+  chainVeil: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(26, 153, 92, 0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: layout.screenGutter,
+  },
+  chainBox: { backgroundColor: "#12784A", borderRadius: 16, padding: 20, alignItems: "center" },
+  chainText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 32, lineHeight: 40, color: colors.background, textAlign: "center" },
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -1945,6 +2066,9 @@ const styles = StyleSheet.create({
   },
   startLabel: { ...type.button, color: colors.background },
   estimate: { ...type.supporting, color: colors.textSecondary },
+  route: { alignSelf: "stretch", marginTop: spacing[24], paddingHorizontal: spacing[24], gap: spacing[8] },
+  routeTitle: { ...type.body, fontFamily: "Inter_600SemiBold", fontWeight: "600", color: colors.textPrimary },
+  routeItem: { ...type.body, color: colors.textPrimary },
   // Recette r6 : positions du Figma `1992:8132` (écran de 402 × 874, barre d'état de 36).
   runningScreen: { flex: 1, backgroundColor: colors.background },
   // Recette e1 (h : « le bord du cercle tout en bas est rogné par le cadre gris ») : le haut ne rétrécit plus ; c'est

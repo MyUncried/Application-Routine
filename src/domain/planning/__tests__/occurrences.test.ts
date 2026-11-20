@@ -1,11 +1,12 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { addDays, mondayOf, validateRoutineDraft, weekdayOf, EVERY_TIME, type Routine } from "@/domain/planning/Routine";
-import { occurrencesBetween, upcomingOccurrences } from "@/domain/planning/occurrences";
+import { occurrencesBetween, periodOccurrences, upcomingOccurrences } from "@/domain/planning/occurrences";
 
 function routine(overrides: Partial<Routine> = {}): Routine {
   return {
     id: "r1",
+    name: "",
     startDate: "2026-08-03", // lundi
     time: "08:00",
     repetition: null,
@@ -19,6 +20,15 @@ function routine(overrides: Partial<Routine> = {}): Routine {
 }
 
 const weekOf = (r: Routine, day: string) => occurrencesBetween(r, mondayOf(day), addDays(mondayOf(day), 6)).map((o) => `${o.date} ${o.time}`);
+
+describe("unité Jour — « pendant N jours » (recette du 19/11/2026)", () => {
+  it("N jours depuis « Début le » compris, tous les N jours", () => {
+    const daily = routine({ repetition: { unit: "DAY", every: 2, weekdays: [], end: { kind: "FOR", count: 5 } } });
+    expect(occurrencesBetween(daily, "2026-08-01", "2026-08-31").map((o) => o.date)).toEqual(["2026-08-03", "2026-08-05", "2026-08-07"]);
+    const everyDay = routine({ repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "FOR", count: 1 } } });
+    expect(occurrencesBetween(everyDay, "2026-08-01", "2026-08-31").map((o) => o.date)).toEqual(["2026-08-03"]);
+  });
+});
 
 describe("calendrier civil", () => {
   it("lundi = 1, dimanche = 7 ; lundi de la semaine", () => {
@@ -128,7 +138,7 @@ describe("retraits et contenus", () => {
 });
 
 describe("validation du brouillon (CE-UI-05 §14)", () => {
-  const base = { startDate: "2026-08-03", time: "08:00", repetition: null, entries: [{ id: "e", sessionId: "s", frequency: EVERY_TIME }] };
+  const base = { name: "Matin", startDate: "2026-08-03", time: "08:00", repetition: null, entries: [{ id: "e", sessionId: "s", frequency: EVERY_TIME }] };
 
   it("brouillon complet : aucune anomalie", () => {
     expect(validateRoutineDraft(base)).toEqual([]);
@@ -145,5 +155,24 @@ describe("validation du brouillon (CE-UI-05 §14)", () => {
     expect(validateRoutineDraft({ ...base, repetition: { unit: "WEEK", every: 12, weekdays: [3], end: { kind: "FOR", count: 0 } } })).toEqual([
       "INVALID_END",
     ]);
+  });
+});
+
+describe("unité Jour et occurrences passées (RM-257, D-525, D-526 ; 18/11/2026)", () => {
+  it("tous les 3 jours depuis « Début le », jusqu'au inclus", () => {
+    const daily = routine({ repetition: { unit: "DAY", every: 3, weekdays: [], end: { kind: "UNTIL", date: "2026-08-12" } } });
+    expect(occurrencesBetween(daily, "2026-08-01", "2026-08-31").map((o) => o.date)).toEqual(["2026-08-03", "2026-08-06", "2026-08-09", "2026-08-12"]);
+  });
+
+  it("validation : jours 1..31 sans rangée de jours ; nom obligatoire", () => {
+    const base = { name: "Matin", startDate: "2026-08-03", time: "08:00", entries: [{ id: "e", sessionId: "s", frequency: EVERY_TIME }] };
+    expect(validateRoutineDraft({ ...base, repetition: { unit: "DAY", every: 2, weekdays: [], end: { kind: "UNTIL", date: "2026-08-23" } } })).toEqual([]);
+    expect(validateRoutineDraft({ ...base, repetition: { unit: "DAY", every: 32, weekdays: [], end: { kind: "UNTIL", date: "2026-08-23" } } })).toEqual(["INVALID_MULTIPLIER"]);
+    expect(validateRoutineDraft({ ...base, name: "  ", repetition: null })).toEqual(["NAME_REQUIRED"]);
+  });
+
+  it("D-525 : les occurrences passées de la période restent présentées", () => {
+    const weekly = routine({ repetition: { unit: "WEEK", every: 1, weekdays: [1, 3], end: { kind: "UNTIL", date: "2026-08-31" } } });
+    expect(periodOccurrences([weekly], "2026-08-03", "2026-08-09").map((o) => o.date)).toEqual(["2026-08-03", "2026-08-05"]);
   });
 });

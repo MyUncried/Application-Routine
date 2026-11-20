@@ -5,6 +5,8 @@
  * modifier le catalogue partagé `fr.ts` pendant les chantiers parallèles.
  */
 export const planningStrings = {
+  /** Repère « P » d'une routine à plusieurs séances (recette du 20/11/2026, constat A), lu par VoiceOver. */
+  parcours: "Parcours",
   months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
   monthsShort: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
   /** Lundi = index 0. */
@@ -15,6 +17,17 @@ export const planningStrings = {
   the: "les",
   and: "et",
   weekUnit: { singular: "semaine", plural: "semaines" },
+  dayUnit: { singular: "jour", plural: "jours" },
+  /** RM-259 (18/11/2026) : synthèse de la zone de contexte, sans majuscule initiale ni point final. */
+  synthesis: {
+    single: "le {date}, à {time}",
+    everyWeek: "toutes les semaines",
+    everyWeeks: "toutes les {count} semaines",
+    everyDay: "tous les jours",
+    everyDays: "tous les {count} jours",
+    daysPerWeekOne: "{count} jour par semaine",
+    daysPerWeek: "{count} jours par semaine",
+  },
   summary: {
     single: "Planifiée le {date} à {time}, sans répétition.",
     everyWeek: "Toutes les semaines",
@@ -25,8 +38,9 @@ export const planningStrings = {
   },
   calendar: {
     title: "Calendrier",
-    views: { day: "Jour", week: "Semaine", month: "Mois" },
-    viewUnavailable: "{view} — vue non disponible dans cette version",
+    // D-532 (19/11/2026) ; D-542 (20/11/2026) : onglets Journal · Agenda. [Avant : Jour, Semaine, Mois ; puis troisième
+    // onglet « Vue d’ensemble », indisponible — retiré.]
+    views: { day: "Journal", week: "Agenda" },
     today: "Aujourd’hui",
     plan: "Planifier",
     previousWeek: "Semaine précédente",
@@ -38,14 +52,113 @@ export const planningStrings = {
     duplicate: "Dupliquer",
     delete: "Supprimer",
     everyWeekdayPrefix: "Chaque",
+    everyDay: "Tous les jours",
+    everyDays: "Tous les {count} jours",
     openRoutine: "Modifier la planification",
     dayAccessibility: "{day}, {count}",
     dayEmptyAccessibility: "{day}, aucune séance",
     timeAccessibility: "à {time}",
+    // D-533 (19/11/2026) : Agenda — navigation par mois, carte de routine.
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
+    expandRoutine: "Déplier la routine",
+    collapseRoutine: "Replier la routine",
+    start: "Démarrer",
+    // D-536, point 5 (20/11/2026) : occurrence passée non commencée.
+    catchUp: "Rattraper",
+    done: "Terminée",
+    // Recette du 19/11/2026 au soir (s19-passees) : statut d'une occurrence exécutée.
+    // D-540 (20/11/2026) : « Expirée » — créneau manqué dont le délai de rattrapage est passé.
+    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée" },
+  },
+  // D-535 (19/11/2026) : Journal des routines (DSF Journal, Figma « Calendrier — Journal — MVP »).
+  journal: {
+    // Recette du 19/11/2026 au soir (j1-compteurs) : « Mettre planifiée ». [« Actives » — remplacé.]
+    // D-540 (20/11/2026) : compteurs « Actives · Terminées ». [« Planifiées » (recette du 19/11 au soir) — remplacé.]
+    active: "Actives",
+    finished: "Terminées",
+    // D-540 : statut du filtre du Journal (portant sur la routine). [« Archivées » — remplacé pour les routines.]
+    filterActive: "Actives",
+    filterFinished: "Terminées",
+    once: "Une seule fois",
+    on: "le",
+    until: "jusqu’au",
+    edit: "Modifier la planification",
+    empty: "Aucune routine planifiée.",
+    noResult: "Aucune routine ne correspond.",
+    loadError: "Le journal n’a pas pu être chargé.",
+    searchPlaceholder: "Rechercher",
+    searchAccessibility: "Rechercher une routine",
+    searchClear: "Effacer la recherche",
+    sort: "Trier",
+    expand: "Déplier la routine",
+    collapse: "Replier la routine",
+    // Recette du 19/11/2026 au soir (constat E) : nombre d'occurrences à venir, dates de début et de fin.
+    // Ligne 3 de la carte (recette du 20/11/2026, r20-j-deploye) : « N créneaux, du X mois au Y mois ».
+    slotsNone: "Aucun créneau à venir",
+    slotsOne: "1 créneau, le {date}",
+    slotsMany: "{count} créneaux, du {start} au {end}",
+    upcomingNone: "Aucune occurrence à venir",
+    upcomingOne: "1 occurrence à venir",
+    upcomingMany: "{count} occurrences à venir",
+    period: "du {start} au {end}",
+    single: "le {date}",
   },
   deleteSingle: {
     title: "Supprimer la planification ?",
     message: "La séance reste dans le catalogue. Les séances déjà exécutées resteront dans l’historique.",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+  },
+  /**
+   * Recette du 20/11/2026 (constat D — Hermann : « Dans l'agenda on ne supprime que l'occurrence ; Dans le Journal on
+   * supprime toutes les occurrences ») ; libellés de D-537 et du constat E (« Suppression sans historique : « La routine et
+   * ses N créneaux seront supprimés. » »).
+   */
+  deleteOccurrence: {
+    // Recette du 20/11/2026 (r21-supprimer — Hermann : « remplacer le texte par "Supprimer ce créneau" »). [« Supprimer cette
+    // occurrence » — remplacé.]
+    title: "Supprimer ce créneau",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+  },
+  deleteRoutine: {
+    title: "Supprimer cette routine",
+    messageOne: "La routine et son créneau seront supprimés.",
+    messageMany: "La routine et ses {count} créneaux seront supprimés.",
+    // Constat E (Hermann, 20/11/2026) : « Suppression avec historique : « N créneaux non commencés seront supprimés ; La
+    // routine sera archivée. » ».
+    // D-540 (20/11/2026) : « N créneaux non commencés seront supprimés. La routine sera terminée. » [« … ; La routine sera
+    // archivée. » — remplacé.]
+    archiveOne: "1 créneau non commencé sera supprimé. La routine sera terminée.",
+    archiveMany: "{count} créneaux non commencés seront supprimés. La routine sera terminée.",
+    // r21-j-supprimer (Hermann) : aucun créneau à supprimer — « enlever le texte et mettre dans le titre "la routine <Nom de
+    // la routine> sera supprimée" ».
+    titleNamed: "La routine {name} sera supprimée",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+  },
+  /** D-539 (20/11/2026, DSF Agenda § 9) : filtre par routine de l'Agenda. */
+  routineFilter: {
+    open: "Filtrer par routine",
+    active: "Filtre par routine actif",
+    title: "Filtrer par routine",
+    close: "Fermer",
+    applyOne: "Filtrer 1 routine",
+    applyMany: "Filtrer {count} routines",
+    // D-539 mis à jour le 20/11/2026 (Hermann) : un toucher sur l'icône bleue désactive le filtre. [« Afficher toutes les
+    // routines », bouton sans sélection — retiré.]
+    disable: "Désactiver le filtre par routine",
+    slots: "{count} à venir, jusqu’au {date}",
+    empty: "Aucune routine planifiée.",
+    noResult: "Aucune routine ne correspond.",
+  },
+  /** Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ». */
+  modifyRoutine: {
+    // [Titre : interprétation technique, aucun texte demandé.]
+    title: "Modifier cette routine",
+    messageOne: "1 créneau à venir sera modifié.",
+    messageMany: "{count} créneaux à venir seront modifiés.",
     cancel: "Annuler",
     confirm: "Confirmer",
   },
@@ -63,8 +176,25 @@ export const planningStrings = {
     cancel: "Fermer sans enregistrer",
     save: "Enregistrer la planification",
     change: "Changer",
-    // Recette du 17/11/2026 (Hermann : « Remplacer "Début le" par "Planifié le" »). [« Début » — remplacé.]
-    start: "Planifié",
+    // D-521 (18/11/2026) : carte « Programme et Début le ». [Recette du 17/11/2026 : « Planifié » — remplacé.]
+    start: "Début",
+    program: "Programme",
+    programNone: "Aucun",
+    nameAccessibility: "Nom de la planification",
+    namePlaceholder: "Nom de la planification",
+    nameRequired: "Nom obligatoire",
+    nameTaken: "Ce nom est déjà utilisé",
+    everyFeminine: "toutes les",
+    everyMasculine: "tous les",
+    none: "aucune",
+    repetitionKindAccessibility: "Répétition : {value}. Toucher pour basculer.",
+    unitAccessibility: "Unité : {value}. Toucher pour basculer.",
+    // D-519 : « Séance par créneau ». [Figma `12650:27854` : « Séances par créneau ».]
+    slotsTitle: "Séance par créneau",
+    column: "#{n}",
+    columnAccessibility: "Cycle de {n} créneaux",
+    pointAccessibility: "{name}, créneau {n}",
+    cycleTooLong: "Le cycle compte {n} créneaux : touchez un numéro de colonne pour le ramener à 7 au plus.",
     on: "le",
     at: "à",
     repetition: "Répétition",
@@ -77,6 +207,7 @@ export const planningStrings = {
     until: "jusqu’au",
     during: "pendant",
     endKindAccessibility: "Borne de fin : {value}. Toucher pour basculer.",
+    endCountAccessibility: "Pendant {count} {unit}",
     multiplierAccessibility: "Toutes les {count} semaines",
     decrease: "Diminuer",
     increase: "Augmenter",
@@ -96,24 +227,20 @@ export const planningStrings = {
   reminder: {
     title: "Rappel",
     toggle: "Rappel",
+    // D-524 (18/11/2026) : « Sans » désactive le rappel.
+    none: "Sans",
     other: "Autre",
     customTitle: "Rappel personnalisé",
     hours: "heures",
     minutes: "minutes",
     cancel: "Annuler",
     validate: "Valider",
-    permissionDenied: "Les notifications sont refusées pour Routine : le rappel reste désactivé. La planification peut être enregistrée.",
-    body: "Séance prévue à {time}.",
-  },
-  frequency: {
-    title: "Fréquence",
-    timesOn: "fois sur",
-    retained: "Occurrences retenues",
-    cancel: "Fermer sans modifier la fréquence",
-    validate: "Valider la fréquence",
-    position: "Occurrence {position}",
-    xAccessibility: "Nombre d’occurrences retenues",
-    nAccessibility: "Sur combien d’occurrences",
+    // Recette du 19/11/2026 (k14, e3) : notifications refusées — message natif proposant de les réactiver ; le texte
+    // sous la carte Rappel est retiré.
+    deniedTitle: "Notifications désactivées",
+    deniedMessage: "Pour recevoir ce rappel, autorisez les notifications de Routine.",
+    deniedCancel: "Annuler",
+    deniedSettings: "Autoriser",
   },
   selection: {
     title: "Catalogue des séances",

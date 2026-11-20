@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
+import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
@@ -13,10 +14,12 @@ const tables = async (database: NodeSqliteDatabase) =>
     .map((row) => row.name).sort();
 
 describe("réparation des tables additives manquantes", () => {
-  it("version 31 sans tables des Routines ni préférences du Catalogue : recréées, version inchangée, données conservées", async () => {
+  it("base en version 31 sans tables des Routines ni préférences du Catalogue : recréées, puis migrations suivantes, données conservées", async () => {
+    const reference = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(reference);
+    const complete = await tables(reference);
     const database = NodeSqliteDatabase.openInMemory();
-    await migrateDatabase(database);
-    const complete = await tables(database);
+    await migrateDatabase(database, undefined, 31);
     const users = await database.getAllAsync("SELECT * FROM users");
     await database.execAsync("DROP TABLE routine_exclusions; DROP TABLE routine_entries; DROP TABLE routines; DROP TABLE catalogue_preferences;");
     expect(await tables(database)).not.toContain("routines");
@@ -24,7 +27,7 @@ describe("réparation des tables additives manquantes", () => {
     await migrateDatabase(database);
 
     expect(await tables(database)).toEqual(complete);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 31 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: DATABASE_VERSION });
     expect(await database.getAllAsync("SELECT * FROM users")).toEqual(users);
     await database.runAsync(
       "INSERT INTO routines (id, owner_id, start_date, start_time, created_at, updated_at) VALUES ('r1', (SELECT id FROM users LIMIT 1), '2026-11-20', '08:00', 'now', 'now')");
