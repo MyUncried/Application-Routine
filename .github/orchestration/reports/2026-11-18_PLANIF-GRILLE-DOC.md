@@ -93,3 +93,11 @@
 - Non fait : les écrans Semaine d'origine (dont `1992:5101`) et l'écran Journal n'ont pas été redessinés ; « Planifier » 32 → 34 reste à aligner sur ces écrans.
 - À CLARIFIER : libellé du mois sur une semaine à cheval sur deux mois ; balayage.
 - Non vérifié : rendu visuel côté Claude (contrôle géométrique, puis capture de Hermann sur la version intermédiaire) ; tests non applicables.
+
+## Complément du 20/11/2026 (Agenda — filtre par routine)
+
+- Décision D-539 (ch07) ; DSF Agenda § 9 et § 2 (icône sur la ligne 1) ; ch13 annoté ; prompt `docs/PROMPT-CLAUDE-CODE-AGENDA-FILTRE-ROUTINE-2026-11-20.md`. Classe B (rendu) ; classe C pour le contenu de la liste (routines archivées comprises, ordre alphabétique) et la définition du compteur, retenus par Claude.
+- Figma : composant `icon/filtre-routine` (Inactif / Actif) et `icon/aujourd’hui`, rangés dans le cadre « Icônes — Agenda » à gauche de l'écran carrousel ; icône entonnoir ajoutée à l'écran carrousel ; deux écrans créés (« … — Choix de la routine (proposition) », « … — Vue filtrée (proposition) », sous les autres écrans du prototype). Quatre tranches d'export (« Slice 1 ») supprimées des écrans Semaine.
+- Correction : le composant `icon/aujourd’hui` n'était rattaché à aucune page lors de sa création ; il est maintenant dans le cadre « Icônes — Agenda ».
+- Non fait : écrans Semaine d'origine et Journal non redessinés ; ordre de la liste et compteur à confirmer par Hermann.
+- Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
