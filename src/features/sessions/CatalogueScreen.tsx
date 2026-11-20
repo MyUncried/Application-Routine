@@ -497,6 +497,7 @@ export function CatalogueScreen() {
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
                 onStartSession={(sessionId) => router.push({ pathname: "/execution", params: { sessionId } })}
+                onPlanSession={(sessionId) => router.push({ pathname: "/planning", params: { sessionId } })}
                 onChanged={reloadSessions}
               />
             ) : null}
@@ -639,8 +640,11 @@ function ReadyBody({
   topInset,
   onOpenSession,
   onStartSession,
+  onPlanSession,
   onChanged,
 }: {
+  /** Planification : « Planifier » du glissé (Séance préremplie). */
+  onPlanSession: (sessionId: string) => void;
   /** PRE-9 CAT.1 : liste déjà dérivée (`sessionCatalogueContext` : filtres, recherche et vue). */
   sessions: readonly SessionCatalogueProjection[];
   searching: boolean;
@@ -662,6 +666,7 @@ function ReadyBody({
       topInset={topInset}
       onOpenSession={onOpenSession}
       onStartSession={onStartSession}
+      onPlanSession={onPlanSession}
       onChanged={onChanged}
     />
   );

@@ -2961,3 +2961,33 @@ Classe B (évolution validée). Constat et décision de Hermann, recopiés : « 
 - **Une seule copie sur le téléphone.** Décision de Hermann, recopiée : « Fait cette optimisation maintenant, je ne veux pas conserver deux photos sur le téléphone ». Le registre d'installation ne garde de chaque photo intégrée que son empreinte (choix technique : schéma 5 du registre, `compactSheetMedia`) ; le contenu n'existe plus que comme média du Mouvement. Les comparaisons de mise à jour utilisent l'empreinte.
 - **Remplacé.** Projection d'installation sans médias (`media: []`, CA-3) ; affichage séparé de la photo de catalogue sur la fiche et sur la vignette (recette du 19/11, retiré). Documents mis à jour : chapitres 03 (Espace en étoile) et 04, format catalogue §9, modèle cible Étape 2 (MOUV-D2, point 5, partage personnalisé).
 
+## Planification — toucher d'un rappel (recette du 18/11/2026)
+
+Classe B (évolution validée). Question de Hermann, recopiée : « lorsqu'une notification apparaît, cliquer dessus ne fait rien actuellement, est ce que cliquer dessus peut lancer l'écran de démarrage de l'exécution d'une séance ? ». Précisions demandées puis réponses de Hermann : « 1. Ok » (l'écran qui précède le lancement, avec Démarrer, sans démarrage immédiat) ; « 2. A. » (occurrence à plusieurs contenus : l'écran de la première Séance prévue à cette occurrence, motifs « x fois sur n » compris, plutôt que l'occurrence dans le Calendrier).
+
+- Règle nouvelle **RM-054b** (ch10 « Notifications et rappels ») ; note technique ch12 §12.13 ; annexes Index et Matrice.
+- Choix technique (non arbitré, sans effet métier) : une Exécution déjà ouverte n'est pas quittée ; le toucher affiche seulement l'application.
+- Numéro D- non attribué ici : la numérotation du registre avance en parallèle sur d'autres branches ; à attribuer à l'intégration dans `main`.
+
+## Planification — recette iPhone du 17/11/2026 (corrections du 18/11/2026)
+
+Classe B (évolutions validées) et A (conformités). Constats de Hermann, recopiés du cahier de recette :
+
+- « Remplacer "Début le" par "Planifié le" » ; « Tous les textes, hors titre de section, doivent avoir la même police et taille de police, celle de "Début" » ; « aligner verticalement l'interrupteur avec le texte "Répétition" » ; « date et heure : texte en noir » ; « Aligner verticalement les interrupteurs avec leur titre de section » → CE-UI-05 §7 et §9.
+- « Planifier un parcours : L'option "à chaque fois" ne doit apparaître que si l'interrupteur de répétition est activé » → CE-UI-05 §8.
+- « Ecran Catalogue des séances : La durée de la séance doit être sur la troisième ligne, après le nombre ; la coche de sélection doit être centrée verticalement sur la carte ; la coche de sélection doit être ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l'intérieur qui représente l'ordre de sélection des séances et de leur planification » → CE-UI-04 §5 et §9.
+- « Ouvrir l'écran de catalogue des séances par une modale iOS » ; « Ouvrir l'écran de Planification d'une séance / d'un parcours par une modale iOS » ; arbitrage du 18/11/2026 : « Feuilles iOS » (Planifier en feuille, Catalogue des séances en seconde feuille posée dessus) → CE-UI-04 §9, CE-UI-05 §9.
+- d4 : « Convertir la date de fin en nombre de semaines, et le nombre de semaines en date de fin » → règle nouvelle **RM-047a**.
+- e1 : « ne pas mettre de valeur par défaut » ; arbitrage du 18/11/2026 : coche grisée tant qu'aucun délai n'est choisi. e2 : « Ouvre une modale dans une modale. Cette modale est différente de celle utilisée pour la date. Il faut que les modales d'heures / minutes soient les mêmes » ; arbitrage du 18/11/2026 : roues natives d'heure → règle nouvelle **RM-054c**.
+- Conformités (classe A) : d3 « On peut tout décocher, mais on ne peut pas valider si tout est décoché » (CE-UI-05 §14 : au moins un jour) ; e3 « L'interrupteur est toujours activé malgré la désactivation dans les réglages des notifications » (RM-053) ; f3 « le jour sélectionné doit être le premier présenté au haut de la liste » (RM-046).
+- Non réalisables avec les sélecteurs natifs d'iOS (priorité aux primitives natives, non contournées) : « Modale mois : le jour sélectionné doit être fond bleu et texte blanc » ; « modale heure : mettre "heure" et "minute" après les chiffres ».
+- Numéros D- non attribués ici : à attribuer à l'intégration dans `main`.
+
+### Contre-recette du 18/11/2026
+
+- k12 « Remettre 15' par défaut. » ; k13 « Appuyer sur Autre doit ouvrir la modale, la valeur choisi doit remplacer Autre, sélectionner un rappel standard fait repasser la valeur à Autre » → **RM-054c** révisée (remplace « ne pas mettre de valeur par défaut » du 17/11).
+- k6 « La date et l'heure n'ont pas la même taille que "Planifié le" et "à" » ; k8 « Mettre un voile grisé en même temps, le temps de la saisie (apparition / disparition en fondu). Centrer horizontalement le calendrier » → CE-UI-05 §9 : valeurs affichées comme le texte du formulaire, sélecteurs natifs ouverts dans le voile partagé des roulettes. La roulette heures / minutes affiche « heures » et « minutes » à côté des chiffres (constat du 17/11 jusqu'ici non réalisable avec le sélecteur compact).
+- k2c « UTILISER LE COMPOSANT DE LA ZONE DE CONTEXTE » (dégradé, halo et courbure sous ✕ et sous la coche, titre centré) → CE-UI-04 §9, CE-UI-05 §9 ; composant unique `NativeSheetTop` pour le haut des deux feuilles.
+- Constats du 17/11 non traités jusqu'ici : « On ne peut plus déplacer les séances… » (classe A, CE-UI-05 §13) ; « changer ouvre le catalogue avec les séances déjà sélectionnée au dessus de la liste… » (classe B, CE-UI-04 §9).
+- k14 « Appuyer de nouveau sur Rappel doit ouvrir de nouveau la fenêtre de message demandant l'activation des rappels » : non réalisable — iOS ne présente la demande d'autorisation qu'une seule fois par installation ; après un refus, seuls les Réglages la rétablissent. Proposition soumise à Hermann (non appliquée).
+- Taille des valeurs du rappel « celle du texte "Progression" » : précision de Hermann (capture du 18/11/2026) — titre de la carte de Séance « Progression » → valeurs du rappel en Semi Bold 15 (`listCardTitle`), CE-UI-05 §9.

@@ -1524,6 +1524,19 @@
       ]
     },
     {
+      "key": "icon.plan",
+      "file": "icon-planifier",
+      "figmaNodeId": "11004:44092",
+      "figmaName": "icon/planifier",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 18,
+      "height": 18,
+      "usage": [
+        "Calendrier — Semaine (1992:5101), action contextuelle Planifier"
+      ],
+      "runtime": "Exporté le 2026-11-13 (calques du pictogramme seuls) ; CalendarWeekScreen"
+    },
+    {
       "key": "execution.pause",
       "file": "execution-pause",
       "figmaNodeId": "1992:8175",

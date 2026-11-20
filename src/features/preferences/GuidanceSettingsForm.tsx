@@ -16,6 +16,7 @@ import {
 import { ExecutionSounds } from "@/infrastructure/audio/ExecutionSounds";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { switchNudge } from "@/shared/ui/switchNudge";
 import { colors, switchOffColors } from "@/shared/ui/tokens";
 
 /**
@@ -108,7 +109,7 @@ export function GuidanceSettingsForm({
                 </Pressable>
                 <Switch
                   {...switchOffColors}
-                  style={styles.switchNudge}
+                  style={switchNudge}
                   onLayout={(e) => {
                     const width = e.nativeEvent.layout.width;
                     if (width > 0 && width !== switchWidth) setSwitchWidth(width);
@@ -184,7 +185,7 @@ export function GuidanceSwitchRow({
       </View>
       <Switch
         {...switchOffColors}
-        style={styles.switchNudge}
+        style={switchNudge}
         value={value}
         onValueChange={onChange}
         importantForAccessibility="no-hide-descendants"
@@ -289,13 +290,11 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: BORDER,
   },
+  // [Décalage des interrupteurs (recette du 11/11/2026, z2) — déplacé dans `switchNudge` (`shared/ui/switchNudge.ts`), commun à la Planification.]
   // Recette du 11/11/2026 (Hermann, z2 : « interrupteurs ne sont pas centrés verticalement sur leur ligne » ; puis
   // « les interrupteurs sont trop hauts ») : la mise en page centre le cadre mesuré de l’interrupteur iOS, mais son dessin
   // apparaît plus haut sur l’iPhone ; correction visuelle vers le bas. Capture de Hermann (21 h 46, avec 2) : centre de
   // l’interrupteur encore environ 5 au-dessus du centre de la ligne, d’où 7. [2 — remplacé.]
-  switchNudge: {
-    transform: [{ translateY: 7 }],
-  },
   row: {
     flexDirection: "row",
     alignItems: "center",
