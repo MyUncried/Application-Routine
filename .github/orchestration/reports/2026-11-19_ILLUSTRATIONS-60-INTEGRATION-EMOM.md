@@ -211,3 +211,11 @@ L'hypothèse précédente (séances archivées) est **écartée** par l'utilisat
 **Hors périmètre, non corrigé :** orphelins éventuels d'autres tables écrits pendant la même période (médias/zones de Mouvements supprimés, entrées de Routines supprimées, résultats d'exécution) — non réparés, à décider si un symptôme apparaît.
 
 **À vérifier sur appareil :** relancer Routine BMAD (Metro 8081, `git pull`), supprimer un Mouvement archivé non utilisé par les 2 Séances visibles ; créer, archiver puis supprimer une Séance, et vérifier que ses Mouvements deviennent supprimables.
+
+### Suite (20/11/2026, 23:51) — suppression des Mouvements archivés réussie ; nouvelle erreur « Persisted movement does not satisfy the movement contract »
+
+- Confirmé sur iPhone par l'utilisateur : des Mouvements archivés ont pu être supprimés après `a47a6e23`.
+- Nouvelle erreur au chargement du Catalogue des Mouvements (`MovementCatalogueList.tsx`) : un Mouvement relu ne satisfait pas `validateMovement` ; un seul enregistrement invalide fait échouer toute la liste.
+- Analyse : aucune écriture de `a47a6e23` ne touche les tables d'un autre Mouvement (la suppression d'un Mouvement ne cascade que vers ses propres alias, phases, zones et médias ; aucun `REPLACE` sur les Mouvements). Cause **indéterminée** à ce stade ; lien avec l'activation des clés étrangères ni démontré ni exclu.
+- Mesure de diagnostic (sans changement de comportement) : le message d'erreur nomme désormais le Mouvement (identifiant, nom) et les règles violées (`SqliteMovementRepository.assembleRecords`). Classe D. Tests : `tsc` OK ; Jest 433 suites, 6434 réussis, 32 ignorés, 0 échec.
+- À vérifier sur appareil : nouvelle capture du message après `git pull`.

@@ -431,7 +431,9 @@ async function assembleRecords(
     };
     const checked = validateMovement(movement);
     if (!checked.ok) {
-      throw new Error("Persisted movement does not satisfy the movement contract.");
+      // Recette iPhone du 20/11/2026 : le Mouvement et la règle en cause sont nommés, pour un diagnostic sans accès à la base.
+      const fields = checked.violations.map((violation) => `${violation.field}:${violation.code}`).join(", ");
+      throw new Error(`Persisted movement does not satisfy the movement contract. ${row.id} « ${row.name} » — ${fields}`);
     }
     records.set(row.id, { movement, mediaLinks, createdAt: row.created_at, updatedAt: row.updated_at });
   }
