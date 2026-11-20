@@ -3,6 +3,7 @@ import {
   isLocalDate,
   isLocalTime,
   mondayOf,
+  occurrenceInstant,
   REMINDER_MAX_MINUTES,
   validateRoutineDraft,
   type LocalDate,
@@ -213,6 +214,23 @@ export class PlanningService {
     const routine = await this.deps.repository.get(routineId);
     if (routine === null) return 0;
     return routineOccurrences(routine, await this.startedTest()).filter((occurrence) => !occurrence.started).length;
+  }
+
+  /**
+   * D-539 (20/11/2026) : routines proposées par le filtre de l'Agenda — au moins un créneau, archivées comprises, par ordre
+   * alphabétique [liste et ordre retenus par Claude, D-539] ; créneaux à venir (instant ≥ maintenant).
+   */
+  async routineFilterChoices(): Promise<readonly { readonly routine: Routine; readonly upcoming: number }[]> {
+    const isStarted = await this.startedTest();
+    const now = this.deps.now().getTime();
+    return (await this.deps.repository.list())
+      .map((routine) => ({ routine, occurrences: routineOccurrences(routine, isStarted) }))
+      .filter((item) => item.occurrences.length > 0)
+      .map((item) => ({
+        routine: item.routine,
+        upcoming: item.occurrences.filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now).length,
+      }))
+      .sort((a, b) => a.routine.name.localeCompare(b.routine.name, "fr", { sensitivity: "base" }));
   }
 
   /** D-537 : historique (au moins une occurrence commencée) et nombre de créneaux non commencés supprimés. */

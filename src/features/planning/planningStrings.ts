@@ -131,6 +131,20 @@ export const planningStrings = {
     cancel: "Annuler",
     confirm: "Confirmer",
   },
+  /** D-539 (20/11/2026, DSF Agenda § 9) : filtre par routine de l'Agenda. */
+  routineFilter: {
+    open: "Filtrer par routine",
+    active: "Filtre par routine actif",
+    title: "Filtrer par routine",
+    close: "Fermer",
+    applyOne: "Filtrer 1 routine",
+    applyMany: "Filtrer {count} routines",
+    // [Libellé sans sélection : retenu par Claude, D-539.]
+    showAll: "Afficher toutes les routines",
+    slots: "{count} à venir, jusqu’au {date}",
+    empty: "Aucune routine planifiée.",
+    noResult: "Aucune routine ne correspond.",
+  },
   /** Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ». */
   modifyRoutine: {
     // [Titre : interprétation technique, aucun texte demandé.]

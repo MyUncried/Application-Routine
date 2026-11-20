@@ -207,3 +207,21 @@ describe("D-537 — suppression", () => {
     expect(await planning.getRoutine(other.routine.id)).toBeNull();
   });
 });
+
+describe("D-539 — routines proposées par le filtre de l'Agenda", () => {
+  it("au moins un créneau, archivées comprises, ordre alphabétique ; créneaux à venir", async () => {
+    const other = await planning.createRoutine(draft({ name: "Abdos", entries: [{ ...A, id: "e-a3" }] }));
+    if (other.status !== "SAVED") throw new Error(other.status);
+    // Routine sans aucun créneau : tous retirés.
+    const empty = await planning.createRoutine(draft({ name: "Zéro", entries: [{ ...A, id: "e-a4" }], repetition: null }));
+    if (empty.status !== "SAVED") throw new Error(empty.status);
+    await planning.excludeOccurrence(empty.routine.id, "2030-08-05T08:00");
+    // « Genou » archivée avec un créneau commencé.
+    linked = [link("2030-08-05T08:00", 1, "COMPLETED")];
+    await planning.deleteRoutine("r1");
+    const choices = await planning.routineFilterChoices();
+    expect(choices.map((choice) => choice.routine.name)).toEqual(["Abdos", "Genou"]);
+    // Maintenant : 10 août 2030 à midi ; Abdos garde 6 créneaux à venir (lundis et jeudis du 12 au 29 août).
+    expect(choices.map((choice) => choice.upcoming)).toEqual([6, 0]);
+  });
+});

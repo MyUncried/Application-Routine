@@ -7,6 +7,8 @@ import { addDays, EVERY_TIME, mondayOf, type RoutineDraft } from "@/domain/plann
 import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { CalendarWeekScreen } from "@/features/planning/CalendarWeekScreen";
+import { setAgendaRoutineFilter } from "@/features/planning/agendaRoutineFilter";
+import { pendingPlanningSheet, releasePlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -53,6 +55,8 @@ let linked: OccurrenceExecution[] = [];
 
 beforeEach(async () => {
   mockPush.mockClear();
+  setAgendaRoutineFilter(null);
+  releasePlanningSheet();
   database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   await database.runAsync(
@@ -143,6 +147,75 @@ const swipeCard = (routineId: string, day: string) => screen.getByTestId(new Reg
 const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
+  it("D-539 : filtre par routine — icône, liste et points filtrés, conservé en changeant de semaine, de mois et avec « Aujourd'hui », retiré sans sélection", async () => {
+    const a = await sessions.createStructured(input("Gainage"));
+    const b = await sessions.createStructured(input("Étirements"));
+    const weekly = { unit: "WEEK" as const, every: 1, weekdays: [1, 4] as (1 | 4)[], end: { kind: "UNTIL" as const, date: addDays(MONDAY, 30) } };
+    const one = await plan({ entries: [entry(a.id)], repetition: weekly });
+    const two = await plan({ entries: [entry(b.id)], repetition: { ...weekly, weekdays: [1] } });
+    await renderCalendar();
+    expect(screen.getByTestId("calendar-routine-filter-inactive")).toBeTruthy();
+    expect(screen.getAllByTestId(`calendar-day-${MONDAY}-dot`)).toHaveLength(2);
+    fireEvent.press(screen.getByTestId("calendar-routine-filter"));
+    expect(mockPush).toHaveBeenLastCalledWith("/agenda-routine-filter");
+    const request = pendingPlanningSheet("routineFilter");
+    expect(request?.initial).toEqual([]);
+    await act(async () => {
+      request!.onValidate([two.id]);
+    });
+    await flush();
+    // Filtre actif : icône pleine bleue ; seuls les créneaux de la routine choisie ; le jeudi (routine 1 seule) disparaît.
+    expect(screen.getByTestId("calendar-routine-filter-active")).toBeTruthy();
+    expect(sectionDays()).toEqual([MONDAY]);
+    expect(items().every((id) => id.includes(two.id))).toBe(true);
+    expect(screen.getAllByTestId(`calendar-day-${MONDAY}-dot`)).toHaveLength(1);
+    expect(screen.queryAllByTestId(`calendar-day-${THURSDAY}-dot`)).toHaveLength(0);
+    // Conservé : semaine suivante, mois suivant, « Aujourd'hui ».
+    fireEvent.press(screen.getByTestId("calendar-next-week"));
+    await flush();
+    expect(sectionDays()).toEqual([addDays(MONDAY, 7)]);
+    fireEvent.press(screen.getByTestId("calendar-next-month"));
+    await flush();
+    fireEvent.press(screen.getByTestId("calendar-today"));
+    await flush();
+    expect(screen.getByTestId("calendar-routine-filter-active")).toBeTruthy();
+    // Réouverture : la routine du filtre est cochée ; validée sans sélection, le filtre est retiré.
+    fireEvent.press(screen.getByTestId("calendar-routine-filter"));
+    const again = pendingPlanningSheet("routineFilter");
+    expect(again?.initial).toEqual([two.id]);
+    await act(async () => {
+      again!.onValidate([]);
+    });
+    await flush();
+    expect(screen.getByTestId("calendar-routine-filter-inactive")).toBeTruthy();
+    expect(one.id).not.toBe(two.id);
+  });
+
+  it("D-539 : vue filtrée — semaine sans créneau de la routine choisie : état vide ; suppression d'un créneau (D-537) inchangée", async () => {
+    const a = await sessions.createStructured(input("Gainage"));
+    const b = await sessions.createStructured(input("Étirements"));
+    const one = await plan({ entries: [entry(a.id)] });
+    const later = await plan({ entries: [entry(b.id)], startDate: addDays(MONDAY, 14) });
+    await renderCalendar();
+    fireEvent.press(screen.getByTestId("calendar-routine-filter"));
+    await act(async () => {
+      pendingPlanningSheet("routineFilter")!.onValidate([later.id]);
+    });
+    await flush();
+    expect(screen.getByTestId("calendar-week-empty")).toBeTruthy();
+    expect(items().some((id) => id.includes(one.id))).toBe(false);
+    fireEvent.press(screen.getByTestId("calendar-routine-filter"));
+    await act(async () => {
+      pendingPlanningSheet("routineFilter")!.onValidate([one.id]);
+    });
+    await flush();
+    fireEvent(swipeCard(one.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.getByText("Supprimer ce créneau")).toBeTruthy();
+    fireEvent.press(screen.getByText("Confirmer"));
+    await flush();
+    expect((await planning.getRoutine(one.id))?.exclusions).toEqual([`${MONDAY}T08:00`]);
+  });
+
   it("statut et navigation de la carte (recette du 19/11 au soir : constats B, D, G ; s19-passees)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const routine = await plan({ entries: [entry(created.id)] });

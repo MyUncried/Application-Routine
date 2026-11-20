@@ -1550,6 +1550,32 @@
       "note": "Calendrier du composant sans le chiffre du jour : le chiffre (Inter gras 9) est un texte posé par TodayIcon, car il suit la date du jour. Teinté #333333 (jour courant) ou #0508E5 (autre jour)."
     },
     {
+      "key": "icon.routineFilter",
+      "file": "icon-filtre-routine",
+      "figmaNodeId": "12794:49374",
+      "figmaName": "icon/filtre-routine — État=Inactif",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — filtre par routine, sans filtre (D-539)"
+      ],
+      "note": "Tracé de l’export Figma (18 × 16,5) recentré dans la boîte de 24 du composant ; contour #333333, trait 1,5."
+    },
+    {
+      "key": "icon.routineFilterActive",
+      "file": "icon-filtre-routine-actif",
+      "figmaNodeId": "12794:49376",
+      "figmaName": "icon/filtre-routine — État=Actif (filtre en cours)",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — filtre par routine actif (D-539)"
+      ],
+      "note": "Même tracé, silhouette pleine #0508E5."
+    },
+    {
       "key": "icon.agendaStopwatch",
       "file": "icon-agenda-chronometre",
       "figmaNodeId": "12580:27335",

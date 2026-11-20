@@ -25,6 +25,8 @@ import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { TodayIcon } from "@/features/planning/TodayIcon";
+import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
+import { agendaRoutineFilter, setAgendaRoutineFilter } from "@/features/planning/agendaRoutineFilter";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -126,6 +128,10 @@ export function CalendarWeekScreen({
   const [range, setRange] = useState<AgendaRange>(() => ({ start: mondayOf(initialDay ?? todayLocal()), weeks: AGENDA_WEEKS_INITIAL }));
   const rangeRef = useRef(range);
   const [selectedDay, setSelectedDay] = useState<LocalDate>(() => initialDay ?? todayLocal());
+  // D-539 (20/11/2026) : filtre par routine — `null` sans filtre. Il reste actif en changeant de semaine, de mois, avec
+  // « Aujourd'hui », et tant qu'il n'est pas retiré [durée retenue par Claude, D-539 ; conservé pour la session de
+  // l'application, en mémoire : interprétation technique].
+  const [routineFilter, setRoutineFilterState] = useState<ReadonlySet<string> | null>(() => agendaRoutineFilter());
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
   const [executions, setExecutions] = useState<readonly OccurrenceExecution[]>([]);
@@ -222,6 +228,8 @@ export function CalendarWeekScreen({
   const itemsByDay = useMemo(() => {
     const map = new Map<LocalDate, CardItem[]>();
     for (const occurrence of occurrences) {
+      // D-539 : seules les routines du filtre ; les points des cartes de jour suivent la même liste.
+      if (routineFilter !== null && !routineFilter.has(occurrence.routineId)) continue;
       const shown = occurrence.contents
         .filter((content) => isPlannable(content.sessionId))
         .map((content) => projections.get(content.sessionId))
@@ -232,7 +240,7 @@ export function CalendarWeekScreen({
       map.set(occurrence.date, list);
     }
     return map;
-  }, [occurrences, isPlannable, projections, routinesById]);
+  }, [occurrences, isPlannable, projections, routinesById, routineFilter]);
 
   const bodyZones = useBodyZonesReferential();
   const zoneName = useMemo(() => new Map(bodyZones.map((zone) => [zone.id, zone.name])), [bodyZones]);
@@ -293,6 +301,15 @@ export function CalendarWeekScreen({
     setSelectedDay(top);
     // Le carrousel passe à la semaine du jour en tête de liste, sans recharger ni replacer la liste.
     if (mondayOf(top) !== monday) setMonday(mondayOf(top));
+  };
+
+  /** D-539 : sélection validée dans la modale ; vide = filtre retiré. */
+  const changeRoutineFilter = (selected: readonly string[]) => {
+    const next = selected.length === 0 ? null : new Set(selected);
+    setAgendaRoutineFilter(next);
+    setRoutineFilterState(next);
+    setExpanded(new Set());
+    setRevealed(null);
   };
 
   /**
@@ -395,8 +412,28 @@ export function CalendarWeekScreen({
                 <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
               </Pressable>
             </View>
-            {/* Ligne 1, à droite : emplacement du filtre par routine (D-539), zone de tap 34 × 34. */}
-            <View style={styles.filterSlot} pointerEvents="box-none" testID="calendar-filter-slot" />
+            {/* Ligne 1, à droite : filtre par routine (D-539, DSF Agenda § 9), entonnoir sans cercle, zone de tap 34 × 34 ;
+                contour gris sans filtre, silhouette pleine bleue filtre actif. */}
+            <Pressable
+              onPress={() => {
+                setRevealed(null);
+                requestPlanningSheet({ kind: "routineFilter", initial: routineFilter === null ? [] : [...routineFilter], onValidate: changeRoutineFilter });
+                router.push("/agenda-routine-filter");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t.routineFilter.open}
+              accessibilityState={{ selected: routineFilter !== null }}
+              {...(routineFilter !== null ? { accessibilityValue: { text: t.routineFilter.active } } : {})}
+              style={styles.filterSlot}
+              testID="calendar-routine-filter"
+            >
+              <Image
+                source={routineFilter === null ? require("../../../assets/icons/icon-filtre-routine.svg") : require("../../../assets/icons/icon-filtre-routine-actif.svg")}
+                style={styles.filterIcon}
+                accessible={false}
+                testID={`calendar-routine-filter-${routineFilter === null ? "inactive" : "active"}`}
+              />
+            </Pressable>
             {/* Ligne 2 : flèche de semaine, sept cartes de jour, flèche de semaine, Planifier. */}
             <Pressable
               onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
@@ -659,7 +696,8 @@ const styles = StyleSheet.create({
   chevronSecond: { position: "absolute", left: 7, top: 0 },
   // Mois : Inter 18 semi-gras.
   periodLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
-  filterSlot: { position: "absolute", left: 345, top: 6, width: 34, height: 34 },
+  filterSlot: { position: "absolute", left: 345, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
+  filterIcon: { width: 24, height: 24 },
   previousWeek: { position: "absolute", left: -5.75, top: 62 },
   nextWeek: { position: "absolute", left: 302, top: 62 },
   planSlot: { position: "absolute", left: 336, top: 57 },

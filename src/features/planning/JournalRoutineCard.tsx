@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { planningStrings } from "@/features/planning/planningStrings";
+import { CheckBox } from "@/shared/ui/CheckBox";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, layout, spacing } from "@/shared/ui/tokens";
 
@@ -33,7 +34,11 @@ const BAR_WIDTH = 6;
 const TINTS = {
   planned: { frame: "#E3ECFF", bar: "#8EAAE8", band: "rgba(227, 236, 255, 0.18)" },
   idle: { frame: "#F0F0F5", bar: "#B8BAC9", band: "rgba(240, 240, 245, 0.18)" },
+  // D-539 : carte de la modale « Filtrer par routine » (Figma `12798:26906`) — lilas #EAEAFF, trait #B0B0F2.
+  selection: { frame: "#EAEAFF", bar: "#B0B0F2", band: "rgba(234, 234, 255, 0.18)" },
 } as const;
+/** D-539 : hauteur du cadre de la carte réduite (Figma : 52). */
+export const JOURNAL_SELECTION_ROW_HEIGHT = 52;
 const CHEVRON = require("../../../assets/icons/icon-suivant.svg");
 const MAX_SCALE = 1.6;
 
@@ -48,6 +53,7 @@ export function JournalRoutineCard({
   expanded,
   onOpen,
   onToggleExpanded,
+  selection,
   testID,
 }: {
   readonly date: string;
@@ -64,9 +70,50 @@ export function JournalRoutineCard({
   /** Cadre de gauche : ouvrir la planification. */
   readonly onOpen: () => void;
   readonly onToggleExpanded: () => void;
+  /**
+   * D-539 (20/11/2026, DSF Agenda § 9) : carte de la modale « Filtrer par routine » — ligne 1 (nom) et ligne 3 seulement,
+   * cadre de gauche, case à cocher à droite à la place du chevron et de la ligne 2 ; toucher la carte coche ou décoche.
+   */
+  readonly selection?: { readonly checked: boolean; readonly onToggle: () => void; readonly accessibilityHint?: string };
   readonly testID: string;
 }) {
   const t = planningStrings.journal;
+  if (selection !== undefined) {
+    const tintOf = TINTS.selection;
+    return (
+      <Pressable
+        onPress={selection.onToggle}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: selection.checked }}
+        accessibilityLabel={[name, slots].filter((part) => part !== "").join(", ")}
+        style={[styles.row, styles.selectionRow]}
+        testID={testID}
+      >
+        <View style={[styles.band, { backgroundColor: tintOf.band }]} />
+        <View style={[styles.bar, styles.barRight, { backgroundColor: tintOf.bar }]} />
+        <View style={[styles.frame, { backgroundColor: tintOf.frame }]} testID={`${testID}-frame`}>
+          <View style={[styles.bar, { backgroundColor: tintOf.bar }]} />
+          <Text style={styles.date} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-date`}>
+            {date}
+          </Text>
+          <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-year`}>
+            {year}
+          </Text>
+        </View>
+        <View style={[styles.body, styles.selectionBody]}>
+          <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
+            {name}
+          </Text>
+          <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
+            {slots}
+          </Text>
+        </View>
+        <View style={styles.selectionCheck} pointerEvents="none">
+          <CheckBox checked={selection.checked} testID={`${testID}-check`} />
+        </View>
+      </Pressable>
+    );
+  }
   const tint = planned ? TINTS.planned : TINTS.idle;
   return (
     <View style={styles.row} testID={testID}>
@@ -149,4 +196,8 @@ const styles = StyleSheet.create({
   // Pastille des zones devant la ligne 2, comme la carte de mouvement sélectionné.
   zonesLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   zones: { flexShrink: 1 },
+  // D-539 : carte réduite de 52 ; case à cocher à x = 340 du contenu (26 du bord droit de l'écran, trait compris).
+  selectionRow: { minHeight: JOURNAL_SELECTION_ROW_HEIGHT },
+  selectionBody: { paddingRight: spacing[8] },
+  selectionCheck: { justifyContent: "center", paddingRight: layout.screenGutter + 10 },
 });
