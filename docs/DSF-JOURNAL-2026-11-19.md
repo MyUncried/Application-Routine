@@ -10,7 +10,7 @@ Le Journal est la **liste des routines créées**, et non leur planification dan
 ## 2. Zone de contexte
 
 Bande de 402 × 115 (inchangée), onglet « Journal » actif (voir DSF Barre de titre à onglets).
-- Ligne 1 : « Actives N · Terminées N » (compteurs).
+- Ligne 1 : « Actives N · Terminées N » (compteurs). **D-540 (20/11/2026)** : une routine est active si elle a au moins un créneau à venir ou rattrapable, terminée sinon (état calculé). La liste n’affiche par défaut que les routines actives ; les terminées s’obtiennent avec le statut « Terminées » du filtre [remplace « Archivées »].
 - Ligne 2 : champ Rechercher, contrôle Filtre, contrôle Tri, bouton Planifier.
 - Aucune navigation par date.
 
@@ -37,7 +37,7 @@ La modification porte toujours sur la routine entière, sans choix. Elle ne s’
 
 ## 6. Suppression d’une routine (D-537)
 
-Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N créneaux seront supprimés. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N créneaux non commencés seront modifiés ; La routine sera archivée. »). Un seul dialogue : titre « Supprimer cette routine », message (selon la présence d’historique), « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal » (sans historique), « P-Modal — Supprimer et archiver une routine — Journal » (avec historique) : deux messages du même dialogue. Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
+Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N créneaux seront supprimés. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N créneaux non commencés seront modifiés ; La routine sera archivée. ») [remplacé le 20/11/2026 par D-540 : plus d’archivage ; la routine devient terminée (filtre « Terminées ») ; message « N créneaux non commencés seront supprimés. La routine sera terminée. » ; l’action glissée « Archiver » est supprimée, « Supprimer » reste ; les deux écrans Figma de suppression portent encore l’ancien libellé]. Un seul dialogue : titre « Supprimer cette routine », message (selon la présence d’historique), « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal » (sans historique), « P-Modal — Supprimer et archiver une routine — Journal » (avec historique) : deux messages du même dialogue. Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
 
 ## 7. À clarifier
 

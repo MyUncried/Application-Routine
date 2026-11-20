@@ -129,3 +129,9 @@
 - Décision de Hermann : toucher l'icône bleue désactive le filtre sans ouvrir la modale ; la modale s'ouvre toujours vide ; bouton désactivé tant qu'aucune routine n'est cochée ; « Afficher toutes les routines » supprimé.
 - Documents : DSF Agenda § 9, D-539 (registre), prompt du filtre (formulations remplacées conservées entre crochets). Figma : aucun changement (la modale montre déjà l'état avec sélection ; l'état désactivé est celui du bouton primaire du DSF).
 - Tests : non applicables.
+
+## Complément 20/11/2026 (suite 3) — cycle de vie d'une routine (D-540, classe B)
+- Décisions de Hermann : créneau manqué rattrapable jusqu'au créneau suivant, sinon 10 jours ; ensuite « expiré » ; routine active/terminée calculée ; plus d'archivage de routine ; filtre « Terminées » ; durée sans réglage de profil. Retenus par Claude (classe C) : état expiré non modifié par la routine et supprimé avec elle, libellé du message de suppression.
+- Documents : registre (D-540, D-537 et D-539 annotés), DSF Journal § 2 et § 6, DSF Agenda § 10, prompt `PROMPT-CLAUDE-CODE-CYCLE-VIE-ROUTINE-2026-11-20.md`.
+- Non traité : Figma (état expiré gris, libellé des deux modales de suppression, action glissée du Journal) ; prompt de suppression d'origine non réécrit (remplacé par le nouveau prompt).
+- Tests : non applicables.
