@@ -6293,10 +6293,10 @@ Classe B, D-543 à D-552. Référence : [spécification](../KODJO-Programme-cata
 
 ### CE-PROG-02 — Créer ou configurer un programme
 
-- **Écran Figma :** « PROG — 13 Créer ou configurer un programme » ; feuille de consentement : « PROG — 13b Suivi de la douleur — Consentement » (à refaire sur cette modale).
+- **Écran Figma :** « PROG — 13 Créer ou configurer un programme » ; feuille de consentement : « PROG — 13b Suivi de la douleur — Consentement », ouverte par-dessus cette modale.
 - **Layout :** modale iOS au-dessus du catalogue, feuille arrondie aux quatre coins, marges latérales 8, poignée ; en-tête de modale croix · titre · coche ; zone de contexte Programmes (hauteur standard) : nom, objectif ; cartes séparées de 12, cartes à une ligne de 44 : période « Du … au … » (dates bleues sans cadre), titre « Planifications » puis carte (routines, « + Planifier une séance ou un exercice », « Rattacher une routine existante » avec chevron), carte « Suivi de la douleur » avec interrupteur.
 - **États :** titre « Nouveau programme » à la création, nom du programme en configuration ; coche active quand nom, début et fin sont renseignés et cohérents (D-499).
-- **Interactions :** toucher le nom, l'objectif ou une date les modifie ; glisser une routine à gauche la retire du programme sans la supprimer ; « + Planifier… » ouvre la planification, la routine créée est rattachée ; « Rattacher… » liste les routines sans programme ; activer le suivi de la douleur sans consentement ouvre la feuille de consentement (Autoriser / Annuler) ; croix : fermeture sans enregistrer.
+- **Interactions :** toucher le nom, l'objectif ou une date les modifie ; glisser une routine à gauche la retire du programme sans la supprimer ; « + Planifier… » ouvre la planification, la routine créée est rattachée ; « Rattacher… » liste les routines sans programme ; activer le suivi de la douleur sans consentement ouvre la feuille de consentement (Annuler gris à gauche, Autoriser bleu à droite, côte à côte ; Annuler laisse l'interrupteur désactivé) ; croix : fermeture sans enregistrer.
 - **Recette :** aucun indicateur de résultat, aucune personne, ni Enregistrer comme modèle ni Dupliquer dans la modale.
 
 ### CE-PROG-03 — Supprimer un programme
@@ -6308,5 +6308,5 @@ Classe B, D-543 à D-552. Référence : [spécification](../KODJO-Programme-cata
 ### CE-PRF-01 — Profil — onglets et Confidentialité
 
 - **Écrans Figma :** écrans du Profil de la page « Prototype MVP » ; « Profil — Confidentialité ».
-- **Layout :** onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné (#EAEAFF), sans dégradé ni trait sous l'onglet. Confidentialité : « Suivi de la douleur » (interrupteur avec date d'accord, « Effacer mes relevés » en rouge, mention de conservation locale) ; « Partage communautaire » (interrupteur « Mes nouvelles exécutions sont visibles » activé par défaut ; lignes Pseudo, Nom d'affichage, Profil, Relevés de douleur ; mention de non-rétro-publication).
+- **Layout :** onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné (#EAEAFF), sans dégradé ni trait sous l'onglet. Confidentialité : « Suivi de la douleur », état déduit des programmes (avec accord : date, programmes concernés, « Retirer mon accord » en bleu, « Effacer mes relevés » en rouge ; sans accord : « non utilisé », sans réglage) ; « Partage communautaire » (interrupteur « Mes nouvelles exécutions sont visibles » activé par défaut ; lignes Pseudo, Nom d'affichage, Profil, Relevés de douleur ; mention de non-rétro-publication).
 - **États :** communauté non activée : la section Partage communautaire se réduit à « Activer la communauté ».

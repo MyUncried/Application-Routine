@@ -86,12 +86,14 @@ Ne figurent pas dans cette modale : les indicateurs de résultats, l'enrôlement
 
 1. **Ce qui est demandé.** Pour une exécution lancée dans le contexte d'un programme dont le suivi est activé : une échelle de douleur avant et après la séance, et la zone concernée (règles de saisie : ch04, « Évaluations et résultats »).
 2. **Où il s'active.** Programme par programme, par l'interrupteur de la modale (§4).
-3. **Consentement.** Il est donné une seule fois, pour toute l'application, dans **Profil › Confidentialité**. Si l'utilisateur active le suivi dans un programme sans avoir encore donné son accord, une feuille de consentement s'ouvre (écran 13b) :
+3. **Consentement.** Il est recueilli dans le programme, à la première activation, et vaut pour toute l'application. Une feuille de consentement s'ouvre alors (écran 13b) :
    - elle explique ce qui est demandé ;
    - elle précise que les relevés restent sur le téléphone, ne sont jamais interprétés et peuvent être effacés ;
-   - elle propose « Autoriser » et « Annuler ».
-4. **Données.** Les relevés restent sur le téléphone, ne sont jamais interprétés par Kodjo et ne sont jamais partagés, même quand l'exécution est visible dans la communauté. La date d'accord est enregistrée. Désactiver l'accord arrête la collecte ; « Effacer mes relevés » supprime les relevés existants.
-5. **Évolution.** Au sens du RGPD, un relevé de douleur reste une donnée de santé, même sans interprétation. Une sauvegarde sur un compte ou un partage futur exigera un nouveau consentement, demandé au moment où l'usage apparaît.
+   - elle propose « Annuler » (gris, à gauche) et « Autoriser » (bleu, à droite), côte à côte.
+   Annuler laisse l'interrupteur désactivé. Les activations suivantes, dans ce programme ou un autre, ne redemandent pas l'accord.
+4. **Profil › Confidentialité.** L'accord n'y est pas donné : le Profil affiche l'état qui découle des programmes et permet de revenir dessus en un seul endroit. Sans accord : « non utilisé », sans réglage. Avec un accord : date d'accord et programmes concernés, « Retirer mon accord » (désactive le suivi dans tous les programmes) et « Effacer mes relevés ».
+5. **Données.** Les relevés restent sur le téléphone, ne sont jamais interprétés par Kodjo et ne sont jamais partagés, même quand l'exécution est visible dans la communauté. La date d'accord est enregistrée. Désactiver l'accord arrête la collecte ; « Effacer mes relevés » supprime les relevés existants.
+6. **Évolution.** Au sens du RGPD, un relevé de douleur reste une donnée de santé, même sans interprétation. Une sauvegarde sur un compte ou un partage futur exigera un nouveau consentement, demandé au moment où l'usage apparaît.
 
 ## 6. Profil
 
@@ -100,10 +102,10 @@ Ne figurent pas dans cette modale : les indicateurs de résultats, l'enrôlement
 - La zone centrale a une couleur uniforme, celle de l'onglet sélectionné (`#EAEAFF`), sans dégradé ni trait sous l'onglet.
 
 **Confidentialité** :
-- **Suivi de la douleur** :
-  - interrupteur « Autoriser le suivi de la douleur », avec la date d'accord (« Accordé le … ») ;
-  - « Effacer mes relevés », en rouge ;
-  - une mention : les relevés restent sur le téléphone et ne sont jamais interprétés.
+- **Suivi de la douleur** (état déduit des programmes, §5) :
+  - avec un accord : « Accordé le 20 nov. 2026 », puis « Utilisé par 1 programme · Rééducation genou » ; « Retirer mon accord » en bleu ; « Effacer mes relevés » en rouge ;
+  - sans accord : « non utilisé », sans réglage ;
+  - mention : le suivi s'active dans un programme ; retirer l'accord le désactive partout ; les relevés restent sur le téléphone, jamais interprétés, jusqu'à leur effacement.
 - **Partage communautaire** (communauté activée) :
   - interrupteur « Mes nouvelles exécutions sont visibles », activé par défaut ; chaque exécution peut être rendue privée ;
   - lignes d'information : le pseudo est visible par tous ; le nom d'affichage reste privé ; le profil est visible par les amis ; les relevés de douleur ne sont jamais partagés ;
@@ -119,6 +121,5 @@ Ne figurent pas dans cette modale : les indicateurs de résultats, l'enrôlement
 
 ## 8. Reste à faire
 
-- **Figma.** L'écran 13b montre encore l'ancienne fiche en plein écran sous la feuille de consentement : il est à refaire sur la modale de l'écran 13.
 - **Suivi.** Les écrans de résultats d'un programme (« PROG — 6 Détail d’un programme — Indicateurs et contenu », « PROG — 11 … Indicateur expliqué », « PROG — 12 … Détail d’un indicateur », « PROG — 5 Détail — planification hors période »), rangés sur la ligne Suivi, sont à concevoir avec l'onglet Suivi.
 - **Rattachement automatique et avertissement.** La proposition automatique de rattachement des occurrences existantes et l'avertissement « hors période » (ch04, « Ce qui reste à concevoir ») ne sont pas couverts par cette spécification. « Rattacher une routine existante » est le rattachement manuel.

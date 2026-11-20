@@ -57,7 +57,6 @@
 
 ## Éléments non corrigés ou hors périmètre
 
-- **Figma :** l'écran « PROG — 13b Suivi de la douleur — Consentement » est à refaire sur la nouvelle modale.
 - **Suivi :** les écrans de résultats d'un programme sont rangés sur la ligne Suivi et restent à concevoir.
 - **Rattachement :** la proposition automatique de rattachement et l'avertissement « hors période » ne sont pas traités.
 - **Captures :** aucun export d'image dans `docs/`.
@@ -65,6 +64,11 @@
 ## Vérifications restant à effectuer sur appareil réel
 
 - Lisibilité des dates bleues sans cadre et des trois boutons de la modale de suppression.
+
+## Complément du 20/11/2026 (soir)
+
+- Écran 13b refait sur la modale de l'écran 13, boutons Annuler | Autoriser côte à côte.
+- Suivi de la douleur : défini dans le programme, état déduit dans Profil › Confidentialité (retrait de l'accord, effacement). D-551, spécification §5–6, CE-PROG-02 et CE-PRF-01 mis à jour.
 
 ## Fichiers modifiés
 
