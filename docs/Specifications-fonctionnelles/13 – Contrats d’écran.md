@@ -4133,7 +4133,7 @@ Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; st
 
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
-[Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
+[Remplacé le 21/11/2026 (D-553) : carte par Séance, voir « Complément CE-UI-15 / Journal / filtre — 21/11/2026 ».] [Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
 
 *Texte identique à celui de la section [« CE-T03-15 — Suivi général — Exécution ACTIVITY »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-15--suivi-général--exécution-activity) ; il n’est pas recopié ici.*
 
@@ -4451,7 +4451,7 @@ Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
 
 #### 2. Contenu
 
-- Zone de contexte : nom (texte libre, unique, RM-258) puis synthèse 14 px (RM-259).
+- Zone de contexte : nom (texte libre, unique, RM-258) [nom généré par défaut, personnalisable, non unique depuis le 21/11/2026 (D-553)] puis synthèse 14 px (RM-259).
 - Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel.
 - Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit. [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : « jusqu’au » bascule vers « pendant » N semaines pour l’unité semaines.]
 - Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
@@ -4520,6 +4520,8 @@ Une information, un coin, dans tous les formats. Au plus quatre informations, un
 Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
 
 ### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
+
+[Carte et parcours remplacés le 21/11/2026 (D-553) : voir « Complément CE-UI-15 / Journal / filtre — 21/11/2026 ».]
 
 Écran « Agenda — Planning (proposition) » (`12580:27335`) : rendu et mises en page décrits dans le [DSF Agenda](../DSF-AGENDA-PLANNING-2026-11-19.md). Aucune règle métier nouvelle ; la propriété « spécialité » d’une routine reste À CLARIFIER (absente du modèle de données). [19/11/2026 — la zone de contexte, la rangée des jours, la liste et la carte de cet écran s’appliquent aux écrans Semaine du calendrier (déployé, actions glissées, après suppression, jour sélectionné, fonds des modales de suppression) : voir DSF Agenda § 6. Les écrans Jour et Mois ne sont pas concernés à ce stade.] [19/11/2026 — D-534 : une carte par occurrence de routine, enchaînement des séances et écran de transition : DSF Agenda § 7. L’écran Jour doit être remplacé (décision de Hermann).]
 
@@ -6371,6 +6373,6 @@ Retirer les champs et sections supprimés dans MOUV-ADM-20261117 ; masquer les d
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
 
-### Complément CE-UI-15 / Journal / filtre — 21/11/2026
+### Complément CE-UI-15 / Journal / filtre — 21/11/2026 (D-553)
 
-Les prescriptions précédentes « carte par occurrence de Routine » et « nom de Routine en titre de l'Agenda » sont **supersédées**. Agenda : une carte unique de Séance par contenu planifié ou Exécution libre, titre = nom de Séance, déployé = composition sans répétition du nom ; Parcours = une ligne Ⓟ compacte avant la première carte, avec rail sans numéros, sans cadre/compteur/durée dans la ligne ; pas de ligne Ⓟ pour une Routine à Séance unique. Heure prévue uniquement pour la première Séance non exécutée ; à partir de la deuxième, « — » ; après Exécution, heure réelle et repositionnement chronologique. Journal : une carte par Routine ; Parcours sur une ligne Ⓟ. Filtre : une ligne par Routine à Séance unique ou Parcours, avec sélection multiple, libellé identique au Journal. Référence : [KODJO — Agenda / Journal / filtre, 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **Agenda Figma validé ; Journal et filtre à ajuster.**
+Les prescriptions précédentes « carte par occurrence de Routine » et « nom de Routine en titre de l'Agenda » sont **supersédées**. Agenda : une carte unique de Séance par contenu planifié ou Exécution libre, titre = nom de Séance, déployé = composition sans répétition du nom ; Parcours = une ligne Ⓟ compacte avant la première carte, avec rail sans numéros, sans cadre/compteur/durée dans la ligne ; pas de ligne Ⓟ pour une Routine à Séance unique. Heure prévue pour la première Séance d'un Parcours tant qu'elle n'est pas exécutée ; « — » pour toute Séance suivante non exécutée ; après Exécution, heure réelle et repositionnement chronologique. Journal : une carte par Routine ; Parcours sur une ligne Ⓟ. Filtre : une ligne par Routine à Séance unique ou Parcours, avec sélection multiple, libellé identique au Journal. Référence : [KODJO — Agenda / Journal / filtre, 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **Agenda Figma validé (`12906:47`) ; Journal et filtre ajustés le 21/11/2026, à valider.**
