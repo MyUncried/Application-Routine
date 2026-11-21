@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { addDays, EVERY_TIME, mondayOf, type RoutineDraft } from "@/domain/planning/Routine";
-import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { CalendarWeekScreen } from "@/features/planning/CalendarWeekScreen";
 import { setAgendaRoutineFilter } from "@/features/planning/agendaRoutineFilter";
@@ -52,6 +52,8 @@ let planning: PlanningService;
 let sessions: SqliteSessionRepository;
 let ids = 0;
 let linked: OccurrenceExecution[] = [];
+/** D-553 : toutes les Exécutions lues par l'Agenda (liées ou « Hors planification »). */
+let everything: AgendaExecution[] = [];
 
 beforeEach(async () => {
   mockPush.mockClear();
@@ -66,9 +68,11 @@ beforeEach(async () => {
   await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mv-squat', 'dos')");
   sessions = new SqliteSessionRepository(database);
   linked = [];
+  everything = [];
   planning = new PlanningService({
     repository: new SqliteRoutineRepository(database),
     occurrenceExecutions: async () => linked,
+    executions: async () => everything,
     newId: () => `routine-${++ids}`,
     now: () => new Date(2030, 0, 1, 12, 0),
   });
@@ -311,9 +315,11 @@ describe("Calendrier Semaine", () => {
     await renderCalendar();
     expect(sectionDays()).toEqual([THURSDAY]);
     expect(screen.getByText("Jeudi 8 août")).toBeTruthy();
-    // D-533 : heure « 14h30 », nom de la routine en titre, durée sous l'heure.
+    // D-533 : heure « 14h30 », durée sous l'heure. D-553 (21/11/2026) : titre = nom de la Séance, jamais celui de la Routine.
+    // [Nom de la routine en titre — remplacé.]
     expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-time`).props.children).toBe("14h30");
-    expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-name`).props.children).toBe(routine.name);
+    expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-name`).props.children).toBe("Gainage");
+    expect(routine.name).not.toBe("Gainage");
     expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-duration`).props.children).not.toBe("");
     expect(screen.queryByTestId(`calendar-section-${THURSDAY}-count`)).toBeNull();
     expect(screen.getAllByTestId(`calendar-day-${THURSDAY}-dot`)).toHaveLength(1);
@@ -363,46 +369,168 @@ describe("Calendrier Semaine", () => {
     expect(allSectionDays()[0]).toBe(MONDAY);
   });
 
-  it("déployé : nom de la séance même seule, sans filet ; repère « P » d'un parcours seulement (recette du 20/11/2026, r20-recap, constat A)", async () => {
+  // D-553 (21/11/2026, Figma `12906:47`) : une carte par Séance ; parcours = ligne « Ⓟ nom de la Routine » et lien ; Routine à
+  // une Séance : ni ligne ni lien ; déployé = composition seule, sans répéter le nom. [Repère « P » après le nom de la routine
+  // sur la carte, nom de la séance au déployé (r20-recap) — remplacés.]
+  it("parcours : ligne « Ⓟ nom de la Routine », lien, cartes décalées ; Routine à une Séance sans ligne ; déployé sans nom (D-553)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     const single = await plan({ name: "Matin", entries: [{ ...entry(a.id), id: "entry-single" }] });
-    const parcours = await plan({ name: "Genou", time: "10:00", entries: [entry(a.id), entry(b.id)] });
+    const parcours = await plan({ name: "Mobilité du matin", time: "10:00", entries: [entry(a.id), entry(b.id)] });
     await renderCalendar();
+    const group = `${parcours.id}|${MONDAY}T10:00`;
+    expect(screen.getByTestId(`calendar-parcours-${group}-name`).props.children).toBe("Mobilité du matin");
+    expect(screen.getByTestId(`calendar-parcours-${group}-badge`)).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-parcours-${group}-link`).props.style)).toMatchObject({ width: 1, backgroundColor: "#000000" });
+    expect(screen.queryAllByTestId(/^calendar-parcours-.*-name$/)).toHaveLength(1);
     expect(screen.queryByTestId(`${card(single.id, MONDAY)}-parcours`)).toBeNull();
-    expect(screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-parcours`)).toBeTruthy();
-    // Recette du 20/11/2026 : repère « P » après le nom, trait du cercle affiné (1).
-    const titleLine = screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-name`).parent!.parent!;
-    const ids = titleLine.findAll((node) => typeof node.props.testID === "string" && /-(name|parcours)$/.test(node.props.testID as string) && typeof node.type === "string").map((node) => (node.props.testID as string).replace(/^.*-/, ""));
-    expect(ids.indexOf("name")).toBeLessThan(ids.indexOf("parcours"));
-    expect(StyleSheet.flatten(screen.getByTestId(`${card(parcours.id, MONDAY, "10:00")}-parcours`).props.style).borderWidth).toBe(1);
+    // Titres : noms des Séances ; heure prévue pour la première, « — » pour la suivante.
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-name`).props.children).toBe("Alpha");
+    expect(screen.getByTestId(`calendar-item-${group}|2-card-name`).props.children).toBe("Bravo");
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-time`).props.children).toBe("10h00");
+    expect(screen.getByTestId(`calendar-item-${group}|2-card-time`).props.children).toBe("—");
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${group}|1-card-frame`).props.style)).toMatchObject({ marginLeft: 10, width: 70 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${card(single.id, MONDAY)}-frame`).props.style).marginLeft).toBeUndefined();
+    // Déployé : composition seule.
     fireEvent.press(screen.getByTestId(`${card(single.id, MONDAY)}-disclosure`));
-    expect(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-session-0-name`).props.children).toBe("Alpha");
+    expect(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-composition`)).toBeTruthy();
+    expect(screen.queryByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-session-0-name`)).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded`).props.style).borderTopWidth).toBeUndefined();
   });
 
-  it("routine à deux séances : une seule carte par occurrence, séances dans le déployé dans l'ordre de la liste (D-534)", async () => {
+  // D-553 (21/11/2026) : une carte par Séance, dans l'ordre de la liste ; « Démarrer » sur la première lance toute la chaîne
+  // (D-534, inchangé) ; la suivante d'un parcours non lancé n'a aucune action (arbitrage 5). [Une carte par occurrence — remplacé.]
+  it("routine à deux séances : une carte par Séance ; Démarrer la première lance la chaîne ; la suivante sans action (D-553, D-534)", async () => {
     const first = await sessions.createStructured(input("Zeta"));
     const second = await sessions.createStructured(input("Alpha"));
     const routine = await plan({ name: "Genou", entries: [entry(first.id), entry(second.id)] });
     await renderCalendar();
-    expect(items()).toHaveLength(1);
-    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-name`).props.children).toBe("Genou");
+    const group = `${routine.id}|${MONDAY}T08:00`;
+    expect(items()).toEqual([`calendar-item-${group}|1-swipe`, `calendar-item-${group}|2-swipe`]);
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-name`).props.children).toBe("Zeta");
+    expect(screen.getByTestId(`calendar-item-${group}|2-card-name`).props.children).toBe("Alpha");
     // Un point par séance du jour.
     expect(screen.getAllByTestId(`calendar-day-${MONDAY}-dot`)).toHaveLength(2);
-    expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`)).toBeNull();
-    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-disclosure`));
-    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-chevron-open`)).toBeTruthy();
-    const expanded = screen.getByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`);
-    expect(expanded).toBeTruthy();
-    expect(screen.getByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-session-0`)).toBeTruthy();
-    expect(screen.getByText("Zeta")).toBeTruthy();
-    expect(screen.getByText("Alpha")).toBeTruthy();
-    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-disclosure`));
-    expect(screen.queryByTestId(`calendar-item-${routine.id}|${MONDAY}T08:00-expanded`)).toBeNull();
-    // D-534 : « Démarrer » ouvre la première séance de la liste, avec la chaîne et le rang.
-    fireEvent.press(screen.getByTestId(`${card(routine.id, MONDAY)}-start`));
+    // Statut par Séance : aucun statut de parcours.
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-status-UPCOMING`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|2-card-status-UPCOMING`)).toBeTruthy();
+    expect(screen.queryByTestId(`calendar-item-${group}|2-card-start`)).toBeNull();
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId(`calendar-item-${group}|2-card-action-zone`));
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId(`calendar-item-${group}|1-card-start`));
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/execution", params: { sessionId: first.id, chain: `${first.id},${second.id}`, rank: "1", routineId: routine.id, occurrence: `${MONDAY}T08:00` } });
+    // Le cadre gauche de n'importe quelle Séance ouvre la modification de tout le créneau (arbitrage 9).
+    fireEvent.press(screen.getByTestId(`calendar-item-${group}|2-card-frame`));
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id, occurrenceKey: `${MONDAY}T08:00` } });
+  });
+
+  it("parcours commencé : Séance exécutée à son heure réelle, statut individuel ; la suivante « Rattraper » seule ; créneau non modifiable (D-553, arbitrage 8)", async () => {
+    const first = await sessions.createStructured(input("Échauffement"));
+    const second = await sessions.createStructured(input("Étirement"));
+    const routine = await plan({ name: "Mobilité du matin", time: "14:00", entries: [entry(first.id), entry(second.id)] });
+    const started = new Date(2030, 7, 5, 14, 7).toISOString();
+    linked = [{ executionId: "x1", routineId: routine.id, occurrenceKey: `${MONDAY}T14:00`, rank: 1, sessionId: first.id, startedAt: started, businessStatus: "COMPLETED" }];
+    everything = [
+      {
+        executionId: "x1",
+        sessionId: first.id,
+        sessionName: "Échauffement",
+        startedAt: started,
+        endedAt: new Date(2030, 7, 5, 14, 13, 10).toISOString(),
+        businessStatus: "COMPLETED",
+        link: { routineId: routine.id, occurrenceKey: `${MONDAY}T14:00`, rank: 1 },
+      },
+    ];
+    await renderCalendar();
+    const group = `${routine.id}|${MONDAY}T14:00`;
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-time`).props.children).toBe("14h07");
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-duration`).props.children).toBe("6′10″");
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-status-COMPLETED`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|2-card-time`).props.children).toBe("—");
+    expect(within(screen.getByTestId(`calendar-item-${group}|2-card-start`)).getByText("Rattraper")).toBeTruthy();
+    fireEvent.press(screen.getByTestId(`calendar-item-${group}|2-card-start`));
+    expect(mockPush).toHaveBeenLastCalledWith({
+      pathname: "/execution",
+      params: { sessionId: second.id, routineId: routine.id, occurrence: `${MONDAY}T14:00`, occurrenceRank: "2" },
+    });
+    // Créneau commencé : le cadre gauche ne modifie rien ; la Séance exécutée ne se supprime pas.
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId(`calendar-item-${group}|2-card-frame`));
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent(screen.getByTestId(`calendar-item-${group}|1-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.queryByText("Supprimer cette séance")).toBeNull();
+  });
+
+  it("Séance seule rattrapée plus tard : carte à sa date et heure réelles, même si le créneau est avant la période (D-553, § 3)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    const routine = await plan({ startDate: addDays(MONDAY, -3), time: "08:00", entries: [entry(created.id)] });
+    const key = `${addDays(MONDAY, -3)}T08:00`;
+    const started = new Date(2030, 7, 6, 18, 20).toISOString();
+    linked = [{ executionId: "c1", routineId: routine.id, occurrenceKey: key, rank: 1, sessionId: created.id, startedAt: started, businessStatus: "COMPLETED" }];
+    everything = [
+      { executionId: "c1", sessionId: created.id, sessionName: "Gainage", startedAt: started, endedAt: new Date(2030, 7, 6, 18, 30).toISOString(), businessStatus: "COMPLETED", link: { routineId: routine.id, occurrenceKey: key, rank: 1 } },
+    ];
+    await renderCalendar();
+    expect(sectionDays()).toEqual([addDays(MONDAY, 1)]);
+    expect(screen.getByTestId(`calendar-item-${routine.id}|${key}-card-time`).props.children).toBe("18h20");
+    expect(screen.getByTestId(`calendar-item-${routine.id}|${key}-card-status-COMPLETED`)).toBeTruthy();
+  });
+
+  it("supprimer une Séance de parcours : elle seule ; la dernière supprime le créneau, sans ligne Ⓟ seule (D-553, arbitrage 9)", async () => {
+    const first = await sessions.createStructured(input("Alpha"));
+    const second = await sessions.createStructured(input("Bravo"));
+    const routine = await plan({ name: "Genou", entries: [entry(first.id), entry(second.id)] });
+    await renderCalendar();
+    const group = `${routine.id}|${MONDAY}T08:00`;
+    fireEvent(screen.getByTestId(`calendar-item-${group}|2-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.getByText("Supprimer cette séance")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByText("Confirmer"));
+    });
+    await flush();
+    expect(screen.queryByTestId(`calendar-item-${group}|2-card`)).toBeNull();
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-name`).props.children).toBe("Alpha");
+    // L'occurrence a encore deux séances dans la routine (l'une désactivée) : elle reste un parcours avec sa ligne Ⓟ.
+    expect(screen.getByTestId(`calendar-parcours-${group}-name`)).toBeTruthy();
+    fireEvent(screen.getByTestId(`calendar-item-${group}|1-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await act(async () => {
+      fireEvent.press(screen.getByText("Confirmer"));
+    });
+    await flush();
+    expect(screen.queryByTestId(/^calendar-parcours-/)).toBeNull();
+    expect(items()).toEqual([]);
+    expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([`${MONDAY}T08:00`]);
+  });
+
+  it("Exécution hors planification : carte à l'heure réelle, « Hors planification » en ligne 2 ; masquée par un filtre actif (D-553, § 4 et § 5)", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    const other = await sessions.createStructured(input("Dos"));
+    const routine = await plan({ entries: [entry(other.id)] });
+    const at = (hours: number, minutes: number) => new Date(2030, 7, 5, hours, minutes).toISOString();
+    everything = [
+      { executionId: "f1", sessionId: created.id, sessionName: "Gainage", startedAt: at(17, 5), endedAt: at(17, 20), businessStatus: "COMPLETED", link: null },
+      // Deux Exécutions de la même Séance restent distinctes.
+      { executionId: "f2", sessionId: created.id, sessionName: "Gainage", startedAt: at(19, 0), endedAt: at(19, 5), businessStatus: "PARTIAL", link: null },
+      // Exécution non terminée : pas de carte.
+      { executionId: "f3", sessionId: created.id, sessionName: "Gainage", startedAt: at(20, 0), endedAt: null, businessStatus: null, link: null },
+    ];
+    await renderCalendar();
+    expect(screen.getByTestId("calendar-item-free|f1-card-time").props.children).toBe("17h05");
+    expect(screen.getByTestId("calendar-item-free|f1-card-name").props.children).toBe("Gainage");
+    expect(screen.getByTestId("calendar-item-free|f1-card-detail-prefix").props.children).toBe("Hors planification"); // sans zone connue : pas de point
+    expect(screen.getByTestId("calendar-item-free|f2-card-status-PARTIAL")).toBeTruthy();
+    expect(screen.queryByTestId("calendar-item-free|f3-card")).toBeNull();
+    // Ordre chronologique du jour : 8h00 planifiée, 17h05 puis 19h00.
+    expect(items()).toEqual([`calendar-item-${routine.id}|${MONDAY}T08:00-swipe`, "calendar-item-free|f1-swipe", "calendar-item-free|f2-swipe"]);
+    // Ni modification, ni action glissée.
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId("calendar-item-free|f1-card-frame"));
+    expect(mockPush).not.toHaveBeenCalled();
+    // Filtre actif : seules les Séances des routines choisies.
+    setAgendaRoutineFilter(new Set([routine.id]));
+    await renderCalendar();
+    expect(screen.queryAllByTestId("calendar-item-free|f1-swipe")).toHaveLength(0);
   });
 
   it("Démarrer ouvre l'Exécution PRE-10 ; la carte ouvre la modification ; Dupliquer ouvre un brouillon", async () => {

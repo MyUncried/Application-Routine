@@ -24,6 +24,10 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  *   « Complétée », « Partielle » ou « Arrêtée » selon le statut d'exécution de sa ou ses séances.
  * [Teinte grise unique « prévue », vert et rouge en attente du lien occurrence ↔ Exécution (D-525) — remplacé.]
  * La carte grandit avec le texte agrandi (hauteur minimale 52) au lieu de couper ses lignes (recette du 19/11/2026, h2).
+ *
+ * D-553 (21/11/2026 ; Figma `12906:47`) : une carte par Séance, au même format pour toutes — titre = nom de la Séance ; dans un
+ * parcours, cadre décalé de 10 (70 de large, même bord droit) pour que le lien vertical passe sur les traits ; Exécution hors
+ * planification : « Hors planification » en tête de la ligne 2 ; Séance suivante d'un parcours non lancé : aucune action.
  */
 
 /** D-540 : `EXPIRED` — créneau manqué dont le délai de rattrapage est passé. */
@@ -64,6 +68,9 @@ export function RoutineAgendaCard({
   duration,
   name,
   parcours = false,
+  inParcours = false,
+  detailPrefix = "",
+  startable = true,
   detail,
   status,
   expanded,
@@ -77,6 +84,12 @@ export function RoutineAgendaCard({
   readonly name: string;
   /** Routine à plusieurs séances : repère « P » devant le nom (recette du 20/11/2026, constat A). */
   readonly parcours?: boolean;
+  /** D-553 : carte d'une Séance de parcours (cadre décalé, Figma `12906:73`). */
+  readonly inParcours?: boolean;
+  /** D-553 : début de la ligne 2 — « Hors planification » (à la place de la spécialité, Figma `12906:106`). */
+  readonly detailPrefix?: string;
+  /** D-553 (arbitrage 5) : faux — aucune action à droite (Séance suivante d'un parcours non lancé). */
+  readonly startable?: boolean;
   readonly detail: string;
   readonly status: AgendaStatus;
   readonly expanded: boolean;
@@ -98,7 +111,7 @@ export function RoutineAgendaCard({
         onPress={onOpen}
         accessibilityRole="button"
         accessibilityLabel={planningStrings.calendar.openRoutine}
-        style={[styles.frame, { backgroundColor: colorsOf.frame }]}
+        style={[styles.frame, inParcours ? styles.frameInParcours : null, { backgroundColor: colorsOf.frame }]}
         testID={`${testID}-frame`}
       >
         <View style={[styles.bar, { backgroundColor: colorsOf.bar }]} testID={`${testID}-status-${status}`} />
@@ -137,6 +150,11 @@ export function RoutineAgendaCard({
           {/* Même recette : « mettre le symbole de la zone corporelle avant le texte de la deuxième ligne » (pastille des zones
               de la carte du Journal). */}
           <View style={styles.detailLine}>
+            {detailPrefix === "" ? null : (
+              <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail-prefix`}>
+                {detail === "" ? detailPrefix : `${detailPrefix} ·`}
+              </Text>
+            )}
             {detail === "" ? null : <KodjoIcon name="card-body-zone-badge" testID={`${testID}-zones-badge`} />}
             <Text style={[styles.secondary, styles.detail]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
               {detail}
@@ -155,6 +173,9 @@ export function RoutineAgendaCard({
               </Text>
             </View>
           </Pressable>
+        ) : !startable ? (
+          // D-553 (arbitrage 5) : on lance le parcours depuis sa première Séance ; zone droite sans effet.
+          <Pressable onPress={() => undefined} accessible={false} style={styles.action} testID={`${testID}-action-zone`} />
         ) : (
           // D-536, point 5 (20/11/2026) : « Rattraper » sur une occurrence passée non commencée, « Démarrer » sinon.
           <Pressable
@@ -196,6 +217,8 @@ const styles = StyleSheet.create({
     gap: 2,
     overflow: "hidden",
   },
+  // Figma `12906:75` : cadre d'une Séance de parcours à x = 10 de l'écran, 70 de large.
+  frameInParcours: { marginLeft: 10, width: FRAME_WIDTH - 10 },
   time: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: colors.textPrimary },
   durationLine: { flexDirection: "row", alignItems: "center", gap: 3 },
   chronometerBox: { width: 14, height: 14, alignItems: "center", justifyContent: "center" },

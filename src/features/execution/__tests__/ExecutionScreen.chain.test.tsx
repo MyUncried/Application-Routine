@@ -17,10 +17,12 @@ import { ProfileServiceContext } from "@/features/preferences/ProfileServiceCont
 import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
-import { executionParams, nextInChain, parseChain, type ExecutionChain } from "../executionChain";
+import { executionParams, nextInChain, parseChain, parseOrigin, type ExecutionChain } from "../executionChain";
 import { CHAIN_AUTO_NEXT_MS, ExecutionScreen } from "../ExecutionScreen";
 import { ExecutionService } from "../ExecutionService";
 import { ExecutionServiceContext } from "../ExecutionServiceContext";
+import type { PlanningService } from "@/features/planning/PlanningService";
+import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 
 /**
  * D-534 — enchaînement des séances d'une routine : orchestration au-dessus du moteur (inchangé). Une séance : comportement
@@ -127,7 +129,15 @@ async function setup(finalPhaseSeconds = 0) {
 
   const show = (sessionId: string | null, chain: ExecutionChain | null) =>
     render(<ExecutionScreen key={`${sessionId}|${chain?.rank ?? 0}`} sessionId={sessionId} chain={chain} />, { wrapper: Wrapper });
-  return { service, advance, show, first, second, database };
+  /** D-553 : écran rendu avec une planification (rattachement automatique). */
+  const showPlanned = (sessionId: string, planning: Pick<PlanningService, "autoAttachment">, origin: { routineId: string; occurrenceKey: string; rank?: number } | null = null) =>
+    render(
+      <PlanningServiceContext.Provider value={planning as PlanningService}>
+        <ExecutionScreen sessionId={sessionId} chain={null} origin={origin} />
+      </PlanningServiceContext.Provider>,
+      { wrapper: Wrapper },
+    );
+  return { service, advance, show, showPlanned, first, second, database };
 }
 
 async function press(testID: string) {
@@ -288,5 +298,44 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     resumed.unmount();
+  });
+});
+
+describe("Exécution — rattachement d'une séance lancée hors Agenda (D-553, § 4)", () => {
+  it("sans occurrence ni chaîne : rattachée au créneau éligible ; sinon hors planification ; le moteur est inchangé", async () => {
+    const { service, showPlanned, first } = await setup();
+    const start = jest.spyOn(service, "start");
+    const autoAttachment = jest.fn(async () => ({ routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 1 }));
+    const view = showPlanned(first, { autoAttachment });
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(autoAttachment).toHaveBeenCalledWith(first, new Date(T0));
+    expect(start.mock.calls[0]![1]).toEqual({ routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 1 });
+    view.unmount();
+  });
+
+  it("aucun créneau éligible : Exécution sans lien (hors planification)", async () => {
+    const { service, showPlanned, first } = await setup();
+    const start = jest.spyOn(service, "start");
+    const view = showPlanned(first, { autoAttachment: jest.fn(async () => null) });
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(start.mock.calls[0]![1]).toBeUndefined();
+    view.unmount();
+  });
+
+  it("lancée depuis l'Agenda : lien explicite conservé, rang propre d'un « Rattraper » ; pas de rattachement automatique", async () => {
+    const { service, showPlanned, first } = await setup();
+    const start = jest.spyOn(service, "start");
+    const autoAttachment = jest.fn(async () => null);
+    const view = showPlanned(first, { autoAttachment }, { routineId: "r9", occurrenceKey: "2026-11-19T14:00", rank: 2 });
+    await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
+    expect(autoAttachment).not.toHaveBeenCalled();
+    expect(start.mock.calls[0]![1]).toEqual({ routineId: "r9", occurrenceKey: "2026-11-19T14:00", rank: 2 });
+    view.unmount();
+  });
+
+  it("paramètres de route : rang d'occurrence d'un « Rattraper » transmis et relu", () => {
+    expect(executionParams(["b"], 1, { routineId: "r", occurrenceKey: "k", rank: 2 })).toEqual({ sessionId: "b", routineId: "r", occurrence: "k", occurrenceRank: "2" });
+    expect(parseOrigin("r", "k", "2")).toEqual({ routineId: "r", occurrenceKey: "k", rank: 2 });
+    expect(parseOrigin("r", "k")).toEqual({ routineId: "r", occurrenceKey: "k" });
   });
 });

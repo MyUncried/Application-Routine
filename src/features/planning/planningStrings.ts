@@ -69,6 +69,8 @@ export const planningStrings = {
     done: "Terminée",
     // Recette du 19/11/2026 au soir (s19-passees) : statut d'une occurrence exécutée.
     // D-540 (20/11/2026) : « Expirée » — créneau manqué dont le délai de rattrapage est passé.
+    // D-553 (21/11/2026) : ligne 2 d’une Exécution lancée hors Agenda sans créneau éligible.
+    unplanned: "Hors planification",
     status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée" },
   },
   // D-535 (19/11/2026) : Journal des routines (DSF Journal, Figma « Calendrier — Journal — MVP »).
@@ -119,6 +121,8 @@ export const planningStrings = {
     // Recette du 20/11/2026 (r21-supprimer — Hermann : « remplacer le texte par "Supprimer ce créneau" »). [« Supprimer cette
     // occurrence » — remplacé.]
     title: "Supprimer ce créneau",
+    // D-553 (21/11/2026, arbitrage 9) : Séance seule d’un parcours. [Libellé : choix technique, à valider par Hermann.]
+    sessionTitle: "Supprimer cette séance",
     cancel: "Annuler",
     confirm: "Confirmer",
   },
@@ -183,7 +187,6 @@ export const planningStrings = {
     nameAccessibility: "Nom de la planification",
     namePlaceholder: "Nom de la planification",
     nameRequired: "Nom obligatoire",
-    nameTaken: "Ce nom est déjà utilisé",
     everyFeminine: "toutes les",
     everyMasculine: "tous les",
     none: "aucune",

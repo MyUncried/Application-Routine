@@ -15,6 +15,7 @@ import {
   journalSlotsLine,
   isJournalRoutineVisible,
   matchesJournalQuery,
+  routineTitle,
   sortJournal,
 } from "@/features/planning/journal";
 import { JOURNAL_ROW_HEIGHT, JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
@@ -145,8 +146,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
       return next;
     });
 
-  const titleOf = (routine: Routine, sessions: readonly SessionCatalogueProjection[]) =>
-    routine.name.trim() !== "" ? routine.name : sessions.map((session) => session.name).join(", ");
+  // D-553 : nom généré ou personnalisé (`routineTitle`).
+  const titleOf = (routine: Routine, sessions: readonly SessionCatalogueProjection[]) => routineTitle(routine, sessions);
 
   const openRoutine = (routineId: string) => {
     setRevealed(null);

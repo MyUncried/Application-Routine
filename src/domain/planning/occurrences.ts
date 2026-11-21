@@ -69,6 +69,12 @@ export type Occurrence = {
    * (`withExpiry`), jamais enregistré ; `false` tant qu'il n'a pas été calculé.
    */
   readonly expired: boolean;
+  /**
+   * D-553 (21/11/2026, arbitrage 8) : fin du délai de rattrapage (instant, ms), calculée par `withExpiry` pour toute occurrence —
+   * commencée comprise : une Séance non exécutée d'un parcours commencé reste rattrapable seule jusqu'au créneau suivant de la
+   * routine (10 jours pour le dernier), puis « Expirée ». Absent tant qu'il n'a pas été calculé.
+   */
+  readonly catchUpEnd?: number;
 };
 
 /** Occurrence commencée connue par ses Exécutions (lien de la migration 033) sans être enregistrée (données antérieures). */
@@ -218,13 +224,14 @@ export const LAST_SLOT_CATCH_UP_DAYS = 10;
 export function withExpiry(occurrences: readonly Occurrence[], now: Date): Occurrence[] {
   const at = now.getTime();
   return occurrences.map((occurrence, index) => {
-    if (occurrence.started) return occurrence;
-    const start = occurrenceInstant(occurrence.date, occurrence.time).getTime();
-    if (start >= at) return occurrence;
     const next = occurrences[index + 1];
     const deadline =
       next !== undefined ? occurrenceInstant(next.date, next.time).getTime() : occurrenceInstant(addDays(occurrence.date, LAST_SLOT_CATCH_UP_DAYS + 1), "00:00").getTime();
-    return at >= deadline ? { ...occurrence, expired: true } : occurrence;
+    const timed = { ...occurrence, catchUpEnd: deadline };
+    if (occurrence.started) return timed;
+    const start = occurrenceInstant(occurrence.date, occurrence.time).getTime();
+    if (start >= at) return timed;
+    return at >= deadline ? { ...timed, expired: true } : timed;
   });
 }
 

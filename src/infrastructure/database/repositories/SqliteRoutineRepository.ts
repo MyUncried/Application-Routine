@@ -7,6 +7,8 @@ import type { Database } from "../Database";
 type RoutineRow = {
   id: string;
   name: string;
+  /** Migration 036 (D-553) : 1 = nom généré. */
+  name_generated: number;
   start_date: string;
   start_time: string;
   repeat_unit: string | null;
@@ -47,7 +49,7 @@ type OccurrenceRow = {
 };
 
 const ROUTINE_COLUMNS =
-  "id, name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, created_at, updated_at";
+  "id, name, name_generated, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, created_at, updated_at";
 
 function parseSessions(value: string | null): OccurrenceSession[] | null {
   if (value === null) return null;
@@ -166,6 +168,8 @@ export class SqliteRoutineRepository implements RoutineRepository {
     return {
       id: row.id,
       name: row.name,
+      // D-553 : présent seulement pour un nom généré (forme antérieure inchangée pour un nom personnalisé).
+      ...(row.name_generated === 1 ? { nameGenerated: true } : {}),
       startDate: row.start_date,
       time: row.start_time,
       repetition: toRepetition(row),
@@ -192,6 +196,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
       const repetition = routine.repetition;
       const parameters = [
         routine.name,
+        routine.nameGenerated === true ? 1 : 0,
         routine.startDate,
         routine.time,
         repetition === null ? null : repetition.unit,
@@ -207,13 +212,13 @@ export class SqliteRoutineRepository implements RoutineRepository {
       const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM routines WHERE id = ? AND owner_id = ?", [routine.id, owner]);
       if (existing === null) {
         await transaction.runAsync(
-          `INSERT INTO routines (name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, updated_at, id, owner_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO routines (name, name_generated, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, updated_at, id, owner_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [...parameters, routine.id, owner, routine.createdAt],
         );
       } else {
         await transaction.runAsync(
-          `UPDATE routines SET name = ?, start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
+          `UPDATE routines SET name = ?, name_generated = ?, start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
            end_date = ?, end_count = ?, reminder_minutes = ?, archived_at = ?, updated_at = ? WHERE id = ?`,
           [...parameters, routine.id],
         );

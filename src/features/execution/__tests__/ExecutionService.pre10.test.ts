@@ -128,8 +128,9 @@ describe("PRE-10 ExecutionService", () => {
     if (prepared.status !== "ready") throw new Error("not ready");
     await run.start(prepared, { routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 2 });
     const links = new SqliteOccurrenceExecutionRepository(raw);
+    // D-553 (21/11/2026) : le lien relu porte la Séance exécutée (carte de Séance de l'Agenda).
     expect(await links.list()).toEqual([
-      { executionId: "exec-1", routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 2, startedAt: new Date(T0).toISOString(), businessStatus: null },
+      { executionId: "exec-1", routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 2, sessionId: "session-1", startedAt: new Date(T0).toISOString(), businessStatus: null },
     ]);
     await run.dispatch({ type: "PAUSE" });
     await run.dispatch({ type: "STOP" });

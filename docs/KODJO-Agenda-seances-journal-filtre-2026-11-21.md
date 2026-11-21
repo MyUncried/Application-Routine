@@ -1,6 +1,6 @@
 # KODJO — Agenda centré sur les Séances, Journal et filtre — décisions du 21/11/2026
 
-**Statut : décisions fonctionnelles validées (D-553, registre ch07) ; développement non demandé.**
+**Statut : décisions fonctionnelles validées (D-553, registre ch07) ; développement non demandé.** [Développées le 21/11/2026, mission AGENDA-SEANCES-01, branche `feat/agenda-seances-20261121` ; rapport `.github/orchestration/reports/2026-11-21_AGENDA-SEANCES-01.md`.]
 **Référence UX de l'Agenda : maquette validée par Hermann, transmise le 21/11/2026 (capture iPhone « Agenda », lundi 16 novembre).** Figma fait foi pour le rendu réel ; ne pas redessiner l'Agenda.
 **Sources préexistantes :** D-522, D-533 à D-540, CE-UI-15, DSF Agenda et DSF Journal (19–20/11/2026), modèle des occurrences et Exécutions (migration 033).
 **Prévalence :** les décisions ci-dessous remplacent uniquement les règles antérieures incompatibles sur la présentation par Routine, les noms obligatoires/uniques et le rattachement des Exécutions. Les règles non contradictoires d'exécution, de rattrapage, de suppression et de récurrence sont conservées.

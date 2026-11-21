@@ -36,6 +36,7 @@ import { applyMigration031, MIGRATION_031_ROUTINES } from "./migrations/migratio
 import { applyMigration032 } from "./migrations/migration032";
 import { applyMigration033 } from "./migrations/migration033";
 import { applyMigration034 } from "./migrations/migration034";
+import { applyMigration036 } from "./migrations/migration036";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -362,6 +363,18 @@ export async function migrateDatabase(
     if (pending(33)) {
       await applyMigration034(transaction);
       version = 34;
+    }
+
+    // Version 35 : réservée à la migration 035 des Programmes (mission parallèle PROG-CAT-01), absente de cette branche. Elle
+    // s'insère ici à l'intégration ; une base passée en 36 par cette branche seule doit alors recevoir 035, idempotente.
+    if (pending(34)) {
+      version = 35;
+    }
+
+    // Planification : mode du nom des routines (21/11/2026, D-553). Un échec laisse `user_version` à 35.
+    if (pending(35)) {
+      await applyMigration036(transaction);
+      version = 36;
     }
 
     if (version !== targetVersion) {

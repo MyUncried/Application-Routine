@@ -105,9 +105,13 @@ export function JournalRoutineCard({
           </Text>
         </View>
         <View style={[styles.body, styles.selectionBody, styles.selectionColumn]}>
-          <Text style={[styles.name, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
-            {name}
-          </Text>
+          {/* D-553 (21/11/2026, § 5 ; Figma `12798:26926`) : ligne du filtre présentée comme le Journal — Ⓟ après le nom d'un parcours. */}
+          <View style={styles.titleLine}>
+            <Text style={[styles.name, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
+              {name}
+            </Text>
+            {parcours ? <ParcoursBadge placement="after" stroke={1} testID={`${testID}-parcours`} /> : null}
+          </View>
           <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
             {slots}
           </Text>

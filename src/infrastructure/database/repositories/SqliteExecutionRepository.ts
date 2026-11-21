@@ -9,6 +9,8 @@ import {
 import type { ResultChange } from "@/domain/execution/kernel";
 import type { BusinessStatus } from "@/domain/execution/results";
 
+import type { AgendaExecution } from "@/domain/planning/occurrenceExecutions";
+
 import type { Database } from "../Database";
 
 /**
@@ -65,6 +67,21 @@ async function upsertResults(transaction: Database, executionId: string, results
     await transaction.runAsync(UPSERT_RESULT, [executionId, change.key, change.type, JSON.stringify(payload), revision]);
   }
 }
+
+/** D-553 : Exécution lue par l'Agenda. */
+type AgendaExecutionRow = {
+  id: string;
+  session_id: string | null;
+  session_name: string | null;
+  started_at: string;
+  ended_at: string | null;
+  business_status: string | null;
+  routine_id: string | null;
+  occurrence_key: string | null;
+  session_rank: number | null;
+};
+
+const AGENDA_STATUSES: readonly BusinessStatus[] = ["COMPLETED", "PARTIAL", "INTERRUPTED"];
 
 export class SqliteExecutionRepository implements ExecutionRepository {
   constructor(private readonly database: Database) {}
@@ -129,5 +146,29 @@ export class SqliteExecutionRepository implements ExecutionRepository {
   async listResults(executionId: string): Promise<readonly StoredResult[]> {
     const rows = await this.database.getAllAsync<ResultRow>("SELECT result_key, kind, payload_json FROM execution_results WHERE execution_id = ? ORDER BY rowid", [executionId]);
     return rows.map((row): StoredResult => (row.kind === "STEP" ? { type: "STEP", key: row.result_key, result: JSON.parse(row.payload_json) } : { type: "SCOPE", key: row.result_key, result: JSON.parse(row.payload_json) }));
+  }
+  /**
+   * D-553 (21/11/2026) : toutes les Exécutions, liées à un créneau ou non (cartes « Hors planification » de l'Agenda). Nom de la
+   * Séance lu dans l'instantané (`$.name`), en lecture seule, sans relire tout l'instantané ; seul ce dépôt lit l'instantané (PRE-4 1.3, AC9).
+   */
+  async listForAgenda(): Promise<readonly AgendaExecution[]> {
+    const rows = await this.database.getAllAsync<AgendaExecutionRow>(
+      `SELECT execution.id, execution.session_id, json_extract(execution.snapshot_json, '$.name') AS session_name, execution.started_at,
+              execution.ended_at, execution.business_status, link.routine_id, link.occurrence_key, link.session_rank
+         FROM executions execution LEFT JOIN occurrence_executions link ON link.execution_id = execution.id
+        ORDER BY execution.started_at`,
+    );
+    return rows.map((row) => ({
+      executionId: row.id,
+      sessionId: row.session_id,
+      sessionName: row.session_name ?? "",
+      startedAt: row.started_at,
+      endedAt: row.ended_at,
+      businessStatus: AGENDA_STATUSES.find((status) => status === row.business_status) ?? null,
+      link:
+        row.routine_id !== null && row.occurrence_key !== null && row.session_rank !== null
+          ? { routineId: row.routine_id, occurrenceKey: row.occurrence_key, rank: row.session_rank }
+          : null,
+    }));
   }
 }

@@ -1,4 +1,5 @@
 import {
+  generatedRoutineName,
   addDays,
   daysBetween,
   endDateForCount,
@@ -35,8 +36,12 @@ import { planningStrings } from "@/features/planning/planningStrings";
 export type RepetitionUnit = "WEEK" | "DAY";
 
 export type FormDraft = {
-  /** Nom saisi ; ignoré tant que `nameEdited` est faux (nom automatique, RM-258). */
+  /** Nom saisi ; ignoré tant que `nameEdited` est faux (nom généré, D-553). */
   readonly name: string;
+  /**
+   * D-553 (21/11/2026) : vrai dès que l'utilisateur modifie le champ — nom personnalisé, fixe ; faux : nom généré, qui suit la
+   * composition. Enregistré tel quel (`Routine.nameGenerated` = non `nameEdited`), jamais déduit du texte.
+   */
   readonly nameEdited: boolean;
   readonly entries: readonly RoutineEntry[];
   readonly grid: PlanningGrid;
@@ -110,7 +115,11 @@ export function initialDraft(date: LocalDate, entries: readonly RoutineEntry[], 
 }
 
 export function draftFromRoutine(
-  routine: Pick<Routine, "entries" | "startDate" | "time" | "repetition"> & { readonly name?: string; readonly reminderMinutes?: number | null },
+  routine: Pick<Routine, "entries" | "startDate" | "time" | "repetition"> & {
+    readonly name?: string;
+    readonly nameGenerated?: boolean;
+    readonly reminderMinutes?: number | null;
+  },
 ): FormDraft {
   const repetition = routine.repetition;
   const endDate =
@@ -120,9 +129,10 @@ export function draftFromRoutine(
         ? repetition.end.date
         : endDateForCount(repetition.unit, routine.startDate, repetition.end.count);
   return {
-    // RM-264 : une planification existante garde son nom, même vide (à compléter) ; il ne suit plus la sélection.
+    // D-553 (21/11/2026) : un nom généré continue de suivre la composition ; un nom personnalisé reste fixe. [RM-264 : une
+    // planification existante garde son nom, même vide (à compléter), et ne suit plus la sélection — remplacé.]
     name: routine.name ?? "",
-    nameEdited: true,
+    nameEdited: routine.nameGenerated !== true,
     entries: routine.entries,
     grid: gridFromEntries(routine.entries),
     startDate: routine.startDate,
@@ -138,16 +148,20 @@ export function draftFromRoutine(
   };
 }
 
-/** RM-258 : nom effectif — saisi, sinon nom de l'unique séance, sinon vide. */
+/**
+ * D-553 (21/11/2026) : nom effectif — saisi (personnalisé), sinon nom généré : nom de la Séance, ou noms des Séances dans
+ * l'ordre reliés par « + ». [RM-258 : nom de l'unique séance, sinon vide et obligatoire — remplacé.]
+ */
 export function effectiveName(form: Pick<FormDraft, "name" | "nameEdited" | "entries">, nameOf: (sessionId: string) => string | undefined): string {
   if (form.nameEdited) return form.name;
-  return form.entries.length === 1 ? (nameOf(form.entries[0]!.sessionId) ?? "") : "";
+  return generatedRoutineName(form.entries.map((entry) => nameOf(entry.sessionId)));
 }
 
 export function toRoutineDraft(form: FormDraft, name: string): RoutineDraft {
   const entries = entriesWithGrid(form.entries, form.grid);
   return {
     name,
+    ...(form.nameEdited ? {} : { nameGenerated: true }),
     startDate: form.startDate,
     time: form.time,
     entries,

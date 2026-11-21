@@ -1,5 +1,6 @@
 import {
   addDays,
+  formatLocalDate,
   isLocalDate,
   isLocalTime,
   mondayOf,
@@ -16,7 +17,7 @@ import {
 } from "@/domain/planning/Routine";
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
 import { isRoutineActiveAt, routineOccurrences, routineSessionsAt, withExpiry, type IsOccurrenceStarted, type Occurrence } from "@/domain/planning/occurrences";
-import { occurrenceExecutionKey, type OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import { occurrenceExecutionKey, type AgendaExecution, type OccurrenceExecution, type OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
 
 /**
  * `PlanningService` (chapitre 12 §12.4) — gestion des Routines et calcul des occurrences (API-ROU-01 à 05, 09).
@@ -42,7 +43,8 @@ import { occurrenceExecutionKey, type OccurrenceExecution } from "@/domain/plann
 
 export type SaveRoutineResult =
   | { readonly status: "SAVED"; readonly routine: Routine }
-  | { readonly status: "INVALID"; readonly issues: readonly (RoutineValidationIssue | "NAME_TAKEN")[] }
+  // D-553 (21/11/2026) : plus de contrôle d'unicité du nom. [« NAME_TAKEN » (RM-261) — retiré.]
+  | { readonly status: "INVALID"; readonly issues: readonly RoutineValidationIssue[] }
   | { readonly status: "NOT_FOUND" };
 
 /** Modification d'une occurrence seule (Agenda, D-536 point 4) : valeurs voulues pour chaque groupe. */
@@ -72,6 +74,8 @@ export type PlanningServiceDeps = {
   readonly reminders?: PlanningReminders;
   /** Exécutions rattachées aux occurrences (migration 033) ; absent : aucune (tests, statut « non exécutée »). */
   readonly occurrenceExecutions?: () => Promise<readonly OccurrenceExecution[]>;
+  /** D-553 : toutes les Exécutions, liées ou non (cartes « Hors planification » de l'Agenda) ; absent : aucune. */
+  readonly executions?: () => Promise<readonly AgendaExecution[]>;
   readonly newId: () => string;
   readonly now: () => Date;
 };
@@ -233,20 +237,28 @@ export class PlanningService {
   }
 
   /**
-   * D-539 (20/11/2026) : routines proposées par le filtre de l'Agenda — au moins un créneau, archivées comprises, par ordre
+   * D-539 (20/11/2026) : routines proposées par le filtre de l'Agenda — au moins un créneau, terminées comprises, par ordre
    * alphabétique [liste et ordre retenus par Claude, D-539] ; créneaux à venir (instant ≥ maintenant).
+   * D-553 (21/11/2026, arbitrage 3) : les routines actives d'abord, puis les terminées, chaque groupe par ordre alphabétique du
+   * nom affiché (`displayName`). [Un seul ordre alphabétique — remplacé.]
    */
-  async routineFilterChoices(): Promise<readonly { readonly routine: Routine; readonly upcoming: number }[]> {
+  async routineFilterChoices(
+    displayName: (routine: Routine) => string = (routine) => routine.name,
+  ): Promise<readonly { readonly routine: Routine; readonly upcoming: number; readonly active: boolean }[]> {
     const isStarted = await this.startedTest();
-    const now = this.deps.now().getTime();
+    const now = this.deps.now();
+    const at = now.getTime();
     return (await this.deps.repository.list())
       .map((routine) => ({ routine, occurrences: routineOccurrences(routine, isStarted) }))
       .filter((item) => item.occurrences.length > 0)
       .map((item) => ({
         routine: item.routine,
-        upcoming: item.occurrences.filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now).length,
+        upcoming: item.occurrences.filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= at).length,
+        active: withExpiry(item.occurrences, now).some((occurrence) => !occurrence.started && !occurrence.expired),
       }))
-      .sort((a, b) => a.routine.name.localeCompare(b.routine.name, "fr", { sensitivity: "base" }));
+      .sort((a, b) =>
+        a.active !== b.active ? (a.active ? -1 : 1) : displayName(a.routine).localeCompare(displayName(b.routine), "fr", { sensitivity: "base" }),
+      );
   }
 
   /** D-537 : historique (au moins une occurrence commencée) et nombre de créneaux non commencés supprimés. */
@@ -261,26 +273,22 @@ export class PlanningService {
     return this.deps.repository.get(routineId);
   }
 
-  /** RM-261 : nom déjà pris par une autre planification (casse et espaces de bord ignorés). */
-  async isNameTaken(name: string, exceptRoutineId?: string): Promise<boolean> {
-    const key = normalizeRoutineName(name);
-    const routines = await this.deps.repository.list();
-    return routines.some((routine) => routine.id !== exceptRoutineId && normalizeRoutineName(routine.name) === key);
-  }
-
-  private async issuesOf(draft: RoutineDraft, exceptRoutineId?: string): Promise<(RoutineValidationIssue | "NAME_TAKEN")[]> {
-    const issues: (RoutineValidationIssue | "NAME_TAKEN")[] = [...validateRoutineDraft(draft)];
-    if (draft.name.trim() !== "" && (await this.isNameTaken(draft.name, exceptRoutineId))) issues.push("NAME_TAKEN");
-    return issues;
+  /**
+   * D-553 (21/11/2026) : validations du brouillon ; un nom vide bloque (« Nom obligatoire »), les doublons sont autorisés.
+   * [RM-261 : nom déjà pris par une autre planification (« Ce nom est déjà utilisé ») — retiré.]
+   */
+  private issuesOf(draft: RoutineDraft): RoutineValidationIssue[] {
+    return [...validateRoutineDraft(draft)];
   }
 
   async createRoutine(draft: RoutineDraft): Promise<SaveRoutineResult> {
-    const issues = await this.issuesOf(draft);
+    const issues = this.issuesOf(draft);
     if (issues.length > 0) return { status: "INVALID", issues };
     const at = this.deps.now().toISOString();
     const routine: Routine = {
       id: this.deps.newId(),
       name: draft.name.trim(),
+      ...(draft.nameGenerated === true ? { nameGenerated: true } : {}),
       startDate: draft.startDate,
       time: draft.time,
       repetition: draft.repetition,
@@ -295,15 +303,18 @@ export class PlanningService {
   }
 
   async updateRoutine(routineId: string, draft: RoutineDraft): Promise<SaveRoutineResult> {
-    const issues = await this.issuesOf(draft, routineId);
+    const issues = this.issuesOf(draft);
     if (issues.length > 0) return { status: "INVALID", issues };
     const stored = await this.deps.repository.get(routineId);
     if (stored === null) return { status: "NOT_FOUND" };
     // D-536 : les occurrences commencées gardent la séquence de leur lancement.
     const existing = await this.frozen(stored, { expired: true });
+    const { nameGenerated: _previousMode, ...rest } = existing;
     const routine: Routine = {
-      ...existing,
+      ...rest,
       name: draft.name.trim(),
+      // D-553 : le mode du nom suit le formulaire (nom généré, ou personnalisé dès qu'il est saisi).
+      ...(draft.nameGenerated === true ? { nameGenerated: true } : {}),
       startDate: draft.startDate,
       time: draft.time,
       repetition: draft.repetition,
@@ -352,8 +363,10 @@ export class PlanningService {
     const routine = await this.deps.repository.get(routineId);
     if (routine === null) return null;
     return {
-      // RM-261 : le nom est unique ; la copie part d'un nom vide, à saisir (RM-258).
+      // D-553 (21/11/2026) : la copie est une création — nom par défaut généré depuis ses Séances (§ 2). [RM-261 : nom vide, à
+      // saisir, le nom étant unique — remplacé.] [Copie d'un nom personnalisé : non arbitrée, voir rapport AGENDA-SEANCES-01.]
       name: "",
+      nameGenerated: true,
       startDate: routine.startDate,
       time: routine.time,
       repetition: routine.repetition,
@@ -373,17 +386,111 @@ export class PlanningService {
   }
 
   /**
+   * D-553 (21/11/2026, spécification § 4) : rattachement automatique d'une Exécution lancée hors Agenda. Créneau éligible :
+   * créneau autonome (une seule Séance active, la même), le même jour que le lancement, non commencé et non expiré ; un
+   * parcours n'est jamais éligible (Séance de parcours lancée hors Agenda = « Hors planification »). Plusieurs créneaux : le plus
+   * proche de l'heure de lancement, puis le plus ancien (heure prévue la plus tôt, puis routine la plus ancienne). `null` : hors
+   * planification. [Égalité : « le plus ancien » lu comme l'heure prévue la plus tôt — interprétation technique.]
+   */
+  async autoAttachment(sessionId: string, at: Date): Promise<OccurrenceLink | null> {
+    const day = formatLocalDate(at);
+    const isStarted = await this.startedTest();
+    const routines = await this.deps.repository.list();
+    const candidates = routines.flatMap((routine) =>
+      withExpiry(routineOccurrences(routine, isStarted), at)
+        .filter(
+          (occurrence) =>
+            occurrence.date === day && !occurrence.started && !occurrence.expired && occurrence.sessions.length === 1 && occurrence.contents.length === 1 && occurrence.contents[0]!.sessionId === sessionId,
+        )
+        .map((occurrence) => ({ routine, occurrence, instant: occurrenceInstant(occurrence.date, occurrence.time).getTime() })),
+    );
+    const time = at.getTime();
+    candidates.sort(
+      (a, b) =>
+        Math.abs(a.instant - time) - Math.abs(b.instant - time) ||
+        a.instant - b.instant ||
+        (a.routine.createdAt < b.routine.createdAt ? -1 : a.routine.createdAt > b.routine.createdAt ? 1 : 0),
+    );
+    const chosen = candidates[0];
+    return chosen === undefined ? null : { routineId: chosen.routine.id, occurrenceKey: chosen.occurrence.key, rank: 1 };
+  }
+
+  /**
+   * D-553 (21/11/2026, arbitrage 9) : « Supprimer » sur la carte d'une Séance de parcours retire cette Séance seule de
+   * l'occurrence (`sessionIndex` : rang dans la liste des séances de l'occurrence, `OccurrenceContent.rank`). Refusé pour une
+   * Séance exécutée (historique). La dernière Séance restante supprime le créneau (aucune ligne « Ⓟ » seule). Une Séance non
+   * exécutée d'un parcours commencé peut être supprimée : elle n'est plus à rattraper ; le reste du créneau figé est inchangé.
+   * Une Séance de la routine est désactivée (D-536, point 4 : jamais retirée), une Séance ajoutée à la main est retirée.
+   */
+  async removeOccurrenceSession(routineId: string, occurrenceKey: string, sessionIndex: number): Promise<"REMOVED" | "SLOT_REMOVED" | "EXECUTED" | "NOT_FOUND"> {
+    const current = await this.deps.repository.get(routineId);
+    if (current === null) return "NOT_FOUND";
+    const routine = await this.frozen(current);
+    const occurrence = routineOccurrences(routine, await this.startedTest()).find((item) => item.key === occurrenceKey);
+    const target = occurrence?.sessions[sessionIndex];
+    if (occurrence === undefined || target === undefined || !target.active) return "NOT_FOUND";
+    const linked = (await this.listOccurrenceExecutions()).filter((execution) => execution.routineId === routineId && execution.occurrenceKey === occurrenceKey);
+    const position = occurrence.contents.findIndex((content) => content.rank === sessionIndex) + 1;
+    const executed = linked.some((execution) =>
+      execution.sessionId !== undefined && execution.sessionId !== null
+        ? execution.sessionId === target.sessionId && execution.rank === position
+        : execution.rank === position,
+    );
+    if (executed) return "EXECUTED";
+    if (occurrence.contents.length <= 1) {
+      if (occurrence.started) return "EXECUTED";
+      await this.deps.repository.addExclusion(routineId, occurrenceKey, this.deps.now().toISOString());
+      await this.refreshReminders();
+      return "SLOT_REMOVED";
+    }
+    const sessions = occurrence.sessions.flatMap((session, index) =>
+      index !== sessionIndex ? [session] : session.origin === "ADDED" ? [] : [{ ...session, active: false }],
+    );
+    const saved = (routine.overrides ?? []).find((item) => item.key === occurrenceKey);
+    const next: OccurrenceOverride =
+      saved !== undefined
+        ? { ...saved, sessions }
+        : { key: occurrenceKey, index: occurrence.index, date: null, time: null, sessions, reminderOverridden: false, reminderMinutes: null, startedAt: null };
+    const others = (routine.overrides ?? []).filter((item) => item.key !== occurrenceKey);
+    await this.deps.repository.save({ ...routine, overrides: [...others, next], updatedAt: this.deps.now().toISOString() });
+    await this.refreshReminders();
+    return "REMOVED";
+  }
+
+  /**
    * Données de l'Agenda en une lecture (recette du 20/11/2026 : liste lente à apparaître) : routines, créneaux de [`from`,
    * `to`] et Exécutions liées. [Avant : routines et Exécutions lues deux fois par chargement — choix technique.]
    */
   async agendaData(
     from: LocalDate,
     to: LocalDate,
-  ): Promise<{ readonly routines: readonly Routine[]; readonly occurrences: readonly Occurrence[]; readonly executions: readonly OccurrenceExecution[] }> {
-    const [routines, executions] = await Promise.all([this.deps.repository.list(), this.listOccurrenceExecutions()]);
+  ): Promise<{
+    readonly routines: readonly Routine[];
+    readonly occurrences: readonly Occurrence[];
+    readonly executions: readonly OccurrenceExecution[];
+    /** D-553 : toutes les Exécutions (cartes de Séance exécutées et « Hors planification »). */
+    readonly allExecutions: readonly AgendaExecution[];
+  }> {
+    const [routines, executions, allExecutions] = await Promise.all([
+      this.deps.repository.list(),
+      this.listOccurrenceExecutions(),
+      this.deps.executions?.() ?? Promise.resolve([] as readonly AgendaExecution[]),
+    ]);
     const keys = new Set(executions.map((execution) => occurrenceExecutionKey(execution.routineId, execution.occurrenceKey)));
-    const occurrences = this.inRange(routines, (routineId, key) => keys.has(occurrenceExecutionKey(routineId, key)), from, to, () => true);
-    return { routines, occurrences, executions };
+    // D-553 (§ 3) : une Séance exécutée est placée à sa date réelle — un créneau d'avant la période dont une Exécution a démarré
+    // dans la période est lu aussi.
+    const executedInRange = new Set(
+      executions
+        .filter((execution) => {
+          const day = formatLocalDate(new Date(execution.startedAt));
+          return day >= from && day <= to;
+        })
+        .map((execution) => occurrenceExecutionKey(execution.routineId, execution.occurrenceKey)),
+    );
+    const occurrences = this.inRange(routines, (routineId, key) => keys.has(occurrenceExecutionKey(routineId, key)), from, to, () => true, (occurrence) =>
+      executedInRange.has(occurrenceExecutionKey(occurrence.routineId, occurrence.key)),
+    );
+    return { routines, occurrences, executions, allExecutions };
   }
 
   /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
@@ -398,19 +505,15 @@ export class PlanningService {
     from: LocalDate,
     to: LocalDate,
     isPlannable: (sessionId: string) => boolean,
+    also: (occurrence: Occurrence) => boolean = () => false,
   ): Occurrence[] {
     const now = this.deps.now();
     // D-540 : l'état « expiré » dépend du créneau suivant de la routine, éventuellement hors de la période.
     return routines
       .flatMap((routine) => withExpiry(routineOccurrences(routine, isStarted), now))
-      .filter((occurrence) => occurrence.date >= from && occurrence.date <= to)
+      .filter((occurrence) => (occurrence.date >= from && occurrence.date <= to) || also(occurrence))
       .sort((a, b) => (a.date === b.date ? (a.time === b.time ? 0 : a.time < b.time ? -1 : 1) : a.date < b.date ? -1 : 1))
       .map((occurrence) => ({ ...occurrence, contents: occurrence.contents.filter((content) => isPlannable(content.sessionId)) }))
       .filter((occurrence) => occurrence.contents.length > 0);
   }
-}
-
-/** RM-261 : comparaison des noms sans casse ni espaces de bord. */
-export function normalizeRoutineName(name: string): string {
-  return name.trim().toLocaleLowerCase("fr-FR");
 }

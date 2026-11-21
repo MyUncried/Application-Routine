@@ -25,7 +25,6 @@ import {
   type Weekday,
 } from "@/domain/planning/Routine";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { normalizeRoutineName } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import {
   applySelection,
@@ -174,7 +173,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [saveFailed, setSaveFailed] = useState(false);
   // Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ».
   const [modifyCount, setModifyCount] = useState<number | null>(null);
-  const [otherNames, setOtherNames] = useState<readonly { readonly id: string; readonly key: string }[]>([]);
   // RM-259 : la synthèse dont les jours ne tenaient pas, mémorisée pour passer à « X jours par semaine ».
   const [overflowing, setOverflowing] = useState<string | null>(null);
   const savingRef = useRef(false);
@@ -196,20 +194,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   useEffect(() => {
     reload();
   }, [reload]);
-
-  // RM-261 : noms des autres planifications, pour signaler un nom déjà pris sous le champ.
-  useEffect(() => {
-    let cancelled = false;
-    planning.listRoutines().then(
-      (routines) => {
-        if (!cancelled) setOtherNames(routines.map((routine) => ({ id: routine.id, key: normalizeRoutineName(routine.name) })));
-      },
-      () => undefined,
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [planning]);
 
   // D-524 : nouvelle planification — 15 min présélectionnées si les notifications sont déjà autorisées ; sinon « Sans »,
   // l'autorisation n'étant demandée qu'au premier choix d'un délai (RM-052).
@@ -347,11 +331,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const removed = form.entries.length - rows.length;
   const name = effectiveName(shown, nameOf);
   const draft = toRoutineDraft(shown, name);
-  const nameKey = normalizeRoutineName(name);
   // Occurrence seule : le nom reste celui de la routine (ni saisie ni contrôle) ; au moins une séance active dans le créneau.
   const editing = mode.kind === "occurrence" ? mode.editing : null;
-  const nameTaken =
-    editing === null && nameKey !== "" && otherNames.some((other) => other.key === nameKey && (mode.kind !== "edit" || other.id !== mode.routineId));
   const nameMissing = editing === null && name.trim() === "";
   const blocking =
     editing === null
@@ -360,7 +341,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED"),
           ...(shown.grid.points.some((row) => row[editing.column] === true) ? [] : ["EMPTY_SLOT" as const]),
         ];
-  const canSave = blocking.length === 0 && !nameTaken && !saving && catalogue.status === "ready";
+  const canSave = blocking.length === 0 && !saving && catalogue.status === "ready";
 
   const save = () => {
     if (!canSave || savingRef.current) return;
@@ -505,7 +486,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         headerBackground={colors.background}
         band={
           <View style={styles.contextBand}>
-            {/* D-522 / RM-258 : nom libre, unique ; copié de la séance quand une seule est planifiée. */}
+            {/* D-553 (21/11/2026) : nom généré (Séance, ou noms reliés par « + ») tant qu'il n'est pas modifié ; personnalisé
+                ensuite. [D-522 / RM-258 : nom libre, unique ; copié de la séance quand une seule est planifiée — remplacé.] */}
             <TextInput
               value={name}
               onChangeText={(value) => update({ name: value, nameEdited: true })}
@@ -518,9 +500,11 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               returnKeyType="done"
               testID="planning-name"
             />
-            {nameMissing || nameTaken ? (
+            {/* D-553 (21/11/2026) : nom vidé → « Nom obligatoire » ; doublons autorisés. [« Ce nom est déjà utilisé » (RM-261) —
+                retiré.] */}
+            {nameMissing ? (
               <Text style={styles.nameError} accessibilityLiveRegion="polite" testID="planning-name-error">
-                {nameTaken ? t.nameTaken : t.nameRequired}
+                {t.nameRequired}
               </Text>
             ) : null}
             {/* RM-259 : synthèse en 14 ; « X jours par semaine » quand les jours ne tiennent pas. */}
