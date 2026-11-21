@@ -661,3 +661,7 @@ La révision est installée sur demande de l'utilisateur depuis une Bibliothèqu
 Un catalogue source par compte ; une fiche source dans plusieurs bibliothèques, un seul mouvement local. Les accès bibliothèque/direct/séance partagée sont distincts des droits de redistribution et des attributs de classification.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Complément du 21/11/2026 — Routine, Parcours et Séance dans l'Agenda
+
+La Routine demeure l'objet de planification et garde une identité stable ; son nom par défaut dérive des Séances, peut être personnalisé et n'est plus unique. Une Routine à plusieurs Séances est présentée comme Parcours, sans Exécution ni statut global propres. L'Agenda présente chaque Séance individuellement ; le Journal présente chaque Routine individuellement. Voir [décisions du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md), qui supersèdent les seules descriptions antérieures incompatibles.
