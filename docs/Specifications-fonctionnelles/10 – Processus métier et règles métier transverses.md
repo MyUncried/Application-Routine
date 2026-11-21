@@ -2044,7 +2044,7 @@ La suppression d'une Routine n'a aucun effet sur sa source. La modification de l
 | ID | Règle |
 | --- | --- |
 | RM-253 | La Répétition génère les créneaux. Le cycle de rotation compte 1 à 7 créneaux (#1 à #7) ; au départ seul #1 est actif. Sa longueur se règle en touchant un numéro de colonne (D-519). |
-| RM-254 | Chaque séance du parcours occupe une ligne ; un point dans une colonne signifie qu’elle est jouée dans ce créneau du cycle. Au moins un point par colonne et par ligne (aucune séance sans point, aucun créneau vide). |
+| RM-254 | [Précisé le 22/11/2026 (D-556) : « aucune séance sans point » vaut pour la grille de la routine, pas pour la modification d’un seul créneau ; « aucun créneau vide » vaut partout.] Chaque séance du parcours occupe une ligne ; un point dans une colonne signifie qu’elle est jouée dans ce créneau du cycle. Au moins un point par colonne et par ligne (aucune séance sans point, aucun créneau vide). |
 | RM-255 | La mention de fréquence d’une séance (« à chaque fois » ou « x fois sur n ») est calculée en direct à partir de ses points ; elle n’est pas saisie. |
 | RM-256 | Plusieurs séances dans un même créneau forment un seul lancement, à l’heure de début, dans l’ordre des lignes ; l’ordre des lignes est celui de la sélection. |
 | RM-257 | Répétition : valeur « toutes les » / « tous les » (accord avec l’unité) / « aucune », nombre, unité, « jusqu’au » date. Unités : jours et semaines (« mois » retiré, D-526). « aucune » = planification unique. La rangée des jours n’existe que pour l’unité semaines (D-520). [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : pour l’unité semaines, « jusqu’au » date bascule vers « pendant » N semaines (D-331), conversion dans les deux sens ; l’unité jours garde « jusqu’au » seulement — remplacé ci-après.] [Modifié le 19/11/2026 au soir, recette iPhone (Hermann : « avec l'option "jour", l'option "pendant" n'est pas disponible, c'est à corriger ») : pour l’unité jours aussi, « jusqu’au » date bascule vers « pendant » N jours, comptés depuis « Début le » compris, conversion dans les deux sens. Changer d’unité garde la forme de la borne et sa date de fin ; le nombre est recompté dans la nouvelle unité.] |
@@ -2815,3 +2815,9 @@ Les lignes historiques RM-258 et RM-261 ci-dessus sont **supersédées pour les 
 | Règle | Énoncé |
 |---|---|
 | RM-273 | Un créneau ajouté à la main (depuis le Plan) appartient à sa routine et ne modifie pas sa répétition. Il suit les règles des autres créneaux : statut, rattrapage et expiration (D-540), suppression (D-537, D-553), figé une fois commencé (D-536). Sa date et son heure sont protégées d’un changement global de la routine (groupe « date et heure », D-536). Supprimer la routine supprime ses créneaux ajoutés non commencés. Voir [DSF Plan](../DSF-PLAN-2026-11-21.md) § 8. |
+
+### Complément du 22/11/2026 — Modification d'un créneau de parcours depuis l'Agenda (D-556, D-557)
+
+| Règle | Énoncé |
+|---|---|
+| RM-274 | Dans la modification d'un seul créneau de parcours (Agenda) : toute séance peut être désactivée, même sans pastille sur les autres créneaux, tant qu'au moins une séance reste active ; l'ordre des séances peut être modifié et il est conservé pour ce créneau seulement, l'enchaînement suivant cet ordre. Ces choix appartiennent au groupe « séances » du créneau, protégé d'un changement global de la routine (D-536). La routine et ses autres créneaux ne changent pas. |

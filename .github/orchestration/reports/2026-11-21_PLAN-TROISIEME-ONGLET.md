@@ -102,3 +102,12 @@ Un premier script avait déplacé l'entonnoir de 10 écrans hors cadre. L'erreur
 ## Commit final et état Git
 
 Donnés dans le compte rendu de livraison.
+
+## Complément du 22/11/2026 — constats de recette sur la modification d'un créneau de parcours
+
+Deux constats de recette de Hermann sont enregistrés dans la documentation (classe B) :
+
+- **D-556** : désactiver dans un créneau une séance sans pastille ailleurs doit être possible ; RM-254 est précisée.
+- **D-557** : l'ordre des séances modifié depuis l'Agenda est conservé pour le créneau.
+
+Les deux décisions alimentent la règle RM-274 et touchent le ch09 et le DSF Agenda. Identifiants D-556, D-557 et RM-274 vérifiés libres sur toutes les branches distantes. Aucun code modifié.

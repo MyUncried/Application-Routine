@@ -100,3 +100,9 @@ Précise D-538 et D-539 :
   - les 11 écrans de la vue Agenda ;
   - composant `icon/filtre-routine`, état Inactif.
 - Onglets : Journal · Agenda · Plan (D-554, [DSF Plan](DSF-PLAN-2026-11-21.md)).
+
+## Modification d'un créneau de parcours — 22/11/2026 (D-556, D-557)
+
+- **Désactiver une séance** : on peut désactiver n'importe quelle séance du créneau, même si elle n'a de pastille sur aucun autre créneau du cycle. Au moins une séance reste active. La règle « chaque séance a au moins une pastille » ne vaut que dans la grille de la routine (Journal).
+- **Ordre des séances** : modifiable dans ce créneau et conservé pour lui seul ; l'enchaînement suit ce nouvel ordre.
+- **Constats** : recette du 22/11/2026. Validation bloquée, et ordre non conservé (RM-274).

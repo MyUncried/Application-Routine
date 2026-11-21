@@ -1599,3 +1599,7 @@ La contrainte d'unicité du nom de Routine est supprimée ; celle du nom de Séa
 ### Complément du 21/11/2026 — créneau ajouté (D-554)
 
 Une occurrence peut être **ajoutée** à une routine en dehors de sa répétition. Elle est enregistrée avec sa date et son heure, distinguée des occurrences issues de la répétition, et son groupe « date et heure » est marqué comme modifié à la main (D-536). Mécanisme technique non imposé. Règle : RM-273 ; rendu : [DSF Plan](../DSF-PLAN-2026-11-21.md).
+
+### Complément du 22/11/2026 — ordre des séances d'un créneau (D-557)
+
+Une occurrence modifiée à la main enregistre, dans son groupe « séances », les séances actives **et leur ordre**. Cet ordre prime sur celui de la routine pour cette occurrence. Règle : RM-274.
