@@ -208,3 +208,14 @@ Un agent distinct a relu le diff, les liens, les formulations contraires et la c
 ## Commit final et état Git
 
 Donnés dans le compte rendu de livraison et dans la PR.
+
+## Complément du 21/11/2026 (après-midi) — arbitrages de Hermann
+
+- **Écart Agenda corrigé** : « 14h07 » devient « — » sur la 2e carte du parcours de `12906:47` (texte `12906:93`). Capture relue.
+- **Questions 1 à 8 de la spécification tranchées** (« 1. Oui ; 2. Ok ; 3. Ok ; 4. On bloque ; 5. a Oui, b ok, c ok dans l'ordre, d ok ») et intégrées :
+  - spécification § 2 à § 5 et § 8 ;
+  - ligne D-553 du registre ;
+  - RM-261 : nom vide bloquant, plus d'unicité ;
+  - RM-264.
+- **Reste À CLARIFIER** : portée des gestes (modifier, supprimer) sur la carte d'une Séance de parcours.
+- **Classe B.**
