@@ -12,7 +12,7 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  */
 describe("migration 036 — routines.name_generated", () => {
   it("version 36 ; routines nommées personnalisées, routines sans nom générées ; données conservées ; idempotente", async () => {
-    expect(DATABASE_VERSION).toBe(36);
+    expect(DATABASE_VERSION).toBe(37);
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database, () => "2026-11-21T00:00:00.000Z", 34);
     await database.runAsync(
@@ -25,7 +25,7 @@ describe("migration 036 — routines.name_generated", () => {
     );
     await migrateDatabase(database);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-    expect(version?.user_version).toBe(36);
+    expect(version?.user_version).toBe(37);
     const repository = new SqliteRoutineRepository(database);
     const named = await repository.get("named");
     expect(named).toMatchObject({ name: "Mobilité du matin", startDate: "2026-08-03", reminderMinutes: 15 });

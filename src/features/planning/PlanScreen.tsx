@@ -1,0 +1,504 @@
+import { useFocusEffect, useRouter } from "expo-router";
+import { Image } from "expo-image";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { addDays, formatLocalDate, mondayOf, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import type { Occurrence } from "@/domain/planning/occurrences";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { mergeAgendaExecutions } from "@/features/planning/agendaCards";
+import { formatAgendaMonth } from "@/features/planning/agendaFormat";
+import { DoubleChevron, formatDayTitle } from "@/features/planning/CalendarWeekScreen";
+import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
+import { routineTitle } from "@/features/planning/journal";
+import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
+import {
+  buildPlanWeek,
+  firstWeekOfShiftedMonth,
+  formatPlanTotal,
+  isoWeekNumber,
+  monthOfWeek,
+  weekDaysLabel,
+  weeksOfMonth,
+  type PlanRow,
+  type PlanTint,
+} from "@/features/planning/planWeek";
+import { usePlanningService } from "@/features/planning/PlanningServiceContext";
+import { planningStrings } from "@/features/planning/planningStrings";
+import { TodayIcon } from "@/features/planning/TodayIcon";
+import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
+import { CommandCircle } from "@/shared/ui/CatalogueCommands";
+import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
+import { colors, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Calendrier — Plan (D-554, 21/11/2026 ; DSF Plan ; CE-UI-16 ; Figma « P-Calendrier — Plan » `12983:19`, mois de cinq semaines
+ * `13005:14750`, case vide touchée `13005:14584`). Grille d'une semaine : routines regroupées par programme, cases de créneau,
+ * ligne Total, légende. Calcul de la grille : `planWeek.ts`.
+ *
+ * Gestes (DSF Plan § 7) :
+ * - case vide : ajoute un créneau de la routine ce jour-là (modale du créneau pré-remplie ; parcours : le créneau entier) ;
+ * - case pleine : modification du créneau (pour un parcours, tout le créneau) ; un créneau commencé ne s'ouvre pas ;
+ * - « + Routine » : planification habituelle, programme du groupe pré-sélectionné (aucun sous « Sans programme »).
+ *
+ * Programmes : le modèle des programmes (mission PROG-CAT-01) n'est pas sur cette branche ; toutes les routines sont donc sous
+ * « Sans programme » [À CLARIFIER / dépendance d'intégration, voir rapport PLAN-01].
+ */
+
+const t = planningStrings;
+/** Figma `12983:39` : colonnes de jour de 38 à partir de x = 128, cases 34 × 20, marge gauche 8. */
+const LEFT = 8;
+const NAMES_WIDTH = 120;
+const COLUMN = 38;
+const CELL_WIDTH = 34;
+const CELL_HEIGHT = 20;
+const CELL_GAP = 2;
+const ROW_HEIGHT = 32;
+const TITLE_HEIGHT = 22;
+const BAND_HEIGHT = 26;
+const WEEK_WIDTH = 51;
+const WEEK_GAP = 3;
+const LINE = 0.5;
+
+/** Teintes des cases (Figma `12983:74` et suivantes) et de la légende (`12983:100`). */
+const TINTS: Readonly<Record<PlanTint, { readonly background: string; readonly text: string; readonly border: string }>> = {
+  COMPLETED: { background: "#E0F5E8", text: "#1A7340", border: "#8FCCA8" },
+  PARTIAL: { background: "#FCEDD6", text: "#A6610D", border: "#EBB26B" },
+  MISSED: { background: "#FCE5E5", text: "#B23838", border: "#E58F8F" },
+  UPCOMING: { background: "#F0F0F5", text: "#595E66", border: "#B8BAC9" },
+};
+
+const SEPARATOR = "#E0E3EB";
+const DAY_SEPARATOR = "#E3E5EB";
+const TODAY_COLUMN = "rgba(94, 97, 237, 0.06)";
+const TODAY_BADGE = "#5E61ED";
+
+function todayLocal(): LocalDate {
+  return formatLocalDate(new Date());
+}
+
+/** Hauteur d'une ligne de cases : 32, agrandie pour des créneaux empilés (deux créneaux : 50). */
+export function planRowHeight(row: PlanRow): number {
+  if (row.kind === "TITLE") return TITLE_HEIGHT;
+  const stacked = Math.max(1, ...row.cells.map((list) => list.length));
+  return Math.max(ROW_HEIGHT, stacked * CELL_HEIGHT + (stacked - 1) * CELL_GAP + 8);
+}
+
+export function PlanScreen({
+  initialDay,
+  onChangeView = () => undefined,
+}: {
+  readonly initialDay?: LocalDate;
+  readonly onChangeView?: (view: CalendarView) => void;
+} = {}) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const planning = usePlanningService();
+  const { state: catalogue, reload: reloadCatalogue, cancelPending } = useSessionCatalogue();
+  const [monday, setMonday] = useState<LocalDate>(() => mondayOf(initialDay ?? todayLocal()));
+  const mondayRef = useRef(monday);
+  const [routines, setRoutines] = useState<readonly Routine[]>([]);
+  const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
+  const [linked, setLinked] = useState<readonly OccurrenceExecution[]>([]);
+  const [executions, setExecutions] = useState<readonly AgendaExecution[]>([]);
+  const [loadedAt, setLoadedAt] = useState(0);
+  const [loadedMonday, setLoadedMonday] = useState<LocalDate | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  // Case vide touchée (DSF Plan § 7, Figma `13005:14584`) : pointillés bleus et « + » pendant le toucher.
+  const [touched, setTouched] = useState<string | null>(null);
+  const requestId = useRef(0);
+
+  const load = useCallback(
+    (week: LocalDate) => {
+      const id = ++requestId.current;
+      planning.agendaData(week, addDays(week, 6)).then(
+        (data) => {
+          if (id !== requestId.current) return;
+          setRoutines(data.routines);
+          setOccurrences(data.occurrences);
+          setLinked(data.executions);
+          setExecutions(data.allExecutions);
+          setLoadedAt(Date.now());
+          setLoadedMonday(week);
+          setLoadFailed(false);
+        },
+        (error: unknown) => {
+          if (id !== requestId.current) return;
+          console.error("Le plan n'a pas pu être chargé.", error);
+          setLoadFailed(true);
+        },
+      );
+    },
+    [planning],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      reloadCatalogue();
+      load(mondayRef.current);
+      return () => {
+        cancelPending();
+        setTouched(null);
+      };
+    }, [reloadCatalogue, cancelPending, load]),
+  );
+
+  const changeWeek = (next: LocalDate) => {
+    mondayRef.current = next;
+    setMonday(next);
+    load(next);
+  };
+
+  const projections = useMemo(() => {
+    const map = new Map<string, SessionCatalogueProjection>();
+    if (catalogue.status === "ready") for (const projection of catalogue.sessions) map.set(projection.id, projection);
+    return map;
+  }, [catalogue]);
+  const isPlannable = useCallback((sessionId: string) => projections.get(sessionId)?.status === "ACTIVE", [projections]);
+
+  const week = useMemo(
+    () =>
+      buildPlanWeek({
+        monday,
+        routines,
+        occurrences,
+        executions: mergeAgendaExecutions(executions, linked),
+        projections,
+        isPlannable,
+        now: loadedAt,
+        displayName: (routine) =>
+          routineTitle(
+            routine,
+            routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined),
+          ),
+        // Programmes : absents de cette branche (PROG-CAT-01) — toutes les routines « Sans programme ».
+        programmeOf: () => null,
+      }),
+    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt],
+  );
+
+  const today = todayLocal();
+  const todayIndex = week.days.indexOf(today);
+  const weeks = weeksOfMonth(monthOfWeek(monday));
+  const blockWidth = weeks.length * WEEK_WIDTH + (weeks.length - 1) * WEEK_GAP;
+
+  /** Case vide : ajout d'un créneau ; jour où la routine a déjà un créneau (séance désactivée d'un parcours) : ce créneau. */
+  const touchEmpty = (row: PlanRow, day: LocalDate) => {
+    const existing = week.occurrencesOf(row.routine.id, day);
+    if (existing.length > 0) {
+      openOccurrence(existing[0]!);
+      return;
+    }
+    router.push({ pathname: "/planning", params: { addTo: row.routine.id, date: day } });
+  };
+  /** Case pleine : modification de tout le créneau ; un créneau commencé ne s'ouvre pas (D-536). */
+  const openOccurrence = (occurrence: Occurrence | undefined) => {
+    if (occurrence === undefined || occurrence.started) return;
+    router.push({ pathname: "/planning", params: { routineId: occurrence.routineId, occurrenceKey: occurrence.key } });
+  };
+  const planFrom = () => (monday > today ? monday : today);
+
+  const renderGridLines = (height: number) => (
+    <>
+      {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height }]} pointerEvents="none" /> : null}
+      {week.days.map((day, index) => (
+        <View key={day} style={[styles.dayLine, { left: LEFT + NAMES_WIDTH + index * COLUMN - LINE / 2, height }]} pointerEvents="none" />
+      ))}
+    </>
+  );
+
+  const renderRow = (row: PlanRow) => {
+    const height = planRowHeight(row);
+    if (row.kind === "TITLE") {
+      return (
+        <View key={row.key} style={{ height }} testID={`plan-row-${row.key}`}>
+          {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height }]} pointerEvents="none" /> : null}
+          {/* Lien noir fin : du bas du Ⓟ jusqu'au bas de la dernière séance (Figma `12983:130`). */}
+          <View style={[styles.parcoursLink, { top: 21, height: height - 21 }]} testID={`plan-row-${row.key}-link`} />
+          <View style={styles.titleLine}>
+            <ParcoursBadge placement="alone" stroke={1.333} testID={`plan-row-${row.key}-badge`} />
+            <Text style={styles.parcoursName} numberOfLines={1} testID={`plan-row-${row.key}-name`}>
+              {row.title}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    const session = row.kind === "SESSION";
+    return (
+      <View key={row.key} style={{ height }} testID={`plan-row-${row.key}`}>
+        {renderGridLines(height)}
+        {/* Séance d'un parcours : filet court au-dessus (depuis l'alignement des noms) et lien du Ⓟ. */}
+        {session ? <View style={[styles.rowLine, styles.shortLine, { top: 0 }]} /> : null}
+        {session ? <View style={[styles.parcoursLink, { top: 0, height }]} testID={`plan-row-${row.key}-link`} /> : null}
+        <Text style={[styles.rowName, session ? styles.sessionName : null]} numberOfLines={2} testID={`plan-row-${row.key}-name`}>
+          {row.title}
+        </Text>
+        {week.days.map((day, index) => {
+          const cells = row.cells[index] ?? [];
+          const left = LEFT + NAMES_WIDTH + index * COLUMN;
+          const touchKey = `${row.routine.id}|${day}`;
+          if (cells.length === 0) {
+            const highlighted = touched === touchKey;
+            return (
+              <Pressable
+                key={day}
+                onPressIn={() => setTouched(touchKey)}
+                onPressOut={() => setTouched((current) => (current === touchKey ? null : current))}
+                onPress={() => touchEmpty(row, day)}
+                accessibilityRole="button"
+                accessibilityLabel={fillTemplate(t.plan.addAccessibility, { routine: row.routine.name, day: formatDayTitle(day) })}
+                style={[styles.emptyCell, { left, height }]}
+                testID={`plan-cell-${row.key}-${day}-empty`}
+              >
+                {highlighted ? (
+                  <View style={styles.touchedCell} testID={`plan-cell-${row.key}-${day}-touched`}>
+                    <Text style={styles.touchedPlus}>+</Text>
+                  </View>
+                ) : null}
+              </Pressable>
+            );
+          }
+          const top = (height - (cells.length * CELL_HEIGHT + (cells.length - 1) * CELL_GAP)) / 2;
+          return (
+            <View key={day} style={[styles.cellColumn, { left, top }]}>
+              {cells.map((cell) => {
+                const tint = TINTS[cell.tint];
+                return (
+                  <Pressable
+                    key={cell.key}
+                    onPress={() => openOccurrence(cell.card.occurrence)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${cell.card.title}, ${cell.label}`}
+                    style={[styles.cell, { backgroundColor: tint.background }]}
+                    testID={`plan-cell-${cell.key}`}
+                  >
+                    <Text style={[styles.cellLabel, { color: tint.text }]} numberOfLines={1} allowFontScaling={false} testID={`plan-cell-${cell.key}-label`}>
+                      {cell.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          );
+        })}
+        {/* Filet pleine largeur sous une routine ; le parcours se ferme par un filet pleine largeur sous sa dernière séance. */}
+        {!session || row.last === true ? <View style={[styles.rowLine, styles.fullLine, { bottom: 0 }]} /> : null}
+      </View>
+    );
+  };
+
+  return (
+    <TabbedScreen
+      title={t.calendar.title}
+      palette={CALENDAR_PALETTE}
+      tabs={calendarTabs("plan", onChangeView)}
+      context={{
+        kind: "custom",
+        layout: "centered",
+        content: (
+          // DSF Plan § 2 (Figma `12983:19`) : ligne 1, « Aujourd'hui » et le mois centré sur le bloc des semaines, sans filtre ;
+          // ligne 2, flèches de semaine, semaines du mois en cadres de 51 × 46, Planifier. Positions de l'Agenda (D-538, D-555).
+          <View style={styles.context} pointerEvents="box-none" testID="plan-context">
+            <Pressable
+              onPress={() => changeWeek(mondayOf(today))}
+              accessibilityRole="button"
+              accessibilityLabel={t.calendar.today}
+              style={styles.todayButton}
+              testID="plan-today"
+            >
+              <TodayIcon day={parseLocalDate(today).getDate()} current={monday === mondayOf(today)} testID="plan-today-icon" />
+            </Pressable>
+            <View style={styles.monthNavigation} pointerEvents="box-none" testID="plan-month-navigation">
+              <Pressable onPress={() => changeWeek(firstWeekOfShiftedMonth(monday, -1))} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={6} testID="plan-previous-month">
+                <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
+              </Pressable>
+              <Text style={styles.monthLabel} accessibilityRole="header" maxFontSizeMultiplier={1.2} numberOfLines={1} testID="plan-month-label">
+                {formatAgendaMonth(monthOfWeek(monday))}
+              </Text>
+              <Pressable onPress={() => changeWeek(firstWeekOfShiftedMonth(monday, 1))} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={6} testID="plan-next-month">
+                <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
+              </Pressable>
+            </View>
+            <Pressable onPress={() => changeWeek(addDays(monday, -7))} accessibilityRole="button" accessibilityLabel={t.calendar.previousWeek} hitSlop={6} style={styles.previousWeek} testID="plan-previous-week">
+              <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
+            </Pressable>
+            <View style={[styles.weeks, { left: 160 - blockWidth / 2, width: blockWidth }]} accessibilityRole="tablist" testID="plan-weeks">
+              {weeks.map((weekMonday) => {
+                const selected = weekMonday === monday;
+                return (
+                  <Pressable
+                    key={weekMonday}
+                    onPress={() => changeWeek(weekMonday)}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={fillTemplate(t.plan.weekAccessibility, { number: String(isoWeekNumber(weekMonday)), days: weekDaysLabel(weekMonday) })}
+                    style={[styles.weekCell, selected ? styles.weekCellSelected : null]}
+                    testID={`plan-week-${weekMonday}`}
+                  >
+                    <Text style={[styles.weekNumber, selected ? styles.weekTextSelected : null]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {`S${isoWeekNumber(weekMonday)}`}
+                    </Text>
+                    <Text style={[styles.weekDays, selected ? styles.weekTextSelected : null]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {weekDaysLabel(weekMonday)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable onPress={() => changeWeek(addDays(monday, 7))} accessibilityRole="button" accessibilityLabel={t.calendar.nextWeek} hitSlop={6} style={styles.nextWeek} testID="plan-next-week">
+              <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
+            </Pressable>
+            <View style={styles.planSlot}>
+              <CommandCircle label={t.calendar.plan} icon="plan" onPress={() => router.push({ pathname: "/planning", params: { date: planFrom() } })} testID="plan-plan" />
+            </View>
+          </View>
+        ),
+      }}
+    >
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={{ paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }}
+        showsVerticalScrollIndicator={false}
+        testID="plan-grid"
+      >
+        {/* En-tête des jours : jour abrégé et numéro ; jour courant sur fond bleu. */}
+        <View style={styles.header} testID="plan-header">
+          {week.days.map((day, index) => {
+            const current = day === today;
+            return (
+              <View key={day} style={[styles.headerDay, { left: LEFT + NAMES_WIDTH + index * COLUMN + 2 }, current ? styles.headerToday : null]} testID={`plan-day-${day}`}>
+                <Text style={[styles.headerShort, current ? styles.headerTextToday : null]}>{t.plan.weekdays[index]}</Text>
+                <Text style={[styles.headerNumber, current ? styles.headerTextToday : null]}>{parseLocalDate(day).getDate()}</Text>
+              </View>
+            );
+          })}
+          <View style={[styles.rowLine, styles.fullLine, { bottom: 0 }]} />
+        </View>
+        {loadFailed ? (
+          <Text style={styles.message} testID="plan-load-error">
+            {t.calendar.loadError}
+          </Text>
+        ) : null}
+        {!loadFailed && loadedMonday === monday && week.groups.length === 0 ? (
+          <Text style={styles.message} testID="plan-week-empty">
+            {t.calendar.emptyWeek}
+          </Text>
+        ) : null}
+        {week.groups.map((group) => (
+          <View key={group.key} testID={`plan-group-${group.key}`}>
+            <View style={[styles.band, group.programme !== null ? styles.bandProgramme : styles.bandNone]} testID={`plan-group-${group.key}-band`}>
+              {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height: BAND_HEIGHT }]} pointerEvents="none" /> : null}
+              <Text style={[styles.bandLabel, group.programme !== null ? styles.bandLabelProgramme : styles.bandLabelNone]} numberOfLines={1} testID={`plan-group-${group.key}-label`}>
+                {group.programme !== null ? fillTemplate(t.plan.programme, { name: group.programme.name }) : t.plan.noProgramme}
+              </Text>
+              <Pressable
+                onPress={() => router.push({ pathname: "/planning", params: { date: planFrom(), ...(group.programme !== null ? { programId: group.programme.id } : {}) } })}
+                accessibilityRole="button"
+                hitSlop={8}
+                testID={`plan-group-${group.key}-add`}
+              >
+                <Text style={styles.addRoutine}>{t.plan.addRoutine}</Text>
+              </Pressable>
+            </View>
+            {group.rows.map((row) => renderRow(row))}
+          </View>
+        ))}
+        {week.groups.length > 0 ? (
+          <>
+            {/* DSF Plan § 6 : double filet, ligne Total sur fond bleu clair, en gras. */}
+            <View style={[styles.totalSeparator]} />
+            <View style={styles.total} testID="plan-total">
+              {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height: 25.5 }]} pointerEvents="none" /> : null}
+              {week.days.map((day, index) => (
+                <View key={day} style={[styles.dayLine, { left: LEFT + NAMES_WIDTH + index * COLUMN - LINE / 2, height: 25.5 }]} pointerEvents="none" />
+              ))}
+              <Text style={styles.totalWeek} testID="plan-total-week">
+                {fillTemplate(t.plan.total, { duration: formatPlanTotal(week.weekTotal) })}
+              </Text>
+              {week.dayTotals.map((value, index) => (
+                <Text key={week.days[index]} style={[styles.totalDay, { left: LEFT + NAMES_WIDTH + index * COLUMN + 2 }]} testID={`plan-total-${week.days[index]}`}>
+                  {formatPlanTotal(value)}
+                </Text>
+              ))}
+              <View style={[styles.rowLine, styles.fullLine, { bottom: 0 }]} />
+            </View>
+            {/* Légende des quatre états. */}
+            <View style={styles.legend} testID="plan-legend">
+              {(["COMPLETED", "PARTIAL", "MISSED", "UPCOMING"] as const).map((tint) => (
+                <View key={tint} style={styles.legendItem}>
+                  <View style={[styles.legendSwatch, { backgroundColor: TINTS[tint].background, borderColor: TINTS[tint].border }]} />
+                  <Text style={styles.legendLabel}>{t.plan.legend[tint]}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        ) : null}
+      </ScrollView>
+    </TabbedScreen>
+  );
+}
+
+const styles = StyleSheet.create({
+  // Zone de contexte : mêmes positions que l'Agenda (D-538, D-555) ; contenu relatif à la marge de 16 de la bande.
+  context: { height: 115 },
+  todayButton: { position: "absolute", left: -5, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
+  // Mois centré sur le bloc des semaines (x = 176 de l'écran, 160 du contenu).
+  monthNavigation: { position: "absolute", left: 0, width: 320, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  monthLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
+  chevron: { width: 24, height: 24 },
+  previousWeek: { position: "absolute", left: -5.75, top: 62 },
+  nextWeek: { position: "absolute", left: 302, top: 62 },
+  planSlot: { position: "absolute", left: 336, top: 57 },
+  weeks: { position: "absolute", top: 51, height: 46, flexDirection: "row", gap: WEEK_GAP },
+  weekCell: { width: WEEK_WIDTH, height: 46, borderRadius: 10, backgroundColor: "rgba(255, 255, 255, 0.3)", alignItems: "center", overflow: "hidden" },
+  weekCellSelected: { backgroundColor: colors.selection },
+  weekNumber: { position: "absolute", top: 8, left: 0, right: 0, fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, lineHeight: 18, color: colors.textLabel, textAlign: "center" },
+  weekDays: { position: "absolute", top: 26, left: 0, right: 0, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, lineHeight: 12, color: colors.textLabel, opacity: 0.75, textAlign: "center" },
+  weekTextSelected: { color: colors.background },
+  list: { flex: 1 },
+  // En-tête des jours (Figma `12983:54` et suivants) : 40 de haut, à 8 sous la bande.
+  header: { height: 40, marginTop: spacing[8] },
+  headerDay: { position: "absolute", top: 0, width: CELL_WIDTH, height: 38, borderRadius: 9, alignItems: "center", paddingTop: 4 },
+  headerToday: { backgroundColor: TODAY_BADGE },
+  headerShort: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, lineHeight: 12, color: "#595E66" },
+  headerNumber: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, lineHeight: 16, marginTop: 1, color: "#141414" },
+  headerTextToday: { color: "#FFFFFF" },
+  todayColumn: { position: "absolute", top: 0, width: COLUMN, backgroundColor: TODAY_COLUMN },
+  dayLine: { position: "absolute", top: 0, width: LINE, backgroundColor: DAY_SEPARATOR },
+  rowLine: { position: "absolute", height: LINE, backgroundColor: SEPARATOR },
+  fullLine: { left: LEFT, right: LEFT },
+  shortLine: { left: 30, right: LEFT },
+  band: { height: BAND_HEIGHT, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: LEFT },
+  bandProgramme: { backgroundColor: "#EFE8FF" },
+  bandNone: { backgroundColor: "#F3F4F9" },
+  bandLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 12, flexShrink: 1 },
+  bandLabelProgramme: { color: "#5C40B8" },
+  bandLabelNone: { color: "#6B7080" },
+  addRoutine: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 11, color: colors.primary },
+  // Ligne « Ⓟ nom » : Ⓟ de 16 à x = 8, nom à x = 30 (Figma `12983:110`, `12983:79`).
+  titleLine: { position: "absolute", left: LEFT, top: 5, right: LEFT, flexDirection: "row", alignItems: "center", gap: 6 },
+  parcoursName: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: "#141414", flexShrink: 1 },
+  parcoursLink: { position: "absolute", left: 15.5, width: 1, backgroundColor: "#000000" },
+  rowName: { position: "absolute", left: LEFT, width: 116, top: 0, bottom: 0, textAlignVertical: "center", fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, color: "#141414", paddingTop: 10 },
+  sessionName: { left: 30, width: 94 },
+  emptyCell: { position: "absolute", top: 0, width: COLUMN, alignItems: "center", justifyContent: "center" },
+  touchedCell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, borderWidth: 1, borderStyle: "dashed", borderColor: colors.primary, backgroundColor: "rgba(5, 8, 229, 0.06)", alignItems: "center", justifyContent: "center" },
+  touchedPlus: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 13, lineHeight: 16, color: colors.primary },
+  cellColumn: { position: "absolute", width: COLUMN, alignItems: "center", gap: CELL_GAP },
+  cell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+  cellLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9 },
+  totalSeparator: { height: 2.5, marginHorizontal: LEFT, borderTopWidth: LINE, borderBottomWidth: LINE, borderColor: SEPARATOR },
+  total: { height: 25.5, backgroundColor: colors.catalogueSessionsContext, justifyContent: "center" },
+  totalWeek: { position: "absolute", left: LEFT, top: 6, fontFamily: "Inter_700Bold", fontWeight: "700", fontSize: 10, color: "#333333" },
+  totalDay: { position: "absolute", top: 6.5, width: CELL_WIDTH, textAlign: "center", fontFamily: "Inter_700Bold", fontWeight: "700", fontSize: 9, color: "#333333" },
+  legend: { flexDirection: "row", gap: 16, paddingHorizontal: LEFT, marginTop: 18 },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  legendSwatch: { width: 12, height: 12, borderRadius: 4, borderWidth: 1 },
+  legendLabel: { ...type.supporting, lineHeight: undefined, color: "#595E66" },
+  message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
+});

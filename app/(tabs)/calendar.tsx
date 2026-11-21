@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CalendarWeekScreen } from "@/features/planning/CalendarWeekScreen";
 import type { CalendarView } from "@/features/planning/CalendarViewTabs";
 import { JournalScreen } from "@/features/planning/JournalScreen";
+import { PlanScreen } from "@/features/planning/PlanScreen";
 
 /**
  * Onglet « Calendrier » — vue Agenda (ancienne vue Semaine, CE-UI-03, D-533) par défaut, comme avant. D-535
@@ -11,5 +12,8 @@ import { JournalScreen } from "@/features/planning/JournalScreen";
  */
 export default function CalendarScreen() {
   const [view, setView] = useState<CalendarView>("agenda");
-  return view === "journal" ? <JournalScreen onChangeView={setView} /> : <CalendarWeekScreen onChangeView={setView} />;
+  // D-554 (21/11/2026) : troisième onglet « Plan ».
+  if (view === "journal") return <JournalScreen onChangeView={setView} />;
+  if (view === "plan") return <PlanScreen onChangeView={setView} />;
+  return <CalendarWeekScreen onChangeView={setView} />;
 }

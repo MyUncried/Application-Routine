@@ -110,7 +110,15 @@ const REMINDER_MINUTES_STEP = Array.from({ length: 12 }, (_, index) => index * 5
 const POINT_SIZE = 18;
 const COLUMN_WIDTH = 26;
 
-type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string; readonly occurrenceKey?: string };
+/** `addTo` + `date` (D-554, DSF Plan § 7) : ajouter à la routine `addTo` un créneau ce jour-là, hors de sa répétition. */
+type Params = {
+  readonly routineId?: string;
+  readonly duplicateOf?: string;
+  readonly sessionId?: string;
+  readonly date?: string;
+  readonly occurrenceKey?: string;
+  readonly addTo?: string;
+};
 
 /** `occurrence` : modification d'une occurrence seule depuis l'Agenda (D-536, point 4, 20/11/2026). */
 type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string } | { readonly kind: "occurrence"; readonly editing: OccurrenceEditing };
@@ -156,7 +164,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const planning = usePlanningService();
   const { state: catalogue, reload } = useSessionCatalogue();
   // Nouvelle planification : brouillon immédiat ; modification et duplication : brouillon lu ci-dessous.
-  const fresh = params.routineId === undefined && params.duplicateOf === undefined;
+  const fresh = params.routineId === undefined && params.duplicateOf === undefined && params.addTo === undefined;
   const [initialEntries] = useState(() =>
     fresh && params.sessionId !== undefined ? applySelection([], [params.sessionId], () => Crypto.randomUUID()) : [],
   );
@@ -251,7 +259,20 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // Chargement du brouillon d'une modification ou d'une duplication.
   useEffect(() => {
     let cancelled = false;
-    if (params.routineId !== undefined && params.occurrenceKey !== undefined) {
+    if (params.addTo !== undefined && params.date !== undefined) {
+      // D-554 (DSF Plan § 7, point 1) : modale du créneau pré-remplie avec la date touchée et l'heure habituelle de la routine ;
+      // pour un parcours, le créneau entier.
+      planning.prepareAddedOccurrence(params.addTo, params.date).then((found) => {
+        if (cancelled) return;
+        if (found === null) {
+          routerRef.current.back();
+          return;
+        }
+        const built = occurrenceForm(found.routine, found.occurrence, () => Crypto.randomUUID());
+        setMode({ kind: "occurrence", editing: { ...built.editing, adding: true } });
+        setForm(built.form);
+      }, () => routerRef.current.back());
+    } else if (params.routineId !== undefined && params.occurrenceKey !== undefined) {
       planning.getOccurrence(params.routineId, params.occurrenceKey).then((found) => {
         if (cancelled) return;
         // D-536, point 1 : une occurrence commencée n'est pas modifiable.
@@ -288,7 +309,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     return () => {
       cancelled = true;
     };
-  }, [params.routineId, params.duplicateOf, params.occurrenceKey, planning]);
+  }, [params.routineId, params.duplicateOf, params.occurrenceKey, params.addTo, params.date, planning]);
 
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
@@ -364,12 +385,17 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     setSaveFailed(false);
     const request: Promise<{ readonly status: string }> =
       mode.kind === "occurrence"
-        ? planning.updateOccurrence(mode.editing.routineId, mode.editing.key, {
-            date: form.startDate,
-            time: form.time,
-            sessions: occurrenceSessions(shown, mode.editing),
-            reminderMinutes: form.reminderMinutes,
-          })
+        ? (mode.editing.adding === true ? planning.addOccurrence(mode.editing.routineId, {
+              date: form.startDate,
+              time: form.time,
+              sessions: occurrenceSessions(shown, mode.editing),
+              reminderMinutes: form.reminderMinutes,
+            }) : planning.updateOccurrence(mode.editing.routineId, mode.editing.key, {
+              date: form.startDate,
+              time: form.time,
+              sessions: occurrenceSessions(shown, mode.editing),
+              reminderMinutes: form.reminderMinutes,
+            }))
         : mode.kind === "edit"
           ? planning.updateRoutine(mode.routineId, draft)
           : planning.createRoutine(draft);
@@ -399,7 +425,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         if (editing !== null) {
           // Occurrence seule : les séances de la routine restent (désactivables) ; ajout ou retrait des séances ajoutées.
           const next = withOccurrenceSelection(form, editing, selected, () => Crypto.randomUUID());
-          setMode({ kind: "occurrence", editing: next.editing });
+          setMode({ kind: "occurrence", editing: { ...next.editing, ...(editing.adding === true ? { adding: true } : {}) } });
           setForm(next.form);
           return;
         }

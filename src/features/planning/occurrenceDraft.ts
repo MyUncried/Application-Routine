@@ -20,6 +20,8 @@ export type OccurrenceEditing = {
   readonly added: ReadonlySet<string>;
   /** Entrées de la routine présentes dans l'occurrence (placées par la rotation ou déjà listées), actives ou non. */
   readonly listed: ReadonlySet<string>;
+  /** D-554 : créneau ajouté depuis le Plan, pas encore enregistré (Enregistrer l'ajoute à la routine). */
+  readonly adding?: boolean;
 };
 
 export function occurrenceForm(routine: Routine, occurrence: Occurrence, newId: () => string): { readonly form: FormDraft; readonly editing: OccurrenceEditing } {

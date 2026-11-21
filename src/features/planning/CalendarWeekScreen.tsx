@@ -92,7 +92,7 @@ export function plannedCountLabel(count: number): string {
 }
 
 /** Doubles flèches du mois (Figma « icon/mois précédent / suivant », 30 × 24 : deux flèches décalées de 7). */
-function DoubleChevron({ source }: { readonly source: number }) {
+export function DoubleChevron({ source }: { readonly source: number }) {
   return (
     <View style={styles.doubleChevron}>
       <Image source={source} style={[styles.chevron, styles.chevronFirst]} accessible={false} />
@@ -486,7 +486,7 @@ export function CalendarWeekScreen({
               <TodayIcon day={parseLocalDate(todayLocal()).getDate()} current={selectedDay === todayLocal()} testID="calendar-today-icon" />
             </Pressable>
             {/* Ligne 1, au centre de l'écran : mois entre deux doubles flèches, à 10 du libellé. */}
-            <View style={styles.monthNavigation} pointerEvents="box-none">
+            <View style={styles.monthNavigation} pointerEvents="box-none" testID="calendar-month-navigation">
               <Pressable onPress={() => changeMonth(-1)} accessibilityRole="button" accessibilityLabel={t.calendar.previousMonth} hitSlop={6} testID="calendar-previous-month">
                 <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
               </Pressable>
@@ -713,14 +713,18 @@ const styles = StyleSheet.create({
   // D-538 : bande de 115, centres des lignes à y = 23 (ligne 1) et y = 74 (ligne 2) dans la bande ; x relatifs au contenu (16).
   context: { height: 115 },
   todayButton: { position: "absolute", left: -5, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
-  monthNavigation: { position: "absolute", left: 40, right: 40, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  // D-555 (21/11/2026) : mois et doubles flèches centrés sur la rangée des jours (centre x = 176 de l'écran, 160 du contenu).
+  // [Centrés sur l'écran — remplacé.]
+  monthNavigation: { position: "absolute", left: 0, width: 320, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
   doubleChevron: { width: 30, height: 24 },
   chevron: { width: 24, height: 24 },
   chevronFirst: { position: "absolute", left: 0, top: 0 },
   chevronSecond: { position: "absolute", left: 7, top: 0 },
   // Mois : Inter 18 semi-gras.
   periodLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
-  filterSlot: { position: "absolute", left: 345, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
+  // D-555 : entonnoir centré au-dessus de la flèche de semaine suivante (x = 330 de l'écran), centré verticalement sur la ligne
+  // du mois. [À droite de la bande, x = 361 — remplacé.]
+  filterSlot: { position: "absolute", left: 297, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   filterIcon: { width: 24, height: 24 },
   previousWeek: { position: "absolute", left: -5.75, top: 62 },
   nextWeek: { position: "absolute", left: 302, top: 62 },

@@ -37,6 +37,7 @@ import { applyMigration032 } from "./migrations/migration032";
 import { applyMigration033 } from "./migrations/migration033";
 import { applyMigration034 } from "./migrations/migration034";
 import { applyMigration036 } from "./migrations/migration036";
+import { applyMigration037 } from "./migrations/migration037";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -375,6 +376,12 @@ export async function migrateDatabase(
     if (pending(35)) {
       await applyMigration036(transaction);
       version = 36;
+    }
+
+    // Planification : créneau ajouté hors de la répétition (21/11/2026, D-554, RM-273). Un échec laisse `user_version` à 36.
+    if (pending(36)) {
+      await applyMigration037(transaction);
+      version = 37;
     }
 
     if (version !== targetVersion) {

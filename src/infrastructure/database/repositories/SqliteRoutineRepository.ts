@@ -40,6 +40,8 @@ type OccurrenceRow = {
   routine_id: string;
   occurrence_key: string;
   occurrence_index: number;
+  /** Migration 037 (D-554) : 1 = créneau ajouté hors de la répétition. */
+  added: number;
   occurrence_date: string | null;
   occurrence_time: string | null;
   sessions_json: string | null;
@@ -80,6 +82,8 @@ function toOverride(row: OccurrenceRow): OccurrenceOverride {
     reminderOverridden: row.reminder_overridden === 1,
     reminderMinutes: row.reminder_minutes,
     startedAt: row.started_at,
+    // D-554 / RM-273 : présent seulement pour un créneau ajouté (forme antérieure inchangée).
+    ...(row.added === 1 ? { added: true } : {}),
   };
 }
 
@@ -243,7 +247,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
       for (const saved of routine.overrides ?? []) {
         await transaction.runAsync(
           `INSERT INTO routine_occurrences (routine_id, occurrence_key, occurrence_index, occurrence_date, occurrence_time, sessions_json, reminder_overridden,
-           reminder_minutes, started_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           reminder_minutes, started_at, added) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             routine.id,
             saved.key,
@@ -254,6 +258,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
             saved.reminderOverridden ? 1 : 0,
             saved.reminderMinutes,
             saved.startedAt,
+            saved.added === true ? 1 : 0,
           ],
         );
       }

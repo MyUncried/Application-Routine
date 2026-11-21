@@ -40,7 +40,8 @@ export const planningStrings = {
     title: "Calendrier",
     // D-532 (19/11/2026) ; D-542 (20/11/2026) : onglets Journal · Agenda. [Avant : Jour, Semaine, Mois ; puis troisième
     // onglet « Vue d’ensemble », indisponible — retiré.]
-    views: { day: "Journal", week: "Agenda" },
+    // D-554 (21/11/2026) : troisième onglet « Plan ».
+    views: { day: "Journal", week: "Agenda", plan: "Plan" },
     today: "Aujourd’hui",
     plan: "Planifier",
     previousWeek: "Semaine précédente",
@@ -72,6 +73,18 @@ export const planningStrings = {
     // D-553 (21/11/2026) : ligne 2 d’une Exécution lancée hors Agenda sans créneau éligible.
     unplanned: "Hors planification",
     status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée" },
+  },
+  // D-554 (21/11/2026) : Plan (DSF Plan, Figma « P-Calendrier — Plan » `12983:19`).
+  plan: {
+    weekdays: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    programme: "Programme · {name}",
+    noProgramme: "Sans programme",
+    addRoutine: "+ Routine",
+    total: "Total · {duration}",
+    legend: { COMPLETED: "Complétée", PARTIAL: "Partielle", MISSED: "Manquée", UPCOMING: "À venir" },
+    // Accessibilité [libellés techniques].
+    weekAccessibility: "Semaine {number}, du {days}",
+    addAccessibility: "Ajouter un créneau de {routine}, {day}",
   },
   // D-535 (19/11/2026) : Journal des routines (DSF Journal, Figma « Calendrier — Journal — MVP »).
   journal: {

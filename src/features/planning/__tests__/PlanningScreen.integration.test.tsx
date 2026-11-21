@@ -372,6 +372,38 @@ describe("Planifier (CE-UI-12)", () => {
     expect((await planning.getRoutine(created.routine.id))?.entries.map((entry) => entry.frequency.positions)).toEqual([[1], [1]]);
   });
 
+  // D-554 / RM-273 (DSF Plan § 7) : case vide du Plan — modale du créneau avec la date touchée et l'heure habituelle de la
+  // routine ; parcours entier (rotation non appliquée) ; Enregistrer ajoute un créneau sans modifier la répétition.
+  it("créneau ajouté depuis le Plan : date et heure pré-remplies, parcours entier, répétition inchangée (D-554)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [
+        { id: "ea", sessionId: a.id, frequency: { x: 1, n: 2, positions: [1] } },
+        { id: "eb", sessionId: b.id, frequency: EVERY_TIME },
+      ],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    await renderPlanning({ addTo: created.routine.id, date: "2030-08-07" });
+    expect(screen.getByTestId("planning-start-date").props.accessibilityLabel).toContain("7");
+    expect(screen.getByTestId("planning-start-time").props.accessibilityLabel).toContain("08:00");
+    expect(screen.queryByTestId("planning-repetition")).toBeNull();
+    expect(screen.getByTestId("planning-name").props.editable).toBe(false);
+    expect([played(0, 1), played(1, 1)]).toEqual([true, true]);
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    const routine = await planning.getRoutine(created.routine.id);
+    expect(routine?.repetition).toEqual({ unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } });
+    expect(routine?.overrides).toMatchObject([{ key: "2030-08-07T08:00+A1", date: "2030-08-07", time: "08:00", sessions: null, added: true }]);
+    const occurrences = await planning.rangeOccurrences("2030-08-07", "2030-08-07", () => true);
+    expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([[a.id, b.id]]);
+  });
+
   it("modification depuis le Journal : confirmation « N créneaux à venir seront modifiés. » (constat E du 20/11/2026)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const created = await planning.createRoutine({

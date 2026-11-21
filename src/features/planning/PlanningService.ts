@@ -16,7 +16,15 @@ import {
   type RoutineValidationIssue,
 } from "@/domain/planning/Routine";
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
-import { isRoutineActiveAt, routineOccurrences, routineSessionsAt, withExpiry, type IsOccurrenceStarted, type Occurrence } from "@/domain/planning/occurrences";
+import {
+  addedOccurrenceSessions,
+  isRoutineActiveAt,
+  routineOccurrences,
+  routineSessionsAt,
+  withExpiry,
+  type IsOccurrenceStarted,
+  type Occurrence,
+} from "@/domain/planning/occurrences";
 import { occurrenceExecutionKey, type AgendaExecution, type OccurrenceExecution, type OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
 
 /**
@@ -159,6 +167,8 @@ export class PlanningService {
         reminderOverridden: true,
         reminderMinutes: occurrence.reminderMinutes,
         startedAt: at ?? null,
+        // D-554 : un créneau ajouté le reste une fois figé.
+        ...(current?.added === true ? { added: true } : {}),
       });
       changed = true;
     }
@@ -190,14 +200,16 @@ export class PlanningService {
       return { status: "INVALID" };
     }
     const originDate = occurrenceKey.slice(0, 10);
-    const defaults = routineSessionsAt(routine, occurrence.index);
+    // D-554 : un créneau ajouté suit la liste entière de la routine ; sa date et son heure restent toujours enregistrées.
+    const added = occurrence.added === true;
+    const defaults = added ? addedOccurrenceSessions(routine) : routineSessionsAt(routine, occurrence.index);
     const sameSessions =
       defaults.length === change.sessions.length &&
       defaults.every((session, rank) => {
         const other = change.sessions[rank]!;
         return other.sessionId === session.sessionId && other.entryId === session.entryId && other.origin === session.origin && other.active === session.active;
       });
-    const moved = change.date !== originDate || change.time !== routine.time;
+    const moved = added || change.date !== originDate || change.time !== routine.time;
     const next: OccurrenceOverride = {
       key: occurrenceKey,
       index: occurrence.index,
@@ -207,11 +219,84 @@ export class PlanningService {
       reminderOverridden: reminder !== routine.reminderMinutes,
       reminderMinutes: reminder !== routine.reminderMinutes ? reminder : null,
       startedAt: null,
+      ...(added ? { added: true } : {}),
     };
     const others = (routine.overrides ?? []).filter((item) => item.key !== occurrenceKey);
-    const empty = next.date === null && next.sessions === null && !next.reminderOverridden;
+    const empty = !added && next.date === null && next.sessions === null && !next.reminderOverridden;
     await this.deps.repository.save({ ...routine, overrides: empty ? others : [...others, next] });
     return this.written({ status: "SAVED" } as const);
+  }
+
+  /**
+   * D-554 (DSF Plan § 7) : créneau proposé pour un ajout depuis le Plan — date touchée, heure habituelle de la routine, toutes
+   * ses séances (un parcours entier), rappel de la routine. Rien n'est écrit avant Enregistrer.
+   */
+  async prepareAddedOccurrence(routineId: string, date: LocalDate): Promise<{ readonly routine: Routine; readonly occurrence: Occurrence } | null> {
+    const routine = await this.deps.repository.get(routineId);
+    if (routine === null || !isLocalDate(date)) return null;
+    const sessions = addedOccurrenceSessions(routine);
+    const occurrence: Occurrence = {
+      routineId,
+      date,
+      time: routine.time,
+      key: this.addedKey(routine, date, routine.time),
+      index: 1,
+      contents: sessions.map((session, rank) => ({ entryId: session.entryId, sessionId: session.sessionId, rank })),
+      sessions,
+      reminderMinutes: routine.reminderMinutes,
+      started: false,
+      expired: false,
+      added: true,
+      manual: { dateTime: true, sessions: false, reminder: false },
+    };
+    return { routine, occurrence };
+  }
+
+  /**
+   * D-554 / RM-273 : ajoute à la routine un créneau hors de sa répétition. Enregistré comme occurrence ajoutée (`added`), avec
+   * sa date et son heure (groupe « date et heure » modifié à la main, protégé d'un changement global) ; ses séances et son rappel
+   * ne sont enregistrés que s'ils diffèrent de la routine. La répétition n'est pas modifiée.
+   */
+  async addOccurrence(routineId: string, change: OccurrenceChange): Promise<SaveOccurrenceResult> {
+    const current = await this.deps.repository.get(routineId);
+    if (current === null) return { status: "NOT_FOUND" };
+    const routine = await this.frozen(current);
+    const reminder = change.reminderMinutes;
+    const reminderValid = reminder === null || (Number.isInteger(reminder) && reminder >= 1 && reminder <= REMINDER_MAX_MINUTES);
+    if (!isLocalDate(change.date) || !isLocalTime(change.time) || !change.sessions.some((session) => session.active) || !reminderValid) {
+      return { status: "INVALID" };
+    }
+    const defaults = addedOccurrenceSessions(routine);
+    const sameSessions =
+      defaults.length === change.sessions.length &&
+      defaults.every((session, rank) => {
+        const other = change.sessions[rank]!;
+        return other.sessionId === session.sessionId && other.entryId === session.entryId && other.origin === session.origin && other.active === session.active;
+      });
+    const next: OccurrenceOverride = {
+      key: this.addedKey(routine, change.date, change.time),
+      index: 1,
+      date: change.date,
+      time: change.time,
+      sessions: sameSessions ? null : change.sessions,
+      reminderOverridden: reminder !== routine.reminderMinutes,
+      reminderMinutes: reminder !== routine.reminderMinutes ? reminder : null,
+      startedAt: null,
+      added: true,
+    };
+    await this.deps.repository.save({ ...routine, overrides: [...(routine.overrides ?? []), next], updatedAt: this.deps.now().toISOString() });
+    return this.written({ status: "SAVED" } as const);
+  }
+
+  /**
+   * Identité d'un créneau ajouté : date et heure choisies suivies de « +A » et d'un numéro, jamais confondue avec une occurrence de
+   * la répétition (« AAAA-MM-JJTHH:MM ») ni avec un retrait. [Format : choix technique.]
+   */
+  private addedKey(routine: Routine, date: LocalDate, time: LocalTime): string {
+    const taken = new Set([...(routine.overrides ?? []).map((item) => item.key), ...routine.exclusions]);
+    let rank = 1;
+    while (taken.has(`${date}T${time}+A${rank}`)) rank += 1;
+    return `${date}T${time}+A${rank}`;
   }
 
   /**

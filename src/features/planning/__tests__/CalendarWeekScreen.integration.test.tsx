@@ -1,5 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -629,24 +631,57 @@ describe("Calendrier Semaine", () => {
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-day-${otherDay}`).props.style)).toMatchObject({ width: 36, height: 46, backgroundColor: "rgba(255, 255, 255, 0.3)" });
   });
 
-  it("barre de titre à onglets : Journal · Agenda seulement (D-542), Agenda actif, composant partagé des Catalogues (D-532)", async () => {
-    await renderCalendar();
+  // D-554 (21/11/2026) : trois onglets Journal · Agenda · Plan, emplacements égaux de la barre (x = 16, 139, 262). [D-542 : deux
+  // onglets d'un tiers, centrés — remplacé.]
+  it("barre de titre à onglets : Journal · Agenda · Plan (D-554), Agenda actif, composant partagé des Catalogues (D-532)", async () => {
+    const onChangeView = jest.fn();
+    const referentials = { listCategories: jest.fn(async () => []) } as unknown as ReferentialService;
+    render(
+      <TestSafeAreaProvider>
+        <SessionServiceContext.Provider value={new SessionService(sessions)}>
+          <ReferentialServiceContext.Provider value={referentials}>
+            <PlanningServiceContext.Provider value={planning}>
+              <CalendarWeekScreen initialDay={MONDAY} onChangeView={onChangeView} />
+            </PlanningServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </SessionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await flush();
     const tab = (value: string) => screen.getByTestId(`calendar-view-row-${value}`);
     expect(screen.getByTestId("calendar-view-row").props.accessibilityRole).toBe("tablist");
     expect(screen.getByTestId("calendar-view-row-day-label").props.children).toBe("Journal");
     expect(screen.getByTestId("calendar-view-row-week-label").props.children).toBe("Agenda");
-    // D-542 : plus de troisième onglet.
-    expect(screen.queryByTestId("calendar-view-row-month")).toBeNull();
+    expect(screen.getByTestId("calendar-view-row-plan-label").props.children).toBe("Plan");
     expect(screen.queryByText("Vue d’ensemble")).toBeNull();
-    // Emplacements d'un tiers de la largeur, centrés (centres à x = 139,5 et 262,5).
-    expect(StyleSheet.flatten(screen.getByTestId("calendar-view-row").props.style)).toMatchObject({ justifyContent: "center" });
-    const slot = StyleSheet.flatten(screen.getByTestId("calendar-view-row-day-slot").props.style);
-    expect(slot.flex).toBe(0);
-    expect(parseFloat(String(slot.flexBasis))).toBeCloseTo(100 / 3, 5);
+    // Trois emplacements égaux sur toute la largeur, comme les Catalogues.
+    expect(StyleSheet.flatten(screen.getByTestId("calendar-view-row").props.style).justifyContent).toBeUndefined();
+    const slot = StyleSheet.flatten(screen.getByTestId("calendar-view-row-plan-slot").props.style);
+    expect(slot).toMatchObject({ flex: 1, flexBasis: 0 });
     expect(tab("week").props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByTestId("calendar-view-row-week-shape", { includeHiddenElements: true })).toBeTruthy();
-    // D-535 (19/11/2026) : Journal disponible (il remplace la vue Jour).
-    expect(tab("day").props.accessibilityState).toMatchObject({ selected: false, disabled: false });
-    expect(screen.queryByText("Semaine")).toBeNull();
+    expect(tab("plan").props.accessibilityState).toMatchObject({ selected: false });
+    fireEvent.press(tab("plan"));
+    expect(onChangeView).toHaveBeenLastCalledWith("plan");
+    fireEvent.press(tab("day"));
+    expect(onChangeView).toHaveBeenLastCalledWith("journal");
+  });
+
+  // D-555 (21/11/2026) : mois centré sur la rangée des jours ; entonnoir au-dessus de la flèche de semaine suivante, centré sur
+  // la ligne du mois ; contour bleu sans filtre, plein bleu avec filtre.
+  it("zone de contexte rééquilibrée : positions du mois et de l'entonnoir, entonnoir bleu (D-555)", async () => {
+    await renderCalendar();
+    const nav = StyleSheet.flatten(screen.getByTestId("calendar-month-navigation").props.style);
+    // Centre du mois = 0 + 320 / 2 = 160 du contenu (x = 176 de l'écran, centre de la rangée des jours : 25 + 270 / 2).
+    expect(nav.left + nav.width / 2).toBe(25 + 270 / 2);
+    const filter = StyleSheet.flatten(screen.getByTestId("calendar-routine-filter").props.style);
+    const next = StyleSheet.flatten(screen.getByTestId("calendar-next-week").props.style);
+    // Centré au-dessus de la flèche de semaine suivante (24 de large) ; centre vertical sur la ligne du mois (11 + 24 / 2).
+    expect(filter.left + filter.width / 2).toBe(next.left + 12);
+    expect(filter.top + filter.height / 2).toBe(11 + 12);
+    expect(screen.getByTestId("calendar-routine-filter-inactive")).toBeTruthy();
+    // Icône sans filtre : contour bleu #0508E5 (composant Figma `icon/filtre-routine`, État=Inactif). [Contour gris #333333 — remplacé.]
+    const svg = readFileSync(join(__dirname, "../../../../assets/icons/icon-filtre-routine.svg"), "utf8");
+    expect(svg).toContain('stroke="#0508E5"');
+    expect(svg).not.toContain("fill=\"#0508E5\"");
   });
 });

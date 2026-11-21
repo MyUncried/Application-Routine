@@ -176,6 +176,12 @@ export type OccurrenceOverride = {
   readonly reminderMinutes: number | null;
   /** Non `null` : occurrence commencée (lancement de sa première séance), figée — D-536, point 1. */
   readonly startedAt: string | null;
+  /**
+   * D-554 / RM-273 (21/11/2026) : créneau ajouté à la main hors de la répétition (Plan). Il appartient à la routine sans modifier
+   * sa répétition ; sa date et son heure sont toujours enregistrées (groupe « date et heure » modifié à la main). Absent : issue de
+   * la répétition.
+   */
+  readonly added?: boolean;
 };
 
 /** Brouillon du formulaire de planification (CE-UI-05) : la Routine sans identité ni horodatage. */

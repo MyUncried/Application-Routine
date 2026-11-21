@@ -75,6 +75,8 @@ export type Occurrence = {
    * routine (10 jours pour le dernier), puis « Expirée ». Absent tant qu'il n'a pas été calculé.
    */
   readonly catchUpEnd?: number;
+  /** D-554 / RM-273 : créneau ajouté hors de la répétition (Plan). */
+  readonly added?: boolean;
 };
 
 /** Occurrence commencée connue par ses Exécutions (lien de la migration 033) sans être enregistrée (données antérieures). */
@@ -137,6 +139,15 @@ export function routineSessionsAt(routine: Routine, index: number): OccurrenceSe
 }
 
 /**
+ * D-554 (DSF Plan § 7, point 2 : « on ajoute le créneau du parcours entier ») : séances d'un créneau ajouté tant qu'elles ne
+ * sont pas modifiées à la main — toutes les séances de la routine, dans l'ordre de sa liste, hors rotation. [Rotation « x fois
+ * sur n » non appliquée à un créneau ajouté : interprétation technique, à confirmer.]
+ */
+export function addedOccurrenceSessions(routine: Routine): OccurrenceSession[] {
+  return routine.entries.map((entry) => ({ sessionId: entry.sessionId, entryId: entry.id, origin: "ROUTINE" as const, active: true }));
+}
+
+/**
  * Occurrence effective : la ligne enregistrée remplace les seuls groupes modifiés à la main ; les autres suivent la
  * routine (D-536, point 3 ; Hermann, 20/11/2026, q21-modele). Une occurrence commencée est enregistrée en entier.
  */
@@ -148,7 +159,7 @@ function effectiveOccurrence(
   saved: OccurrenceOverride | undefined,
   isStarted: IsOccurrenceStarted,
 ): Occurrence | null {
-  const sessions = saved?.sessions ?? routineSessionsAt(routine, index);
+  const sessions = saved?.sessions ?? (saved?.added === true ? addedOccurrenceSessions(routine) : routineSessionsAt(routine, index));
   const contents = sessions.flatMap((session, rank) => (session.active ? [{ entryId: session.entryId, sessionId: session.sessionId, rank }] : []));
   if (contents.length === 0) return null;
   return {
@@ -185,7 +196,8 @@ function effectiveOccurrence(
  */
 export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStarted = NEVER_STARTED): Occurrence[] {
   const savedByDay = new Map<LocalDate, OccurrenceOverride>();
-  for (const saved of routine.overrides ?? []) savedByDay.set(saved.key.slice(0, 10), saved);
+  // D-554 : un créneau ajouté n'est jamais rattaché à une occurrence produite par la répétition.
+  for (const saved of routine.overrides ?? []) if (saved.added !== true) savedByDay.set(saved.key.slice(0, 10), saved);
   const excluded = new Set(routine.exclusions);
   const result: Occurrence[] = [];
   const matched = new Set<LocalDate>();
@@ -205,6 +217,12 @@ export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStar
     if (saved.startedAt === null && saved.date === null && !isStarted(routine.id, saved.key)) continue;
     const occurrence = effectiveOccurrence(routine, saved.key, day, saved.index, saved, isStarted);
     if (occurrence !== null) result.push(occurrence);
+  }
+  // D-554 / RM-273 : créneaux ajoutés hors de la répétition — présentés à leur date et heure, quelle que soit la répétition.
+  for (const saved of routine.overrides ?? []) {
+    if (saved.added !== true || excluded.has(saved.key)) continue;
+    const occurrence = effectiveOccurrence(routine, saved.key, saved.date ?? saved.key.slice(0, 10), saved.index, saved, isStarted);
+    if (occurrence !== null) result.push({ ...occurrence, added: true });
   }
   return result.sort(byInstant);
 }
