@@ -89,6 +89,32 @@ Dans `src/features/execution/ExecutionScreen.tsx` :
 
 Cette lecture concorde avec la mesure du constat 6 (rendu continu en Pause, tas croissant), mais **ne suffit pas** à expliquer une saturation à 98 %.
 
+### 7 bis. Essais complémentaires du soir (22h47 – 23h20)
+
+**Séance en Pause seule, au premier plan, de 22h47 à 23h15 (28 minutes)**
+
+- Aucun nouveau rapport `cpu_resource` (liste vérifiée par Hermann à 23h17).
+- La Pause seule reste donc sous le seuil d'iOS (50 % sur 180 s), ce qui concorde avec les 11 % mesurés.
+- Réserve : iOS peut limiter le nombre de rapports par jour. Quatre avaient déjà été écrits le 21/11.
+- Un essai de 22h25 n'est pas retenu : l'application était en arrière-plan, donc suspendue.
+
+**Rapports antérieurs à PLAN-01**
+
+| Rapport | Processus | Processeur | Mémoire |
+|---|---|---|---|
+| `cpu_resource-2026-11-20-235325` (23:50:46 – 23:53:23) | 5267 | 57 % sur 157 s | 444 → 516 Mo |
+| `cpu_resource-2026-11-21-002516` (00:23:34 – 00:25:14) | 5283 | 91 % sur 99 s | 439 → 525 Mo (+86 Mo en 90 s) |
+
+- La pile la plus lourde est la même que le 21/11 au soir : `RCTJSThreadManager` → React → Hermes. C'est le même mécanisme JavaScript.
+- Le binaire installé est le même (`4DE42FBA…`).
+- Le processus 5283 tournait depuis moins de 30 minutes : le processus 5267 était encore actif à 23h53. Une session longue n'est donc pas nécessaire. Quelque chose déclenche la boucle, qui ne s'arrête plus ensuite.
+- Le 20/11 au soir, l'activité de recette portait sur les Mouvements et le catalogue (commits `495e7c21`, `a47a6e23`, `ab55f0f4`). Le 21/11, elle portait sur l'Agenda et le Plan. Le déclencheur est donc probablement commun à l'application.
+- Hermann ne se souvient pas de son activité juste avant 0h23 le 21/11.
+
+**Rapport reçu en double**
+
+`RoutineBMAD-2026-11-21-211236.ips` et `cpu_resource-2026-11-21-002516` ont chacun été reçus deux fois. Les fichiers sont identiques, ou portent le même identifiant d'incident.
+
 ### 8. Pistes examinées et écartées comme cause principale
 
 - **Sons** (`ScheduledSounds`) : l'`AudioContext` n'est jamais fermé, car `stop()` n'est appelé nulle part ; la session audio est seulement rendue. C'est un point à examiner, mais la pile saturée est celle du fil JavaScript, pas du fil audio.
@@ -127,10 +153,16 @@ Aucune modification applicative. Seul ce rapport est ajouté.
 
 ## Vérifications restant à effectuer sur appareil réel
 
-1. Parcours de la soirée d'une traite, Routine BMAD au premier plan, verrouillage automatique désactivé, en terminant par une séance laissée environ 5 minutes en **Pause**. Hermann note l'heure de la Pause.
-2. Récupérer le rapport `cpu_resource` éventuel et le comparer à cette heure.
-3. Faire le même essai sans séance en Pause, pour comparer.
-4. Consulter les rapports `cpu_resource` du 20/11 (23:53) et du 21/11 (00:25).
+1. **Prochaine étape, accord de Hermann à 23h20 :** surveillance légère par l'inspecteur de Metro.
+   - Une mesure de 3 s par minute, pendant une utilisation normale de Routine BMAD au premier plan.
+   - Profil complet enregistré dès qu'une mesure dépasse 50 % d'occupation, pour nommer les fonctions JavaScript en cause.
+   - Script : `watch.js`, dans le dossier temporaire de la session.
+   - La surveillance a été lancée à 23h22, puis arrêtée avant la nuit, sans aucune mesure. Elle sera relancée à la reprise.
+2. Dès qu'un profil est obtenu : identifier le composant ou l'effet en boucle, puis proposer une correction, soumise à l'accord de Hermann.
+
+## Suspension
+
+Mission suspendue le 21/11/2026 à 23h25, à la demande de Hermann (« Je vais me coucher, je reprends demain »). Metro reste lancé depuis `C:\Dev\KODJO-PLAN` (port 8083), comme avant la suspension.
 
 ## Fichiers modifiés
 
