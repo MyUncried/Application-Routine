@@ -3601,3 +3601,12 @@ La page Figma « Prototype MVP » `510:101` comporte des actions « Partager » 
 ### Composition séance — Guidage sonore
 
 Dans l’en-tête des écrans de Composition, sauf le récapitulatif Tabata, le bouton Guidage sonore ouvre une seule modale défilante. [Remplacé le 11/11/2026 — exception « sauf le récapitulatif Tabata » supprimée, retour de Hermann : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. » Le bouton Guidage sonore est celui de l’en-tête de la Composition ; aucune exception propre au Tabata.] [Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) en montrent respectivement le haut et le bas. L’en-tête fixe réunit Fermer, le titre et Valider. Le bouton affiche son symbole plein pendant l’ouverture de la modale et retrouve son symbole fin à la fermeture, y compris après validation de réglages propres à la séance.
+
+### Complément du 21/11/2026 — Calendrier à trois onglets (D-554)
+
+Le Calendrier a trois onglets, Journal · Agenda · Plan ; tous les écrans du calendrier portent les trois libellés. Écrans du Plan :
+- « P-Calendrier — Plan » `12983:19` (référence) ;
+- « P-Calendrier — Plan — Mois de cinq semaines » `13005:14750` ;
+- « P-Calendrier — Plan — Case vide touchée (proposition) » `13005:14584`.
+
+Rendu et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Remplace l'écran « P-Calendrier — Vue d’ensemble — Routines et jours (proposition) », supprimé.

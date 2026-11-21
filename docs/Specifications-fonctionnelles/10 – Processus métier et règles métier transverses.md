@@ -2809,3 +2809,9 @@ La suppression ou révocation prime sur les usages : dernière voie d’accès p
 ### Complément du 21/11/2026 — RM-258 / RM-261 et Exécutions de l'Agenda
 
 Les lignes historiques RM-258 et RM-261 ci-dessus sont **supersédées pour les Routines** : le nom est généré par défaut à partir des noms des Séances (séparés par « + » pour plusieurs), peut être personnalisé, et n'est plus soumis à unicité. L'unicité des noms de Séances reste inchangée. Une Exécution directe d'une Séance hors Parcours se rattache à un créneau autonome de la même Séance, du même jour, non commencé et non expiré (plus proche en heure, puis plus ancien à égalité) ; sinon Hors planification. Une Séance appartenant à un Parcours et lancée hors Agenda est Hors planification, sans déclencher ni modifier le Parcours. Le statut est individuel par Séance ; heure réelle et historique conservés. Voir [spécification normative du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Les cas non arbitrés y sont marqués À CLARIFIER.
+
+### Complément du 21/11/2026 — Créneau ajouté hors de la répétition (D-554)
+
+| Règle | Énoncé |
+|---|---|
+| RM-273 | Un créneau ajouté à la main (depuis le Plan) appartient à sa routine et ne modifie pas sa répétition. Il suit les règles des autres créneaux : statut, rattrapage et expiration (D-540), suppression (D-537, D-553), figé une fois commencé (D-536). Sa date et son heure sont protégées d’un changement global de la routine (groupe « date et heure », D-536). Supprimer la routine supprime ses créneaux ajoutés non commencés. Voir [DSF Plan](../DSF-PLAN-2026-11-21.md) § 8. |

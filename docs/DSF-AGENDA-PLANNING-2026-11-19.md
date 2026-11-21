@@ -88,3 +88,15 @@ Si l’utilisateur arrête une séance, la suite lui est proposée (« Passer à
 ## Évolution validée du 21/11/2026 — Agenda centré sur les Séances
 
 **Remplace**, pour l'Agenda seulement, la carte unique par occurrence de Routine (D-533/D-534) : une carte **par Séance**, y compris Exécution libre, et un en-tête compact « Ⓟ Nom du parcours » avec rail sans numéros au-dessus des Séances d'une Routine à plusieurs Séances. Une Routine à Séance unique n'a pas d'en-tête Parcours. Les cartes utilisent toutes le même format ; le déployé ne répète plus le nom de la Séance. L'heure d'une Séance exécutée est réelle et la carte est repositionnée ; pour les Séances non exécutées à partir de la deuxième d'un Parcours, la zone heure affiche « — ». Pas de statut d'Exécution agrégé du Parcours ; enchaînement actuel conservé. Les autres règles et états non contradictoires de ce DSF demeurent. Voir [spécification consolidée du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **L'affichage Agenda est validé dans Figma** (« P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) », `12906:47`) ; filtre et vue filtrée ajustés le 21/11/2026, à valider.
+
+## Zone de contexte rééquilibrée — 21/11/2026 (D-555)
+
+Précise D-538 et D-539 :
+- Ligne 1 :
+  - le mois et ses doubles flèches sont centrés sur la rangée des jours de la ligne 2, qui est centrée entre les flèches de semaine ;
+  - l'entonnoir est centré au-dessus de la flèche de semaine suivante, symétrique de « Aujourd'hui » autour du mois, et centré verticalement sur la ligne du mois.
+- Entonnoir sans filtre actif : contour bleu, comme « Aujourd'hui » [contour gris jusqu'au 20/11/2026] ; filtre actif : plein bleu.
+- Figma :
+  - les 11 écrans de la vue Agenda ;
+  - composant `icon/filtre-routine`, état Inactif.
+- Onglets : Journal · Agenda · Plan (D-554, [DSF Plan](DSF-PLAN-2026-11-21.md)).

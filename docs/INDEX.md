@@ -174,3 +174,5 @@ Arbitrages clos : inventaire des 30 champs, identité et multi-appartenance, acc
 [Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
 
 **Agenda, Journal et filtre, 21/11/2026 (D-553, classe B)** : [Agenda centré sur les Séances, Journal et filtre](KODJO-Agenda-seances-journal-filtre-2026-11-21.md) ; rendus : [DSF Agenda](DSF-AGENDA-PLANNING-2026-11-19.md), [DSF Journal](DSF-JOURNAL-2026-11-19.md).
+
+**Calendrier — Plan, 21/11/2026 (D-554, D-555, classe B)** : [DSF Plan](DSF-PLAN-2026-11-21.md) ; trois onglets Journal · Agenda · Plan ; zone de contexte de l'Agenda rééquilibrée ([DSF Agenda](DSF-AGENDA-PLANNING-2026-11-19.md)).

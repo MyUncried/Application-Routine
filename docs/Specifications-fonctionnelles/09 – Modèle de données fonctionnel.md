@@ -1595,3 +1595,7 @@ Appliquer l’inventaire MOUV-ADM-20261117 aux données de fiche, bibliothèque 
 ### Complément du 21/11/2026 — données Routine / Exécution
 
 La contrainte d'unicité du nom de Routine est supprimée ; celle du nom de Séance demeure. La gestion du nom de Routine doit distinguer un libellé généré et un nom personnalisé, sans mécanisme technique imposé à ce stade. L'Exécution d'une Séance peut être liée à une occurrence ou Hors planification ; ses horodatages réels et son instantané restent historiques. Le Parcours n'est pas une Exécution ni un statut agrégé. Règles de rattachement, exceptions et cas À CLARIFIER : [spécification du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Toute formulation antérieure incompatible est supersédée.
+
+### Complément du 21/11/2026 — créneau ajouté (D-554)
+
+Une occurrence peut être **ajoutée** à une routine en dehors de sa répétition. Elle est enregistrée avec sa date et son heure, distinguée des occurrences issues de la répétition, et son groupe « date et heure » est marqué comme modifié à la main (D-536). Mécanisme technique non imposé. Règle : RM-273 ; rendu : [DSF Plan](../DSF-PLAN-2026-11-21.md).

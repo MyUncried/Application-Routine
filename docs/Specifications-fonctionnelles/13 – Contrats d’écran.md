@@ -6376,3 +6376,13 @@ Retirer les champs et sections supprimés dans MOUV-ADM-20261117 ; masquer les d
 ### Complément CE-UI-15 / Journal / filtre — 21/11/2026 (D-553)
 
 Les prescriptions précédentes « carte par occurrence de Routine » et « nom de Routine en titre de l'Agenda » sont **supersédées**. Agenda : une carte unique de Séance par contenu planifié ou Exécution libre, titre = nom de Séance, déployé = composition sans répétition du nom ; Parcours = une ligne Ⓟ compacte avant la première carte, avec rail sans numéros, sans cadre/compteur/durée dans la ligne ; pas de ligne Ⓟ pour une Routine à Séance unique. Heure prévue pour la première Séance d'un Parcours tant qu'elle n'est pas exécutée ; « — » pour toute Séance suivante non exécutée ; après Exécution, heure réelle et repositionnement chronologique. Journal : une carte par Routine ; Parcours sur une ligne Ⓟ. Filtre : une ligne par Routine à Séance unique ou Parcours, avec sélection multiple, libellé identique au Journal. Référence : [KODJO — Agenda / Journal / filtre, 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **Agenda Figma validé (`12906:47`) ; Journal et filtre ajustés le 21/11/2026, à valider.**
+
+### CE-UI-16 — Calendrier — Plan (D-554, 21/11/2026)
+
+Écran « P-Calendrier — Plan » (`12983:19`). Rendu, groupes, parcours, Total et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Contrat :
+- les cases suivent les états et les heures de l'Agenda (D-553) ;
+- toucher une case vide ouvre la modale du créneau, pré-remplie (date du jour, heure habituelle) ; pour un parcours, le créneau entier ;
+- toucher une case pleine ouvre la modification du créneau ; un créneau commencé ne s'ouvre pas ;
+- « + Routine » ouvre la planification avec le programme du groupe ;
+- pas de filtre ;
+- la ligne Total donne la durée estimée prévue par jour et pour la semaine.
