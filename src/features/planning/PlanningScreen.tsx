@@ -66,6 +66,9 @@ import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTab
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
+import type { Program } from "@/domain/programs/Program";
+import { maxEndCount, windowStartMinimum, withinWindow, type ProgramWindow } from "@/features/planning/programWindow";
+import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -111,7 +114,15 @@ const REMINDER_MINUTES_STEP = Array.from({ length: 12 }, (_, index) => index * 5
 const POINT_SIZE = 18;
 const COLUMN_WIDTH = 26;
 
-type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string; readonly occurrenceKey?: string };
+/** `programId` (PROG-CAT-01, D-549) : « + Planifier une séance » depuis un programme — programme présélectionné, non modifiable. */
+type Params = {
+  readonly routineId?: string;
+  readonly duplicateOf?: string;
+  readonly sessionId?: string;
+  readonly date?: string;
+  readonly occurrenceKey?: string;
+  readonly programId?: string;
+};
 
 /** `occurrence` : modification d'une occurrence seule depuis l'Agenda (D-536, point 4, 20/11/2026). */
 type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string } | { readonly kind: "occurrence"; readonly editing: OccurrenceEditing };
@@ -306,6 +317,47 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     };
   }, [params.routineId, params.duplicateOf, params.occurrenceKey, planning]);
 
+  // PROG-CAT-01 (Hermann, 21/11/2026, point 5) : programme présélectionné (création depuis un programme) ou programme de la
+  // routine modifiée ; ses dates bornent « Début le », « jusqu'au » et « pendant ». Sans service (tests isolés) : aucun.
+  const programs = useOptionalProgramService();
+  const [program, setProgram] = useState<Program | null>(null);
+  const [routineProgramId, setRoutineProgramId] = useState<string | null>(null);
+  useEffect(() => {
+    if (params.routineId === undefined || params.programId !== undefined) return undefined;
+    let cancelled = false;
+    planning.getRoutine(params.routineId).then(
+      (routine) => {
+        if (!cancelled) setRoutineProgramId(routine?.programId ?? null);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [params.routineId, params.programId, planning]);
+  const programId = params.programId ?? routineProgramId;
+  useEffect(() => {
+    if (programs === null || programId === null) return undefined;
+    let cancelled = false;
+    programs.getProgram(programId).then(
+      (found) => {
+        if (!cancelled) setProgram(found);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [programs, programId]);
+  const programWindow: ProgramWindow | null = program === null ? null : { start: program.startDate, end: program.endDate };
+  // Nouvelle routine d'un programme : le brouillon reste dans la fenêtre (une routine existante n'est jamais réécrite d'office).
+  const boundCreation = params.programId !== undefined && mode?.kind === "create";
+  // Ajustement pendant le rendu (état dérivé du programme lu) : `withinWindow` rend le même objet une fois dans la fenêtre.
+  if (boundCreation && programWindow !== null && form !== null) {
+    const next = withinWindow(form, programWindow, todayLocal());
+    if (next !== form) setForm(next);
+  }
+
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
     if (catalogue.status === "ready") for (const projection of catalogue.sessions) map.set(projection.id, projection);
@@ -391,7 +443,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           })
         : mode.kind === "edit"
           ? planning.updateRoutine(mode.routineId, draft)
-          : planning.createRoutine(draft);
+          : planning.createRoutine(params.programId !== undefined ? { ...draft, programId: params.programId } : draft);
     request.then(
       (result) => {
         savingRef.current = false;
@@ -556,8 +608,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             <View style={styles.card} testID="planning-slot">
               <View style={styles.line}>
                 <Text style={styles.label}>{t.program}</Text>
-                <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${t.programNone}`} testID="planning-program">
-                  <Text style={styles.pillText}>{t.programNone}</Text>
+                <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${program?.name ?? t.programNone}`} testID="planning-program">
+                  <Text style={styles.pillText}>{program?.name ?? t.programNone}</Text>
                 </View>
               </View>
               <View style={styles.line}>
@@ -768,7 +820,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         anchor={popover?.kind === "END_COUNT" ? popover.anchor : null}
         columns={[
           {
-            values: END_COUNTS,
+            values: programWindow === null ? END_COUNTS : END_COUNTS.filter((count) => count <= maxEndCount(form.unit, form.startDate, programWindow.end)),
             selected: form.endCount,
             onChange: (count) => setForm((current) => (current === null ? current : withEndCount(current, count))),
             accessibilityLabel: t.during,
@@ -884,7 +936,10 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         {popover?.kind === "START" || popover?.kind === "END" ? (
           <DateCalendar
             value={popover.kind === "START" ? form.startDate : form.endDate}
-            minimum={popover.kind === "START" ? todayLocal() : form.startDate}
+            minimum={
+              popover.kind === "START" ? (programWindow === null ? todayLocal() : windowStartMinimum(programWindow, todayLocal())) : form.startDate
+            }
+            {...(programWindow !== null ? { maximum: programWindow.end } : {})}
             onChange={(value) => {
               if (popover.kind === "START") changeStartDate(value);
               else setForm((current) => (current === null ? current : withEndDate(current, value)));
@@ -1105,7 +1160,18 @@ function SlotGrid({
  * panneau est blanc, et en mode sombre le calendrier écrivait en blanc sur blanc (recette du 19/11/2026, k19 : « on ne
  * voit rien … aucun texte, sauf la date du jour »).
  */
-function DateCalendar({ value, minimum, onChange }: { readonly value: LocalDate; readonly minimum: LocalDate; readonly onChange: (value: LocalDate) => void }) {
+function DateCalendar({
+  value,
+  minimum,
+  maximum,
+  onChange,
+}: {
+  readonly value: LocalDate;
+  readonly minimum: LocalDate;
+  /** PROG-CAT-01 : fin du programme ; absent : aucune borne haute. */
+  readonly maximum?: LocalDate;
+  readonly onChange: (value: LocalDate) => void;
+}) {
   if (Platform.OS !== "ios") return null;
   return (
     <View style={styles.calendar} testID="planning-date-panel">
@@ -1113,7 +1179,7 @@ function DateCalendar({ value, minimum, onChange }: { readonly value: LocalDate;
         <DatePicker
           selection={timeToDate(value, "12:00")}
           displayedComponents={["date"]}
-          range={{ start: timeToDate(minimum, "00:00") }}
+          range={maximum === undefined ? { start: timeToDate(minimum, "00:00") } : { start: timeToDate(minimum, "00:00"), end: timeToDate(maximum, "23:59") }}
           onDateChange={(date) => onChange(formatLocalDate(date))}
           modifiers={CALENDAR_MODIFIERS}
         />

@@ -303,18 +303,22 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     mockPhotoExists = false;
   });
 
-  it("shows the three tabs: Profil selected, Préférences returns to the Profil screen, Communauté disabled", async () => {
+  // PROG-CAT-01 (CE-PRF-01, D-552) : Compte · Préférences · Confidentialité. [Avant : Profil · Préférences · Communauté
+  // (désactivée) — remplacé.]
+  it("shows the three tabs: Compte selected, Préférences returns to the Profil screen; account-dependent rows greyed", async () => {
     const router = await renderScreen();
 
     expect(screen.queryByTestId("screen-header-back")).toBeNull();
-    const profileTab = screen.getByTestId("profile-edit-tabs-profile");
-    expect(profileTab.props.accessibilityState).toMatchObject({ selected: true, disabled: false });
-    expect(screen.getByTestId("profile-edit-tabs-profile-shape", { includeHiddenElements: true })).toBeTruthy();
-    const community = screen.getByTestId("profile-edit-tabs-community");
-    expect(community.props.accessibilityState).toMatchObject({ selected: false, disabled: true });
-    expect(community.props.accessibilityLabel).toBe(t.tabs.communityUnavailableAccessibilityLabel);
+    const accountTab = screen.getByTestId("profile-edit-tabs-account");
+    expect(accountTab.props.accessibilityLabel).toBe("Compte");
+    expect(accountTab.props.accessibilityState).toMatchObject({ selected: true, disabled: false });
+    expect(screen.getByTestId("profile-edit-tabs-account-shape", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByTestId("profile-edit-tabs-privacy").props.accessibilityLabel).toBe("Confidentialité");
+    expect(screen.queryByTestId("profile-edit-tabs-community")).toBeNull();
+    expect(screen.getByTestId("profile-edit-account").props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByText("Disponible avec la gestion des comptes")).toBeTruthy();
 
-    fireEvent.press(community);
+    fireEvent.press(accountTab);
     expect(router.getPathname()).toBe("/profile-edit");
 
     act(() => {
@@ -338,8 +342,8 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Hermann Adjo" })) }));
 
     // Recette c2 du 12/11 : plus d'intitulé « Profil » ni de libellé « Nom ».
-    // Seul l'onglet porte « Profil » : plus d'intitulé de section.
-    expect(screen.getAllByText(t.sectionLabel)).toHaveLength(1);
+    // Seul l'onglet portait « Profil » ; depuis D-552 (PROG-CAT-01), l'onglet est « Compte » : aucun intitulé « Profil ».
+    expect(screen.queryAllByText(t.sectionLabel)).toHaveLength(0);
     expect(screen.getByTestId("profile-edit-avatar-background")).toBeTruthy();
     const initials = screen.getByTestId("profile-edit-avatar-initials");
     expect(initials.props.children).toBe("HA");

@@ -15,10 +15,10 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
+import { profileTabs } from "@/features/preferences/profileTabs";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
-type ProfileTab = "profile" | "preferences" | "community";
 
 /**
  * Figma 12119:25611 : fond d'écran `color/catalogue/seances/background` (#F7F7FF) et bande des onglets
@@ -238,27 +238,9 @@ export function ProfileEditScreen() {
     <TabbedScreen
       title={t.title}
       palette={{ context: PROFILE_TAB_CONTEXT, background: PROFILE_BACKGROUND }}
-      tabs={{
-        options: [
-          { value: "profile", label: t.tabs.profile },
-          { value: "preferences", label: t.tabs.preferences },
-          {
-            value: "community",
-            label: t.tabs.community,
-            disabled: true,
-            accessibilityLabel: t.tabs.communityUnavailableAccessibilityLabel,
-          },
-        ],
-        value: "profile" as ProfileTab,
-        // « Préférences » ramène à l'écran Profil, qui porte les réglages et préférences (13/11 : plus de garde
-        // d'abandon, tout est déjà enregistré).
-        onChange: (tab: ProfileTab) => {
-          // 14/11 : écran de l'onglet Profil (barre de navigation) — on rejoint Préférences par son adresse, un
-          // retour arrière d'onglet ramènerait au premier onglet. [Avant : router.back() — remplacé.]
-          if (tab === "preferences") router.navigate("/profile");
-        },
-        testID: "profile-edit-tabs",
-      }}
+      // PROG-CAT-01 (CE-PRF-01, D-552) : onglets Compte · Préférences · Confidentialité, chacun rejoint par son adresse.
+      // [Avant : Profil · Préférences · Communauté (désactivée) — remplacé.]
+      tabs={{ ...profileTabs("account", router), testID: "profile-edit-tabs" }}
       // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026).
       /* Zone de contexte canonique des Catalogues (`ContextBand` : fondu par couches D-224, géométrie CE-CAT-CTX-01,
           hauteur standard), couleur de l'onglet sélectionné (recettes du 12/11 : « UTILISE LES COMPOSANTS STANDARDS »).
@@ -382,6 +364,24 @@ export function ProfileEditScreen() {
             </View>
           ) : null}
 
+          {/* PROG-CAT-01 (CE-PRF-01, mission §5) : ce qui dépend de la gestion des comptes (pseudo public, accès au compte et
+              connexion) est affiché grisé et inactif, avec la mention « Disponible avec la gestion des comptes ». Nom, photo,
+              silhouette et bibliothèques fonctionnent en local et restent actifs. [Aucune maquette de ces lignes : présentation
+              reprise des cartes du Profil — interprétation listée au rapport.] */}
+          <View style={styles.accountCard} accessibilityState={{ disabled: true }} testID="profile-edit-account">
+            {ACCOUNT_ROWS.map((label, index) => (
+              <View key={label}>
+                {index > 0 ? <View style={styles.accountSeparator} /> : null}
+                <View style={styles.accountRow}>
+                  <Text style={styles.accountLabel}>{label}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.accountMention} testID="profile-edit-account-unavailable">
+            {ACCOUNT_UNAVAILABLE}
+          </Text>
+
           {/* A1 (A-4 du 11/11/2026, Figma 12119:25611) : Bibliothèques du premier lot. */}
           <ProfileLibrariesSection />
         </ScrollView>
@@ -392,7 +392,23 @@ export function ProfileEditScreen() {
   );
 }
 
+/** PROG-CAT-01 (mission §5) : éléments du Compte qui dépendent de la gestion des comptes. */
+const ACCOUNT_ROWS = ["Pseudo public", "Accès au compte et connexion"] as const;
+const ACCOUNT_UNAVAILABLE = "Disponible avec la gestion des comptes";
+
 const styles = StyleSheet.create({
+  accountCard: {
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.background,
+    borderRadius: 12,
+    opacity: 0.45,
+    marginTop: spacing[16],
+  },
+  accountRow: { minHeight: 52, justifyContent: "center", paddingHorizontal: spacing[16] },
+  accountLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 15, color: colors.textPrimary },
+  accountSeparator: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing[16] },
+  accountMention: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, color: colors.textSecondary, marginTop: spacing[8], marginBottom: spacing[8], paddingHorizontal: spacing[16] },
   body: {
     flex: 1,
     // Recette c1 : le corps remonte sous la part fondue de la zone de contexte et défile derrière elle.
