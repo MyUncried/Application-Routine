@@ -83,7 +83,10 @@ Questions issues de la revue, tranchées par Hermann le 21/11/2026 et intégrée
 6. Nom vidé : enregistrement bloqué, « Nom obligatoire ».
 7. Écran Agenda validé `12906:47` : la 2e carte du Parcours affiche « — » (corrigé dans Figma).
 8. Séance suivante non exécutée d'un Parcours commencé : « Rattraper » pour elle seule, jusqu'au créneau suivant, puis « Expirée ».
+9. Gestes sur la carte d'une Séance de Parcours :
+   - **Supprimer** (glisser) ne retire que cette Séance de l'occurrence. Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances. La suppression de la dernière Séance restante supprime le créneau : aucune ligne Ⓟ ne reste seule.
+   - Une Séance exécutée ne se supprime pas (historique). Une Séance non exécutée d'un Parcours commencé peut être supprimée ; elle n'est alors plus à rattraper.
+   - **Modifier** (cadre gauche) ouvre la modification de tout le créneau du Parcours (date, heure, Séances activées ou non) : une Séance de Parcours n'a pas d'heure propre.
+   - Un créneau commencé ne se modifie pas (D-536).
 
-Reste à préciser :
-- **À CLARIFIER** : portée des gestes sur la carte d'une Séance de Parcours (cadre gauche « modifier ce créneau », glisser « Supprimer ce créneau ») : la seule Séance ou toute l'occurrence ;
-- dans le modèle technique, sans incidence fonctionnelle : le mécanisme distinguant nom généré et nom personnalisé (§ 2).
+Reste à préciser dans le modèle technique, sans incidence fonctionnelle : le mécanisme distinguant nom généré et nom personnalisé (§ 2).

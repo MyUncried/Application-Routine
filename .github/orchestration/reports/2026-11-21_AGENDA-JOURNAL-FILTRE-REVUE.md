@@ -217,5 +217,5 @@ Donnés dans le compte rendu de livraison et dans la PR.
   - ligne D-553 du registre ;
   - RM-261 : nom vide bloquant, plus d'unicité ;
   - RM-264.
-- **Reste À CLARIFIER** : portée des gestes (modifier, supprimer) sur la carte d'une Séance de parcours.
+- **Gestes sur une Séance de parcours** : arbitrés par Hermann (« je propose de n'impacter que la séance concernée » ; « Oui, et je suis d'accord sur le fait qu'on ne change pas un créneau qui a déjà commencé »). Supprimer agit sur cette Séance seule ; modifier agit sur tout le créneau. Spécification § 8, point 9. Plus aucun point À CLARIFIER fonctionnel.
 - **Classe B.**
