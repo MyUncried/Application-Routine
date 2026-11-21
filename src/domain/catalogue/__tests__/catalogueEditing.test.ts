@@ -27,7 +27,7 @@ import {
 } from "@/domain/catalogue/MovementCatalogueFile";
 
 /**
- * W1 (11/11/2026) — édition du format v2 par l'administration locale : création de fiche,
+ * W1 (11/11/2026) — édition du format courant (v3 depuis le 18/11/2026) par l'administration locale : création de fiche,
  * révisions sur changement effectif seulement, Bibliothèques par références, rapprochement.
  */
 
@@ -77,7 +77,8 @@ describe("createSheet", () => {
     expect(sheet).toMatchObject({
       sheetId: "fiche-pompe-murale",
       revision: "1",
-      provenance: { origin: "LOCAL_CREATED", upstream: null, owner: null, author: null, visibility: "PRIVATE", reviewStatus: "DRAFT" },
+      provenance: { origin: "LOCAL_CREATED", upstream: null, owner: null, author: null, rightsHolder: null, license: null },
+      phases: [],
       validation: { publicationAllowed: false },
       install: { knownLocalMovementIds: [] },
     });
@@ -124,9 +125,9 @@ describe("applySheetEdit", () => {
     edited.revision = "99";
     edited.history = [];
     const next = applySheetEdit(previous, edited, meta);
-    expect(next.revision).toBe("2");
-    expect(next.history).toHaveLength(2);
-    expect(next.history[1]).toEqual({ revision: "2", date: "2026-11-11", author: meta.author, summary: "Test" });
+    expect(next.revision).toBe("3");
+    expect(next.history).toHaveLength(3);
+    expect(next.history[2]).toEqual({ revision: "3", date: "2026-11-11", author: meta.author, summary: "Test" });
     expect(sheetFingerprint(next)).not.toBe(sheetFingerprint(previous));
   });
 
@@ -134,7 +135,7 @@ describe("applySheetEdit", () => {
     const previous = pilot().sheets[0];
     const edited = clone(previous) as { content: { steps: string[] } } & CatalogueSheet;
     edited.content.steps.reverse();
-    expect(applySheetEdit(previous, edited, meta).revision).toBe("2");
+    expect(applySheetEdit(previous, edited, meta).revision).toBe("3");
   });
 
   it("installation seule : nouvelle liste conservée sans révision éditoriale", () => {
@@ -179,7 +180,8 @@ describe("applyLibraryEdit et composition", () => {
       { catalogueId: base.catalogue.id, sheetId: "REED-001" },
       { catalogueId: base.catalogue.id, sheetId: "REED-002" },
     ] }, meta);
-    expect(library).toMatchObject({ libraryId: "bib-genou-selection", revision: "1", visibility: "PRIVATE", publicationAllowed: false, owner: null, editor: null });
+    expect(library).toMatchObject({ libraryId: "bib-genou-selection", revision: "1", visibility: "PRIVATE", owner: null });
+    expect(Object.keys(library)).not.toEqual(expect.arrayContaining(["editor"]));
     const reread = roundTrip(file);
     expect(reread.libraries).toHaveLength(2);
     expect(reread.sheets).toHaveLength(60);
@@ -224,7 +226,7 @@ describe("applyFileEdit", () => {
     const result = applyFileEdit(previous, edited, meta);
     expect(result).toMatchObject({ ok: true, changed: true, changedSheets: [previous.sheets[3].sheetId], changedLibraries: [] });
     if (!result.ok) return;
-    expect(result.file.sheets[3].revision).toBe("2");
+    expect(result.file.sheets[3].revision).toBe("3");
     expect(result.file.sheets[2]).toBe(previous.sheets[2]);
     expect(result.file.catalogue.revision).toBe("2");
     roundTrip(result.file);
@@ -236,7 +238,7 @@ describe("applyFileEdit", () => {
     const result = applyFileEdit(previous, linked, meta);
     expect(result).toMatchObject({ ok: true, changed: true, changedSheets: [], installChangedSheets: ["REED-002"] });
     if (!result.ok) return;
-    expect(result.file.sheets[1].revision).toBe("1");
+    expect(result.file.sheets[1].revision).toBe("2");
     expect(result.file.catalogue.revision).toBe("2");
     expect(linkLocalMovement(linked, "REED-002", "mv-123")).toBe(linked);
     expect(() => linkLocalMovement(linked, "REED-003", "mv-123")).toThrow(/LOCAL_ID_ALREADY_LINKED/);

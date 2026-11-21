@@ -173,6 +173,26 @@ export async function createAdminApp({
 } = {}) {
   const cataloguesDir = path.join(dataRoot, "catalogue/catalogues");
   const adminDir = path.join(dataRoot, "catalogue/admin");
+  // Sauvegardes récupérables d'un fichier avant sa première réécriture dans un nouveau format (non versionnées).
+  const backupsDir = path.join(adminDir, "sauvegardes");
+
+  /**
+   * Format 3.0.0 (18/11/2026) : copie à l'identique (octets lus) d'un fichier écrit dans un format antérieur,
+   * avant sa première réécriture au format courant. Une seule copie par contenu (nom dérivé de l'empreinte).
+   */
+  async function backupBeforeUpgrade(current) {
+    const version = current.parsed.sourceFormatVersion;
+    if (version === MOVEMENT_CATALOGUE_FORMAT_VERSION) return null;
+    const name = current.fileName.replace(/\.catalogue\.json$/, "") + ".v" + version + "." + current.etag.slice(0, 12) + ".catalogue.json";
+    const target = path.join(backupsDir, name);
+    try {
+      await readFile(target);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+      await atomicWrite(target, current.bytes);
+    }
+    return path.relative(dataRoot, target).split(path.sep).join("/");
+  }
   let writeQueue = Promise.resolve();
   const serialize = (work) => {
     const next = writeQueue.then(work);
@@ -266,9 +286,11 @@ export async function createAdminApp({
       const reread = parseMovementCatalogueFile(JSON.parse(serializeMovementCatalogueFile(result.file)));
       if (!reread.ok) throw new Error("Revalidation impossible après calcul des révisions");
       const text = serializeMovementCatalogueFile(result.file);
+      const backup = await backupBeforeUpgrade(current);
       await atomicWrite(path.join(cataloguesDir, fileName), text);
       const outcome = {
         saved: true,
+        ...(backup === null ? {} : { backup }),
         etag: digest(Buffer.from(text, "utf8")),
         revision: result.file.catalogue.revision,
         changedSheets: result.changedSheets,
@@ -354,9 +376,8 @@ export async function createAdminApp({
         if (!diffusable.ok) {
           throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: diffusable.withheld.map((sheet) => sheet.sheetId) });
         }
-        const exported = diffusable.withheld.length === 0
-          ? Buffer.from(entry.canonical, "utf8")
-          : Buffer.from(serializeMovementCatalogueFile(diffusable.file), "utf8");
+        // Format 3.0.0 : la version diffusable retire aussi les notes internes (MOUV-ADM n° 5 et 28).
+        const exported = Buffer.from(serializeMovementCatalogueFile(diffusable.file), "utf8");
         return sendBytes(response, 200, exported, "application/json; charset=utf-8", {
           "Content-Disposition": 'attachment; filename="' + fileName + '"',
           ETag: '"' + digest(exported) + '"',
@@ -522,10 +543,10 @@ export async function createAdminApp({
       if (!diffusable.ok) {
         throw new HttpError(409, "MEDIA_RIGHTS_UNCONFIRMED", { sheets: diffusable.withheld.map((sheet) => sheet.sheetId) });
       }
-      let bytes = Buffer.from(entry.canonical, "utf8");
+      // Format 3.0.0 : version diffusable dans tous les cas (notes internes retirées, MOUV-ADM n° 5 et 28).
+      const bytes = Buffer.from(serializeMovementCatalogueFile(diffusable.file), "utf8");
       const headers = {};
       if (diffusable.withheld.length > 0) {
-        bytes = Buffer.from(serializeMovementCatalogueFile(diffusable.file), "utf8");
         headers["X-Kodjo-Withheld-Sheets"] = encodeURIComponent(JSON.stringify(diffusable.withheld));
       }
       const etag = '"' + digest(bytes) + '"';

@@ -140,7 +140,7 @@ describe("rapprochement et création de fiche", () => {
     const { file: next, sheet } = createSheet(file, inboxMovementToSheetInput(item, { categoryId: "renforcement", bodyZoneIds: ["bras"] }),
       { date: "2026-11-11", author: null, summary: "Reçu du téléphone" });
     expect(sheet).toMatchObject({
-      provenance: { origin: "LOCAL_CREATED", upstream: null, owner: null, author: null, visibility: "PRIVATE", reviewStatus: "DRAFT" },
+      provenance: { origin: "LOCAL_CREATED", upstream: null, owner: null, author: null, rightsHolder: null, license: null },
       content: { name: "Pompe murale", aliases: ["Wall push-up"], steps: item.steps },
       validation: { publicationAllowed: false },
       install: { knownLocalMovementIds: ["mv-1"] },

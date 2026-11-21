@@ -9,7 +9,9 @@
  * locale est conservée et la révision reportée tant que le destinataire n'a pas choisi, champ par
  * champ, de garder sa valeur ou de prendre la nouvelle (sa valeur est alors sauvegardée au
  * registre). Les Mouvements sont écrits par le service Catalogue existant (mêmes validations que
- * les écrans) ; médias, phases, famille et archivage locaux ne sont jamais modifiés.
+ * les écrans) ; médias, famille et archivage locaux ne sont jamais modifiés par la projection.
+ * [Phases : depuis le format 3.0.0 (18/11/2026, MOUV-UX-20261117), les phases de la fiche source sont un champ
+ * projeté — installées, puis mises à jour aux révisions acceptées, avec la même protection des valeurs locales.]
  *
  * [Famille de niveaux — décision de Hermann du 11/11/2026 : la famille portée par la fiche est appliquée
  * après l'acceptation (`catalogueFamilies.ts`), sauf si l'appartenance a été modifiée sur le téléphone
@@ -23,6 +25,7 @@ import {
   parseMovementCatalogueFile,
   projectSheetToMovement,
   sheetFingerprint,
+  withoutInternalNotes,
   type CatalogueIssue,
   type CatalogueSheet,
   type CatalogueWarning,
@@ -104,6 +107,7 @@ const sameProjected = (a: Movement, b: Movement) =>
     JSON.stringify(normal(field, localValueOf(b, field))));
 const normal = (field: ProjectedField, value: unknown) =>
   field === "classification.bodyZoneIds" ? [...(value as string[])].sort() : value;
+// Les phases sont comparées dans la forme de la fiche (`localValueOf` : durée explicite).
 
 export class CatalogueLoadService {
   constructor(private readonly deps: CatalogueLoadDependencies) {}
@@ -112,9 +116,11 @@ export class CatalogueLoadService {
   async prepare(raw: unknown): Promise<PreparedCatalogueLoad> {
     const parsed = parseMovementCatalogueFile(raw);
     if (!parsed.ok) return { ok: false, issues: parsed.issues };
-    const recovery = await this.recoverInterrupted(parsed.file.catalogue.id);
-    const plan = await this.plan(parsed.file);
-    return { ok: true, file: parsed.file, warnings: parsed.warnings, recovery, plan };
+    // Notes internes de l'administration : jamais reçues par le destinataire (MOUV-ADM n° 5 et 28).
+    const file = withoutInternalNotes(parsed.file);
+    const recovery = await this.recoverInterrupted(file.catalogue.id);
+    const plan = await this.plan(file);
+    return { ok: true, file, warnings: parsed.warnings, recovery, plan };
   }
 
   /**

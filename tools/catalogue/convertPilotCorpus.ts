@@ -10,14 +10,13 @@
  * mécanisme de gestion du catalogue. Toute propriété source inconnue fait échouer la conversion,
  * afin qu'aucune donnée ne soit perdue en silence.
  */
-import type { EditorialActorRef, EditorialReviewStatus } from "@/domain/catalogue/MovementEditorialProvenance";
+import type { EditorialActorRef } from "@/domain/catalogue/MovementEditorialProvenance";
 import {
   MOVEMENT_CATALOGUE_FORMAT,
-  MOVEMENT_CATALOGUE_FORMAT_VERSION,
+  parseMovementCatalogueFile,
   type CatalogueMedia,
   type CatalogueReferenceEntry,
   type CatalogueReferences,
-  type CatalogueSheet,
   type MovementCatalogueFile,
 } from "@/domain/catalogue/MovementCatalogueFile";
 import { PREDEFINED_CATEGORIES } from "@/domain/categories/defaults";
@@ -196,7 +195,7 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
     if (!candidateIds.has(candidateId)) fail("brouillon d'une fiche étrangère au corpus : " + candidateId);
   }
 
-  const sheets: CatalogueSheet[] = (corpus.records as Json[]).map((record) => {
+  const sheets = (corpus.records as Json[]).map((record) => {
     const candidateId = record.candidateId as string;
     const sheetId = record.originalId as string;
     const proposal = proposals.get(candidateId);
@@ -252,7 +251,7 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
         publisher: null,
         rightsHolder: null,
         license: null,
-        reviewStatus: (edit?.editorialStatus === undefined ? "DRAFT" : text(edit.editorialStatus, candidateId + ".editorialStatus")) as EditorialReviewStatus,
+        reviewStatus: edit?.editorialStatus === undefined ? "DRAFT" : text(edit.editorialStatus, candidateId + ".editorialStatus"),
         visibility: "PRIVATE",
       },
       content: {
@@ -313,9 +312,11 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
     };
   });
 
-  return {
+  // Format 3.0.0 (18/11/2026) : la conversion produit d'abord la forme 2.0.0 historique, puis la relit par la
+  // conversion déterministe du format (position de départ reprise au début des étapes, champs abandonnés retirés).
+  const legacy = {
     format: MOVEMENT_CATALOGUE_FORMAT,
-    formatVersion: MOVEMENT_CATALOGUE_FORMAT_VERSION,
+    formatVersion: "2.0.0",
     catalogue: {
       id: PILOT_CATALOGUE_ID,
       title: "Catalogue pilote KODJO — 60 fiches de test",
@@ -350,4 +351,7 @@ export function convertPilotCorpus(sources: PilotSources): MovementCatalogueFile
     }],
     sheets,
   };
+  const parsed = parseMovementCatalogueFile(JSON.parse(JSON.stringify(legacy)));
+  if (!parsed.ok) fail("catalogue converti invalide : " + parsed.issues.map((found) => found.path + " " + found.code).join(", "));
+  return parsed.file;
 }

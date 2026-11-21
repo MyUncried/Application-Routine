@@ -188,6 +188,10 @@ Conserver les filtres courants directement accessibles ; ajouter les axes spéci
 - Définir ultérieurement les aides utilisateur incluant le glossaire.
 - Le choix de stockage/transit des médias reste reporté ; la conservation des médias personnalisés chez le destinataire est, elle, décidée.
 
+### Mise en œuvre du 18/11/2026 (format 3.0.0)
+
+Implémentation des décisions MOUV-ADM, MOUV-ACC (identité et fiche commune à plusieurs Bibliothèques), MOUV-PART (synthèse de publication, sans contrôle central) et MOUV-UX (phases transmises, données des filtres sans parcours) : format catalogue 3.0.0, registre du téléphone schéma 4, administration alignée sur les 30 éléments. Détail technique, migration et limites : [format catalogue § 13](KODJO-Format-catalogue-mouvements-v1.md). Critères ci-dessous couverts par les tests : 4 (phases), 5 (ancien fichier), 6 (notes internes ; médias personnalisés hors lot), 8 (administration, hors vérification visuelle) ; 1, 2, 3 et 7 relèvent des lots accès, révocation et partage, non développés. La recette sur iPhone reste à faire par Hermann.
+
 ### Critères de recette de la cible (non exécutés dans cette passe documentaire)
 
 1. Retirer une bibliothèque parmi deux donnant accès à la même fiche : un seul mouvement local reste utilisable ; retirer le dernier accès : mouvement indisponible, séances à corriger identifiables en un clic.
