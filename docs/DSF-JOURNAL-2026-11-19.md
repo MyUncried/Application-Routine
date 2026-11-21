@@ -49,3 +49,7 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 [Mise en œuvre du 20/11/2026 — D-540 (§ 2 et § 6 de la branche `docs/planification-grille-creneaux`, commit 171f9ca3, non fusionnée) : routine active (créneau à venir ou rattrapable) ou terminée, état calculé ; liste par défaut = actives ; statut « Terminées » du filtre ; compteurs « Actives · Terminées » ; plus d'archivage : suppression avec historique = créneaux non commencés retirés, « N créneaux non commencés seront supprimés. La routine sera terminée. ». Classe A ; rapport `2026-11-20_CYCLE-VIE-ROUTINE.md`.]
 
 [Recette du 20/11/2026 (Hermann) : fenêtre « Supprimer cette routine » — « Annuler » et « Confirmer » côte à côte, même format. [« Annuler » en haut à gauche — remplacé.]]
+
+## Évolution validée du 21/11/2026 — Journal / filtre
+
+La représentation du Journal reste **une carte par Routine**. Une Routine à plusieurs Séances (Parcours) est présentée sur **une seule ligne** avec le symbole Ⓟ et le nom de Routine ; la composition reste au déployé. Une Routine à Séance unique est présentée par son nom de Routine dans le Journal. Le filtre de l'Agenda reprend exactement cette représentation compacte, sans dérouler les Séances d'un Parcours en lignes distinctes. Les noms de Routines ne sont plus uniques et peuvent être générés ou personnalisés. **Les clauses antérieures incompatibles de ce DSF sont supersédées** par [la décision du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Figma Journal et filtre : revue et ajustement demandés, non encore validés.
