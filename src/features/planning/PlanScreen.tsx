@@ -36,6 +36,8 @@ import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
+import type { Program } from "@/domain/programs/Program";
+import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -48,8 +50,8 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * - case pleine : modification du créneau (pour un parcours, tout le créneau) ; un créneau commencé ne s'ouvre pas ;
  * - « + Routine » : planification habituelle, programme du groupe pré-sélectionné (aucun sous « Sans programme »).
  *
- * Programmes : le modèle des programmes (mission PROG-CAT-01) n'est pas sur cette branche ; toutes les routines sont donc sous
- * « Sans programme » [À CLARIFIER / dépendance d'intégration, voir rapport PLAN-01].
+ * Programmes (intégration de PROG-CAT-01, 23/11/2026) : une routine rattachée à un programme figure sous sa bande ; les autres sous
+ * « Sans programme ». [Toutes les routines « Sans programme » tant que les programmes n'étaient pas sur cette branche — remplacé.]
  */
 
 const t = planningStrings;
@@ -138,6 +140,9 @@ export function PlanScreen({
   const [linked, setLinked] = useState<readonly OccurrenceExecution[]>([]);
   const [executions, setExecutions] = useState<readonly AgendaExecution[]>([]);
   const [snapshots, setSnapshots] = useState<ReadonlyMap<string, SessionSnapshot>>(new Map());
+  // Programmes (intégration de PROG-CAT-01) : bandes « Programme · nom » (DSF Plan § 3). Sans service (tests isolés) : aucun.
+  const programService = useOptionalProgramService();
+  const [programs, setPrograms] = useState<readonly Program[]>([]);
   const [loadedAt, setLoadedAt] = useState(0);
   const [loadedMonday, setLoadedMonday] = useState<LocalDate | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -148,6 +153,12 @@ export function PlanScreen({
   const load = useCallback(
     (week: LocalDate) => {
       const id = ++requestId.current;
+      programService?.listPrograms().then(
+        (list) => {
+          if (id === requestId.current) setPrograms(list);
+        },
+        (error: unknown) => console.error("Les programmes n'ont pas pu être chargés.", error),
+      );
       planning.agendaData(week, addDays(week, 6)).then(
         (data) => {
           if (id !== requestId.current) return;
@@ -167,7 +178,7 @@ export function PlanScreen({
         },
       );
     },
-    [planning],
+    [planning, programService],
   );
 
   useFocusEffect(
@@ -225,11 +236,14 @@ export function PlanScreen({
             routine,
             routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined),
           ),
-        // Programmes : absents de cette branche (PROG-CAT-01) — toutes les routines « Sans programme ».
-        programmeOf: () => null,
+        // Programme de la routine (intégration de PROG-CAT-01) ; inconnu : « Sans programme ».
+        programmeOf: (routine) => {
+          const program = routine.programId === undefined || routine.programId === null ? undefined : programs.find((item) => item.id === routine.programId);
+          return program === undefined ? null : { id: program.id, name: program.name };
+        },
         executionProjections,
       }),
-    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt, executionProjections],
+    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt, executionProjections, programs],
   );
 
   const today = todayLocal();

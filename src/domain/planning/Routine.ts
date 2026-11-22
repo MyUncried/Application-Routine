@@ -138,6 +138,11 @@ export type Routine = {
    * (migration 034), jamais écrite ni lue par les règles.]
    */
   readonly archivedAt?: string | null;
+  /**
+   * PROG-CAT-01 (21/11/2026, D-549 ; migration 035) : programme auquel la routine est rattachée. Absent ou `null` : aucun
+   * (rattachement facultatif). La fenêtre du programme borne les dates de la routine (ch04, « Le Programme »).
+   */
+  readonly programId?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 };

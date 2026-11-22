@@ -39,6 +39,10 @@ import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ListGridToggle, type ListGridView } from "@/shared/ui/ListGridToggle";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import type { ProgramStatus } from "@/domain/programs/Program";
+import { ProgramCatalogueBody, ProgramContext, useProgramSummaries } from "@/features/programs/ProgramCatalogue";
+import { programCounts, visiblePrograms } from "@/features/programs/programPresentation";
+import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
@@ -202,6 +206,12 @@ export function CatalogueScreen() {
   };
   // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
   const [sessionQuery, setSessionQuery] = useState("");
+  // PROG-CAT-01 (CE-PROG-01, D-545) : statut affiché (Actifs par défaut) et recherche, état de l'écran, jamais persistés.
+  const programService = useOptionalProgramService();
+  const programCatalogue = useProgramSummaries(programService);
+  const [programStatus, setProgramStatus] = useState<ProgramStatus>("ACTIVE");
+  const [programQuery, setProgramQuery] = useState("");
+  const reloadPrograms = programCatalogue.reload;
   const movementFilterSummary =
     movementFilterLabels.length === 0
       ? null
@@ -243,6 +253,7 @@ export function CatalogueScreen() {
       setFocusCount((current) => current + 1);
       setMovementsReloadToken((current) => current + 1);
       reloadSessions();
+      reloadPrograms();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
       // qu'un focus ultérieur SANS nouveau signal (retour d'édition d'une
       // Activité, par exemple) ne réapplique jamais ce forçage.
@@ -256,6 +267,7 @@ export function CatalogueScreen() {
       };
     }, [
       reloadSessions,
+      reloadPrograms,
       cancelPendingSessions,
       catalogueSegmentParam,
       router,
@@ -319,6 +331,10 @@ export function CatalogueScreen() {
       openMovement(null);
       return;
     }
+    if (activeSegment === "programs") {
+      openProgram({});
+      return;
+    }
     if (isOpeningEditorRef.current) {
       return;
     }
@@ -332,6 +348,17 @@ export function CatalogueScreen() {
     sessionDraft?.resetDraft();
     router.push("/formats-window");
   };
+
+  // PROG-CAT-01 (CE-PROG-02, D-548) : création, configuration et copie dans la modale `program-sheet`, au-dessus du catalogue.
+  const openProgram = (params: { readonly programId?: string; readonly duplicateOf?: string }) => {
+    if (isOpeningEditorRef.current) return;
+    isOpeningEditorRef.current = true;
+    router.push({ pathname: "/program-sheet", params });
+  };
+  const today = programService?.today() ?? "";
+  const shownPrograms = programCatalogue.summaries === null ? [] : visiblePrograms(programCatalogue.summaries, programStatus, programQuery, today);
+  const programCountsValue =
+    programCatalogue.summaries === null ? null : programCounts(programCatalogue.summaries.map((summary) => summary.program), today);
 
   return (
     // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026, choix B : « ET APPLIQUE LE PARTOUT OÙ IL DOIT ÊTRE
@@ -354,12 +381,8 @@ export function CatalogueScreen() {
         options: [
           { value: "movements", label: strings.screens.movement.catalogue.segment },
           { value: "sessions", label: t.contentTypes.sessions },
-          {
-            value: "programs",
-            label: t.programsSegment,
-            disabled: true,
-            accessibilityLabel: t.programsUnavailableAccessibilityLabel,
-          },
+          // PROG-CAT-01 (CE-PROG-01) : onglet Programmes actif. [Avant : visible et indisponible — remplacé.]
+          { value: "programs", label: t.programsSegment },
         ],
         value: activeSegment,
         onChange: changeSegment,
@@ -435,6 +458,15 @@ export function CatalogueScreen() {
                     }}
                     onCreate={handleCreatePress}
                   />
+                ) : activeSegment === "programs" ? (
+                  <ProgramContext
+                    status={programStatus}
+                    onChangeStatus={setProgramStatus}
+                    counts={programCountsValue}
+                    query={programQuery}
+                    onChangeQuery={setProgramQuery}
+                    onCreate={handleCreatePress}
+                  />
                 ) : null,
             }
       }
@@ -462,7 +494,7 @@ export function CatalogueScreen() {
       <View
         style={[
           styles.body,
-          activeSegment === "movements" || (activeSegment === "sessions" && sessionCatalogue.state.status === "ready")
+          activeSegment === "movements" || activeSegment === "programs" || (activeSegment === "sessions" && sessionCatalogue.state.status === "ready")
             ? styles.bodyFlush
             : null, { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
@@ -489,6 +521,21 @@ export function CatalogueScreen() {
               />
             ) : null}
           </>
+        ) : null}
+        {activeSegment === "programs" && programService !== null ? (
+          <ProgramCatalogueBody
+            service={programService}
+            summaries={programCatalogue.summaries}
+            visible={shownPrograms}
+            failed={programCatalogue.failed}
+            today={today}
+            topInset={LIST_TOP_INSET}
+            bottomInset={0}
+            onOpen={(programId) => openProgram({ programId })}
+            onDuplicate={(programId) => openProgram({ duplicateOf: programId })}
+            onChanged={reloadPrograms}
+            onRetry={reloadPrograms}
+          />
         ) : null}
         {activeSegment === "movements" && movementView === "GRID" ? (
           <MovementCatalogueGrid

@@ -38,6 +38,7 @@ import { applyMigration033 } from "./migrations/migration033";
 import { applyMigration034 } from "./migrations/migration034";
 import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
+import { applyMigration038 } from "./migrations/migration038";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -382,6 +383,13 @@ export async function migrateDatabase(
     if (pending(36)) {
       await applyMigration037(transaction);
       version = 37;
+    }
+
+    // Programmes : table `programs`, rattachement des routines, programme figé sur l'exécution, accord au suivi de la
+    // douleur (21/11/2026, PROG-CAT-01, D-543 à D-552). Un échec laisse `user_version` à 37.
+    if (pending(37)) {
+      await applyMigration038(transaction);
+      version = 38;
     }
 
     if (version !== targetVersion) {

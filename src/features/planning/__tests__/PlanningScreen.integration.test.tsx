@@ -11,6 +11,9 @@ import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { pendingPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
+import { ProgramService } from "@/features/programs/ProgramService";
+import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
+import { SqliteProgramRepository } from "@/infrastructure/database/repositories/SqliteProgramRepository";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
@@ -728,5 +731,47 @@ describe("Planifier (CE-UI-12)", () => {
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(await planning.listRoutines()).toEqual([]);
+  });
+});
+
+/**
+ * PROG-CAT-01 (D-549 ; Hermann, 21/11/2026, points 1 et 5) : « + Planifier une séance » depuis un programme — programme
+ * présélectionné et non modifiable, dates bornées par la période, « pendant N » plafonné ; la routine enregistrée est rattachée.
+ */
+describe("Planifier depuis un programme (PROG-CAT-01)", () => {
+  it("programme présélectionné, début ramené dans la période, fin bornée ; routine rattachée", async () => {
+    const programs = new ProgramService({ repository: new SqliteProgramRepository(database), planning, newId: () => "prog-1", now: () => new Date(2030, 0, 1) });
+    const saved = await programs.createProgram({ name: "Genou", objective: "", startDate: "2030-08-10", endDate: "2030-08-31", painTracking: false });
+    if (saved.status !== "SAVED") throw new Error(saved.status);
+    const created = await sessions.createStructured(input("Gainage"));
+    const referentials = { listCategories: jest.fn(async () => []) } as unknown as ReferentialService;
+    render(
+      <TestSafeAreaProvider>
+        <SessionServiceContext.Provider value={new SessionService(sessions)}>
+          <ReferentialServiceContext.Provider value={referentials}>
+            <PlanningServiceContext.Provider value={planning}>
+              <ProgramServiceContext.Provider value={programs}>
+                <PlanningScreen params={{ sessionId: created.id, date: START, programId: "prog-1" }} />
+              </ProgramServiceContext.Provider>
+            </PlanningServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </SessionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await flush();
+    expect(within(screen.getByTestId("planning-program")).getByText("Genou")).toBeTruthy();
+    // La pastille Programme n'est pas une commande (non modifiable ici).
+    expect(screen.getByTestId("planning-program").props.accessibilityRole).toBeUndefined();
+    expect(synthesis()).toMatch(/ le 10 août 2030, à 8h$/);
+    fireEvent.press(screen.getByTestId("planning-repetition-kind"));
+    await flush();
+    // Défaut « jusqu'au + 4 semaines » ramené à la fin du programme.
+    expect(synthesis()).toMatch(/jusqu’au 31 août 2030$/);
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    await flush();
+    expect(synthesis()).toMatch(/pendant 3 semaines$/);
+    await save();
+    const [routine] = await planning.listRoutines();
+    expect(routine).toMatchObject({ programId: "prog-1", startDate: "2030-08-10" });
   });
 });
