@@ -130,3 +130,16 @@ Commit documentaire sur `diag/cpu-memoire-20261121`, envoyé sur `origin` (hash 
 1. Symboliser les rapports : récupérer le fichier de symboles (dSYM) de la version de développement installée (EAS) pour nommer les fonctions de `F833B928…` et `25EB07E0…`.
 2. Comparer avec une version sans mode développement (même code) : si la saturation disparaît, la cause relève du mode développement.
 3. Mesure CDP pendant une saturation confirmée par un rapport iOS, en comptant les échantillons par fonction native (`[Host Function]`) et en relevant le nombre d'événements natifs reçus.
+
+### Symbolisation des rapports (23/11/2026, 00h30–00h50)
+
+- IPA de la version installée récupérée sur EAS (construction `acdb2b02`, profil `development-bmad`, 20/11/2026 ; aucun dSYM fourni). Binaires non dépouillés : `F833B928…` = `React.framework/React`, `25EB07E0…` = `hermesvm.framework/hermesvm`, `4DE42FBA…` = `RoutineBMAD`. Symbolisation par un lecteur Mach-O écrit pour l'occasion (`macho.js`, `symstack.js`, dossier temporaire de la session).
+- Pile la plus lourde, identique dans les rapports de 21h02, 23h22 et 23h50 : `RCTJSThreadManager runRunLoop` → `RuntimeScheduler_Modern::runEventLoop` → `Task::execute` (tâches du planificateur de React) → `HermesRuntimeImpl::call` → interprétation JavaScript ; environ la moitié des échantillons passent par `jsinspector_modern::consoleTaskRun` (11/16, 14/32, 15/30), c'est-à-dire `task.run(...)` que React utilise **en mode développement** pour exécuter le rendu de chaque composant (`runWithFiberInDEV`).
+- **Démontré** : le fil JavaScript est saturé par du rendu React exécuté en mode développement. **Non démontré** : quel composant se redessine sans cesse, et si la saturation existe sans le mode développement.
+- `console.createTask` de React Native ne capture une pile (coût et mémoire) que si le domaine `Runtime` de l'inspecteur est activé par un client (sous iOS, pas de traçage de fond). Qui l'active ici (journal de Metro relayé par l'inspecteur ?) : non vérifié.
+
+### Seconde vérification : même code sans mode développement
+
+- Metro relancé **en parallèle** en mode production (`npx expo start --dev-client --lan --port 8084 --no-dev --minify`, `APP_VARIANT=development`, `EXPO_NO_METRO_LAZY=1`) ; l'arrêt du Metro du port 8083 a été refusé par la politique d'autorisations, il reste en service.
+- Paquet servi vérifié : 5,5 Mo, sans `runWithFiberInDEV`, contient le code de `ac9a07b5` (« Terminer cette routine », message du nom de parcours).
+- À faire par Hermann : ouvrir Routine BMAD sur `http://192.168.0.16:8084`, l'utiliser comme d'habitude 15 à 20 minutes, puis relever les nouveaux rapports `cpu_resource` et `JetsamEvent`. Aucune saturation : cause propre au mode développement. Saturation : cause dans le code de l'application.
