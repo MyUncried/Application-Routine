@@ -3610,3 +3610,7 @@ Le Calendrier a trois onglets, Journal · Agenda · Plan ; tous les écrans du c
 - « P-Calendrier — Plan — Case vide touchée (proposition) » `13005:14584`.
 
 Rendu et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Remplace l'écran « P-Calendrier — Vue d’ensemble — Routines et jours (proposition) », supprimé.
+
+### Complément du 22/11/2026 — bouton flottant « Créer » (D-558)
+
+Les écrans des catalogues, du Journal, de l'Agenda et de la composition de séance portent le bouton flottant (composant `13039:49732`) ; leur bouton de création de la zone de contexte est retiré. Écran du menu : « Composition séance — Créer (menu) » `10705:20223`. Voir [DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md).

@@ -106,3 +106,9 @@ Précise D-538 et D-539 :
 - **Désactiver une séance** : on peut désactiver n'importe quelle séance du créneau, même si elle n'a de pastille sur aucun autre créneau du cycle. Au moins une séance reste active. La règle « chaque séance a au moins une pastille » ne vaut que dans la grille de la routine (Journal).
 - **Ordre des séances** : modifiable dans ce créneau et conservé pour lui seul ; l'enchaînement suit ce nouvel ordre.
 - **Constats** : recette du 22/11/2026. Validation bloquée, et ordre non conservé (RM-274).
+
+## Bouton flottant et zone de contexte — 22/11/2026 (D-558, D-559)
+
+- « Planifier » quitte la zone de contexte. Le bouton flottant (calendrier « + ») crée un **créneau unique** au jour sélectionné : planification pré-remplie, sans répétition.
+- Ligne 1 symétrique : « Aujourd'hui » à gauche, mois centré sur l'écran, entonnoir en miroir à droite. Ligne 2 : flèche, sept jours, flèche, centrés sur l'écran.
+- Voir [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).

@@ -53,3 +53,7 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 ## Évolution validée du 21/11/2026 — Journal / filtre
 
 La représentation du Journal reste **une carte par Routine**. Une Routine à plusieurs Séances (Parcours) est présentée sur **une seule ligne** avec le symbole Ⓟ et le nom de Routine ; la composition reste au déployé. Une Routine à Séance unique est présentée par son nom de Routine dans le Journal. Le filtre de l'Agenda reprend exactement cette représentation compacte, sans dérouler les Séances d'un Parcours en lignes distinctes. Les noms de Routines ne sont plus uniques et peuvent être générés ou personnalisés. **Les clauses antérieures incompatibles de ce DSF sont supersédées** par [la décision du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Figma ajusté le 21/11/2026, à valider : carte « Mobilité du matin » (`12736:25026`) de « Calendrier — Journal — MVP » (`1992:5510`), Ⓟ après le nom (règle du 20/11/2026) ; ligne `12798:26926` du filtre `12795:25088` ; vue filtrée `12799:24881`.
+
+## Bouton flottant — 22/11/2026 (D-558)
+
+« Planifier » quitte la zone de contexte. Le bouton flottant (calendrier « + ») crée une routine. Le champ « Rechercher » s'élargit, le filtre et le tri passent à droite. Voir [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
