@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Image } from "expo-image";
 import { Pressable, ScrollView, StyleSheet, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,7 +18,7 @@ import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { formatAgendaMonth, zonesLine } from "@/features/planning/agendaFormat";
-import { firstWeekOfShiftedMonth, monthOfWeek } from "@/features/planning/planWeek";
+import { monthOfWeek } from "@/features/planning/planWeek";
 import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
@@ -31,6 +31,7 @@ import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { TodayIcon } from "@/features/planning/TodayIcon";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { agendaRoutineFilter, setAgendaRoutineFilter } from "@/features/planning/agendaRoutineFilter";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -164,6 +165,20 @@ export function CalendarWeekScreen({
   }, []);
   const sectionOffsets = useRef(new Map<LocalDate, number>());
   const programmaticScroll = useRef(false);
+  /**
+   * Recette du 22/11/2026 (c33-agenda-ouverture, c33-agenda-catalogue — Hermann : « L'agenda sélectionne Aujourd'hui dans la zone
+   * de contexte, mais la liste est positionnée au début de la semaine ») : jour dont la section (ou la suivante s'il est vide)
+   * passe en tête de liste dès qu'elle est mise en page (RM-046), à l'ouverture comme après un changement de semaine ou de mois.
+   * `null` : rien à placer.
+   */
+  const [pendingScrollDay, setPendingScrollDay] = useState<LocalDate | null>(() => initialDay ?? todayLocal());
+  /** Position (contenu) de la section à placer, mesurée à sa mise en page ; le défilement se fait dans un effet. */
+  const [pendingScrollY, setPendingScrollY] = useState<{ readonly y: number } | null>(null);
+  useEffect(() => {
+    if (pendingScrollY === null) return;
+    programmaticScroll.current = true;
+    scrollRef.current?.scrollTo({ y: Math.max(0, pendingScrollY.y - CONTEXT_BAND_FADE_HEIGHT), animated: false });
+  }, [pendingScrollY]);
   const requestId = useRef(0);
   // Recette du 17/11/2026 (f3) : la dernière section doit pouvoir monter en tête ; la réserve basse suit sa hauteur.
   const [listHeight, setListHeight] = useState(0);
@@ -258,6 +273,7 @@ export function CalendarWeekScreen({
     setExpanded(new Set());
     setRevealed(null);
     sectionOffsets.current.clear();
+    setPendingScrollDay(day > next ? day : null);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
     load(window);
   };
@@ -279,7 +295,7 @@ export function CalendarWeekScreen({
     const y = target === undefined ? undefined : sectionOffsets.current.get(target);
     if (y !== undefined) {
       programmaticScroll.current = true;
-      scrollRef.current?.scrollTo({ y, animated: true });
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - CONTEXT_BAND_FADE_HEIGHT), animated: true });
     }
   };
 
@@ -288,7 +304,8 @@ export function CalendarWeekScreen({
     // Moins d'un écran de contenu sous la vue (réserve basse exclue) : semaines suivantes.
     if (contentOffset.y + 2 * layoutMeasurement.height >= contentSize.height - listPaddingBottom) extendRange();
     if (programmaticScroll.current) return;
-    const y = contentOffset.y + spacing[8];
+    // Haut visible de la liste : sous la part fondue de la bande (recette du 22/11/2026).
+    const y = contentOffset.y + CONTEXT_BAND_FADE_HEIGHT + spacing[8];
     let top: LocalDate | null = null;
     for (const day of listDays) {
       const offset = sectionOffsets.current.get(day);
@@ -343,14 +360,22 @@ export function CalendarWeekScreen({
 
   const dotColor = (projection: SessionCatalogueProjection | undefined) => projection?.categories[0]?.color ?? colors.selection;
   /**
-   * Doubles flèches : première semaine du mois précédent ou suivant celui de la semaine affichée (règle du libellé, recette du
-   * 21/11/2026, q23-mois) ; jour choisi : le 1er du mois s'il est dans cette semaine, sinon son lundi.
-   * [Premier jour du mois précédent ou suivant celui du jour sélectionné — remplacé.]
+   * Recette du 22/11/2026 (c33-agenda-mois — Hermann : « Double flèches : doit être la semaine du premier jour du mois,
+   * sélectionné ») : semaine qui contient le 1er du mois précédent ou suivant celui affiché, le 1er sélectionné.
+   * [Première semaine du mois voisin, le 1er s'il est dans cette semaine, sinon son lundi (21/11/2026) — remplacé.]
+   * Libellé : le mois atteint par les doubles flèches tant que cette semaine reste affichée, même si elle compte plus de jours
+   * du mois précédent (1er du mois un vendredi, un samedi ou un dimanche) ; sinon la règle q23-mois. Sans cela, les doubles
+   * flèches resteraient bloquées sur la même semaine. [Interprétation de Claude, à valider.]
    */
+  const [monthTarget, setMonthTarget] = useState<{ readonly week: LocalDate; readonly month: LocalDate } | null>(null);
+  const shownMonth = monthTarget !== null && monthTarget.week === monday ? monthTarget.month : monthOfWeek(monday);
   const changeMonth = (shift: -1 | 1) => {
-    const week = firstWeekOfShiftedMonth(monday, shift);
-    const first = `${monthOfWeek(week).slice(0, 7)}-01`;
-    changeWeek(week, first > week ? first : week);
+    const base = parseLocalDate(shownMonth);
+    const target = new Date(base.getFullYear(), base.getMonth() + shift, 1);
+    const first = formatLocalDate(target);
+    const week = mondayOf(first);
+    changeWeek(week, first);
+    setMonthTarget({ week, month: first });
   };
 
   /**
@@ -468,6 +493,11 @@ export function CalendarWeekScreen({
    * jour choisi ni de la semaine du carrousel ; elles ne sont plus recalculées à chaque toucher d'un jour ni pendant le
    * défilement, qui ne changent que le carrousel. [Choix technique.]
    */
+  /** Jour à placer en tête (recette du 22/11/2026) : sa section, ou la première qui le suit, dès sa mise en page. */
+  const pendingTarget = useMemo(
+    () => (pendingScrollDay === null ? undefined : listDays.find((candidate) => candidate >= pendingScrollDay && (groupsByDay.get(candidate)?.length ?? 0) > 0)),
+    [pendingScrollDay, listDays, groupsByDay],
+  );
   const sections = useMemo(
     () =>
       listDays.map((day) => {
@@ -478,8 +508,13 @@ export function CalendarWeekScreen({
           <View
             key={day}
             onLayout={(event) => {
-              sectionOffsets.current.set(day, event.nativeEvent.layout.y);
+              const y = event.nativeEvent.layout.y;
+              sectionOffsets.current.set(day, y);
               if (day === lastDay) setLastSectionHeight(event.nativeEvent.layout.height);
+              if (day === pendingTarget) {
+                setPendingScrollDay(null);
+                setPendingScrollY({ y });
+              }
             }}
             testID={`calendar-section-${day}`}
           >
@@ -513,7 +548,7 @@ export function CalendarWeekScreen({
       }),
     // Les fonctions de rendu ne lisent que les valeurs ci-dessous, les références et les fonctions d'état.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [listDays, groupsByDay, expanded, revealed, routinesById, projections, isPlannable, zoneName, lastDay],
+    [listDays, groupsByDay, expanded, revealed, routinesById, projections, isPlannable, zoneName, lastDay, pendingTarget],
   );
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   const anyItem = listDays.slice(0, 7).some((day) => (groupsByDay.get(day)?.length ?? 0) > 0);
@@ -557,7 +592,7 @@ export function CalendarWeekScreen({
               <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.2} numberOfLines={1} testID="calendar-month-label">
                 {/* Recette du 21/11/2026 (q23-mois — Hermann : « il faut afficher le mois qui compte le plus de jours dans la
                     semaine affichée ») : mois de la semaine, comme le Plan. [Mois du jour choisi (D-538, À CLARIFIER) — remplacé.] */}
-                {formatAgendaMonth(monthOfWeek(monday))}
+                {formatAgendaMonth(shownMonth)}
               </Text>
               <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={6} testID="calendar-next-month">
                 <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
@@ -676,6 +711,8 @@ export function CalendarWeekScreen({
         }}
         onScrollBeginDrag={() => {
           programmaticScroll.current = false;
+          // Le défilement de l'utilisateur l'emporte sur un placement en attente (recette du 22/11/2026).
+          setPendingScrollDay(null);
         }}
         scrollEventThrottle={32}
         showsVerticalScrollIndicator={false}
@@ -765,10 +802,13 @@ const styles = StyleSheet.create({
   // Un point de 4 par séance du jour en bas de la carte (y = 39), écart 3.
   dots: { position: "absolute", top: 39, left: 0, right: 0, flexDirection: "row", justifyContent: "center", gap: 3 },
   dot: { width: DOT_SIZE, height: DOT_SIZE, borderRadius: DOT_SIZE / 2 },
-  list: { flex: 1 },
+  // Recette du 22/11/2026 (Hermann : « la zone de contexte des écrans Agenda et Plan n'ont PAS le dégressif transparent ») : la
+  // liste remonte sous la part fondue de `ContextBand` et y défile, comme le Journal et les Catalogues (contrat de la bande :
+  // « le corps remonte de CONTEXT_BAND_FADE_HEIGHT, à l'écran hôte de le faire »). [Liste sous la bande — remplacé.]
+  list: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
   // D-538 : premier en-tête de jour à y = 215 (8 sous la bande), son texte à 11,5 du haut de l'en-tête ; cartes pleine
   // largeur d'écran. [Liste à 14 sous la rangée des jours — remplacé.]
-  listContent: { paddingTop: spacing[8] },
+  listContent: { paddingTop: spacing[8] + CONTEXT_BAND_FADE_HEIGHT },
   daySeparator: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E8F0", marginHorizontal: layout.screenGutter, marginTop: spacing[16] },
   sectionHeader: { paddingHorizontal: layout.screenGutter, paddingTop: 5, paddingBottom: spacing[8] },
   sectionHeaderFirst: { paddingTop: 11 },

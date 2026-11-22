@@ -130,6 +130,14 @@ export class PlanningService {
     return this.deps.repository.list();
   }
 
+  /**
+   * Recette du 22/11/2026 (constat c — Hermann : « la mention d'une entrée à venir dans le journal et du filtre est incorrecte
+   * (cela doit faire mention des occurrences planifiées) ») : test des créneaux commencés, pour le Journal.
+   */
+  occurrenceStartedTest(): Promise<IsOccurrenceStarted> {
+    return this.startedTest();
+  }
+
   /** Occurrences commencées connues par leurs Exécutions (D-536, point 1). */
   private async startedTest(): Promise<IsOccurrenceStarted> {
     const keys = new Set((await this.listOccurrenceExecutions()).map((execution) => occurrenceExecutionKey(execution.routineId, execution.occurrenceKey)));
@@ -338,7 +346,8 @@ export class PlanningService {
       .filter((item) => item.occurrences.length > 0)
       .map((item) => {
         // Recette du 21/11/2026 (f23-modale) : « jusqu'au » = date du dernier créneau à venir.
-        const upcoming = item.occurrences.filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= at);
+        // Recette du 22/11/2026 (constat c) : un créneau à venir déjà exécuté (séance faite en avance) n'est plus « à venir ».
+        const upcoming = item.occurrences.filter((occurrence) => !occurrence.started && occurrenceInstant(occurrence.date, occurrence.time).getTime() >= at);
         const lastUpcoming = upcoming.reduce<LocalDate | null>((last, occurrence) => (last === null || occurrence.date > last ? occurrence.date : last), null);
         return {
           routine: item.routine,

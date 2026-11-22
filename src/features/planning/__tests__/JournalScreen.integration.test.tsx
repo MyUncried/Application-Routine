@@ -227,7 +227,7 @@ describe("Journal des routines (D-535)", () => {
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     await flush();
     // Constat D (20/11/2026) : le Journal supprime la routine et tous ses créneaux.
-    expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByText("Terminer cette routine")).toBeTruthy();
     // Recette du 20/11/2026 : « Annuler » à côté de « Confirmer », même format.
     expect(within(screen.getByTestId("journal-delete-actions")).getByTestId("journal-delete-cancel")).toBeTruthy();
     expect(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Annuler")).toBeTruthy();
@@ -249,7 +249,7 @@ describe("Journal des routines (D-535)", () => {
     await renderJournal();
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     await flush();
-    expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByText("Terminer cette routine")).toBeTruthy();
     // D-540 : « … La routine sera terminée. » (plus d'archivage).
     expect(screen.getByText("3 créneaux non commencés seront supprimés. La routine sera terminée.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));

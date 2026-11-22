@@ -83,10 +83,16 @@ function dayMonth(day: LocalDate): string {
  * en n'a pas ») : créneaux à venir, du premier au dernier. [Interprétation technique : « du … au … » borne les créneaux à
  * venir ; un seul créneau : « 1 créneau, le 26 nov. ».]
  */
-export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date): string {
+export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date, isStarted?: IsOccurrenceStarted): string {
   const last = routineLastDate(routine);
+  // Recette du 22/11/2026 (constat c — Hermann : « cela doit faire mention des occurrences planifiées ») : un créneau à venir déjà
+  // exécuté (séance faite en avance) n'est pas compté.
   const upcoming =
-    last < today ? [] : periodOccurrences([routine], today, last).filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime());
+    last < today
+      ? []
+      : periodOccurrences([routine], today, last, isStarted).filter(
+          (occurrence) => !occurrence.started && occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime(),
+        );
   if (upcoming.length === 0) return t.journal.slotsNone;
   if (upcoming.length === 1) return t.journal.slotsOne.replace("{date}", dayMonth(upcoming[0]!.date));
   return t.journal.slotsMany

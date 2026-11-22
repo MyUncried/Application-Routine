@@ -51,6 +51,7 @@ import {
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
 import { occurrenceForm, occurrenceSessions, toggleOccurrencePoint, withOccurrenceSelection, type OccurrenceEditing } from "@/features/planning/occurrenceDraft";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { announcePlanningNotice } from "@/features/planning/planningNotice";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
@@ -417,8 +418,16 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       (result) => {
         savingRef.current = false;
         setSaving(false);
-        if (result.status === "SAVED") router.back();
-        else setSaveFailed(true);
+        if (result.status === "SAVED") {
+          // Recette du 22/11/2026 (constat d — Hermann : « Modifier la séquence d'un parcours (déjà exécuté / ou pas) modifie la
+          // séquence de son nom sans qu'on s'en rende compte ») : nom généré changé par la modification de la routine — message
+          // d'une seconde sur l'écran de retour (Journal).
+          const before = loadedForm.current;
+          if (mode.kind === "edit" && draft.nameGenerated === true && before !== null && effectiveName(before, nameOf) !== name) {
+            announcePlanningNotice(planningStrings.journal.renamedNotice);
+          }
+          router.back();
+        } else setSaveFailed(true);
       },
       (error: unknown) => {
         console.error("La planification n'a pas pu être enregistrée.", error);

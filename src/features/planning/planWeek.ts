@@ -15,10 +15,13 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
  * - une routine à une Séance = une ligne ; un parcours = une ligne de titre « Ⓟ nom » sans case, puis une ligne par Séance ;
  * - cases : mêmes heures et états que l'Agenda (D-553, \`buildAgendaGroups\`), heure pleine sans minutes (« 8h ») ; deux
  *   créneaux le même jour empilés dans l'ordre chronologique ;
- * - Exécutions hors planification (recette du 21/11/2026, p32-hors-plan — Hermann : « Une séance lancée depuis le catalogue
- *   doit être visible dans le plan ») : groupe « Hors planification » après les programmes, une ligne par Séance (ordre
- *   alphabétique), une case par Exécution à son heure réelle ; hors du Total (durée prévue). [Exécutions hors planification
- *   absentes (DSF Plan § 3) — remplacé ; groupe, ordre et exclusion du Total : choix de Claude, à valider.]
+ * - Exécutions hors planification (recette du 22/11/2026, constat a — Hermann : « une séance lancée hors routine doit se
+ *   retrouver sous "sans programme", sur la même ligne qu'une séance identique, avec un signe distinctif (une petite
+ *   astérisque) ») : dans « Sans programme », sur la ligne d'une routine à une Séance de cette même Séance affichée dans la
+ *   semaine, sinon sur sa propre ligne (ordre alphabétique avec les routines) ; une case par Exécution à son heure réelle,
+ *   marquée (`unplanned`) ; hors du Total (durée prévue). [Groupe « Hors planification » à part (21/11/2026, p32-hors-plan)
+ *   — remplacé.] [Interprétation de Claude, à valider : seule une routine à une Séance « Sans programme » reçoit la case — pas
+ *   une ligne de Séance d'un parcours ; plusieurs routines possibles : la première par ordre alphabétique.]
  * - Total : durée estimée de tout ce qui est prévu, jours passés compris ; un parcours compte la somme de ses Séances.
  */
 
@@ -90,6 +93,8 @@ export type PlanCell = {
   readonly label: string;
   readonly tint: PlanTint;
   readonly card: AgendaCard;
+  /** Exécution hors planification (recette du 22/11/2026, constat a) : case marquée d'un astérisque. */
+  readonly unplanned?: boolean;
 };
 
 export type PlanRow = {
@@ -256,27 +261,37 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     byProgramme.set(key, group);
   }
   const compare = (a: string, b: string) => a.localeCompare(b, "fr", { sensitivity: "base" });
+  const byTime = (a: PlanCell, b: PlanCell) => (a.card.sortTime < b.card.sortTime ? -1 : a.card.sortTime > b.card.sortTime ? 1 : 0);
+  const unplannedCell = (card: AgendaCard): PlanCell => ({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card, unplanned: true });
+  // Constat a (22/11/2026) : routines « Sans programme » et Séances exécutées hors planification, mêlées par ordre alphabétique.
+  const noneRoutines = (byProgramme.get("")?.routines ?? []).sort((a, b) => compare(displayName(a), displayName(b)));
+  const noneEntries: { readonly name: string; rows: PlanRow[] }[] = noneRoutines.map((routine) => ({ name: displayName(routine), rows: rowsOf(routine) }));
+  for (const [key, row] of unplanned) {
+    const host =
+      row.sessionId === null
+        ? undefined
+        : noneEntries.flatMap((entry) => entry.rows).find((candidate) => candidate.kind === "ROUTINE" && candidate.sessionId === row.sessionId);
+    if (host !== undefined) {
+      const cells = host.cells.map((list) => [...list]);
+      for (const { card, dayIndex } of row.cards) cells[dayIndex]!.push(unplannedCell(card));
+      const merged: PlanRow = { ...host, cells: cells.map((list) => list.sort(byTime)) };
+      for (const entry of noneEntries) entry.rows = entry.rows.map((candidate) => (candidate === host ? merged : candidate));
+      continue;
+    }
+    const cells = days.map(() => [] as PlanCell[]);
+    for (const { card, dayIndex } of row.cards) cells[dayIndex]!.push(unplannedCell(card));
+    noneEntries.push({ name: row.title, rows: [{ key: "unplanned|" + key, kind: "UNPLANNED", title: row.title, sessionId: row.sessionId, cells: cells.map((list) => list.sort(byTime)) }] });
+  }
   const groups: PlanGroup[] = [...byProgramme.entries()]
-    .sort(([keyA, a], [keyB, b]) => (keyA === "" ? 1 : keyB === "" ? -1 : compare(a.programme!.name, b.programme!.name)))
+    .filter(([key]) => key !== "")
+    .sort(([, a], [, b]) => compare(a.programme!.name, b.programme!.name))
     .map(([key, group]) => ({
-      key: key === "" ? "none" : key,
+      key,
       programme: group.programme,
       rows: group.routines.sort((a, b) => compare(displayName(a), displayName(b))).flatMap(rowsOf),
     }));
-  if (unplanned.size > 0) {
-    const byTime = (a: PlanCell, b: PlanCell) => (a.card.sortTime < b.card.sortTime ? -1 : a.card.sortTime > b.card.sortTime ? 1 : 0);
-    groups.push({
-      key: "unplanned",
-      programme: null,
-      unplanned: true,
-      rows: [...unplanned.entries()]
-        .sort(([, a], [, b]) => compare(a.title, b.title))
-        .map(([key, row]) => {
-          const cells = days.map(() => [] as PlanCell[]);
-          for (const { card, dayIndex } of row.cards) cells[dayIndex]!.push({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card });
-          return { key: "unplanned|" + key, kind: "UNPLANNED" as const, title: row.title, sessionId: row.sessionId, cells: cells.map((list) => list.sort(byTime)) };
-        }),
-    });
+  if (noneEntries.length > 0) {
+    groups.push({ key: "none", programme: null, rows: [...noneEntries].sort((a, b) => compare(a.name, b.name)).flatMap((entry) => entry.rows) });
   }
   const weekTotal = dayTotals.some((value) => value !== null) ? dayTotals.reduce<number>((sum, value) => sum + (value ?? 0), 0) : null;
   return {

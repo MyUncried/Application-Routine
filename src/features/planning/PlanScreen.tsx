@@ -33,6 +33,7 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
@@ -287,16 +288,18 @@ export function PlanScreen({
         {/* Séance d'un parcours : filet court au-dessus (depuis l'alignement des noms) et lien du Ⓟ. */}
         {session ? <View style={[styles.rowLine, styles.shortLine, { top: 0 }]} /> : null}
         {session ? <View style={[styles.parcoursLink, styles.fullHeight]} testID={`plan-row-${row.key}-link`} /> : null}
-        {/* Recette du 21/11/2026 (constats b et c) : nom sur deux lignes au plus, puis la durée de la Séance. */}
+        {/* Recette du 22/11/2026 (c33-plan-duree et constat e — Hermann : « Mettre la durée à la suite du nom, séparée par un
+            point centré verticalement » ; « le nom de la séance + la durée doivent rester sur deux lignes ») : un seul texte de
+            deux lignes au plus. [Nom sur deux lignes, durée en dessous (21/11/2026, constats b et c) — remplacé.] */}
         <View style={[styles.rowNameBlock, session ? styles.sessionNameBlock : null]}>
           <Text style={styles.rowName} numberOfLines={2} testID={`plan-row-${row.key}-name`}>
             {row.title}
+            {duration !== "" ? (
+              <Text style={styles.rowDuration} testID={`plan-row-${row.key}-duration`}>
+                {` · ${duration}`}
+              </Text>
+            ) : null}
           </Text>
-          {duration !== "" ? (
-            <Text style={styles.rowDuration} numberOfLines={1} testID={`plan-row-${row.key}-duration`}>
-              {duration}
-            </Text>
-          ) : null}
         </View>
         {week.days.map((day, index) => {
           const cells = row.cells[index] ?? [];
@@ -334,12 +337,14 @@ export function PlanScreen({
                     key={cell.key}
                     onPress={() => openOccurrence(cell.card.occurrence)}
                     accessibilityRole="button"
-                    accessibilityLabel={`${cell.card.title}, ${cell.label}`}
+                    accessibilityLabel={cell.unplanned === true ? `${cell.card.title}, ${cell.label}, ${t.plan.unplanned}` : `${cell.card.title}, ${cell.label}`}
                     style={[styles.cell, { backgroundColor: tint.background }]}
                     testID={`plan-cell-${cell.key}`}
                   >
                     <Text style={[styles.cellLabel, { color: tint.text }]} numberOfLines={1} allowFontScaling={false} testID={`plan-cell-${cell.key}-label`}>
                       {cell.label}
+                      {/* Recette du 22/11/2026 (constat a) : exécution hors planification — petite astérisque. */}
+                      {cell.unplanned === true ? <Text style={styles.cellMark} testID={`plan-cell-${cell.key}-unplanned`}>*</Text> : null}
                     </Text>
                   </Pressable>
                 );
@@ -421,11 +426,11 @@ export function PlanScreen({
         ),
       }}
     >
-      <GestureHandlerRootView style={styles.list}>
+      <GestureHandlerRootView style={styles.body}>
       <GestureDetector gesture={swipe}>
       <ScrollView
         style={styles.list}
-        contentContainerStyle={{ paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }}
+        contentContainerStyle={{ paddingTop: CONTEXT_BAND_FADE_HEIGHT, paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }}
         showsVerticalScrollIndicator={false}
         testID="plan-grid"
       >
@@ -528,6 +533,10 @@ const styles = StyleSheet.create({
   weekDays: { position: "absolute", top: 26, left: 0, right: 0, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, lineHeight: 12, color: colors.textLabel, opacity: 0.75, textAlign: "center" },
   weekTextSelected: { color: colors.background },
   list: { flex: 1 },
+  // Recette du 22/11/2026 (Hermann : « la zone de contexte des écrans Agenda et Plan n'ont PAS le dégressif transparent ») : le
+  // tableau remonte sous la part fondue de `ContextBand` et y défile, comme le Journal (contrat de la bande). [Tableau sous la
+  // bande — remplacé.]
+  body: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
   // En-tête des jours (Figma `12983:54` et suivants) : 40 de haut, à 8 sous la bande.
   header: { height: 40, marginTop: spacing[8] },
   headerDay: { position: "absolute", top: 0, width: CELL_WIDTH, height: 38, borderRadius: 9, alignItems: "center", paddingTop: 4 },
@@ -556,13 +565,16 @@ const styles = StyleSheet.create({
   rowNameBlock: { marginLeft: LEFT, width: 116, paddingVertical: 6, justifyContent: "center", flexGrow: 1 },
   sessionNameBlock: { marginLeft: 30, width: 94 },
   rowName: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, lineHeight: 12, color: "#141414" },
-  rowDuration: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9, lineHeight: 11, color: "#595E66", marginTop: 1 },
+  // Durée à la suite du nom (recette du 22/11/2026) : texte imbriqué, sans marge ni hauteur de ligne propres.
+  rowDuration: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9, color: "#595E66" },
   emptyCell: { position: "absolute", width: COLUMN, alignItems: "center", justifyContent: "center" },
   touchedCell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, borderWidth: 1, borderStyle: "dashed", borderColor: colors.primary, backgroundColor: "rgba(5, 8, 229, 0.06)", alignItems: "center", justifyContent: "center" },
   touchedPlus: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 13, lineHeight: 16, color: colors.primary },
   cellColumn: { position: "absolute", width: COLUMN, alignItems: "center", justifyContent: "center", gap: CELL_GAP },
   cell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   cellLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9 },
+  // Recette du 22/11/2026 (constat a) : « une petite astérisque » à la suite de l'heure. [Taille : choix de Claude.]
+  cellMark: { fontSize: 7 },
   totalSeparator: { height: 2.5, marginHorizontal: LEFT, borderTopWidth: LINE, borderBottomWidth: LINE, borderColor: SEPARATOR },
   total: { height: 25.5, backgroundColor: colors.catalogueSessionsContext, justifyContent: "center" },
   totalWeek: { position: "absolute", left: LEFT, top: 6, fontFamily: "Inter_700Bold", fontWeight: "700", fontSize: 10, color: "#333333" },

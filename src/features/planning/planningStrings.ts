@@ -101,6 +101,12 @@ export const planningStrings = {
     on: "le",
     until: "jusqu’au",
     edit: "Modifier la planification",
+    // Recette du 22/11/2026 (r22-j-supprimer — Hermann : « Journal : Changer le Nom de l'option glisser gauche, de Supprimer à
+    // Terminer ») : action glissée du Journal. [« Supprimer » (`calendar.delete`) — remplacé dans le Journal.]
+    finish: "Terminer",
+    // Recette du 22/11/2026 (constat d — Hermann : « Un message de type snackbar pour informer "Le nom du parcours a été changé
+    // pour refléter l'ordre des séances", pendant 1 seconde »).
+    renamedNotice: "Le nom du parcours a été changé pour refléter l’ordre des séances",
     empty: "Aucune routine planifiée.",
     noResult: "Aucune routine ne correspond.",
     loadError: "Le journal n’a pas pu être chargé.",
@@ -142,7 +148,9 @@ export const planningStrings = {
     confirm: "Confirmer",
   },
   deleteRoutine: {
-    title: "Supprimer cette routine",
+    // Recette du 22/11/2026 (r22-j-supprimer — Hermann : « Modifier le titre de la fenêtre de dialogue avec "Terminer cette
+    // routine" »). [« Supprimer cette routine » — remplacé.]
+    title: "Terminer cette routine",
     messageOne: "La routine et son créneau seront supprimés.",
     messageMany: "La routine et ses {count} créneaux seront supprimés.",
     // Constat E (Hermann, 20/11/2026) : « Suppression avec historique : « N créneaux non commencés seront supprimés ; La

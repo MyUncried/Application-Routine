@@ -121,7 +121,8 @@ describe("grille d'une semaine (DSF Plan § 3 à § 6)", () => {
         link: { routineId: "p", occurrenceKey: "2026-11-16T14:00", rank: 1 },
       },
       { executionId: "y", sessionId: "s-b", sessionName: "Étirement du quadriceps", startedAt: at(19, 14, 8).toISOString(), endedAt: at(19, 14, 20).toISOString(), businessStatus: "COMPLETED", link: { routineId: "p", occurrenceKey: "2026-11-19T14:00", rank: 2 } },
-      // Hors planification : groupe « Hors planification » à part (recette du 21/11/2026, p32-hors-plan), hors du Total.
+      // Hors planification (recette du 22/11/2026, constat a) : dans « Sans programme », sur sa propre ligne faute de routine de la
+      // même Séance, case marquée, hors du Total. [Groupe « Hors planification » à part (p32-hors-plan) — remplacé.]
       { executionId: "f", sessionId: "s-c", sessionName: "Renforcement du genou", startedAt: at(17, 9).toISOString(), endedAt: at(17, 9, 15).toISOString(), businessStatus: "COMPLETED", link: null },
     ];
     const week = build([parcours], executions);
@@ -130,6 +131,7 @@ describe("grille d'une semaine (DSF Plan § 3 à § 6)", () => {
       ["TITLE", "Mobilité du matin"],
       ["SESSION", "Échauffement"],
       ["SESSION", "Étirement du quadriceps"],
+      ["UNPLANNED", "Renforcement du genou"],
     ]);
     const labels = (index: number) => rows[index]!.cells.map((cells) => cells.map((cell) => `${cell.label}:${cell.tint}`).join(","));
     // Jeudi : la 2e Séance a été rattrapée seule, la 1re reste à rattraper (rouge, heure prévue).
@@ -137,10 +139,23 @@ describe("grille d'une semaine (DSF Plan § 3 à § 6)", () => {
     // Lundi : Séance suivante non exécutée d'un parcours commencé — « — », rouge ; jeudi : heure réelle.
     expect(labels(2)).toEqual(["—:MISSED", "", "", "14h08:COMPLETED", "", "", ""]);
     expect(rows[2]!.last).toBe(true);
-    const unplanned = week.groups.find((group) => group.unplanned === true);
-    expect(week.groups[week.groups.length - 1]).toBe(unplanned);
-    expect(unplanned?.rows.map((row) => [row.kind, row.title, row.sessionId])).toEqual([["UNPLANNED", "Renforcement du genou", "s-c"]]);
-    expect(unplanned?.rows[0]!.cells.map((cells) => cells.map((cell) => `${cell.label}:${cell.tint}`).join(","))).toEqual(["", "9h:COMPLETED", "", "", "", "", ""]);
+    expect(week.groups.map((group) => group.key)).toEqual(["none"]);
+    expect(rows[3]!.sessionId).toBe("s-c");
+    expect(rows[3]!.cells.map((cells) => cells.map((cell) => `${cell.label}:${cell.tint}:${cell.unplanned === true}`).join(","))).toEqual(["", "9h:COMPLETED:true", "", "", "", "", ""]);
+    expect(week.dayTotals[1]).toBeNull();
+  });
+
+  // Recette du 22/11/2026 (constat a) : une Séance exécutée hors routine rejoint la ligne de la routine à une Séance identique,
+  // « Sans programme », avec une case marquée ; ses créneaux restent les mêmes et elle reste hors du Total.
+  it("hors planification : sur la ligne d'une routine de la même Séance, case marquée, hors du Total", () => {
+    const single = routine({ id: "s", name: "Dos", time: "18:30", repetition: null, startDate: "2026-11-16", entries: [entry("s-d")] });
+    const executions: AgendaExecution[] = [
+      { executionId: "f", sessionId: "s-d", sessionName: "Dos", startedAt: at(17, 9).toISOString(), endedAt: at(17, 9, 15).toISOString(), businessStatus: "COMPLETED", link: null },
+    ];
+    const week = build([single], executions);
+    const rows = week.groups.flatMap((group) => group.rows);
+    expect(rows.map((row) => [row.kind, row.title])).toEqual([["ROUTINE", "Dos"]]);
+    expect(rows[0]!.cells.map((cells) => cells.map((cell) => `${cell.label}:${cell.unplanned === true}`).join(","))).toEqual(["18h30:false", "9h:true", "", "", "", "", ""]);
     expect(week.dayTotals[1]).toBeNull();
   });
 
