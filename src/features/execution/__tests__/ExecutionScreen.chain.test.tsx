@@ -33,10 +33,11 @@ import { PlanningServiceContext } from "@/features/planning/PlanningServiceConte
 
 const calls: string[] = [];
 const mockBack = jest.fn(() => calls.push("back"));
-const mockNavigate = jest.fn((target: { readonly pathname: string; readonly params: { readonly day: string } }) => calls.push(`navigate ${target.pathname} ${target.params.day}`));
+const mockDismissTo = jest.fn((target: { readonly pathname: string; readonly params: { readonly day: string } }) => calls.push(`dismissTo ${target.pathname} ${target.params.day}`));
+const mockNavigate = jest.fn();
 const mockReplace = jest.fn((target: unknown) => calls.push(`replace ${JSON.stringify(target)}`));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: mockReplace, push: jest.fn(), navigate: mockNavigate }),
+  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: mockReplace, push: jest.fn(), navigate: mockNavigate, dismissTo: mockDismissTo }),
   useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
 }));
 jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), selectionAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
@@ -198,7 +199,7 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     await press("execution-close");
     expect(calls).toHaveLength(2);
     expect(calls[0]).toBe("release");
-    expect(calls[1]).toMatch(/^navigate \/calendar \d{4}-\d{2}-\d{2}$/);
+    expect(calls[1]).toMatch(/^dismissTo \/calendar \d{4}-\d{2}-\d{2}$/);
     expect(mockReplace).not.toHaveBeenCalled();
     view.unmount();
   });

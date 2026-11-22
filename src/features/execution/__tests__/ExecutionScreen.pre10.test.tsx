@@ -33,8 +33,9 @@ import { ExecutionServiceContext } from "../ExecutionServiceContext";
 
 const mockBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockDismissTo = jest.fn();
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn(), navigate: mockNavigate }),
+  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn(), navigate: mockNavigate, dismissTo: mockDismissTo }),
   // Écran toujours au premier plan dans ces tests.
   useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
 }));
@@ -241,7 +242,8 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(service.occurrences().map((occurrence) => occurrence.status)).toEqual(["COMPLETED", "COMPLETED", "COMPLETED", "PARTIAL"]);
     await press("execution-close");
     // Recette du 21/11/2026 : séance lancée hors Agenda — l'Agenda s'ouvre à la date de l'exécution.
-    expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ pathname: "/calendar" }));
+    expect(mockDismissTo).toHaveBeenCalledWith(expect.objectContaining({ pathname: "/calendar" }));
+    expect(mockNavigate).not.toHaveBeenCalled();
     view.unmount();
   });
 

@@ -435,8 +435,10 @@ export function ExecutionScreen({
     // Recette du 21/11/2026 (Hermann : « Après l'exécution d'une séance lancée depuis le catalogue, l'application ouvre
     // l'Agenda à la date de l'exécution ») : séance lancée hors Agenda (ni chaîne ni occurrence) et commencée ; une reprise après
     // interruption (route sans séance) garde le retour habituel.
+    // Diagnostic du 22/11/2026 (DIAG-CPU-MEMOIRE-2211) : `dismissTo` referme l'Exécution et rouvre les onglets déjà présents
+    // sous elle. [`navigate` — remplacé : il poussait un second jeu d'onglets au-dessus de l'Exécution, qui restait montée.]
     else if (sessionId !== null && chain === null && origin === null && startedAtMs !== null) {
-      router.navigate({ pathname: "/calendar", params: { day: formatLocalDate(new Date(startedAtMs)), at: String(Date.now()) } });
+      router.dismissTo({ pathname: "/calendar", params: { day: formatLocalDate(new Date(startedAtMs)), at: String(Date.now()) } });
     } else if (router.canGoBack()) router.back();
     else router.replace("/");
   }, [chain, origin, router, service, sessionId]);
