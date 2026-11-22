@@ -112,3 +112,11 @@ Précise D-538 et D-539 :
 - « Planifier » quitte la zone de contexte. Le bouton flottant (calendrier « + ») crée un **créneau unique** au jour sélectionné : planification pré-remplie, sans répétition.
 - Ligne 1 symétrique : « Aujourd'hui » à gauche, mois centré sur l'écran, entonnoir en miroir à droite. Ligne 2 : flèche, sept jours, flèche, centrés sur l'écran.
 - Voir [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
+
+## Marque « hors routine » — 22/11/2026 (D-560)
+
+- Un astérisque collé à l'heure (« 17h05* ») signale une Séance hors de la répétition d'une routine : Exécution hors planification, ou créneau ajouté à la main hors répétition. Même police, taille et couleur que l'heure ; pas de légende.
+- La carte d'une Exécution hors planification porte la spécialité comme les autres ; le libellé « Hors planification » est retiré.
+- La lecture vocale annonce « hors planification » ou « ajouté hors répétition ».
+- Un créneau unique créé par le bouton flottant n'est pas marqué : il constitue toute sa routine.
+- Figma : « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » `12906:47`, carte Gainage.
