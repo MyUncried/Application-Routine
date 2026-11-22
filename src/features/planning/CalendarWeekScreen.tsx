@@ -184,7 +184,10 @@ export function CalendarWeekScreen({
   const requestId = useRef(0);
   // Recette du 17/11/2026 (f3) : la dernière section doit pouvoir monter en tête ; la réserve basse suit sa hauteur.
   const [listHeight, setListHeight] = useState(0);
-  const [lastSectionHeight, setLastSectionHeight] = useState(0);
+  // Hauteur de chaque section (recette du 23/11/2026) : la réserve basse suit la VRAIE dernière section. [Hauteur de la section
+  // dernière au moment de sa mise en page — remplacé : périmée quand des semaines s'ajoutaient, elle réduisait la réserve et la
+  // liste ne pouvait plus monter le jour choisi en tête.]
+  const [sectionHeights, setSectionHeights] = useState<ReadonlyMap<LocalDate, number>>(new Map());
 
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
@@ -282,9 +285,16 @@ export function CalendarWeekScreen({
     setRange(window);
     setExpanded(new Set());
     setRevealed(null);
-    sectionOffsets.current.clear();
-    setPendingScrollDay(day > next ? day : null);
-    scrollRef.current?.scrollTo({ y: 0, animated: false });
+    // Recette du 23/11/2026 (c35-agenda-jour — Hermann : « Appuyer sur Aujourd'hui sélectionne toujours le bon jour dans la zone
+    // de contexte, mais pas dans la liste ») : positions des sections conservées (une section qui bouge les remet à jour) ; le
+    // jour choisi reste tenu en tête jusqu'au défilement de l'utilisateur. [Positions effacées à chaque changement de semaine
+    // — remplacé : une semaine inchangée ne les remesurait pas, et la liste restait figée.]
+    setPendingScrollDay(day);
+    const known = Array.from({ length: window.weeks * 7 }, (_, index) => addDays(next, index)).find(
+      (candidate) => candidate >= day && (groupsByDay.get(candidate)?.length ?? 0) > 0 && sectionOffsets.current.has(candidate),
+    );
+    if (known !== undefined) setPendingScrollY({ y: sectionOffsets.current.get(known)! });
+    else scrollRef.current?.scrollTo({ y: 0, animated: false });
     load(window);
   };
 
@@ -301,8 +311,12 @@ export function CalendarWeekScreen({
   const selectDay = (day: LocalDate) => {
     setSelectedDay(day);
     // RM-046 : la section du jour (ou la suivante s'il est vide) passe en tête de liste.
-    const target = listDays.filter((candidate) => candidate >= day).find((candidate) => sectionOffsets.current.has(candidate));
+    const target = listDays
+      .filter((candidate) => candidate >= day && (groupsByDay.get(candidate)?.length ?? 0) > 0)
+      .find((candidate) => sectionOffsets.current.has(candidate));
     const y = target === undefined ? undefined : sectionOffsets.current.get(target);
+    // Recette du 23/11/2026 : le jour touché reste tenu en tête si la liste se remet en page (chargement, semaines ajoutées).
+    setPendingScrollDay(day);
     if (y !== undefined) {
       programmaticScroll.current = true;
       scrollRef.current?.scrollTo({ y: Math.max(0, y - CONTEXT_BAND_FADE_HEIGHT), animated: true });
@@ -520,11 +534,11 @@ export function CalendarWeekScreen({
             onLayout={(event) => {
               const y = event.nativeEvent.layout.y;
               sectionOffsets.current.set(day, y);
-              if (day === lastDay) setLastSectionHeight(event.nativeEvent.layout.height);
-              if (day === pendingTarget) {
-                setPendingScrollDay(null);
-                setPendingScrollY({ y });
-              }
+              const height = event.nativeEvent.layout.height;
+              setSectionHeights((current) => (current.get(day) === height ? current : new Map(current).set(day, height)));
+              // Jour tenu en tête (recette du 22/11 et du 23/11/2026) : à chaque mise en page de sa section, jusqu'au défilement de
+              // l'utilisateur. [Placé une seule fois — remplacé : la liste se remettait en page ensuite et le jour descendait.]
+              if (day === pendingTarget) setPendingScrollY({ y });
             }}
             testID={`calendar-section-${day}`}
           >
@@ -562,6 +576,7 @@ export function CalendarWeekScreen({
   );
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   const anyItem = listDays.slice(0, 7).some((day) => (groupsByDay.get(day)?.length ?? 0) > 0);
+  const lastSectionHeight = lastDay === undefined ? 0 : (sectionHeights.get(lastDay) ?? 0);
   const listPaddingBottom = Math.max(bottomReserve, listHeight - lastSectionHeight);
 
   return (

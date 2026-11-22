@@ -51,7 +51,6 @@ import {
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
 import { occurrenceForm, occurrenceSessions, toggleOccurrencePoint, withOccurrenceSelection, type OccurrenceEditing } from "@/features/planning/occurrenceDraft";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { announcePlanningNotice } from "@/features/planning/planningNotice";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
@@ -66,7 +65,9 @@ import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTab
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { TransientNotification } from "@/shared/ui/TransientNotification";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Planifier un parcours / une séance (CE-UI-12, D-519 à D-526, RM-253 à RM-264 ; 18/11/2026). Figma « Prototype MVP » :
@@ -91,6 +92,8 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  */
 
 const t = planningStrings.form;
+/** Recette du 22/11/2026 (c35-journal-nom — Hermann : « Il faut mettre une durée de 2s »). [Une seconde — remplacé.] */
+const RENAMED_NOTICE_MS = 2000;
 const tReminder = planningStrings.reminder;
 /** Calendrier natif de « Début le » et de « jusqu'au » (recette du 18/11/2026, k8). */
 const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
@@ -178,6 +181,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [popover, setPopover] = useState<Popover | null>(null);
   // Une ligne du tableau est portée (réordonnancement) : le formulaire fige son défilement.
   const [reordering, setReordering] = useState(false);
+  // Recette du 22/11/2026 (constat d) : message « nom du parcours changé ».
+  const [notice, setNotice] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   // Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ».
@@ -418,16 +424,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       (result) => {
         savingRef.current = false;
         setSaving(false);
-        if (result.status === "SAVED") {
-          // Recette du 22/11/2026 (constat d — Hermann : « Modifier la séquence d'un parcours (déjà exécuté / ou pas) modifie la
-          // séquence de son nom sans qu'on s'en rende compte ») : nom généré changé par la modification de la routine — message
-          // d'une seconde sur l'écran de retour (Journal).
-          const before = loadedForm.current;
-          if (mode.kind === "edit" && draft.nameGenerated === true && before !== null && effectiveName(before, nameOf) !== name) {
-            announcePlanningNotice(planningStrings.journal.renamedNotice);
-          }
-          router.back();
-        } else setSaveFailed(true);
+        if (result.status === "SAVED") router.back();
+        else setSaveFailed(true);
       },
       (error: unknown) => {
         console.error("La planification n'a pas pu être enregistrée.", error);
@@ -711,11 +709,15 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 }}
                 onCycle={(cycle) => update({ grid: withCycle(form.grid, cycle) })}
                 onChangeSessions={openSelection}
-                onMove={(from, to) =>
-                  setForm((current) =>
-                    current === null ? current : moveRow(current, current.entries.indexOf(shown.entries[from]!), current.entries.indexOf(shown.entries[to]!)),
-                  )
-                }
+                onMove={(from, to) => {
+                  const moved = moveRow(form, form.entries.indexOf(shown.entries[from]!), form.entries.indexOf(shown.entries[to]!));
+                  // Recette du 22/11/2026 (constat d, c35-journal-nom — Hermann : « le snackbar apparaît après le message de
+                  // confirmation de la modification, au lieu d'apparaître dès que le changement d'ordre est effectué. Il faut mettre
+                  // une durée de 2s ») : routine modifiée au nom généré — message dès le déplacement, deux secondes.
+                  // [Message d'une seconde sur le Journal après l'enregistrement — remplacé.]
+                  if (mode.kind === "edit" && !form.nameEdited && effectiveName(moved, nameOf) !== effectiveName(form, nameOf)) setNotice(planningStrings.journal.renamedNotice);
+                  setForm(moved);
+                }}
                 onDraggingChange={setReordering}
               />
               {shown.grid.cycle > CYCLE_MAX ? (
@@ -926,6 +928,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           />
         ) : null}
       </PlanningPopover>
+      <View pointerEvents="none" style={[styles.noticeAnchor, { bottom: insets.bottom + spacing[16] }]}>
+        <TransientNotification message={notice} onDismiss={() => setNotice(null)} durationMs={RENAMED_NOTICE_MS} testID="planning-renamed-notice" />
+      </View>
     </ScreenShell>
   );
 }
@@ -1176,6 +1181,8 @@ export function timeToDuration(time: LocalTime): number {
 
 
 const styles = StyleSheet.create({
+  // Message temporaire (constat d) : ancrage des Catalogues, en bas de l'écran.
+  noticeAnchor: { position: "absolute", left: layout.screenGutter, right: layout.screenGutter, height: minTouchTarget },
   contextBand: { paddingHorizontal: layout.screenGutter, gap: spacing[8] },
   name: { ...type.screenTitle, color: colors.textPrimary, padding: 0 },
   nameError: { ...type.supporting, color: colors.danger },
