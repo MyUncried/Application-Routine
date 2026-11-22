@@ -29,7 +29,8 @@ Comprendre l'arrêt de 21h12.
 - Aucun rapport de plantage `RoutineBMAD-2026-11-22-*.ips` dans la liste de l'iPhone (les derniers datent du 21/11 : 211236 et 222526).
 - Metro n'a enregistré aucune erreur JavaScript. Dernières traces avant l'arrêt : deux séances terminées à 19h03 et 19h10 ; puis un rechargement à 21:13:27, qui est la réouverture de l'application par Hermann.
 - L'application tournait donc sur le même chargement depuis au moins 19h10.
-- Absence de `JetsamEvent` non vérifiée (recherche « jetsam » demandée à Hermann, pas encore faite).
+- **Aucun `JetsamEvent` à 21h12** (liste « jetsam » de Hermann, 21h27) : les derniers datent du 22/11 à 03:23:15, 10:47:39 et 11:08:01, puis 17/11–21/11. La fermeture n'a laissé **aucun rapport iOS** : ni plantage, ni manque de mémoire. Sa cause exacte reste non prouvée.
+- Les séances de 19h03 et 19h10 ont été lancées depuis le Catalogue des séances (Hermann, 21h25 : enregistrées « Hors planification »). Deux jeux d'onglets supplémentaires étaient donc montés à 21h12 (constat 3).
 
 ### 2. Le rapport de 21:02:44 montre une mémoire énorme et croissante
 
@@ -70,8 +71,8 @@ L'empilement aggrave probablement la mémoire, mais il **n'explique pas** les sa
 
 ## Hypothèses non démontrées
 
-1. Fermeture de 21h12 par iOS pour excès de mémoire.
-2. Contribution de l'empilement d'onglets à la mémoire de ce soir (dépend de l'origine des séances de 19h03 et 19h10).
+1. Fermeture de 21h12 par iOS pour excès de mémoire (aucun rapport Jetsam ni plantage ne la documente).
+2. Contribution de l'empilement d'onglets à la mémoire de ce soir (mécanisme présent : deux séances du Catalogue ; part de la mémoire non mesurée).
 3. Une boucle JavaScript non identifiée occupe le fil JavaScript à 75 % : elle existe depuis au moins le 20/11.
 
 ## Modifications réalisées
@@ -85,7 +86,7 @@ Ce rapport seulement.
 
 ## Vérifications restant à effectuer sur appareil réel
 
-1. Recherche « jetsam » dans Données d'analyse (22/11, vers 21h12).
+1. Recherche « jetsam » : faite (aucun rapport à 21h12).
 2. Après correctif de l'empilement : jouer deux séances depuis le Catalogue, puis vérifier que le geste « retour » de l'Agenda ne ramène pas à une Exécution terminée.
 3. Profil du fil JavaScript pendant une saturation.
 
