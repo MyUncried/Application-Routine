@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { CatalogueNavigation, type CatalogueNavigationOption } from "@/features/sessions/CatalogueNavigation";
-import { CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR, CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR, CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
@@ -154,7 +154,22 @@ export function TabbedScreen<T extends string>({
   );
 }
 
-export type ContextCounter = { readonly label: string; readonly value: string; readonly testID: string };
+/**
+ * `onPress` (recette du 21/11/2026, Journal, Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : le
+ * libellé devient une commande, au format de la bascule des Catalogues (`SessionViewToggle`) — inactif gris Regular, actif
+ * (`selected`) bleu Kodjo Semi Bold ; le nombre reste un texte informatif hors de la cible. Absent : compteur en lecture.
+ */
+export type ContextCounter = {
+  readonly label: string;
+  readonly value: string;
+  readonly testID: string;
+  readonly onPress?: () => void;
+  readonly selected?: boolean;
+  readonly accessibilityHint?: string;
+};
+
+/** Cible de 44 de haut, comme la bascule des Catalogues (libellé de 17). */
+const COUNTER_SLOP = Math.max(0, (minTouchTarget - 17) / 2);
 
 function isCounters(summary: ReactNode | { readonly counters: readonly ContextCounter[] }): summary is { readonly counters: readonly ContextCounter[] } {
   return typeof summary === "object" && summary !== null && "counters" in summary;
@@ -170,9 +185,25 @@ export function ContextCounters({ counters }: { readonly counters: readonly Cont
       {counters.map((counter, index) => (
         <View key={counter.testID} style={styles.counterGroup}>
           {index > 0 ? <Text style={styles.counterSeparator}>{CONTEXT_SEPARATOR}</Text> : null}
-          <Text style={styles.counterLabel} numberOfLines={1}>
-            {counter.label}
-          </Text>
+          {counter.onPress !== undefined ? (
+            <Pressable
+              onPress={counter.onPress}
+              accessibilityRole="button"
+              accessibilityLabel={counter.label}
+              accessibilityState={{ selected: counter.selected === true }}
+              {...(counter.accessibilityHint !== undefined ? { accessibilityHint: counter.accessibilityHint } : {})}
+              hitSlop={{ top: COUNTER_SLOP, bottom: COUNTER_SLOP }}
+              testID={`${counter.testID}-toggle`}
+            >
+              <Text style={[styles.counterLabel, counter.selected === true ? styles.counterLabelSelected : null]} numberOfLines={1}>
+                {counter.label}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.counterLabel} numberOfLines={1}>
+              {counter.label}
+            </Text>
+          )}
           <Text style={styles.counterValue} testID={counter.testID}>
             {counter.value}
           </Text>
@@ -216,6 +247,7 @@ const styles = StyleSheet.create({
   counterGroup: { flexDirection: "row", alignItems: "center" },
   counterSeparator: { ...type.contextLine, color: CONTEXT_TEXT_COLOR, marginHorizontal: CONTEXT_SEPARATOR_GAP },
   counterLabel: { ...type.contextLine, color: colors.textSecondary },
+  counterLabelSelected: { ...CONTEXT_LINE_SELECTED, color: colors.primary },
   counterValue: { ...type.contextLine, color: CONTEXT_TEXT_COLOR, marginLeft: spacing[6] },
   tabBand: {
     height: TAB_BAND.height,

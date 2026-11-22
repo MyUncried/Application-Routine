@@ -10,7 +10,7 @@ Le Journal est la **liste des routines créées**, et non leur planification dan
 ## 2. Zone de contexte
 
 Bande de 402 × 115 (inchangée), onglet « Journal » actif (voir DSF Barre de titre à onglets).
-- Ligne 1 : « Actives N · Terminées N » (compteurs). [« Planifiées N · Terminées N » depuis la recette du 19/11/2026 au soir (j1-compteurs).]
+- Ligne 1 : « Actives N · Terminées N » (compteurs). [« Planifiées N · Terminées N » depuis la recette du 19/11/2026 au soir (j1-compteurs).] [Recette du 21/11/2026 (Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : chaque libellé filtre la liste sur ce statut, comme la bascule « Un exercice · Plusieurs » du Catalogue (libellé actif en bleu ; retoucher le retire) ; sans choix, la liste par défaut (routines actives, D-540).]
 - Ligne 2 : champ Rechercher, contrôle Filtre, contrôle Tri, bouton Planifier.
 - Aucune navigation par date.
 
@@ -20,12 +20,12 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - Colonne gauche (cadre) : **date de création** de la routine.
 - Ligne 1 : nom de la routine (16), précédé du chevron de déploiement.
 - Ligne 2 : spécialité · zones corporelles. [Recette du 20/11/2026 (r20-j-deploye) : précédée du symbole des zones corporelles.]
-- Ligne 3 : récurrence (ex. « Chaque lundi et jeudi · jusqu’au 28 déc. »). [Remplacé le 20/11/2026 (r20-j-deploye) : « N créneaux, du X mois au Y mois », « Aucun créneau à venir » ; la récurrence reste au déployé. Routine à plusieurs séances : repère « P » cerclé devant le nom (constat A).]
+- Ligne 3 : récurrence (ex. « Chaque lundi et jeudi · jusqu’au 28 déc. »). [Remplacé le 20/11/2026 (r20-j-deploye) : « N créneaux, du X mois au Y mois », « Aucun créneau à venir » ; la récurrence reste au déployé [retirée du déployé le 21/11/2026, a31-journal]. Routine à plusieurs séances : repère « P » cerclé devant le nom (constat A).]
 - À droite : bouton « Modifier la planification » — composant `DSF / Actions / Édition — carré` (32 × 32, crayon `icon/modifier`, fond `#F3F4F9`, coins 10). [Retiré le 20/11/2026 (r20-j-navigation, r20-j-deploye : « Retirer le crayon ») ; le cadre de gauche ouvre la planification.]
 
 ## 4. Comportement
 
-- Toucher la carte (ou le chevron) la **déploie** : le déployé est identique à celui de l’Agenda et du catalogue des séances (filet de séparation, puis composition de la séance : exercices, cycles et circuits). [Recette du 19/11/2026 au soir : cadre de gauche → planification, centre → déployer, droite → crayon (constat B) ; le déployé commence par la récapitulation des jours planifiés (constat A) et « N occurrences à venir · du … au … » (constat E) ; glisser vers la gauche découvre Dupliquer et Supprimer (constat C).] [Recette du 20/11/2026 (r20-j-deploye) : sans filet en tête ; récapitulation sans symbole ; plus de ligne « N occurrences à venir » ; séances d'un parcours rapprochées. Supprimer (constat D) : « Supprimer cette routine », « La routine et ses N créneaux seront supprimés. »]
+- Toucher la carte (ou le chevron) la **déploie** : le déployé est identique à celui de l’Agenda et du catalogue des séances (filet de séparation, puis composition de la séance : exercices, cycles et circuits). [Recette du 19/11/2026 au soir : cadre de gauche → planification, centre → déployer, droite → crayon (constat B) ; le déployé commence par la récapitulation des jours planifiés (constat A) et « N occurrences à venir · du … au … » (constat E) ; glisser vers la gauche découvre Dupliquer et Supprimer (constat C).] [Recette du 20/11/2026 (r20-j-deploye) : sans filet en tête ; récapitulation sans symbole ; plus de ligne « N occurrences à venir » ; séances d'un parcours rapprochées.] [Recette du 21/11/2026 (a31-journal — Hermann : « supprimer la première ligne avec les jours de la semaine affichés (informations visible en regardant la planification) ») : plus de récapitulation des jours planifiés en tête du déployé. Validation d'une modification sans changement : ni message de confirmation ni enregistrement ; « Annuler » et « Confirmer » côte à côte, même taille, dans « Modifier cette routine » (Hermann : « mettre « Annuler » sur la même ligne que « Confirmer », avec les mêmes dimensions »). Supprimer (constat D) : « Supprimer cette routine », « La routine et ses N créneaux seront supprimés. »]
 - Le bouton « Modifier la planification » **ouvre la routine**.
 - Tri par défaut : date de création / modification, la plus récente en haut.
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.

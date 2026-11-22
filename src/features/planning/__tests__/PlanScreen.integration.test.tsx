@@ -167,7 +167,9 @@ describe("Calendrier — Plan (D-554)", () => {
     expect(screen.queryByTestId("calendar-routine-filter")).toBeNull();
   });
 
-  it("grille : « Sans programme », routines par ordre alphabétique, parcours en lignes de Séance, Total ; hors planification absente", async () => {
+  // Recette du 21/11/2026 (p32-hors-plan) : une séance lancée depuis le catalogue est visible dans le Plan, groupe « Hors
+  // planification », hors du Total. [Hors planification absente — remplacé.]
+  it("grille : « Sans programme », routines par ordre alphabétique, parcours en lignes de Séance, Total ; hors planification à part", async () => {
     const a = await sessions.createStructured(input("Échauffement"));
     const b = await sessions.createStructured(input("Étirement"));
     const c = await sessions.createStructured(input("Gainage"));
@@ -179,14 +181,19 @@ describe("Calendrier — Plan (D-554)", () => {
     await renderPlan();
     expect(screen.getByTestId("plan-group-none-label").props.children).toBe("Sans programme");
     const rows = screen.queryAllByTestId(/^plan-row-.*-name$/).map((node) => node.props.children as string);
-    expect(rows).toEqual(["Mobilité du matin", "Échauffement", "Étirement", "Zeta"]);
+    expect(rows).toEqual(["Mobilité du matin", "Échauffement", "Étirement", "Zeta", "Gainage"]);
+    expect(screen.getByTestId("plan-group-unplanned-label").props.children).toBe("Hors planification");
+    expect(screen.queryByTestId("plan-group-unplanned-add")).toBeNull();
     expect(screen.getByTestId(`plan-cell-${zeta.id}|${MONDAY}T08:00-label`).props.children).toBe("8h");
     expect(screen.getByTestId(`plan-cell-${zeta.id}|${THURSDAY}T08:00-label`).props.children).toBe("8h");
     expect(screen.getByTestId(`plan-cell-${parcours.id}|${MONDAY}T14:00|1-label`).props.children).toBe("14h");
     expect(screen.getByTestId(`plan-cell-${parcours.id}|${MONDAY}T14:00|2-label`).props.children).toBe("—");
-    // Hors planification : pas de case (le mercredi de Zeta reste vide).
+    // Hors planification : case à l'heure réelle sur sa propre ligne (le mercredi de Zeta reste vide), vert ; pas de case vide.
     expect(screen.getByTestId(`plan-cell-${zeta.id}-${addDays(MONDAY, 2)}-empty`)).toBeTruthy();
-    expect(screen.queryAllByTestId(/^plan-cell-free/)).toHaveLength(0);
+    expect(screen.getByTestId("plan-cell-free|f-label").props.children).toBe("9h");
+    expect(screen.queryAllByTestId(/^plan-cell-unplanned.*-empty$/)).toHaveLength(0);
+    // Durée de la Séance sous son nom (constat b).
+    expect(screen.getByTestId(`plan-row-${zeta.id}-duration`)).toBeTruthy();
     expect(screen.getByTestId(`plan-total-${MONDAY}`).props.children).not.toBe("—");
     expect(screen.getByTestId(`plan-total-${addDays(MONDAY, 1)}`).props.children).toBe("—");
     expect(String(screen.getByTestId("plan-total-week").props.children)).toMatch(/^Total · /);

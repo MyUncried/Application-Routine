@@ -132,6 +132,7 @@ export function DecisionDialog({
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}
               style={styles.neutralAction}
+              testID={`${testIDPrefix}-cancel`}
             >
               <Text style={[styles.neutralLabel, cancelLabelStyle]}>{cancelLabel}</Text>
             </Pressable>
@@ -140,6 +141,7 @@ export function DecisionDialog({
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
               style={[styles.destructiveAction, confirmBordered ? styles.destructiveActionBorder : null]}
+              testID={`${testIDPrefix}-confirm`}
             >
               <Text style={[styles.destructiveLabel, confirmLabelStyle]}>{confirmLabel}</Text>
             </Pressable>

@@ -23,6 +23,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { formatLocalDate } from "@/domain/planning/Routine";
 import type { Frame } from "@/domain/execution/kernel";
 import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
 import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/deathBy";
@@ -427,12 +428,18 @@ export function ExecutionScreen({
    */
   const close = useCallback(() => {
     const finishedNormally = service.current()?.state.finish?.reason === "COMPLETED";
+    const startedAtMs = service.current()?.state.startedAtMs ?? null;
     const next = chain !== null && finishedNormally ? nextInChain(chain, origin) : null;
     service.release();
     if (next !== null) router.replace({ pathname: "/execution", params: next });
-    else if (router.canGoBack()) router.back();
+    // Recette du 21/11/2026 (Hermann : « Après l'exécution d'une séance lancée depuis le catalogue, l'application ouvre
+    // l'Agenda à la date de l'exécution ») : séance lancée hors Agenda (ni chaîne ni occurrence) et commencée ; une reprise après
+    // interruption (route sans séance) garde le retour habituel.
+    else if (sessionId !== null && chain === null && origin === null && startedAtMs !== null) {
+      router.navigate({ pathname: "/calendar", params: { day: formatLocalDate(new Date(startedAtMs)), at: String(Date.now()) } });
+    } else if (router.canGoBack()) router.back();
     else router.replace("/");
-  }, [chain, origin, router, service]);
+  }, [chain, origin, router, service, sessionId]);
 
   /**
    * Recette du 19/11/2026 au soir (s19-voile, constat F) — enchaînement d'un parcours :

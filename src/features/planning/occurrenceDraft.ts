@@ -31,18 +31,32 @@ export function occurrenceForm(routine: Routine, occurrence: Occurrence, newId: 
   const own = new Map(occurrence.sessions.flatMap((session) => (session.origin === "ROUTINE" && session.entryId !== null ? [[session.entryId, session] as const] : [])));
   const addedSessions = occurrence.sessions.filter((session) => session.origin === "ADDED");
   const addedEntries: RoutineEntry[] = addedSessions.map((session) => ({ id: newId(), sessionId: session.sessionId, frequency: EVERY_TIME }));
-  const points = [
-    ...routine.entries.map((entry, row) => (grid.points[row] ?? []).map((value, at) => (at === column ? own.get(entry.id)?.active === true : value))),
-    ...addedSessions.map((session) => Array.from({ length: grid.cycle }, (_, at) => at === column && session.active)),
-  ];
+  const routineRows = routine.entries.map((entry, row) => ({
+    entry,
+    points: (grid.points[row] ?? []).map((value, at) => (at === column ? own.get(entry.id)?.active === true : value)),
+  }));
+  const addedRows = addedSessions.map((session, index) => ({
+    entry: addedEntries[index]!,
+    points: Array.from({ length: grid.cycle }, (_, at) => at === column && session.active),
+  }));
+  // Recette du 21/11/2026 (c22-6) : séances modifiées à la main pour ce créneau — lignes dans l'ordre enregistré du créneau
+  // (séances de la routine et ajoutées), puis les séances de la routine absentes du créneau, dans l'ordre de la routine.
+  // Sinon : ordre de la routine, puis séances ajoutées (inchangé).
+  const ordered: { readonly entry: RoutineEntry; readonly points: boolean[] }[] = [];
+  let addedIndex = 0;
+  for (const session of occurrence.manual.sessions ? occurrence.sessions : []) {
+    const row = session.origin === "ADDED" ? addedRows[addedIndex++] : routineRows.find((item) => item.entry.id === session.entryId);
+    if (row !== undefined && !ordered.includes(row)) ordered.push(row);
+  }
+  for (const row of [...routineRows, ...addedRows]) if (!ordered.includes(row)) ordered.push(row);
   const listed = new Set([...routineSessionsAt(routine, occurrence.index).map((session) => session.entryId!), ...own.keys()]);
   return {
     form: {
       ...base,
       name: routine.name,
       nameEdited: true,
-      entries: [...routine.entries, ...addedEntries],
-      grid: { cycle: grid.cycle, points },
+      entries: ordered.map((row) => row.entry),
+      grid: { cycle: grid.cycle, points: ordered.map((row) => row.points) },
       startDate: occurrence.date,
       time: occurrence.time,
       // La récurrence ne se change pas depuis l'Agenda (D-536, point 4).

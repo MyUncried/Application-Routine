@@ -329,18 +329,24 @@ export class PlanningService {
    */
   async routineFilterChoices(
     displayName: (routine: Routine) => string = (routine) => routine.name,
-  ): Promise<readonly { readonly routine: Routine; readonly upcoming: number; readonly active: boolean }[]> {
+  ): Promise<readonly { readonly routine: Routine; readonly upcoming: number; readonly lastUpcoming: LocalDate | null; readonly active: boolean }[]> {
     const isStarted = await this.startedTest();
     const now = this.deps.now();
     const at = now.getTime();
     return (await this.deps.repository.list())
       .map((routine) => ({ routine, occurrences: routineOccurrences(routine, isStarted) }))
       .filter((item) => item.occurrences.length > 0)
-      .map((item) => ({
-        routine: item.routine,
-        upcoming: item.occurrences.filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= at).length,
-        active: withExpiry(item.occurrences, now).some((occurrence) => !occurrence.started && !occurrence.expired),
-      }))
+      .map((item) => {
+        // Recette du 21/11/2026 (f23-modale) : « jusqu'au » = date du dernier créneau à venir.
+        const upcoming = item.occurrences.filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= at);
+        const lastUpcoming = upcoming.reduce<LocalDate | null>((last, occurrence) => (last === null || occurrence.date > last ? occurrence.date : last), null);
+        return {
+          routine: item.routine,
+          upcoming: upcoming.length,
+          lastUpcoming,
+          active: withExpiry(item.occurrences, now).some((occurrence) => !occurrence.started && !occurrence.expired),
+        };
+      })
       .sort((a, b) =>
         a.active !== b.active ? (a.active ? -1 : 1) : displayName(a.routine).localeCompare(displayName(b.routine), "fr", { sensitivity: "base" }),
       );

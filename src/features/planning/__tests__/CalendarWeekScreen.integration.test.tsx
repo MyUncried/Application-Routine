@@ -554,7 +554,7 @@ describe("Calendrier Semaine", () => {
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     // r21-supprimer : « Supprimer ce créneau » ; recette du 20/11/2026 : « Annuler » et « Confirmer » côte à côte, même format.
     expect(screen.getByText("Supprimer ce créneau")).toBeTruthy();
-    expect(screen.queryByTestId("planning-delete-occurrence-cancel")).toBeNull();
+    expect(within(screen.getByTestId("planning-delete-occurrence-actions")).getByTestId("planning-delete-occurrence-cancel")).toBeTruthy();
     expect(within(screen.getByTestId("planning-delete-occurrence-actions")).getByLabelText("Annuler")).toBeTruthy();
     expect(within(screen.getByTestId("planning-delete-occurrence-actions")).getByLabelText("Confirmer")).toBeTruthy();
     fireEvent.press(screen.getByText("Annuler"));
@@ -601,15 +601,23 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-day-${MONDAY}`).props.accessibilityState).toMatchObject({ selected: false });
   });
 
-  it("navigation : doubles flèches du mois vers le premier jour du mois ; semaine à cheval sur deux mois ; bouton « Aujourd'hui » (D-538)", async () => {
+  // Recette du 21/11/2026 (q23-mois) : le mois affiché est celui qui compte le plus de jours dans la semaine ; les doubles flèches
+  // ouvrent la première semaine du mois (le 1er choisi s'il y est, sinon le lundi). [Mois du jour choisi — remplacé.]
+  it("navigation : doubles flèches du mois vers sa première semaine ; mois de la semaine ; bouton « Aujourd'hui » (D-538)", async () => {
     await renderCalendar();
     fireEvent.press(screen.getByTestId("calendar-next-month"));
     await flush();
     expect(screen.getByTestId("calendar-month-label").props.children).toBe("Septembre 2030");
-    // 1er septembre 2030 : dimanche — semaine du 26 août au 1er septembre ; le mois affiché est celui du jour choisi.
-    expect(screen.getByTestId("calendar-day-2030-08-26")).toBeTruthy();
-    expect(screen.getByTestId("calendar-day-2030-09-01").props.accessibilityState).toMatchObject({ selected: true });
+    // 1er septembre 2030 : dimanche — la semaine du 26 août au 1er septembre appartient à août ; première semaine de
+    // septembre : du 2 au 8, lundi 2 choisi.
+    expect(screen.getByTestId("calendar-day-2030-09-08")).toBeTruthy();
+    expect(screen.getByTestId("calendar-day-2030-09-02").props.accessibilityState).toMatchObject({ selected: true });
     fireEvent.press(screen.getByTestId("calendar-previous-month"));
+    await flush();
+    // 1er août 2030 : jeudi — semaine du 29 juillet au 4 août, quatre jours en août ; le 1er est choisi.
+    expect(screen.getByTestId("calendar-month-label").props.children).toBe("Août 2030");
+    expect(screen.getByTestId("calendar-day-2030-07-29")).toBeTruthy();
+    expect(screen.getByTestId("calendar-day-2030-08-01").props.accessibilityState).toMatchObject({ selected: true });
     fireEvent.press(screen.getByTestId("calendar-previous-month"));
     await flush();
     expect(screen.getByTestId("calendar-month-label").props.children).toBe("Juillet 2030");

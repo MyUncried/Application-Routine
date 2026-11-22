@@ -33,9 +33,10 @@ import { PlanningServiceContext } from "@/features/planning/PlanningServiceConte
 
 const calls: string[] = [];
 const mockBack = jest.fn(() => calls.push("back"));
+const mockNavigate = jest.fn((target: { readonly pathname: string; readonly params: { readonly day: string } }) => calls.push(`navigate ${target.pathname} ${target.params.day}`));
 const mockReplace = jest.fn((target: unknown) => calls.push(`replace ${JSON.stringify(target)}`));
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: mockReplace, push: jest.fn() }),
+  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: mockReplace, push: jest.fn(), navigate: mockNavigate }),
   useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
 }));
 jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve()), selectionAsync: jest.fn(() => Promise.resolve()), ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" } }));
@@ -186,14 +187,18 @@ describe("executionChain (D-534)", () => {
 });
 
 describe("Exécution — enchaînement des séances d'une routine (D-534)", () => {
-  it("une seule séance : comportement inchangé, aucun voile, retour au calendrier", async () => {
+  // Recette du 21/11/2026 (Hermann : « Après l'exécution d'une séance lancée depuis le catalogue, l'application ouvre l'Agenda à
+  // la date de l'exécution ») : séance seule, sans chaîne ni occurrence.
+  it("une seule séance : aucun voile ; à la fin, l'Agenda à la date de l'exécution", async () => {
     const { advance, show, first } = await setup();
     const view = show(first, null);
     expect(await screen.findByTestId("execution-start")).toBeTruthy();
     expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
     await runToEnd(advance);
     await press("execution-close");
-    expect(calls).toEqual(["release", "back"]);
+    expect(calls).toHaveLength(2);
+    expect(calls[0]).toBe("release");
+    expect(calls[1]).toMatch(/^navigate \/calendar \d{4}-\d{2}-\d{2}$/);
     expect(mockReplace).not.toHaveBeenCalled();
     view.unmount();
   });

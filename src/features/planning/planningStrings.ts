@@ -81,7 +81,9 @@ export const planningStrings = {
     noProgramme: "Sans programme",
     addRoutine: "+ Routine",
     total: "Total · {duration}",
-    legend: { COMPLETED: "Complétée", PARTIAL: "Partielle", MISSED: "Manquée", UPCOMING: "À venir" },
+    // Recette du 21/11/2026 : à venir en bleu, « Arrêtée » en gris ; groupe des Exécutions hors planification.
+    legend: { COMPLETED: "Complétée", PARTIAL: "Partielle", MISSED: "Manquée", UPCOMING: "À venir", STOPPED: "Arrêtée" },
+    unplanned: "Hors planification",
     // Accessibilité [libellés techniques].
     weekAccessibility: "Semaine {number}, du {days}",
     addAccessibility: "Ajouter un créneau de {routine}, {day}",
@@ -166,7 +168,12 @@ export const planningStrings = {
     // D-539 mis à jour le 20/11/2026 (Hermann) : un toucher sur l'icône bleue désactive le filtre. [« Afficher toutes les
     // routines », bouton sans sélection — retiré.]
     disable: "Désactiver le filtre par routine",
-    slots: "{count} à venir, jusqu’au {date}",
+    // Recette du 21/11/2026 (f23-modale, f25-alignement), Hermann : « 10 créneaux à venir jusqu’au 15 novembre », mois en toutes
+    // lettres, sans année ; « Aucun créneau à venir » s’il n’y en a pas. [« {count} à venir, jusqu’au jj/mm/aaaa » — remplacé.]
+    // [Un seul créneau : « 1 créneau à venir le 15 novembre » — formulation de Claude, à valider.]
+    slots: "{count} créneaux à venir jusqu’au {date}",
+    slotsOne: "1 créneau à venir le {date}",
+    slotsNone: "Aucun créneau à venir",
     empty: "Aucune routine planifiée.",
     noResult: "Aucune routine ne correspond.",
   },

@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { addDays, formatLocalDate, mondayOf, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
@@ -9,7 +10,7 @@ import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occ
 import type { Occurrence } from "@/domain/planning/occurrences";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { mergeAgendaExecutions } from "@/features/planning/agendaCards";
-import { formatAgendaMonth } from "@/features/planning/agendaFormat";
+import { formatAgendaMonth, sessionsDurationLabel } from "@/features/planning/agendaFormat";
 import { DoubleChevron, formatDayTitle } from "@/features/planning/CalendarWeekScreen";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import { routineTitle } from "@/features/planning/journal";
@@ -64,13 +65,22 @@ const WEEK_WIDTH = 51;
 const WEEK_GAP = 3;
 const LINE = 0.5;
 
-/** Teintes des cases (Figma `12983:74` et suivantes) et de la légende (`12983:100`). */
+/**
+ * Teintes des cases (Figma `12983:74` et suivantes) et de la légende (`12983:100`). Recette du 21/11/2026 (p32-cases) : à venir
+ * en bleu, fond et trait de l'Agenda (`RoutineAgendaCard`, #E3ECFF / #8EAAE8) ; le gris reste pour « Arrêtée ».
+ * [Texte bleu #2D4F9E : choix de Claude, à valider.]
+ */
 const TINTS: Readonly<Record<PlanTint, { readonly background: string; readonly text: string; readonly border: string }>> = {
   COMPLETED: { background: "#E0F5E8", text: "#1A7340", border: "#8FCCA8" },
   PARTIAL: { background: "#FCEDD6", text: "#A6610D", border: "#EBB26B" },
   MISSED: { background: "#FCE5E5", text: "#B23838", border: "#E58F8F" },
-  UPCOMING: { background: "#F0F0F5", text: "#595E66", border: "#B8BAC9" },
+  UPCOMING: { background: "#E3ECFF", text: "#2D4F9E", border: "#8EAAE8" },
+  STOPPED: { background: "#F0F0F5", text: "#595E66", border: "#B8BAC9" },
 };
+/** Ordre de la légende. */
+const LEGEND: readonly PlanTint[] = ["COMPLETED", "PARTIAL", "MISSED", "UPCOMING", "STOPPED"];
+/** Glisser horizontal sur le tableau : distance minimale pour changer de semaine (recette du 21/11/2026, constat a). */
+const SWIPE_DISTANCE = 50;
 
 const SEPARATOR = "#E0E3EB";
 const DAY_SEPARATOR = "#E3E5EB";
@@ -81,11 +91,31 @@ function todayLocal(): LocalDate {
   return formatLocalDate(new Date());
 }
 
-/** Hauteur d'une ligne de cases : 32, agrandie pour des créneaux empilés (deux créneaux : 50). */
+/**
+ * Hauteur minimale d'une ligne de cases : 32, agrandie pour des créneaux empilés (deux créneaux : 50). Le nom (deux lignes au
+ * plus) et la durée de la Séance peuvent l'agrandir encore (recette du 21/11/2026, constats b et c).
+ */
 export function planRowHeight(row: PlanRow): number {
   if (row.kind === "TITLE") return TITLE_HEIGHT;
   const stacked = Math.max(1, ...row.cells.map((list) => list.length));
   return Math.max(ROW_HEIGHT, stacked * CELL_HEIGHT + (stacked - 1) * CELL_GAP + 8);
+}
+
+/** Glisser horizontal du tableau (recette du 21/11/2026, constat a) : `Pan` natif, horizontal seulement. */
+function useWeekSwipe(onShift: (shift: 1 | -1) => void) {
+  return useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-20, 20])
+        .failOffsetY([-12, 12])
+        .runOnJS(true)
+        .onEnd((event) => {
+          if (event.translationX <= -SWIPE_DISTANCE) onShift(1);
+          else if (event.translationX >= SWIPE_DISTANCE) onShift(-1);
+        })
+        .withTestId("plan-swipe"),
+    [onShift],
+  );
 }
 
 export function PlanScreen({
@@ -152,6 +182,16 @@ export function PlanScreen({
     setMonday(next);
     load(next);
   };
+  /** Semaine suivante (`1`) ou précédente (`-1`) depuis la semaine affichée (glisser horizontal). */
+  const shiftWeek = useCallback(
+    (shift: 1 | -1) => {
+      const next = addDays(mondayRef.current, shift * 7);
+      mondayRef.current = next;
+      setMonday(next);
+      load(next);
+    },
+    [load],
+  );
 
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
@@ -187,13 +227,13 @@ export function PlanScreen({
   const blockWidth = weeks.length * WEEK_WIDTH + (weeks.length - 1) * WEEK_GAP;
 
   /** Case vide : ajout d'un créneau ; jour où la routine a déjà un créneau (séance désactivée d'un parcours) : ce créneau. */
-  const touchEmpty = (row: PlanRow, day: LocalDate) => {
-    const existing = week.occurrencesOf(row.routine.id, day);
+  const touchEmpty = (routine: Routine, day: LocalDate) => {
+    const existing = week.occurrencesOf(routine.id, day);
     if (existing.length > 0) {
       openOccurrence(existing[0]!);
       return;
     }
-    router.push({ pathname: "/planning", params: { addTo: row.routine.id, date: day } });
+    router.push({ pathname: "/planning", params: { addTo: routine.id, date: day } });
   };
   /** Case pleine : modification de tout le créneau ; un créneau commencé ne s'ouvre pas (D-536). */
   const openOccurrence = (occurrence: Occurrence | undefined) => {
@@ -201,12 +241,22 @@ export function PlanScreen({
     router.push({ pathname: "/planning", params: { routineId: occurrence.routineId, occurrenceKey: occurrence.key } });
   };
   const planFrom = () => (monday > today ? monday : today);
+  // Recette du 21/11/2026 (constat a — Hermann : « Glisser horizontalement sur le tableau change de semaine : vers la gauche
+  // pour la semaine suivante, vers la droite pour la précédente ») : geste natif `Pan`, horizontal seulement (le défilement
+  // vertical du tableau reste libre).
+  const swipe = useWeekSwipe(shiftWeek);
+  /** Durée estimée de la Séance d'une ligne, sous son nom (recette du 21/11/2026, constat b). */
+  const durationOf = (row: PlanRow) => {
+    const projection = row.sessionId === undefined || row.sessionId === null ? undefined : projections.get(row.sessionId);
+    return projection === undefined ? "" : sessionsDurationLabel([projection]);
+  };
 
-  const renderGridLines = (height: number) => (
+  // Lignes verticales sur toute la hauteur de la ligne (qui suit son contenu).
+  const renderGridLines = () => (
     <>
-      {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height }]} pointerEvents="none" /> : null}
+      {todayIndex >= 0 ? <View style={[styles.todayColumn, styles.fullHeight, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN }]} pointerEvents="none" /> : null}
       {week.days.map((day, index) => (
-        <View key={day} style={[styles.dayLine, { left: LEFT + NAMES_WIDTH + index * COLUMN - LINE / 2, height }]} pointerEvents="none" />
+        <View key={day} style={[styles.dayLine, styles.fullHeight, { left: LEFT + NAMES_WIDTH + index * COLUMN - LINE / 2 }]} pointerEvents="none" />
       ))}
     </>
   );
@@ -229,30 +279,42 @@ export function PlanScreen({
       );
     }
     const session = row.kind === "SESSION";
+    const routine = row.routine;
+    const duration = durationOf(row);
     return (
-      <View key={row.key} style={{ height }} testID={`plan-row-${row.key}`}>
-        {renderGridLines(height)}
+      <View key={row.key} style={{ minHeight: height }} testID={`plan-row-${row.key}`}>
+        {renderGridLines()}
         {/* Séance d'un parcours : filet court au-dessus (depuis l'alignement des noms) et lien du Ⓟ. */}
         {session ? <View style={[styles.rowLine, styles.shortLine, { top: 0 }]} /> : null}
-        {session ? <View style={[styles.parcoursLink, { top: 0, height }]} testID={`plan-row-${row.key}-link`} /> : null}
-        <Text style={[styles.rowName, session ? styles.sessionName : null]} numberOfLines={2} testID={`plan-row-${row.key}-name`}>
-          {row.title}
-        </Text>
+        {session ? <View style={[styles.parcoursLink, styles.fullHeight]} testID={`plan-row-${row.key}-link`} /> : null}
+        {/* Recette du 21/11/2026 (constats b et c) : nom sur deux lignes au plus, puis la durée de la Séance. */}
+        <View style={[styles.rowNameBlock, session ? styles.sessionNameBlock : null]}>
+          <Text style={styles.rowName} numberOfLines={2} testID={`plan-row-${row.key}-name`}>
+            {row.title}
+          </Text>
+          {duration !== "" ? (
+            <Text style={styles.rowDuration} numberOfLines={1} testID={`plan-row-${row.key}-duration`}>
+              {duration}
+            </Text>
+          ) : null}
+        </View>
         {week.days.map((day, index) => {
           const cells = row.cells[index] ?? [];
           const left = LEFT + NAMES_WIDTH + index * COLUMN;
-          const touchKey = `${row.routine.id}|${day}`;
           if (cells.length === 0) {
+            // Ligne « Hors planification » : aucune routine, une case vide ne s'ouvre pas.
+            if (routine === undefined) return null;
+            const touchKey = `${routine.id}|${day}`;
             const highlighted = touched === touchKey;
             return (
               <Pressable
                 key={day}
                 onPressIn={() => setTouched(touchKey)}
                 onPressOut={() => setTouched((current) => (current === touchKey ? null : current))}
-                onPress={() => touchEmpty(row, day)}
+                onPress={() => touchEmpty(routine, day)}
                 accessibilityRole="button"
-                accessibilityLabel={fillTemplate(t.plan.addAccessibility, { routine: row.routine.name, day: formatDayTitle(day) })}
-                style={[styles.emptyCell, { left, height }]}
+                accessibilityLabel={fillTemplate(t.plan.addAccessibility, { routine: routine.name, day: formatDayTitle(day) })}
+                style={[styles.emptyCell, styles.fullHeight, { left }]}
                 testID={`plan-cell-${row.key}-${day}-empty`}
               >
                 {highlighted ? (
@@ -263,9 +325,8 @@ export function PlanScreen({
               </Pressable>
             );
           }
-          const top = (height - (cells.length * CELL_HEIGHT + (cells.length - 1) * CELL_GAP)) / 2;
           return (
-            <View key={day} style={[styles.cellColumn, { left, top }]}>
+            <View key={day} style={[styles.cellColumn, styles.fullHeight, { left }]} pointerEvents="box-none">
               {cells.map((cell) => {
                 const tint = TINTS[cell.tint];
                 return (
@@ -360,6 +421,8 @@ export function PlanScreen({
         ),
       }}
     >
+      <GestureHandlerRootView style={styles.list}>
+      <GestureDetector gesture={swipe}>
       <ScrollView
         style={styles.list}
         contentContainerStyle={{ paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }}
@@ -394,8 +457,9 @@ export function PlanScreen({
             <View style={[styles.band, group.programme !== null ? styles.bandProgramme : styles.bandNone]} testID={`plan-group-${group.key}-band`}>
               {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height: BAND_HEIGHT }]} pointerEvents="none" /> : null}
               <Text style={[styles.bandLabel, group.programme !== null ? styles.bandLabelProgramme : styles.bandLabelNone]} numberOfLines={1} testID={`plan-group-${group.key}-label`}>
-                {group.programme !== null ? fillTemplate(t.plan.programme, { name: group.programme.name }) : t.plan.noProgramme}
+                {group.programme !== null ? fillTemplate(t.plan.programme, { name: group.programme.name }) : group.unplanned === true ? t.plan.unplanned : t.plan.noProgramme}
               </Text>
+              {group.unplanned === true ? null : (
               <Pressable
                 onPress={() => router.push({ pathname: "/planning", params: { date: planFrom(), ...(group.programme !== null ? { programId: group.programme.id } : {}) } })}
                 accessibilityRole="button"
@@ -404,6 +468,7 @@ export function PlanScreen({
               >
                 <Text style={styles.addRoutine}>{t.plan.addRoutine}</Text>
               </Pressable>
+              )}
             </View>
             {group.rows.map((row) => renderRow(row))}
           </View>
@@ -429,7 +494,7 @@ export function PlanScreen({
             </View>
             {/* Légende des quatre états. */}
             <View style={styles.legend} testID="plan-legend">
-              {(["COMPLETED", "PARTIAL", "MISSED", "UPCOMING"] as const).map((tint) => (
+              {LEGEND.map((tint) => (
                 <View key={tint} style={styles.legendItem}>
                   <View style={[styles.legendSwatch, { backgroundColor: TINTS[tint].background, borderColor: TINTS[tint].border }]} />
                   <Text style={styles.legendLabel}>{t.plan.legend[tint]}</Text>
@@ -439,6 +504,8 @@ export function PlanScreen({
           </>
         ) : null}
       </ScrollView>
+      </GestureDetector>
+      </GestureHandlerRootView>
     </TabbedScreen>
   );
 }
@@ -484,19 +551,23 @@ const styles = StyleSheet.create({
   titleLine: { position: "absolute", left: LEFT, top: 5, right: LEFT, flexDirection: "row", alignItems: "center", gap: 6 },
   parcoursName: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, color: "#141414", flexShrink: 1 },
   parcoursLink: { position: "absolute", left: 15.5, width: 1, backgroundColor: "#000000" },
-  rowName: { position: "absolute", left: LEFT, width: 116, top: 0, bottom: 0, textAlignVertical: "center", fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, color: "#141414", paddingTop: 10 },
-  sessionName: { left: 30, width: 94 },
-  emptyCell: { position: "absolute", top: 0, width: COLUMN, alignItems: "center", justifyContent: "center" },
+  fullHeight: { top: 0, bottom: 0 },
+  // Nom et durée dans le flux : la ligne prend la hauteur du nom sur deux lignes et de la durée.
+  rowNameBlock: { marginLeft: LEFT, width: 116, paddingVertical: 6, justifyContent: "center", flexGrow: 1 },
+  sessionNameBlock: { marginLeft: 30, width: 94 },
+  rowName: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, lineHeight: 12, color: "#141414" },
+  rowDuration: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9, lineHeight: 11, color: "#595E66", marginTop: 1 },
+  emptyCell: { position: "absolute", width: COLUMN, alignItems: "center", justifyContent: "center" },
   touchedCell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, borderWidth: 1, borderStyle: "dashed", borderColor: colors.primary, backgroundColor: "rgba(5, 8, 229, 0.06)", alignItems: "center", justifyContent: "center" },
   touchedPlus: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 13, lineHeight: 16, color: colors.primary },
-  cellColumn: { position: "absolute", width: COLUMN, alignItems: "center", gap: CELL_GAP },
+  cellColumn: { position: "absolute", width: COLUMN, alignItems: "center", justifyContent: "center", gap: CELL_GAP },
   cell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   cellLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9 },
   totalSeparator: { height: 2.5, marginHorizontal: LEFT, borderTopWidth: LINE, borderBottomWidth: LINE, borderColor: SEPARATOR },
   total: { height: 25.5, backgroundColor: colors.catalogueSessionsContext, justifyContent: "center" },
   totalWeek: { position: "absolute", left: LEFT, top: 6, fontFamily: "Inter_700Bold", fontWeight: "700", fontSize: 10, color: "#333333" },
   totalDay: { position: "absolute", top: 6.5, width: CELL_WIDTH, textAlign: "center", fontFamily: "Inter_700Bold", fontWeight: "700", fontSize: 9, color: "#333333" },
-  legend: { flexDirection: "row", gap: 16, paddingHorizontal: LEFT, marginTop: 18 },
+  legend: { flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 6, paddingHorizontal: LEFT, marginTop: 18 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendSwatch: { width: 12, height: 12, borderRadius: 4, borderWidth: 1 },
   legendLabel: { ...type.supporting, lineHeight: undefined, color: "#595E66" },

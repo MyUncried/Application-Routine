@@ -19,7 +19,6 @@ import {
   sortJournal,
 } from "@/features/planning/journal";
 import { JOURNAL_ROW_HEIGHT, JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { formatRecurrence } from "@/features/planning/planningSummary";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import type { RoutineDeletionPlan } from "@/features/planning/PlanningService";
@@ -65,6 +64,9 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
+  // Recette du 21/11/2026 (Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : statut choisi par les
+  // compteurs, bascule des Catalogues ; `null` : statut du filtre (par défaut, routines actives, D-540).
+  const [counterStatus, setCounterStatus] = useState<"ACTIVE" | "ARCHIVED" | null>(null);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<{ readonly routine: Routine; readonly plan: RoutineDeletionPlan } | null>(null);
   const [actionFailed, setActionFailed] = useState(false);
@@ -127,7 +129,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
   const visible = all.filter((routine) => {
     const sessions = sessionsOf(routine);
-    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(isActive(routine), sessions, filters);
+    const effective = counterStatus === null ? filters : { ...filters, statuses: new Set([counterStatus] as const) };
+    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(isActive(routine), sessions, effective);
   });
 
   const tSessions = strings.screens.sessions;
@@ -179,8 +182,20 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
         // Compteurs au format des Catalogues (`ContextCounters`). [Avant : ligne de texte avec espaces tapées — remplacée.]
         summary: {
           counters: [
-            { label: t.active, value: routines === null ? "" : String(counts.active), testID: "journal-count-active" },
-            { label: t.finished, value: routines === null ? "" : String(counts.finished), testID: "journal-count-finished" },
+            {
+              label: t.active,
+              value: routines === null ? "" : String(counts.active),
+              testID: "journal-count-active",
+              selected: counterStatus === "ACTIVE",
+              onPress: () => setCounterStatus((current) => (current === "ACTIVE" ? null : "ACTIVE")),
+            },
+            {
+              label: t.finished,
+              value: routines === null ? "" : String(counts.finished),
+              testID: "journal-count-finished",
+              selected: counterStatus === "ARCHIVED",
+              onPress: () => setCounterStatus((current) => (current === "ARCHIVED" ? null : "ARCHIVED")),
+            },
           ],
         },
         results: null,
@@ -208,6 +223,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                 onApply: (next, labels) => {
                   setFilters(next);
                   setFilterLabels(labels);
+                  // Un statut choisi dans la feuille remplace celui des compteurs.
+                  if (next.statuses.size > 0) setCounterStatus(null);
                 },
               });
               router.push("/catalogue-filters");
@@ -332,12 +349,10 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                 // les cas dans la zone déployée ». [Ligne de récurrence vide conservée ; nom réservé aux parcours — remplacé.]
                 // [« Pas de planification » = pas de répétition (récurrence vide) ; filet retiré sous la première séance :
                 // interprétations techniques.]
+                // Recette du 21/11/2026 (a31-journal — Hermann : « supprimer la première ligne avec les jours de la semaine
+                // affichés (informations visible en regardant la planification) ») : plus de récurrence en tête. [« Chaque
+                // lundi… » en tête du déployé (r20-j-deploye) — remplacé.]
                 <View style={styles.expanded} testID={`journal-item-${routine.id}-expanded`}>
-                  {formatRecurrence(routine) === "" ? null : (
-                    <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
-                      {formatRecurrence(routine)}
-                    </Text>
-                  )}
                   <View style={styles.expandedSessions}>
                     {sessions.map((session, rank) => (
                       <View key={`${session.id}-${rank}`} testID={`journal-item-${routine.id}-session-${rank}`}>
@@ -346,7 +361,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                         </Text>
                         <SessionCompositionTree
                           tree={session.tree}
-                          divider={!(rank === 0 && formatRecurrence(routine) === "")}
+                          divider={rank > 0}
                           testID={`journal-item-${routine.id}-composition-${rank}`}
                         />
                       </View>
@@ -416,5 +431,4 @@ const styles = StyleSheet.create({
   expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
-  recurrence: { ...type.supporting, color: colors.textSecondary },
 });

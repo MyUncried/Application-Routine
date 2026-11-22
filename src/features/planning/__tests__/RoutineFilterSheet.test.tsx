@@ -43,7 +43,12 @@ describe("Filtrer par routine (D-539)", () => {
   it("libellés : « Filtrer N routines », « Filtrer 1 routine » ; ligne 3", () => {
     expect(routineFilterButtonLabel(2)).toBe("Filtrer 2 routines");
     expect(routineFilterButtonLabel(1)).toBe("Filtrer 1 routine");
-    expect(routineFilterSlotsLine(choices[0]!)).toBe("6 à venir, jusqu’au 28/12/2030");
+    // Recette du 21/11/2026 (f23-modale, f25-alignement) : mois en toutes lettres, sans année ; « jusqu’au » = dernier créneau à
+    // venir ; aucun créneau : « Aucun créneau à venir ».
+    expect(routineFilterSlotsLine(choices[0]!)).toBe("6 créneaux à venir jusqu’au 28 décembre");
+    expect(routineFilterSlotsLine({ ...choices[0]!, lastUpcoming: "2030-12-15" })).toBe("6 créneaux à venir jusqu’au 15 décembre");
+    expect(routineFilterSlotsLine({ ...choices[0]!, upcoming: 1, lastUpcoming: "2030-11-15" })).toBe("1 créneau à venir le 15 novembre");
+    expect(routineFilterSlotsLine(choices[1]!)).toBe("Aucun créneau à venir");
   });
 
   it("cartes réduites (nom, ligne 3, case), terminée comprise ; sélection multiple ; ✕ ferme sans valider", () => {

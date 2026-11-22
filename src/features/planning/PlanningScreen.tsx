@@ -184,6 +184,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // RM-259 : la synthèse dont les jours ne tenaient pas, mémorisée pour passer à « X jours par semaine ».
   const [overflowing, setOverflowing] = useState<string | null>(null);
   const savingRef = useRef(false);
+  // Recette du 21/11/2026 (Journal, Hermann : « Si la routine n'a pas été modifiée, valider n'affiche pas le message de
+  // confirmation de modification ») : brouillon lu à l'ouverture d'une modification depuis le Journal.
+  const loadedForm = useRef<FormDraft | null>(null);
   const reminderTouched = useRef(false);
   // Délai choisi pendant que les notifications étaient refusées : appliqué au retour de Réglages s'il est autorisé.
   const pendingReminder = useRef<(() => void) | null>(null);
@@ -293,7 +296,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           return;
         }
         setMode({ kind: "edit", routineId });
-        setForm(draftFromRoutine(routine));
+        const loaded = draftFromRoutine(routine);
+        loadedForm.current = loaded;
+        setForm(loaded);
       }, () => routerRef.current.back());
     } else if (params.duplicateOf !== undefined) {
       planning.prepareDuplicate(params.duplicateOf).then((draft) => {
@@ -359,7 +364,10 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     editing === null
       ? [...validateRoutineDraft(draft), ...gridIssues(shown.grid)]
       : [
-          ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED"),
+          // Recette du 21/11/2026 (c22-5 — Hermann : « La règle "chaque séance doit avoir au moins une pastille" a du sens dans le
+          // Journal, où l'on modifie la grille de la routine entière. Elle ne doit pas s'appliquer à la modification d'un seul
+          // créneau ») : la fréquence d'une ligne sans pastille n'est pas contrôlée ici.
+          ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED" && issue !== "INVALID_FREQUENCY"),
           ...(shown.grid.points.some((row) => row[editing.column] === true) ? [] : ["EMPTY_SLOT" as const]),
         ];
   const canSave = blocking.length === 0 && !saving && catalogue.status === "ready";
@@ -368,6 +376,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     if (!canSave || savingRef.current) return;
     // D-536, point 2 : modification de la routine depuis le Journal — confirmation du nombre de créneaux concernés.
     if (mode.kind === "edit" && modifyCount === null) {
+      const before = loadedForm.current;
+      if (before !== null && JSON.stringify(toRoutineDraft(before, before.name)) === JSON.stringify(toRoutineDraft(form, form.name))) {
+        // Rien n'a changé : pas de confirmation, rien n'est enregistré (la routine ne remonte pas dans le Journal).
+        router.back();
+        return;
+      }
       planning.pendingSlotCount(mode.routineId).then(
         (count) => (count > 0 ? setModifyCount(count) : commit()),
         () => commit(),
@@ -734,7 +748,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
 
       {modifyCount !== null ? (
         <DecisionDialog
-          cancelOnTop
+          // Recette du 21/11/2026 (Journal, Hermann : « Dans le message de modification, mettre "Annuler" sur la même ligne que
+          // "Confirmer", avec les mêmes dimensions ») : comme les fenêtres de suppression. [« Annuler » en haut — remplacé.]
           title={planningStrings.modifyRoutine.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message={
@@ -998,7 +1013,7 @@ function SlotGrid({
   readonly names: readonly string[];
   /**
    * Occurrence seule (D-536, point 4) : « Seul le créneau de l'occurrence ouverte est coloré (en-tête et pastille), les autres
-   * sont grisés » ; seule cette colonne se modifie, sans réordonnancement ni changement de cycle.
+   * sont grisés » ; seule cette colonne se modifie, sans changement de cycle ; les lignes se réordonnent (recette du 21/11/2026, c22-6).
    */
   readonly focusColumn?: number;
   readonly onChange: (grid: PlanningGrid) => void;
@@ -1013,7 +1028,9 @@ function SlotGrid({
   const [rowHeight, setRowHeight] = useState(40);
   const { drag, gesture, offset } = useRowDrag(names.length, rowHeight, onMove, onDraggingChange);
   const focused = focusColumn !== undefined;
-  const reorderable = names.length > 1 && !focused;
+  // Recette du 21/11/2026 (c22-6 — Hermann : « L'ordre choisi est conservé pour ce créneau seulement ») : les lignes se
+  // réordonnent aussi pour un créneau seul. [Sans réordonnancement pour un créneau seul (D-536, point 4) — remplacé.]
+  const reorderable = names.length > 1;
   return (
     <GestureHandlerRootView testID="planning-slot-grid">
       <View style={styles.gridHeader}>

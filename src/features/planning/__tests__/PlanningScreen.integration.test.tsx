@@ -358,7 +358,8 @@ describe("Planifier (CE-UI-12)", () => {
     expect(screen.getByTestId("planning-column-1-muted")).toBeTruthy();
     expect(screen.queryByTestId("planning-column-2-muted")).toBeNull();
     expect(screen.getByTestId("planning-point-0-1").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.queryByTestId("planning-row-0-handle")).toBeNull();
+    // Recette du 21/11/2026 (c22-6) : les lignes se réordonnent aussi pour un créneau seul.
+    expect(screen.getByTestId("planning-row-0-handle")).toBeTruthy();
     // Activer Alpha dans ce créneau, puis désactiver Bravo.
     fireEvent.press(screen.getByTestId("planning-point-0-2"));
     fireEvent.press(screen.getByTestId("planning-point-1-2"));
@@ -404,6 +405,66 @@ describe("Planifier (CE-UI-12)", () => {
     expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([[a.id, b.id]]);
   });
 
+  // Recette du 21/11/2026 (c22-5, c22-6) : désactiver dans un créneau seul la seule pastille d'une séance reste enregistrable ;
+  // l'ordre choisi est conservé pour ce créneau seulement, et relu à la réouverture.
+  it("créneau seul : séance sans autre pastille désactivable, ordre conservé pour ce créneau (recette du 21/11/2026)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const c = await sessions.createStructured(input("Charlie"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [
+        { id: "ea", sessionId: a.id, frequency: { x: 1, n: 2, positions: [1] } },
+        { id: "eb", sessionId: b.id, frequency: EVERY_TIME },
+        { id: "ec", sessionId: c.id, frequency: EVERY_TIME },
+      ],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    // 5 août : colonne #1, Alpha n'a de pastille que là.
+    await renderPlanning({ routineId: created.routine.id, occurrenceKey: "2030-08-05T08:00" });
+    fireEvent.press(screen.getByTestId("planning-point-0-1"));
+    expect(played(0, 1)).toBe(false);
+    expect(validateEnabled()).toBe(true);
+    // Charlie remonte en tête (deux montées).
+    fireEvent(screen.getByTestId("planning-row-2-handle"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    fireEvent(screen.getByTestId("planning-row-1-handle"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    await save();
+    const occurrences = await planning.rangeOccurrences("2030-08-05", "2030-08-12", () => true);
+    expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([
+      [c.id, b.id],
+      [b.id, c.id],
+    ]);
+    // La routine est inchangée.
+    expect((await planning.getRoutine(created.routine.id))?.entries.map((entry) => entry.id)).toEqual(["ea", "eb", "ec"]);
+    // Réouverture : l'ordre du créneau est relu.
+    screen.unmount();
+    await renderPlanning({ routineId: created.routine.id, occurrenceKey: "2030-08-05T08:00" });
+    expect(screen.getByTestId("planning-row-0-handle").props.accessibilityLabel).toContain("Charlie");
+  });
+
+  it("modification depuis le Journal sans changement : ni confirmation ni enregistrement (recette du 21/11/2026)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [{ id: "ea", sessionId: a.id, frequency: EVERY_TIME }],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    const before = (await planning.getRoutine(created.routine.id))?.updatedAt;
+    await renderPlanning({ routineId: created.routine.id });
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
+    expect((await planning.getRoutine(created.routine.id))?.updatedAt).toBe(before);
+  });
+
   it("modification depuis le Journal : confirmation « N créneaux à venir seront modifiés. » (constat E du 20/11/2026)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const created = await planning.createRoutine({
@@ -416,6 +477,8 @@ describe("Planifier (CE-UI-12)", () => {
     });
     if (created.status !== "SAVED") throw new Error(created.status);
     await renderPlanning({ routineId: created.routine.id });
+    // Recette du 21/11/2026 : la confirmation suit une modification réelle.
+    fireEvent.changeText(screen.getByTestId("planning-name"), "Genou droit");
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     await flush();
     expect(screen.getByText("4 créneaux à venir seront modifiés.")).toBeTruthy();

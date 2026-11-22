@@ -14,23 +14,34 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CONTEXT_SEARCH_WIDTH } from "@/shared/ui/catalogueContext";
-import { PrimaryActionButton, PrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
-/** `active` (D-553, arbitrage 3) : routines actives proposées avant les terminées ; absent : active. */
-export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming: number; readonly active?: boolean };
+/**
+ * `active` (D-553, arbitrage 3) : routines actives proposées avant les terminées ; absent : active.
+ * `lastUpcoming` : date du dernier créneau à venir (`null` : aucun).
+ */
+export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming: number; readonly lastUpcoming?: string | null; readonly active?: boolean };
 
-/** « 28/12/2026 ». */
-function numericDate(day: string): string {
+/** « 15 novembre » : mois en toutes lettres, sans année (recette du 21/11/2026, f25-alignement). */
+function dayMonthLong(day: string): string {
   const date = parseLocalDate(day);
-  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+  return `${date.getDate()} ${planningStrings.months[date.getMonth()]}`;
 }
 
-/** Ligne 3 de la carte réduite (D-539) : « 6 à venir, jusqu'au 28/12/2026 ». [« jusqu'au » = dernière date de la routine : interprétation technique.] */
+/**
+ * Ligne 3 de la carte réduite (recette du 21/11/2026, f23-modale, Hermann) : « 10 créneaux à venir jusqu'au 15 novembre » ;
+ * « Aucun créneau à venir » s'il n'y en a pas. « jusqu'au » : dernier créneau à venir. [D-539 : « 6 à venir, jusqu'au
+ * 28/12/2026 », dernière date de la routine — remplacé.]
+ */
 export function routineFilterSlotsLine(choice: RoutineFilterChoice): string {
-  return fillTemplate(planningStrings.routineFilter.slots, { count: String(choice.upcoming), date: numericDate(routineLastDate(choice.routine)) });
+  const t = planningStrings.routineFilter;
+  if (choice.upcoming === 0) return t.slotsNone;
+  const date = dayMonthLong(choice.lastUpcoming ?? routineLastDate(choice.routine));
+  if (choice.upcoming === 1) return fillTemplate(t.slotsOne, { date });
+  return fillTemplate(t.slots, { count: String(choice.upcoming), date });
 }
 
 /**
@@ -102,6 +113,8 @@ export function RoutineFilterSheet({
         ? filterLabels[0]!
         : fillTemplate(tSessions.catalogueFilters.activeSummary, { count: String(filterLabels.length) });
   const today = formatLocalDate(new Date());
+  // Recette du 21/11/2026 (a31-filtre-lignes) : la liste réserve la hauteur du bouton du bas ; la dernière carte reste atteignable.
+  const actionZone = usePrimaryActionZone();
 
   return (
     <ScreenShell backgroundColor={colors.background}>
@@ -154,7 +167,8 @@ export function RoutineFilterSheet({
         renderScroll={(topHeight) => (
           <ScrollView
             style={styles.scroll}
-            contentContainerStyle={[styles.list, { paddingTop: topHeight + spacing[8] }]}
+            contentContainerStyle={[styles.list, { paddingTop: topHeight + spacing[8], paddingBottom: actionZone.scrollReserve + spacing[8] }]}
+            scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
             contentInsetAdjustmentBehavior="never"
             automaticallyAdjustContentInsets={false}
             testID="routine-filter-list"
@@ -198,7 +212,7 @@ export function RoutineFilterSheet({
         )}
       />
       {/* Bouton primaire en bas, sans trait de séparation (DSF Agenda § 9). */}
-      <PrimaryActionZone testID="routine-filter-action-zone">
+      <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="routine-filter-action-zone">
         <PrimaryActionButton
           label={routineFilterButtonLabel(kept.length)}
           disabled={kept.length === 0}

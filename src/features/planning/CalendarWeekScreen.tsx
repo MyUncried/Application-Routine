@@ -17,7 +17,8 @@ import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeAc
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { firstDayOfShiftedMonth, formatAgendaMonth, zonesLine } from "@/features/planning/agendaFormat";
+import { formatAgendaMonth, zonesLine } from "@/features/planning/agendaFormat";
+import { firstWeekOfShiftedMonth, monthOfWeek } from "@/features/planning/planWeek";
 import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
@@ -102,7 +103,9 @@ export function DoubleChevron({ source }: { readonly source: number }) {
 }
 
 /** Liste continue de l'Agenda (constat C, 20/11/2026) : semaines chargées d'abord, ajoutées en fin de défilement, au plus. [Choix technique.] */
-const AGENDA_WEEKS_INITIAL = 4;
+// Recette du 21/11/2026 (constat e — « l'Agenda met environ 2 s à s'afficher ») : deux semaines au premier affichage, les suivantes
+// en fin de défilement. [Quatre semaines — remplacé ; choix technique.]
+const AGENDA_WEEKS_INITIAL = 2;
 const AGENDA_WEEKS_STEP = 4;
 const AGENDA_WEEKS_MAX = 52;
 type AgendaRange = { readonly start: LocalDate; readonly weeks: number };
@@ -339,9 +342,15 @@ export function CalendarWeekScreen({
   };
 
   const dotColor = (projection: SessionCatalogueProjection | undefined) => projection?.categories[0]?.color ?? colors.selection;
+  /**
+   * Doubles flèches : première semaine du mois précédent ou suivant celui de la semaine affichée (règle du libellé, recette du
+   * 21/11/2026, q23-mois) ; jour choisi : le 1er du mois s'il est dans cette semaine, sinon son lundi.
+   * [Premier jour du mois précédent ou suivant celui du jour sélectionné — remplacé.]
+   */
   const changeMonth = (shift: -1 | 1) => {
-    const first = firstDayOfShiftedMonth(selectedDay, shift);
-    changeWeek(mondayOf(first), first);
+    const week = firstWeekOfShiftedMonth(monday, shift);
+    const first = `${monthOfWeek(week).slice(0, 7)}-01`;
+    changeWeek(week, first > week ? first : week);
   };
 
   /**
@@ -442,17 +451,72 @@ export function CalendarWeekScreen({
           // DSF Agenda § 6 : composition de la Séance sous la carte. D-553 : le nom de la Séance, titre de la carte, n'est pas
           // répété. [Nom de chaque séance au-dessus de sa composition (r20-recap) — remplacé.]
           <Pressable onPress={toggle} accessible={false} style={styles.expanded} testID={`calendar-item-${card.key}-expanded`}>
-            <SessionCompositionTree tree={card.projection.tree} testID={`calendar-item-${card.key}-composition`} />
+            {/* Recette du 21/11/2026 (a31-deploye — Hermann : « Retirer le séparateur horizontal avant le nom du circuit / de
+                l'exercice ») : composition sans filet en tête. */}
+            <SessionCompositionTree tree={card.projection.tree} divider={false} testID={`calendar-item-${card.key}-composition`} />
           </Pressable>
         ) : null}
       </View>
     );
   };
 
-  const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   // Message « semaine vide » : première semaine de la liste sans occurrence ; les semaines suivantes s'affichent dessous.
+  const lastDay = useMemo(() => [...listDays].reverse().find((day) => (groupsByDay.get(day)?.length ?? 0) > 0), [listDays, groupsByDay]);
+  /**
+   * Recette du 21/11/2026 (constat e — Hermann : « le glissement horizontal est saccadé ; après un appui sur une date, la mise en
+   * couleur du jour et le repositionnement de la liste ne sont pas immédiats ») : les sections de la liste ne dépendent ni du
+   * jour choisi ni de la semaine du carrousel ; elles ne sont plus recalculées à chaque toucher d'un jour ni pendant le
+   * défilement, qui ne changent que le carrousel. [Choix technique.]
+   */
+  const sections = useMemo(
+    () =>
+      listDays.map((day) => {
+        const groups = groupsByDay.get(day) ?? [];
+        if (groups.length === 0) return null;
+        const first = day === listDays.find((candidate) => (groupsByDay.get(candidate)?.length ?? 0) > 0);
+        return (
+          <View
+            key={day}
+            onLayout={(event) => {
+              sectionOffsets.current.set(day, event.nativeEvent.layout.y);
+              if (day === lastDay) setLastSectionHeight(event.nativeEvent.layout.height);
+            }}
+            testID={`calendar-section-${day}`}
+          >
+            {/* DSF Agenda § 4 : un trait fin pleine largeur sépare deux jours, à 5 au-dessus de la date. */}
+            {first ? null : <View style={styles.daySeparator} testID={`calendar-section-${day}-separator`} />}
+            <View style={[styles.sectionHeader, first ? styles.sectionHeaderFirst : null]}>
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                {formatDayTitle(day)}
+              </Text>
+            </View>
+            {groups.map((group) =>
+              group.parcours ? (
+                // D-553 (Figma `12906:71`) : ligne « Ⓟ nom de la Routine » au-dessus de la première carte, sans heure, statut ni
+                // compteur ; cartes décalées ; lien noir fin du Ⓟ jusqu'au bas de la dernière carte, sur les traits verticaux.
+                <View key={group.key} style={styles.parcours} testID={`calendar-parcours-${group.key}`}>
+                  <View style={styles.parcoursLink} testID={`calendar-parcours-${group.key}-link`} />
+                  <View style={styles.parcoursHeader}>
+                    <ParcoursBadge placement="alone" size={18} stroke={1.5} testID={`calendar-parcours-${group.key}-badge`} />
+                    <Text style={styles.parcoursName} numberOfLines={1} maxFontSizeMultiplier={1.6} testID={`calendar-parcours-${group.key}-name`}>
+                      {parcoursNameOf(group)}
+                    </Text>
+                  </View>
+                  {group.cards.map((card) => renderCard(card, true))}
+                </View>
+              ) : (
+                <View key={group.key}>{group.cards.map((card) => renderCard(card, false))}</View>
+              ),
+            )}
+          </View>
+        );
+      }),
+    // Les fonctions de rendu ne lisent que les valeurs ci-dessous, les références et les fonctions d'état.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listDays, groupsByDay, expanded, revealed, routinesById, projections, isPlannable, zoneName, lastDay],
+  );
+  const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   const anyItem = listDays.slice(0, 7).some((day) => (groupsByDay.get(day)?.length ?? 0) > 0);
-  const lastDay = [...listDays].reverse().find((day) => (groupsByDay.get(day)?.length ?? 0) > 0);
   const listPaddingBottom = Math.max(bottomReserve, listHeight - lastSectionHeight);
 
   return (
@@ -491,7 +555,9 @@ export function CalendarWeekScreen({
                 <DoubleChevron source={require("../../../assets/icons/icon-precedent.svg")} />
               </Pressable>
               <Text style={styles.periodLabel} accessibilityRole="header" maxFontSizeMultiplier={1.2} numberOfLines={1} testID="calendar-month-label">
-                {formatAgendaMonth(selectedDay)}
+                {/* Recette du 21/11/2026 (q23-mois — Hermann : « il faut afficher le mois qui compte le plus de jours dans la
+                    semaine affichée ») : mois de la semaine, comme le Plan. [Mois du jour choisi (D-538, À CLARIFIER) — remplacé.] */}
+                {formatAgendaMonth(monthOfWeek(monday))}
               </Text>
               <Pressable onPress={() => changeMonth(1)} accessibilityRole="button" accessibilityLabel={t.calendar.nextMonth} hitSlop={6} testID="calendar-next-month">
                 <DoubleChevron source={require("../../../assets/icons/icon-suivant.svg")} />
@@ -630,47 +696,7 @@ export function CalendarWeekScreen({
             {t.calendar.emptyWeek}
           </Text>
         ) : null}
-        {listDays.map((day) => {
-          const groups = groupsByDay.get(day) ?? [];
-          if (groups.length === 0) return null;
-          const first = day === listDays.find((candidate) => (groupsByDay.get(candidate)?.length ?? 0) > 0);
-          return (
-            <View
-              key={day}
-              onLayout={(event) => {
-                sectionOffsets.current.set(day, event.nativeEvent.layout.y);
-                if (day === lastDay) setLastSectionHeight(event.nativeEvent.layout.height);
-              }}
-              testID={`calendar-section-${day}`}
-            >
-              {/* DSF Agenda § 4 : un trait fin pleine largeur sépare deux jours, à 5 au-dessus de la date. */}
-              {first ? null : <View style={styles.daySeparator} testID={`calendar-section-${day}-separator`} />}
-              <View style={[styles.sectionHeader, first ? styles.sectionHeaderFirst : null]}>
-                <Text style={styles.sectionTitle} accessibilityRole="header">
-                  {formatDayTitle(day)}
-                </Text>
-              </View>
-              {groups.map((group) =>
-                group.parcours ? (
-                  // D-553 (Figma `12906:71`) : ligne « Ⓟ nom de la Routine » au-dessus de la première carte, sans heure, statut ni
-                  // compteur ; cartes décalées ; lien noir fin du Ⓟ jusqu'au bas de la dernière carte, sur les traits verticaux.
-                  <View key={group.key} style={styles.parcours} testID={`calendar-parcours-${group.key}`}>
-                    <View style={styles.parcoursLink} testID={`calendar-parcours-${group.key}-link`} />
-                    <View style={styles.parcoursHeader}>
-                      <ParcoursBadge placement="alone" size={18} stroke={1.5} testID={`calendar-parcours-${group.key}-badge`} />
-                      <Text style={styles.parcoursName} numberOfLines={1} maxFontSizeMultiplier={1.6} testID={`calendar-parcours-${group.key}-name`}>
-                        {parcoursNameOf(group)}
-                      </Text>
-                    </View>
-                    {group.cards.map((card) => renderCard(card, true))}
-                  </View>
-                ) : (
-                  <View key={group.key}>{group.cards.map((card) => renderCard(card, false))}</View>
-                ),
-              )}
-            </View>
-          );
-        })}
+        {sections}
       </ScrollView>
       </SwipeScrollLockContext.Provider>
 
