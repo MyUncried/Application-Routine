@@ -97,3 +97,36 @@ Ce rapport seulement.
 ## Commit final et état Git
 
 Commit documentaire sur `diag/cpu-memoire-20261121`, envoyé sur `origin` (hash donné dans le compte rendu).
+
+## Suite du 22–23/11/2026 (23h–00h20)
+
+### Nouveaux rapports iOS (fournis par Hermann)
+
+| Rapport | Fenêtre | Processeur | Mémoire | PID |
+|---|---|---|---|---|
+| `cpu_resource-2026-11-22-232402` | 23:22:30 → 23:23:58 | 98 % | 2 100 → 2 320 Mo | 865 |
+| `cpu_resource-2026-11-22-235024` | 23:48:51 → 23:50:18 | 98 % | 1 130 → 1 522 Mo (+392 Mo en 87 s) | 926 |
+
+- Même pile la plus lourde que le rapport de 21h02 : fil à boucle d'exécution propre de React Native (fil JavaScript), puis le moteur `25EB07E0…`. Rapports non symbolisés.
+- Arrêts de 23h41 et de 00h15 (défilement de la liste de l'Agenda) : aucun rapport de plantage ni `JetsamEvent`.
+- `Time Since Boot` : l'iPhone a redémarré vers 22h10.
+- **Le processus 926 sature dès sa relance** (Hermann a fermé et rouvert l'application juste avant 23h50) : la saturation ne dépend pas d'une longue session.
+
+### Mesure du moteur JavaScript (CDP, 23h5x, 20 s, une connexion)
+
+- Tas JavaScript : 131,8 → 182,1 Mo en 15 s.
+- Profil Hermes : 90 % des échantillons sans fonction JavaScript (`[root]`) ; le reste : rendu React ordinaire de l'Agenda (`CalendarWeekScreen`, `RoutineAgendaCard`, `SwipeActionsRow`), `logComponentRender`, `runWithFiberInDEV`.
+- Lecture : le fil est occupé surtout hors du code JavaScript de l'application (travail natif sur le fil JavaScript, ou temps que le profileur ne rattache à aucune fonction). Non démontré.
+- Indice dans Metro : « Sending `onAnimatedValueUpdate` with no listeners registered » (trois fois après un rechargement). Aucune animation en boucle trouvée dans le code (`Animated.loop`, `withRepeat`, `setInterval` hors Exécution) : piste non confirmée.
+
+### Hypothèses (non démontrées)
+
+1. Coût propre au mode développement (React 19 en développement : `logComponentRender`, mesures de performance accumulées ; liaison Metro) : à vérifier avec une version sans mode développement.
+2. Travail natif répété sur le fil JavaScript (événements natifs, animations pilotées nativement).
+3. Les lots 2 à 4 de `RECETTE-PLAN-2211` (instantanés, placement de la liste) peuvent aggraver la charge de l'Agenda ; le lot 4 (`ac9a07b5`) retire l'enchaînement des ajouts de semaines et met les instantanés en cache. Ils n'expliquent pas les saturations du 20/11 au 22/11 à 14h.
+
+### Vérifications proposées
+
+1. Symboliser les rapports : récupérer le fichier de symboles (dSYM) de la version de développement installée (EAS) pour nommer les fonctions de `F833B928…` et `25EB07E0…`.
+2. Comparer avec une version sans mode développement (même code) : si la saturation disparaît, la cause relève du mode développement.
+3. Mesure CDP pendant une saturation confirmée par un rapport iOS, en comptant les échantillons par fonction native (`[Host Function]`) et en relevant le nombre d'événements natifs reçus.
