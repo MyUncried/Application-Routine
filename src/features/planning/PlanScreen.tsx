@@ -29,7 +29,8 @@ import {
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { TodayIcon } from "@/features/planning/TodayIcon";
-import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { projectSnapshotForCatalogue, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
@@ -136,6 +137,7 @@ export function PlanScreen({
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
   const [linked, setLinked] = useState<readonly OccurrenceExecution[]>([]);
   const [executions, setExecutions] = useState<readonly AgendaExecution[]>([]);
+  const [snapshots, setSnapshots] = useState<ReadonlyMap<string, SessionSnapshot>>(new Map());
   const [loadedAt, setLoadedAt] = useState(0);
   const [loadedMonday, setLoadedMonday] = useState<LocalDate | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -153,6 +155,7 @@ export function PlanScreen({
           setOccurrences(data.occurrences);
           setLinked(data.executions);
           setExecutions(data.allExecutions);
+          setSnapshots(data.snapshots);
           setLoadedAt(Date.now());
           setLoadedMonday(week);
           setLoadFailed(false);
@@ -201,6 +204,12 @@ export function PlanScreen({
   }, [catalogue]);
   const isPlannable = useCallback((sessionId: string) => projections.get(sessionId)?.status === "ACTIVE", [projections]);
 
+  // Recette du 22/11/2026 (constat b) : Séance telle qu'exécutée (instantané), Catégories du référentiel déjà chargé.
+  const executionProjections = useMemo(() => {
+    const categories = new Map<string, CatalogueCategoryRef>();
+    for (const projection of projections.values()) for (const category of projection.categories) categories.set(category.id, category);
+    return new Map([...snapshots].map(([id, snapshot]) => [id, projectSnapshotForCatalogue(snapshot, categories)] as const));
+  }, [snapshots, projections]);
   const week = useMemo(
     () =>
       buildPlanWeek({
@@ -218,8 +227,9 @@ export function PlanScreen({
           ),
         // Programmes : absents de cette branche (PROG-CAT-01) — toutes les routines « Sans programme ».
         programmeOf: () => null,
+        executionProjections,
       }),
-    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt],
+    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt, executionProjections],
   );
 
   const today = todayLocal();

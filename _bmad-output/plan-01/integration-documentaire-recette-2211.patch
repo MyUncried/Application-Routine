@@ -1,0 +1,22 @@
+diff --git a/docs/DSF-PLAN-2026-11-21.md b/docs/DSF-PLAN-2026-11-21.md
+index b2caa3e..d04f283 100644
+--- a/docs/DSF-PLAN-2026-11-21.md
++++ b/docs/DSF-PLAN-2026-11-21.md
+@@ -57,7 +57,7 @@ La largeur des cadres est la même dans les deux cas.
+ 
+ **Lignes de routine.**
+ - Hauteur 32.
+-- Nom de la séance en Inter Regular 10, sur deux lignes au plus. [Recette du 21/11/2026 (constats b, c — Hermann : « Afficher la durée de la séance sous son nom » ; « Si le nom de la séance est trop long, l'afficher sur deux lignes ») : durée estimée sous le nom ; la ligne s'agrandit pour le nom sur deux lignes et la durée.]
++- Nom de la séance en Inter Regular 10, sur deux lignes au plus. [Recette du 21/11/2026 (constats b, c — Hermann : « Afficher la durée de la séance sous son nom » ; « Si le nom de la séance est trop long, l'afficher sur deux lignes ») : durée estimée sous le nom ; la ligne s'agrandit pour le nom sur deux lignes et la durée [remplacé le 22/11/2026 (c33-plan-duree, constat e — Hermann : « Mettre la durée à la suite du nom, séparée par un point centré verticalement » ; « la nom de la séance + la durée doivent rester sur deux lignes ») : « nom · durée », deux lignes au plus].]
+ - Un filet horizontal de 0,5 sépare chaque ligne.
+ 
+ **Traits verticaux.** Des traits de 0,5, gris très clair, séparent les jours et la colonne des noms du lundi. Ils passent derrière les cases et les bandes, et s'interrompent sur la ligne de titre d'un parcours.
+@@ -76,7 +76,7 @@ La largeur des cadres est la même dans les deux cas.
+ 
+ **Ordre des routines.** Elles sont regroupées par programme ; dans un groupe, par ordre alphabétique. Le Plan montre les routines qui ont au moins un créneau dans la semaine.
+ 
+-**Exécutions hors planification.** Elles n'apparaissent pas dans le Plan : elles sont visibles dans l'Agenda. [Remplacé le 21/11/2026 (recette, p32-hors-plan — Hermann : « Un séance lancée depuis le catalogue doit être visible dans le plan ») : groupe « Hors planification » après les programmes, une ligne par Séance, une case par Exécution à son heure réelle. Groupe, ordre alphabétique, cases vides inactives et exclusion du Total : choix de Claude, à valider.]
++**Exécutions hors planification.** Elles n'apparaissent pas dans le Plan : elles sont visibles dans l'Agenda. [Remplacé le 21/11/2026 (recette, p32-hors-plan — Hermann : « Un séance lancée depuis le catalogue doit être visible dans le plan ») : groupe « Hors planification » après les programmes, une ligne par Séance, une case par Exécution à son heure réelle. Groupe, ordre alphabétique, cases vides inactives et exclusion du Total : choix de Claude, à valider.] [Remplacé le 22/11/2026 (recette, constat a — Hermann : « une séance lancée hors routine doit se retrouver sous "sans programme", sur la même ligne qu'une séance séance identique, avec un signe distinctif (une petite astérics) ») : sous « Sans programme », sur la ligne de la routine à une Séance de la même Séance affichée dans la semaine, sinon sur sa propre ligne ; heure suivie d'une petite astérisque ; hors du Total. Ligne de Séance d'un parcours exclue, première routine par ordre alphabétique : interprétation de Claude, à valider.]
+ 
+ ## 4. Groupes par programme
+ 

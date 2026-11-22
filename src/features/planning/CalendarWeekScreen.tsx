@@ -23,7 +23,8 @@ import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/Routin
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
-import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { projectSnapshotForCatalogue, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
@@ -140,6 +141,7 @@ export function CalendarWeekScreen({
   const [executions, setExecutions] = useState<readonly OccurrenceExecution[]>([]);
   // D-553 : toutes les Exécutions (Séances exécutées et « Hors planification »).
   const [allExecutions, setAllExecutions] = useState<readonly AgendaExecution[]>([]);
+  const [snapshots, setSnapshots] = useState<ReadonlyMap<string, SessionSnapshot>>(new Map());
   // Instant du dernier chargement : sépare les occurrences passées (rouge) des occurrences à venir (bleu).
   const [loadedAt, setLoadedAt] = useState(0);
   // Recette du 20/11/2026 (Hermann : « la liste apparaît avec un temps de décalage. Elle affiche d'abord "Aucune séance
@@ -197,12 +199,13 @@ export function CalendarWeekScreen({
     (window: AgendaRange) => {
       const id = ++requestId.current;
       planning.agendaData(window.start, addDays(window.start, window.weeks * 7 - 1)).then(
-        ({ routines: list, occurrences: weekItems, executions: linked, allExecutions: everything }) => {
+        ({ routines: list, occurrences: weekItems, executions: linked, allExecutions: everything, snapshots: executed }) => {
           if (id !== requestId.current) return;
           setRoutines(list);
           setOccurrences(weekItems);
           setExecutions(linked);
           setAllExecutions(everything);
+          setSnapshots(executed);
           setLoadedAt(Date.now());
           setLoadedStart(window.start);
           setLoadFailed(false);
@@ -228,6 +231,12 @@ export function CalendarWeekScreen({
     }, [reloadCatalogue, cancelPending, load]),
   );
 
+  // Recette du 22/11/2026 (constat b) : Séance telle qu'exécutée (instantané), Catégories du référentiel déjà chargé.
+  const executionProjections = useMemo(() => {
+    const categories = new Map<string, CatalogueCategoryRef>();
+    for (const projection of projections.values()) for (const category of projection.categories) categories.set(category.id, category);
+    return new Map([...snapshots].map(([id, snapshot]) => [id, projectSnapshotForCatalogue(snapshot, categories)] as const));
+  }, [snapshots, projections]);
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
 
   /**
@@ -244,8 +253,9 @@ export function CalendarWeekScreen({
         isPlannable,
         routineFilter,
         now: loadedAt,
+        executionProjections,
       }),
-    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt],
+    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections],
   );
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);

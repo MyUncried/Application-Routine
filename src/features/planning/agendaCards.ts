@@ -140,11 +140,17 @@ export type AgendaBuildInput = {
   /** Filtre par routine (D-539) ; `null` : sans filtre. Filtre actif : Exécutions hors planification masquées. */
   readonly routineFilter: ReadonlySet<string> | null;
   readonly now: number;
+  /**
+   * Recette du 22/11/2026 (constat b) : Séance telle qu'exécutée, par Exécution (instantané) ; une carte exécutée la montre au
+   * lieu de la Séance actuelle du Catalogue. Absente : Séance du Catalogue.
+   */
+  readonly executionProjections?: ReadonlyMap<string, SessionCatalogueProjection>;
 };
 
 /** Groupes de l'Agenda, par jour, dans l'ordre chronologique. */
 export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, AgendaGroup[]> {
   const { occurrences, executions, projections, isPlannable, routineFilter, now } = input;
+  const executed = (execution: AgendaExecution | undefined) => (execution === undefined ? undefined : input.executionProjections?.get(execution.executionId));
   const byOccurrence = new Map<string, AgendaExecution[]>();
   for (const execution of executions) {
     if (execution.link === null) continue;
@@ -171,7 +177,7 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     // qu'une carte reste (arbitrage 9).
     const parcours = occurrence.sessions.length > 1;
     const cards = shown.map(({ content, sessionId, position, execution }) =>
-      plannedCard({ occurrence, occurrenceKey, content, sessionId, position, execution, projection: projections.get(sessionId), parcours, slotStatus, now }),
+      plannedCard({ occurrence, occurrenceKey, content, sessionId, position, execution, projection: executed(execution) ?? projections.get(sessionId), parcours, slotStatus, now }),
     );
     if (!parcours) {
       const card = cards[0]!;
@@ -188,7 +194,7 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     for (const execution of executions) {
       if (execution.link !== null || execution.businessStatus === null) continue;
       const { day, time } = localParts(execution.startedAt);
-      const projection = execution.sessionId !== null ? projections.get(execution.sessionId) : undefined;
+      const projection = executed(execution) ?? (execution.sessionId !== null ? projections.get(execution.sessionId) : undefined);
       groups.push({
         key: `free|${execution.executionId}`,
         day,

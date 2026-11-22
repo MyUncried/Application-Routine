@@ -151,6 +151,24 @@ export class SqliteExecutionRepository implements ExecutionRepository {
    * D-553 (21/11/2026) : toutes les Exécutions, liées à un créneau ou non (cartes « Hors planification » de l'Agenda). Nom de la
    * Séance lu dans l'instantané (`$.name`), en lecture seule, sans relire tout l'instantané ; seul ce dépôt lit l'instantané (PRE-4 1.3, AC9).
    */
+  /**
+   * Recette du 22/11/2026 (constat b — Hermann : « Modifier une séance dans le catalogue modifie […] aussi les occurrences
+   * exécutées (KO) ») : instantanés JSON des Exécutions demandées, pour afficher la Séance telle qu'elle a été exécutée. Lecture
+   * seule, par paquets (limite des paramètres SQLite).
+   */
+  async snapshotsFor(executionIds: readonly string[]): Promise<ReadonlyMap<string, string>> {
+    const result = new Map<string, string>();
+    for (let start = 0; start < executionIds.length; start += 400) {
+      const ids = executionIds.slice(start, start + 400);
+      const rows = await this.database.getAllAsync<{ id: string; snapshot_json: string }>(
+        `SELECT id, snapshot_json FROM executions WHERE id IN (${ids.map(() => "?").join(", ")})`,
+        ids,
+      );
+      for (const row of rows) result.set(row.id, row.snapshot_json);
+    }
+    return result;
+  }
+
   async listForAgenda(): Promise<readonly AgendaExecution[]> {
     const rows = await this.database.getAllAsync<AgendaExecutionRow>(
       `SELECT execution.id, execution.session_id, json_extract(execution.snapshot_json, '$.name') AS session_name, execution.started_at,

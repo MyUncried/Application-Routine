@@ -160,6 +160,8 @@ export type PlanWeekInput = {
   readonly displayName: (routine: Routine) => string;
   /** Programme de la routine ; \`null\` : « Sans programme ». */
   readonly programmeOf: (routine: Routine) => PlanProgramme | null;
+  /** Recette du 22/11/2026 (constat b) : Séance telle qu'exécutée, par Exécution. */
+  readonly executionProjections?: ReadonlyMap<string, SessionCatalogueProjection>;
 };
 
 export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
@@ -172,6 +174,7 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     isPlannable: input.isPlannable,
     routineFilter: null,
     now: input.now,
+    ...(input.executionProjections !== undefined ? { executionProjections: input.executionProjections } : {}),
   });
   const routinesById = new Map(routines.map((routine) => [routine.id, routine]));
   // Cartes de la semaine par routine (Exécutions hors planification exclues : DSF Plan § 3).

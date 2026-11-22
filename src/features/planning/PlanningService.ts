@@ -26,6 +26,7 @@ import {
   type Occurrence,
 } from "@/domain/planning/occurrences";
 import { occurrenceExecutionKey, type AgendaExecution, type OccurrenceExecution, type OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
+import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 
 /**
  * `PlanningService` (chapitre 12 §12.4) — gestion des Routines et calcul des occurrences (API-ROU-01 à 05, 09).
@@ -84,6 +85,8 @@ export type PlanningServiceDeps = {
   readonly occurrenceExecutions?: () => Promise<readonly OccurrenceExecution[]>;
   /** D-553 : toutes les Exécutions, liées ou non (cartes « Hors planification » de l'Agenda) ; absent : aucune. */
   readonly executions?: () => Promise<readonly AgendaExecution[]>;
+  /** Recette du 22/11/2026 (constat b) : instantanés JSON des Exécutions demandées ; absent : aucun (Séance du Catalogue). */
+  readonly executionSnapshots?: (executionIds: readonly string[]) => Promise<ReadonlyMap<string, string>>;
   readonly newId: () => string;
   readonly now: () => Date;
 };
@@ -570,6 +573,11 @@ export class PlanningService {
     readonly executions: readonly OccurrenceExecution[];
     /** D-553 : toutes les Exécutions (cartes de Séance exécutées et « Hors planification »). */
     readonly allExecutions: readonly AgendaExecution[];
+    /**
+     * Recette du 22/11/2026 (constat b) : instantané de chaque Exécution démarrée dans la période — la Séance telle qu'elle a
+     * été exécutée, indépendante des modifications ultérieures du Catalogue (FMT-06).
+     */
+    readonly snapshots: ReadonlyMap<string, SessionSnapshot>;
   }> {
     const [routines, executions, allExecutions] = await Promise.all([
       this.deps.repository.list(),
@@ -590,7 +598,22 @@ export class PlanningService {
     const occurrences = this.inRange(routines, (routineId, key) => keys.has(occurrenceExecutionKey(routineId, key)), from, to, () => true, (occurrence) =>
       executedInRange.has(occurrenceExecutionKey(occurrence.routineId, occurrence.key)),
     );
-    return { routines, occurrences, executions, allExecutions };
+    const inPeriod = allExecutions
+      .filter((execution) => {
+        const day = formatLocalDate(new Date(execution.startedAt));
+        return day >= from && day <= to;
+      })
+      .map((execution) => execution.executionId);
+    const raw = inPeriod.length === 0 || this.deps.executionSnapshots === undefined ? new Map<string, string>() : await this.deps.executionSnapshots(inPeriod);
+    const snapshots = new Map<string, SessionSnapshot>();
+    for (const [id, json] of raw) {
+      try {
+        snapshots.set(id, JSON.parse(json) as SessionSnapshot);
+      } catch {
+        // Instantané illisible : la carte garde la Séance du Catalogue.
+      }
+    }
+    return { routines, occurrences, executions, allExecutions, snapshots };
   }
 
   /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
