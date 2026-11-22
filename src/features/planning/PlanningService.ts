@@ -92,6 +92,12 @@ export type PlanningServiceDeps = {
 };
 
 export class PlanningService {
+  /**
+   * Instantanés d'Exécution déjà lus (recette du 23/11/2026) : un instantané ne change jamais ; il n'est lu qu'une fois, au lieu
+   * de l'être à chaque chargement de l'Agenda ou du Plan.
+   */
+  private readonly snapshotCache = new Map<string, SessionSnapshot | null>();
+
   constructor(private readonly deps: PlanningServiceDeps) {}
 
   /** Fenêtre glissante des rappels : après toute écriture et à l'ouverture de l'application (chapitre 12). */
@@ -604,14 +610,23 @@ export class PlanningService {
         return day >= from && day <= to;
       })
       .map((execution) => execution.executionId);
-    const raw = inPeriod.length === 0 || this.deps.executionSnapshots === undefined ? new Map<string, string>() : await this.deps.executionSnapshots(inPeriod);
-    const snapshots = new Map<string, SessionSnapshot>();
-    for (const [id, json] of raw) {
+    const missing = inPeriod.filter((id) => !this.snapshotCache.has(id));
+    const raw = missing.length === 0 || this.deps.executionSnapshots === undefined ? new Map<string, string>() : await this.deps.executionSnapshots(missing);
+    for (const id of missing) {
+      const json = raw.get(id);
+      let snapshot: SessionSnapshot | null = null;
       try {
-        snapshots.set(id, JSON.parse(json) as SessionSnapshot);
+        if (json !== undefined) snapshot = JSON.parse(json) as SessionSnapshot;
       } catch {
         // Instantané illisible : la carte garde la Séance du Catalogue.
       }
+      // Exécution encore sans instantané lisible : relue au chargement suivant.
+      if (snapshot !== null) this.snapshotCache.set(id, snapshot);
+    }
+    const snapshots = new Map<string, SessionSnapshot>();
+    for (const id of inPeriod) {
+      const snapshot = this.snapshotCache.get(id);
+      if (snapshot !== undefined && snapshot !== null) snapshots.set(id, snapshot);
     }
     return { routines, occurrences, executions, allExecutions, snapshots };
   }

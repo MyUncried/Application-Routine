@@ -9,7 +9,7 @@ import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 import { addDays, formatLocalDate, mondayOf, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
-import { buildAgendaGroups, mergeAgendaExecutions, type AgendaCard, type AgendaGroup } from "@/features/planning/agendaCards";
+import { buildAgendaGroups, executedProjections, mergeAgendaExecutions, type AgendaCard, type AgendaGroup } from "@/features/planning/agendaCards";
 import { routineTitle } from "@/features/planning/journal";
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
@@ -23,7 +23,7 @@ import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/Routin
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
-import { projectSnapshotForCatalogue, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import type { CatalogueCategoryRef, SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
@@ -238,7 +238,7 @@ export function CalendarWeekScreen({
   const executionProjections = useMemo(() => {
     const categories = new Map<string, CatalogueCategoryRef>();
     for (const projection of projections.values()) for (const category of projection.categories) categories.set(category.id, category);
-    return new Map([...snapshots].map(([id, snapshot]) => [id, projectSnapshotForCatalogue(snapshot, categories)] as const));
+    return executedProjections(snapshots, categories);
   }, [snapshots, projections]);
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
 
@@ -325,9 +325,12 @@ export function CalendarWeekScreen({
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    // Recette du 23/11/2026 (plantage de 00h15 pendant le test de la liste) : seul le défilement de l'utilisateur ajoute des
+    // semaines. [Aussi le défilement automatique — remplacé : le jour tenu en tête, replacé à chaque mise en page, pouvait
+    // enchaîner les ajouts jusqu'à 52 semaines.]
+    if (programmaticScroll.current) return;
     // Moins d'un écran de contenu sous la vue (réserve basse exclue) : semaines suivantes.
     if (contentOffset.y + 2 * layoutMeasurement.height >= contentSize.height - listPaddingBottom) extendRange();
-    if (programmaticScroll.current) return;
     // Haut visible de la liste : sous la part fondue de la bande (recette du 22/11/2026).
     const y = contentOffset.y + CONTEXT_BAND_FADE_HEIGHT + spacing[8];
     let top: LocalDate | null = null;

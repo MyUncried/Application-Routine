@@ -9,7 +9,7 @@ import { addDays, formatLocalDate, mondayOf, parseLocalDate, type LocalDate, typ
 import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { mergeAgendaExecutions } from "@/features/planning/agendaCards";
+import { executedProjections, mergeAgendaExecutions } from "@/features/planning/agendaCards";
 import { formatAgendaMonth, sessionsDurationLabel } from "@/features/planning/agendaFormat";
 import { DoubleChevron, formatDayTitle } from "@/features/planning/CalendarWeekScreen";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
@@ -29,7 +29,7 @@ import {
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { TodayIcon } from "@/features/planning/TodayIcon";
-import { projectSnapshotForCatalogue, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import type { CatalogueCategoryRef, SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
@@ -208,7 +208,7 @@ export function PlanScreen({
   const executionProjections = useMemo(() => {
     const categories = new Map<string, CatalogueCategoryRef>();
     for (const projection of projections.values()) for (const category of projection.categories) categories.set(category.id, category);
-    return new Map([...snapshots].map(([id, snapshot]) => [id, projectSnapshotForCatalogue(snapshot, categories)] as const));
+    return executedProjections(snapshots, categories);
   }, [snapshots, projections]);
   const week = useMemo(
     () =>

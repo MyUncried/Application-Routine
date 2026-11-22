@@ -4,7 +4,8 @@ import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occ
 import type { Occurrence, OccurrenceContent } from "@/domain/planning/occurrences";
 import { formatAgendaTime, sessionsDurationLabel } from "@/features/planning/agendaFormat";
 import type { AgendaStatus } from "@/features/planning/RoutineAgendaCard";
-import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
+import { projectSnapshotForCatalogue, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 
 /**
  * Agenda centré sur les Séances (D-553, 21/11/2026 ; spécification « Agenda centré sur les Séances, Journal et filtre », § 1
@@ -146,6 +147,28 @@ export type AgendaBuildInput = {
    */
   readonly executionProjections?: ReadonlyMap<string, SessionCatalogueProjection>;
 };
+
+/**
+ * Projections des Séances exécutées (recette du 23/11/2026) : une par instantané, calculée une seule fois (l'instantané, lu une
+ * fois par le service, est le même objet d'un chargement à l'autre).
+ */
+const snapshotProjectionCache = new WeakMap<SessionSnapshot, SessionCatalogueProjection>();
+
+export function executedProjections(
+  snapshots: ReadonlyMap<string, SessionSnapshot>,
+  categories: ReadonlyMap<string, CatalogueCategoryRef>,
+): ReadonlyMap<string, SessionCatalogueProjection> {
+  const result = new Map<string, SessionCatalogueProjection>();
+  for (const [id, snapshot] of snapshots) {
+    let projection = snapshotProjectionCache.get(snapshot);
+    if (projection === undefined) {
+      projection = projectSnapshotForCatalogue(snapshot, categories);
+      snapshotProjectionCache.set(snapshot, projection);
+    }
+    result.set(id, projection);
+  }
+  return result;
+}
 
 /** Groupes de l'Agenda, par jour, dans l'ordre chronologique. */
 export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, AgendaGroup[]> {
