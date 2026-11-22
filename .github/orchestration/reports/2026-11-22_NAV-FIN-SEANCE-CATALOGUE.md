@@ -66,3 +66,9 @@ Ligne `c34-fin-catalogue` du cahier : séance du Catalogue terminée → Agenda 
 ## Commit final et état Git
 
 Commit sur `feat/plan-20261121`, envoyé sur `origin` (hash donné dans le compte rendu).
+
+## Recette iPhone du 22/11/2026 (21h44, ligne c34-fin-catalogue, sans verdict saisi)
+
+- Deux séances du Catalogue d'affilée : l'Agenda s'ouvre sur la date de l'exécution, même comportement à la deuxième.
+- Aucun geste retour depuis le bord gauche : aucun écran n'est resté sous les onglets, ce qui concorde avec le correctif. Le texte de la ligne de test (« on ne revient pas à l'Exécution ») était mal aligné : Hermann le relève, sans écart.
+- Écart déjà connu, hors de ce correctif : la liste de l'Agenda n'est pas placée sur le jour sélectionné.
