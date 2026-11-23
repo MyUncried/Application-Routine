@@ -8,8 +8,9 @@ import { strings } from "@/shared/i18n";
 
 import { formatClock } from "./executionStrings";
 
-const t = strings.execution;
 import { REPETITIONS_WHEEL_ITEM, RepetitionsWheel } from "./RepetitionsWheel";
+
+const t = strings.execution;
 
 /**
  * PRE-11, corrections 3 et 4 de Hermann du 14/11/2026 — modale « Répétitions partielles » du For time, ouverte par l'arrêt

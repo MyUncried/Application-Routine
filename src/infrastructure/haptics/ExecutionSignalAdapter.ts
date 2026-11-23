@@ -399,7 +399,7 @@ export class ExecutionSignalAdapter {
     if (!this.announce.names || nextName === null || nextName === cleanName(signal.exerciseName)) return null;
     if (this.voiceEnabled) this.announcedNext = nextName;
     const first = signal.phase === "INITIAL_COUNTDOWN" && (signal.exerciseCount ?? 0) > 1;
-    return (first ? strings.voice.firstExercise : strings.voice.next).replace("{name}", nextName);
+    return (first ? strings.voice.firstExercise : strings.voice.next).replace("{name}", () => nextName);
   }
 }
 

@@ -9,9 +9,11 @@
  * Sous Jest, aucun module natif : `jest.setup.js` remplace ce module par une garde inactive ; les
  * tests de la garde injectent un registre réel (`ImportedMovementCheck`).
  */
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { ImportedMovementCheck } from "@/features/activities/MovementCatalogueService";
 import { openCatalogueRegistry } from "@/infrastructure/catalogue/openCatalogueRegistry";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
+import { strings } from "@/shared/i18n";
 
 let shared: Promise<SqliteCatalogueRegistry> | null = null;
 
@@ -40,7 +42,7 @@ export async function importedMovementLabel(movementId: string): Promise<string 
   if (!record) return null;
   const library = (await registry.installedLibraries()).find((entry) =>
     entry.library.members.some((member) => member.catalogueId === record.catalogueId && member.sheetId === record.sheetId));
-  return (library ? library.library.title + " · " : "") + "rév. " + record.revision;
+  return (library ? library.library.title + " · " : "") + fillTemplate(strings.libraries.importedMovement.revision, { revision: record.revision });
 }
 
 /** Informations d'une fiche importée (recette du 11/11/2026, a1-lecture-seule). */
