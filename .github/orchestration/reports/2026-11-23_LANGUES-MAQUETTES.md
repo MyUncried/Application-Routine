@@ -42,3 +42,7 @@
 ## Commit final et état Git
 
 Donnés dans le compte rendu de livraison.
+
+## Complément — alias non visibles
+
+Décision de Hermann : les alias ne sont pas visibles par l'utilisateur pour l'instant ; ils existent seulement en base et servent à la recherche. L'écran « Mouvement — Contenu éditable — Autres noms » et le composant « DSF / Formulaires / Autres noms » ont été supprimés de Figma (aucune instance restante). D-569 mise à jour. Seul « Profil — Préférences » change de forme.
