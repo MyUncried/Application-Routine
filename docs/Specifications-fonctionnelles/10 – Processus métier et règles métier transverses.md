@@ -2821,3 +2821,7 @@ Les lignes historiques RM-258 et RM-261 ci-dessus sont **supersédées pour les 
 | Règle | Énoncé |
 |---|---|
 | RM-274 | Dans la modification d'un seul créneau de parcours (Agenda) : toute séance peut être désactivée, même sans pastille sur les autres créneaux, tant qu'au moins une séance reste active ; l'ordre des séances peut être modifié et il est conservé pour ce créneau seulement, l'enchaînement suivant cet ordre. Ces choix appartiennent au groupe « séances » du créneau, protégé d'un changement global de la routine (D-536). La routine et ses autres créneaux ne changent pas. |
+
+### RM-275 — Occurrences d'une routine et période de son programme (D-564, 23/11/2026)
+
+Une occurrence appartient au programme de sa routine seulement si sa date est comprise dans la période du programme ; sinon elle est sans programme. La suppression d'un programme avec ses routines ne supprime que les créneaux à venir compris dans sa période. Une routine appartient à un seul programme à la fois. Voir [compléments du 23/11/2026](../KODJO-Programme-recette-2026-11-23.md) § 4.

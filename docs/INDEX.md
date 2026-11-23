@@ -178,3 +178,5 @@ Arbitrages clos : inventaire des 30 champs, identité et multi-appartenance, acc
 **Calendrier — Plan, 21/11/2026 (D-554, D-555, classe B)** : [DSF Plan](DSF-PLAN-2026-11-21.md) ; trois onglets Journal · Agenda · Plan ; zone de contexte de l'Agenda rééquilibrée ([DSF Agenda](DSF-AGENDA-PLANNING-2026-11-19.md)).
 
 **Bouton flottant « Créer », 22/11/2026 (D-558, D-559, classe B)** : [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
+
+**Programme — recette du 23/11/2026 (D-561 à D-565, RM-275, classe B)** : [compléments](KODJO-Programme-recette-2026-11-23.md) — bande du programme dans le Plan, arrivée dans le calendrier, période dans le calendrier natif, occurrences bornées par la période, actions glissées. Astérisque « hors routine » : D-560.
