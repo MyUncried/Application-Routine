@@ -265,6 +265,8 @@ L'architecture est néanmoins préparée pour une évolution multilingue sans re
 - aucun mécanisme de détection, de choix ou de changement de langue n'est exposé à l'utilisateur dans le MVP ; [Remplacé le 23/11/2026 : détection par les langues du téléphone, changement par le réglage iOS ouvert depuis Profil › Compte.]
 - aucune préférence utilisateur de langue n'est persistée dans le MVP. [Toujours valable le 23/11/2026 : la langue est portée par iOS, pas par KODJO.]
 
+[Complété le 23/11/2026 — mise en œuvre J1 (choix techniques, classe D) : `expo-localization` (plugin `supportedLocales` : fr, en ; `CFBundleAllowMixedLocalizations` et `locales/<langue>.json` pour les textes iOS) ; langue résolue une fois au démarrage (`src/shared/i18n/locale.ts`) ; un catalogue par langue (`src/shared/i18n/resources/`), le français comme forme de référence imposée par le typage, l'anglais complet comme repli clé par clé ; accords par règles écrites à la main (`plural.ts`, sans `Intl.PluralRules`, non documenté par Hermes) ; séparateur décimal et dates selon la balise régionale (`format.ts`) ; voix de la langue de l'interface (`ExecutionVoice`). Garde-fous : `hardcodedUserText.test.ts`, `translationParity.test.ts`.]
+
 ## 12.2 Architecture logique générale
 
 L’application est structurée en couches afin de séparer l’interface, les règles métier et la persistance des données.

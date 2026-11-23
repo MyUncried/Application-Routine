@@ -28,6 +28,7 @@ Règles qui en découlent :
 7. **Unité de charge** : une seule unité (kg ou lb) pour tout le profil, réglée dans Profil › Compte. Les charges sont enregistrées et affichées dans cette unité ; elles ne sont converties que lorsque l'utilisateur change d'unité. Valeur par défaut selon la région du téléphone (choix technique proposé, à confirmer).
 8. **Formats régionaux** : dates, heures, nombres et séparateur décimal suivent les réglages du téléphone, sans réglage dans KODJO.
 9. **Phrase de synthèse** des exercices de la Composition : d'abord normée et simplifiée en français, puis traduite par IA ; la validation des traductions sera définie ultérieurement.
+10. **Glossaire anglais** validé par Hermann le 23/11/2026 (« j'ai validé les termes ») : `docs/preparation/langues/GLOSSAIRE-EN-2026-11-23.md` ; il s'impose à toute traduction anglaise. Termes choisis par Hermann : Movement card, Hold (Point d'arrêt), Body focus (Zone corporelle), Active workout (Exécution), Track (Parcours), Voice guidance.
 
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
