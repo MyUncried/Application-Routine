@@ -1,6 +1,8 @@
+import { Button as SwiftUIButton, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import { accessibilityLabel as swiftUIAccessibilityLabel } from "@expo/ui/swift-ui/modifiers";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { formatLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
@@ -14,7 +16,7 @@ import {
 } from "@/domain/programs/Program";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { DATE_PANEL_WIDTH, DateCalendar, Pill } from "@/features/planning/PlanningControls";
+import { DATE_PANEL_WIDTH, DateCalendar, Pill, PillFace } from "@/features/planning/PlanningControls";
 import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
@@ -536,10 +538,14 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                         testID="program-period-count"
                       />
                     </View>
-                    <Pill
+                    {/* Lot 5 bis (23/11/2026, Hermann : « il ne faut pas changer le popover ») : l'unité garde son menu natif ;
+                        seule son étiquette prend la forme d'une pastille. [Bascule d'un toucher du lot 5 — remplacée.] */}
+                    <UnitMenu
                       label={unitLabel(duration.unit, duration.count)}
-                      onPress={() => changeDuration({ unit: nextUnit(duration.unit), count: duration.count })}
                       accessibilityLabel={tp.unitAccessibility.replace("{value}", unitLabel(duration.unit, duration.count))}
+                      options={DURATION_UNITS.map((unit) => ({ key: unit, label: unitLabel(unit, duration.count) }))}
+                      selected={duration.unit}
+                      onChoose={(unit) => changeDuration({ unit, count: duration.count })}
                       testID="program-period-unit"
                     />
                   </>
@@ -714,9 +720,55 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
 
 function noop() {}
 
-/** Lot 5, 23/11/2026 (y4) : l'unité de la durée bascule d'un toucher (jours → semaines → mois → jours). */
-function nextUnit(unit: DurationUnit): DurationUnit {
-  return DURATION_UNITS[(DURATION_UNITS.indexOf(unit) + 1) % DURATION_UNITS.length] ?? unit;
+/**
+ * D-543 : l'unité de la durée s'ouvre en menu natif (`Menu` SwiftUI d'`@expo/ui`), l'unité en cours cochée ; son étiquette
+ * est une pastille de la planification (lot 5 bis, 23/11/2026). Hors iOS : un toucher passe à l'option suivante.
+ */
+function UnitMenu({
+  label,
+  accessibilityLabel,
+  options,
+  selected,
+  onChoose,
+  testID,
+}: {
+  readonly label: string;
+  readonly accessibilityLabel: string;
+  readonly options: readonly { readonly key: DurationUnit; readonly label: string }[];
+  readonly selected: DurationUnit;
+  readonly onChoose: (key: DurationUnit) => void;
+  readonly testID: string;
+}) {
+  if (Platform.OS !== "ios") {
+    const next = options[(options.findIndex((option) => option.key === selected) + 1) % options.length];
+    return <Pill label={label} onPress={() => next !== undefined && onChoose(next.key)} accessibilityLabel={accessibilityLabel} testID={testID} />;
+  }
+  return (
+    <View testID={testID}>
+      <Host matchContents>
+        <Menu
+          label={
+            <RNHostView matchContents>
+              <View pointerEvents="none">
+                <PillFace label={label} />
+              </View>
+            </RNHostView>
+          }
+          modifiers={[swiftUIAccessibilityLabel(accessibilityLabel)]}
+        >
+          {options.map((option) => (
+            <SwiftUIButton
+              key={option.key}
+              label={option.label}
+              {...(option.key === selected ? { systemImage: "checkmark" as const } : {})}
+              onPress={() => onChoose(option.key)}
+              testID={`${testID}-option-${option.key}`}
+            />
+          ))}
+        </Menu>
+      </Host>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

@@ -17,6 +17,20 @@ const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
 /** Largeur du calendrier graphique d'iOS dans son panneau. */
 export const DATE_PANEL_WIDTH = 360;
 
+/**
+ * Lot 5 bis, 23/11/2026 : face d'une `Pill` sans toucher propre, étiquette d'un menu natif (le menu porte le toucher).
+ * Même style que `Pill`.
+ */
+export function PillFace({ label }: { readonly label: string }) {
+  return (
+    <View style={controlStyles.pill}>
+      <Text style={controlStyles.pillText} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 /** Valeur modifiable, en bleu KODJO — dates et heure comprises (recette du 19/11/2026, k8, remplace le noir du 17/11). */
 export function Pill({
   label,

@@ -13,7 +13,7 @@ import { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { ProgramSheetScreen } from "@/features/programs/ProgramSheetScreen";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { DateCalendar, Pill } from "@/features/planning/PlanningControls";
+import { DateCalendar, Pill, PillFace } from "@/features/planning/PlanningControls";
 import { DatePicker } from "@expo/ui/swift-ui";
 import * as relay from "@/features/programs/programSheetRelay";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -453,7 +453,8 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
 describe("Lot 4 — modale du programme", () => {
   // Lot 5, 23/11/2026 (y4) : « au » / « pendant » et l'unité sont des `Pill` de la planification qui basculent d'un toucher.
   const toggleMode = () => fireEvent.press(screen.getByTestId("program-period-mode"));
-  const nextUnit = () => fireEvent.press(screen.getByTestId("program-period-unit"));
+  // Lot 5 bis : l'unité garde son menu natif (Hermann : « il ne faut pas changer le popover ») ; l'option se touche dans le menu.
+  const chooseUnit = (unit: string) => act(() => screen.UNSAFE_getByProps({ testID: `program-period-unit-option-${unit}` }).props.onPress());
 
   it("D-544 (lot 5, point 4) : ligne du Journal (JournalRoutineCard compacte) — cadre = début dans le programme, « N créneaux, jusqu'au … » borné par la fin du programme", async () => {
     const program = await createProgram();
@@ -530,7 +531,10 @@ describe("Lot 4 — modale du programme", () => {
     await flush();
     toggleMode();
     const labels = screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label);
-    expect(labels).toEqual(["15 sept. 2030", "pendant", "13", "semaines"]);
+    expect(labels).toEqual(["15 sept. 2030", "pendant", "13"]);
+    // Lot 5 bis : l'unité reste un menu natif (popover inchangé), avec une pastille pour étiquette.
+    expect(screen.UNSAFE_getAllByType(PillFace).map((face) => face.props.label)).toEqual(["semaines"]);
+    expect(screen.UNSAFE_getByProps({ testID: "program-period-unit-option-WEEK" }).props.systemImage).toBe("checkmark");
   });
 
   it("D-543 : « N jours, soit S semaines et J jour » ; « au / pendant » ; de dates vers durée sans perte ; mois ; « Se termine le … »", async () => {
@@ -541,8 +545,7 @@ describe("Lot 4 — modale du programme", () => {
     toggleMode();
     expect(screen.getByText("92")).toBeTruthy();
     expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 15 décembre 2030");
-    nextUnit();
-    nextUnit();
+    chooseUnit("MONTH");
     expect(screen.getByText("mois")).toBeTruthy();
     fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
     await flush();
