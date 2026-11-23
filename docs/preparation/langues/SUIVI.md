@@ -19,7 +19,7 @@ Branche : `claude/exciting-lovelace-iyn2wf` (non fusionnée dans `main`).
 | # | Question | Bloque |
 |---|---|---|
 | A3 | « ou seulement en anglais » : a) aucune traduction des contenus utilisateur, b) version anglaise saisie par l'utilisateur, c) traduction automatique | J4 |
-| J1-1 | Glossaire anglais | J1 (traduction) |
+| J1-1 | Glossaire anglais (feuille en ligne https://claude.ai/artifact/2WfKJwKQAv5Ru7ewYsWE4g) | J1 (traduction) |
 | J1-2 | Modifier `visualAssets.test` pour l'écran de lancement | J1 (élément 8) |
 | J1-3 | Ligne Langue : attendre la fusion des Programmes ; Figma ? | J1 (élément 10) |
 | — | Fusion de la branche langues dans `main` après recette J1 | — |

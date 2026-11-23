@@ -1,6 +1,6 @@
 # Glossaire français → anglais — proposition du 23/11/2026
 
-À valider par Hermann avant la traduction de l'interface (J1). Une fois validé, ce glossaire s'impose à toutes les traductions anglaises (IA ou humaines). Colonne « Validé » : laisser vide si d'accord, sinon écrire le terme voulu.
+À valider par Hermann avant la traduction de l’interface (J1), dans la feuille en ligne https://claude.ai/artifact/2WfKJwKQAv5Ru7ewYsWE4g (colonne « Votre choix ») ; la feuille fait foi et ce fichier sera mis à jour depuis elle. Une fois validé, ce glossaire s'impose à toutes les traductions anglaises (IA ou humaines). Colonne « Validé » : laisser vide si d'accord, sinon écrire le terme voulu.
 
 | Français | Anglais proposé | Variante écartée et raison | Validé |
 |---|---|---|---|
