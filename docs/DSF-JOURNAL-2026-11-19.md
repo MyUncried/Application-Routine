@@ -39,6 +39,14 @@ La modification porte toujours sur la routine entière, sans choix. Elle ne s’
 
 Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N créneaux seront supprimés. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N créneaux non commencés seront modifiés ; La routine sera archivée. ») [remplacé le 20/11/2026 par D-540 : plus d’archivage ; la routine devient terminée (filtre « Terminées ») ; message « N créneaux non commencés seront supprimés. La routine sera terminée. » ; l’action glissée « Archiver » est supprimée, « Supprimer » reste]. Un seul dialogue : titre « Supprimer cette routine », message (selon la présence d’historique), « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal » (sans historique), « P-Modal — Supprimer une routine avec historique — Journal » (avec historique ; [ancien nom « Supprimer et archiver une routine » remplacé le 20/11/2026]) : deux messages du même dialogue. Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
 
+## 6 bis. Nom des routines (D-563)
+
+- Le nom d'une routine est **unique parmi les routines actives**, sans distinguer majuscules, minuscules, accents ni espaces de bord. Un nom vide est refusé (« Nom obligatoire »).
+- À la création, le champ Nom est prérempli avec le nom par défaut (celui de la séance, ou les noms reliés par « + »). Si ce nom est déjà pris par une routine active, le champ propose le premier nom libre : « Tabata (2) ». L'utilisateur peut le modifier. Si l'utilisateur saisit lui-même un nom déjà pris : « Ce nom est déjà utilisé » sous le champ ; rien n'est enregistré.
+- Une routine **terminée** garde son nom et libère l'unicité ; elle se distingue par la date de création du cadre de gauche et par sa période.
+- Une modification qui **réactive** une routine terminée (période étendue, créneaux ajoutés) vérifie le nom : s'il est pris par une routine active, l'écran reste ouvert avec la proposition du premier nom libre.
+- L'unicité des noms de séances ne change pas.
+
 ## 7. À clarifier
 
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.

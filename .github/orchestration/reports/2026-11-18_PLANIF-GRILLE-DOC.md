@@ -160,3 +160,10 @@
 - Mode « pendant » de la période : spécifié, non dessiné dans Figma.
 - Le code ne contient pas encore l'objet Programme : les prompts demandent de ne pas l'inventer.
 - Tests : non applicables.
+
+## Complément 23/11/2026 (suite) — Nom des routines unique parmi les actives (D-563, classe B)
+- Décision explicite de Hermann : unicité du nom parmi les routines actives (suffixe « (2) » proposé à la création, modifiable ; routine terminée garde son nom ; contrôle à la réactivation par extension de période ou ajout de créneaux ; séances inchangées). Remplace le « non unique » de D-553 (branche `docs/agenda-seances-journal-filtre-20261121`) et rétablit RM-258 / RM-261 / D-522 pour les routines actives.
+- Appliqué sur cette branche : registre ch07 D-563 ; DSF Journal § 6 bis.
+- **Préparé, non appliqué** (source normative sur la branche Agenda, non fusionnée) : `_bmad-output/compte/integration-documentaire-D-563-branche-agenda.patch` — document Agenda (§ 1, § 2), registre (D-522, D-553, note RM), ch04, ch10 (RM-258, RM-261, complément 21/11), ch13 ; `git apply --cached --check` sur un index temporaire de la branche Agenda : applicable (5 fichiers).
+- Renumérotation antérieure : décisions Programmes D-560 à D-562 (collision avec D-543 à D-552 de main).
+- Tests : non applicables.
