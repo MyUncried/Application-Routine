@@ -190,6 +190,35 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.getByText("Avenir")).toBeTruthy();
   });
 
+  it("lot 5, 23/11/2026 (constat a) : « Actives » sélectionné par défaut ; le toucher l'enlève (toutes) ; « Terminées » seul ; le retoucher, toutes", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    await plan({ name: "Avenir", entries: [entry(a.id, "c1")] });
+    await plan({ name: "Passée", startDate: "2020-01-06", entries: [entry(a.id, "c2")] });
+    await renderJournal();
+    const selected = (testID: string) => screen.getByTestId(`${testID}-toggle`).props.accessibilityState?.selected as boolean;
+    // Défaut : « Actives » actif (bleu, style sélectionné de ContextCounters), liste des actives.
+    expect(selected("journal-count-active")).toBe(true);
+    expect(selected("journal-count-finished")).toBe(false);
+    expect(screen.getByText("Avenir")).toBeTruthy();
+    expect(screen.queryByText("Passée")).toBeNull();
+    // Toucher « Actives » l'enlève : aucun filtre, toutes les routines.
+    fireEvent.press(screen.getByTestId("journal-count-active-toggle"));
+    expect(selected("journal-count-active")).toBe(false);
+    expect(screen.getByText("Avenir")).toBeTruthy();
+    expect(screen.getByText("Passée")).toBeTruthy();
+    // « Terminées » : sélection unique, les terminées seules.
+    fireEvent.press(screen.getByTestId("journal-count-finished-toggle"));
+    expect(selected("journal-count-finished")).toBe(true);
+    expect(selected("journal-count-active")).toBe(false);
+    expect(screen.queryByText("Avenir")).toBeNull();
+    expect(screen.getByText("Passée")).toBeTruthy();
+    // Le retoucher l'enlève : toutes.
+    fireEvent.press(screen.getByTestId("journal-count-finished-toggle"));
+    expect(selected("journal-count-finished")).toBe(false);
+    expect(screen.getByText("Avenir")).toBeTruthy();
+    expect(screen.getByText("Passée")).toBeTruthy();
+  });
+
   it("toucher la carte la déploie (récapitulation puis composition) ; plus de crayon (recette du 20/11/2026)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));

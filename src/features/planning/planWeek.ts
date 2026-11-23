@@ -23,6 +23,7 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
  *   — remplacé.] [Interprétation de Claude, à valider : seule une routine à une Séance « Sans programme » reçoit la case — pas
  *   une ligne de Séance d'un parcours ; plusieurs routines possibles : la première par ordre alphabétique.]
  * - Total : durée estimée de tout ce qui est prévu, jours passés compris ; un parcours compte la somme de ses Séances.
+ * - Occurrence supprimée avec trace (D-568 ; lot 5, 23/11/2026, x11-trace) : case grise à l'heure prévue, hors du Total.
  */
 
 /**
@@ -30,9 +31,14 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
  * 21/11/2026 (p32-cases — Hermann : « À venir doit être en couleur bleue, voir l'agenda »). [DSF Plan § 3 : gris à venir ou
  * arrêtée — remplacé.]
  */
-export type PlanTint = "COMPLETED" | "PARTIAL" | "MISSED" | "UPCOMING" | "STOPPED";
+/**
+ * `DELETED` — lot 5, 23/11/2026 (x11-trace — Hermann : « Le plan doit montrer la case avec l'heure supprimée texte gris sur
+ * fond gris ») : occurrence supprimée avec trace (D-568), case à l'heure prévue, hors du Total. [D-568 : case vide — remplacé.]
+ */
+export type PlanTint = "COMPLETED" | "PARTIAL" | "MISSED" | "UPCOMING" | "STOPPED" | "DELETED";
 
 export function planTint(status: AgendaStatus): PlanTint {
+  if (status === "DELETED") return "DELETED";
   if (status === "COMPLETED") return "COMPLETED";
   if (status === "PARTIAL") return "PARTIAL";
   if (status === "MISSED" || status === "EXPIRED") return "MISSED";
@@ -171,6 +177,11 @@ export type PlanWeekInput = {
   readonly programmes?: readonly PlanProgramme[];
   /** Recette du 22/11/2026 (constat b) : Séance telle qu'exécutée, par Exécution. */
   readonly executionProjections?: ReadonlyMap<string, SessionCatalogueProjection>;
+  /**
+   * Lot 5, 23/11/2026 (x11-trace) : créneaux entièrement supprimés avec trace (D-568, `PlanningService.agendaData`) — case grise
+   * à l'heure prévue, hors du Total. Absent : aucun.
+   */
+  readonly deletedOccurrences?: readonly Occurrence[];
 };
 
 export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
@@ -184,6 +195,7 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     routineFilter: null,
     now: input.now,
     ...(input.executionProjections !== undefined ? { executionProjections: input.executionProjections } : {}),
+    ...(input.deletedOccurrences !== undefined ? { deletedOccurrences: input.deletedOccurrences } : {}),
   });
   const routinesById = new Map(routines.map((routine) => [routine.id, routine]));
   // Cartes de la semaine par routine (Exécutions hors planification exclues : DSF Plan § 3).
@@ -208,7 +220,8 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
       for (const card of group.cards) list.push({ card, dayIndex, parcours: group.parcours });
       cardsOf.set(group.routineId, list);
       const occurrence = group.cards[0]?.occurrence;
-      if (occurrence !== undefined) {
+      // Lot 5 (x11-trace) : un créneau supprimé n'est pas un créneau à ouvrir depuis une case vide de la routine.
+      if (occurrence !== undefined && group.cards.some((card) => card.deleted !== true)) {
         const key = `${group.routineId}|${day}`;
         const known = occurrencesByKey.get(key) ?? [];
         if (!known.some((item) => item.key === occurrence.key)) known.push(occurrence);
@@ -223,7 +236,8 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     const emptyCells = () => days.map(() => [] as PlanCell[]);
     const cell = (card: AgendaCard): PlanCell => ({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card });
     for (const { card, dayIndex } of cards) {
-      if (!card.planned) continue;
+      // D-568 : une Séance supprimée (trace) n'est plus prévue — hors du Total (lot 5, x11-trace).
+      if (!card.planned || card.deleted === true) continue;
       dayTotals[dayIndex] = (dayTotals[dayIndex] ?? 0) + estimatedSeconds(card.projection);
     }
     if (!parcours) {

@@ -1,11 +1,9 @@
-import { Button as SwiftUIButton, DatePicker, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
-import { accessibilityLabel as swiftUIAccessibilityLabel, datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { formatLocalDate, occurrenceInstant, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { formatLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import {
   draftFromProgram,
   duplicateProgramDraft,
@@ -15,8 +13,8 @@ import {
   type ProgramDraft,
 } from "@/domain/programs/Program";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
-import { creationDateParts } from "@/features/planning/journal";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
+import { DATE_PANEL_WIDTH, DateCalendar, Pill } from "@/features/planning/PlanningControls";
 import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
@@ -41,13 +39,11 @@ import {
   type PeriodDuration,
   type PeriodMode,
 } from "./programPeriod";
-import { formatDayMonthYear, routineSpanLine } from "./programPresentation";
+import { formatDayMonthYear, routineProgramFrame, routineProgramLine } from "./programPresentation";
 import { requestProgramSheet, type AttachedRoutine } from "./programSheetRelay";
 import { useProgramService } from "./ProgramServiceContext";
-import { NativePeriodCalendar } from "./NativePeriodCalendar";
 import { postPlanningNotice, removedSlotsNotice } from "@/features/planning/planningNotice";
 import { PainConsentDialog } from "./PainConsentSheet";
-import { openPeriodSelection, pressPeriodDate, type PeriodSelection } from "./periodSelection";
 import { programStrings } from "./programStrings";
 
 /**
@@ -58,7 +54,8 @@ import { programStrings } from "./programStrings";
  *   23/11/2026, m ; [« Nouveau programme » ou nom du programme — remplacé]), coche (D-499 : active quand
  *   le nom, la date de début et la date de fin sont renseignés et cohérents) qui enregistre.
  * - Zone de contexte Programmes : nom et objectif, modifiables d'un toucher.
- * - Période : « Du … au … », dates bleues sans cadre, calendrier natif.
+ * - Période : « Du … au … » ; valeurs modifiables au format de la planification (`Pill`) et calendrier de la planification
+ *   (`DateCalendar`, lot 5, 23/11/2026). [Dates bleues sans cadre, calendrier natif `UICalendarView` (D-563) — remplacés.]
  * - Planifications : routines rattachées (glisser à gauche : retirer du programme ; toucher : modifier la routine dans la
  *   planification, contre-recette du 23/11/2026, l), « + Planifier une séance », « Rattacher une routine existante ».
  * - Suivi de la douleur : interrupteur natif ; sans accord, la fenêtre de consentement (« PROG — 13b ») s'ouvre au centre, sur un
@@ -73,18 +70,6 @@ import { programStrings } from "./programStrings";
  */
 
 const t = programStrings.sheet;
-const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
-const DATE_PANEL_WIDTH = 360;
-/**
- * Recette du 23/11/2026 (« plus petit », puis « les chiffres plus petits … plus ramassé ») : le calendrier natif est réduit
- * d’un bloc par la vue Swift, de sa largeur d’origine (360) à cette largeur ; chiffres, espaces et repères suivent.
- */
-const NATIVE_CALENDAR_WIDTH = 280;
-/** Hauteur avant la première mesure native (environ 6 rangs réduits). */
-const NATIVE_CALENDAR_INITIAL_HEIGHT = 300;
-/** Recette du 23/11/2026 (« La largeur est ok. C’est la hauteur qu’il faut reduire ») : taille de texte réduite, rangs resserrés. */
-const NATIVE_CALENDAR_TEXT_SIZE = "xSmall";
-const NATIVE_CALENDAR_NATURAL_WIDTH = 360;
 /** Figma « PROG — 13 » : objectif Inter Medium 14 #666C7E ; ligne secondaire d'une routine #9499A8. */
 const OBJECTIVE_COLOR = "#666C7E";
 const MUTED = "#9499A8";
@@ -99,10 +84,6 @@ type Shortening = { readonly count: number; readonly routineIds: readonly string
 
 type Params = { readonly programId?: string; readonly duplicateOf?: string };
 type DateField = "START" | "END";
-
-function dateAt(date: LocalDate, time: string): Date {
-  return occurrenceInstant(date, time);
-}
 
 export function ProgramSheetScreen({ params }: { readonly params: Params }) {
   const router = useRouter();
@@ -138,9 +119,6 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     [],
   );
   const [popover, setPopover] = useState<{ readonly field: DateField; readonly anchor: PopoverAnchor } | null>(null);
-  // D-563 : sélection en deux appuis dans le calendrier natif unique (module `kodjo-calendar`).
-  const [period, setPeriod] = useState<PeriodSelection | null>(null);
-  const [calendarHeight, setCalendarHeight] = useState(NATIVE_CALENDAR_INITIAL_HEIGHT);
   // D-543 : « au [date] » ou « pendant [N] [unité] » ; le mode n'est pas enregistré (le programme garde début et fin).
   const [periodMode, setPeriodMode] = useState<PeriodMode>("DATES");
   const [duration, setDuration] = useState<PeriodDuration>(DEFAULT_DURATION);
@@ -431,7 +409,6 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
   const openDate = (field: DateField) => {
     const node = (field === "START" ? startRef : endRef).current;
     node?.measureInWindow((x, y, width, height) => {
-      setPeriod(openPeriodSelection(field, draft.startDate, draft.endDate));
       setPopover({ field, anchor: { x, y, width, height } });
     });
   };
@@ -459,7 +436,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
       ? null
       : periodMode === "DATES"
         ? datesInfoLine(draft.startDate, boundedEnd(draft.startDate, draft.endDate))
-        : durationInfoLine(draft.endDate);
+        : durationInfoLine(draft.startDate, draft.endDate, duration.unit);
   const modeLabel = periodMode === "DATES" ? tp.modeDates : tp.modeDuration;
 
   // Contre-recette du 23/11/2026 (m) : « Créer un programme » (création, copie) ; « Modifier le programme » (programme ouvert
@@ -516,64 +493,53 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
               testID="program-form"
             >
               {/* Période (D-548, D-543 ; Figma « PROG — 13 », carte Période de 64) : « Du [date] », puis « au [date] » ou
-                  « pendant [N] [unité] » (le mot est une valeur modifiable qui ouvre un menu natif), puis la ligne
+                  « pendant [N] [unité] » (le mot est une valeur modifiable ; [menu natif — remplacé, lot 5, y4]), puis la ligne
                   d'information en gris, non modifiable. [Une seule ligne « Du … au … » de 44 — remplacée.] */}
               <View style={[styles.card, styles.periodCard]} testID="program-period">
+              {/* Lot 5, 23/11/2026 (y4 — Hermann : « Les mots « pendant » et « semaine » sont tronqués. Il n'y a pas de démarcation
+                  entre les mots éditables, prendre l'exemple du format de texte de l'écran de planification. ») : chaque valeur
+                  modifiable est une `Pill` de la planification ; « au » / « pendant » et l'unité basculent d'un toucher, comme
+                  « jusqu'au » / « pendant » et l'unité de la planification. [Menus SwiftUI (`Host matchContents`), qui tronquaient
+                  leur libellé, et valeurs bleues sans cadre — remplacés.] */}
               <View style={styles.periodLine}>
-                <Text style={styles.label}>{t.from}</Text>
+                <Text style={styles.periodLabel}>{t.from}</Text>
                 <View ref={startRef} collapsable={false}>
-                  <Pressable
+                  <Pill
+                    label={draft.startDate === null ? t.chooseDate : formatDayMonthYear(draft.startDate)}
                     onPress={() => openDate("START")}
-                    accessibilityRole="button"
                     accessibilityLabel={`${t.startAccessibility}, ${draft.startDate === null ? t.chooseDate : formatDayMonthYear(draft.startDate)}`}
-                    hitSlop={8}
                     testID="program-start-date"
-                  >
-                    <Text style={styles.date}>{draft.startDate === null ? t.chooseDate : formatDayMonthYear(draft.startDate)}</Text>
-                  </Pressable>
+                  />
                 </View>
-                <ValueMenu
+                <Pill
                   label={modeLabel}
+                  onPress={() => chooseMode(periodMode === "DATES" ? "DURATION" : "DATES")}
                   accessibilityLabel={tp.modeAccessibility.replace("{value}", modeLabel)}
-                  options={[
-                    { key: "DATES", label: tp.modeDates },
-                    { key: "DURATION", label: tp.modeDuration },
-                  ]}
-                  selected={periodMode}
-                  onChoose={chooseMode}
                   testID="program-period-mode"
                 />
                 {periodMode === "DATES" ? (
                   <View ref={endRef} collapsable={false}>
-                    <Pressable
+                    <Pill
+                      label={draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}
                       onPress={() => openDate("END")}
-                      accessibilityRole="button"
                       accessibilityLabel={`${t.endAccessibility}, ${draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}`}
-                      hitSlop={8}
                       testID="program-end-date"
-                    >
-                      <Text style={styles.date}>{draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}</Text>
-                    </Pressable>
+                    />
                   </View>
                 ) : (
                   <>
                     <View ref={countRef} collapsable={false}>
-                      <Pressable
+                      <Pill
+                        label={String(duration.count)}
                         onPress={openCount}
-                        accessibilityRole="button"
                         accessibilityLabel={tp.countAccessibility.replace("{value}", String(duration.count))}
-                        hitSlop={8}
                         testID="program-period-count"
-                      >
-                        <Text style={styles.date}>{String(duration.count)}</Text>
-                      </Pressable>
+                      />
                     </View>
-                    <ValueMenu
+                    <Pill
                       label={unitLabel(duration.unit, duration.count)}
+                      onPress={() => changeDuration({ unit: nextUnit(duration.unit), count: duration.count })}
                       accessibilityLabel={tp.unitAccessibility.replace("{value}", unitLabel(duration.unit, duration.count))}
-                      options={DURATION_UNITS.map((unit) => ({ key: unit, label: unitLabel(unit, duration.count) }))}
-                      selected={duration.unit}
-                      onChoose={(unit: DurationUnit) => changeDuration({ unit, count: duration.count })}
                       testID="program-period-unit"
                     />
                   </>
@@ -596,7 +562,10 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                 {listed.length === 0 ? null : (
                 <View style={styles.routines}>
                 {listed.map((routine) => {
-                  const created = creationDateParts(routine.createdAt);
+                  // Lot 5, 23/11/2026 (point 4, D-544) : cadre = début de la routine dans le programme ; ligne = créneaux de la
+                  // routine dans la période et fin (jour, mois) bornée par celle du programme. [Date de création — remplacée.]
+                  const frame = routineProgramFrame(routine, draft);
+                  const line = routineProgramLine(routine, draft);
                   return (
                     <SwipeActionsRow
                       key={routine.id}
@@ -605,7 +574,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                       onReveal={() => setRevealed(routine.id)}
                       onHide={() => setRevealed((current) => (current === routine.id ? null : current))}
                       onPress={() => edit(routine.id)}
-                      accessibilityLabel={`${routine.name}, ${routineSpanLine(routine)}`}
+                      accessibilityLabel={`${routine.name}, ${line}`}
                       accessibilityHint={t.routineEditAccessibility}
                       extraAccessibilityActions={[{ name: "detach", label: t.detachAccessibility.replace("{name}", routine.name), onAction: () => detach(routine.id) }]}
                       actionWidth={ROW_ACTION_WIDTH}
@@ -614,12 +583,12 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                     >
                       <JournalRoutineCard
                         compact
-                        date={created?.day ?? ""}
-                        year={created?.year ?? ""}
+                        date={frame.day}
+                        year={frame.year}
                         name={routine.name}
                         parcours={routine.entries.length > 1}
                         detail=""
-                        slots={routineSpanLine(routine)}
+                        slots={line}
                         planned
                         expanded={false}
                         onOpen={noop}
@@ -669,62 +638,24 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
           </SwipeScrollLockContext.Provider>
         )}
       />
-      <PlanningPopover anchor={popover?.anchor ?? null} width={NativePeriodCalendar !== null ? NATIVE_CALENDAR_WIDTH : DATE_PANEL_WIDTH} onDismiss={() => setPopover(null)} testID="program-date-popover">
-        {popover !== null && period !== null && NativePeriodCalendar !== null ? (
-          // D-563 : un seul calendrier natif (UICalendarView) pour le début et la fin ; période marquée sous chaque jour.
-          <NativePeriodCalendar
-            selectedDate={period.selected}
-            periodStart={draft.startDate}
-            periodEnd={draft.endDate}
-            visibleDate={period.selected ?? draft.startDate ?? formatLocalDate(new Date())}
-            tintColor={colors.primary}
-            onPressDate={(event) => {
-              const step = pressPeriodDate(period, event.nativeEvent.date);
-              if (periodMode === "DURATION") {
-                // D-543, mode durée : seul le début se choisit au calendrier ; la fin suit la durée.
-                if (step.write.startDate !== undefined) {
-                  update({ startDate: step.write.startDate, endDate: durationEnd(step.write.startDate, duration) });
-                  setPopover(null);
-                } else setPeriod(step.state);
-                return;
-              }
-              setPeriod(step.state);
-              if (step.write.startDate !== undefined || step.write.endDate !== undefined) {
-                update({
-                  ...(step.write.startDate !== undefined ? { startDate: step.write.startDate } : {}),
-                  ...(step.write.endDate !== undefined ? { endDate: step.write.endDate } : {}),
-                });
-              }
-              if (step.close) setPopover(null);
+      {/* Lot 5, 23/11/2026 (Hermann : « Pour le calendrier du programme utilisé exactement celui de la planification (format,
+          dimensions). On oublie le marquage des périodes dans le calendrier. ») : `DateCalendar` de la planification, popover de
+          360, qui reste ouvert après le choix d'un jour. [Calendrier natif unique `UICalendarView` à périodes marquées (D-563) —
+          remplacé.] Début sans borne basse ; fin bornée par le début. */}
+      <PlanningPopover anchor={popover?.anchor ?? null} width={DATE_PANEL_WIDTH} onDismiss={() => setPopover(null)} testID="program-date-popover">
+        {popover !== null ? (
+          <DateCalendar
+            value={(popover.field === "START" ? draft.startDate : draft.endDate) ?? draft.startDate ?? formatLocalDate(new Date())}
+            {...(popover.field === "END" && draft.startDate !== null ? { minimum: draft.startDate } : {})}
+            onChange={(value) => {
+              if (popover.field === "START" && periodMode === "DURATION") update({ startDate: value, endDate: durationEnd(value, duration) });
+              else if (popover.field === "START") {
+                // Fin antérieure au nouveau début : ramenée au début (période cohérente, D-499).
+                update({ startDate: value, ...(draft.endDate !== null && draft.endDate < value ? { endDate: value } : {}) });
+              } else update({ endDate: value });
             }}
-            naturalWidth={NATIVE_CALENDAR_NATURAL_WIDTH}
-            textSize={NATIVE_CALENDAR_TEXT_SIZE}
-            onMeasure={(event) => setCalendarHeight(event.nativeEvent.height)}
-            style={{ width: NATIVE_CALENDAR_WIDTH, height: calendarHeight }}
-            testID="program-period-calendar"
+            testID="program-date-panel"
           />
-        ) : popover !== null && Platform.OS === "ios" ? (
-          <View style={styles.calendar}>
-            <Host matchContents colorScheme="light">
-              <DatePicker
-                selection={dateAt(
-                  (popover.field === "START" ? draft.startDate : draft.endDate) ?? draft.startDate ?? formatLocalDate(new Date()),
-                  "12:00",
-                )}
-                displayedComponents={["date"]}
-                {...(popover.field === "END" && draft.startDate !== null ? { range: { start: dateAt(draft.startDate, "00:00") } } : {})}
-                onDateChange={(date) => {
-                  const value = formatLocalDate(date);
-                  if (popover.field === "START" && periodMode === "DURATION") update({ startDate: value, endDate: durationEnd(value, duration) });
-                  else if (popover.field === "START") {
-                    // Fin antérieure au nouveau début : ramenée au début (période cohérente, D-499).
-                    update({ startDate: value, ...(draft.endDate !== null && draft.endDate < value ? { endDate: value } : {}) });
-                  } else update({ endDate: value });
-                }}
-                modifiers={CALENDAR_MODIFIERS}
-              />
-            </Host>
-          </View>
         ) : null}
       </PlanningPopover>
       {/* D-543 : nombre de la durée, roulette native en popover près du champ (même composant que « pendant N » de la planification). */}
@@ -783,60 +714,9 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
 
 function noop() {}
 
-/**
- * D-543 : valeur modifiable qui ouvre un menu natif (`Menu` SwiftUI d'`@expo/ui`, même procédé que la ligne Programme de la
- * planification) — la valeur en cours est cochée. Hors iOS : un toucher passe à l'option suivante.
- */
-function ValueMenu<K extends string>({
-  label,
-  accessibilityLabel,
-  options,
-  selected,
-  onChoose,
-  testID,
-}: {
-  readonly label: string;
-  readonly accessibilityLabel: string;
-  readonly options: readonly { readonly key: K; readonly label: string }[];
-  readonly selected: K;
-  readonly onChoose: (key: K) => void;
-  readonly testID: string;
-}) {
-  if (Platform.OS !== "ios") {
-    const index = options.findIndex((option) => option.key === selected);
-    const next = options[(index + 1) % options.length];
-    return (
-      <Pressable onPress={() => next !== undefined && onChoose(next.key)} accessibilityRole="button" accessibilityLabel={accessibilityLabel} hitSlop={8} testID={testID}>
-        <Text style={styles.date}>{label}</Text>
-      </Pressable>
-    );
-  }
-  return (
-    <View testID={testID}>
-      <Host matchContents>
-        <Menu
-          label={
-            <RNHostView matchContents>
-              <View pointerEvents="none">
-                <Text style={styles.date}>{label}</Text>
-              </View>
-            </RNHostView>
-          }
-          modifiers={[swiftUIAccessibilityLabel(accessibilityLabel)]}
-        >
-          {options.map((option) => (
-            <SwiftUIButton
-              key={option.key}
-              label={option.label}
-              {...(option.key === selected ? { systemImage: "checkmark" as const } : {})}
-              onPress={() => onChoose(option.key)}
-              testID={`${testID}-option-${option.key}`}
-            />
-          ))}
-        </Menu>
-      </Host>
-    </View>
-  );
+/** Lot 5, 23/11/2026 (y4) : l'unité de la durée bascule d'un toucher (jours → semaines → mois → jours). */
+function nextUnit(unit: DurationUnit): DurationUnit {
+  return DURATION_UNITS[(DURATION_UNITS.indexOf(unit) + 1) % DURATION_UNITS.length] ?? unit;
 }
 
 const styles = StyleSheet.create({
@@ -852,11 +732,12 @@ const styles = StyleSheet.create({
   lineCard: { minHeight: 44, flexDirection: "row", alignItems: "center", paddingHorizontal: spacing[16], gap: spacing[8] },
   switchCard: { justifyContent: "space-between" },
   label: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 14, color: colors.textPrimary },
-  date: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, lineHeight: 18, color: colors.primary },
   sectionTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary, marginTop: spacing[8] },
   // D-543 (Figma « PROG — 13 », carte Période de 64) : ligne des valeurs (26), information à 6 dessous, en gris (Inter Regular 12).
   periodCard: { paddingHorizontal: spacing[16], paddingVertical: spacing[8], gap: spacing[6] },
-  periodLine: { minHeight: 26, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: spacing[8] },
+  // Lot 5, 23/11/2026 (y4) : ligne et libellé au format de la planification (`wrapLine`, `label` 16 de `PlanningScreen`).
+  periodLine: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing[8] },
+  periodLabel: { ...type.body, fontSize: 16, lineHeight: 20, color: colors.textPrimary },
   periodInfo: { ...type.supporting, color: colors.textSecondary },
   // D-544 (Figma « PROG — 13 ») : routines à 8 du haut de la carte, 8 entre elles, filet à 8 sous la dernière.
   routines: { paddingVertical: spacing[8], gap: spacing[8] },
@@ -866,6 +747,4 @@ const styles = StyleSheet.create({
   link: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 15, color: colors.primary },
   notice: { ...type.supporting, color: colors.textSecondary },
   error: { ...type.supporting, color: colors.danger },
-  calendar: { width: DATE_PANEL_WIDTH },
-  // UICalendarView : six semaines et l'en-tête du mois tiennent dans 400.
 });

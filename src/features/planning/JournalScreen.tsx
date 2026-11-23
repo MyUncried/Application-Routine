@@ -70,8 +70,12 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
   // Recette du 21/11/2026 (Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : statut choisi par les
-  // compteurs, bascule des Catalogues ; `null` : statut du filtre (par défaut, routines actives, D-540).
-  const [counterStatus, setCounterStatus] = useState<"ACTIVE" | "ARCHIVED" | null>(null);
+  // compteurs, bascule des Catalogues. Lot 5, 23/11/2026 (constat a — Hermann : « la liste est filtrée par défaut sur les
+  // routines actives, il faut que dans ce cas le filtre Actives soit actif en bleu. Appuyer sur le filtre pour l'enlever,
+  // idem pour les Terminées, ne rien sélectionner affiche toutes les routines sans filtre ») : « Actives » choisi par
+  // défaut ; `null` : statut de la feuille des filtres s'il y en a un, sinon toutes les routines.
+  // [Avant : `null` par défaut, liste des actives sans compteur sélectionné — remplacé.]
+  const [counterStatus, setCounterStatus] = useState<"ACTIVE" | "ARCHIVED" | null>("ACTIVE");
   const [revealed, setRevealed] = useState<string | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<{ readonly routine: Routine; readonly plan: RoutineDeletionPlan } | null>(null);
   const [actionFailed, setActionFailed] = useState(false);
@@ -139,7 +143,10 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
   const visible = all.filter((routine) => {
     const sessions = sessionsOf(routine);
-    const effective = counterStatus === null ? filters : { ...filters, statuses: new Set([counterStatus] as const) };
+    // Lot 5, 23/11/2026 (constat a) : aucun statut choisi (ni compteur ni feuille) — toutes les routines.
+    const statuses: SessionCatalogueFilters["statuses"] =
+      counterStatus !== null ? new Set([counterStatus]) : filters.statuses.size > 0 ? filters.statuses : new Set(["ACTIVE", "ARCHIVED"]);
+    const effective = { ...filters, statuses };
     return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(isActive(routine), sessions, effective);
   });
 

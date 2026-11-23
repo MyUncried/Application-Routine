@@ -1,8 +1,9 @@
+import { routineOccurrences } from "@/domain/planning/occurrences";
 import type { LocalDate, LocalTime, Routine } from "@/domain/planning/Routine";
+import { withinProgramPeriod } from "@/domain/programs/programMembership";
 import { programPhase, programStatus, type Program, type ProgramStatus } from "@/domain/programs/Program";
 import { routineLastDate } from "@/features/planning/journal";
 import { formatRecurrence } from "@/features/planning/planningSummary";
-import { planningStrings } from "@/features/planning/planningStrings";
 
 import type { ProgramDeletionPlan, ProgramSummary } from "./ProgramService";
 import { programStrings } from "./programStrings";
@@ -93,22 +94,34 @@ export function routineSlotLine(routine: Pick<Routine, "repetition" | "startDate
   return `${when}, ${formatHour(routine.time)}  ·  ${contents}`;
 }
 
-/** « 15 septembre » : jour en chiffres, mois en toutes lettres, sans année (D-544). */
-function formatDayMonthLong(date: LocalDate): string {
-  const [, month, day] = date.split("-");
-  return `${Number(day)} ${planningStrings.months[Number(month) - 1] ?? ""}`;
+/** Période du programme en cours de saisie dans la modale : une date absente ne borne pas. */
+type DraftPeriod = { readonly startDate: LocalDate | null; readonly endDate: LocalDate | null };
+
+/**
+ * Lot 5, 23/11/2026 (point 4, D-544 — Hermann : « la date affichée dans le cadre doit être celle du début de la routine pour le
+ * programme ») : cadre de la routine (« 15 sept. » / « 2026 ») = son début, ramené au début du programme s'il le précède.
+ * [Date de création de la routine (`creationDateParts`) — remplacée.]
+ */
+export function routineProgramFrame(routine: Pick<Routine, "startDate">, period: DraftPeriod): { readonly day: string; readonly year: string } {
+  const start = period.startDate !== null && period.startDate > routine.startDate ? period.startDate : routine.startDate;
+  const { day, month, year } = parts(start);
+  return { day: `${day} ${month}`, year };
 }
 
 /**
- * D-544 (23/11/2026, DSF Programmes § 2) : seconde ligne d'une routine dans la modale du programme — « du 15 septembre au
- * 15 décembre » (début et dernière date de la répétition), sans fréquence ni heure. [Interprétation : créneau unique →
- * « le 18 novembre ».] [Ligne « créneau, heure · N contenus » (`routineSlotLine`) — remplacée sur la ligne.]
+ * Lot 5, 23/11/2026 (point 4, D-544 — Hermann : « Le texte doit afficher le nombre de créneaux dans le programme et la date de
+ * fin (jour et mois) » ; « la date de fin de la routine affichée dans le programme ne peut pas excéder la date de fin du
+ * programme ») : « 12 créneaux, jusqu'au 15 déc. ». Créneaux = occurrences de la routine (moteur `routineOccurrences`, retraits
+ * exclus) comprises dans la période du programme (D-564, `withinProgramPeriod`) ; fin = la plus proche de la dernière date de la
+ * routine et de la fin du programme. [« du 15 septembre au 15 décembre » (`routineSpanLine`) — remplacé.]
  */
-export function routineSpanLine(routine: Routine): string {
+export function routineProgramLine(routine: Routine, period: DraftPeriod): string {
   const t = programStrings.sheet;
   const last = routineLastDate(routine);
-  if (last === routine.startDate) return t.spanSingle.replace("{date}", formatDayMonthLong(routine.startDate));
-  return t.span.replace("{start}", formatDayMonthLong(routine.startDate)).replace("{end}", formatDayMonthLong(last));
+  const end = period.endDate !== null && period.endDate < last ? period.endDate : last;
+  const bounds = { startDate: period.startDate ?? routine.startDate, endDate: end };
+  const count = routineOccurrences(routine).filter((occurrence) => withinProgramPeriod(bounds, occurrence.date)).length;
+  return (count === 1 ? t.routineSlotsOne : t.routineSlotsMany.replace("{count}", String(count))).replace("{end}", formatDayMonth(end));
 }
 
 /**

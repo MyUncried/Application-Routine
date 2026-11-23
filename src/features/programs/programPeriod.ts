@@ -8,7 +8,8 @@ import { programStrings } from "./programStrings";
  *
  * - Mode dates : « Du [date] au [date] » ; information « N jours, soit S semaines [et J jour(s)] » (moins d'une semaine :
  *   « N jours » seul).
- * - Mode durée : « Du [date] pendant [N] [jours / semaines / mois] » ; information « Se termine le 14 décembre 2026 ».
+ * - Mode durée : « Du [date] pendant [N] [jours / semaines / mois] » ; information selon l'unité (lot 5, 23/11/2026, y3) : jours
+ *   « Se termine le 14 décembre 2026 » ; semaines « 21 jours, se termine le … » ; mois « 13 semaines, se termine le … ».
  * - Fin comprise : jours et semaines = début + N − 1 jour (semaine = 7 jours) ; mois = même quantième du mois suivant moins un
  *   jour, dernier jour du mois si le quantième n'existe pas (31 janvier + 1 mois : 28 février).
  * - Changement de mode sans perte : de dates vers durée, en jours, ou en semaines si le nombre de jours est un multiple de 7.
@@ -93,8 +94,18 @@ export function datesInfoLine(start: LocalDate, end: LocalDate): string {
   return rest === 0 ? line : t.datesInfoRest.replace("{line}", line).replace("{rest}", plural(rest, t.daysOne, t.daysMany));
 }
 
-/** Mode durée : « Se termine le 14 décembre 2026 ». */
-export function durationInfoLine(end: LocalDate): string {
+/**
+ * Mode durée (lot 5, 23/11/2026, y3 — Hermann : « Jours : « Se termine le… » ; Semaines : « X jours, se termine le… » ; Mois :
+ * « X semaines, se termine le… » ») : jours « Se termine le 14 décembre 2026 » ; semaines « 21 jours, se termine le … » (jours de
+ * la période, fin comprise) ; mois « 13 semaines, se termine le … » ([interprétation] semaines entières de la période : jours ÷ 7
+ * arrondi à l'unité inférieure). [« Se termine le … » pour toutes les unités — remplacé.]
+ */
+export function durationInfoLine(start: LocalDate, end: LocalDate, unit: DurationUnit): string {
+  const t = programStrings.period;
   const [year, month, day] = end.split("-").map(Number) as [number, number, number];
-  return programStrings.period.endsOn.replace("{date}", `${day === 1 ? "1er" : day} ${planningStrings.months[month - 1] ?? ""} ${year}`);
+  const date = `${day === 1 ? "1er" : day} ${planningStrings.months[month - 1] ?? ""} ${year}`;
+  if (unit === "DAY") return t.endsOn.replace("{date}", date);
+  const days = periodDayCount(start, end);
+  const length = unit === "WEEK" ? plural(days, t.daysOne, t.daysMany) : plural(Math.floor(days / 7), t.weeksOne, t.weeksMany);
+  return t.endsOnAfter.replace("{length}", length).replace("{date}", date);
 }

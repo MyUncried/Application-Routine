@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import type { Routine } from "@/domain/planning/Routine";
+import { EVERY_TIME, type Routine } from "@/domain/planning/Routine";
 import {
   boundedEnd,
   datesInfoLine,
@@ -10,7 +10,7 @@ import {
   periodDayCount,
   unitLabel,
 } from "@/features/programs/programPeriod";
-import { routineSpanLine } from "@/features/programs/programPresentation";
+import { routineProgramFrame, routineProgramLine } from "@/features/programs/programPresentation";
 
 /** D-543 (DSF Programmes § 1) — calculs de la période ; D-544 (§ 2) — seconde ligne d'une routine. Pas de preuve iPhone. */
 describe("D-543 — période d'un programme", () => {
@@ -69,8 +69,18 @@ describe("D-543 — période d'un programme", () => {
   });
 
   it("ligne d'information, mode durée : « Se termine le 14 décembre 2026 »", () => {
-    expect(durationInfoLine("2026-12-14")).toBe("Se termine le 14 décembre 2026");
-    expect(durationInfoLine("2027-02-01")).toBe("Se termine le 1er février 2027");
+    expect(durationInfoLine("2026-09-15", "2026-12-14", "DAY")).toBe("Se termine le 14 décembre 2026");
+    expect(durationInfoLine("2026-11-01", "2027-02-01", "DAY")).toBe("Se termine le 1er février 2027");
+  });
+
+  it("y3 (lot 5) : semaines « X jours, se termine le … » ; mois « X semaines, se termine le … » (semaines entières)", () => {
+    expect(durationInfoLine("2026-09-15", durationEnd("2026-09-15", { unit: "WEEK", count: 3 }), "WEEK")).toBe("21 jours, se termine le 5 octobre 2026");
+    // 15 septembre + 3 mois : 14 décembre, 91 jours = 13 semaines.
+    expect(durationInfoLine("2026-09-15", durationEnd("2026-09-15", { unit: "MONTH", count: 3 }), "MONTH")).toBe("13 semaines, se termine le 14 décembre 2026");
+    // 1er février + 1 mois : 28 février, 28 jours = 4 semaines ; 1er janvier + 1 mois : 31 jours = 4 semaines (arrondi inférieur).
+    expect(durationInfoLine("2027-02-01", "2027-02-28", "MONTH")).toBe("4 semaines, se termine le 28 février 2027");
+    expect(durationInfoLine("2027-01-01", "2027-01-31", "MONTH")).toBe("4 semaines, se termine le 31 janvier 2027");
+    expect(durationInfoLine("2026-09-15", "2026-09-21", "WEEK")).toBe("7 jours, se termine le 21 septembre 2026");
   });
 
   it("unités accordées : jour / jours, semaine / semaines, mois", () => {
@@ -83,35 +93,36 @@ describe("D-543 — période d'un programme", () => {
   });
 });
 
-describe("D-544 — seconde ligne d'une routine du programme", () => {
+describe("D-544 (lot 5, 23/11/2026, point 4) — routine dans le programme : cadre et ligne", () => {
   const base = {
     id: "r",
     name: "Routine du soir",
     time: "14:00",
-    entries: [],
+    entries: [{ id: "e", sessionId: "s", frequency: EVERY_TIME }],
     exclusions: [],
     reminderMinutes: null,
     createdAt: "2026-09-12T08:00:00.000Z",
     updatedAt: "2026-09-12T08:00:00.000Z",
   } as unknown as Omit<Routine, "startDate" | "repetition">;
+  const daily = { ...base, startDate: "2026-09-15", repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "UNTIL", date: "2026-12-15" } } } as Routine;
 
-  it("« du 15 septembre au 15 décembre » : jours en chiffres, mois en toutes lettres, sans année, sans fréquence ni heure", () => {
-    const line = routineSpanLine({
-      ...base,
-      startDate: "2026-09-15",
-      repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "UNTIL", date: "2026-12-15" } },
-    } as Routine);
-    expect(line).toBe("du 15 septembre au 15 décembre");
-    expect(line).not.toMatch(/2026|tous|h/);
+  it("cadre : début de la routine, ramené au début du programme s'il le précède (jamais la date de création)", () => {
+    expect(routineProgramFrame(daily, { startDate: "2026-09-01", endDate: "2026-12-31" })).toEqual({ day: "15 sept.", year: "2026" });
+    expect(routineProgramFrame(daily, { startDate: "2026-10-01", endDate: "2026-12-31" })).toEqual({ day: "1 oct.", year: "2026" });
   });
 
-  it("« pendant N semaines » : fin calculée de la répétition", () => {
-    expect(
-      routineSpanLine({ ...base, startDate: "2026-09-21", repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 12 } } } as Routine),
-    ).toMatch(/^du 21 septembre au \d+ décembre$/);
+  it("ligne : « N créneaux, jusqu'au [jour mois] » — créneaux dans la période, fin bornée par celle du programme", () => {
+    // Routine entièrement dans le programme : 92 créneaux, fin de la routine.
+    expect(routineProgramLine(daily, { startDate: "2026-09-01", endDate: "2026-12-31" })).toBe("92 créneaux, jusqu’au 15 déc.");
+    // Programme plus court : créneaux du 1er au 31 octobre, fin du programme.
+    expect(routineProgramLine(daily, { startDate: "2026-10-01", endDate: "2026-10-31" })).toBe("31 créneaux, jusqu’au 31 oct.");
   });
 
-  it("[interprétation] créneau unique : « le 18 novembre »", () => {
-    expect(routineSpanLine({ ...base, startDate: "2026-11-18", repetition: null } as Routine)).toBe("le 18 novembre");
+  it("« pendant N semaines » : fin calculée de la répétition ; créneau unique au singulier", () => {
+    const weekly = { ...base, startDate: "2026-09-21", repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 12 } } } as Routine;
+    expect(routineProgramLine(weekly, { startDate: "2026-09-01", endDate: "2027-03-31" })).toMatch(/^12 créneaux, jusqu’au \d+ déc\.$/);
+    expect(routineProgramLine({ ...base, startDate: "2026-11-18", repetition: null } as Routine, { startDate: "2026-11-01", endDate: "2026-11-30" })).toBe(
+      "1 créneau, jusqu’au 18 nov.",
+    );
   });
 });

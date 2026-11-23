@@ -407,8 +407,14 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-composition`)).toBeTruthy();
     expect(screen.queryByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-session-0-name`)).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded`).props.style).borderTopWidth).toBeUndefined();
-    // Contre-recette du 23/11/2026 (constat k) : hors parcours, aucun trait prolongé.
-    expect(screen.queryByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded-bar-left`)).toBeNull();
+    // Lot 5, 23/11/2026 (y7 — « Ce doit être le même format pour les séances que pour les parcours ») : hors parcours, même
+    // format qu'une séance de parcours — traits prolongés (gauche au bord de l'écran) et aucun écart propre. [Contre-recette du
+    // 23/11/2026 (constat k) : aucun trait prolongé hors parcours — remplacé.]
+    const solo = `calendar-item-${single.id}|${MONDAY}T08:00`;
+    expect(StyleSheet.flatten(screen.getByTestId(`${solo}-expanded-bar-left`).props.style)).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: 0, width: 6 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${solo}-expanded-bar-right`).props.style)).toMatchObject({ position: "absolute", top: 0, bottom: 0, right: 0, width: 6 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${solo}-expanded-wrapper`).props.style)).toMatchObject({ paddingTop: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${solo}-expanded`).props.style)).toMatchObject({ marginTop: 0 });
   });
 
   // Contre-recette du 23/11/2026 (Hermann) — constat i : « Un parcours avec deux séances, une séance exécutée une fois sur deux.

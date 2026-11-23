@@ -82,9 +82,13 @@ const TINTS: Readonly<Record<PlanTint, { readonly background: string; readonly t
   MISSED: { background: "#FCE5E5", text: "#B23838", border: "#E58F8F" },
   UPCOMING: { background: "#E3ECFF", text: "#2D4F9E", border: "#8EAAE8" },
   STOPPED: { background: "#F0F0F5", text: "#595E66", border: "#B8BAC9" },
+  // Lot 5, 23/11/2026 (x11-trace — Hermann : « Le plan doit montrer la case avec l'heure supprimée texte gris sur fond gris ») :
+  // gris de la pastille « Supprimée » de l'Agenda (D-568, `RoutineAgendaCard`, #EDF0F2 / #737882), trait gris de sa carte
+  // (#D9DBE3). Hors légende (non demandé).
+  DELETED: { background: "#EDF0F2", text: "#737882", border: "#D9DBE3" },
 };
-/** Ordre de la légende. */
-const LEGEND: readonly PlanTint[] = ["COMPLETED", "PARTIAL", "MISSED", "UPCOMING", "STOPPED"];
+/** Ordre de la légende (sans « Supprimée », lot 5 : non demandé). */
+const LEGEND: readonly Exclude<PlanTint, "DELETED">[] = ["COMPLETED", "PARTIAL", "MISSED", "UPCOMING", "STOPPED"];
 /** Glisser horizontal sur le tableau : distance minimale pour changer de semaine (recette du 21/11/2026, constat a). */
 const SWIPE_DISTANCE = 50;
 
@@ -140,6 +144,8 @@ export function PlanScreen({
   const mondayRef = useRef(monday);
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
+  // Lot 5, 23/11/2026 (x11-trace) : créneaux supprimés avec trace (D-568), cases grises.
+  const [deletedOccurrences, setDeletedOccurrences] = useState<readonly Occurrence[]>([]);
   const [linked, setLinked] = useState<readonly OccurrenceExecution[]>([]);
   const [executions, setExecutions] = useState<readonly AgendaExecution[]>([]);
   const [snapshots, setSnapshots] = useState<ReadonlyMap<string, SessionSnapshot>>(new Map());
@@ -167,6 +173,7 @@ export function PlanScreen({
           if (id !== requestId.current) return;
           setRoutines(data.routines);
           setOccurrences(data.occurrences);
+          setDeletedOccurrences(data.deletedOccurrences ?? []);
           setLinked(data.executions);
           setExecutions(data.allExecutions);
           setSnapshots(data.snapshots);
@@ -253,8 +260,9 @@ export function PlanScreen({
           .filter((program) => program.terminatedAt === null)
           .map((program) => ({ id: program.id, name: program.name, start: program.startDate, end: program.endDate })),
         executionProjections,
+        deletedOccurrences,
       }),
-    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt, executionProjections, programs],
+    [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt, executionProjections, programs, deletedOccurrences],
   );
 
   const today = todayLocal();
@@ -370,9 +378,17 @@ export function PlanScreen({
                 return (
                   <Pressable
                     key={cell.key}
+                    // D-568 : comme à l'Agenda, une occurrence « Supprimée » ne s'ouvre pas.
                     onPress={() => openOccurrence(cell.card.occurrence)}
+                    disabled={cell.card.deleted === true}
                     accessibilityRole="button"
-                    accessibilityLabel={cell.unplanned === true ? `${cell.card.title}, ${cell.label}, ${t.plan.unplanned}` : `${cell.card.title}, ${cell.label}`}
+                    accessibilityLabel={
+                      cell.unplanned === true
+                        ? `${cell.card.title}, ${cell.label}, ${t.plan.unplanned}`
+                        : cell.card.deleted === true
+                          ? `${cell.card.title}, ${cell.label}, ${t.calendar.status.deleted}`
+                          : `${cell.card.title}, ${cell.label}`
+                    }
                     style={[styles.cell, { backgroundColor: tint.background }]}
                     testID={`plan-cell-${cell.key}`}
                   >

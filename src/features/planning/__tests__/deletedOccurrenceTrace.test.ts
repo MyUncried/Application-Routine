@@ -4,6 +4,8 @@ import { EVERY_TIME, type RoutineDraft, type RoutineEntry } from "@/domain/plann
 import { deletedOccurrences, routineOccurrences } from "@/domain/planning/occurrences";
 import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import { PlanningService } from "@/features/planning/PlanningService";
+import { buildPlanWeek } from "@/features/planning/planWeek";
+import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
@@ -196,5 +198,56 @@ describe("D-568 — sans trace", () => {
     await repository.addExclusion(id, "2030-08-15T18:30", NOW.toISOString());
     expect(await traceKeys(id)).toEqual([]);
     expect(await plannedKeys(id)).not.toContain("2030-08-15T18:30");
+  });
+});
+
+// Lot 5, 23/11/2026 (x11-trace — Hermann : « Le plan doit montrer la case avec l'heure supprimée texte gris sur fond gris ») :
+// le Plan montre la case de l'occurrence supprimée, à l'heure prévue, en gris ; le Total reste diminué de sa durée.
+// [D-568 : case vide — remplacé.]
+describe("D-568 — Plan (lot 5, x11-trace)", () => {
+  const projection = (id: string, seconds: number) =>
+    ({ id, name: id, status: "ACTIVE", duration: { kind: "exact", seconds }, bodyZoneIds: [], categories: [], tree: [] }) as unknown as SessionCatalogueProjection;
+  const projections = new Map([["s-a", projection("s-a", 600)], ["s-b", projection("s-b", 300)]]);
+  const plan = async () => {
+    const data = await planning.agendaData("2030-08-12", "2030-08-18");
+    return buildPlanWeek({
+      monday: "2030-08-12",
+      routines: data.routines,
+      occurrences: data.occurrences,
+      executions: [],
+      projections,
+      isPlannable: () => true,
+      now: NOW.getTime(),
+      displayName: (item) => item.name,
+      programmeOf: () => null,
+      deletedOccurrences: data.deletedOccurrences,
+    });
+  };
+
+  it("routine répétée, créneau futur supprimé : case grise à l'heure prévue, hors du Total ; la case ne rouvre pas le créneau supprimé", async () => {
+    const id = await create();
+    expect((await plan()).weekTotal).toBe(1200);
+    await planning.excludeOccurrence(id, "2030-08-15T18:30");
+    const week = await plan();
+    const row = week.groups[0]!.rows[0]!;
+    expect(row.cells.map((list) => list.map((cell) => [cell.label, cell.tint]))).toEqual([[["18h30", "UPCOMING"]], [], [], [["18h30", "DELETED"]], [], [], []]);
+    // Total diminué de un créneau (10 minutes) ; jeudi sans créneau prévu.
+    expect(week.weekTotal).toBe(600);
+    expect(week.dayTotals[3]).toBeNull();
+    expect(week.occurrencesOf(id, "2030-08-15")).toEqual([]);
+  });
+
+  it("parcours : Séance supprimée seule ou créneau entier — cases grises, hors du Total", async () => {
+    const id = await create({ entries: [A, B] });
+    expect((await plan()).weekTotal).toBe(1800);
+    await planning.removeOccurrenceSession(id, "2030-08-15T18:30", 1);
+    let week = await plan();
+    const tints = () => week.groups[0]!.rows.filter((row) => row.kind === "SESSION").map((row) => row.cells[3]!.map((cell) => cell.tint));
+    expect(tints()).toEqual([["UPCOMING"], ["DELETED"]]);
+    expect(week.weekTotal).toBe(1500);
+    await planning.removeOccurrenceSession(id, "2030-08-15T18:30", 0);
+    week = await plan();
+    expect(tints()).toEqual([["DELETED"], ["DELETED"]]);
+    expect(week.weekTotal).toBe(900);
   });
 });

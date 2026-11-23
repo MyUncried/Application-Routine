@@ -82,14 +82,16 @@ export const programStrings = {
     saveFailed: "Le programme n’a pas pu être enregistré.",
     /** [interprétation] « + Planifier une séance » d'un nouveau programme : il est d'abord enregistré. */
     saveBeforePlanning: "Renseignez le nom et la période pour planifier une séance.",
-    /** D-544 (23/11/2026) : seconde ligne d'une routine, « du 15 septembre au 15 décembre ». */
-    span: "du {start} au {end}",
-    /** [interprétation] Créneau unique (D-544 ne prévoit que « du X au Y »). */
-    spanSingle: "le {date}",
+    /**
+     * Lot 5, 23/11/2026 (point 4, D-544 — Hermann : « Le texte doit afficher le nombre de créneaux dans le programme et la date
+     * de fin (jour et mois) ») : « 12 créneaux, jusqu'au 15 déc. ». [« du 15 septembre au 15 décembre » — remplacé.]
+     */
+    routineSlotsOne: "1 créneau, jusqu’au {end}",
+    routineSlotsMany: "{count} créneaux, jusqu’au {end}",
   },
   /** D-543 (Hermann, 23/11/2026 ; DSF Programmes § 1) : période d'un programme. */
   period: {
-    /** Le mot « au » / « pendant » est une valeur modifiable qui ouvre un menu pour changer de mode. */
+    /** Le mot « au » / « pendant » est une valeur modifiable qui bascule d'un toucher (lot 5, 23/11/2026, y4 ; [menu — remplacé]). */
     modeDates: "au",
     modeDuration: "pendant",
     /** [interprétation] Libellés d'accessibilité des menus et de la roulette. */
@@ -109,6 +111,11 @@ export const programStrings = {
     datesInfo: "{days}, soit {weeks}",
     datesInfoRest: "{line} et {rest}",
     endsOn: "Se termine le {date}",
+    /**
+     * Lot 5, 23/11/2026 (y3 — Hermann : « Jours : « Se termine le… » ; Semaines : « X jours, se termine le… » ; Mois :
+     * « X semaines, se termine le… » ») : « 21 jours, se termine le 5 octobre 2026 ».
+     */
+    endsOnAfter: "{length}, se termine le {date}",
     /** Raccourcir la période : « N créneaux seront supprimés ». [Singulier, Annuler et Confirmer : interprétation.] */
     shortenedOne: "1 créneau sera supprimé",
     shortenedMany: "{count} créneaux seront supprimés",

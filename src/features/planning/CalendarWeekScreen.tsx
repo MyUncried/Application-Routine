@@ -549,25 +549,23 @@ export function CalendarWeekScreen({
         {isExpanded && card.projection !== undefined ? (
           // DSF Agenda § 6 : composition de la Séance sous la carte. D-553 : le nom de la Séance, titre de la carte, n'est pas
           // répété. [Nom de chaque séance au-dessus de sa composition (r20-recap) — remplacé.]
-          <View style={inParcours ? styles.expandedInParcours : null} testID={`calendar-item-${card.key}-expanded-wrapper`}>
+          <View style={styles.expandedInParcours} testID={`calendar-item-${card.key}-expanded-wrapper`}>
             {/* Contre-recette du 23/11/2026 (constat k — Hermann : « agenda, séance déployée dans un parcours : étendre les deux
                 traits verticaux de couleur de la séance à gauche et à droite ») : les traits de la carte se prolongent le long de
-                la composition déployée. */}
-            {inParcours ? (
-              <>
-                <View
-                  pointerEvents="none"
-                  style={[styles.expandedBar, { left: AGENDA_PARCOURS_FRAME_OFFSET, backgroundColor: agendaBarColor(card.status) }]}
-                  testID={`calendar-item-${card.key}-expanded-bar-left`}
-                />
-                <View
-                  pointerEvents="none"
-                  style={[styles.expandedBar, { right: 0, backgroundColor: agendaBarColor(card.status) }]}
-                  testID={`calendar-item-${card.key}-expanded-bar-right`}
-                />
-              </>
-            ) : null}
-            <Pressable onPress={toggle} accessible={false} style={[styles.expanded, inParcours ? styles.expandedContentInParcours : null]} testID={`calendar-item-${card.key}-expanded`}>
+                la composition déployée. Lot 5, 23/11/2026 (y7 — Hermann : « Ce doit être le même format pour les séances que pour
+                les parcours ») : même format pour une séance hors parcours — traits prolongés (celui de gauche au bord de l'écran,
+                comme celui de sa carte) et composition sans écart propre. [Format réservé aux séances de parcours — remplacé.] */}
+            <View
+              pointerEvents="none"
+              style={[styles.expandedBar, { left: inParcours ? AGENDA_PARCOURS_FRAME_OFFSET : 0, backgroundColor: agendaBarColor(card.status) }]}
+              testID={`calendar-item-${card.key}-expanded-bar-left`}
+            />
+            <View
+              pointerEvents="none"
+              style={[styles.expandedBar, { right: 0, backgroundColor: agendaBarColor(card.status) }]}
+              testID={`calendar-item-${card.key}-expanded-bar-right`}
+            />
+            <Pressable onPress={toggle} accessible={false} style={[styles.expanded, styles.expandedContentInParcours]} testID={`calendar-item-${card.key}-expanded`}>
               {/* Recette du 21/11/2026 (a31-deploye — Hermann : « Retirer le séparateur horizontal avant le nom du circuit / de
                   l'exercice ») : composition sans filet en tête. */}
               <SessionCompositionTree tree={card.projection.tree} divider={false} testID={`calendar-item-${card.key}-composition`} />
@@ -939,6 +937,7 @@ const styles = StyleSheet.create({
   // Contre-recette du 23/11/2026, lot 4 (constat f — Hermann : « séance déployée dans un parcours : il y a trop d'espace avant la
   // première ligne ») : la composition suit la carte sans écart propre (reste le retrait de 4 de la composition). [Écart de 8 —
   // remplacé.] Les traits prolongés (constat k) partent toujours du bas de la carte jusqu'au bas de la composition.
+  // Lot 5, 23/11/2026 (y7) : appliqués aussi à une séance hors parcours (même format).
   expandedInParcours: { paddingTop: 0 },
   expandedContentInParcours: { marginTop: 0 },
   expandedBar: { position: "absolute", top: 0, bottom: 0, width: AGENDA_BAR_WIDTH },

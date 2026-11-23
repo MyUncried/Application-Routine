@@ -847,7 +847,7 @@ export class PlanningService {
     readonly snapshots: ReadonlyMap<string, SessionSnapshot>;
     /**
      * D-568 / RM-276 (23/11/2026) : créneaux entièrement supprimés avec trace dans [`from`, `to`], à leur date et heure prévues —
-     * Agenda seul (le Plan ne les montre pas : case vide, hors du Total).
+     * Agenda et Plan (lot 5, 23/11/2026, x11-trace : case grise à l'heure prévue, hors du Total). [Plan : case vide — remplacé.]
      */
     readonly deletedOccurrences: readonly Occurrence[];
   }> {

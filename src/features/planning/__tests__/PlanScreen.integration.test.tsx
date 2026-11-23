@@ -257,4 +257,30 @@ describe("Calendrier — Plan (D-554)", () => {
     const labels = screen.queryAllByTestId(/^plan-cell-.*-label$/).map(ownText);
     expect(labels).toEqual(["7h", "18h30"]);
   });
+  // Lot 5, 23/11/2026 (x11-trace — Hermann : « Le plan doit montrer la case avec l'heure supprimée texte gris sur fond gris »).
+  // [D-568 : case vide — remplacé.]
+  it("D-568 : occurrence supprimée de l'Agenda — case grise à l'heure prévue, qui ne s'ouvre pas ; Total diminué de un", async () => {
+    const a = await sessions.createStructured(input("Échauffement"));
+    const routine = await plan({
+      name: "Répétée",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: addDays(MONDAY, 10) } },
+      entries: [entry(a.id)],
+    });
+    expect(await planning.excludeOccurrence(routine.id, `${THURSDAY}T08:00`)).toBe(true);
+    await renderPlan();
+    const deleted = `plan-cell-${routine.id}|${THURSDAY}T08:00`;
+    expect(ownText(screen.getByTestId(`${deleted}-label`))).toBe("8h");
+    expect(StyleSheet.flatten(screen.getByTestId(deleted).props.style).backgroundColor).toBe("#EDF0F2");
+    expect(StyleSheet.flatten(screen.getByTestId(`${deleted}-label`).props.style).color).toBe("#737882");
+    expect(screen.queryByTestId(`plan-cell-${routine.id}-${THURSDAY}-empty`)).toBeNull();
+    // La case du créneau maintenu reste bleue (à venir).
+    expect(StyleSheet.flatten(screen.getByTestId(`plan-cell-${routine.id}|${MONDAY}T08:00`).props.style).backgroundColor).toBe("#E3ECFF");
+    // Total : le jeudi n'a plus de créneau prévu.
+    expect(screen.getByTestId(`plan-total-${THURSDAY}`).props.children).toBe("—");
+    expect(screen.getByTestId(`plan-total-${MONDAY}`).props.children).not.toBe("—");
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId(deleted));
+    expect(mockPush).not.toHaveBeenCalled();
+  });
 });
+

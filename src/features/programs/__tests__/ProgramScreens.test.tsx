@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { useState } from "react";
 import { View } from "react-native";
@@ -13,7 +13,8 @@ import { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { ProgramSheetScreen } from "@/features/programs/ProgramSheetScreen";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { Button as SwiftUIButton } from "@expo/ui/swift-ui";
+import { DateCalendar, Pill } from "@/features/planning/PlanningControls";
+import { DatePicker } from "@expo/ui/swift-ui";
 import * as relay from "@/features/programs/programSheetRelay";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
@@ -271,7 +272,7 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("configuration : titre « Modifier le programme » (contre-recette du 23/11, m) ; période « Du … au … » ; routines au format du Journal, « du X au Y » (D-544) ; glisser retire sans supprimer", async () => {
+  it("configuration : titre « Modifier le programme » (contre-recette du 23/11, m) ; période « Du … au … » ; routines au format du Journal, « N créneaux, jusqu'au … » (D-544, lot 5) ; glisser retire sans supprimer", async () => {
     const program = await createProgram();
     const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
     if (created.status !== "SAVED") throw new Error(created.status);
@@ -282,12 +283,12 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByTestId("program-name").props.value).toBe("Rééducation genou");
     expect(screen.getByText("1er août 2030")).toBeTruthy();
     expect(screen.getByText("30 sept. 2030")).toBeTruthy();
-    expect(screen.getByText("du 5 août au 29 août")).toBeTruthy();
+    expect(screen.getByText("25 créneaux, jusqu’au 29 août")).toBeTruthy();
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent(screen.getByTestId(`program-routine-${created.routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "detach" } });
     await flush();
     // Recette du 23/11/2026 (p4-croix) : le retrait n'est écrit qu'à la coche.
-    expect(screen.queryByText("du 5 août au 29 août")).toBeNull();
+    expect(screen.queryByText("25 créneaux, jusqu’au 29 août")).toBeNull();
     expect((await planning.getRoutine(created.routine.id))?.programId).toBe(program.id);
     fireEvent.press(screen.getByTestId("program-plan"));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/planning", params: { programId: program.id } });
@@ -450,9 +451,11 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
 
 /** Lot 4 du 23/11/2026, chantier A : D-544 (routines au format du Journal), D-543 (période), x5 (fenêtre de consentement). */
 describe("Lot 4 — modale du programme", () => {
-  const option = (testID: string) => screen.UNSAFE_getAllByType(SwiftUIButton).find((button) => button.props.testID === testID)!;
+  // Lot 5, 23/11/2026 (y4) : « au » / « pendant » et l'unité sont des `Pill` de la planification qui basculent d'un toucher.
+  const toggleMode = () => fireEvent.press(screen.getByTestId("program-period-mode"));
+  const nextUnit = () => fireEvent.press(screen.getByTestId("program-period-unit"));
 
-  it("D-544 : chaque routine utilise la ligne du Journal (JournalRoutineCard compacte) — date de création, nom, « du X au Y »", async () => {
+  it("D-544 (lot 5, point 4) : ligne du Journal (JournalRoutineCard compacte) — cadre = début dans le programme, « N créneaux, jusqu'au … » borné par la fin du programme", async () => {
     const program = await createProgram();
     const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
     if (created.status !== "SAVED") throw new Error(created.status);
@@ -464,23 +467,83 @@ describe("Lot 4 — modale du programme", () => {
     expect(cards[0]!.props.compact).toBe(true);
     expect(cards[0]!.props.planned).toBe(true);
     const id = `program-routine-${created.routine.id}`;
-    // Cadre : date de création (NOW, 10 août 2030) — jour et mois abrégé, année dessous.
-    expect(screen.getByTestId(`${id}-date`).props.children).toBe("10 août");
+    // Cadre : début de la routine (5 août), postérieur au début du programme (1er août) — jour et mois abrégé, année dessous.
+    expect(screen.getByTestId(`${id}-date`).props.children).toBe("5 août");
     expect(screen.getByTestId(`${id}-year`).props.children).toBe("2030");
     expect(screen.getByTestId(`${id}-name`).props.children).toBe("Routine du soir");
-    expect(screen.getByTestId(`${id}-slots`).props.children).toBe("du 5 août au 29 août");
+    expect(screen.getByTestId(`${id}-slots`).props.children).toBe("25 créneaux, jusqu’au 29 août");
     expect(screen.queryByText(/14 h/)).toBeNull();
   });
 
-  it("D-543 : « N jours, soit S semaines et J jour » ; menu « au / pendant » ; de dates vers durée sans perte ; mois ; « Se termine le … »", async () => {
+  it("D-544 (lot 5, point 4) : routine débordant la période — cadre ramené au début du programme, créneaux et fin bornés par la période", async () => {
+    const program = await createProgram({ startDate: "2030-08-10", endDate: "2030-08-20" });
+    const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    const id = `program-routine-${created.routine.id}`;
+    expect(screen.getByTestId(`${id}-date`).props.children).toBe("10 août");
+    // Tous les jours du 10 au 20 août : 11 créneaux ; la fin affichée est celle du programme, pas le 29 août.
+    expect(screen.getByTestId(`${id}-slots`).props.children).toBe("11 créneaux, jusqu’au 20 août");
+  });
+
+  it("lot 5 (calendrier) : la période utilise le calendrier de la planification (DateCalendar, DatePicker graphique, 360), sans marquage de période ; il reste ouvert après un choix", async () => {
+    jest.spyOn(View.prototype as unknown as { measureInWindow: () => void }, "measureInWindow").mockImplementation((...args: unknown[]) => {
+      (args[0] as (x: number, y: number, width: number, height: number) => void)(100, 300, 40, 32);
+    });
+    const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-15" });
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    fireEvent.press(screen.getByTestId("program-start-date"));
+    expect(screen.UNSAFE_getAllByType(DateCalendar)).toHaveLength(1);
+    expect(screen.UNSAFE_root.findAll((node) => node.props.testID === "program-date-popover" && node.props.width === 360).length).toBeGreaterThan(0);
+    const panel = screen.getByTestId("program-date-panel");
+    expect(panel.findAll((node) => node.props.colorScheme === "light").length).toBeGreaterThan(0);
+    let picker = screen.UNSAFE_getByType(DatePicker);
+    // Début : aucune borne basse.
+    expect(picker.props.range).toBeUndefined();
+    // Début après la fin : la fin est ramenée au début (D-499) ; le calendrier reste ouvert.
+    act(() => picker.props.onDateChange(new Date(2030, 11, 20, 12, 0)));
+    expect(screen.getByTestId("program-date-panel")).toBeTruthy();
+    expect(within(screen.getByTestId("program-start-date")).getByText("20 déc. 2030")).toBeTruthy();
+    expect(within(screen.getByTestId("program-end-date")).getByText("20 déc. 2030")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("program-date-popover-scrim", { includeHiddenElements: true }));
+    expect(screen.queryByTestId("program-date-panel")).toBeNull();
+    // Fin : bornée par le début.
+    fireEvent.press(screen.getByTestId("program-end-date"));
+    picker = screen.UNSAFE_getByType(DatePicker);
+    expect((picker.props.range as { start: Date }).start.getDate()).toBe(20);
+    act(() => picker.props.onDateChange(new Date(2031, 0, 31, 12, 0)));
+    expect(within(screen.getByTestId("program-end-date")).getByText("31 janv. 2031")).toBeTruthy();
+    // Mode durée : le début choisi recalcule la fin.
+    fireEvent.press(screen.getByTestId("program-date-popover-scrim", { includeHiddenElements: true }));
+    toggleMode();
+    fireEvent.press(screen.getByTestId("program-start-date"));
+    act(() => screen.UNSAFE_getByType(DatePicker).props.onDateChange(new Date(2031, 0, 1, 12, 0)));
+    expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 12 février 2031");
+  });
+
+  it("y4 (lot 5) : valeurs modifiables de la période au format de la planification (Pill) — « pendant », nombre et unité", async () => {
+    const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-14" });
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    toggleMode();
+    const labels = screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label);
+    expect(labels).toEqual(["15 sept. 2030", "pendant", "13", "semaines"]);
+  });
+
+  it("D-543 : « N jours, soit S semaines et J jour » ; « au / pendant » ; de dates vers durée sans perte ; mois ; « Se termine le … »", async () => {
     const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-15" });
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
     expect(screen.getByTestId("program-period-info").props.children).toBe("92 jours, soit 13 semaines et 1 jour");
-    act(() => option("program-period-mode-option-DURATION").props.onPress());
+    toggleMode();
     expect(screen.getByText("92")).toBeTruthy();
     expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 15 décembre 2030");
-    act(() => option("program-period-unit-option-MONTH").props.onPress());
+    nextUnit();
+    nextUnit();
+    expect(screen.getByText("mois")).toBeTruthy();
     fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
     await flush();
     // 92 mois depuis le 15 septembre 2030 : même quantième moins un jour.
@@ -491,11 +554,12 @@ describe("Lot 4 — modale du programme", () => {
     const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-14" });
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
-    act(() => option("program-period-mode-option-DURATION").props.onPress());
+    toggleMode();
     expect(screen.getByText("13")).toBeTruthy();
     expect(screen.getByText("semaines")).toBeTruthy();
-    expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 14 décembre 2030");
-    act(() => option("program-period-mode-option-DATES").props.onPress());
+    // y3 (lot 5) : semaines → « X jours, se termine le … ».
+    expect(screen.getByTestId("program-period-info").props.children).toBe("91 jours, se termine le 14 décembre 2030");
+    toggleMode();
     expect(screen.getByText("14 déc. 2030")).toBeTruthy();
     expect(screen.getByTestId("program-period-info").props.children).toBe("91 jours, soit 13 semaines");
   });
@@ -508,8 +572,8 @@ describe("Lot 4 — modale du programme", () => {
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
     await runFocus();
-    act(() => option("program-period-mode-option-DURATION").props.onPress());
-    act(() => option("program-period-unit-option-DAY").props.onPress());
+    // 61 jours : la durée est en jours.
+    toggleMode();
     const wheel = screen.UNSAFE_root.findAll((node) => node.props.testID === "program-period-count-popover" && Array.isArray(node.props.columns))[0]!;
     act(() => wheel.props.columns[0].onChange(24));
     expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 24 août 2030");

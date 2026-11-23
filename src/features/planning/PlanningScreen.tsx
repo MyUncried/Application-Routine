@@ -1,9 +1,7 @@
-import { DatePicker, Host } from "@expo/ui/swift-ui";
-import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { Alert, AppState, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
@@ -25,6 +23,7 @@ import {
   type Weekday,
 } from "@/domain/planning/Routine";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { DATE_PANEL_WIDTH, DateCalendar, Pill } from "@/features/planning/PlanningControls";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import {
   applySelection,
@@ -101,16 +100,12 @@ const t = planningStrings.form;
 /** Recette du 22/11/2026 (c35-journal-nom — Hermann : « Il faut mettre une durée de 2s »). [Une seconde — remplacé.] */
 const RENAMED_NOTICE_MS = 2000;
 const tReminder = planningStrings.reminder;
-/** Calendrier natif de « Début le » et de « jusqu'au » (recette du 18/11/2026, k8). */
-const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
 /** Roulette de l'heure : 00:00 à 23:59, à la minute. */
 const TIME_MAX_MINUTES = 23 * 60 + 59;
 const TIME_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
 const TIME_HOURS = Array.from({ length: 24 }, (_, index) => index);
 const TIME_MINUTES = Array.from({ length: 60 }, (_, index) => index);
 const END_COUNTS = Array.from({ length: END_COUNT_MAX - END_COUNT_MIN + 1 }, (_, index) => END_COUNT_MIN + index);
-/** Largeur du calendrier graphique d'iOS dans son panneau. */
-const DATE_PANEL_WIDTH = 360;
 const twoDigits = (value: number) => String(value).padStart(2, "0");
 /** D-524 : délai présélectionné quand les notifications sont déjà autorisées (recette du 18/11/2026, k12 « Remettre 15' par défaut »). */
 const DEFAULT_REMINDER_MINUTES = 15;
@@ -1116,25 +1111,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   );
 }
 
-/** Valeur modifiable, en bleu KODJO — dates et heure comprises (recette du 19/11/2026, k8, remplace le noir du 17/11). */
-function Pill({
-  label,
-  onPress,
-  accessibilityLabel,
-  testID,
-}: {
-  readonly label: string;
-  readonly onPress: () => void;
-  readonly accessibilityLabel: string;
-  readonly testID: string;
-}) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} hitSlop={6} style={styles.pill} testID={testID}>
-      <Text style={styles.pillText}>{label}</Text>
-    </Pressable>
-  );
-}
-
 /**
  * Grille créneaux × rotation (D-519, Figma `12650:27854`, `12624:29713`) : en-tête « Changer » (toujours visible) et
  * colonnes #1 à #7 — actives jusqu'à la longueur du cycle ; une ligne par séance avec sa mention calculée ; un point par
@@ -1322,39 +1298,6 @@ function SlotGrid({
   );
 }
 
-/**
- * Calendrier natif (`DatePicker` graphique) du popover de date : le jour touché s'applique. Apparence claire forcée : le
- * panneau est blanc, et en mode sombre le calendrier écrivait en blanc sur blanc (recette du 19/11/2026, k19 : « on ne
- * voit rien … aucun texte, sauf la date du jour »).
- */
-function DateCalendar({
-  value,
-  minimum,
-  maximum,
-  onChange,
-}: {
-  readonly value: LocalDate;
-  readonly minimum: LocalDate;
-  /** PROG-CAT-01 : fin du programme ; absent : aucune borne haute. */
-  readonly maximum?: LocalDate;
-  readonly onChange: (value: LocalDate) => void;
-}) {
-  if (Platform.OS !== "ios") return null;
-  return (
-    <View style={styles.calendar} testID="planning-date-panel">
-      <Host matchContents colorScheme="light">
-        <DatePicker
-          selection={timeToDate(value, "12:00")}
-          displayedComponents={["date"]}
-          range={maximum === undefined ? { start: timeToDate(minimum, "00:00") } : { start: timeToDate(minimum, "00:00"), end: timeToDate(maximum, "23:59") }}
-          onDateChange={(date) => onChange(formatLocalDate(date))}
-          modifiers={CALENDAR_MODIFIERS}
-        />
-      </Host>
-    </View>
-  );
-}
-
 /** Date courte (« 18 nov. 2026 »), comme l'affichait le sélecteur compact. */
 export function formatShortDate(value: LocalDate): string {
   return timeToDate(value, "12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
@@ -1433,5 +1376,4 @@ const styles = StyleSheet.create({
   reminderOptions: { flex: 1 },
   reminderOption: { ...type.listCardTitle },
   error: { ...type.label, color: colors.danger },
-  calendar: { alignItems: "center" },
 });
