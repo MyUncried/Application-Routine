@@ -331,6 +331,21 @@ describe("Planifier (CE-UI-12)", () => {
     expect(mockBack).toHaveBeenCalled();
   });
 
+  // D-563 nom (Hermann, 23/11/2026, réponse 3 : « Non, pendant la saisie ») : en modification d'une routine active, le nom saisi
+  // déjà pris est signalé pendant la saisie et bloque la coche ; son propre nom reste libre.
+  it("modification d'une routine active : nom saisi déjà pris signalé pendant la saisie, coche désactivée (D-563)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const edited = await planning.createRoutine({ name: "Soir", startDate: START, time: "19:00", repetition: null, entries: [{ id: "x-soir", sessionId: a.id, frequency: EVERY_TIME }] });
+    if (edited.status !== "SAVED") throw new Error(edited.status);
+    expect((await planning.createRoutine({ name: "Matin", startDate: START, time: "07:00", repetition: null, entries: [{ id: "x", sessionId: a.id, frequency: EVERY_TIME }] })).status).toBe("SAVED");
+    await renderPlanning({ routineId: edited.routine.id });
+    fireEvent.changeText(screen.getByTestId("planning-name"), " MATIN ");
+    expect(screen.getByTestId("planning-name-error").props.children).toBe("Ce nom est déjà utilisé");
+    expect(screen.getByTestId("screen-header-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("planning-name"), "soir");
+    expect(screen.queryByTestId("planning-name-error")).toBeNull();
+  });
+
   it("une seule séance cochée dans la sélection : son nom est copié (RM-258)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     await renderPlanning({ date: START });

@@ -193,6 +193,11 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // saisi n'est jamais remplacé, un nom non saisi (par défaut ou enregistré) reçoit le premier nom libre.
   const [activeNames, setActiveNames] = useState<readonly string[] | null>(null);
   const [nameTakenShown, setNameTakenShown] = useState(false);
+  // D-563 nom (Hermann, 23/11/2026, réponse 3 : « Non, pendant la saisie ») : en modification, la routine modifiée est-elle
+  // active (contrôle en direct du nom saisi contre les autres routines actives) ?
+  const [editedActive, setEditedActive] = useState(false);
+  // Même information que `nameTyped`, lisible au rendu (contrôle en direct).
+  const [nameTypedShown, setNameTypedShown] = useState(false);
   const nameTyped = useRef(false);
   const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
@@ -414,21 +419,25 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   );
   // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases, dans cette même feuille (recette du 18/11/2026).
   const [selecting, setSelecting] = useState(() => fresh && initialEntries.length === 0);
-  // D-563 nom : noms des routines actives, lus à l'ouverture d'une création (nouvelle routine, programme, Agenda, duplication).
+  // D-563 nom : noms des routines actives, lus à l'ouverture d'une création (nouvelle routine, programme, Agenda, duplication)
+  // ou d'une modification depuis le Journal (autres routines actives, hors la routine modifiée).
   const creating = mode?.kind === "create";
+  const editedRoutineId = mode?.kind === "edit" ? mode.routineId : null;
   useEffect(() => {
-    if (!creating) return undefined;
+    if (!creating && editedRoutineId === null) return undefined;
     let cancelled = false;
-    planning.activeRoutineNames().then(
-      (names) => {
-        if (!cancelled) setActiveNames(names);
+    planning.activeRoutines().then(
+      (routines) => {
+        if (cancelled) return;
+        setActiveNames(routines.filter((routine) => routine.id !== editedRoutineId).map((routine) => routine.name));
+        setEditedActive(editedRoutineId !== null && routines.some((routine) => routine.id === editedRoutineId));
       },
       () => undefined,
     );
     return () => {
       cancelled = true;
     };
-  }, [creating, planning]);
+  }, [creating, editedRoutineId, planning]);
 
   if (form === null || mode === null) return <ScreenShell>{null}</ScreenShell>;
 
@@ -470,9 +479,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // Occurrence seule : le nom reste celui de la routine (ni saisie ni contrôle) ; au moins une séance active dans le créneau.
   const editing = mode.kind === "occurrence" ? mode.editing : null;
   const nameMissing = editing === null && name.trim() === "";
-  // D-563 nom : nom saisi déjà pris à la création — message sous le champ, rien n'est enregistré ; en modification, le contrôle
-  // dépend de l'état actif de la routine modifiée et passe par le service à l'enregistrement (`nameTakenShown`).
-  const typedNameTaken = editing === null && mode.kind === "create" && shown.nameEdited && isTaken(name);
+  // D-563 nom : nom saisi déjà pris — message sous le champ pendant la saisie, rien n'est enregistré. En modification (Hermann,
+  // 23/11/2026 : « pendant la saisie »), le nom saisi d'une routine active est comparé aux autres routines actives ; une routine
+  // terminée que la modification réactive reste contrôlée par le service à l'enregistrement (`nameTakenShown`). [Contrôle à
+  // la coche seulement en modification — remplacé.]
+  const typedNameTaken =
+    editing === null && shown.nameEdited && isTaken(name) && (mode.kind === "create" || (mode.kind === "edit" && nameTypedShown && editedActive));
   const nameTaken = editing === null && !nameMissing && (typedNameTaken || nameTakenShown);
   const blocking =
     editing === null
@@ -749,6 +761,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               onChangeText={(value) => {
                 // D-563 nom : nom saisi — jamais remplacé par une proposition ; le message de l'enregistrement précédent s'efface.
                 nameTyped.current = true;
+                setNameTypedShown(true);
                 setNameTakenShown(false);
                 update({ name: value, nameEdited: true });
               }}

@@ -619,9 +619,17 @@ export class PlanningService {
 
   /** D-563 nom : noms enregistrés des routines actives (proposition du premier nom libre à la création). */
   async activeRoutineNames(): Promise<readonly string[]> {
+    return (await this.activeRoutines()).map((routine) => routine.name);
+  }
+
+  /**
+   * D-563 nom, 23/11/2026 (Hermann : contrôle « pendant la saisie » en modification) : identifiant et nom des routines actives,
+   * pour exclure la routine modifiée et savoir si elle est active.
+   */
+  async activeRoutines(): Promise<readonly { readonly id: string; readonly name: string }[]> {
     const isStarted = await this.startedTest();
     const now = this.deps.now();
-    return (await this.deps.repository.list()).filter((routine) => isRoutineActiveAt(routine, now, isStarted)).map((routine) => routine.name);
+    return (await this.deps.repository.list()).filter((routine) => isRoutineActiveAt(routine, now, isStarted)).map((routine) => ({ id: routine.id, name: routine.name }));
   }
 
   private newRoutine(draft: RoutineDraft, id: string): Routine {
