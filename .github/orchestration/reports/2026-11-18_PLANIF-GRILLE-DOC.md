@@ -154,9 +154,9 @@
 - **Statut : préparé, non appliqué.** À appliquer sur la branche de la PR #446. Le plan du lot Compte (`_bmad-output/compte/plan-lot-compte.md`, même PR) doit aussi mentionner l'envoi du catalogue officiel comme suite de T6.
 - Aucun test applicable (documentation).
 
-## Complément 23/11/2026 — Programmes : période, routines, rattachement (D-543 à D-545, classe B)
+## Complément 23/11/2026 — Programmes : période, routines, rattachement (D-560 à D-562, classe B)
 - Décisions explicites de Hermann (conversation du 23/11/2026). Figma : « PROG — 13 Créer ou configurer un programme » (période : ligne « N jours, soit S semaines » ; routines au format Journal ; halo sous Annuler), « P-Planifier une séance — Choix du programme (proposition) » (modale « Rattacher un programme », sans Valider, radios), halo rétabli dans « Modal — Planifier une séance — Sélectionner une séance ».
-- Documents : `docs/DSF-PROGRAMMES-2026-11-23.md` (nouveau) ; registre ch07 D-543, D-544, D-545 ; D-332 annoté ; ch04 « Ce qui reste à concevoir » annoté. Prompts : `docs/PROMPT-CLAUDE-CODE-PROGRAMME-{PERIODE,ROUTINES,SELECTION}-2026-11-23.md`.
+- Documents : `docs/DSF-PROGRAMMES-2026-11-23.md` (nouveau) ; registre ch07 D-560, D-561, D-562 ; D-332 annoté ; ch04 « Ce qui reste à concevoir » annoté. Prompts : `docs/PROMPT-CLAUDE-CODE-PROGRAMME-{PERIODE,ROUTINES,SELECTION}-2026-11-23.md`.
 - Mode « pendant » de la période : spécifié, non dessiné dans Figma.
 - Le code ne contient pas encore l'objet Programme : les prompts demandent de ne pas l'inventer.
 - Tests : non applicables.

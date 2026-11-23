@@ -1,6 +1,6 @@
 # Claude Code — routines d'un programme (23/11/2026)
 
-Mission : appliquer D-544 (registre, ch07 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 2), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. Écran Figma : « PROG — 13 Créer ou configurer un programme », carte Planifications.
+Mission : appliquer D-561 (registre, ch07 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 2), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. Écran Figma : « PROG — 13 Créer ou configurer un programme », carte Planifications.
 
 1. Chaque routine du programme reprend le format des routines du Journal (réutilise le composant de ligne du Journal ; pas de seconde implémentation) : cadre à gauche 80 × 44, trait d'état épais à gauche et à droite (6 × 44), bande de prolongement, couleurs de l'état « prévu », le tout contenu dans la carte (bords alignés).
 2. Cadre : date de création de la routine, jour et mois abrégé en gras (« 12 sept. »), année dessous (« 2026 »).

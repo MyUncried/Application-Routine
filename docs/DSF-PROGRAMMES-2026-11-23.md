@@ -1,8 +1,8 @@
 # DSF — Programmes : période, routines, rattachement (23/11/2026)
 
-Décisions de Hermann du 23/11/2026 (D-543 à D-545, registre, chapitre 07). Écrans Figma : « PROG — 13 Créer ou configurer un programme » (période et routines), « P-Planifier une séance — Choix du programme (proposition) » (rattachement). Le Programme reste facultatif (D-332).
+Décisions de Hermann du 23/11/2026 (D-560 à D-562, registre, chapitre 07). Écrans Figma : « PROG — 13 Créer ou configurer un programme » (période et routines), « P-Planifier une séance — Choix du programme (proposition) » (rattachement). Le Programme reste facultatif (D-332).
 
-## 1. Définition de la période d'un programme (D-543)
+## 1. Définition de la période d'un programme (D-560)
 
 Écran « PROG — 13 Créer ou configurer un programme », carte Période. Trois lignes :
 
@@ -20,7 +20,7 @@ Règles :
 
 État Figma : le mode dates et la ligne « N jours, soit S semaines » sont dessinés ; le mode « pendant » n'est pas dessiné (à réaliser d'après cette spécification). Le bloc passe de 44 à 64 de hauteur (mode dates).
 
-## 2. Routines d'un programme (D-544)
+## 2. Routines d'un programme (D-561)
 
 Carte « Planifications » de l'écran « PROG — 13 Créer ou configurer un programme » : chaque routine est présentée au format des routines du Journal.
 
@@ -29,7 +29,7 @@ Carte « Planifications » de l'écran « PROG — 13 Créer ou configurer un pr
 - Deux routines en exemple ; 8 d'écart entre les lignes ; les actions « + Planifier une séance » et « Rattacher une routine existante » restent sous les routines, séparées par un filet.
 - Le trait et le cadre restent à l'intérieur de la carte (flush avec ses bords).
 
-## 3. Rattachement d'un programme lors de la planification (D-545)
+## 3. Rattachement d'un programme lors de la planification (D-562)
 
 La ligne « Programme » de l'écran « P-Planifier une séance — Création » ouvre une **modale « Rattacher un programme »** (écran Figma « P-Planifier une séance — Choix du programme (proposition) »), à la place du menu iOS.
 
