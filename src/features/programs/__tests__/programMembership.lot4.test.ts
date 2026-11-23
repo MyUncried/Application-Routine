@@ -230,7 +230,9 @@ describe("D-564 — une occurrence hors de la période n'appartient pas au progr
   it("catalogue : une routine rattachée sans occurrence dans la période n'est pas comptée ; séances des occurrences de la période", async () => {
     const program = await createProgram({ startDate: "2026-11-16", endDate: "2026-12-20" });
     const inside = await createRoutine({ repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2026-12-20" } } });
+    // D-563 nom (Hermann, 23/11/2026) : deux routines actives, deux noms.
     const outside = await createRoutine({
+      name: "Dos",
       startDate: "2027-01-04",
       repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2027-01-31" } },
       entries: [{ id: "e-dos", sessionId: "s-dos", frequency: EVERY_TIME }],

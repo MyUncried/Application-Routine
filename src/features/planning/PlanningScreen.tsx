@@ -9,7 +9,9 @@ import {
   CYCLE_MAX,
   DAY_MULTIPLIER_MAX,
   DAY_MULTIPLIER_MIN,
+  firstFreeRoutineName,
   formatLocalDate,
+  routineNameKey,
   occurrenceInstant,
   REMINDER_MAX_MINUTES,
   REMINDER_PRESETS,
@@ -186,6 +188,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [reordering, setReordering] = useState(false);
   // Recette du 22/11/2026 (constat d) : message « nom du parcours changé ».
   const [notice, setNotice] = useState<string | null>(null);
+  // D-563 nom (Hermann, 23/11/2026) : noms des routines actives (création : proposition du premier nom libre, nom saisi déjà
+  // pris) ; message « Ce nom est déjà utilisé » rendu par l'enregistrement ; nom saisi dans cet écran (`nameTyped`) — un nom
+  // saisi n'est jamais remplacé, un nom non saisi (par défaut ou enregistré) reçoit le premier nom libre.
+  const [activeNames, setActiveNames] = useState<readonly string[] | null>(null);
+  const [nameTakenShown, setNameTakenShown] = useState(false);
+  const nameTyped = useRef(false);
   const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -406,6 +414,21 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   );
   // CE-UI-03 : « + Planifier » ouvre d'abord la sélection à cases, dans cette même feuille (recette du 18/11/2026).
   const [selecting, setSelecting] = useState(() => fresh && initialEntries.length === 0);
+  // D-563 nom : noms des routines actives, lus à l'ouverture d'une création (nouvelle routine, programme, Agenda, duplication).
+  const creating = mode?.kind === "create";
+  useEffect(() => {
+    if (!creating) return undefined;
+    let cancelled = false;
+    planning.activeRoutineNames().then(
+      (names) => {
+        if (!cancelled) setActiveNames(names);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [creating, planning]);
 
   if (form === null || mode === null) return <ScreenShell>{null}</ScreenShell>;
 
@@ -434,11 +457,23 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const rows = form.entries.flatMap((entry, row) => (available(entry) ? [{ entry, points: form.grid.points[row] ?? [] }] : []));
   const shown: FormDraft = { ...form, entries: rows.map((item) => item.entry), grid: { cycle: form.grid.cycle, points: rows.map((item) => item.points) } };
   const removed = form.entries.length - rows.length;
-  const name = effectiveName(shown, nameOf);
-  const draft = toRoutineDraft(shown, name);
+  // D-563 nom (Hermann, 23/11/2026) : à la création, le nom par défaut (D-553) déjà pris par une routine active est remplacé par
+  // le premier nom libre (« Tabata (2) »), modifiable ; ce nom proposé est enregistré comme nom personnalisé (fixe), un nom
+  // suffixé ne pouvant pas suivre la composition. Le nom par défaut libre reste généré. [Interprétation technique : le mode du
+  // nom proposé.]
+  const isTaken = (value: string) => activeNames !== null && value.trim() !== "" && activeNames.some((other) => routineNameKey(other) === routineNameKey(value));
+  const defaultName = effectiveName(shown, nameOf);
+  const proposal = mode.kind === "create" && !shown.nameEdited && activeNames !== null && isTaken(defaultName) ? firstFreeRoutineName(defaultName, activeNames) : null;
+  const named: FormDraft = proposal === null ? shown : { ...shown, name: proposal, nameEdited: true };
+  const name = effectiveName(named, nameOf);
+  const draft = toRoutineDraft(named, name);
   // Occurrence seule : le nom reste celui de la routine (ni saisie ni contrôle) ; au moins une séance active dans le créneau.
   const editing = mode.kind === "occurrence" ? mode.editing : null;
   const nameMissing = editing === null && name.trim() === "";
+  // D-563 nom : nom saisi déjà pris à la création — message sous le champ, rien n'est enregistré ; en modification, le contrôle
+  // dépend de l'état actif de la routine modifiée et passe par le service à l'enregistrement (`nameTakenShown`).
+  const typedNameTaken = editing === null && mode.kind === "create" && shown.nameEdited && isTaken(name);
+  const nameTaken = editing === null && !nameMissing && (typedNameTaken || nameTakenShown);
   const blocking =
     editing === null
       ? [...validateRoutineDraft(draft), ...gridIssues(shown.grid)]
@@ -449,7 +484,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED" && issue !== "INVALID_FREQUENCY"),
           ...(shown.grid.points.some((row) => row[editing.column] === true) ? [] : ["EMPTY_SLOT" as const]),
         ];
-  const canSave = blocking.length === 0 && !saving && catalogue.status === "ready";
+  const canSave = blocking.length === 0 && !typedNameTaken && !saving && catalogue.status === "ready";
   // Recette du 23/11/2026 (d4) : en modification depuis le Journal, les dates ne sont plus bornées par la période du programme —
   // D-566 : la routine n'est pas coupée, des créneaux peuvent rester hors programme (question posée à l'enregistrement).
   // [Bornes du programme en modification (PROG-CAT-01, point 5) — remplacé ; conservées pour la création depuis un programme et
@@ -491,15 +526,28 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         return;
       }
       const routineId = mode.routineId;
-      // D-566 : routine d'un programme (actuel ou choisi) — créneaux à venir hors de sa période, brouillon compris.
-      if (selectedProgram !== null) {
-        planning.outsidePeriodSlotCount(routineId, selectedProgram.startDate, selectedProgram.endDate, draft).then(
-          (count) => (count > 0 ? setOutsideCount(count) : askModify(routineId)),
-          () => askModify(routineId),
-        );
+      const confirmEdit = () => {
+        // D-566 : routine d'un programme (actuel ou choisi) — créneaux à venir hors de sa période, brouillon compris.
+        if (selectedProgram !== null) {
+          planning.outsidePeriodSlotCount(routineId, selectedProgram.startDate, selectedProgram.endDate, draft).then(
+            (count) => (count > 0 ? setOutsideCount(count) : askModify(routineId)),
+            () => askModify(routineId),
+          );
+          return;
+        }
+        askModify(routineId);
+      };
+      // D-563 nom (Hermann, 23/11/2026) : la routine réécrite (restée ou redevenue active) vérifie son nom avant toute
+      // confirmation ; nom pris : l'écran reste ouvert (`applyNameTaken`). Seul le programme change : la routine n'est pas
+      // réécrite, rien à vérifier.
+      if (!routineChanged()) {
+        confirmEdit();
         return;
       }
-      askModify(routineId);
+      planning.routineNameProposal(draft, routineId).then(
+        (taken) => (taken === null ? confirmEdit() : applyNameTaken(taken)),
+        () => confirmEdit(),
+      );
       return;
     }
     // [Recette du 23/11/2026 (g2) : programme choisi depuis une occurrence de l'Agenda, question D-566 au rattachement — retiré
@@ -537,13 +585,23 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     return result;
   };
 
+  /**
+   * D-563 nom (Hermann, 23/11/2026) : nom pris par une routine active — l'écran reste ouvert, message « Ce nom est déjà utilisé »
+   * sous le champ, rien n'est enregistré. Un nom non saisi dans cet écran (nom par défaut, ou nom enregistré d'une routine
+   * réactivée) est remplacé par le premier nom libre ; un nom saisi est gardé tel quel.
+   */
+  const applyNameTaken = (taken: string) => {
+    setNameTakenShown(true);
+    if (!nameTyped.current) update({ name: taken, nameEdited: true });
+  };
+
   const commit = () => {
     if (savingRef.current) return;
     setModifyCount(null);
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
-    const write: Promise<{ readonly status: string }> =
+    const write: Promise<{ readonly status: string; readonly proposal?: string }> =
       mode.kind === "occurrence"
         ? (mode.editing.adding === true ? planning.addOccurrence(mode.editing.routineId, {
               date: form.startDate,
@@ -568,6 +626,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         savingRef.current = false;
         setSaving(false);
         if (result.status === "SAVED") router.back();
+        else if (result.status === "NAME_TAKEN" && result.proposal !== undefined) applyNameTaken(result.proposal);
         else setSaveFailed(true);
       },
       (error: unknown) => {
@@ -687,7 +746,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 ensuite. [D-522 / RM-258 : nom libre, unique ; copié de la séance quand une seule est planifiée — remplacé.] */}
             <TextInput
               value={name}
-              onChangeText={(value) => update({ name: value, nameEdited: true })}
+              onChangeText={(value) => {
+                // D-563 nom : nom saisi — jamais remplacé par une proposition ; le message de l'enregistrement précédent s'efface.
+                nameTyped.current = true;
+                setNameTakenShown(false);
+                update({ name: value, nameEdited: true });
+              }}
               placeholder={t.namePlaceholder}
               placeholderTextColor={colors.textSecondary}
               // Occurrence seule (D-536, point 1 du prompt de la mission 2) : « Le nom reste celui de la routine. »
@@ -697,11 +761,11 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               returnKeyType="done"
               testID="planning-name"
             />
-            {/* D-553 (21/11/2026) : nom vidé → « Nom obligatoire » ; doublons autorisés. [« Ce nom est déjà utilisé » (RM-261) —
-                retiré.] */}
-            {nameMissing ? (
+            {/* D-553 (21/11/2026) : nom vidé → « Nom obligatoire ». D-563 nom (Hermann, 23/11/2026) : nom pris par une routine
+                active → « Ce nom est déjà utilisé ». [D-553 : doublons autorisés — remplacé pour les routines actives.] */}
+            {nameMissing || nameTaken ? (
               <Text style={styles.nameError} accessibilityLiveRegion="polite" testID="planning-name-error">
-                {t.nameRequired}
+                {nameMissing ? t.nameRequired : t.nameTaken}
               </Text>
             ) : null}
             {/* RM-259 : synthèse en 14 ; « X jours par semaine » quand les jours ne tiennent pas. */}

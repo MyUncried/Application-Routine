@@ -22,7 +22,7 @@ describe("migration 032 — routines.name", () => {
     database.close();
   });
 
-  it("nom non unique depuis D-553 ; nom vide refusé ; unité Jour relue", async () => {
+  it("nom unique parmi les routines actives (D-563) ; nom vide refusé ; unité Jour relue", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);
     let ids = 0;
@@ -36,8 +36,12 @@ describe("migration 032 — routines.name", () => {
     };
     const first = await service.createRoutine(draft);
     expect(first.status).toBe("SAVED");
-    // D-553 (21/11/2026) : doublons de noms de Routines autorisés. [RM-261 : « NAME_TAKEN » — remplacé.]
-    expect((await service.createRoutine({ ...draft, name: " MATIN ", entries: [{ id: "e2", sessionId: "s", frequency: EVERY_TIME }] })).status).toBe("SAVED");
+    // D-563 nom (Hermann, 23/11/2026) : nom pris par une routine active, sans casse ni espaces de bord. [D-553 (21/11/2026) :
+    // doublons de noms de Routines autorisés — remplacé pour les routines actives.]
+    expect(await service.createRoutine({ ...draft, name: " MATIN ", entries: [{ id: "e2", sessionId: "s", frequency: EVERY_TIME }] })).toEqual({
+      status: "NAME_TAKEN",
+      proposal: "MATIN (2)",
+    });
     expect(await service.createRoutine({ ...draft, name: "" })).toEqual({ status: "INVALID", issues: ["NAME_REQUIRED"] });
     expect((await service.updateRoutine("r1", draft)).status).toBe("SAVED");
     expect((await service.getRoutine("r1"))?.repetition).toEqual(draft.repetition);

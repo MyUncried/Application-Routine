@@ -15,6 +15,8 @@
  * Dates : date civile locale `AAAA-MM-JJ`, heure locale `HH:MM` ; aucune conversion de fuseau.
  */
 
+import { canonicalSessionNameKey } from "@/domain/sessions/validation";
+
 /** Date civile locale, `AAAA-MM-JJ`. */
 export type LocalDate = string;
 /** Heure locale, `HH:MM` (24 h). */
@@ -102,7 +104,9 @@ export type RoutineEntry = {
 export type Routine = {
   readonly id: string;
   /**
-   * D-553 (21/11/2026) : nom de la Routine, non unique — généré par défaut (`nameGenerated`), ou personnalisé.
+   * D-563 nom (Hermann, 23/11/2026) : unique parmi les routines actives (`routineNameKey`) ; une routine terminée garde son nom
+   * et n'entre pas dans le contrôle (`PlanningService.routineNameProposal`). [D-553 : « non unique » — remplacé pour les actives.]
+   * D-553 (21/11/2026) : nom de la Routine — généré par défaut (`nameGenerated`), ou personnalisé.
    * Nom généré : celui de la Séance, ou les noms des Séances dans l'ordre reliés par « + » (`generatedRoutineName`), enregistré
    * à chaque écriture ; l'affichage le recalcule depuis la composition (`routineDisplayName`).
    * [D-522 / RM-258 / RM-261 : nom libre, unique parmi les planifications ; vide pour une planification antérieure au 18/11/2026
@@ -217,6 +221,30 @@ export function routineDisplayName(routine: Pick<Routine, "name" | "nameGenerate
   if (routine.nameGenerated !== true) return routine.name;
   const generated = generatedRoutineName(routine.entries.map((entry) => nameOf(entry.sessionId)));
   return generated !== "" ? generated : routine.name;
+}
+
+/**
+ * D-563 nom (Hermann, 23/11/2026) : clé de comparaison des noms de routine — sans distinguer majuscules, minuscules, accents ni
+ * espaces de bord ; même clé que l'unicité des noms de Séance (`canonicalSessionNameKey`, RM-261). Le nom enregistré garde sa
+ * casse et ses accents.
+ */
+export function routineNameKey(name: string): string {
+  return canonicalSessionNameKey(name);
+}
+
+/**
+ * D-563 nom (Hermann, 23/11/2026) : premier nom libre parmi `takenNames` (noms des routines actives) — le nom lui-même s'il est
+ * libre, sinon « Tabata (2) », puis « Tabata (3) »… Comparaison par `routineNameKey`. Le nom de départ est gardé tel quel (aucun
+ * suffixe existant n'est retiré : aucune règle ne le prévoit).
+ */
+export function firstFreeRoutineName(name: string, takenNames: Iterable<string>): string {
+  const base = name.trim();
+  const taken = new Set(Array.from(takenNames, routineNameKey));
+  if (!taken.has(routineNameKey(base))) return base;
+  for (let rank = 2; ; rank += 1) {
+    const candidate = `${base} (${rank})`;
+    if (!taken.has(routineNameKey(candidate))) return candidate;
+  }
 }
 
 export type RoutineValidationIssue =

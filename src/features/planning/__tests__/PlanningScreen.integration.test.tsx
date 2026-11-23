@@ -229,9 +229,10 @@ describe("Planifier (CE-UI-12)", () => {
     expect(synthesis()).toMatch(/ toutes les 2 semaines, les lundis, à 8h, /);
   });
 
-  // D-553 (21/11/2026) : nom généré « Bravo + Alpha » ; doublon autorisé ; nom vidé bloquant (« Nom obligatoire ») ; nom saisi
-  // = personnalisé. [RM-258 / RM-261 : nom vide et obligatoire à plusieurs séances, « Ce nom est déjà utilisé » — remplacés.]
-  it("parcours : nom généré, doublon autorisé, nom vidé bloquant, nom saisi personnalisé (D-553)", async () => {
+  // D-553 (21/11/2026) : nom généré « Bravo + Alpha » ; nom vidé bloquant (« Nom obligatoire ») ; nom saisi = personnalisé.
+  // D-563 nom (Hermann, 23/11/2026) : nom saisi déjà pris par une routine active (sans casse, accents ni espaces de bord) →
+  // « Ce nom est déjà utilisé », rien n'est enregistré. [D-553 : doublon autorisé — remplacé pour les routines actives.]
+  it("parcours : nom généré, nom vidé bloquant, nom saisi déjà pris refusé, nom saisi personnalisé (D-553, D-563)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     const existing = await planning.createRoutine({ name: "Matin", startDate: START, time: "07:00", repetition: null, entries: [{ id: "x", sessionId: a.id, frequency: EVERY_TIME }] });
@@ -245,13 +246,17 @@ describe("Planifier (CE-UI-12)", () => {
     fireEvent.changeText(screen.getByTestId("planning-name"), "");
     expect(screen.getByTestId("planning-name-error").props.children).toBe("Nom obligatoire");
     expect(validateEnabled()).toBe(false);
-    fireEvent.changeText(screen.getByTestId("planning-name"), "  MATIN ");
+    fireEvent.changeText(screen.getByTestId("planning-name"), "  MÂTIN ");
+    expect(screen.getByTestId("planning-name-error").props.children).toBe("Ce nom est déjà utilisé");
+    expect(validateEnabled()).toBe(false);
+    expect(screen.getByTestId("planning-name").props.value).toBe("  MÂTIN ");
+    fireEvent.changeText(screen.getByTestId("planning-name"), "MATIN SOIR");
     expect(screen.queryByTestId("planning-name-error")).toBeNull();
-    expect(screen.queryByText("Ce nom est déjà utilisé")).toBeNull();
     expect(validateEnabled()).toBe(true);
     await save();
     const routines = await planning.listRoutines();
-    expect(routines[1]).toMatchObject({ name: "MATIN" });
+    expect(routines).toHaveLength(2);
+    expect(routines[1]).toMatchObject({ name: "MATIN SOIR" });
     expect(routines[1]?.nameGenerated).toBeUndefined();
     // D-519 : ordre des lignes = ordre de sélection.
     expect(routines[1]?.entries.map((entry) => entry.sessionId)).toEqual([b.id, a.id]);
@@ -265,6 +270,65 @@ describe("Planifier (CE-UI-12)", () => {
     await save();
     const [created] = await planning.listRoutines();
     expect(created).toMatchObject({ name: "Alpha + Bravo", nameGenerated: true });
+  });
+
+  // D-563 nom (Hermann, 23/11/2026) : nom par défaut déjà pris par une routine active → premier nom libre, modifiable, enregistré
+  // comme nom personnalisé ; une routine terminée n'entre pas dans le contrôle.
+  it("création : nom par défaut pris par une active → premier nom libre « Alpha (3) » ; terminée ignorée (D-563)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    for (const name of ["Alpha", "ALPHA (2)"]) {
+      const result = await planning.createRoutine({ name, startDate: START, time: "07:00", repetition: null, entries: [{ id: `x-${name}`, sessionId: a.id, frequency: EVERY_TIME }] });
+      expect(result.status).toBe("SAVED");
+    }
+    const ended = await planning.createRoutine({ name: "Alpha (3)", startDate: "2029-06-04", time: "07:00", repetition: null, entries: [{ id: "x-old", sessionId: a.id, frequency: EVERY_TIME }] });
+    expect(ended.status).toBe("SAVED");
+    await renderPlanning({ sessionId: a.id, date: START });
+    expect(screen.getByTestId("planning-name").props.value).toBe("Alpha (3)");
+    expect(screen.queryByTestId("planning-name-error")).toBeNull();
+    expect(validateEnabled()).toBe(true);
+    await save();
+    const routines = await planning.listRoutines();
+    expect(routines).toHaveLength(4);
+    expect(routines[3]).toMatchObject({ name: "Alpha (3)" });
+    expect(routines[3]?.nameGenerated).toBeUndefined();
+  });
+
+  it("duplication d'une routine active : la copie propose le premier nom libre (D-563)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const source = await planning.createRoutine({ name: "Alpha", nameGenerated: true, startDate: START, time: "07:00", repetition: null, entries: [{ id: "x", sessionId: a.id, frequency: EVERY_TIME }] });
+    if (source.status !== "SAVED") throw new Error(source.status);
+    await renderPlanning({ duplicateOf: source.routine.id });
+    expect(screen.getByTestId("planning-name").props.value).toBe("Alpha (2)");
+    await save();
+    expect((await planning.listRoutines()).map((routine) => routine.name)).toEqual(["Alpha", "Alpha (2)"]);
+  });
+
+  it("réactivation depuis le Journal : nom pris par une active → l'écran reste ouvert, premier nom libre et message ; rien n'est enregistré (D-563)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const old = await planning.createRoutine({
+      name: "Matin",
+      startDate: "2029-11-05",
+      time: "07:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 2 } },
+      entries: [{ id: "x-old", sessionId: a.id, frequency: EVERY_TIME }],
+    });
+    if (old.status !== "SAVED") throw new Error(old.status);
+    expect((await planning.createRoutine({ name: "Matin", startDate: START, time: "07:00", repetition: null, entries: [{ id: "x", sessionId: a.id, frequency: EVERY_TIME }] })).status).toBe("SAVED");
+    await renderPlanning({ routineId: old.routine.id });
+    expect(screen.getByTestId("planning-name").props.value).toBe("Matin");
+    fireEvent.press(screen.getByTestId("planning-end-count"));
+    turnWheel("planning-end-count-wheel", 20);
+    fireEvent.press(screen.getByTestId("planning-end-count-popover-scrim", { includeHiddenElements: true }));
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.getByTestId("planning-name").props.value).toBe("Matin (2)");
+    expect(screen.getByTestId("planning-name-error").props.children).toBe("Ce nom est déjà utilisé");
+    expect(await planning.getRoutine(old.routine.id)).toMatchObject({ name: "Matin", repetition: { end: { kind: "FOR", count: 2 } } });
+    await save();
+    expect(await planning.getRoutine(old.routine.id)).toMatchObject({ name: "Matin (2)", repetition: { end: { kind: "FOR", count: 20 } } });
+    expect(mockBack).toHaveBeenCalled();
   });
 
   it("une seule séance cochée dans la sélection : son nom est copié (RM-258)", async () => {

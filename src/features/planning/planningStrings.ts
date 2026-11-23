@@ -228,6 +228,8 @@ export const planningStrings = {
     nameAccessibility: "Nom de la planification",
     namePlaceholder: "Nom de la planification",
     nameRequired: "Nom obligatoire",
+    // D-563 nom (Hermann, 23/11/2026) : nom déjà pris par une routine active.
+    nameTaken: "Ce nom est déjà utilisé",
     everyFeminine: "toutes les",
     everyMasculine: "tous les",
     none: "aucune",

@@ -3,8 +3,10 @@ import {
   endDateForCount,
   formatLocalDate,
   isLocalDate,
+  firstFreeRoutineName,
   isLocalTime,
   mondayOf,
+  routineNameKey,
   occurrenceInstant,
   REMINDER_MAX_MINUTES,
   validateRoutineDraft,
@@ -54,8 +56,10 @@ import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 
 export type SaveRoutineResult =
   | { readonly status: "SAVED"; readonly routine: Routine }
-  // D-553 (21/11/2026) : plus de contrôle d'unicité du nom. [« NAME_TAKEN » (RM-261) — retiré.]
   | { readonly status: "INVALID"; readonly issues: readonly RoutineValidationIssue[] }
+  // D-563 nom (Hermann, 23/11/2026) : nom déjà pris par une routine active — rien n'est enregistré ; `proposal` : premier nom
+  // libre (« Tabata (2) »). [D-553 (21/11/2026) : plus de contrôle d'unicité du nom — remplacé pour les routines actives.]
+  | { readonly status: "NAME_TAKEN"; readonly proposal: string }
   | { readonly status: "NOT_FOUND" };
 
 /** Modification d'une occurrence seule (Agenda, D-536 point 4) : valeurs voulues pour chaque groupe. */
@@ -574,19 +578,56 @@ export class PlanningService {
   }
 
   /**
-   * D-553 (21/11/2026) : validations du brouillon ; un nom vide bloque (« Nom obligatoire »), les doublons sont autorisés.
-   * [RM-261 : nom déjà pris par une autre planification (« Ce nom est déjà utilisé ») — retiré.]
+   * D-553 (21/11/2026) : validations du brouillon ; un nom vide bloque (« Nom obligatoire »). [« les doublons sont autorisés » —
+   * remplacé par D-563 nom (Hermann, 23/11/2026) : unicité parmi les routines actives, contrôlée par `takenNameProposal`.]
    */
   private issuesOf(draft: RoutineDraft): RoutineValidationIssue[] {
     return [...validateRoutineDraft(draft)];
   }
 
-  async createRoutine(draft: RoutineDraft): Promise<SaveRoutineResult> {
-    const issues = this.issuesOf(draft);
-    if (issues.length > 0) return { status: "INVALID", issues };
+  /**
+   * D-563 nom (Hermann, 23/11/2026) : le nom d'une routine est unique parmi les routines actives (D-540 : au moins un créneau à
+   * venir ou rattrapable, `isRoutineActiveAt`), sans distinguer majuscules, minuscules, accents ni espaces de bord
+   * (`routineNameKey`). Une routine terminée garde son nom et n'entre pas dans le contrôle : ni ses homonymes ne la bloquent, ni
+   * elle ne bloque ses homonymes. Le contrôle porte sur le nom enregistré (`Routine.name`), généré ou personnalisé. `candidate` :
+   * la routine telle qu'elle serait enregistrée ; elle n'est contrôlée que si elle est (ou redevient) active. Rend le premier nom
+   * libre si le nom est pris, `null` sinon. Les homonymes actifs déjà en base ne sont pas renommés : le contrôle joue à leur
+   * prochaine modification.
+   */
+  private async takenNameProposal(candidate: Routine): Promise<string | null> {
+    if (candidate.name.trim() === "") return null;
+    const isStarted = await this.startedTest();
+    const now = this.deps.now();
+    if (!isRoutineActiveAt(candidate, now, isStarted)) return null;
+    const others = (await this.deps.repository.list())
+      .filter((routine) => routine.id !== candidate.id && isRoutineActiveAt(routine, now, isStarted))
+      .map((routine) => routine.name);
+    const key = routineNameKey(candidate.name);
+    return others.some((name) => routineNameKey(name) === key) ? firstFreeRoutineName(candidate.name, others) : null;
+  }
+
+  /**
+   * D-563 nom : contrôle du nom avant enregistrement (création, ou modification de `routineId` depuis le Journal) — premier nom
+   * libre si le nom du brouillon est pris par une routine active, `null` sinon. Même règle que `createRoutine` / `updateRoutine`.
+   */
+  async routineNameProposal(draft: RoutineDraft, routineId?: string): Promise<string | null> {
+    if (routineId === undefined) return this.takenNameProposal(this.newRoutine(draft, ""));
+    const stored = await this.deps.repository.get(routineId);
+    if (stored === null) return null;
+    return this.takenNameProposal({ ...withDraft(stored, draft), name: draft.name.trim() });
+  }
+
+  /** D-563 nom : noms enregistrés des routines actives (proposition du premier nom libre à la création). */
+  async activeRoutineNames(): Promise<readonly string[]> {
+    const isStarted = await this.startedTest();
+    const now = this.deps.now();
+    return (await this.deps.repository.list()).filter((routine) => isRoutineActiveAt(routine, now, isStarted)).map((routine) => routine.name);
+  }
+
+  private newRoutine(draft: RoutineDraft, id: string): Routine {
     const at = this.deps.now().toISOString();
-    const routine: Routine = {
-      id: this.deps.newId(),
+    return {
+      id,
       name: draft.name.trim(),
       ...(draft.nameGenerated === true ? { nameGenerated: true } : {}),
       startDate: draft.startDate,
@@ -600,6 +641,15 @@ export class PlanningService {
       createdAt: at,
       updatedAt: at,
     };
+  }
+
+  async createRoutine(draft: RoutineDraft): Promise<SaveRoutineResult> {
+    const issues = this.issuesOf(draft);
+    if (issues.length > 0) return { status: "INVALID", issues };
+    // D-563 nom (Hermann, 23/11/2026) : nom pris par une routine active — rien n'est enregistré (aucune identité consommée).
+    const proposal = await this.takenNameProposal(this.newRoutine(draft, ""));
+    if (proposal !== null) return { status: "NAME_TAKEN", proposal };
+    const routine = this.newRoutine(draft, this.deps.newId());
     await this.deps.repository.save(routine);
     return this.written({ status: "SAVED", routine } as const);
   }
@@ -625,6 +675,10 @@ export class PlanningService {
       reminderMinutes: draft.reminderMinutes ?? null,
       updatedAt: this.deps.now().toISOString(),
     };
+    // D-563 nom (Hermann, 23/11/2026) : une modification qui laisse ou rend active la routine (réactivation d'une routine
+    // terminée : période étendue, créneaux ajoutés) vérifie le nom ; pris par une routine active : rien n'est enregistré.
+    const proposal = await this.takenNameProposal(routine);
+    if (proposal !== null) return { status: "NAME_TAKEN", proposal };
     await this.deps.repository.save(withoutStaleTraces(routine, await this.startedTest()));
     return this.written({ status: "SAVED", routine } as const);
   }

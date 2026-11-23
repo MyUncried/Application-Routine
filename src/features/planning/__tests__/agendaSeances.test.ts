@@ -80,10 +80,11 @@ describe("PlanningService — D-553", () => {
     database.close();
   });
 
-  it("noms identiques autorisés ; nom vide bloquant ; renommage : nom personnalisé fixe, nom généré enregistré comme tel", async () => {
+  // D-563 nom (Hermann, 23/11/2026) : nom unique parmi les routines actives (détail : `routineNameUnique.test.ts`).
+  // [D-553 : noms identiques autorisés — remplacé pour les routines actives.]
+  it("nom pris par une routine active refusé ; nom vide bloquant ; renommage : nom personnalisé fixe, nom généré enregistré comme tel", async () => {
     const first = await create({ name: "Mobilité" });
-    const second = await create({ name: "Mobilité" });
-    expect(first.id).not.toBe(second.id);
+    expect(await planning.createRoutine(draft({ name: "Mobilité", entries: [entry("s-a", "e-other")] }))).toEqual({ status: "NAME_TAKEN", proposal: "Mobilité (2)" });
     expect(await planning.createRoutine(draft({ name: "   " }))).toEqual({ status: "INVALID", issues: ["NAME_REQUIRED"] });
     const generated = await create({ name: "Alpha", nameGenerated: true });
     expect((await planning.getRoutine(generated.id))?.nameGenerated).toBe(true);
@@ -112,8 +113,9 @@ describe("PlanningService — D-553", () => {
   });
 
   it("rattachement : créneau autonome du jour, non commencé et non expiré ; le plus proche, puis le plus ancien (§ 4)", async () => {
-    const early = await create({ time: "07:00" });
-    const late = await create({ time: "08:00" });
+    // D-563 nom : deux routines actives, deux noms.
+    const early = await create({ name: "Tôt", time: "07:00" });
+    const late = await create({ name: "Tard", time: "08:00" });
     // 7h30 : à égale distance de 7h00 et 8h00 → le plus ancien (7h00).
     expect(await planning.autoAttachment("s-a", at(5, 7, 30))).toEqual({ routineId: early.id, occurrenceKey: "2030-08-05T07:00", rank: 1 });
     // 7h50 : 8h00 est le plus proche.
