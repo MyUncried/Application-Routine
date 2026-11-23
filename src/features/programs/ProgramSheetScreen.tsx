@@ -25,6 +25,8 @@ import { colors, layout, spacing, switchOffColors, type } from "@/shared/ui/toke
 import { formatDayMonthYear, routineSlotLine } from "./programPresentation";
 import { requestProgramSheet, type AttachedRoutine } from "./programSheetRelay";
 import { useProgramService } from "./ProgramServiceContext";
+import { NativePeriodCalendar } from "./NativePeriodCalendar";
+import { openPeriodSelection, pressPeriodDate, type PeriodSelection } from "./periodSelection";
 import { programStrings } from "./programStrings";
 
 /**
@@ -96,6 +98,8 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     [],
   );
   const [popover, setPopover] = useState<{ readonly field: DateField; readonly anchor: PopoverAnchor } | null>(null);
+  // D-563 : sélection en deux appuis dans le calendrier natif unique (module `kodjo-calendar`).
+  const [period, setPeriod] = useState<PeriodSelection | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [hint, setHint] = useState(false);
@@ -310,7 +314,10 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
 
   const openDate = (field: DateField) => {
     const node = (field === "START" ? startRef : endRef).current;
-    node?.measureInWindow((x, y, width, height) => setPopover({ field, anchor: { x, y, width, height } }));
+    node?.measureInWindow((x, y, width, height) => {
+      setPeriod(openPeriodSelection(field, draft.startDate, draft.endDate));
+      setPopover({ field, anchor: { x, y, width, height } });
+    });
   };
 
   const title = stored === null ? t.titleNew : stored.name;
@@ -455,7 +462,29 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
         )}
       />
       <PlanningPopover anchor={popover?.anchor ?? null} width={DATE_PANEL_WIDTH} onDismiss={() => setPopover(null)} testID="program-date-popover">
-        {popover !== null && Platform.OS === "ios" ? (
+        {popover !== null && period !== null && NativePeriodCalendar !== null ? (
+          // D-563 : un seul calendrier natif (UICalendarView) pour le début et la fin ; période marquée sous chaque jour.
+          <NativePeriodCalendar
+            selectedDate={period.selected}
+            periodStart={draft.startDate}
+            periodEnd={draft.endDate}
+            visibleDate={period.selected ?? draft.startDate ?? formatLocalDate(new Date())}
+            tintColor={colors.primary}
+            onPressDate={(event) => {
+              const step = pressPeriodDate(period, event.nativeEvent.date);
+              setPeriod(step.state);
+              if (step.write.startDate !== undefined || step.write.endDate !== undefined) {
+                update({
+                  ...(step.write.startDate !== undefined ? { startDate: step.write.startDate } : {}),
+                  ...(step.write.endDate !== undefined ? { endDate: step.write.endDate } : {}),
+                });
+              }
+              if (step.close) setPopover(null);
+            }}
+            style={styles.nativeCalendar}
+            testID="program-period-calendar"
+          />
+        ) : popover !== null && Platform.OS === "ios" ? (
           <View style={styles.calendar}>
             <Host matchContents colorScheme="light">
               <DatePicker
@@ -506,4 +535,6 @@ const styles = StyleSheet.create({
   notice: { ...type.supporting, color: colors.textSecondary },
   error: { ...type.supporting, color: colors.danger },
   calendar: { width: DATE_PANEL_WIDTH },
+  // UICalendarView : six semaines et l'en-tête du mois tiennent dans 400.
+  nativeCalendar: { width: DATE_PANEL_WIDTH, height: 400 },
 });
