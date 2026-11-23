@@ -2,6 +2,33 @@ Ce document devient le registre permanent des décisions de conception du produi
 
 > **Cible actualisée le 17/11/2026 :** les dispositions antérieures concernant les champs retirés, les accès après suppression et les arbitrages désormais clos sont supersédées par les [décisions consolidées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Voir aussi la section finale de ce document.
 
+## Gestion des langues — décisions de Hermann du 23/11/2026 (numéro de décision à attribuer)
+
+Chantier multilingue ouvert le 23/11/2026. Plan, benchmark et texte complet des échanges : `docs/preparation/langues/`. Réponses de Hermann (texte d'origine) :
+
+- Langues : « 1. Anglais 2. Espagnol 3. Italien 4 Allemand » ; « J'ai oublié portugais » ; « Avant l'allemand » ; variante : « Bresilien ».
+- Périmètre : « Oui j'intègre le multilingue comme un chantier à part entière à commencer maintenant. »
+- Choix de langue : « Par défaut celle du téléphone, avec option de changer dans le profil. L'anglais en dernier recours. » ; mécanisme : « ok » à la recommandation d'ouvrir le réglage iOS de langue de l'application.
+- Voix : « Liée. »
+- Contenus : « Les contenus de KODJO sont traduits, ceux fournis par les utilisateurs non, ou seulement en anglais. » ; « un contenu KODJO ne peut pas être modifié par un utilisateur ».
+- Alias : « Les deux, mais d'abord synonyme, ou le nom commun associé au nom qui est entré. » ; saisie : « Oui » (on commence).
+- Emplacement : « La langue et l'unité devraient être avec le genre » (Profil › Compte).
+- Repli : « Anglais ».
+- Phrase de synthèse : « On va revoir cette synthèse qui n'est utilisée qu'à un endroit, les exercices dans la composition, la normer et la simplifier un peu. a) les standardiser / simplifier b) les traduire par un traducteur IA c) je les ferai relire par quelqu'un de natif dans la langue. » ; « simplifiées puis traduites. Je verrai ensuite pour la validation ».
+- Unité : « Une seule unité définie dans le profil, conversion seulement lorsque l'unité est modifiée. »
+
+Règles qui en découlent :
+
+1. **Langues** : français (langue source), puis anglais, espagnol, italien, portugais du Brésil, allemand. Le multilingue n'est plus reporté après le MVP.
+2. **Langue de l'interface** : la première langue de la liste des langues préférées du téléphone que KODJO prend en charge ; à défaut, l'anglais. Profil › Compte affiche la langue en cours ; la toucher ouvre le réglage iOS de langue de l'application. KODJO ne stocke aucune préférence de langue.
+3. **Repli** : un texte absent dans la langue affichée est affiché en anglais ; l'anglais est donc complet avant la publication de toute autre langue.
+4. **Voix** : la langue des annonces vocales est celle de l'interface ; aucun réglage séparé ; voix système de cette langue.
+5. **Contenus** : les contenus édités par KODJO (Bibliothèques et leurs Mouvements, référentiels) sont traduits et s'affichent dans la langue de l'interface ; l'utilisateur ne peut pas les modifier. Les contenus créés par l'utilisateur ne sont pas traduits par KODJO (À CLARIFIER : portée de « ou seulement en anglais »).
+6. **Alias** : un alias est d'abord un synonyme ou le nom courant du Mouvement dans la même langue ; les noms dans d'autres langues viennent ensuite. La saisie d'alias, reportée le 27/10/2026, est rouverte.
+7. **Unité de charge** : une seule unité (kg ou lb) pour tout le profil, réglée dans Profil › Compte. Les charges sont enregistrées et affichées dans cette unité ; elles ne sont converties que lorsque l'utilisateur change d'unité. Valeur par défaut selon la région du téléphone (choix technique proposé, à confirmer).
+8. **Formats régionaux** : dates, heures, nombres et séparateur décimal suivent les réglages du téléphone, sans réglage dans KODJO.
+9. **Phrase de synthèse** des exercices de la Composition : d'abord normée et simplifiée en français, puis traduite par IA ; la validation des traductions sera définie ultérieurement.
+
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
 ## Précisions B.7, B.8 et B.9 — décisions du 01/11/2026
@@ -60,7 +87,7 @@ Choix techniques de mise en œuvre, à valider : un Mouvement archivé reste en 
 
 ## Recette A/B du 27/10/2026, second passage — décisions de Hermann (PRE-8, lot B.10, numéro de décision à attribuer)
 
-Résultats de la recette iPhone du 27/10 (13:10–14:41) et accord de Hermann du même jour : lot de corrections B.10 dans le lot A/B ; la fiche de Mouvement dans la Composition de Séance reste hors périmètre ; aucune saisie d'alias (sujet reporté à la question des langues).
+Résultats de la recette iPhone du 27/10 (13:10–14:41) et accord de Hermann du même jour : lot de corrections B.10 dans le lot A/B ; la fiche de Mouvement dans la Composition de Séance reste hors périmètre ; aucune saisie d'alias (sujet reporté à la question des langues). [Rouvert le 23/11/2026 : saisie d'alias rouverte, voir « Gestion des langues — décisions de Hermann du 23/11/2026 ».]
 
 - **b7-5 — Piles filtrées (remplace la règle Q3 définitive sur ce point).** Dès qu'un filtre autre que le Statut est choisi, une pile n'affiche que ses membres autorisés qui correspondent aux filtres. La Recherche seule affiche toujours la pile entière de ses membres autorisés. La règle « statut d'abord » de Q3 est conservée.
 - **b8-3 — Rangs après archivage (remplace Q5 sur ce point).** Archiver un Niveau recalcule aussitôt les rangs affichés des membres actifs. L'appartenance et la position dans la famille sont conservées (Q7 inchangée). **Confirmé par Hermann le 28/10/2026 (« PRE-8 — Correction de l'arbitrage Niveaux après archivage », option A).** Les rangs affichés des membres actifs sont recalculés sans discontinuité : un actif est numéroté parmi les seuls actifs, et restaurer un membre le réintègre dans cette numérotation. Un membre archivé garde son rang dans la famille complète. Aucune identité ni appartenance n'est modifiée ; la clé de tri est conservée. Même rangs sur les cartes du Catalogue et dans le menu Niveau de la fiche Mouvement (pastille et choix), aligné le 28/10. b8-3 remplace aussi, sur les rangs après archivage et restauration, la règle 8 « Archivage et filtres » du chapitre 09 de `main` (`266a0438`, 27/10) ; la partie filtres de cette règle reste valable. Correction de ce texte à l'intégration documentaire de PRE-8 (`_bmad-output/pre8/integration-documentaire-main.md`).
@@ -330,7 +357,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-031 | Le Suivi affiche `Vue d’ensemble`, `Filtrer` et `Trier`, mais ces trois commandes sont désactivées dans le MVP. Les Exécutions sont affichées sous forme condensée ou déployée. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Oui |
 | D-032 | Dans le MVP, une Séance contient exactement un Cycle et chaque Cycle contient exactement un Tour. Le modèle technique doit toutefois représenter les Cycles et les Tours sous forme de collections ordonnées afin de permettre ultérieurement plusieurs Cycles par Séance et plusieurs Tours par Cycle sans refonte du modèle. Les Cycles, Tours et Exercices restent propres à leur Séance et ne sont pas réutilisables directement entre plusieurs Séances. | Validé ; terminologie révisée par D-209 (D-387) : le conteneur nommé ici « Tour » est le Circuit, un Tour en est une répétition ; nom technique `Tour` non renommé | Oui |
 | D-033 | L’instantané d’une Exécution est une copie fonctionnelle, immuable et allégée. Il ne duplique pas les fichiers médias mais conserve leurs associations ordonnées et références stables ; les fichiers restent conservés tant qu’un instantané les référence. | Révisée par D-115/D-118 | Oui |
-| D-034 | Le MVP est monolingue en français et ne comporte aucun sélecteur de langue. Les textes de l’interface sont externalisés dans un catalogue de ressources afin de préparer l’ajout ultérieur de langues ; l’évolution multilingue pourra gérer séparément la langue de l’interface et celle de la synthèse vocale. | Validée | Oui |
+| D-034 | Le MVP est monolingue en français et ne comporte aucun sélecteur de langue. Les textes de l’interface sont externalisés dans un catalogue de ressources afin de préparer l’ajout ultérieur de langues ; l’évolution multilingue pourra gérer séparément la langue de l’interface et celle de la synthèse vocale. [Remplacé le 23/11/2026 par « Gestion des langues — décisions de Hermann du 23/11/2026 » (chapitre 07) : multilingue engagé, sélection par le réglage iOS, voix liée à l’interface.] | Validée | Oui |
 | D-035 | Le code est organisé principalement par domaine fonctionnel. Expo Router porte les routes et points d’entrée ; la logique métier reste dans les domaines, le code partagé dans `shared/` et les capacités techniques dans `infrastructure/`. Les noms techniques du code sont en anglais et restent rattachables au glossaire français. | Validée | Oui |
 | D-036 | Le MVP intègre dès le socle les principes essentiels d’accessibilité, un responsive adapté aux principales tailles d’écran iOS/Android et des design tokens centralisés. Il est conçu et testé en portrait, tout en préparant techniquement l’ajout ultérieur du paysage. Tablette dédiée et mode sombre sont hors MVP. | Validée | Oui |
 | D-037 | Le MVP développe un seul système UI de référence, décliné au moyen des Screen Shells et composants communs définis par D-096. La logique fonctionnelle, les composants de présentation et le Design System sont séparés afin de permettre une refonte ultérieure ou des variantes de présentation sans modifier le domaine métier ni le moteur d’Exécution. | Révisée post-Figma | Oui |
@@ -775,7 +802,7 @@ Q-08 clos par instruction explicite du propriétaire : pause après chaque séri
 | D-314 | Pause après chaque série, y compris N1 et dernière ; seule la toute dernière Pause est remplacée par une récupération positive qui suit. PN puis PC se cumulent à la frontière des côtés successifs. | Explicite propriétaire | Confirme D-248 ; remplace D-311 ; calculs, plan, progression et inversion |
 | D-315 | Les276 cas v14 fixent les formulations ; terme « pause après chaque série ». Excel exclusivement rédactionnel. | Explicite propriétaire | Q-08 clos ; remplace H-03 et phrases de pauses antérieures de D-298 |
 | D-316 | Générateur pur de segments `{texte, gras}`, à chaque affichage ; aucune phrase en base. | Explicite propriétaire | API, modèle, architecture, contrats ; aucune recherche de valeurs pour le gras |
-| D-317 | MVP français ; extension multilingue exige grammaires/règles de pluriel et genre par locale. | Dette documentée | Réécriture des assemblages français à planifier avant i18n |
+| D-317 | MVP français ; extension multilingue exige grammaires/règles de pluriel et genre par locale. [Complété le 23/11/2026 : la phrase de synthèse est d’abord normée et simplifiée, puis traduite par IA ; voir « Gestion des langues ».] | Dette documentée | Réécriture des assemblages français à planifier avant i18n |
 | D-318 | Durée des cartes Catalogue sans fond/cadre/padding, Inter Semi Bold12 #141414, alignée à16px du bord droit ; propriété booléenne Durée. | Prompt et composants vérifiés | Deux composants actifs, variantes repliée/archivée/déployée ; ne rouvre pas l’accès Exercice Déployé hors MVP |
 | D-319 | Exercice : titre250px, lignes basses207px ; gouttière12px et texte x88 conservés. Séance marges16/16. | Explicite prompt | Coupe60/69/145 dérivée des lignes basses ; asymétrie acceptée |
 | D-320 | Variabilité de visibilité via propriété de composant ; cinq composants sans instance obsolètes, pas de mise à jour ni suppression dans ce lot. | Méthode et inventaire | Incident des cinq instances signalé ; aucun caractère universel d’irréversibilité déduit |

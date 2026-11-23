@@ -59,3 +59,11 @@ Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
 - H6 bis (emplacement Langue / Unité, Notifications) et H7 (phrases : simplifier, traduire par IA, relecture native) recopiés dans le plan.
 - Recommandation révisée : Langue et Unité dans Profil › Compte. Notifications maintenues hors Confidentialité. A6 tranché ; A8 ajouté.
 - Aucun fichier applicatif modifié ; aucun test applicable.
+
+## Complément — troisième échange du 23/11 : lot D0 (classe B)
+
+- Arbitrages A0, A1, A2, A4, A5, A7 de Hermann reportés textuellement au chapitre 07 (section « Gestion des langues — décisions de Hermann du 23/11/2026 », numéro de décision à attribuer), avec 9 règles dérivées.
+- Formulations contraires annotées « [Remplacé le 23/11/2026 …] », texte d'origine conservé : chapitres 02 (question ouverte), 05 (Internationalisation), 07 (D-034, D-317, alias du 27/10), 10 (RM-091, Langue du MVP, Voix, Charge RM-235 et tableau), 12 (Internationalisation), 13 (Profil, invariants, comportement).
+- Synchronisation code/doc : classe **B** (évolution validée par décision explicite de Hermann) ; aucun code modifié.
+- Restent ouverts : A3 (portée de « ou seulement en anglais »), processus de validation des traductions, arrondi kg ↔ lb, écran Figma Profil › Compte.
+- Aucun test applicable (documentation seule).

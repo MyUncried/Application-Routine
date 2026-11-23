@@ -3,6 +3,15 @@
 > Document de préparation du 23/11/2026. Il n'est pas normatif : les règles ne deviennent applicables qu'une fois reportées dans le registre des décisions (chapitre 07) et les chapitres dépendants (étape D0 ci-dessous).
 > Point de départ : état des lieux `.github/orchestration/reports/2026-11-23_LANGUES-ETAT-DES-LIEUX.md`. Benchmark : `BENCHMARK-LANGUES-CONCURRENTS-2026-11-23.md` (même dossier).
 
+
+## 0. Troisième échange du 23/11/2026 — arbitrages (texte d'origine)
+
+« A0. Bresilien / A1. Oui j'intègre le multilingue comme un chantier à part entière à commencer maintenant. / A2 ok / A3 je ne comprends pas / A4 un contenu KODJO ne peut pas être modifié par un utilisateur / A5 Veux tu dire est ce qu'on commence ? Oui / A6 simplifiées puis traduites. Je verrai ensuite pour la validation / A7. Une seule unité définie dans le profil, conversion seulement lorsque l'unité est modifiée. »
+
+État : A0, A1, A2, A4, A5, A7 tranchés ; A6/A8 : traduction IA retenue, validation à définir plus tard ; **A3 reste ouvert** (reformulé ci-dessous). **D0 réalisé** : section « Gestion des langues — décisions de Hermann du 23/11/2026 » au chapitre 07, formulations contraires annotées dans les chapitres 02, 05, 07, 10, 12 et 13.
+
+Point technique ouvert (A7) : arrondi à la conversion kg ↔ lb (par exemple 45 lb = 20,41 kg) et absence de dérive en cas de changements répétés ; à définir dans le lot T5.
+
 ## 1. Décisions de Hermann du 23/11/2026 (texte d'origine)
 
 | # | Sujet | Réponse de Hermann |

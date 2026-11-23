@@ -4966,7 +4966,7 @@ Photo/nom existants puis deux choix de silhouette sous l’aide du Nom d’affic
 
 #### 8. Éléments obligatoires
 
-Champ Nom d’affichage, action photo facultative, deux silhouettes à sélection unique et Enregistrer. Aucun sélecteur de langue ni identité distante.
+Champ Nom d’affichage, action photo facultative, deux silhouettes à sélection unique et Enregistrer. Aucun sélecteur de langue ni identité distante. [Remplacé le 23/11/2026 pour la langue : Profil › Compte reçoit les lignes Langue et Unité de charge, groupées avec le genre — « Gestion des langues » (chapitre 07) ; contrat à compléter après Figma.]
 
 #### 9. Layout déterministe
 
@@ -5108,7 +5108,7 @@ Nom et état on/off annoncés ; steppers annoncent unité et borne ; cibles dist
 
 #### 19. Invariants
 
-Pas de compte distant, pas de langue MVP, aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.
+Pas de compte distant, pas de langue MVP [remplacé le 23/11/2026 : voir « Gestion des langues » (chapitre 07)], aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.
 
 *Texte identique à celui de la section [« CE-T03-17 — Navigation principale — inventaire DSF »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-17--navigation-principale--inventaire-dsf) ; il n’est pas recopié ici.*
 
@@ -5140,7 +5140,7 @@ Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours i
 
 Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant des réglages de vibration par événement.
 
-Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
+Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. [Remplacé le 23/11/2026 : voir « Gestion des langues » (chapitre 07).] Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
 
 ### Profil — Comportement
 
