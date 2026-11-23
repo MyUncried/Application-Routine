@@ -3674,11 +3674,15 @@ Elle ne s’affiche pas pour une Série en mode Répétitions ou à cible À l�
 
 **Titre**
 
-> Passer à l’exercice suivante ?
+> Passer à l’exercice suivant ?
+
+[Corrigé le 23/11/2026, demande de Hermann (« Corrige les deux fautes ») ; texte d’origine : « Passer à l’exercice suivante ? ».]
 
 **Message**
 
-> La séance continuera avec l’exercice suivante, elle sera enregistrée comme partiellement exécutée.
+> La séance continuera avec l’exercice suivant, elle sera enregistrée comme partiellement exécutée.
+
+[Corrigé le 23/11/2026, même demande ; texte d’origine : « … avec l’exercice suivante, … ».]
 
 **Actions**
 

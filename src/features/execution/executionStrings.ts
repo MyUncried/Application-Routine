@@ -79,8 +79,8 @@ export const executionStrings = {
     confirm: "Confirmer",
   },
   nextDialog: {
-    title: "Passer à l’exercice suivante ?",
-    message: "La séance continuera avec l’exercice suivante, elle sera enregistrée comme partiellement exécutée.",
+    title: "Passer à l’exercice suivant ?",
+    message: "La séance continuera avec l’exercice suivant, elle sera enregistrée comme partiellement exécutée.",
     cancel: "Annuler",
     confirm: "Confirmer",
   },
