@@ -234,3 +234,7 @@ Vérifié sur `origin` (lecture seule) :
 ### 23/11/2026 — Prompt vidéo Higgsfield (Burpee broad jump, FIT-HYR-004)
 
 Demande : prompt pour générer une courte vidéo de l'exercice avec le personnage de l'illustration. Source : `catalogue/illustrations/20261117/FIT-HYR-004.webp` (branche assets, commit d'illustration bd1f8db9) et fiche FIT-HYR-004 (étapes : accroupi puis au sol ; pieds ramenés près des mains ; saut vers l'avant à deux pieds ; réception, recommencer). Image de référence recadrée (panneau droit, personnage seul) fournie à l'utilisateur hors dépôt. Aucune vidéo générée ni versionnée ; aucun fichier applicatif modifié ; aucun test applicable. Droits d'usage de la vidéo produite : à confirmer par l'utilisateur avant tout rattachement à une fiche.
+
+### 23/11/2026 — Prompt vidéo Higgsfield (Setu Bandha, FIT-YOG-010)
+
+Demande : même principe, femme moins athlétique, tenue de sport plus colorée. Source : `catalogue/illustrations/20261117/FIT-YOG-010.webp` et fiche FIT-YOG-010 (départ sur le dos, pieds près du bassin ; pousser dans les pieds pour lever les hanches ; genoux parallèles ; reposer lentement la colonne ; sécurité : aucune pression sur la tête et la nuque). Le personnage diffère volontairement de l'illustration : l'image (panneau gauche recadré, hors dépôt) ne sert qu'au cadrage. Aucune vidéo générée ni versionnée ; aucun fichier applicatif modifié ; aucun test applicable.
