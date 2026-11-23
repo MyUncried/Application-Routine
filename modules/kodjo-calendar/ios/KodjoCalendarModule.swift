@@ -4,15 +4,22 @@ import UIKit
 /**
  * D-563 (recette du Programme du 23/11/2026) — calendrier natif d'iOS (`UICalendarView`) pour choisir la période d'un programme,
  * sans réimplémentation. La logique de sélection en deux appuis (sélection puis confirmation, début puis fin) est tenue par
- * JavaScript (`modules/kodjo-calendar/rangeSelection.ts`) ; la vue native :
+ * JavaScript (`src/features/programs/periodSelection.ts`) ; la vue native :
  * - affiche une seule date sélectionnée (`selectedDate`) ;
  * - signale chaque appui sur une date (`onPressDate`), y compris un second appui sur la date déjà sélectionnée ;
- * - marque chaque jour de la période (`periodStart` … `periodEnd`) d'une décoration native sous son numéro.
+ * - marque chaque jour de la période (`periodStart` … `periodEnd`) d'une décoration native sous son numéro ; début confirmé
+ *   sans fin : le début seul est marqué.
  *
  * [Choix technique, à valider : la sélection native est `UICalendarSelectionMultiDate` limitée à une date. Un second appui sur
  * la date sélectionnée la désélectionne et iOS le signale (`didDeselectDate`) : c'est l'appui de confirmation ; la date est
- * aussitôt resélectionnée. Avec `UICalendarSelectionSingleDate`, un second appui sur la même date n'est pas signalé de façon
+ * resélectionnée. Avec `UICalendarSelectionSingleDate`, un second appui sur la même date n'est pas signalé de façon
  * documentée.]
+ *
+ * Contre-recette du 23/11/2026 (c1, c2) :
+ * - langue : la vue reçoit `fr_FR` par sa propriété `locale` (distincte de `calendar.locale`), réaffirmée à l'affichage ;
+ * - second appui : la resélection est refaite au tour suivant de la boucle principale, iOS pouvant terminer sa propre mise à
+ *   jour de la sélection après l'appel au délégué ;
+ * - début confirmé sans fin : marqué d'une décoration (avant, rien ne distinguait un début confirmé).
  */
 public final class KodjoCalendarModule: Module {
   public func definition() -> ModuleDefinition {
@@ -43,9 +50,11 @@ public final class KodjoCalendarModule: Module {
 final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelectionMultiDateDelegate {
   let onPressDate = EventDispatcher()
 
+  private static let french = Locale(identifier: "fr_FR")
+
   private let gregorian: Calendar = {
     var calendar = Calendar(identifier: .gregorian)
-    calendar.locale = Locale(identifier: "fr_FR")
+    calendar.locale = KodjoCalendarView.french
     calendar.firstWeekday = 2
     calendar.timeZone = TimeZone.current
     return calendar
@@ -63,7 +72,7 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
   required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
     calendarView.calendar = gregorian
-    calendarView.locale = Locale(identifier: "fr_FR")
+    applyLocale()
     calendarView.fontDesign = .default
     calendarView.delegate = self
     let multi = UICalendarSelectionMultiDate(delegate: self)
@@ -76,6 +85,19 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
   override func layoutSubviews() {
     super.layoutSubviews()
     calendarView.frame = bounds
+  }
+
+  override func didMoveToWindow() {
+    super.didMoveToWindow()
+    applyLocale()
+  }
+
+  /// Langue du calendrier : la propriété `locale` de `UICalendarView` (en-tête du mois, jours de la semaine), indépendante de la
+  /// langue de l'application, posée après `calendar`.
+  private func applyLocale() {
+    if calendarView.locale != KodjoCalendarView.french {
+      calendarView.locale = KodjoCalendarView.french
+    }
   }
 
   // MARK: Propriétés
@@ -123,20 +145,36 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
     }
   }
 
+  /// Sélection voulue appliquée tout de suite, puis de nouveau au tour suivant de la boucle principale : iOS peut finir sa
+  /// propre mise à jour (ajout ou retrait de la date touchée) après l'appel au délégué. La valeur appliquée est toujours la
+  /// dernière connue (`selected`), y compris si JavaScript l'a changée entre-temps.
+  private func reassertSelection() {
+    applySelection()
+    DispatchQueue.main.async { [weak self] in
+      self?.applySelection()
+    }
+  }
+
+  func multiDateSelection(_ selection: UICalendarSelectionMultiDate, canDeselectDate dateComponents: DateComponents) -> Bool {
+    // Le second appui sur la date sélectionnée doit être signalé (`didDeselectDate`) : c'est l'appui de confirmation.
+    true
+  }
+
   func multiDateSelection(_ selection: UICalendarSelectionMultiDate, didSelectDate dateComponents: DateComponents) {
     let pressed = normalized(dateComponents)
     // Une seule date affichée : JavaScript décide de la nouvelle sélection ; d'ici là, la date touchée remplace l'ancienne.
     selected = pressed
-    applySelection()
     emit(pressed)
+    reassertSelection()
   }
 
   func multiDateSelection(_ selection: UICalendarSelectionMultiDate, didDeselectDate dateComponents: DateComponents) {
-    // Second appui sur la date sélectionnée : appui de confirmation ; la date reste affichée sélectionnée.
+    // Second appui sur la date sélectionnée : appui de confirmation ; la date reste affichée sélectionnée jusqu'à la réponse
+    // de JavaScript (début confirmé : sélection de la fin ; fin confirmée : fermeture).
     let pressed = normalized(dateComponents)
     selected = pressed
-    applySelection()
     emit(pressed)
+    reassertSelection()
   }
 
   private func emit(_ date: DateComponents) {
@@ -167,9 +205,13 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
     return DateComponents(year: parts[0], month: parts[1], day: parts[2])
   }
 
+  /// Jours marqués : du début à la fin ; sans fin (ou fin antérieure), le début seul.
   private func days(from start: String?, to end: String?) -> [DateComponents] {
-    guard let start = start.flatMap(components(from:)), let end = end.flatMap(components(from:)),
-          let first = gregorian.date(from: start), let last = gregorian.date(from: end), first <= last else { return [] }
+    guard let start = start.flatMap(components(from:)), let first = gregorian.date(from: start) else { return [] }
+    var last = first
+    if let end = end.flatMap(components(from:)), let date = gregorian.date(from: end), date >= first {
+      last = date
+    }
     var result: [DateComponents] = []
     var cursor = first
     // Garde-fou : une période de programme ne dépasse pas quelques années.

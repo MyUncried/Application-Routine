@@ -9,6 +9,8 @@ import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 import { addDays, formatLocalDate, mondayOf, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
+import { PlanningNoticeHost } from "@/features/planning/PlanningNoticeHost";
 import { buildAgendaGroups, executedProjections, mergeAgendaExecutions, type AgendaCard, type AgendaGroup } from "@/features/planning/agendaCards";
 import { routineTitle } from "@/features/planning/journal";
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
@@ -19,7 +21,7 @@ import { planningStrings } from "@/features/planning/planningStrings";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { formatAgendaMonth, zonesLine } from "@/features/planning/agendaFormat";
 import { monthOfWeek } from "@/features/planning/planWeek";
-import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
+import { AGENDA_BAR_WIDTH, AGENDA_PARCOURS_FRAME_OFFSET, AGENDA_ROW_HEIGHT, agendaBarColor, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
@@ -122,6 +124,7 @@ export function CalendarWeekScreen({
 } = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [planningNotice, setPlanningNotice] = useState<string | null>(null);
   const planning = usePlanningService();
   const { state: catalogue, reload: reloadCatalogue, cancelPending } = useSessionCatalogue();
   const [monday, setMonday] = useState<LocalDate>(() => mondayOf(initialDay ?? todayLocal()));
@@ -227,6 +230,9 @@ export function CalendarWeekScreen({
     useCallback(() => {
       reloadCatalogue();
       load(rangeRef.current);
+      // d3 (23/11) : message laissé par une feuille qui vient de se fermer.
+      const pendingNotice = takePlanningNotice();
+      if (pendingNotice !== null) setPlanningNotice(pendingNotice);
       return () => {
         cancelPending();
         setRevealed(null);
@@ -241,6 +247,8 @@ export function CalendarWeekScreen({
     return executedProjections(snapshots, categories);
   }, [snapshots, projections]);
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
+  // Contre-recette du 23/11/2026 (constat i) : routines à plusieurs Séances, parcours à chaque créneau.
+  const parcoursRoutines = useMemo(() => new Set(routines.filter((routine) => routine.entries.length > 1).map((routine) => routine.id)), [routines]);
 
   /**
    * D-553 (21/11/2026) : une carte par Séance (planifiée, exécutée ou hors planification), groupes de parcours sous le jour du
@@ -257,8 +265,9 @@ export function CalendarWeekScreen({
         routineFilter,
         now: loadedAt,
         executionProjections,
+        parcoursRoutines,
       }),
-    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections],
+    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections, parcoursRoutines],
   );
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);
@@ -502,11 +511,30 @@ export function CalendarWeekScreen({
         {isExpanded && card.projection !== undefined ? (
           // DSF Agenda § 6 : composition de la Séance sous la carte. D-553 : le nom de la Séance, titre de la carte, n'est pas
           // répété. [Nom de chaque séance au-dessus de sa composition (r20-recap) — remplacé.]
-          <Pressable onPress={toggle} accessible={false} style={styles.expanded} testID={`calendar-item-${card.key}-expanded`}>
-            {/* Recette du 21/11/2026 (a31-deploye — Hermann : « Retirer le séparateur horizontal avant le nom du circuit / de
-                l'exercice ») : composition sans filet en tête. */}
-            <SessionCompositionTree tree={card.projection.tree} divider={false} testID={`calendar-item-${card.key}-composition`} />
-          </Pressable>
+          <View style={inParcours ? styles.expandedInParcours : null}>
+            {/* Contre-recette du 23/11/2026 (constat k — Hermann : « agenda, séance déployée dans un parcours : étendre les deux
+                traits verticaux de couleur de la séance à gauche et à droite ») : les traits de la carte se prolongent le long de
+                la composition déployée. */}
+            {inParcours ? (
+              <>
+                <View
+                  pointerEvents="none"
+                  style={[styles.expandedBar, { left: AGENDA_PARCOURS_FRAME_OFFSET, backgroundColor: agendaBarColor(card.status) }]}
+                  testID={`calendar-item-${card.key}-expanded-bar-left`}
+                />
+                <View
+                  pointerEvents="none"
+                  style={[styles.expandedBar, { right: 0, backgroundColor: agendaBarColor(card.status) }]}
+                  testID={`calendar-item-${card.key}-expanded-bar-right`}
+                />
+              </>
+            ) : null}
+            <Pressable onPress={toggle} accessible={false} style={[styles.expanded, inParcours ? styles.expandedContentInParcours : null]} testID={`calendar-item-${card.key}-expanded`}>
+              {/* Recette du 21/11/2026 (a31-deploye — Hermann : « Retirer le séparateur horizontal avant le nom du circuit / de
+                  l'exercice ») : composition sans filet en tête. */}
+              <SessionCompositionTree tree={card.projection.tree} divider={false} testID={`calendar-item-${card.key}-composition`} />
+            </Pressable>
+          </View>
         ) : null}
       </View>
     );
@@ -793,6 +821,7 @@ export function CalendarWeekScreen({
           testIDPrefix="planning-delete-occurrence"
         />
       ) : null}
+      <PlanningNoticeHost message={planningNotice} onDismiss={() => setPlanningNotice(null)} testID="agenda-notice" />
     </TabbedScreen>
   );
 }
@@ -837,7 +866,9 @@ const styles = StyleSheet.create({
   // D-538 : premier en-tête de jour à y = 215 (8 sous la bande), son texte à 11,5 du haut de l'en-tête ; cartes pleine
   // largeur d'écran. [Liste à 14 sous la rangée des jours — remplacé.]
   listContent: { paddingTop: spacing[8] + CONTEXT_BAND_FADE_HEIGHT },
-  daySeparator: { height: StyleSheet.hairlineWidth, backgroundColor: "#E5E8F0", marginHorizontal: layout.screenGutter, marginTop: spacing[16] },
+  // Contre-recette du 23/11/2026 (constat j — Hermann : « agenda : marquer un peu plus le trait horizontal de séparation des
+  // dates ») : trait de 1 au liseré des cartes (`cardsBorder`). [Trait d'un pixel #E5E8F0 — remplacé.]
+  daySeparator: { height: 1, backgroundColor: colors.cardsBorder, marginHorizontal: layout.screenGutter, marginTop: spacing[16] },
   sectionHeader: { paddingHorizontal: layout.screenGutter, paddingTop: 5, paddingBottom: spacing[8] },
   sectionHeaderFirst: { paddingTop: 11 },
   // En-tête de jour : Inter 13 semi-gras gris.
@@ -852,6 +883,12 @@ const styles = StyleSheet.create({
   parcoursLink: { position: "absolute", left: 12.5, width: 1, top: 28, bottom: spacing[8], backgroundColor: "#000000" },
   parcoursItem: { paddingBottom: spacing[4] },
   expanded: { marginHorizontal: layout.screenGutter, marginTop: spacing[8], gap: spacing[8] },
+  // Contre-recette du 23/11/2026 (constat k) : composition d'une Séance de parcours entre les traits prolongés de la carte, qui
+  // partent du bas de la carte (écart de 8 compris) jusqu'au bas de la composition. [Hauteur des traits : celle de la composition,
+  // choix technique.]
+  expandedInParcours: { paddingTop: spacing[8] },
+  expandedContentInParcours: { marginTop: 0 },
+  expandedBar: { position: "absolute", top: 0, bottom: 0, width: AGENDA_BAR_WIDTH },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
 });

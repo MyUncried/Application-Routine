@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { Button as SwiftUIButton } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Alert, AppState, Linking, ScrollView, View } from "react-native";
 
@@ -9,6 +10,7 @@ import { PlanningScreen } from "@/features/planning/PlanningScreen";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { pendingPlanningSheet } from "@/features/planning/planningSheetRelay";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 import { ProgramService } from "@/features/programs/ProgramService";
@@ -773,5 +775,160 @@ describe("Planifier depuis un programme (PROG-CAT-01)", () => {
     await save();
     const [routine] = await planning.listRoutines();
     expect(routine).toMatchObject({ programId: "prog-1", startDate: "2030-08-10" });
+  });
+});
+
+/**
+ * Recette du 23/11/2026 (RECETTE-PROG-2311, retours d, h, g2 de Hermann) : modale Planifier en modification — dates non bornées
+ * par le programme (d4, D-566), « Supprimer » qui raccourcit la routine (d6) avec snackbar (d3), compte de la confirmation sur
+ * le brouillon (d7), ligne Programme en menu natif (h, g2). Jest n'exerce pas le menu SwiftUI réel : vérification sur iPhone.
+ */
+describe("Recette du 23/11/2026 — programme d'une routine en modification", () => {
+  let programs: ProgramService;
+  let programIds = 0;
+
+  beforeEach(() => {
+    programIds = 0;
+    programs = new ProgramService({ repository: new SqliteProgramRepository(database), planning, newId: () => `prog-${++programIds}`, now: () => new Date(2030, 0, 1) });
+  });
+
+  async function renderWithPrograms(params: Parameters<typeof PlanningScreen>[0]["params"]) {
+    const referentials = { listCategories: jest.fn(async () => []) } as unknown as ReferentialService;
+    render(
+      <TestSafeAreaProvider>
+        <SessionServiceContext.Provider value={new SessionService(sessions)}>
+          <ReferentialServiceContext.Provider value={referentials}>
+            <PlanningServiceContext.Provider value={planning}>
+              <ProgramServiceContext.Provider value={programs}>
+                <PlanningScreen params={params} />
+              </ProgramServiceContext.Provider>
+            </PlanningServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </SessionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await flush();
+  }
+
+  async function program(name: string, startDate: string, endDate: string) {
+    const saved = await programs.createProgram({ name, objective: "", startDate, endDate, painTracking: false });
+    if (saved.status !== "SAVED") throw new Error(saved.status);
+    return saved.program;
+  }
+
+  /** Lundis du 5 août au 30 septembre 2030 (9 créneaux), à venir (aujourd'hui : 1er janvier 2030). */
+  async function mondays() {
+    const created = await sessions.createStructured(input("Gainage"));
+    const saved = await planning.createRoutine({
+      name: "Gainage",
+      nameGenerated: true,
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-09-30" } },
+      entries: [{ id: "e1", sessionId: created.id, frequency: EVERY_TIME }],
+      reminderMinutes: null,
+    });
+    if (saved.status !== "SAVED") throw new Error("setup");
+    return saved.routine.id;
+  }
+
+  function chooseEndDate(date: Date) {
+    fireEvent.press(screen.getByTestId("planning-end-date"));
+    const calendar = screen.getByTestId("planning-date-panel").findAll((node) => typeof node.props.onDateChange === "function")[0]!;
+    act(() => calendar.props.onDateChange(date));
+    const range = calendar.props.range as { start?: Date; end?: Date };
+    fireEvent.press(screen.getByTestId("planning-date-popover-scrim", { includeHiddenElements: true }));
+    return range;
+  }
+
+  const option = (id: string) => screen.UNSAFE_getAllByType(SwiftUIButton).find((button) => button.props.testID === `planning-program-option-${id}`)!;
+  const dates = async (routineId: string) =>
+    (await planning.rangeOccurrences("2030-08-01", "2030-12-31", () => true)).filter((item) => item.routineId === routineId).map((item) => item.date);
+
+  it("d4, d3, d6, d7, h : fin non bornée par le programme, « Supprimer » raccourcit la routine (snackbar), puis retirée et étendue, ses créneaux sont recréés", async () => {
+    const genou = await program("Genou", "2030-08-01", "2030-08-31");
+    const routineId = await mondays();
+    await programs.attachRoutine(routineId, genou.id);
+    await renderWithPrograms({ routineId });
+    expect(within(screen.getByTestId("planning-program")).getByText("Genou")).toBeTruthy();
+    // d4 (D-566 : la routine n'est pas coupée) : la date de fin n'est plus bornée par la fin du programme.
+    const range = chooseEndDate(new Date(2030, 9, 7, 12, 0));
+    expect(range.end).toBeUndefined();
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    // Créneaux à venir après le 31 août : 2, 9, 16, 23, 30 septembre et 7 octobre.
+    expect(screen.getByText("6 créneaux sont en dehors de la période du programme.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-outside-confirm"));
+    await flush();
+    fireEvent.press(screen.getByTestId("planning-modify-confirm"));
+    await flush();
+    expect(mockBack).toHaveBeenCalled();
+    // d4 / d6 : la routine est raccourcie à la fin du programme (le Journal n'affiche plus la fin d'origine).
+    expect((await planning.getRoutine(routineId))?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-31" });
+    expect(await dates(routineId)).toEqual(["2030-08-05", "2030-08-12", "2030-08-19", "2030-08-26"]);
+    // d3 : snackbar du nombre de créneaux supprimés, lue par l'écran qui reprend le focus (Journal).
+    expect(takePlanningNotice()).toBe("6 créneaux supprimés");
+
+    // h : la routine est retirée du programme depuis la modale, et sa fin étendue au 16 septembre.
+    screen.unmount();
+    mockBack.mockClear();
+    await renderWithPrograms({ routineId });
+    act(() => option("none").props.onPress());
+    expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
+    expect(chooseEndDate(new Date(2030, 8, 16, 12, 0)).end).toBeUndefined();
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    // Plus de programme : aucune question D-566. d7 : le compte inclut les créneaux créés (4 actuels + 3 nouveaux).
+    expect(screen.queryByTestId("planning-outside-confirm")).toBeNull();
+    expect(screen.getByText("7 créneaux à venir seront modifiés.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-modify-confirm"));
+    await flush();
+    expect((await planning.getRoutine(routineId))?.programId).toBeUndefined();
+    // d6 / d7 : les créneaux d'après l'ancienne fin sont recréés dès le premier enregistrement.
+    expect(await dates(routineId)).toEqual(["2030-08-05", "2030-08-12", "2030-08-19", "2030-08-26", "2030-09-02", "2030-09-09", "2030-09-16"]);
+    expect(takePlanningNotice()).toBeNull();
+  });
+
+  it("h : seul le programme change — rattachement sans confirmation de modification ; programmes terminés non proposés ; « Garder » ne supprime rien", async () => {
+    // Terminé : date de fin passée (l'écran lit la date du jour réelle).
+    await program("Ancien", "2020-01-01", "2020-12-31");
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await renderWithPrograms({ routineId });
+    expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
+    // D-545 : « Aucun » puis les programmes non terminés ; le choix en vigueur coché.
+    expect(screen.UNSAFE_getAllByType(SwiftUIButton).map((button) => button.props.label)).toEqual(["Aucun", "Dos"]);
+    expect(option("none").props.systemImage).toBe("checkmark");
+    act(() => option(dos.id).props.onPress());
+    expect(within(screen.getByTestId("planning-program")).getByText("Dos")).toBeTruthy();
+    expect(option(dos.id).props.systemImage).toBe("checkmark");
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    // Créneaux à venir après le 20 août : 26 août, 2, 9, 16, 23, 30 septembre.
+    expect(screen.getByText("6 créneaux sont en dehors de la période du programme.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-outside-secondary"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
+    expect(mockBack).toHaveBeenCalled();
+    const routine = await planning.getRoutine(routineId);
+    expect(routine?.programId).toBe(dos.id);
+    expect(routine?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-09-30" });
+    expect(await dates(routineId)).toHaveLength(9);
+    expect(takePlanningNotice()).toBeNull();
+  });
+
+  it("g2 : depuis une occurrence de l'Agenda, rattacher la routine à un programme (« Supprimer » : créneaux hors période retirés, snackbar)", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await renderWithPrograms({ routineId, occurrenceKey: "2030-08-12T08:00" });
+    act(() => option(dos.id).props.onPress());
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    fireEvent.press(screen.getByTestId("planning-outside-confirm"));
+    await flush();
+    expect(mockBack).toHaveBeenCalled();
+    expect((await planning.getRoutine(routineId))?.programId).toBe(dos.id);
+    expect(await dates(routineId)).toEqual(["2030-08-05", "2030-08-12", "2030-08-19"]);
+    expect(takePlanningNotice()).toBe("6 créneaux supprimés");
   });
 });

@@ -2,7 +2,7 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 
 import { isLocalDate } from "@/domain/planning/Routine";
-import { calendarArrivalView } from "@/features/planning/calendarArrival";
+import { calendarArrivalView, noteCalendarView } from "@/features/planning/calendarArrival";
 import { CalendarWeekScreen } from "@/features/planning/CalendarWeekScreen";
 import type { CalendarView } from "@/features/planning/CalendarViewTabs";
 import { JournalScreen } from "@/features/planning/JournalScreen";
@@ -57,6 +57,9 @@ export default function CalendarScreen() {
   const view: CalendarView =
     pendingDay !== undefined && chosen.at !== at ? "agenda" : chosen.view;
   const setView = (next: CalendarView) => setChosen({ view: next, at });
+  // Contre-recette du 23/11/2026 (constats f et g) : vue affichée, pour le segment ouvert en arrivant dans le catalogue (Plan →
+  // Programmes, Agenda → Séances).
+  useEffect(() => noteCalendarView(view), [view]);
 
   // D-554 (21/11/2026) : troisième onglet « Plan ».
   if (view === "journal") return <JournalScreen onChangeView={setView} />;

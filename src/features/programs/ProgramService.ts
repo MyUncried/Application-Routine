@@ -91,6 +91,16 @@ export class ProgramService {
     return (await this.deps.planning.listRoutines()).filter((routine) => routine.programId === programId);
   }
 
+  /**
+   * Contre-recette du 23/11/2026 (l) : routines désignées, relues au retour de leur modification (routines rattachées dans la
+   * modale, pas encore enregistrées dans le programme) ; une routine supprimée entre-temps est absente.
+   */
+  async routinesByIds(routineIds: readonly string[]): Promise<readonly Routine[]> {
+    if (routineIds.length === 0) return [];
+    const wanted = new Set(routineIds);
+    return (await this.deps.planning.listRoutines()).filter((routine) => wanted.has(routine.id));
+  }
+
   /** « Rattacher une routine existante » (D-549) : routines du calendrier qui n'appartiennent à aucun programme. */
   async unattachedRoutines(): Promise<readonly Routine[]> {
     return (await this.deps.planning.listRoutines()).filter((routine) => routine.programId === undefined || routine.programId === null);
@@ -170,12 +180,15 @@ export class ProgramService {
   async applyRoutineChanges(
     program: Program,
     changes: { readonly detach: readonly string[]; readonly attach: readonly { readonly routineId: string; readonly removeOutside: boolean }[] },
-  ): Promise<void> {
+  ): Promise<number> {
+    let removed = 0;
     for (const routineId of changes.detach) await this.deps.repository.setRoutineProgram(routineId, null);
     for (const { routineId, removeOutside } of changes.attach) {
       await this.deps.repository.setRoutineProgram(routineId, program.id);
-      if (removeOutside) await this.deps.planning.removeUpcomingSlots(routineId, (date) => date < program.startDate || date > program.endDate);
+      // D-566 « Supprimer » : routine raccourcie quand c'est possible, pour qu'une extension ultérieure recrée les créneaux (d6, 23/11).
+      if (removeOutside) removed += await this.deps.planning.removeOutsidePeriod(routineId, program.startDate, program.endDate);
     }
+    return removed;
   }
 
   /**

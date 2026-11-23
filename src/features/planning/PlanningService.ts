@@ -91,6 +91,11 @@ export type PlanningServiceDeps = {
   readonly now: () => Date;
 };
 
+/** Routine enregistrée telle que le brouillon la réécrirait (dates, heure, répétition, séances), avant enregistrement. */
+function withDraft(stored: Routine, draft: RoutineDraft): Routine {
+  return { ...stored, startDate: draft.startDate, time: draft.time, repetition: draft.repetition, entries: draft.entries };
+}
+
 export class PlanningService {
   /**
    * Instantanés d'Exécution déjà lus (recette du 23/11/2026) : un instantané ne change jamais ; il n'est lu qu'une fois, au lieu
@@ -320,12 +325,21 @@ export class PlanningService {
    * D-536, point 2 : créneaux non commencés de la Routine, passés compris, auxquels s'applique une modification depuis le
    * Journal (message « N créneaux à venir seront modifiés. », Hermann, 20/11/2026).
    */
-  async pendingSlotCount(routineId: string): Promise<number> {
+  async pendingSlotCount(routineId: string, draft?: RoutineDraft): Promise<number> {
     const routine = await this.deps.repository.get(routineId);
     if (routine === null) return 0;
+    const isStarted = await this.startedTest();
     // D-540 : un créneau expiré n'est pas modifié par un changement de la routine, ni compté.
-    return withExpiry(routineOccurrences(routine, await this.startedTest()), this.deps.now()).filter((occurrence) => !occurrence.started && !occurrence.expired)
-      .length;
+    const pending = (candidate: Routine) =>
+      withExpiry(routineOccurrences(candidate, isStarted), this.deps.now())
+        .filter((occurrence) => !occurrence.started && !occurrence.expired)
+        .map((occurrence) => occurrence.key);
+    if (draft === undefined) return pending(routine).length;
+    // Recette du 23/11/2026 (d7 — Hermann : « le message de confirmation de modification m'indique que X occurrences seront
+    // modifiées, ce X correspond au nombre actuel d'occurrences ») : créneaux concernés avant ET après la modification — ceux que
+    // le brouillon modifie ou retire, et ceux qu'il crée (fin étendue). [Créneaux de la routine enregistrée seuls — remplacé.]
+    // [Réunion des deux ensembles : interprétation technique.]
+    return new Set([...pending(routine), ...pending(withDraft(routine, draft))]).size;
   }
 
   /**
@@ -420,9 +434,46 @@ export class PlanningService {
   async outsidePeriodSlotCount(routineId: string, start: LocalDate, end: LocalDate, draft?: RoutineDraft): Promise<number> {
     const stored = await this.deps.repository.get(routineId);
     if (stored === null) return 0;
-    const routine: Routine =
-      draft === undefined ? stored : { ...stored, startDate: draft.startDate, time: draft.time, repetition: draft.repetition, entries: draft.entries };
+    const routine: Routine = draft === undefined ? stored : withDraft(stored, draft);
     return (await this.periodSlotCountsFor([routine], start, end)).get(routineId)?.outside ?? 0;
+  }
+
+  /**
+   * D-566 « Supprimer » (créneaux à venir hors de la période [`start`, `end`] d'un programme, au rattachement ou à la modification
+   * depuis le Journal). Rend le nombre de créneaux supprimés (snackbar, recette du 23/11/2026, d3). Les créneaux commencés ou
+   * passés ne sont jamais touchés.
+   *
+   * Recette du 23/11/2026 (d4, d6 — Hermann : « Je vérifie le parcours dans le journal, il a toujours la date du 19 décembre » ;
+   * « je change la date du parcours au 20 décembre […] je ne trouve pas les occurrences qui devraient être recréées ») : une
+   * routine bornée par une date (« jusqu'au ») est raccourcie — sa fin devient celle du programme, ou la date de son dernier créneau
+   * conservé si elle est postérieure — au lieu de retirer un à un les créneaux d'après la période ; étendre ensuite sa fin les
+   * recrée. Les autres créneaux hors période (avant le début, routine « pendant N » ou sans répétition, créneau déplacé à la main)
+   * restent retirés un à un. [Retrait un à un de tous les créneaux, définitif (`removeUpcomingSlots`) — remplacé pour D-566.]
+   * [« pendant N » non raccourci : N compte des semaines entières, une coupe au milieu d'une semaine retirerait des créneaux de
+   * la période — interprétation technique.]
+   */
+  async removeOutsidePeriod(routineId: string, start: LocalDate, end: LocalDate): Promise<number> {
+    const stored = await this.deps.repository.get(routineId);
+    if (stored === null) return 0;
+    const isStarted = await this.startedTest();
+    const removed = this.upcomingOf(stored, isStarted).filter((occurrence) => occurrence.date < start || occurrence.date > end);
+    if (removed.length === 0) return 0;
+    const keys = new Set(removed.map((occurrence) => occurrence.key));
+    let routine = stored;
+    const repetition = stored.repetition;
+    if (repetition !== null && repetition.end.kind === "UNTIL") {
+      // Jour d'origine (clé) du dernier créneau conservé produit par la répétition : passé, commencé ou dans la période.
+      const lastKept = routineOccurrences(stored, isStarted)
+        .filter((occurrence) => !keys.has(occurrence.key) && occurrence.added !== true)
+        .reduce<LocalDate>((last, occurrence) => (occurrence.key.slice(0, 10) > last ? occurrence.key.slice(0, 10) : last), stored.startDate);
+      const cut = lastKept > end ? lastKept : end;
+      if (cut < repetition.end.date) routine = { ...stored, repetition: { ...repetition, end: { kind: "UNTIL", date: cut } } };
+    }
+    const remaining = routineOccurrences(routine, isStarted)
+      .filter((occurrence) => keys.has(occurrence.key))
+      .map((occurrence) => occurrence.key);
+    await this.deps.repository.save({ ...routine, exclusions: [...new Set([...routine.exclusions, ...remaining])], updatedAt: this.deps.now().toISOString() });
+    return this.written(removed.length);
   }
 
   /**

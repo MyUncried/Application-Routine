@@ -10,9 +10,10 @@ import {
   type AccessibilityState,
   type GestureResponderEvent,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
-import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe } from "@/features/sessions/compositionGesture";
+import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe, TOUCH_SLOP } from "@/features/sessions/compositionGesture";
 import { useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { colors, fixedRadii, type } from "@/shared/ui/tokens";
@@ -101,6 +102,7 @@ export function SwipeActionsRow({
   actionsRadius,
   actionsRightMargin = 0,
   slideActions = false,
+  nativeGesture = false,
   children,
   testID,
 }: {
@@ -138,6 +140,18 @@ export function SwipeActionsRow({
    * le bloc d'actions suit la translation de la rangée au lieu d'être découvert sur place.
    */
   readonly slideActions?: boolean;
+  /**
+   * Contre-recette du 23/11/2026 (r3, Hermann, modale du programme : « Il y a une perte de suivi du glisser gauche suivi d'un
+   * rebond qui ferme l'option lorsque le geste part un peu à l'horizontale ou à la verticale, même chose à la fermeture ») :
+   * rangée posée dans une feuille native iOS (`formSheet`). Le geste de la feuille, extérieur à la vue React Native, annule les
+   * touchers de React Native (`RCTSurfaceTouchHandler.canBePreventedByGestureRecognizer`) dès qu'il démarre — le glissement
+   * perdait le doigt puis revenait à sa position (`onTouchCancel`). Le glissement est alors suivi par le `Pan` natif de
+   * react-native-gesture-handler (actif dès 8 de déplacement horizontal, avant 8 de déplacement vertical ; ensuite il suit le
+   * doigt quelle que soit sa direction), qui empêche celui de la feuille — même correctif que le questionnaire des Formats et la
+   * feuille Planifier (ch12). L'appelant fournit la `GestureHandlerRootView` de la feuille. Absent : système de touchers de React
+   * Native (rendu et comportement inchangés pour les autres écrans).
+   */
+  readonly nativeGesture?: boolean;
   readonly children: ReactNode;
   readonly testID: string;
 }) {
@@ -221,6 +235,10 @@ export function SwipeActionsRow({
     else if (!open && revealed) onHide();
   };
 
+  // r3 (23/11/2026) : en feuille native, le geste natif porte seul le glissement ; les touchers de React Native ne servent plus
+  // qu'à l'appui (annulés à l'activation du geste natif, sans effet sur la position).
+  const native = nativeGesture && offset > 0;
+
   const showActions = translateX < 0 || isSettling;
   const actionsSlide = useMemo(
     () =>
@@ -228,27 +246,31 @@ export function SwipeActionsRow({
     [offset, swipeX],
   );
 
-  return (
+  const row = (
     <View
       onTouchStart={(event) => {
+        if (native) return;
         originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
         isSwipingRef.current = false;
         baseRef.current = revealed ? -offset : 0;
       }}
       onTouchMove={(event) => {
+        if (native) return;
         // Reçu même quand une action révélée détient le responder (balayage droit de fermeture).
         const { dx, dy } = delta(event);
         if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return;
         follow(dx);
       }}
-      onTouchEnd={end}
+      onTouchEnd={native ? undefined : end}
       onTouchCancel={() => {
+        if (native) return;
         originRef.current = null;
         isSwipingRef.current = false;
         scrollLock.release();
         moveTo(revealed ? -offset : 0);
       }}
       onMoveShouldSetResponderCapture={(event) => {
+        if (native) return false;
         const { dx, dy } = delta(event);
         if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return false;
         follow(dx);
@@ -366,6 +388,49 @@ export function SwipeActionsRow({
       </AnimatedPressable>
     </View>
   );
+  return nativeGesture ? (
+    <NativeSwipe
+      enabled={native}
+      testID={`${testID}-pan`}
+      onStart={() => {
+        baseRef.current = revealed ? -offset : 0;
+      }}
+      onUpdate={follow}
+      onFinalize={end}
+    >
+      {row}
+    </NativeSwipe>
+  ) : (
+    row
+  );
+}
+
+/** r3 : `Pan` natif du glissement en feuille native (actif dès `TOUCH_SLOP` à l'horizontale, avant `TOUCH_SLOP` à la verticale). */
+function NativeSwipe({
+  enabled,
+  testID,
+  onStart,
+  onUpdate,
+  onFinalize,
+  children,
+}: {
+  readonly enabled: boolean;
+  readonly testID: string;
+  readonly onStart: () => void;
+  readonly onUpdate: (translationX: number) => void;
+  readonly onFinalize: () => void;
+  readonly children: ReactNode;
+}) {
+  const pan = Gesture.Pan()
+    .enabled(enabled)
+    .withTestId(testID)
+    .runOnJS(true)
+    .activeOffsetX([-TOUCH_SLOP, TOUCH_SLOP])
+    .failOffsetY([-TOUCH_SLOP, TOUCH_SLOP])
+    .onStart(() => onStart())
+    .onUpdate((event) => onUpdate(event.translationX))
+    .onFinalize(() => onFinalize());
+  return <GestureDetector gesture={pan}>{children}</GestureDetector>;
 }
 
 const JOIN_EASIER = require("../../../assets/icons/catalogue-raccord-plus-facile.svg");

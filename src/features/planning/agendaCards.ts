@@ -15,7 +15,8 @@ import { projectSnapshotForCatalogue, type CatalogueCategoryRef, type SessionCat
  * - une carte par Séance : planifiée, exécutée, ou Exécution « Hors planification » (lancée hors Agenda sans créneau
  *   éligible) ; titre = nom de la Séance (nom de l'instantané pour une Séance exécutée), jamais celui de la Routine ;
  * - parcours (occurrence à plusieurs Séances) : un groupe, sous le jour du créneau (arbitrage 2, passage de minuit compris),
- *   avec la ligne « Ⓟ nom de la Routine » ; une Routine à une Séance n'a ni ligne ni lien ;
+ *   avec la ligne « Ⓟ nom de la Routine » ; une Routine à une Séance n'a ni ligne ni lien ; contre-recette du 23/11/2026
+ *   (constat i) : une Routine à plusieurs Séances est un parcours à chaque créneau, même réduit à une Séance par la rotation ;
  * - heure : Séance exécutée → heure réelle de démarrage ; première Séance non exécutée → heure prévue ; Séance suivante non
  *   exécutée d'un parcours → « — » ; durée estimée avant l'exécution, réelle après ;
  * - Séance seule exécutée : carte placée à sa date et heure réelles (heure prévue conservée dans l'occurrence) ;
@@ -146,6 +147,11 @@ export type AgendaBuildInput = {
    * lieu de la Séance actuelle du Catalogue. Absente : Séance du Catalogue.
    */
   readonly executionProjections?: ReadonlyMap<string, SessionCatalogueProjection>;
+  /**
+   * Contre-recette du 23/11/2026 (constat i) : routines à plusieurs Séances. Leur créneau est un parcours même quand la rotation
+   * n'y joue qu'une Séance. Absent : parcours selon les seules Séances du créneau.
+   */
+  readonly parcoursRoutines?: ReadonlySet<string>;
 };
 
 /**
@@ -198,7 +204,11 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     const slotStatus: AgendaStatus = planned >= now ? "UPCOMING" : occurrence.expired ? "EXPIRED" : "MISSED";
     // Parcours : occurrence à plusieurs Séances, désactivées comprises — une Séance supprimée seule laisse la ligne « Ⓟ » tant
     // qu'une carte reste (arbitrage 9).
-    const parcours = occurrence.sessions.length > 1;
+    // Contre-recette du 23/11/2026 (constat i — Hermann : « Un parcours avec deux séances, une séance exécutée une fois sur deux.
+    // Dans l'agenda, une fois sur deux on affiche le parcours avec deux séances, et une fois sur deux uniquement la séance. Il faut
+    // afficher le parcours à chaque fois, une fois sur deux avec une séance et l'autre fois avec deux séances. ») : une routine à
+    // plusieurs Séances est un parcours à chaque créneau, même réduit à une Séance par la rotation.
+    const parcours = occurrence.sessions.length > 1 || input.parcoursRoutines?.has(occurrence.routineId) === true;
     const cards = shown.map(({ content, sessionId, position, execution }) =>
       plannedCard({ occurrence, occurrenceKey, content, sessionId, position, execution, projection: executed(execution) ?? projections.get(sessionId), parcours, slotStatus, now }),
     );

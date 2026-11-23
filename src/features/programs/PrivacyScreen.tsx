@@ -33,6 +33,7 @@ export function PrivacyScreen() {
   const [state, setState] = useState<PainTrackingState | null>(null);
   const [readings, setReadings] = useState(0);
   const [confirmErase, setConfirmErase] = useState(false);
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [failed, setFailed] = useState(false);
 
   const load = useCallback(() => {
@@ -45,7 +46,17 @@ export function PrivacyScreen() {
     }, [load]),
   );
 
+  /**
+   * Contre-recette du 23/11/2026 (constat b, Hermann) : « Retirer mon accord » demande confirmation en nommant les programmes
+   * qui activent le suivi. Aucun programme concerné : le message n'aurait rien à nommer ; l'accord est retiré directement,
+   * comme avant [question posée à Hermann].
+   */
+  const askWithdraw = () => {
+    if (state?.kind === "GRANTED" && state.programs.length > 0) setConfirmWithdraw(true);
+    else withdraw();
+  };
   const withdraw = () => {
+    setConfirmWithdraw(false);
     setFailed(false);
     programs.withdrawPainConsent().then(load, () => {
       setFailed(true);
@@ -85,7 +96,7 @@ export function PrivacyScreen() {
               </Text>
             </View>
             <View style={styles.separator} />
-            <Pressable onPress={withdraw} accessibilityRole="button" style={styles.row} testID="privacy-withdraw">
+            <Pressable onPress={askWithdraw} accessibilityRole="button" style={styles.row} testID="privacy-withdraw">
               <Text style={[styles.rowLabel, styles.blue]}>{t.withdraw}</Text>
             </Pressable>
             <View style={styles.separator} />
@@ -138,7 +149,7 @@ export function PrivacyScreen() {
       </ScrollView>
       {confirmErase ? (
         // Mission PROG-CAT-01 §5 : « Effacer mes relevés » demande une confirmation (développée pour la future saisie, Hermann,
-        // 21/11/2026, point 4). « Retirer mon accord » agit directement.
+        // 21/11/2026, point 4). « Retirer mon accord » : confirmation propre ci-dessous (contre-recette du 23/11/2026, constat b).
         <DecisionDialog
           title={t.eraseConfirmTitle}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
@@ -152,6 +163,23 @@ export function PrivacyScreen() {
           onCancel={() => setConfirmErase(false)}
           onConfirm={erase}
           testIDPrefix="privacy-erase-confirm"
+        />
+      ) : null}
+      {confirmWithdraw && state?.kind === "GRANTED" ? (
+        // Contre-recette du 23/11/2026 (constat b) : même dialogue partagé, mêmes styles que « Effacer mes relevés ».
+        <DecisionDialog
+          title={t.withdrawConfirmTitle}
+          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
+          message={t.withdrawConfirmMessage.replace("{names}", state.programs.map((program) => program.name).join(", "))}
+          messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
+          cancelLabel={t.cancel}
+          cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
+          confirmLabel={t.withdrawConfirm}
+          confirmLabelStyle={type.dialogDestructiveActionLabel}
+          confirmBordered={false}
+          onCancel={() => setConfirmWithdraw(false)}
+          onConfirm={withdraw}
+          testIDPrefix="privacy-withdraw-confirm"
         />
       ) : null}
     </TabbedScreen>

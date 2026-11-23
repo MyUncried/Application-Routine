@@ -44,7 +44,9 @@ import { ProgramCatalogueBody, ProgramContext, useProgramSummaries } from "@/fea
 import { programCounts, visiblePrograms } from "@/features/programs/programPresentation";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
-import { noteCatalogueSegment } from "@/features/planning/calendarArrival";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
+import { PlanningNoticeHost } from "@/features/planning/PlanningNoticeHost";
+import { catalogueArrivalSegment, noteCatalogueSegment } from "@/features/planning/calendarArrival";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
@@ -131,6 +133,7 @@ export function CatalogueScreen() {
   // l'Éditeur), jamais au blur : deux appuis rapprochés, même sur deux
   // points d'entrée différents, n'empilent qu'un seul Éditeur.
   const isOpeningEditorRef = useRef(false);
+  const [planningNotice, setPlanningNotice] = useState<string | null>(null);
   // Décision de Hermann du 16/11/2026 (ch07, « Catalogue des Mouvements — présentation en grille » ; CE-MVT-03, Bascule) :
   // catalogue des Mouvements en liste ou en grille, choix mémorisé dans le Profil (`movementCatalogueGridEnabled`, migration030).
   // Sans service de Profil (tests d'écran), la liste d'origine, sans mémorisation. `null` : choix pas encore lu (rien n'est
@@ -202,6 +205,20 @@ export function CatalogueScreen() {
       }),
     [navigation],
   );
+  // Contre-recette du 23/11/2026 (constats f et g — Hermann : « Aller de l'écran du Plan vers le catalogue doit amener à l'écran
+  // des programmes » ; « aller de l'écran de l'agenda vers le catalogue doit amener à l'écran des séances ») : sens inverse de
+  // D-562, arrivée par la barre de navigation depuis le calendrier ; depuis le Journal ou un autre onglet, segment inchangé.
+  useEffect(() => {
+    if (navigation === undefined) return undefined;
+    const tab = navigation as unknown as {
+      addListener: (event: "tabPress", handler: () => void) => () => void;
+      isFocused: () => boolean;
+    };
+    return tab.addListener("tabPress", () => {
+      const arrival = tab.isFocused() ? null : catalogueArrivalSegment();
+      if (arrival !== null) setActiveSegment(arrival);
+    });
+  }, [navigation]);
   const changeSegment = (segment: CatalogueContentType) => {
     // t-niveau : changer de vue par la barre du haut retire les pastilles.
     if (segment !== activeSegment) clearDisplayedNewMovements();
@@ -253,6 +270,9 @@ export function CatalogueScreen() {
     useCallback(() => {
       isOpeningEditorRef.current = false;
       screenFocused.current = true;
+      // d3 (23/11) : message laissé par une feuille qui vient de se fermer.
+      const pendingNotice = takePlanningNotice();
+      if (pendingNotice !== null) setPlanningNotice(pendingNotice);
       setFocusCount((current) => current + 1);
       setMovementsReloadToken((current) => current + 1);
       reloadSessions();
@@ -575,6 +595,7 @@ export function CatalogueScreen() {
         ) : null}
       </View>
       <NavigationFade background={palette.background} />
+      <PlanningNoticeHost message={planningNotice} onDismiss={() => setPlanningNotice(null)} testID="catalogue-notice" />
     </TabbedScreen>
   );
 }

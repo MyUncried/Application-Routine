@@ -400,6 +400,41 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-composition`)).toBeTruthy();
     expect(screen.queryByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-session-0-name`)).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded`).props.style).borderTopWidth).toBeUndefined();
+    // Contre-recette du 23/11/2026 (constat k) : hors parcours, aucun trait prolongé.
+    expect(screen.queryByTestId(`calendar-item-${single.id}|${MONDAY}T08:00-expanded-bar-left`)).toBeNull();
+  });
+
+  // Contre-recette du 23/11/2026 (Hermann) — constat i : « Un parcours avec deux séances, une séance exécutée une fois sur deux.
+  // […] Il faut afficher le parcours à chaque fois, une fois sur deux avec une séance et l'autre fois avec deux séances. » ;
+  // constat j : « marquer un peu plus le trait horizontal de séparation des dates » ; constat k : « séance déployée dans un
+  // parcours : étendre les deux traits verticaux de couleur de la séance à gauche et à droite ».
+  it("parcours dont la rotation ne joue qu'une Séance : parcours à chaque créneau ; séparateur des dates ; traits prolongés au déployé", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const routine = await plan({
+      name: "Alterné",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: addDays(MONDAY, 10) } },
+      entries: [entry(a.id), { id: "entry-b", sessionId: b.id, frequency: { x: 1, n: 2, positions: [1] } }],
+    });
+    await renderCalendar();
+    const full = `${routine.id}|${MONDAY}T08:00`;
+    const reduced = `${routine.id}|${THURSDAY}T08:00`;
+    // Lundi : deux Séances ; jeudi : une seule, toujours sous la ligne « Ⓟ » du parcours.
+    expect(screen.getByTestId(`calendar-parcours-${full}-name`).props.children).toBe("Alterné");
+    expect(screen.getByTestId(`calendar-item-${full}|2-card-name`).props.children).toBe("Bravo");
+    expect(screen.getByTestId(`calendar-parcours-${reduced}-name`).props.children).toBe("Alterné");
+    expect(screen.getByTestId(`calendar-item-${reduced}|1-card-name`).props.children).toBe("Alpha");
+    expect(screen.queryByTestId(`calendar-item-${reduced}|2-card`)).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${reduced}|1-card-frame`).props.style)).toMatchObject({ marginLeft: 10 });
+    // Séparateur des dates plus marqué.
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-section-${THURSDAY}-separator`).props.style)).toMatchObject({ height: 1, backgroundColor: "#CCD1E0" });
+    // Séance de parcours déployée : ses deux traits (couleur de son statut) se prolongent le long de la composition.
+    fireEvent.press(screen.getByTestId(`calendar-item-${full}|2-card-disclosure`));
+    const left = StyleSheet.flatten(screen.getByTestId(`calendar-item-${full}|2-expanded-bar-left`).props.style);
+    const right = StyleSheet.flatten(screen.getByTestId(`calendar-item-${full}|2-expanded-bar-right`).props.style);
+    expect(left).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: 10, width: 6, backgroundColor: "#8EAAE8" });
+    expect(right).toMatchObject({ position: "absolute", top: 0, bottom: 0, right: 0, width: 6, backgroundColor: "#8EAAE8" });
+    expect(screen.getByTestId(`calendar-item-${full}|2-composition`)).toBeTruthy();
   });
 
   // D-553 (21/11/2026) : une carte par Séance, dans l'ordre de la liste ; « Démarrer » sur la première lance toute la chaîne

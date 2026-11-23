@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { RoutineFilterSheet, type RoutineFilterChoice } from "@/features/planning/RoutineFilterSheet";
@@ -32,33 +33,46 @@ export function attachButtonLabel(count: number): string {
   return count === 1 ? t.applyOne : fillTemplate(t.applyMany, { count: String(count) });
 }
 
+/**
+ * Contre-recette du 23/11/2026 (c, Hermann) : « appuyer sur la date de chaque carte doit permettre d'ouvrir la modale planification
+ * en modification » (`onEditRoutine`, même feuille que le Journal) ; « afficher le cadre avec le nom et l'année en gris si aucun
+ * créneau n'est disponible sur la période » (`attachChoiceDimmed`). La liste est relue au retour de la planification.
+ */
+export function attachChoiceDimmed(choice: AttachChoice): boolean {
+  return choice.period.inside === 0;
+}
+
 export function ProgramAttachSheet({
   service,
   request,
   onClose,
+  onEditRoutine,
 }: {
   readonly service: ProgramService;
   readonly request: Extract<ProgramSheetRequest, { kind: "attach" }>;
   readonly onClose: () => void;
+  readonly onEditRoutine: (routineId: string) => void;
 }) {
   const [choices, setChoices] = useState<readonly AttachChoice[] | null>(null);
   const [question, setQuestion] = useState<{ readonly selected: readonly AttachChoice[]; readonly outside: number } | null>(null);
   const { state: catalogue, reload } = useSessionCatalogue();
-  useEffect(() => {
-    reload();
-    let cancelled = false;
-    service.attachChoices(request.period, request.excluded, request.released).then(
-      (list) => {
-        if (!cancelled) setChoices(list);
-      },
-      () => {
-        if (!cancelled) setChoices([]);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [service, request, reload]);
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+      let cancelled = false;
+      service.attachChoices(request.period, request.excluded, request.released).then(
+        (list) => {
+          if (!cancelled) setChoices(list);
+        },
+        () => {
+          if (!cancelled) setChoices((current) => current ?? []);
+        },
+      );
+      return () => {
+        cancelled = true;
+      };
+    }, [service, request, reload]),
+  );
   const sessions = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
     if (catalogue.status === "ready") for (const projection of catalogue.sessions) map.set(projection.id, projection);
@@ -90,6 +104,8 @@ export function ProgramAttachSheet({
           slotsLine: (choice: RoutineFilterChoice) => attachSlotsLine(choice as AttachChoice),
           buttonLabel: attachButtonLabel,
         }}
+        onPressDate={(choice) => onEditRoutine(choice.routine.id)}
+        dimmed={(choice) => attachChoiceDimmed(choice as AttachChoice)}
       />
       {question !== null ? (
         <OutsidePeriodDialog

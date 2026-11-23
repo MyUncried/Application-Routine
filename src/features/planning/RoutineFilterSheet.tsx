@@ -72,6 +72,8 @@ export function RoutineFilterSheet({
   onClose,
   onValidate,
   texts,
+  onPressDate,
+  dimmed,
 }: {
   readonly choices: readonly RoutineFilterChoice[];
   readonly loading: boolean;
@@ -89,6 +91,13 @@ export function RoutineFilterSheet({
     readonly slotsLine: (choice: RoutineFilterChoice) => string;
     readonly buttonLabel: (count: number) => string;
   };
+  /**
+   * Contre-recette du 23/11/2026 (c, Hermann, modale de rattachement d'un programme) : « appuyer sur la date de chaque carte doit
+   * permettre d'ouvrir la modale planification en modification » ; absent : toucher la date coche ou décoche (filtre de l'Agenda).
+   */
+  readonly onPressDate?: (choice: RoutineFilterChoice) => void;
+  /** Même recette : « afficher le cadre avec le nom et l'année en gris » pour les cartes désignées ; absent : aucune. */
+  readonly dimmed?: (choice: RoutineFilterChoice) => boolean;
 }) {
   const t = planningStrings.routineFilter;
   const title = texts?.title ?? t.title;
@@ -203,6 +212,14 @@ export function RoutineFilterSheet({
               const created = creationDateParts(choice.routine.createdAt);
               const routineSessions = sessionsOf(choice.routine);
               const name = routineTitle(choice.routine, routineSessions);
+              // Contre-recette du 23/11/2026 (c) : options du cadre transmises seulement quand l'appelant les fournit (rendu du
+              // filtre de l'Agenda inchangé).
+              const selection = {
+                checked: selected.includes(choice.routine.id),
+                onToggle: () => toggle(choice.routine.id),
+                ...(onPressDate !== undefined ? { onOpen: () => onPressDate(choice) } : {}),
+                ...(dimmed?.(choice) === true ? { dimmed: true } : {}),
+              };
               return (
                 <View key={choice.routine.id} style={styles.item}>
                   <JournalRoutineCard
@@ -217,7 +234,7 @@ export function RoutineFilterSheet({
                     expanded={false}
                     onOpen={() => undefined}
                     onToggleExpanded={() => undefined}
-                    selection={{ checked: selected.includes(choice.routine.id), onToggle: () => toggle(choice.routine.id) }}
+                    selection={selection}
                     testID={`routine-filter-card-${choice.routine.id}`}
                   />
                 </View>

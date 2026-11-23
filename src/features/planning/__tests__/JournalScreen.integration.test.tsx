@@ -8,6 +8,7 @@ import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions
 import * as filterSheetRelay from "@/features/activities/filterSheetRelay";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { JournalScreen } from "@/features/planning/JournalScreen";
+import { postPlanningNotice, removedSlotsNotice, takePlanningNotice } from "@/features/planning/planningNotice";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -314,5 +315,14 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.queryByTestId("calendar-view-row-month")).toBeNull();
     fireEvent.press(screen.getByTestId("calendar-view-row-week"));
     expect(onChangeView).toHaveBeenCalledWith("agenda");
+  });
+
+  it("d3 (recette du 23/11/2026) : au retour de « Planifier », le nombre de créneaux supprimés s'affiche en snackbar", async () => {
+    postPlanningNotice(removedSlotsNotice(3));
+    await renderJournal();
+    expect(screen.getByText("3 créneaux supprimés")).toBeTruthy();
+    // Lu une seule fois : un nouveau focus ne le réaffiche pas.
+    expect(takePlanningNotice()).toBeNull();
+    expect(removedSlotsNotice(1)).toBe("1 créneau supprimé");
   });
 });

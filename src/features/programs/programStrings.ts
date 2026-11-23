@@ -50,7 +50,14 @@ export const programStrings = {
   },
   /** CE-PROG-02 (Figma « PROG — 13 »). */
   sheet: {
-    titleNew: "Nouveau programme",
+    /**
+     * Contre-recette du 23/11/2026 (m, Hermann) : « titre de la modale de programme : "Créer un programme" en mode création,
+     * "Modifier le programme" en mode modification ». [« Nouveau programme » ; nom du programme en configuration — remplacés.]
+     */
+    titleNew: "Créer un programme",
+    titleEdit: "Modifier le programme",
+    /** Contre-recette du 23/11/2026 (l) : toucher la ligne d'une routine l'ouvre en modification. */
+    routineEditAccessibility: "Modifier la planification",
     cancel: "Fermer sans enregistrer",
     save: "Enregistrer le programme",
     namePlaceholder: "Nom du programme",
@@ -97,7 +104,10 @@ export const programStrings = {
     outsideDelete: "Supprimer",
     outsideCancel: "Annuler",
   },
-  /** Figma « PROG — 13b » (`12848:47353`). */
+  /**
+   * Figma « PROG — 13b » (`12848:47353`). Contre-recette du 23/11/2026 (a) : fenêtre de confirmation centrée sur un voile gris,
+   * la modale du programme restant ouverte. [Feuille native posée sur la modale — remplacée.]
+   */
   consent: {
     title: "Suivi de la douleur",
     body: "Une échelle de douleur et la zone concernée vous seront demandées avant et après les séances des programmes qui activent ce suivi.",
@@ -123,6 +133,14 @@ export const programStrings = {
     eraseConfirmTitle: "Effacer mes relevés",
     eraseConfirmMessage: "Tous vos relevés de douleur seront supprimés de ce téléphone.",
     eraseConfirm: "Effacer",
+    /**
+     * Contre-recette du 23/11/2026 (constat b, Hermann) : « Retirer mon accord » demande une confirmation qui nomme les
+     * programmes concernés. Message : texte de Hermann, « rapporté » accordé. Titre et libellé d'action : [interprétation].
+     */
+    withdrawConfirmTitle: "Retirer mon accord",
+    withdrawConfirmMessage:
+      "L’information de douleur rapportée avant et après l’exécution d’une séance ne sera plus mesurée ni partagée dans les programmes suivants : {names}",
+    withdrawConfirm: "Retirer",
     withdrawFailed: "L’accord n’a pas pu être retiré.",
     communityTitle: "Partage communautaire",
     visibleExecutions: "Mes nouvelles exécutions sont visibles",

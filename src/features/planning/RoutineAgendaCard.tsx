@@ -56,7 +56,16 @@ const TAGS: Readonly<Partial<Record<AgendaStatus, { readonly label: string; read
 
 export const AGENDA_ROW_HEIGHT = 52;
 const FRAME_WIDTH = 80;
-const BAR_WIDTH = 6;
+/** Traits verticaux épais du cadre (gauche) et de la bande (droite). */
+export const AGENDA_BAR_WIDTH = 6;
+const BAR_WIDTH = AGENDA_BAR_WIDTH;
+/** D-553 (Figma `12906:75`) : décalage du cadre d'une Séance de parcours, donc de son trait de gauche. */
+export const AGENDA_PARCOURS_FRAME_OFFSET = 10;
+
+/** Couleur des traits verticaux d'une carte selon son statut. */
+export function agendaBarColor(status: AgendaStatus): string {
+  return TINTS[status].bar;
+}
 const CHEVRON_SIZE = 16;
 const CHRONOMETER = require("../../../assets/icons/icon-agenda-chronometre.svg");
 const CHEVRON = require("../../../assets/icons/icon-suivant.svg");
@@ -218,7 +227,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   // Figma `12906:75` : cadre d'une Séance de parcours à x = 10 de l'écran, 70 de large.
-  frameInParcours: { marginLeft: 10, width: FRAME_WIDTH - 10 },
+  frameInParcours: { marginLeft: AGENDA_PARCOURS_FRAME_OFFSET, width: FRAME_WIDTH - AGENDA_PARCOURS_FRAME_OFFSET },
   time: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: colors.textPrimary },
   durationLine: { flexDirection: "row", alignItems: "center", gap: 3 },
   chronometerBox: { width: 14, height: 14, alignItems: "center", justifyContent: "center" },

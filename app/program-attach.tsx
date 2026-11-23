@@ -23,7 +23,13 @@ export default function ProgramAttachRoute() {
   return (
     <>
       <Stack.Screen options={{ sheetAllowedDetents: [detent] }} />
-      <ProgramAttachSheet service={service} request={request} onClose={() => router.back()} />
+      <ProgramAttachSheet
+        service={service}
+        request={request}
+        onClose={() => router.back()}
+        // Contre-recette du 23/11/2026 (c) : la date d'une carte ouvre la planification en modification, comme le Journal.
+        onEditRoutine={(routineId) => router.push({ pathname: "/planning", params: { routineId } })}
+      />
     </>
   );
 }

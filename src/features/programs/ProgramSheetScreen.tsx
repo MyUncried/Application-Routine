@@ -3,6 +3,7 @@ import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { formatLocalDate, occurrenceInstant, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import {
@@ -26,6 +27,8 @@ import { formatDayMonthYear, routineSlotLine } from "./programPresentation";
 import { requestProgramSheet, type AttachedRoutine } from "./programSheetRelay";
 import { useProgramService } from "./ProgramServiceContext";
 import { NativePeriodCalendar } from "./NativePeriodCalendar";
+import { postPlanningNotice, removedSlotsNotice } from "@/features/planning/planningNotice";
+import { PainConsentDialog } from "./PainConsentSheet";
 import { openPeriodSelection, pressPeriodDate, type PeriodSelection } from "./periodSelection";
 import { programStrings } from "./programStrings";
 
@@ -33,13 +36,15 @@ import { programStrings } from "./programStrings";
  * Créer ou configurer un programme (CE-PROG-02 ; D-548, D-549, D-551 ; Figma « PROG — 13 » `12848:47314`) — modale iOS
  * (feuille native, comme la planification) au-dessus du catalogue.
  *
- * - En-tête : croix (fermer sans enregistrer), titre (« Nouveau programme » ou nom du programme), coche (D-499 : active quand
+ * - En-tête : croix (fermer sans enregistrer), titre (« Créer un programme » ou « Modifier le programme », contre-recette du
+ *   23/11/2026, m ; [« Nouveau programme » ou nom du programme — remplacé]), coche (D-499 : active quand
  *   le nom, la date de début et la date de fin sont renseignés et cohérents) qui enregistre.
  * - Zone de contexte Programmes : nom et objectif, modifiables d'un toucher.
  * - Période : « Du … au … », dates bleues sans cadre, calendrier natif.
- * - Planifications : routines rattachées (glisser à gauche : retirer du programme), « + Planifier une séance »,
- *   « Rattacher une routine existante ».
- * - Suivi de la douleur : interrupteur natif ; sans accord, la feuille de consentement s'ouvre (« PROG — 13b »).
+ * - Planifications : routines rattachées (glisser à gauche : retirer du programme ; toucher : modifier la routine dans la
+ *   planification, contre-recette du 23/11/2026, l), « + Planifier une séance », « Rattacher une routine existante ».
+ * - Suivi de la douleur : interrupteur natif ; sans accord, la fenêtre de consentement (« PROG — 13b ») s'ouvre au centre, sur un
+ *   voile gris, la modale restant ouverte (contre-recette du 23/11/2026, a). [Feuille native posée sur la modale — remplacée.]
  *
  * Recette du 23/11/2026 (p4-croix, Hermann : « La croix doit tout annuler ») : rattachements et retraits restent dans la modale
  * jusqu'à la coche ; la croix, ou la fermeture de la feuille par le geste, supprime les routines planifiées depuis la modale et
@@ -105,6 +110,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
   const [hint, setHint] = useState(false);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [swipeLocked, setSwipeLocked] = useState(false);
+  const [consentAsked, setConsentAsked] = useState(false);
   const formRef = useRef<ScrollView>(null);
   // D-565 (recette du 23/11/2026, constat f) : verrou posé tout de suite sur la vue native (comme l'Agenda) ; sinon la liste prenait
   // le geste et l'annulait — la routine revenait à sa position précédente (« rebond »).
@@ -169,11 +175,35 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
       () => undefined,
     );
   }, [programs, storedId]);
+  // Contre-recette du 23/11/2026 (l) : une routine rattachée dans la modale (pas encore enregistrée dans le programme) peut avoir
+  // été modifiée depuis sa ligne ; elle est relue au retour (supprimée entre-temps : retirée de la liste).
+  const attachingRef = useRef(attaching);
+  useEffect(() => {
+    attachingRef.current = attaching;
+  }, [attaching]);
+  const refreshAttaching = useCallback(() => {
+    const requested = new Set(attachingRef.current.map((item) => item.routine.id));
+    if (requested.size === 0) return;
+    programs.routinesByIds([...requested]).then(
+      (list) => {
+        const fresh = new Map(list.map((routine) => [routine.id, routine]));
+        setAttaching((current) =>
+          current.flatMap((item) => {
+            if (!requested.has(item.routine.id)) return [item];
+            const routine = fresh.get(item.routine.id);
+            return routine === undefined ? [] : [{ ...item, routine }];
+          }),
+        );
+      },
+      () => undefined,
+    );
+  }, [programs]);
   // Retour de la planification ou de « Rattacher… » : la liste est relue.
   useFocusEffect(
     useCallback(() => {
       loadRoutines();
-    }, [loadRoutines]),
+      refreshAttaching();
+    }, [loadRoutines, refreshAttaching]),
   );
 
   if (draft === null) return <ScreenShell backgroundColor={colors.catalogueProgramsBackground}>{null}</ScreenShell>;
@@ -201,10 +231,12 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     persist()
       .then(async (program) => {
         if (program === null) return null;
-        await programs.applyRoutineChanges(program, {
+        const removed = await programs.applyRoutineChanges(program, {
           detach: [...detaching],
           attach: attaching.map((item) => ({ routineId: item.routine.id, removeOutside: item.removeOutside })),
         });
+        // d3 (23/11, Hermann) : snackbar du nombre de créneaux supprimés, affichée par l'écran qui reprend le focus.
+        if (removed > 0) postPlanningNotice(removedSlotsNotice(removed));
         return program;
       })
       .then(
@@ -253,6 +285,17 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
       knownRoutinesRef.current = new Set(routines.map((routine) => routine.id));
       router.push({ pathname: "/planning", params: { programId: program.id } });
     });
+  /**
+   * Contre-recette du 23/11/2026 (l, Hermann : « Puisque je peux créer une routine à partir de l'écran du programme, je dois
+   * pouvoir la modifier de là aussi : […] appuyer sur la ligne de la routine doit l'ouvrir en modification, en modale ») : même
+   * feuille de planification que le Journal (`/planning`, `routineId`). La modification est enregistrée par la planification
+   * elle-même, comme depuis le Journal : la croix de la modale du programme ne l'annule pas (seules les routines planifiées
+   * depuis la modale sont supprimées, p4-croix).
+   */
+  const edit = (routineId: string) => {
+    setRevealed(null);
+    router.push({ pathname: "/planning", params: { routineId } });
+  };
   // p4-rattacher : plusieurs routines, rendues sans écriture ; la période du brouillon sert aux décomptes (D-566).
   const attach = () => {
     if (draft.startDate === null || draft.endDate === null || issues.length > 0) {
@@ -296,18 +339,17 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
           update({ painTracking: true });
           return;
         }
-        requestProgramSheet({
-          kind: "consent",
-          onAllow: () => {
-            programs.grantPainConsent().then(
-              () => update({ painTracking: true }),
-              () => setSaveFailed(true),
-            );
-          },
-          onCancel: () => undefined,
-        });
-        router.push("/pain-consent");
+        // Contre-recette du 23/11/2026 (a) : fenêtre centrée sur un voile gris, la modale du programme reste ouverte.
+        setConsentAsked(true);
       },
+      () => setSaveFailed(true),
+    );
+  };
+  const answerConsent = (allow: boolean) => {
+    setConsentAsked(false);
+    if (!allow) return;
+    programs.grantPainConsent().then(
+      () => update({ painTracking: true }),
       () => setSaveFailed(true),
     );
   };
@@ -320,9 +362,15 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     });
   };
 
-  const title = stored === null ? t.titleNew : stored.name;
+  // Contre-recette du 23/11/2026 (m) : « Créer un programme » (création, copie) ; « Modifier le programme » (programme ouvert
+  // depuis le catalogue). Un nouveau programme enregistré pour planifier reste en création.
+  const title = params.programId === undefined ? t.titleNew : t.titleEdit;
 
   return (
+    // Contre-recette du 23/11/2026 (r3) : racine des gestes natifs propre à la feuille (formSheet, présentée hors de la vue
+    // racine), comme la feuille Planifier : le glissement des routines y est porté par le Pan natif (`SwipeActionsRow`,
+    // `nativeGesture`), qui empêche celui de la feuille.
+    <GestureHandlerRootView style={styles.gestureRoot}>
     <ScreenShell backgroundColor={colors.catalogueProgramsBackground}>
       <NativeSheetTop
         title={title}
@@ -406,10 +454,12 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                       revealed={revealed === routine.id}
                       onReveal={() => setRevealed(routine.id)}
                       onHide={() => setRevealed((current) => (current === routine.id ? null : current))}
-                      onPress={() => setRevealed(null)}
+                      onPress={() => edit(routine.id)}
                       accessibilityLabel={`${routine.name}, ${routineSlotLine(routine)}`}
+                      accessibilityHint={t.routineEditAccessibility}
                       extraAccessibilityActions={[{ name: "detach", label: t.detachAccessibility.replace("{name}", routine.name), onAction: () => detach(routine.id) }]}
                       actionWidth={ROW_ACTION_WIDTH}
+                      nativeGesture
                       testID={`program-routine-${routine.id}-swipe`}
                     >
                       <View style={styles.routineRow} testID={`program-routine-${routine.id}`}>
@@ -507,11 +557,14 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
           </View>
         ) : null}
       </PlanningPopover>
+      <PainConsentDialog visible={consentAsked} onCancel={() => answerConsent(false)} onAllow={() => answerConsent(true)} />
     </ScreenShell>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  gestureRoot: { flex: 1 },
   // Figma « PROG — 13 » : nom Inter Semi Bold 20 #141414, objectif 12 dessous.
   band: { paddingHorizontal: layout.screenGutter, gap: spacing[8] },
   name: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 20, color: colors.textPrimary, padding: 0 },

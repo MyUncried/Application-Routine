@@ -9,6 +9,8 @@ import { addDays, formatLocalDate, mondayOf, parseLocalDate, type LocalDate, typ
 import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
+import { PlanningNoticeHost } from "@/features/planning/PlanningNoticeHost";
 import { executedProjections, mergeAgendaExecutions } from "@/features/planning/agendaCards";
 import { formatAgendaMonth, sessionsDurationLabel } from "@/features/planning/agendaFormat";
 import { DoubleChevron, formatDayTitle } from "@/features/planning/CalendarWeekScreen";
@@ -131,6 +133,7 @@ export function PlanScreen({
 } = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [planningNotice, setPlanningNotice] = useState<string | null>(null);
   const planning = usePlanningService();
   const { state: catalogue, reload: reloadCatalogue, cancelPending } = useSessionCatalogue();
   const [monday, setMonday] = useState<LocalDate>(() => mondayOf(initialDay ?? todayLocal()));
@@ -185,6 +188,9 @@ export function PlanScreen({
     useCallback(() => {
       reloadCatalogue();
       load(mondayRef.current);
+      // d3 (23/11) : message laissé par une feuille qui vient de se fermer.
+      const pendingNotice = takePlanningNotice();
+      if (pendingNotice !== null) setPlanningNotice(pendingNotice);
       return () => {
         cancelPending();
         setTouched(null);
@@ -459,22 +465,32 @@ export function PlanScreen({
       <GestureDetector gesture={swipe}>
       <ScrollView
         style={styles.list}
-        contentContainerStyle={{ paddingTop: CONTEXT_BAND_FADE_HEIGHT, paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }}
+        contentContainerStyle={{ paddingBottom: navigationBarTotalHeight() + insets.bottom + spacing[24] }}
         showsVerticalScrollIndicator={false}
+        // Recette du 23/11/2026 (Hermann : « Plan : la ligne des dates du tableau doit rester figée, et les lignes du tableau
+        // doivent défiler dessous lorsqu'on fait défiler l'écran verticalement. Le défilement vertical de l'écran ne doit être
+        // activé que lorsque la taille du tableau le justifie. ») : en-tête collant natif du `ScrollView` (premier enfant, part
+        // fondue de la bande comprise, pour qu'il reste à sa place dès le premier point de défilement) ; aucun rebond quand le
+        // tableau tient dans l'écran (iOS ; un `ScrollView` Android ne défile pas un contenu plus court que lui).
+        // [Lignes défilant derrière la part fondue de la bande au-dessus des dates (22/11/2026) — remplacé pour le Plan.]
+        stickyHeaderIndices={[0]}
+        alwaysBounceVertical={false}
         testID="plan-grid"
       >
-        {/* En-tête des jours : jour abrégé et numéro ; jour courant sur fond bleu. */}
-        <View style={styles.header} testID="plan-header">
-          {week.days.map((day, index) => {
-            const current = day === today;
-            return (
-              <View key={day} style={[styles.headerDay, { left: LEFT + NAMES_WIDTH + index * COLUMN + 2 }, current ? styles.headerToday : null]} testID={`plan-day-${day}`}>
-                <Text style={[styles.headerShort, current ? styles.headerTextToday : null]}>{t.plan.weekdays[index]}</Text>
-                <Text style={[styles.headerNumber, current ? styles.headerTextToday : null]}>{parseLocalDate(day).getDate()}</Text>
-              </View>
-            );
-          })}
-          <View style={[styles.rowLine, styles.fullLine, { bottom: 0 }]} />
+        <View style={styles.headerZone} testID="plan-header-zone">
+          {/* En-tête des jours : jour abrégé et numéro ; jour courant sur fond bleu. */}
+          <View style={styles.header} testID="plan-header">
+            {week.days.map((day, index) => {
+              const current = day === today;
+              return (
+                <View key={day} style={[styles.headerDay, { left: LEFT + NAMES_WIDTH + index * COLUMN + 2 }, current ? styles.headerToday : null]} testID={`plan-day-${day}`}>
+                  <Text style={[styles.headerShort, current ? styles.headerTextToday : null]}>{t.plan.weekdays[index]}</Text>
+                  <Text style={[styles.headerNumber, current ? styles.headerTextToday : null]}>{parseLocalDate(day).getDate()}</Text>
+                </View>
+              );
+            })}
+            <View style={[styles.rowLine, styles.fullLine, { bottom: 0 }]} />
+          </View>
         </View>
         {loadFailed ? (
           <Text style={styles.message} testID="plan-load-error">
@@ -540,6 +556,7 @@ export function PlanScreen({
       </ScrollView>
       </GestureDetector>
       </GestureHandlerRootView>
+      <PlanningNoticeHost message={planningNotice} onDismiss={() => setPlanningNotice(null)} testID="plan-notice" />
     </TabbedScreen>
   );
 }
@@ -567,7 +584,10 @@ const styles = StyleSheet.create({
   // bande — remplacé.]
   body: { flex: 1, marginTop: -CONTEXT_BAND_FADE_HEIGHT },
   // En-tête des jours (Figma `12983:54` et suivants) : 40 de haut, à 8 sous la bande.
-  header: { height: 40, marginTop: spacing[8] },
+  // Zone collante (recette du 23/11/2026, constat e) : part fondue de la bande et 8 au-dessus des dates, fond de l'écran opaque
+  // pour que les lignes passent dessous.
+  headerZone: { paddingTop: CONTEXT_BAND_FADE_HEIGHT + spacing[8], backgroundColor: colors.background },
+  header: { height: 40 },
   headerDay: { position: "absolute", top: 0, width: CELL_WIDTH, height: 38, borderRadius: 9, alignItems: "center", paddingTop: 4 },
   headerToday: { backgroundColor: TODAY_BADGE },
   headerShort: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 10, lineHeight: 12, color: "#595E66" },

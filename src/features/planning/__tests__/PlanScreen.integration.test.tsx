@@ -204,8 +204,15 @@ describe("Calendrier — Plan (D-554)", () => {
     expect(screen.getByTestId(`plan-total-${addDays(MONDAY, 1)}`).props.children).toBe("—");
     expect(String(screen.getByTestId("plan-total-week").props.children)).toMatch(/^Total · /);
     expect(screen.getByTestId("plan-legend")).toBeTruthy();
-    // Recette du 22/11/2026 : le tableau défile sous la part fondue de la zone de contexte (contrat de `ContextBand`).
-    expect(StyleSheet.flatten(screen.getByTestId("plan-grid").props.contentContainerStyle).paddingTop).toBe(CONTEXT_BAND_FADE_HEIGHT);
+    // Recette du 23/11/2026 (constat e) : la ligne des dates reste figée (en-tête collant natif, part fondue de la bande comprise,
+    // fond opaque) et les lignes défilent dessous ; aucun rebond quand le tableau tient dans l'écran.
+    const grid = screen.getByTestId("plan-grid");
+    expect(grid.props.stickyHeaderIndices).toEqual([0]);
+    expect(grid.props.alwaysBounceVertical).toBe(false);
+    expect(StyleSheet.flatten(grid.props.contentContainerStyle).paddingTop).toBeUndefined();
+    const zone = StyleSheet.flatten(screen.getByTestId("plan-header-zone").props.style);
+    expect(zone.paddingTop).toBe(CONTEXT_BAND_FADE_HEIGHT + 8);
+    expect(zone.backgroundColor).toBe("#FFFFFF");
   });
 
   it("gestes : case vide → ajout d'un créneau (parcours entier) ; case pleine → modification ; créneau commencé : rien ; « + Routine »", async () => {

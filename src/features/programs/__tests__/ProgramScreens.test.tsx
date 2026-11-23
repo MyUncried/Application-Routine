@@ -254,10 +254,11 @@ describe("CE-PROG-01 — catalogue des programmes", () => {
 });
 
 describe("CE-PROG-02 — créer ou configurer un programme", () => {
-  it("création : « Nouveau programme », coche inactive tant que nom et période manquent ; rien d'interdit dans la modale", async () => {
+  it("création : « Créer un programme » (contre-recette du 23/11, m), coche inactive tant que nom et période manquent ; rien d'interdit dans la modale", async () => {
     render(withService(<ProgramSheetScreen params={{}} />));
     await runFocus();
-    expect(screen.getByText("Nouveau programme")).toBeTruthy();
+    expect(screen.getByText("Créer un programme")).toBeTruthy();
+    expect(screen.queryByText("Nouveau programme")).toBeNull();
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByText("Planifications")).toBeTruthy();
     expect(screen.getByText("+ Planifier une séance")).toBeTruthy();
@@ -268,14 +269,15 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("configuration : titre = nom ; période « Du … au … » ; routines « créneau · N contenus » ; glisser retire sans supprimer", async () => {
+  it("configuration : titre « Modifier le programme » (contre-recette du 23/11, m) ; période « Du … au … » ; routines « créneau · N contenus » ; glisser retire sans supprimer", async () => {
     const program = await createProgram();
     const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
     if (created.status !== "SAVED") throw new Error(created.status);
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
     await runFocus();
-    expect(screen.getAllByText("Rééducation genou").length).toBeGreaterThan(0);
+    expect(screen.getByText("Modifier le programme")).toBeTruthy();
+    expect(screen.getByTestId("program-name").props.value).toBe("Rééducation genou");
     expect(screen.getByText("1er août 2030")).toBeTruthy();
     expect(screen.getByText("30 sept. 2030")).toBeTruthy();
     expect(screen.getByText("tous les jours, 14 h  ·  2 contenus")).toBeTruthy();
@@ -375,37 +377,71 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("suivi de la douleur sans accord : la feuille de consentement s'ouvre ; Annuler laisse désactivé, Autoriser active", async () => {
-    const requests: relay.ProgramSheetRequest[] = [];
-    const spy = jest.spyOn(relay, "requestProgramSheet").mockImplementation((request) => {
-      requests.push(request);
-    });
+  it("suivi de la douleur sans accord : fenêtre de consentement dans la modale (contre-recette du 23/11, a) ; Annuler laisse désactivé, Autoriser active", async () => {
     const program = await createProgram();
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
     fireEvent(screen.getByTestId("program-pain-switch"), "valueChange", true);
     await flush();
-    expect(mockPush).toHaveBeenCalledWith("/pain-consent");
-    const first = requests[0];
-    if (first?.kind !== "consent") throw new Error("consent");
-    act(() => first.onCancel());
+    // La modale du programme reste ouverte : aucune feuille poussée, fenêtre centrée sur le voile partagé.
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
+    expect(screen.getByTestId("pain-consent")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("pain-consent-cancel"));
+    await flush();
+    expect(screen.queryByTestId("pain-consent")).toBeNull();
     expect(screen.getByTestId("program-pain-switch").props.value).toBe(false);
     expect(await programs.painConsentAt()).toBeNull();
     fireEvent(screen.getByTestId("program-pain-switch"), "valueChange", true);
     await flush();
-    const second = requests[1];
-    if (second?.kind !== "consent") throw new Error("consent");
-    await act(async () => second.onAllow());
+    fireEvent.press(screen.getByTestId("pain-consent-allow"));
     await flush();
+    expect(screen.queryByTestId("pain-consent")).toBeNull();
     expect(screen.getByTestId("program-pain-switch").props.value).toBe(true);
     expect(await programs.painConsentAt()).toBe(NOW.toISOString());
     // Accord déjà donné : les activations suivantes ne redemandent rien.
-    mockPush.mockClear();
     fireEvent(screen.getByTestId("program-pain-switch"), "valueChange", false);
     fireEvent(screen.getByTestId("program-pain-switch"), "valueChange", true);
     await flush();
-    expect(mockPush).not.toHaveBeenCalledWith("/pain-consent");
+    expect(screen.queryByTestId("pain-consent")).toBeNull();
     expect(screen.getByTestId("program-pain-switch").props.value).toBe(true);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("contre-recette du 23/11 (l) : toucher la ligne d'une routine l'ouvre en modification ; une routine rattachée dans la modale est relue au retour", async () => {
+    const requests: relay.ProgramSheetRequest[] = [];
+    const spy = jest.spyOn(relay, "requestProgramSheet").mockImplementation((request) => {
+      requests.push(request);
+    });
+    const program = await createProgram();
+    const own = await planning.createRoutine({ ...routineDraft({ name: "Genou" }), programId: program.id });
+    const free = await planning.createRoutine(routineDraft({ name: "Hanche" }));
+    if (own.status !== "SAVED" || free.status !== "SAVED") throw new Error("routine");
+    const view = render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    fireEvent.press(screen.getByTestId(`program-routine-${own.routine.id}-swipe-card`));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/planning", params: { routineId: own.routine.id } });
+    // Rattachée dans la modale (non enregistrée), puis modifiée depuis sa ligne : le nouveau nom s'affiche au retour.
+    fireEvent.press(screen.getByTestId("program-attach"));
+    const request = requests[0];
+    if (request?.kind !== "attach") throw new Error("attach");
+    act(() => request.onAttach([{ routine: free.routine, removeOutside: false }]));
+    await flush();
+    fireEvent.press(screen.getByTestId(`program-routine-${free.routine.id}-swipe-card`));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/planning", params: { routineId: free.routine.id } });
+    const edited = await planning.updateRoutine(free.routine.id, routineDraft({ name: "Hanche droite" }));
+    if (edited.status !== "SAVED") throw new Error(edited.status);
+    await runFocus();
+    expect(screen.getByText("Hanche droite")).toBeTruthy();
+    // La croix n'annule pas une modification enregistrée par la planification ; seules les routines planifiées depuis la modale
+    // sont supprimées (p4-croix).
+    fireEvent.press(screen.getByLabelText("Fermer sans enregistrer"));
+    view.unmount();
+    await flush();
+    expect((await planning.getRoutine(free.routine.id))?.name).toBe("Hanche droite");
+    expect(await planning.getRoutine(own.routine.id)).not.toBeNull();
     spy.mockRestore();
   });
 });
@@ -430,10 +466,36 @@ describe("CE-PRF-01 — Profil › Confidentialité", () => {
     expect(screen.getByText("Accordé le 10 août 2030")).toBeTruthy();
     expect(screen.getByText("Utilisé par 1 programme · Rééducation genou")).toBeTruthy();
     expect(screen.getByTestId("privacy-erase").props.accessibilityState).toEqual({ disabled: true });
+    // Contre-recette du 23/11/2026 (constat b) : confirmation nommant les programmes concernés ; Annuler ne retire rien.
     fireEvent.press(screen.getByTestId("privacy-withdraw"));
+    expect(screen.getByTestId("privacy-withdraw-confirm-card")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "L’information de douleur rapportée avant et après l’exécution d’une séance ne sera plus mesurée ni partagée dans les programmes suivants : Rééducation genou",
+      ),
+    ).toBeTruthy();
+    fireEvent.press(screen.getByTestId("privacy-withdraw-confirm-cancel"));
+    await flush();
+    expect(screen.queryByTestId("privacy-withdraw-confirm-card")).toBeNull();
+    expect(await programs.painConsentAt()).not.toBeNull();
+    expect((await programs.getProgram(program.id))?.painTracking).toBe(true);
+    fireEvent.press(screen.getByTestId("privacy-withdraw"));
+    fireEvent.press(screen.getByTestId("privacy-withdraw-confirm-confirm"));
     await flush();
     await waitFor(() => expect(screen.getByTestId("privacy-pain-none")).toBeTruthy());
     expect(await programs.painConsentAt()).toBeNull();
     expect((await programs.getProgram(program.id))?.painTracking).toBe(false);
+  });
+
+  it("avec accord sans programme concerné : « Retirer mon accord » agit sans confirmation (question ouverte)", async () => {
+    await programs.grantPainConsent();
+    render(withService(<PrivacyScreen />));
+    await runFocus();
+    expect(screen.getByText("Utilisé par aucun programme")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("privacy-withdraw"));
+    expect(screen.queryByTestId("privacy-withdraw-confirm-card")).toBeNull();
+    await flush();
+    await waitFor(() => expect(screen.getByTestId("privacy-pain-none")).toBeTruthy());
+    expect(await programs.painConsentAt()).toBeNull();
   });
 });

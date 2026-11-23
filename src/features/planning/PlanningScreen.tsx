@@ -1,5 +1,5 @@
-import { DatePicker, Host } from "@expo/ui/swift-ui";
-import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
+import { Button as SwiftUIButton, DatePicker, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import { accessibilityLabel as swiftUIAccessibilityLabel, datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
@@ -51,6 +51,7 @@ import {
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
 import { occurrenceForm, occurrenceSessions, toggleOccurrencePoint, withOccurrenceSelection, type OccurrenceEditing } from "@/features/planning/occurrenceDraft";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { postPlanningNotice, removedSlotsNotice } from "@/features/planning/planningNotice";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
@@ -65,7 +66,7 @@ import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTab
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
-import type { Program } from "@/domain/programs/Program";
+import { programStatus, type Program } from "@/domain/programs/Program";
 import { maxEndCount, windowStartMinimum, withinWindow, type ProgramWindow } from "@/features/planning/programWindow";
 import { OutsidePeriodDialog } from "@/features/programs/OutsidePeriodDialog";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
@@ -352,6 +353,27 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     };
   }, [params.routineId, params.programId, planning]);
   const programId = params.programId ?? routineProgramId;
+  // Recette du 23/11/2026 (h, g2 — Hermann : « Journal : je dois pouvoir attacher / détacher un programme d'une routine » ;
+  // « Agenda : je dois pouvoir attacher / détacher un programme de l'occurrence d'une routine ») : programme choisi dans le menu
+  // de la ligne Programme — `undefined` : inchangé ; `null` : aucun. Appliqué à l'enregistrement. Programmes proposés : ceux qui
+  // ne sont pas terminés (D-545).
+  const [chosenProgramId, setChosenProgramId] = useState<string | null | undefined>(undefined);
+  const [programList, setProgramList] = useState<readonly Program[]>([]);
+  const programChoosable = programs !== null && params.routineId !== undefined && params.programId === undefined;
+  useEffect(() => {
+    if (!programChoosable || programs === null) return undefined;
+    let cancelled = false;
+    programs.listPrograms().then(
+      (list) => {
+        if (!cancelled) setProgramList(list);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [programChoosable, programs]);
+  const programChanged = chosenProgramId !== undefined && chosenProgramId !== routineProgramId;
   useEffect(() => {
     if (programs === null || programId === null) return undefined;
     let cancelled = false;
@@ -366,6 +388,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     };
   }, [programs, programId]);
   const programWindow: ProgramWindow | null = program === null ? null : { start: program.startDate, end: program.endDate };
+  // Programme affiché et appliqué à l'enregistrement : le choix du menu, sinon celui de la routine (ou de la création).
+  const selectedProgram: Program | null =
+    chosenProgramId === undefined ? program : chosenProgramId === null ? null : (programList.find((item) => item.id === chosenProgramId) ?? null);
   // Nouvelle routine d'un programme : le brouillon reste dans la fenêtre (une routine existante n'est jamais réécrite d'office).
   const boundCreation = params.programId !== undefined && mode?.kind === "create";
   // Ajustement pendant le rendu (état dérivé du programme lu) : `withinWindow` rend le même objet une fois dans la fenêtre.
@@ -429,32 +454,60 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           ...(shown.grid.points.some((row) => row[editing.column] === true) ? [] : ["EMPTY_SLOT" as const]),
         ];
   const canSave = blocking.length === 0 && !saving && catalogue.status === "ready";
+  // Recette du 23/11/2026 (d4) : en modification depuis le Journal, les dates ne sont plus bornées par la période du programme —
+  // D-566 : la routine n'est pas coupée, des créneaux peuvent rester hors programme (question posée à l'enregistrement).
+  // [Bornes du programme en modification (PROG-CAT-01, point 5) — remplacé ; conservées pour la création depuis un programme et
+  // pour une occurrence seule.]
+  const boundWindow = mode.kind === "edit" ? null : programWindow;
+  // Routine modifiée (au-delà du seul programme) : recette du 21/11/2026, sans changement rien n'est enregistré.
+  const routineChanged = () => {
+    const before = loadedForm.current;
+    return before === null || JSON.stringify(toRoutineDraft(before, before.name)) !== JSON.stringify(toRoutineDraft(form, form.name));
+  };
+  const routineIdOf = (current: Mode) =>
+    current.kind === "edit" ? current.routineId : current.kind === "occurrence" && current.editing.adding !== true ? current.editing.routineId : null;
+
+  /** D-536, point 2 : confirmation du nombre de créneaux concernés, seulement si la routine elle-même change. */
+  const askModify = (routineId: string) => {
+    if (!routineChanged()) {
+      commit();
+      return;
+    }
+    planning.pendingSlotCount(routineId, draft).then(
+      (count) => (count > 0 ? setModifyCount(count) : commit()),
+      () => commit(),
+    );
+  };
 
   const save = () => {
     if (!canSave || savingRef.current) return;
+    removeOutsideRef.current = false;
     // D-536, point 2 : modification de la routine depuis le Journal — confirmation du nombre de créneaux concernés.
     if (mode.kind === "edit" && modifyCount === null) {
-      const before = loadedForm.current;
-      if (before !== null && JSON.stringify(toRoutineDraft(before, before.name)) === JSON.stringify(toRoutineDraft(form, form.name))) {
+      if (!routineChanged() && !programChanged) {
         // Rien n'a changé : pas de confirmation, rien n'est enregistré (la routine ne remonte pas dans le Journal).
         router.back();
         return;
       }
       const routineId = mode.routineId;
-      const askModify = () =>
-        planning.pendingSlotCount(routineId).then(
-          (count) => (count > 0 ? setModifyCount(count) : commit()),
-          () => commit(),
-        );
-      removeOutsideRef.current = false;
-      if (program !== null) {
-        planning.outsidePeriodSlotCount(routineId, program.startDate, program.endDate, draft).then(
-          (count) => (count > 0 ? setOutsideCount(count) : askModify()),
-          () => askModify(),
+      // D-566 : routine d'un programme (actuel ou choisi) — créneaux à venir hors de sa période, brouillon compris.
+      if (selectedProgram !== null) {
+        planning.outsidePeriodSlotCount(routineId, selectedProgram.startDate, selectedProgram.endDate, draft).then(
+          (count) => (count > 0 ? setOutsideCount(count) : askModify(routineId)),
+          () => askModify(routineId),
         );
         return;
       }
-      askModify();
+      askModify(routineId);
+      return;
+    }
+    // Recette du 23/11/2026 (g2) : programme choisi depuis une occurrence de l'Agenda — question D-566 au rattachement.
+    const occurrenceRoutine = routineIdOf(mode);
+    if (mode.kind === "occurrence" && occurrenceRoutine !== null && programChanged && selectedProgram !== null) {
+      planning.outsidePeriodSlotCount(occurrenceRoutine, selectedProgram.startDate, selectedProgram.endDate).then(
+        (count) => (count > 0 ? setOutsideCount(count) : commit()),
+        () => commit(),
+      );
       return;
     }
     commit();
@@ -462,13 +515,29 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
 
   /** D-566 : réponse à la question des créneaux hors période, puis confirmation habituelle (D-536). */
   const answerOutside = (removeOutside: boolean) => {
-    if (mode.kind !== "edit") return;
     setOutsideCount(null);
     removeOutsideRef.current = removeOutside;
-    planning.pendingSlotCount(mode.routineId).then(
-      (count) => (count > 0 ? setModifyCount(count) : commit()),
-      () => commit(),
-    );
+    if (mode.kind === "edit") askModify(mode.routineId);
+    else commit();
+  };
+
+  /**
+   * Après l'enregistrement : programme choisi (h, g2), puis D-566 « Supprimer » — snackbar du nombre de créneaux supprimés (d3),
+   * affichée par l'écran qui reprend le focus (`planningNotice`).
+   */
+  const afterSave = async <T extends { readonly status: string }>(result: T): Promise<T> => {
+    const routineId = routineIdOf(mode);
+    if (result.status !== "SAVED" || routineId === null) return result;
+    if (programChanged && programs !== null) {
+      if (chosenProgramId === null || chosenProgramId === undefined) await programs.detachRoutine(routineId);
+      else await programs.attachRoutine(routineId, chosenProgramId);
+    }
+    const periodProgram = selectedProgram;
+    if (removeOutsideRef.current && periodProgram !== null) {
+      const removedCount = await planning.removeOutsidePeriod(routineId, periodProgram.startDate, periodProgram.endDate);
+      if (removedCount > 0) postPlanningNotice(removedSlotsNotice(removedCount));
+    }
+    return result;
   };
 
   const commit = () => {
@@ -477,7 +546,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
-    const request: Promise<{ readonly status: string }> =
+    const write: Promise<{ readonly status: string }> =
       mode.kind === "occurrence"
         ? (mode.editing.adding === true ? planning.addOccurrence(mode.editing.routineId, {
               date: form.startDate,
@@ -491,14 +560,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               reminderMinutes: form.reminderMinutes,
             }))
         : mode.kind === "edit"
-          ? planning.updateRoutine(mode.routineId, draft).then(async (result) => {
-              const window = program;
-              if (result.status === "SAVED" && removeOutsideRef.current && window !== null) {
-                await planning.removeUpcomingSlots(mode.routineId, (date) => date < window.startDate || date > window.endDate);
-              }
-              return result;
-            })
+          ? // Seul le programme change (h) : la routine n'est pas réécrite.
+            routineChanged()
+            ? planning.updateRoutine(mode.routineId, draft)
+            : Promise.resolve({ status: "SAVED" })
           : planning.createRoutine(params.programId !== undefined ? { ...draft, programId: params.programId } : draft);
+    const request = mode.kind === "create" ? write : write.then(afterSave);
     request.then(
       (result) => {
         savingRef.current = false;
@@ -666,9 +733,19 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             <View style={styles.card} testID="planning-slot">
               <View style={styles.line}>
                 <Text style={styles.label}>{t.program}</Text>
-                <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${program?.name ?? t.programNone}`} testID="planning-program">
-                  <Text style={styles.pillText}>{program?.name ?? t.programNone}</Text>
-                </View>
+                {programChoosable && routineIdOf(mode) !== null && Platform.OS === "ios" ? (
+                  <ProgramMenu
+                    label={selectedProgram?.name ?? t.programNone}
+                    selectedId={selectedProgram?.id ?? null}
+                    // D-545 : programmes non terminés.
+                    programs={programList.filter((item) => programStatus(item, todayLocal()) === "ACTIVE")}
+                    onChoose={setChosenProgramId}
+                  />
+                ) : (
+                  <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${selectedProgram?.name ?? t.programNone}`} testID="planning-program">
+                    <Text style={styles.pillText}>{selectedProgram?.name ?? t.programNone}</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.line}>
                 <Text style={styles.label}>{t.start}</Text>
@@ -892,7 +969,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         anchor={popover?.kind === "END_COUNT" ? popover.anchor : null}
         columns={[
           {
-            values: programWindow === null ? END_COUNTS : END_COUNTS.filter((count) => count <= maxEndCount(form.unit, form.startDate, programWindow.end)),
+            values: boundWindow === null ? END_COUNTS : END_COUNTS.filter((count) => count <= maxEndCount(form.unit, form.startDate, boundWindow.end)),
             selected: form.endCount,
             onChange: (count) => setForm((current) => (current === null ? current : withEndCount(current, count))),
             accessibilityLabel: t.during,
@@ -1009,9 +1086,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           <DateCalendar
             value={popover.kind === "START" ? form.startDate : form.endDate}
             minimum={
-              popover.kind === "START" ? (programWindow === null ? todayLocal() : windowStartMinimum(programWindow, todayLocal())) : form.startDate
+              popover.kind === "START" ? (boundWindow === null ? todayLocal() : windowStartMinimum(boundWindow, todayLocal())) : form.startDate
             }
-            {...(programWindow !== null ? { maximum: programWindow.end } : {})}
+            {...(boundWindow !== null ? { maximum: boundWindow.end } : {})}
             onChange={(value) => {
               if (popover.kind === "START") changeStartDate(value);
               else setForm((current) => (current === null ? current : withEndDate(current, value)));
@@ -1023,6 +1100,52 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         <TransientNotification message={notice} onDismiss={() => setNotice(null)} durationMs={RENAMED_NOTICE_MS} testID="planning-renamed-notice" />
       </View>
     </ScreenShell>
+  );
+}
+
+/**
+ * Ligne Programme en modification d'une routine (recette du 23/11/2026, h et g2) : `Menu` SwiftUI natif d'`@expo/ui`, même
+ * procédé que les menus des niveaux et de Ma bibliothèque — la pastille bleue est le libellé du menu ; « Aucun » puis les
+ * programmes non terminés, le programme en vigueur coché (symbole système). iOS seulement ; ailleurs la pastille reste fixe.
+ */
+function ProgramMenu({
+  label,
+  selectedId,
+  programs,
+  onChoose,
+}: {
+  readonly label: string;
+  readonly selectedId: string | null;
+  readonly programs: readonly Program[];
+  readonly onChoose: (programId: string | null) => void;
+}) {
+  const accessibility = fillTemplate(t.programMenuAccessibility, { value: label });
+  const options = [{ id: null, name: t.programNone }, ...programs.map((item) => ({ id: item.id as string | null, name: item.name }))];
+  return (
+    <View testID="planning-program">
+      <Host matchContents>
+        <Menu
+          label={
+            <RNHostView matchContents>
+              <View pointerEvents="none" style={styles.pill}>
+                <Text style={styles.pillText}>{label}</Text>
+              </View>
+            </RNHostView>
+          }
+          modifiers={[swiftUIAccessibilityLabel(accessibility)]}
+        >
+          {options.map((option) => (
+            <SwiftUIButton
+              key={option.id ?? "none"}
+              label={option.name}
+              {...(option.id === selectedId ? { systemImage: "checkmark" as const } : {})}
+              onPress={() => onChoose(option.id)}
+              testID={`planning-program-option-${option.id ?? "none"}`}
+            />
+          ))}
+        </Menu>
+      </Host>
+    </View>
   );
 }
 

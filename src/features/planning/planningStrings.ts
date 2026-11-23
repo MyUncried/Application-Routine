@@ -212,6 +212,9 @@ export const planningStrings = {
     start: "Début",
     program: "Programme",
     programNone: "Aucun",
+    // Recette du 23/11/2026 (h, g2 — Hermann : « je dois pouvoir attacher / détacher un programme ») : menu natif de la ligne
+    // Programme, en modification d'une routine.
+    programMenuAccessibility: "Programme : {value}. Toucher pour choisir un programme.",
     nameAccessibility: "Nom de la planification",
     namePlaceholder: "Nom de la planification",
     nameRequired: "Nom obligatoire",
@@ -254,6 +257,12 @@ export const planningStrings = {
     datePicker: "Date de planification",
     timePicker: "Heure",
     endDatePicker: "Date de fin",
+  },
+  // Recette du 23/11/2026 (d3 — Hermann : « il faut un message snackbar après confirmation pour informer du nombre de créneaux
+  // supprimés ») : D-566 « Supprimer ». [Libellé : formulation retenue par Claude.]
+  removedSlots: {
+    one: "1 créneau supprimé",
+    many: "{count} créneaux supprimés",
   },
   reminder: {
     title: "Rappel",
