@@ -167,3 +167,4 @@
 - **Préparé, non appliqué** (source normative sur la branche Agenda, non fusionnée) : `_bmad-output/compte/integration-documentaire-D-563-branche-agenda.patch` — document Agenda (§ 1, § 2), registre (D-522, D-553, note RM), ch04, ch10 (RM-258, RM-261, complément 21/11), ch13 ; `git apply --cached --check` sur un index temporaire de la branche Agenda : applicable (5 fichiers).
 - Renumérotation antérieure : décisions Programmes D-560 à D-562 (collision avec D-543 à D-552 de main).
 - Tests : non applicables.
+- Prompt Claude Code : `docs/PROMPT-CLAUDE-CODE-NOM-ROUTINE-UNIQUE-2026-11-23.md`.
