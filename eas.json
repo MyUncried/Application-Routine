@@ -29,7 +29,8 @@
       },
       "env": {
         "APP_VARIANT": "bmad"
-      }
+      },
+      "channel": "recette-bmad"
     },
     "preview": {
       "distribution": "internal",

@@ -81,7 +81,10 @@ const DATE_PANEL_WIDTH = 360;
  */
 const NATIVE_CALENDAR_WIDTH = 280;
 /** Hauteur avant la première mesure native (environ 6 rangs réduits). */
-const NATIVE_CALENDAR_INITIAL_HEIGHT = 330;
+const NATIVE_CALENDAR_INITIAL_HEIGHT = 300;
+/** Recette du 23/11/2026 (« La largeur est ok. C’est la hauteur qu’il faut reduire ») : taille de texte réduite, rangs resserrés. */
+const NATIVE_CALENDAR_TEXT_SIZE = "xSmall";
+const NATIVE_CALENDAR_NATURAL_WIDTH = 360;
 /** Figma « PROG — 13 » : objectif Inter Medium 14 #666C7E ; ligne secondaire d'une routine #9499A8. */
 const OBJECTIVE_COLOR = "#666C7E";
 const MUTED = "#9499A8";
@@ -694,6 +697,8 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
               }
               if (step.close) setPopover(null);
             }}
+            naturalWidth={NATIVE_CALENDAR_NATURAL_WIDTH}
+            textSize={NATIVE_CALENDAR_TEXT_SIZE}
             onMeasure={(event) => setCalendarHeight(event.nativeEvent.height)}
             style={{ width: NATIVE_CALENDAR_WIDTH, height: calendarHeight }}
             testID="program-period-calendar"

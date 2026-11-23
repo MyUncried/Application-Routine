@@ -43,6 +43,12 @@ public final class KodjoCalendarModule: Module {
       Prop("tintColor") { (view: KodjoCalendarView, value: UIColor?) in
         view.setTint(value)
       }
+      Prop("naturalWidth") { (view: KodjoCalendarView, value: Double?) in
+        view.setNaturalWidth(value)
+      }
+      Prop("textSize") { (view: KodjoCalendarView, value: String?) in
+        view.setTextSize(value)
+      }
     }
   }
 }
@@ -83,8 +89,36 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
     addSubview(calendarView)
   }
 
-  /// Largeur à laquelle UIKit dispose le calendrier : ses proportions d’origine (chiffres, rangs, colonnes, repères).
-  private static let naturalWidth: CGFloat = 360
+  /// Largeur à laquelle UIKit dispose le calendrier avant réduction (réglable par JavaScript, 360 par défaut).
+  private var naturalWidth: CGFloat = 360
+
+  func setNaturalWidth(_ value: Double?) {
+    naturalWidth = CGFloat(value ?? 360)
+    setNeedsLayout()
+  }
+
+  /// Recette du 23/11/2026 (Hermann : « La largeur est ok. C’est la hauteur qu’il faut reduire ») : la hauteur des rangs de
+  /// UICalendarView suit la taille de texte du système (Dynamic Type), pas la largeur. Une taille de texte plus petite, imposée
+  /// à cette seule vue (`traitOverrides`, iOS 17), resserre les rangs sans déformer les chiffres ; la réduction d’échelle reste
+  /// uniforme. Valeurs : xSmall, small, medium, large (taille système par défaut).
+  func setTextSize(_ value: String?) {
+    guard #available(iOS 17.0, *) else { return }
+    let category: UIContentSizeCategory?
+    switch value {
+    case "xSmall": category = .extraSmall
+    case "small": category = .small
+    case "medium": category = .medium
+    case "large": category = .large
+    default: category = nil
+    }
+    if let category = category {
+      calendarView.traitOverrides.preferredContentSizeCategory = category
+    } else {
+      calendarView.traitOverrides.remove(UITraitPreferredContentSizeCategory.self)
+    }
+    measuredHeight = 0
+    setNeedsLayout()
+  }
 
   /// Recette du 23/11/2026 (Hermann : « J’aimerais les chiffres plus petits, les espaces entre les lignes et entre les
   /// colonnes plus petits, plus ramassé, de même que l’espace entre les chiffres et les points ») : UICalendarView n’expose ni
@@ -94,7 +128,7 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
   override func layoutSubviews() {
     super.layoutSubviews()
     guard bounds.width > 0 else { return }
-    let scale = min(1, bounds.width / KodjoCalendarView.naturalWidth)
+    let scale = min(1, bounds.width / max(naturalWidth, 1))
     let layoutWidth = bounds.width / scale
     let fitting = calendarView.systemLayoutSizeFitting(
       CGSize(width: layoutWidth, height: UIView.layoutFittingCompressedSize.height),

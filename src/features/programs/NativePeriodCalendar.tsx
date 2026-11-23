@@ -16,6 +16,10 @@ type NativeProps = {
   readonly visibleDate: LocalDate | null;
   readonly tintColor: string;
   readonly onPressDate: (event: { readonly nativeEvent: { readonly date: string } }) => void;
+  /** Largeur de disposition native avant réduction d’un bloc (360 par défaut). */
+  readonly naturalWidth?: number;
+  /** Taille de texte imposée au calendrier (Dynamic Type, iOS 17) : resserre les rangs. */
+  readonly textSize?: "xSmall" | "small" | "medium" | "large";
   /** Hauteur nécessaire à la largeur reçue, calculée par la vue native. */
   readonly onMeasure?: (event: { readonly nativeEvent: { readonly height: number } }) => void;
   readonly style?: ViewStyle;
