@@ -1,4 +1,6 @@
-# Glossaire français → anglais — proposition du 23/11/2026
+# Glossaire français → anglais — validé par Hermann le 23/11/2026
+
+> Validé le 23/11/2026 dans la feuille en ligne (révision 17) : « j'ai validé les termes ». Colonne « Validé » vide = proposition retenue ; en gras = terme choisi par Hermann.
 
 À valider par Hermann avant la traduction de l’interface (J1), dans la feuille en ligne https://claude.ai/artifact/2WfKJwKQAv5Ru7ewYsWE4g (colonne « Votre choix ») ; la feuille fait foi et ce fichier sera mis à jour depuis elle. Une fois validé, ce glossaire s'impose à toutes les traductions anglaises (IA ou humaines). Colonne « Validé » : laisser vide si d'accord, sinon écrire le terme voulu.
 
@@ -9,7 +11,7 @@
 | Mouvement (fiche du catalogue) | Movement | Exercise (déjà pris) | |
 | Catalogue | Catalog | Library (déjà pris par Bibliothèque) | |
 | Bibliothèque | Library | — | |
-| Fiche (d'un mouvement) | Movement details | Sheet (calque) | |
+| Fiche (d'un mouvement) | Movement details | Sheet (calque) | **Movement card** |
 | Composition (écran) | Builder | Composition (peu usité) | |
 | Format (AMRAP, EMOM…) | Format | — | |
 | AMRAP, EMOM, For time, Death by, Buy-in, Buy-out, Tabata | inchangés | termes d'origine anglaise | |
@@ -23,7 +25,7 @@
 | Récupération (après exercice) | Recovery | Rest (déjà pris) | |
 | Changez de côté | Switch sides | — | |
 | Côté (1er, 2d) | Side (1st, 2nd) | — | |
-| Point d'arrêt | Checkpoint | Stop point (calque) | |
+| Point d'arrêt | Checkpoint | Stop point (calque) | **Hold** |
 | Compte à rebours | Countdown | — | |
 | Préparez-vous | Get ready | — | |
 | À suivre | Up next | Next | |
@@ -35,19 +37,19 @@
 | Phases (d'un exercice) | Phases | — | |
 | Niveau / Variante / Famille | Level / Variation / Family | — | |
 | Catégorie | Category | — | |
-| Zone corporelle | Body area | Body zone | |
+| Zone corporelle | Body area | Body zone | **Body focus** |
 | Étiquette | Tag | Label | |
-| Exécution | Workout in progress / Run | — (selon l'écran) | |
+| Exécution | Workout in progress / Run | — (selon l'écran) | **Active workout** |
 | Séance terminée / partiellement exécutée / interrompue | Workout complete / partially completed / interrupted | — | |
 | Programme | Program | Plan (déjà pris) | |
 | Routine | Routine | — | |
-| Parcours (Ⓟ) | Rotation | Path | |
+| Parcours (Ⓟ) | Rotation | Path | **Track** |
 | Créneau | Slot | — | |
 | Agenda / Journal / Plan / Calendrier | Agenda / Log / Plan / Calendar | — | |
 | Suivi | Progress | Tracking | |
 | Communauté | Community | — | |
 | Profil / Compte / Préférences / Confidentialité | Profile / Account / Preferences / Privacy | — | |
-| Guidage sonore / Annonces vocales | Audio cues / Voice announcements | — | |
+| Guidage sonore / Annonces vocales | Audio cues / Voice announcements | — | **Voice guidance** |
 | Suivi de la douleur | Pain tracking | — | |
 | Créer / Enregistrer / Annuler / Confirmer / Valider | Create / Save / Cancel / Confirm / Done | — | |
 | Vouvoiement (« Appuyez », « Vos résultats ») | « you » neutre, impératif direct (« Tap », « Your results ») | — | |

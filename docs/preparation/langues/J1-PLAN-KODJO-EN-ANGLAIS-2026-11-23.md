@@ -1,7 +1,7 @@
 # J1 — KODJO en anglais (interface) : plan
 
 > Chantier « Gestion des langues », étape 1 (`PLAN-GESTION-DES-LANGUES-2026-11-23.md` § 7, lots T2 + traduction anglaise de l'interface). Base : `98c0ae7` sur `claude/exciting-lovelace-iyn2wf` (= `main` `fe7d71d` + T1). Mode CLOUD, écrivain : cette session.
-> **STATUT : PLAN_READY_FOR_REVIEW** — aucun fichier applicatif modifié avant approbation.
+> **STATUT : PLAN_APPROVED** (23/11/2026). Réponses de Hermann : « j'ai validé les termes. » ; « oui je suis d'accord pour l'écran de lancement » ; « oui, je suis d'accord » (ligne Langue après fusion des Programmes).
 
 ## TÂCHE
 
