@@ -197,6 +197,8 @@ export const planningStrings = {
   modifyRoutine: {
     // [Titre : interprétation technique, aucun texte demandé.]
     title: "Modifier cette routine",
+    /** Lot 6, 23/11/2026 (y2), Hermann : « titre : Modifier la routine » (question des créneaux hors période). */
+    outsideTitle: "Modifier la routine",
     messageOne: "1 créneau à venir sera modifié.",
     messageMany: "{count} créneaux à venir seront modifiés.",
     cancel: "Annuler",

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { EVERY_TIME, type RoutineDraft } from "@/domain/planning/Routine";
 import type { ProgramDraft, ProgramStatus } from "@/domain/programs/Program";
@@ -13,7 +13,7 @@ import { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { ProgramSheetScreen } from "@/features/programs/ProgramSheetScreen";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { DateCalendar, Pill, ValueWord } from "@/features/planning/PlanningControls";
+import { DateCalendar, Pill } from "@/features/planning/PlanningControls";
 import { DatePicker } from "@expo/ui/swift-ui";
 import * as relay from "@/features/programs/programSheetRelay";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -453,8 +453,8 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
 describe("Lot 4 — modale du programme", () => {
   // Lot 5, 23/11/2026 (y4) : « au » / « pendant » et l'unité sont des `Pill` de la planification qui basculent d'un toucher.
   const toggleMode = () => fireEvent.press(screen.getByTestId("program-period-mode"));
-  // Lot 5 bis : l'unité garde son menu natif (Hermann : « il ne faut pas changer le popover ») ; l'option se touche dans le menu.
-  const chooseUnit = (unit: string) => act(() => screen.UNSAFE_getByProps({ testID: `program-period-unit-option-${unit}` }).props.onPress());
+  // Lot 6 (y4) : l'unité est une `Pill` qui passe à l'unité suivante à chaque toucher, valeur convertie.
+  const nextUnit = () => fireEvent.press(screen.getByTestId("program-period-unit"));
 
   it("D-544 (lot 5, point 4) : ligne du Journal (JournalRoutineCard compacte) — cadre = début dans le programme, « N créneaux, jusqu'au … » borné par la fin du programme", async () => {
     const program = await createProgram();
@@ -529,14 +529,17 @@ describe("Lot 4 — modale du programme", () => {
     const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-14" });
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
-    // Lot 5 ter : « jusqu’au » comme Planifier (Hermann : « jusqu’à où pendant »).
-    expect(screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label)).toEqual(["15 sept. 2030", "jusqu’au", "14 déc. 2030"]);
+    // Lot 6 (y4) : « au » (Hermann : « Remplacer "jusqu'au" par "au" »).
+    expect(screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label)).toEqual(["15 sept. 2030", "au", "14 déc. 2030"]);
+    expect(StyleSheet.flatten(screen.getByText("Du").props.style).fontSize).toBe(15);
     toggleMode();
     const labels = screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label);
-    expect(labels).toEqual(["15 sept. 2030", "pendant", "13"]);
-    // Lot 5 bis / ter : l'unité reste un menu natif (popover inchangé), avec un mot bleu sans pastille pour étiquette.
-    expect(screen.UNSAFE_getAllByType(ValueWord).map((face) => face.props.label)).toEqual(["semaines"]);
-    expect(screen.UNSAFE_getByProps({ testID: "program-period-unit-option-WEEK" }).props.systemImage).toBe("checkmark");
+    expect(labels).toEqual(["15 sept. 2030", "pendant", "13", "semaines"]);
+    // Lot 6 (y4) : séquence semaines → mois → jours, valeur convertie (91 jours : 3 mois, puis 91 jours).
+    nextUnit();
+    expect(screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label).slice(2)).toEqual(["3", "mois"]);
+    nextUnit();
+    expect(screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label).slice(2)).toEqual(["91", "jours"]);
   });
 
   it("D-543 : « N jours, soit S semaines et J jour » ; « au / pendant » ; de dates vers durée sans perte ; mois ; « Se termine le … »", async () => {
@@ -547,12 +550,16 @@ describe("Lot 4 — modale du programme", () => {
     toggleMode();
     expect(screen.getByText("92")).toBeTruthy();
     expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 15 décembre 2030");
-    chooseUnit("MONTH");
+    // Lot 6 (y4) : 92 jours → 14 semaines → 4 mois (plus petite durée qui couvre la période).
+    nextUnit();
+    expect(screen.getByText("14")).toBeTruthy();
+    nextUnit();
+    expect(screen.getByText("4")).toBeTruthy();
     expect(screen.getByText("mois")).toBeTruthy();
     fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
     await flush();
-    // 92 mois depuis le 15 septembre 2030 : même quantième moins un jour.
-    expect((await programs.getProgram(program.id))?.endDate).toBe("2038-05-14");
+    // 4 mois depuis le 15 septembre 2030 : même quantième moins un jour.
+    expect((await programs.getProgram(program.id))?.endDate).toBe("2031-01-14");
   });
 
   it("D-543 : retour au mode dates sans perte (91 jours → 13 semaines → « au 14 déc. 2030 »)", async () => {

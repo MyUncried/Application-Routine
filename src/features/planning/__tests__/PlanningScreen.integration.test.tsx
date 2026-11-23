@@ -876,10 +876,11 @@ describe("Recette du 23/11/2026 — programme d'une routine en modification", ()
     expect(screen.getByText("6 créneaux sont en dehors de la période du programme")).toBeTruthy();
     expect(screen.getByText("Les supprimer")).toBeTruthy();
     expect(screen.getByText("Les garder dans le calendrier")).toBeTruthy();
+    // Lot 6 (y2) : titre « Modifier la routine », la question en texte ; pas de seconde fenêtre « N créneaux à venir… ».
+    expect(screen.getByText("Modifier la routine")).toBeTruthy();
     fireEvent.press(screen.getByTestId("planning-outside-confirm"));
     await flush();
-    fireEvent.press(screen.getByTestId("planning-modify-confirm"));
-    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     // d4 / d6 : la routine est raccourcie à la fin du programme (le Journal n'affiche plus la fin d'origine).
     expect((await planning.getRoutine(routineId))?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-31" });

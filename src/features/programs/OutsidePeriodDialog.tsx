@@ -32,8 +32,14 @@ export function OutsidePeriodDialog({
   onKeep,
   onDelete,
   onCancel,
+  title,
   testIDPrefix,
 }: {
+  /**
+   * Lot 6, 23/11/2026 (y2 — Hermann : « changer la première fenêtre de dialogue : titre : Modifier la routine ; Texte primaire :
+   * "X créneaux..." inchangé ; puis les trois boutons ») : titre donné, la question passe en texte. Absent : la question est le titre.
+   */
+  readonly title?: string;
   readonly count: number;
   readonly context?: OutsidePeriodContext;
   readonly onKeep: () => void;
@@ -44,9 +50,9 @@ export function OutsidePeriodDialog({
   return (
     <DecisionDialog
       stacked
-      title={outsidePeriodMessage(count, context)}
+      title={title ?? outsidePeriodMessage(count, context)}
       titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText, textAlign: "center" }}
-      message=""
+      message={title === undefined ? "" : outsidePeriodMessage(count, context)}
       messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
       cancelLabel={t.outsideCancel}
       cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}

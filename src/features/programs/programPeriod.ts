@@ -66,6 +66,20 @@ export function durationFromDates(start: LocalDate, end: LocalDate): PeriodDurat
   return days % 7 === 0 ? { unit: "WEEK", count: clampCount(days / 7) } : { unit: "DAY", count: clampCount(days) };
 }
 
+/**
+ * Lot 6, 23/11/2026 (y4 — Hermann : « Comme pour la planification, lorsqu'on passe de jour à semaine ou mois, convertir
+ * automatiquement la valeur ») : plus petite durée dans l'unité `unit` qui couvre la période en cours (comme `countUntil` de
+ * la planification, qui compte les semaines touchées). [Arrondi au-dessus : interprétation.]
+ */
+export function durationCovering(start: LocalDate, end: LocalDate, unit: DurationUnit): PeriodDuration {
+  const days = Math.max(1, periodDayCount(start, end));
+  if (unit === "DAY") return { unit, count: clampCount(days) };
+  if (unit === "WEEK") return { unit, count: clampCount(Math.ceil(days / 7)) };
+  let count = DURATION_MIN;
+  while (count < DURATION_MAX && durationEnd(start, { unit, count }) < end) count += 1;
+  return { unit, count };
+}
+
 /** Borne : la fin ne précède pas le début. */
 export function boundedEnd(start: LocalDate, end: LocalDate): LocalDate {
   return end < start ? start : end;

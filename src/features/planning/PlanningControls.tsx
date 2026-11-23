@@ -17,19 +17,6 @@ const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
 /** Largeur du calendrier graphique d'iOS dans son panneau. */
 export const DATE_PANEL_WIDTH = 360;
 
-/**
- * Lot 5 ter, 23/11/2026 : mot bleu sans pastille, comme l'unité de « pendant 6 semaines » de la planification ; sert
- * d'étiquette à un menu natif (le menu porte le toucher). Hermann : « l'unité en texte simple ». [Face de `Pill` du
- * lot 5 bis — remplacée.]
- */
-export function ValueWord({ label }: { readonly label: string }) {
-  return (
-    <Text style={[controlStyles.pillText, controlStyles.valueWord]} numberOfLines={1}>
-      {label}
-    </Text>
-  );
-}
-
 /** Valeur modifiable, en bleu KODJO — dates et heure comprises (recette du 19/11/2026, k8, remplace le noir du 17/11). */
 export function Pill({
   label,
@@ -97,7 +84,5 @@ export function DateCalendar({
 export const controlStyles = StyleSheet.create({
   pill: { minHeight: 32, paddingHorizontal: spacing[8], borderRadius: 8, backgroundColor: colors.border, justifyContent: "center" },
   pillText: { ...type.segmentedLabel, color: colors.primary },
-  /** Même retrait que le mot de l'unité dans la planification (`untilWord`). */
-  valueWord: { paddingHorizontal: spacing[8] },
   calendar: { alignItems: "center" },
 });

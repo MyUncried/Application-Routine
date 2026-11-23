@@ -507,12 +507,15 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     commit();
   };
 
-  /** D-566 : réponse à la question des créneaux hors période, puis confirmation habituelle (D-536). */
+  /**
+   * D-566 : réponse à la question des créneaux hors période, puis enregistrement. Lot 6, 23/11/2026 (y2 — Hermann : « Dans ce
+   * cas, il ne faut pas afficher la deuxième fenêtre ») : la question tient lieu de confirmation. [Confirmation D-536
+   * « N créneaux à venir seront modifiés » à la suite — remplacée.]
+   */
   const answerOutside = (removeOutside: boolean) => {
     setOutsideCount(null);
     removeOutsideRef.current = removeOutside;
-    if (mode.kind === "edit") askModify(mode.routineId);
-    else commit();
+    commit();
   };
 
   /**
@@ -927,6 +930,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           onKeep={() => answerOutside(false)}
           onDelete={() => answerOutside(true)}
           onCancel={() => setOutsideCount(null)}
+          // Lot 6 (y2) : modification depuis le Journal — titre « Modifier la routine », la question en texte.
+          title={planningStrings.modifyRoutine.outsideTitle}
           testIDPrefix="planning-outside"
         />
       ) : null}
