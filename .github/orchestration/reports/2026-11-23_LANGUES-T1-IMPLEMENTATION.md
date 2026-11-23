@@ -72,3 +72,7 @@ Le dialogue « Passer à l'exercice suivant ? » affiche désormais le texte cor
 ## Commit final et état Git
 
 Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
+
+## Complément — cahier de recette BMAD
+
+Cahier de recette iPhone : `_bmad-output/langues/implementation-artifacts/recette-iphone-langues-t1.md` (23 cas, OK/KO), à exécuter par Hermann.
