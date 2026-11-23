@@ -122,6 +122,10 @@ export const executionStrings = {
   /** PRE-11 (T3), arbitrage de Hermann du 18/11/2026 : feuilles de l'AMRAP, modèle du For time. */
   amrapStopTitle: "Arrêt de l’AMRAP",
   amrapClosureTitle: "Fin du bloc",
+  // D-531 / RM-272 (Hermann, 19/11/2026) : AMRAP à un seul mouvement en Max — saisie de chaque série au clavier numérique, score cumulé.
+  amrapMaxEntryTitle: "Répétitions de la série",
+  amrapMaxEntryLabel: (series: number) => `Série ${series}`,
+  repetitionsUnit: "rép.",
   emomClosureTitle: "Fin de l’EMOM",
   /** PRE-11 (T4), arbitrage de Hermann du 18/11/2026 : feuilles du Death by, modèle du For time. */
   deathByStopTitle: "Arrêt du Death by",
@@ -149,6 +153,8 @@ export const executionStrings = {
   buyOutBadge: "Buy-out ✓",
   plusTourSign: "+",
   plusTourWord: "Tour",
+  /** D-529 / CE-UI-14 (18/11/2026) : « Tour · 3 », nombre de tours déjà acquis, sous le « + » du bouton. */
+  plusTourAcquired: (acquired: number) => `Tour · ${acquired}`,
   partialHeldDuration: "Durée tenue",
   /** Troisième recette du 17/11/2026 (Hermann, ftr3-modale-duree) : titre et lignes des trois modales d'arrêt du For time. */
   forTimeStopTitle: "Arrêt du For Time",
@@ -162,7 +168,10 @@ export const executionStrings = {
   // Recette du 17/11/2026 (Hermann : « Corrige l'alignement du texte "Appuyer pour lancer" sur la première ligne ») : « Appuyez pour lancer »
   // sur la première ligne, le nom de l'exercice sur la seconde. [« Appuyez » / « pour lancer <nom> » — remplacé.]
   pressToLaunch: (name: string | null) => ["Appuyez pour lancer", name === null || name === "" ? "l’exercice" : name] as const,
-  pressToHold: ["Appuyez", "pour faire pause"] as const,
+  // Décisions de Hermann du 18/11/2026 (EMOM en durée) : « ma formulation partout » ; « "Appuyer pour" sur la première ligne, "faire une
+  // pause" sur la seconde ligne », dans tous les Formats. [« Appuyez » / « pour faire pause » — remplacé.] Reprise inchangée (« non, pour
+  // la reprise "Appuyez" et "pour repartir". Si je n'ai rien mentionné c'est que je ne voulais pas changer »).
+  pressToHold: ["Appuyer pour", "faire une pause"] as const,
   pressToRelease: ["Appuyez", "pour repartir"] as const,
   pressEachRound: ["Appuyez", "à chaque tour terminé"] as const,
   closureCapReached: "Limite atteinte",

@@ -275,7 +275,7 @@ describe("fin de PRE-10 — guidage de la Séance", () => {
   // aucune annonce réglés → interrupteurs Sons et Voix inactifs au démarrage.
   it("aucun son ni aucune annonce réglés pour la Séance : interrupteurs off au démarrage, modifiables pendant la séance", async () => {
     const silent = Object.fromEntries(GUIDANCE_EVENTS.map((event) => [event, { sound: "NONE", vibration: true }])) as unknown as GuidanceEvents;
-    const { view } = await setup({ announcements: { session: false, names: false, phases: false, objective: false, pauses: false, sides: false }, events: silent });
+    const { view } = await setup({ announcements: { session: false, names: false, phases: false, objective: false, pauses: false, sides: false, rounds: false }, events: silent });
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     expect(label("execution-sound")).toEqual({ checked: false });
     expect(label("execution-voice")).toEqual({ checked: false });

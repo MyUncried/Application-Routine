@@ -49,6 +49,14 @@ export type AmrapLocal = {
   /** Étapes dont le résultat reste à saisir à la Clôture (la première est présentée). */
   readonly pending: readonly string[];
   readonly declared: Readonly<Record<string, AmrapDeclared>>;
+  /**
+   * D-531 / RM-272 (Hermann, 19/11/2026) — AMRAP à un seul mouvement en Max : Séries closes par « Suivant » (dans l'ordre) et répétitions
+   * saisies pour chacune (`DECLARE`). Absents d'un état antérieur : aucune Série en Max.
+   */
+  readonly maxClosed?: readonly string[];
+  readonly maxDeclared?: Readonly<Record<string, number>>;
+  /** Saisies refermées sans valeur (croix) : redemandées à la Clôture du bloc. */
+  readonly maxDismissed?: readonly string[];
   /** Instant (horloge du noyau) de l'échéance ; absent pendant le travail. */
   readonly workEndedAtMs?: Ms;
   /** Temps du bloc à l'ouverture de l'étape en cours : une étape ouverte à l'instant même de l'échéance n'est pas un travail entamé. */
@@ -68,6 +76,11 @@ export type AmrapResult = {
   readonly partialRepetitions: number | null;
   readonly partialDurationMs: number | null;
   readonly buyIn: readonly { readonly key: string; readonly partialRepetitions: number | null }[];
+  /**
+   * D-531 / RM-272 : AMRAP à un seul mouvement en Max — chaque Série close et ses répétitions (`null` : non saisies) ; le total est le
+   * score (la Série en cours à l'échéance est le partiel, `interruptedKey`). Absent hors Max.
+   */
+  readonly maxSeries?: readonly { readonly key: string; readonly repetitions: number | null }[];
   readonly stopped: boolean;
   readonly closedAtMs: Ms;
 };
@@ -126,6 +139,31 @@ export function amrapLeafOf(config: AmrapScopeConfig, key: string): LeafSpec | u
 /** Exercice en durée (Série en Durée chiffrée) : démarre seul, ne se valide pas avant son terme. */
 export function isAmrapDurationLeaf(spec: LeafSpec): boolean {
   return spec.kind === "ACTIVITY" && spec.end === "TIMED";
+}
+
+/**
+ * D-531 / RM-271 (Hermann, 19/11/2026) : AMRAP à un seul mouvement en Max — la boucle ne compte qu'un mouvement, fait à l'échec. Ni
+ * « + Tour », ni annonce de tour, ni compteur de tours ; chaque Série close par « Suivant » attend la saisie de ses répétitions.
+ */
+export function isAmrapMax(config: AmrapScopeConfig): boolean {
+  const work = config.loop.map(({ leaf }) => leaf).filter((leaf) => leaf.kind === "ACTIVITY");
+  if (work.length === 0) return false;
+  return new Set(work.map((leaf) => leaf.exerciseId)).size === 1 && work.every((leaf) => leaf.target?.kind === "FAILURE");
+}
+
+/** Saisie (`DECLARE`) des répétitions d'une Série en Max close : valeur, ou `skip` (croix, redemandée à la Clôture). */
+export type AmrapMaxDeclaration = { readonly amrapMax: { readonly key: string; readonly repetitions?: number | null; readonly skip?: boolean } };
+
+/** Score cumulé de l'AMRAP en Max : somme des répétitions saisies. */
+export function amrapMaxScore(local: Pick<AmrapLocal, "maxDeclared">): number {
+  return Object.values(local.maxDeclared ?? {}).reduce((sum, value) => sum + value, 0);
+}
+
+/** Première Série en Max close dont les répétitions restent à saisir (ni saisie ni refermée) ; `null` sinon. */
+export function amrapMaxToDeclare(local: Pick<AmrapLocal, "maxClosed" | "maxDeclared" | "maxDismissed">): string | null {
+  const declared = local.maxDeclared ?? {};
+  const dismissed = local.maxDismissed ?? [];
+  return (local.maxClosed ?? []).find((key) => declared[key] === undefined && !dismissed.includes(key)) ?? null;
 }
 
 /** Exercice en durée à lancer après la Série en répétitions `index` du segment (première durée qui suit) ; `null` sinon. */
@@ -202,6 +240,14 @@ function blockResult(config: AmrapScopeConfig, local: AmrapLocal, ctx: PilotCont
     buyIn: local.buyInFailures
       .filter((key) => key !== local.interruptedKey)
       .map((key) => ({ key, partialRepetitions: local.declared[key] === undefined ? null : local.declared[key]!.partialRepetitions })),
+    ...(isAmrapMax(config)
+      ? {
+          maxSeries: (local.maxClosed ?? []).map((key) => ({
+            key,
+            repetitions: local.maxDeclared?.[key] ?? (local.declared[key] === undefined ? null : local.declared[key]!.partialRepetitions),
+          })),
+        }
+      : {}),
     stopped,
     closedAtMs: ctx.nowMs,
   };
@@ -261,7 +307,15 @@ export const amrapPilot: Pilot = {
     }
     // Buy-in À l'échec terminé : ses répétitions se saisissent à la Clôture du bloc, sans retarder la boucle (FMT-26).
     const failure = local.segment === "BUY_IN" && closedLeaf !== undefined && closedLeaf.kind === "ACTIVITY" && closedLeaf.target !== undefined && closedLeaf.target.kind === "FAILURE";
-    let next: AmrapLocal = { ...local, index, stepStartedMs: ctx.refMs("block") ?? 0, ...(failure ? { buyInFailures: [...local.buyInFailures, closedLeaf.key] } : {}) };
+    // D-531 / RM-272 : AMRAP à un seul mouvement en Max — la Série close attend ses répétitions (saisie au clavier, `onDeclare`).
+    const maxSeries = local.segment === "LOOP" && closedLeaf !== undefined && closedLeaf.kind === "ACTIVITY" && isAmrapMax(config);
+    let next: AmrapLocal = {
+      ...local,
+      index,
+      stepStartedMs: ctx.refMs("block") ?? 0,
+      ...(failure ? { buyInFailures: [...local.buyInFailures, closedLeaf.key] } : {}),
+      ...(maxSeries ? { maxClosed: [...(local.maxClosed ?? []), closedLeaf.key] } : {}),
+    };
     // Tour acquis : son dernier travail est clos (D-19), sa Récupération éventuelle n'en fait pas partie.
     if (next.segment === "LOOP" && next.completedRounds < next.round && noActivityFrom(leaves, index)) next = { ...next, completedRounds: next.round };
     if (index >= leaves.length) {
@@ -286,10 +340,24 @@ export const amrapPilot: Pilot = {
     const current = segmentLeaves(config, local)[local.index];
     const started = (local.stepStartedMs ?? 0) < config.blockMs;
     const interruptedKey = current !== undefined && current.kind === "ACTIVITY" && started ? current.key : null;
-    const pending = [...(interruptedKey === null ? [] : [interruptedKey]), ...local.buyInFailures.filter((key) => key !== interruptedKey)];
+    // D-531 / RM-272 : Séries en Max closes dont les répétitions n'ont pas été saisies — demandées à la Clôture, après le partiel.
+    const maxUndeclared = (local.maxClosed ?? []).filter((key) => key !== interruptedKey && local.maxDeclared?.[key] === undefined);
+    const pending = [...(interruptedKey === null ? [] : [interruptedKey]), ...local.buyInFailures.filter((key) => key !== interruptedKey), ...maxUndeclared];
     const next: AmrapLocal = { ...local, phase: "CLOSURE", interruptedKey, pending, workEndedAtMs: ctx.nowMs };
     if (pending.length === 0) return finish(config, next, ctx, ["block"]);
     return { local: next, closeRefs: ["block"], next: { type: "CHILD", child: closureChild(config, ctx, next) } };
+  },
+
+  onDeclare(raw, payload, ctx) {
+    // D-531 / RM-272 : répétitions d'une Série en Max close, saisies au clavier pendant que le bloc continue (`DECLARE`, non bloquant).
+    const local = raw as AmrapLocal | null;
+    const declaration = (payload ?? {}) as Partial<AmrapMaxDeclaration>;
+    const entry = declaration.amrapMax;
+    if (local === null || local.phase !== "WORK" || entry === undefined || !isAmrapMax(amrapConfig(ctx.spec))) return null;
+    if (!(local.maxClosed ?? []).includes(entry.key)) return null;
+    if (entry.skip === true) return { local: { ...local, maxDismissed: [...(local.maxDismissed ?? []), entry.key] }, results: [] };
+    if (typeof entry.repetitions !== "number" || !Number.isFinite(entry.repetitions) || entry.repetitions < 0) return null;
+    return { local: { ...local, maxDeclared: { ...(local.maxDeclared ?? {}), [entry.key]: Math.round(entry.repetitions) } }, results: [] };
   },
 
   allows(raw, command, leaf) {

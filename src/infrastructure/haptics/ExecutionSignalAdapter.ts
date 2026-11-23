@@ -82,7 +82,13 @@ const later: Defer = (run, delayMs = 0) => {
  * Guidance d'un signal : son, vibration, annonce et événement du guidage sonore (documentation de main `ebe72f76`,
  * RM-087) dont le réglage Son et Vibration s'applique ; `null` pour une étape qui n'en relève d'aucun.
  */
-export type Guidance = { readonly cue: Cue; readonly announcement: string | null; readonly event?: GuidanceEvent | null };
+export type Guidance = {
+  readonly cue: Cue;
+  readonly announcement: string | null;
+  readonly event?: GuidanceEvent | null;
+  /** D-530 : annonce du tour seule, aucun son (pas même un son choisi pour l'événement) — « jamais les deux ». */
+  readonly silent?: boolean;
+};
 
 /** Volume d'un son choisi pour un événement qui n'en avait pas par défaut. */
 const CHOSEN_SOUND_VOLUME = 0.6;
@@ -105,9 +111,14 @@ export type Announcements = {
   readonly sides: boolean;
   /** Nom de chaque phase du mouvement (« Descente », « Montée »…). */
   readonly phases: boolean;
+  /**
+   * D-530 / RM-269 (Hermann, 18/11/2026) : début de chaque tour d'un For time ou d'un AMRAP (« Premier tour, 21 répétitions »).
+   * Activée : annonce seule, sans son ; coupée : son seul (réglage Son et Vibration du départ d'exercice), sans annonce.
+   */
+  readonly rounds: boolean;
 };
 
-export const ALL_ANNOUNCEMENTS: Announcements = { names: true, objective: true, pauses: true, session: true, sides: true, phases: true };
+export const ALL_ANNOUNCEMENTS: Announcements = { names: true, objective: true, pauses: true, session: true, sides: true, phases: true, rounds: true };
 
 export class ExecutionSignalAdapter {
   private vibrationEnabled = true;
@@ -286,7 +297,8 @@ export class ExecutionSignalAdapter {
   }
 
   /** Son restitué pour un signal, selon la table de guidage et le réglage Son de son événement (RM-087). */
-  private soundOf(signal: ExecutionSignal, { cue, announcement, event }: Guidance): { readonly sound: BeepTone; readonly volume: number } | null {
+  private soundOf(signal: ExecutionSignal, { cue, announcement, event, silent }: Guidance): { readonly sound: BeepTone; readonly volume: number } | null {
+    if (silent === true) return null;
     const setting = event == null ? null : this.events[event];
     const spoken = this.voiceEnabled ? announcement : null;
     // « Aucun » coupe uniquement le son de l'événement, sans bip de remplacement (RM-087).
@@ -324,9 +336,38 @@ export class ExecutionSignalAdapter {
       this.previousTimed = false;
       this.lastActivity = null;
     }
+    // D-530 / RM-269 (Hermann, 18/11/2026 : « annonce à chaque tour : Premier / Deuxième / … tour, X répétition » ; « soit le bip,
+    // soit l’annonce » ; « l’objectif du tour » ; « le tour qui démarre ») : début d'un tour du For time ou de l'AMRAP dont l'objectif de
+    // répétitions est un nombre unique. Un tour d'objectif non unique garde l'annonce d'avant (cas non tranché, rapport D-530).
+    const round = signal.kind === "TRANSITION" && signal.phase === "ACTIVITY" && signal.sideRank !== 2 && signal.round != null && signal.round.repetitions !== null ? signal.round : null;
+    const roundName = round === null ? null : this.roundNameOf(signal);
     const previousTimed = this.previousTimed;
     this.previousTimed = signal.timed === true;
     const { cue, announcement } = this.transition(signal);
+    if (round !== null) {
+      // Interrupteur « Annonce des tours » activé (et voix de la séance active) : annonce seule, sans son.
+      if (this.announce.rounds && this.voiceEnabled) {
+        const parts = [`${capitalize(roundOrdinal(round.rank))} tour`, roundName, this.announce.sides && signal.sideRank === 1 ? "premier côté" : null, repetitionsText(round.repetitions!)];
+        return { cue: { sound: null, volume: 1, vibration: cue.vibration }, announcement: parts.filter((part): part is string => part !== null).join(", "), event: "EXERCISE_START", silent: true };
+      }
+      // Sinon : son seul, selon le réglage Son et Vibration existant, sans annonce.
+      return { ...this.transitionGuidance(signal, cue, null, previousTimed), announcement: null };
+    }
+    return this.transitionGuidance(signal, cue, announcement, previousTimed);
+  }
+
+  /**
+   * D-530 : nom dit au début d'un tour, selon la règle existante — catégorie « Nom des exercices » active, nom différent de l'exercice
+   * précédent (recette du 13/11/2026 : « ne pas répéter ce qui ne change pas ») et pas déjà annoncé en « À suivre ».
+   */
+  private roundNameOf(signal: ExecutionSignal): string | null {
+    const name = cleanName(signal.exerciseName);
+    if (!this.announce.names || name === null || this.announcedNext === name) return null;
+    return this.lastActivity !== null && this.lastActivity.name === name ? null : name;
+  }
+
+  /** Son, vibration et annonce d'une transition (fenêtre EMOM, zéro de l'étape chronométrée), une fois la transition calculée. */
+  private transitionGuidance(signal: ExecutionSignal, cue: Cue, announcement: string | null, previousTimed: boolean): Guidance {
     // PRE-11 (T2, arbitrage de Hermann du 18/11/2026 : « Bip long de la minute au début de chaque fenêtre (réglage « Démarrage d'un
     // exercice ») ») : début d'une fenêtre EMOM — l'annonce est conservée, le son est le bip long.
     if (signal.kind === "TRANSITION" && signal.windowStart === true) return { cue: { sound: "BIP_LONG", volume: GUIDANCE.halfTime.volume, vibration: cue.vibration }, announcement, event: "EXERCISE_START" };
@@ -366,6 +407,15 @@ export class ExecutionSignalAdapter {
         // Recette du 13/11/2026 (Hermann : « ne pas répéter ce qui ne change pas (le nom de l'exercice, le côté) ;
         // annoncer deuxième série, troisième série, etc. ») : Série suivante du même exercice, seul ce qui change est
         // annoncé. Même Série et même côté (Réinitialiser) : annonce complète, comme avant.
+        // Recette du 18/11/2026 (Hermann, amrap-1 : « Appui sur +Tour - Annonce : ne pas répéter le nom du mouvement s'il ne change pas,
+        // seulement le nombre de répétition / durée ») : début d'un tour (AMRAP, For time) sur le même mouvement que l'étape précédente —
+        // ni le nom, ni la série ; l'objectif seul (côté compris). [Annonce complète « Nom, objectif » — remplacé.]
+        // Seul le cas où la série et le côté sont aussi identiques (tour AMRAP d'un mouvement : Série 1 à chaque tour) est concerné ; une
+        // série ou un côté qui change garde la règle ci-dessous (For time inchangé).
+        if (signal.round != null && previous !== null && previous.name === name && previous.series === (series?.current ?? null) && previous.sideRank === signal.sideRank) {
+          const parts = [this.announce.objective ? objective : null].filter((part): part is string => part !== null);
+          return { cue: signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
+        }
         const continuing = previous !== null && previous.name === name && (previous.series !== (series?.current ?? null) || (previous.sideRank !== null && signal.sideRank !== null && previous.sideRank !== signal.sideRank));
         if (continuing) {
           const sideChanged = previous.sideRank !== signal.sideRank;
@@ -407,6 +457,17 @@ export class ExecutionSignalAdapter {
     const first = signal.phase === "INITIAL_COUNTDOWN" && (signal.exerciseCount ?? 0) > 1;
     return first ? `Premier exercice : ${nextName}` : `À suivre : ${nextName}`;
   }
+}
+
+/** « premier », « deuxième »… (annonce des tours, D-530). */
+function roundOrdinal(rank: number): string {
+  const words = ["premier", "deuxième", "troisième", "quatrième", "cinquième", "sixième", "septième", "huitième", "neuvième", "dixième"];
+  return words[rank - 1] ?? `${rank}e`;
+}
+
+/** « 21 répétitions », « 1 répétition » au singulier (D-530). */
+function repetitionsText(value: number): string {
+  return value === 1 ? "1 répétition" : `${value} répétitions`;
 }
 
 /** « Première », « Deuxième »… (annonce des Séries, recette du 13/11/2026). */

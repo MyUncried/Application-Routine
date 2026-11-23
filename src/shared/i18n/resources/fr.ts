@@ -576,6 +576,8 @@ export const fr = {
       backToParameters: "Revenir aux paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
+      // D-531 / RM-271 (Hermann, 19/11/2026) : Max interdit dans une boucle de plusieurs mouvements (AMRAP, For time).
+      maxLocked: "Max n’est pas disponible dans une boucle de plusieurs mouvements.",
       // Recette du 17/11/2026 : boucle d’un For time déjà sans exercice en répétitions (séance antérieure).
       loopWithoutRepetitions: "Au moins un exercice de la boucle doit être en répétitions : choisissez Répétitions.",
       collapsePiles: "Replier les piles",
@@ -681,6 +683,9 @@ export const fr = {
         max: "Max",
         round: "Tour {n}",
         series: "S{n}",
+        // Constat a) de la recette du 18/11/2026 (Hermann, EMOM à plusieurs mouvements, « Dans chaque intervalle » et « En
+        // alternance ») : « Colonnes du tableau T1 … TN ».
+        roundShort: "T{n}",
         // Règles de Hermann du 14/11/2026 (For time, FT-4, FT-12) : séries propres du buy-in et du buy-out, chacun son tableau.
         buyInTitle: "Buy-in",
         buyOutTitle: "Buy-out",
@@ -1596,6 +1601,8 @@ export const fr = {
         objective: "Objectifs de durée et de répétition",
         pauses: "Pauses, récupérations et points d’arrêt",
         sides: "Changements de côté",
+        // D-530 / RM-269 (Hermann, 18/11/2026) : libellé de Hermann.
+        rounds: "Annonce des tours",
       },
       events: {
         COUNTDOWN: "Compte à rebours",

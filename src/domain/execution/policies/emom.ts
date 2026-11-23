@@ -256,10 +256,14 @@ export const emomPilot: Pilot = {
     return true;
   },
 
-  enables(raw, command) {
-    const phase = (raw as EmomLocal | null)?.phase;
+  enables(raw, command, leaf) {
+    const local = raw as EmomLocal | null;
+    const phase = local?.phase;
     if (command === "STOP_RUNNING") return phase === "WORK" || phase === "CLOSURE";
-    return false;
+    // Recette du 18/11/2026 (emom-6, Hermann : « L'appui au centre met en pause uniquement le compteur d'effort cumulé, jamais le chrono
+    // de la minute ») : une Série en Durée se retient et repart (`HOLD` / `RELEASE`, comme le For time) ; la fenêtre continue. En repos
+    // (travail terminé), rien à retenir.
+    return phase === "WORK" && local?.workDone !== true && leaf !== null && isTimedWork(leaf);
   },
 
   onDeclare(raw, payload, ctx) {

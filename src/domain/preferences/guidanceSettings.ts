@@ -2,12 +2,13 @@
  * Guidage sonore — réglages du Profil et d'une Séance (documentation publiée sur main `ebe72f76`, RM-087, CE-UI-07,
  * ch13 « Guidage sonore en Composition et dans le Profil » ; demande de Hermann du 11/11/2026, cahier, constat d).
  *
- * - Six annonces vocales indépendantes.
+ * - Sept annonces vocales indépendantes (« Annonce des tours » ajoutée le 18/11/2026, D-530). [Six — complété.]
  * - Neuf événements, chacun avec un son (« Par défaut », « Aucun » ou un son choisi) et une vibration.
  * - « Aucun » coupe uniquement le son de l'événement ; sa vibration et les annonces gardent leur valeur.
  */
 
-export const VOICE_ANNOUNCEMENTS = ["session", "names", "phases", "objective", "pauses", "sides"] as const;
+// D-530 / RM-269 (Hermann, 18/11/2026) : septième annonce, « Annonce des tours » (AMRAP, For time), activée par défaut.
+export const VOICE_ANNOUNCEMENTS = ["session", "names", "phases", "objective", "pauses", "sides", "rounds"] as const;
 export type VoiceAnnouncement = (typeof VOICE_ANNOUNCEMENTS)[number];
 export type VoiceAnnouncements = Readonly<Record<VoiceAnnouncement, boolean>>;
 

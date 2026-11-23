@@ -12,7 +12,7 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  */
 describe("migration 036 — routines.name_generated", () => {
   it("version 36 ; routines nommées personnalisées, routines sans nom générées ; données conservées ; idempotente", async () => {
-    expect(DATABASE_VERSION).toBe(38); // version courante (Programmes en 038, intégration du 23/11/2026)
+    expect(DATABASE_VERSION).toBe(39); // version courante (Programmes en 038, intégration du 23/11/2026)
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database, () => "2026-11-21T00:00:00.000Z", 34);
     await database.runAsync(

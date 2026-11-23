@@ -2906,8 +2906,8 @@ Questions posées le 18/11/2026 et réponses de Hermann (options recommandées r
 
 > Sons des fenêtres (EMOM, Death by) : « Sons existants (Recommandé) » — bip long de la minute au début de chaque fenêtre (réglage « Démarrage d'un exercice ») ; les 3 bips courts du compte à rebours avant l'échéance ; aucun nouveau son ni réglage.
 
-- **Déroulement (classe A).** Chaque fenêtre dure l'Intervalle de l'Exercice (ou l'intervalle commun du Circuit « dans chaque intervalle ») ; la Série k est jouée dans la fenêtre k (au tour k, chaque membre du Circuit porteur joue sa Série k dans la fenêtre commune) ; un exercice bilatéral joue ses deux côtés, et la pause entre eux, dans la même fenêtre (Q5). Une Série en Répétitions se termine par l'appui (« Suivant », travail terminé) ; une Série en Durée démarre seule à l'ouverture de la fenêtre et se termine à son terme. Le travail terminé révèle le repos de la fenêtre ; la fenêtre suivante commence à l'échéance, que le travail soit terminé ou non.
-- **Écran (Figma `8982:15709` « EMOM — repos déclaré »).** Grand chrono : temps restant de la fenêtre ; anneau : la portion travaillée garde la couleur du travail, le repos avance en orange ; « Repos » en orange dans le cercle ; titre : nom de l'exercice [remplacé le 18/11/2026, recette : titre « Repos » pendant le repos, plus rien dans le cercle ; objectif conservé dans le coin, sur fond vert — voir « EMOM — recette iPhone (18/11/2026) »] ; compte à rebours d'une Série en Durée dans le coin du bas à gauche (comme le For time).
+- **Déroulement (classe A).** Chaque fenêtre dure l'Intervalle de l'Exercice (ou l'intervalle commun du Circuit « dans chaque intervalle ») ; la Série k est jouée dans la fenêtre k (au tour k, chaque membre du Circuit porteur joue sa Série k dans la fenêtre commune) ; un exercice bilatéral joue ses deux côtés, et la pause entre eux, dans la même fenêtre (Q5). [Remplacé le 18/11/2026 pour la Série en Répétitions (entrée « EMOM en répétitions — pas de pause entre les côtés ; couleur des segments au changement de côté (18/11/2026) ») : les deux côtés s'enchaînent par « Suivant », sans pause ; en Durée, la pause entre les côtés reste jouée.] Une Série en Répétitions se termine par l'appui (« Suivant », travail terminé) ; une Série en Durée démarre seule à l'ouverture de la fenêtre et se termine à son terme. Le travail terminé révèle le repos de la fenêtre ; la fenêtre suivante commence à l'échéance, que le travail soit terminé ou non.
+- **Écran (Figma `8982:15709` « EMOM — repos déclaré »).** Grand chrono : temps restant de la fenêtre ; anneau : la portion travaillée garde la couleur du travail, le repos avance en orange ; « Repos » en orange dans le cercle ; titre : nom de l'exercice [remplacé le 18/11/2026, recette : titre « Repos » pendant le repos, plus rien dans le cercle ; objectif conservé dans le coin, sur fond vert — voir « EMOM — recette iPhone (18/11/2026) »] ; compte à rebours d'une Série en Durée dans le coin du bas à gauche (comme le For time). [Remplacé le 18/11/2026 pour l'EMOM en durée, recette emom-6 : un seul anneau (la minute), effort cumulé / objectif au centre, minute restante dans le coin du bas à gauche, retenue au centre — voir « EMOM en durée — recette du 18/11/2026 ».]
 - **Barre (classe B).** Comme le For time : Arrêt rouge à gauche, Pause désactivée, « Suivant » (72) à droite, actif pendant une Série en Répétitions, inactif pendant une Série en Durée et pendant le repos. L'Arrêt ouvre la feuille « Arrêt de l'EMOM » (même feuille que l'Arrêt du For time : répétitions faites, ou durée tenue), puis la synthèse ; le temps continue derrière la feuille. Ni Réinitialiser, ni Pause manuelle. Remplace, pour l'EMOM, « La Pause manuelle reste toujours possible » (D4, conception consolidée).
 - **Fenêtre non terminée (D5, Q1, classe A).** [Bandeau remplacé le 18/11/2026, recette emom-3 : « Supprimer ce bandeau » ; plus aucune saisie pendant les fenêtres, tout se saisit à la fin de l'EMOM — voir « EMOM — recette iPhone (18/11/2026) ».] Résultat « non terminée » ; pendant la fenêtre suivante, bandeau non bloquant « Fenêtre k non terminée — répétitions faites : » avec la valeur proposée 0 (stepper), une coche qui enregistre et « Passer » ; il disparaît seul à la fin de cette fenêtre. Ce qui n'est pas saisi est demandé à la fin de l'EMOM, fenêtre par fenêtre (feuille « Fin de l'EMOM », coche seule) ; sans fenêtre à saisir, aucune feuille. Une Série en Durée interrompue enregistre sa durée tenue, sans saisie.
 - **Sons (classe B).** Début de chaque fenêtre : bip long (réglage Son et Vibration « Démarrage d'un exercice »), annonces inchangées ; 3 bips courts avant l'échéance de chaque fenêtre, pendant le travail comme pendant le repos ; pas de signal « toutes les minutes » dans une fenêtre.
@@ -2945,6 +2945,120 @@ Classe B (évolution validée : demandes explicites de Hermann pendant la recett
 - **Chapitres 09 et 12 (non modifiés).** Rien de nouveau pour ch09 ; ch12 : la commande `DECLARE` n'a plus d'écran (à noter lors de la prochaine mise à jour).
 - **Documents mis à jour (classe B).** Le présent chapitre (entrées EMOM et Death by annotées) ; chapitre 13, CE-FMT-05 et CE-FMT-06 (annotations) ; référence Formats §10.1 ; conception consolidée (Q1, annotation) ; spec PRE-11 §5 point 31.
 
+## EMOM en durée — recette du 18/11/2026
+
+Classe B (évolution validée : demande explicite de Hermann, note de la ligne emom-6 du cahier de recette). Spec PRE-11 §5 point 32. Branche dédiée `formats/emom-duree-20261118`, sans fusion.
+
+> « Corrige l'écran d'exécution de l'EMOM en durée relevé en recette. Tu as reproduit le double anneau du For time ; il n'est pas voulu. Lis d'abord docs/AGENTS.md (Expo v57) et CLAUDE.md. Branche dédiée, pas de fusion.
+> Baseline gelée
+> • PRESERVE : le For time (son double anneau et son centre restent identiques), les autres formats, la saisie et le récapitulatif de l'EMOM, le moteur d'exécution hors EMOM en durée.
+> • CHANGE : l'écran d'exécution de l'EMOM en durée uniquement.
+> • FORBIDDEN : modifier le composant du For time autrement que pour le partager, réécrire les tests en masse, remplacer une primitive native. Tout besoin hors périmètre → SCOPE_EXPANSION_REQUIRED.
+> À réaliser
+> 1. Retirer le double anneau. Un seul anneau, celui des 60 secondes du tour en cours, qui avance en continu et ne s'arrête jamais, même en cas de micro-pause pendant la série.
+> 2. Reprendre du For time l'appui au centre pour mettre en pause et reprendre, avec le double chrono, de la même manière : position, couleur, flash. Partage le composant, ne le duplique pas.
+> 3. L'appui au centre met en pause uniquement le compteur d'effort cumulé, jamais le chrono de la minute. Le temps de pause intra-série est ainsi déduit sans fausser la durée totale de l'EMOM.
+> 4. Le chiffre central affiche l'effort effectif cumulé dans la minute (ex. 00:25 / 00:40). Le temps restant avant la minute suivante reste visible en secondaire.
+> 5. Dès que l'effort cumulé atteint l'objectif (ex. 40 s), l'écran passe tout seul en mode Repos (couleur de l'anneau et du fond) pour les secondes restantes jusqu'à la fin de la minute. Il n'y a pas d'effort supérieur à l'objectif : l'appui au centre est sans effet en Repos.
+> Tests et preuves
+> • Un seul anneau est rendu.
+> • La pause répétée ne fait pas dériver la durée totale.
+> • La bascule en Repos se fait à l'objectif.
+> • Le composant du centre est partagé avec le For time.
+> • Une suite verte ne remplace pas la validation sur iPhone. »
+
+- **Un seul anneau.** Pendant une Série en Durée d'un EMOM, l'anneau intérieur du compte à rebours (For time) n'est plus tracé : seul l'anneau de la minute (fenêtre) avance, en continu, retenue comprise. [Double anneau repris du For time — remplacé pour l'EMOM.]
+- **Appui au centre.** Même zone, même mention (« Appuyez pour faire pause » [remplacé le 18/11/2026 : « Appuyer pour » / « faire une pause », dans tous les Formats — voir « EMOM en durée — précision du 18/11/2026 »] / « Appuyez pour repartir »), mêmes couleurs de fond (vert en cours, orange retenu) que l'exercice en durée du For time : le code du For time est ouvert à l'EMOM en durée, sans copie. L'appui retient la seule Série en Durée (commandes `HOLD` / `RELEASE` du noyau, déjà utilisées par le For time et l'AMRAP) ; la fenêtre continue.
+- **Double chrono.** [Remplacé le 18/11/2026 — voir « EMOM en durée — précision du 18/11/2026 » : chrono de l'intervalle au centre, compte à rebours de la Série dans le coin.] Au centre : effort cumulé dans la minute sur l'objectif (« 00:25 / 00:40 ») ; dans le coin du bas à gauche (place du décompte du For time, mêmes couleurs, même clignotement aux 3 dernières secondes) : temps restant de la minute.
+- **Repos à l'objectif.** [Fond orange pâle remplacé le 18/11/2026 par le fond blanc — voir « EMOM en durée — précision du 18/11/2026 ».] Quand l'effort cumulé atteint l'objectif, la Série se termine seule : titre « Repos », portion de repos de l'anneau en orange, fond du cercle orange pâle jusqu'à la fin de la minute ; l'appui au centre est sans effet. Aucune dérive : la minute suivante commence à l'heure, quelles que soient les retenues.
+- **Hors périmètre, inchangés.** For time (double anneau, centre), AMRAP, Death by (y compris en Durée), EMOM en Répétitions, saisie et récapitulatif de l'EMOM, moteur hors politique EMOM.
+- **À clarifier (interprétations, n'empêchent aucune opération).** (a) Fond du repos : orange pâle `#FFEBD1` (aucune teinte donnée) ; (b) pendant le repos, le chiffre central redevient le temps restant de la minute (l'effort n'est plus affiché) ; (c) le temps restant de la minute prend le coin du bas à gauche (« visible en secondaire ») ; (d) le Death by en Durée garde l'écran actuel (demande limitée à l'EMOM) ; (e) une Série interrompue par l'échéance pendant une retenue : la synthèse donne l'effort réellement tenu (résultat de l'étape) ; le résultat de fenêtre garde la durée depuis l'ouverture de la Série (limite technique notée au rapport).
+- **Chapitres 09 et 12 (non modifiés).** Rien de nouveau (commandes du noyau existantes).
+- **Documents mis à jour (classe B).** Le présent chapitre (entrée EMOM — exécution annotée) ; chapitre 13, CE-FMT-05 (annotation) ; spec PRE-11 §5 point 32.
+
+## EMOM en durée — précision du 18/11/2026
+
+Classe B (évolution validée : retour explicite de Hermann sur le commit `18f575f3`). Spec PRE-11 §5 point 33. Remplace, dans l'entrée précédente, le double chrono (effort cumulé / objectif au centre, minute restante dans le coin) et le fond orange pâle du repos.
+
+> « je ne comprends pas ce que tu as fait sur l'EMOM, tu as cassé la logique :
+> * le chronomètre principal, au centre, c'est l'objectif de l'intervalle (champ "intervalle"). Il ne s'arrête jamais si ce n'est à l'atteinte de l'intervalle. Il est en noir, l'anneau bleu tourne autour du cercle et fait un tour complet en un intervalle. Il n'y a pas la valeur de l'intervalle fixe à l'intérieur du chronomètre.
+> * Un compte à rebours secondaire est dans le triangle, celui de la série (champ "Objectif de série"). En durée, c'est un compte à rebours.
+> * Pendant l'exécution du compte à rebours secondaire, le centre du cercle est vert avec le texte "Appuyer pour faire une pause", et appuyer au centre du cercle arrête le compte à rebours secondaire, fait changer la couleur de fond en orange (ainsi que le triangle) et ainsi que l'anneau sur le segment en cours. Appuyer dans le cercle ("Appuyer pour repartir") relance le compte à rebours secondaire, l'anneau repasse en bleu sur le segment en cours et le centre du cercle est vert (ainsi que le triangle). »
+
+Libellés du cercle (décisions de Hermann du 18/11/2026) : « ma formulation partout » ; « "Appuyer pour" sur la première ligne, "faire une pause" sur la seconde ligne » ; « non, pour la reprise "Appuyez" et "pour repartir". Si je n'ai rien mentionné c'est que je ne voulais pas changer ».
+
+- **Centre.** Le grand chrono de l'intervalle (décompte du temps restant de la fenêtre, comme tout EMOM), en noir, sans valeur fixe ; il ne s'arrête qu'à l'échéance de l'intervalle, retenues comprises.
+- **Anneau.** Un seul, qui fait un tour complet en un intervalle. Portions bleues pendant l'effort, orange pendant la retenue : le segment en cours prend l'orange à l'appui, repart en bleu à la reprise ; les portions passées gardent leur couleur. Le repos qui suit l'objectif avance dans l'orange du repos (emom-2).
+- **Triangle.** Le coin du bas à gauche (celui du For time) porte le compte à rebours de la Série (Objectif de série), vert en cours, orange et figé pendant la retenue ; clignotement des 3 dernières secondes comme le For time.
+- **Centre du cercle.** Vert et « Appuyer pour » / « faire une pause » pendant l'effort ; appui : orange et « Appuyez » / « pour repartir » ; nouvel appui : vert. Au repos (objectif atteint) : fond blanc, comme l'EMOM en Répétitions ; appui sans effet.
+- **Libellé partagé.** « Appuyer pour » / « faire une pause » remplace « Appuyez » / « pour faire pause » dans tous les Formats (For time compris) ; la reprise reste « Appuyez » / « pour repartir ».
+- **Mise en œuvre (choix technique).** Le noyau ne garde que l'état courant de la retenue : l'écran note les bascules de la fenêtre en cours pour colorer l'anneau ; après une fermeture de l'application en pleine fenêtre, les portions passées de cette fenêtre reviennent au bleu (aucune incidence sur le temps).
+- **À clarifier (interprétations).** (a) Fond blanc au repos (orange réservé à la pause) ; (b) orange de la retenue = orange du repos sur l'anneau ; (c) le « triangle » est le coin du bas à gauche du For time ; (d) Death by en Durée inchangé.
+- **Documents mis à jour (classe B).** Le présent chapitre (entrée précédente annotée) ; chapitre 13, CE-FMT-05 ; Formats (tableau des états du For time) ; spec PRE-11 §5 points 32 (annoté) et 33. Chapitres 09 et 12 non modifiés.
+
+## EMOM en répétitions — pas de pause entre les côtés ; couleur des segments au changement de côté (18/11/2026)
+
+Classe B (évolution validée : demande explicite de Hermann, cahier de recette, ligne emom-9, 18/11/2026). Spec PRE-11 §5 point 35. Remplace, pour la Série en Répétitions, la pause entre les côtés jouée dans la fenêtre (Q5, entrée « EMOM — exécution (18/11/2026) »).
+
+> « Correction 1 : plus de pause entre les côtés dans l'EMOM en répétitions
+> Cas visé : un exercice en répétitions avec changement de côté (« De chaque côté : Avec »), ou plusieurs exercices dans le même intervalle. Les deux côtés se font dans l'intervalle, sans pause minutée entre eux.
+> Au passage d'un côté à l'autre, il n'y a aucune pause, ni compte à rebours, ni phase de récupération entre les côtés. L'utilisateur enchaîne quand il est prêt, avec « Suivant ». Ce qui reste de l'intervalle après le dernier côté est le repos.
+> Le récapitulatif de l'EMOM en répétitions n'affiche plus la ligne « Pause entre les côtés ». La valeur éventuellement saisie reste conservée dans le brouillon, sans effet : même principe que la ligne de pause retirée pour le Buy-in du For time.
+> Le défaut global « Pause entre les côtés » du Profil ne s'applique pas à ce cas.
+> Aucune pause entre côtés n'est ajoutée au calcul de durée ou à la planification de la fenêtre.
+> Ne change pas l'EMOM en durée : la pause entre les côtés y reste, comptée dans le contrôle des durées (cible × 2 + pause).
+>
+> Correction 2 : couleur de l'anneau au changement de côté
+> Défaut actuel : en passant d'un côté à l'autre, tout l'anneau change de couleur d'un coup.
+> Attendu : seuls les segments changent de couleur. Le reste de l'anneau garde sa couleur. »
+
+- **Répétitions.** Aucune étape de pause entre les côtés dans la fenêtre : « Suivant » sur le côté 1 ouvre le côté 2 ; le reste de l'intervalle après le dernier côté est le repos. La Pause entre les côtés du Brouillon (et celle copiée du Profil) reste enregistrée, sans effet. La durée estimée reste N × intervalle.
+- **Modale des paramètres d'exécution.** Ligne « Pause entre les côtés » absente pour un Exercice EMOM en Répétitions (même principe que le For time) ; elle revient si l'unité passe en Durée.
+- **Durée.** Inchangée : la pause entre les côtés est jouée dans la fenêtre et comptée dans le contrôle des durées.
+- **Anneau.** Segments existants (anneau de la fenêtre, portions colorées : bleu pendant l'effort, orange pendant la retenue, la pause entre les côtés et le repos) : au changement de côté, seule la portion de la pause entre les côtés est orange ; la portion déjà tracée garde sa couleur. Même écran pour le Death by (pause entre les côtés de ses membres), corrigé du même coup.
+- **À clarifier (interprétations).** (a) « Récapitulatif » compris comme la modale des paramètres d'exécution (le récapitulatif du Format n'a pas de ligne « Pause entre les côtés ») ; (b) la phrase de la carte de Composition (« avec 20 s de pause au changement de côté ») n'est pas modifiée, comme pour le For time.
+- **Documents mis à jour (classe B).** Le présent chapitre (entrée « EMOM — exécution (18/11/2026) » annotée) ; spec PRE-11 §5 point 35. Chapitres 09 et 12 non modifiés.
+
+## D-532 — EMOM à plusieurs mouvements : série et tour selon le mode d'exécution (18/11/2026)
+
+Classe B (évolution validée : demande explicite de Hermann, cahier de recette, « Autres remarques », constat a, 18/11/2026). Spec PRE-11 §5 point 36. Numéro vérifié libre le 19/11/2026 (D-531 dernier numéro sur `docs/planification-grille-creneaux` ; aucun D-532 ou suivant dans les PR ouvertes).
+
+> « Définitions (à respecter exactement)
+> M = nombre de mouvements. N = nombre saisi au questionnaire.
+> Un tour est un passage de tous les mouvements. Une série est une fenêtre d'un mouvement.
+> Le tableau est la même grille lue dans les deux sens : les colonnes portent toujours le nombre N saisi au questionnaire.
+>
+> Mode « À la suite » (chaque mouvement enchaîne ses N séries, puis on passe au suivant) : Questionnaire « Nombre de séries » (inchangé) ; Colonnes du tableau S1 … SN (inchangé) ; Lignes du tableau un mouvement par ligne, sans étiquette ; Modale des paramètres d'exécution « X séries identiques / variables » (inchangé).
+> Écran d'exécution, avec M = 3 et N = 3. Le tour est le rang du mouvement ; la série repart à 1 à chaque nouveau mouvement. Mouvement 1 : S1T1, S2T1, S3T1. Mouvement 2 : S1T2, S2T2, S3T2. Mouvement 3 : S1T3, S2T3, S3T3.
+> Défaut à corriger : le tour reste aujourd'hui à 1. Il doit valoir le rang du mouvement en cours.
+>
+> Modes « Dans chaque intervalle » et « En alternance » (passage de tous les mouvements, N fois) : Questionnaire « Nombre de tours » (change : aujourd'hui « Nombre de séries »). Le libellé suit le mode sélectionné et change dès que le mode change. Colonnes du tableau T1 … TN (change : aujourd'hui S1 … SN) ; Lignes du tableau un mouvement par ligne, sans étiquette ; Modale des paramètres d'exécution « X tours identiques / variables » (change : aujourd'hui « X séries … »).
+> Écran d'exécution, avec M = 3 et N = 3. La série est la position du mouvement dans le tour, remise à 1 à chaque nouveau tour ; le tour avance après le dernier mouvement. Tour 1 : S1T1 (mouvement 1), S2T1 (mouvement 2), S3T1 (mouvement 3). Tour 2 : S1T2, S2T2, S3T2. Tour 3 : S1T3, S2T3, S3T3.
+> Le compteur de séries avance à chaque Suivant. Le compteur de tours avance à la fin du dernier mouvement.
+>
+> À ne pas faire : Les noms techniques internes, les données enregistrées et l'historique ne changent pas : seuls l'affichage et les compteurs changent. L'EMOM à un seul mouvement n'est pas modifié. »
+
+- **Compteurs de l'écran d'exécution (Série | Tour).** « À la suite » : Série k / N inchangée, Tour = rang du mouvement / M. « Dans chaque intervalle » et « En alternance » : Série = position du mouvement dans le tour / M, Tour inchangé (k / N). Un mouvement de chaque côté compte pour une seule position (ses deux côtés gardent la même Série). Les mêmes compteurs s'affichent au repos (ceux de la Série qui vient de se terminer, règle du 13/11/2026) et pendant le compte à rebours initial (ceux de la Série à venir).
+- **Questionnaire et tableau de l'EMOM.** « Nombre de tours » et colonnes T1 … TN dès deux mouvements en « Dans chaque intervalle » ou « En alternance » ; « Nombre de séries » et S1 … SN en « À la suite » et pour un seul mouvement. La réponse enregistrée reste le nombre de séries du questionnaire (`seriesCount`).
+- **Modale.** « X tours identiques / variables » pour un membre d'un Circuit porteur EMOM ou d'un Circuit à séries alternées de membres EMOM, depuis l'écran du Format comme depuis la Composition.
+- **Mise en œuvre (choix technique).** Le plan d'exécution compilé porte la nature de chaque Circuit (lecture d'affichage seulement ; le plan n'est pas enregistré) ; étapes, clés, résultats d'étape et historique inchangés ; moteur de fenêtres inchangé.
+- **Hors périmètre.** Death by (autre portée, compteurs inchangés) ; Circuit EMOM composé à la main sous une autre forme (Circuit groupé de plusieurs tours sans Format porteur) : compteurs inchangés, cas signalé, non tranché.
+- **Documents mis à jour (classe B).** Le présent chapitre ; chapitre 13, CE-FMT-05 (compteurs de l'EMOM à plusieurs mouvements) ; spec PRE-11 §5 point 36. Chapitres 09 et 12 non modifiés.
+
+### D-532 — complément : Circuit EMOM « dans chaque intervalle », repère de changement de mouvement et tours au repos (18/11/2026)
+
+Classe B (évolution validée : demande explicite de Hermann, cahier de recette, « Autres remarques », constat e, ligne n° 50, 18/11/2026). Spec PRE-11 §5 point 37.
+
+> « n° 50 Circuit « dans chaque intervalle » A puis B dans la même minute : « Suivant » sur A, puis sur B ; le rang suivant commence à la minute.
+> - deux exercices : le numéro de série ne bouge pas. Il faut qu'on passe d'une série +1 à chaque changement de mouvement, par intervalle, le total de série = nombre de mouvements par intervalle.
+> lorsqu'on appui sur suivant pour une changement de mouvement, il faut figer un cercle sur l'anneau pour marquer l'instant de changement d'exercice.
+> - pendant le repos le nombre de tours disparait. Il faut le nombre de tours visible. »
+
+- **Série.** Déjà couverte par D-532 (Série = position du mouvement dans le tour / M) : « Série 1/2 » sur A, « Série 2/2 » sur B, dans la même minute.
+- **Repère sur l'anneau.** À l'appui sur « Suivant » qui fait passer à un autre mouvement dans le même intervalle, un cercle (la pastille de position, couleur de l'anneau, contour blanc) reste figé à la position de cet instant jusqu'à la fin de l'intervalle ; l'intervalle suivant repart sans repère. EMOM seulement ; pas de repère au changement de côté d'un même mouvement ; Death by (membres « dans chaque intervalle ») non concerné.
+- **Tours au repos.** Le compteur Tour reste affiché pendant le repos de l'intervalle (règle du 13/11/2026 : compteurs de la Série qui vient de se terminer). Non reproduit en test sur la version livrée (ni avant D-532) : test de non-régression ajouté, vérification sur iPhone à faire.
+- **Documents mis à jour (classe B).** Le présent chapitre ; chapitre 13, CE-FMT-05 ; spec PRE-11 §5 point 37. Chapitres 09 et 12 non modifiés.
+
 ## AMRAP — exécution (18/11/2026)
 
 Classe B (évolution validée) pour les commandes, la fin du bloc, le partiel et les sons ; classe A pour le déroulement (FMT-26, FMT-27, D-19, D-20 / RM-PRE5-02 ; conception consolidée D1, D3, Q2, Q3, Q4, §12.1, §12.5 et « Prescriptions et fins — complément du 5 novembre » ; cas T12, T13, T14, T25). Décisions de Hermann recopiées à l'entrée « EMOM — exécution (18/11/2026) » (même demande, mêmes quatre réponses) et, pour les exercices en durée, à l'entrée « For time — exécution : exercices en durée, « + Tour », sans Pause (16/11/2026) » :
@@ -2961,6 +3075,15 @@ Classe B (évolution validée) pour les commandes, la fin du bloc, le partiel et
 - **Remplacé.** Rien d'autre que D4 (déjà annoté) ; contradiction §6.3 de la spec PRE-11 (incrément ≥ 0 contre incrément signé) : l'incrément signé du complément du 5 novembre s'applique, déjà écrit au registre des Formats.
 - **Chapitres 09 et 12 (non modifiés, à compléter lors de leur prochaine mise à jour).** Ch09 : résultat par bloc AMRAP (tours acquis, partiel de l'exercice en cours, buy-in À l'échec). Ch12 : pilote `AMRAP`, portée par bloc (buy-in, étapes-modèles de la boucle rejouées par tour, étape de poids du bloc).
 
+## AMRAP — recette iPhone du 18/11/2026 (amrap-1)
+
+Classe B (évolution validée : remarques explicites de Hermann, ligne amrap-1 du cahier de recette, 18/11/2026) : « Un exercice : Mettre "Série" en gris, nombre de séries "-" / Appui sur +Tour - Annonce : ne pas répéter le nom du mouvement s'il ne change pas, seulement le nombre de répétition / durée / Synthèse d'exercice, ne pas répéter le nom de l'exercice si c'est le même : - Un exercice : Une ligne avec le nom de l'exercice puis par tour : Tour X + Nb de répétitions + Durée - plusieurs exercices : une ligne par Tour X puis par mouvement : Nb de répétitions + durée / Durée de l'exercice : la solution refuse une durée inférieure à 1 minute. »
+
+- **Compteur Série.** AMRAP dont la boucle ne compte qu'un mouvement (côtés compris), pendant les tours : Série sans valeur, libellé et « – » en gris (même rendu qu'un compteur sans valeur). Buy-in, AMRAP à plusieurs mouvements et AMRAP en Max (D-531) inchangés.
+- **Annonce à « + Tour ».** Début d'un tour sur le même mouvement que l'étape précédente, même Série et même côté (tour d'un AMRAP à un mouvement) : l'objectif seul, sans le nom. Complète D-530 pour les tours qu'elle ne couvre pas (objectif non unique ou en durée) ; interrupteur « Annonce des tours » coupé : son seul, sans annonce (D-530, inchangé).
+- **Synthèse de la séance.** Tours d'un bloc AMRAP regroupés : un mouvement — une ligne avec le nom, puis « Tour X · N rép. · durée » par tour ; plusieurs mouvements — une ligne « Tour X », puis une ligne par mouvement « Nom · N rép. · durée » (nom gardé pour distinguer les mouvements : interprétation, à confirmer). Répétitions : objectif d'une série terminée, sinon répétitions saisies ; omises en durée. [Une ligne « Nom · Tour X » par tour avec statut et temps — remplacé pour l'AMRAP.] Buy-in et autres formats inchangés.
+- **Durée de l'exercice.** Aucune règle n'impose 1 minute (FMT-26 ; registre des Formats, minimum 1 s) : la modale des paramètres d'exécution accepte une Durée de l'exercice AMRAP de 1 s à 180 min. [Minimum 60 s — remplacé.] Le questionnaire du Format (« Durée ») garde son minimum d'une minute : non cité, non modifié.
+- **Chapitres 09 et 12** non modifiés.
 ## Death by — exécution (18/11/2026)
 
 Classe B (évolution validée) pour les commandes, la fin du défi et les sons ; classe A pour le déroulement (FMT-33 à FMT-38 ; conception consolidée D2, D3, Q2, Q4, §12.4, §12.5 et « Prescriptions et fins — complément du 5 novembre » ; cas T16, T17, T18). Décisions de Hermann recopiées à l'entrée « EMOM — exécution (18/11/2026) » (même demande, mêmes quatre réponses ; pour le Death by : « Comme le For time », « Feuille du For time », « Sons existants »).

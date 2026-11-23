@@ -131,7 +131,10 @@ describe("PRE-11 T3 — AMRAP à l'écran", () => {
     expect(screen.getByTestId("execution-tour")).toHaveTextContent("1");
     await at(30);
     expect(service.project()?.timer).toEqual({ kind: "COUNTDOWN", remainingMs: 90 * S, totalMs: 120 * S, elapsedMs: 30 * S });
+    // D-529 / CE-UI-14 : tours acquis dans le bouton (« +Tour · n »).
+    expect(screen.getByTestId("execution-plus-tour-label")).toHaveTextContent("Tour · 0");
     await press("execution-plus-tour");
+    expect(screen.getByTestId("execution-plus-tour-label")).toHaveTextContent("Tour · 1");
     expect(screen.getByTestId("execution-tour")).toHaveTextContent("2");
     expect(service.project()?.format?.amrap).toMatchObject({ round: 2, completedRounds: 1 });
     await at(120);

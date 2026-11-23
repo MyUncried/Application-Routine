@@ -36,8 +36,8 @@ describe("migration029 — guidage sonore par événement", () => {
       "INSERT INTO sessions (id, owner_id, name, status, initial_countdown_seconds, final_phase_seconds, created_at, updated_at) SELECT 's-old', id, 'Ancienne', 'ACTIVE', 10, 5, 't', 't' FROM users LIMIT 1",
     );
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(38);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 38 });
+    expect(DATABASE_VERSION).toBe(39);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 39 });
     expect(await database.getFirstAsync("SELECT guidance_settings FROM sessions WHERE id = 's-old'")).toEqual({ guidance_settings: null });
     const profile = await new SqliteProfileRepository(database).get();
     expect(profile.guidanceEvents).toEqual(DEFAULT_GUIDANCE_EVENTS);
@@ -55,7 +55,7 @@ describe("migration029 — guidage sonore par événement", () => {
     expect(reread.guidanceEvents.HALF_TIME).toEqual({ sound: "NONE", vibration: true });
     expect(reread.guidanceEvents.CADENCE).toEqual({ sound: "DING", vibration: true });
     expect(reread.guidanceEvents.COUNTDOWN).toEqual(DEFAULT_GUIDANCE_EVENTS.COUNTDOWN);
-    expect(profileGuidance(reread).announcements).toEqual({ session: true, names: true, phases: true, objective: true, pauses: true, sides: true });
+    expect(profileGuidance(reread).announcements).toEqual({ session: true, names: true, phases: true, objective: true, pauses: true, sides: true, rounds: true });
   });
 
   it("Séance : réglages validés enregistrés, relus, copiés dans l'instantané ; le Profil n'est pas modifié", async () => {
@@ -64,7 +64,7 @@ describe("migration029 — guidage sonore par événement", () => {
     const repository = new SqliteSessionRepository(database, newId, () => "2026-11-11T10:00:00.000Z");
     const profileBefore = await new SqliteProfileRepository(database).get();
     const own: GuidanceSettings = {
-      announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false },
+      announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false, rounds: true },
       events: { ...DEFAULT_GUIDANCE_EVENTS, HALF_TIME: { sound: "NONE", vibration: true } },
     };
     const input = toStructuredSessionInput(draft(own), newId);

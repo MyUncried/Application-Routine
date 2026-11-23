@@ -181,6 +181,30 @@ describe("PRE-11 T2 — EMOM à l'écran", () => {
     ]);
   });
 
+  it("D-529 / CE-UI-14 : objectif en haut à gauche, intervalle fixe en haut à droite, compte à rebours du repos en bas à droite", async () => {
+    const { at } = await started();
+    act(() => {
+      fireEvent(screen.getByTestId("execution-ring-area"), "layout", { nativeEvent: { layout: { width: 398, height: 340, x: 0, y: 0 } } });
+    });
+    const placement = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node !== null && node.props.side === undefined) node = node.parent;
+      return { side: node?.props.side, vertical: node?.props.vertical };
+    };
+    expect(placement("execution-objective")).toEqual({ side: "left", vertical: "top" });
+    // Intervalle : valeur fixe, sans « max » (recette emom-e1 : « valeur fixe, le triangle reste gris »).
+    expect(screen.getByTestId("execution-cap")).toHaveTextContent(/^01:00$/);
+    expect(placement("execution-cap")).toEqual({ side: "right", vertical: "top" });
+    expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+    await at(20);
+    await press("execution-emom-next");
+    expect(screen.getByTestId("execution-cap")).toHaveTextContent(/^01:00$/);
+    expect(screen.getByTestId("execution-rest-countdown")).toHaveTextContent("00:40");
+    expect(placement("execution-rest-countdown")).toEqual({ side: "right", vertical: "bottom" });
+    await at(60); // fenêtre suivante : plus de repos en coin
+    expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+  });
+
   it("Arrêt pendant une Série : feuille « Arrêt de l'EMOM », répétitions saisies, séance arrêtée", async () => {
     const { at, repository, service } = await started();
     await at(15);

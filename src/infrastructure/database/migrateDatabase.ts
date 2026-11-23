@@ -39,6 +39,7 @@ import { applyMigration034 } from "./migrations/migration034";
 import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
+import { applyMigration039 } from "./migrations/migration039";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -390,6 +391,13 @@ export async function migrateDatabase(
     if (pending(37)) {
       await applyMigration038(transaction);
       version = 38;
+    }
+
+    // D-530 (18/11/2026) : interrupteur « Annonce des tours » (développé comme version 31 sur la branche Formats, renuméroté 39
+    // à la consolidation du 24/11/2026). Un échec laisse `user_version` à 38.
+    if (pending(38)) {
+      await applyMigration039(transaction);
+      version = 39;
     }
 
     if (version !== targetVersion) {
