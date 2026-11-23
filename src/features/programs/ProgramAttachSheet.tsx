@@ -1,114 +1,105 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
 
-import type { Routine } from "@/domain/planning/Routine";
-import { ScreenShell } from "@/shared/ui/ScreenShell";
-import { ModalCancelAction } from "@/shared/ui/ModalHeaderActions";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { RoutineFilterSheet, type RoutineFilterChoice } from "@/features/planning/RoutineFilterSheet";
+import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 
-import { routineSlotLine } from "./programPresentation";
-import type { ProgramService } from "./ProgramService";
+import { OutsidePeriodDialog } from "./OutsidePeriodDialog";
+import type { AttachChoice, ProgramService } from "./ProgramService";
+import type { AttachedRoutine, ProgramSheetRequest } from "./programSheetRelay";
 import { programStrings } from "./programStrings";
 
 /**
- * « Rattacher une routine existante » (D-549) : liste des routines du calendrier qui n'appartiennent à aucun programme.
- * Toucher une routine la rattache au programme et ferme la feuille. [Interprétation : rattachement d'une routine à la fois,
- * aucune maquette dédiée ; la proposition automatique et l'avertissement hors période sont hors périmètre.]
+ * « Rattacher des routines existantes » (D-549 ; recette du 23/11/2026, p4-rattacher — Hermann : « Il faut pouvoir rattacher
+ * plusieurs routines en même temps » ; « la modale de sélection des routines doit être identique à celle du filtre des routines,
+ * avec la modification suivante : le texte de chaque carte doit indiquer le nombre de séances entre les dates et hors des dates
+ * du programme "X créneaux sur la période, Y en dehors" ») — modale du filtre des routines de l'Agenda (`RoutineFilterSheet`) :
+ * recherche, filtre, cases à cocher, bouton « Rattacher N routines ».
+ *
+ * D-566 : si des créneaux à venir des routines choisies tombent hors de la période, la question est posée avant de rendre la
+ * sélection ; « Annuler » laisse la feuille ouverte, rien n'est rattaché. La sélection est rendue à la modale du programme, qui
+ * ne l'enregistre qu'à la coche (p4-croix). [Avant : une routine à la fois, rattachée aussitôt.]
  */
 const t = programStrings.attach;
 
+export function attachSlotsLine(choice: AttachChoice): string {
+  const values = { inside: String(choice.period.inside), outside: String(choice.period.outside) };
+  return fillTemplate(choice.period.inside === 1 ? t.slotsOne : t.slots, values);
+}
+
+export function attachButtonLabel(count: number): string {
+  return count === 1 ? t.applyOne : fillTemplate(t.applyMany, { count: String(count) });
+}
+
 export function ProgramAttachSheet({
   service,
-  programId,
-  onAttached,
+  request,
   onClose,
 }: {
   readonly service: ProgramService;
-  readonly programId: string;
-  readonly onAttached: () => void;
+  readonly request: Extract<ProgramSheetRequest, { kind: "attach" }>;
   readonly onClose: () => void;
 }) {
-  const [routines, setRoutines] = useState<readonly Routine[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [choices, setChoices] = useState<readonly AttachChoice[] | null>(null);
+  const [question, setQuestion] = useState<{ readonly selected: readonly AttachChoice[]; readonly outside: number } | null>(null);
+  const { state: catalogue, reload } = useSessionCatalogue();
   useEffect(() => {
+    reload();
     let cancelled = false;
-    service.unattachedRoutines().then(
+    service.attachChoices(request.period, request.excluded, request.released).then(
       (list) => {
-        if (!cancelled) setRoutines(list);
+        if (!cancelled) setChoices(list);
       },
       () => {
-        if (!cancelled) setFailed(true);
+        if (!cancelled) setChoices([]);
       },
     );
     return () => {
       cancelled = true;
     };
-  }, [service]);
+  }, [service, request, reload]);
+  const sessions = useMemo(() => {
+    const map = new Map<string, SessionCatalogueProjection>();
+    if (catalogue.status === "ready") for (const projection of catalogue.sessions) map.set(projection.id, projection);
+    return map;
+  }, [catalogue]);
 
-  const attach = (routineId: string) => {
-    service.attachRoutine(routineId, programId).then(
-      () => {
-        onAttached();
-        onClose();
-      },
-      () => setFailed(true),
-    );
+  const finish = (selected: readonly AttachChoice[], removeOutside: boolean) => {
+    const attached: AttachedRoutine[] = selected.map((choice) => ({ routine: choice.routine, removeOutside: removeOutside && choice.period.outside > 0 }));
+    request.onAttach(attached);
+    onClose();
   };
 
   return (
-    <ScreenShell backgroundColor={colors.catalogueProgramsBackground}>
-      <View style={styles.header}>
-        <ModalCancelAction onPress={onClose} accessibilityLabel={t.cancel} testID="program-attach-cancel" />
-        <Text style={styles.title} accessibilityRole="header">
-          {t.title}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
-      <ScrollView contentContainerStyle={styles.content} testID="program-attach-list">
-        {failed ? <Text style={styles.error}>{programStrings.catalogue.actionError}</Text> : null}
-        {routines !== null && routines.length === 0 ? (
-          <Text style={styles.message} testID="program-attach-empty">
-            {t.empty}
-          </Text>
-        ) : null}
-        {routines !== null && routines.length > 0 ? (
-          <View style={styles.card}>
-            {routines.map((routine, index) => (
-              <View key={routine.id}>
-                {index > 0 ? <View style={styles.separator} /> : null}
-                <Pressable
-                  onPress={() => attach(routine.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t.validate} ${routine.name}`}
-                  style={styles.row}
-                  testID={`program-attach-${routine.id}`}
-                >
-                  <Text style={styles.name} numberOfLines={1}>
-                    {routine.name}
-                  </Text>
-                  <Text style={styles.line} numberOfLines={1}>
-                    {routineSlotLine(routine)}
-                  </Text>
-                </Pressable>
-              </View>
-            ))}
-          </View>
-        ) : null}
-      </ScrollView>
-    </ScreenShell>
+    <>
+      <RoutineFilterSheet
+        choices={choices ?? []}
+        loading={choices === null}
+        sessions={sessions}
+        onClose={onClose}
+        onValidate={(ids) => {
+          const selected = (choices ?? []).filter((choice) => ids.includes(choice.routine.id));
+          const outside = selected.reduce((sum, choice) => sum + choice.period.outside, 0);
+          if (outside > 0) setQuestion({ selected, outside });
+          else finish(selected, false);
+        }}
+        texts={{
+          title: t.title,
+          empty: t.empty,
+          slotsLine: (choice: RoutineFilterChoice) => attachSlotsLine(choice as AttachChoice),
+          buttonLabel: attachButtonLabel,
+        }}
+      />
+      {question !== null ? (
+        <OutsidePeriodDialog
+          count={question.outside}
+          onKeep={() => finish(question.selected, false)}
+          onDelete={() => finish(question.selected, true)}
+          onCancel={() => setQuestion(null)}
+          testIDPrefix="program-attach-outside"
+        />
+      ) : null}
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 56, paddingHorizontal: spacing[12] + 5, backgroundColor: colors.background },
-  title: { ...type.modalTitle, color: colors.textPrimary, flexShrink: 1, textAlign: "center" },
-  headerSpacer: { width: 38 },
-  content: { padding: layout.screenGutter, gap: spacing[12] },
-  card: { backgroundColor: colors.background, borderRadius: 12, overflow: "hidden" },
-  row: { paddingHorizontal: spacing[12], paddingVertical: spacing[12], gap: 4 },
-  name: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 14, color: colors.textPrimary },
-  line: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: "#9499A8" },
-  separator: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing[12] },
-  message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
-  error: { ...type.supporting, color: colors.danger },
-});

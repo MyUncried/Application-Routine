@@ -383,6 +383,65 @@ export class PlanningService {
       );
   }
 
+  /** Créneaux à venir d'une routine : non commencés, instant ≥ maintenant (règle de `upcomingSlotCount`). */
+  private upcomingOf(routine: Routine, isStarted: IsOccurrenceStarted): readonly Occurrence[] {
+    const now = this.deps.now().getTime();
+    return routineOccurrences(routine, isStarted).filter(
+      (occurrence) => !occurrence.started && occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now,
+    );
+  }
+
+  /**
+   * D-566 (23/11/2026) : créneaux à venir de chaque routine compris dans [`start`, `end`] et hors de cette période — feuille
+   * « Rattacher » (« X créneaux sur la période, Y en dehors ») et question posée au rattachement.
+   */
+  async periodSlotCountsFor(
+    routines: readonly Routine[],
+    start: LocalDate,
+    end: LocalDate,
+  ): Promise<ReadonlyMap<string, { readonly inside: number; readonly outside: number; readonly unstartedInside: number }>> {
+    const isStarted = await this.startedTest();
+    const within = (date: LocalDate) => date >= start && date <= end;
+    return new Map(
+      routines.map((routine) => {
+        const upcoming = this.upcomingOf(routine, isStarted);
+        const inside = upcoming.filter((occurrence) => within(occurrence.date)).length;
+        // D-564 : créneaux non commencés de la période, passés compris (règle du Journal appliquée à la période).
+        const unstartedInside = routineOccurrences(routine, isStarted).filter((occurrence) => !occurrence.started && within(occurrence.date)).length;
+        return [routine.id, { inside, outside: upcoming.length - inside, unstartedInside }] as const;
+      }),
+    );
+  }
+
+  /**
+   * D-566 : créneaux à venir hors de [`start`, `end`] d'une routine modifiée depuis le Journal, avant enregistrement (`draft`) ;
+   * sans brouillon, la routine enregistrée.
+   */
+  async outsidePeriodSlotCount(routineId: string, start: LocalDate, end: LocalDate, draft?: RoutineDraft): Promise<number> {
+    const stored = await this.deps.repository.get(routineId);
+    if (stored === null) return 0;
+    const routine: Routine =
+      draft === undefined ? stored : { ...stored, startDate: draft.startDate, time: draft.time, repetition: draft.repetition, entries: draft.entries };
+    return (await this.periodSlotCountsFor([routine], start, end)).get(routineId)?.outside ?? 0;
+  }
+
+  /**
+   * D-566 « Supprimer » (créneaux hors période) et D-564 « Supprimer avec ses routines » (créneaux de la période) : retire les
+   * créneaux à venir de la routine dont la date vérifie `remove`. Les créneaux commencés ou passés ne sont jamais touchés. Rend
+   * le nombre de créneaux retirés.
+   */
+  async removeUpcomingSlots(routineId: string, remove: (date: LocalDate) => boolean, options: { readonly includePast?: boolean } = {}): Promise<number> {
+    const stored = await this.deps.repository.get(routineId);
+    if (stored === null) return 0;
+    const isStarted = await this.startedTest();
+    // `includePast` (D-564, suppression d'un programme) : tous les créneaux non commencés, passés compris (règle du Journal).
+    const candidates = options.includePast === true ? routineOccurrences(stored, isStarted).filter((occurrence) => !occurrence.started) : this.upcomingOf(stored, isStarted);
+    const keys = candidates.filter((occurrence) => remove(occurrence.date)).map((occurrence) => occurrence.key);
+    if (keys.length === 0) return 0;
+    await this.deps.repository.save({ ...stored, exclusions: [...new Set([...stored.exclusions, ...keys])], updatedAt: this.deps.now().toISOString() });
+    return this.written(keys.length);
+  }
+
   /** D-537 : historique (au moins une occurrence commencée) et nombre de créneaux non commencés supprimés. */
   async deletionPlan(routineId: string): Promise<RoutineDeletionPlan | null> {
     const routine = await this.deps.repository.get(routineId);

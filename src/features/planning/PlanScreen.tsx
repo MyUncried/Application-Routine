@@ -237,10 +237,15 @@ export function PlanScreen({
             routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined),
           ),
         // Programme de la routine (intégration de PROG-CAT-01) ; inconnu : « Sans programme ».
+        // D-564 : avec sa période (occurrences hors période sous « Sans programme »).
         programmeOf: (routine) => {
           const program = routine.programId === undefined || routine.programId === null ? undefined : programs.find((item) => item.id === routine.programId);
-          return program === undefined ? null : { id: program.id, name: program.name };
+          return program === undefined ? null : { id: program.id, name: program.name, start: program.startDate, end: program.endDate };
         },
+        // D-561 : bande d'un programme actif dont la période recouvre la semaine, même sans créneau.
+        programmes: programs
+          .filter((program) => program.terminatedAt === null)
+          .map((program) => ({ id: program.id, name: program.name, start: program.startDate, end: program.endDate })),
         executionProjections,
       }),
     [monday, routines, occurrences, executions, linked, projections, isPlannable, loadedAt, executionProjections, programs],

@@ -138,6 +138,43 @@ describe("création, rattachement et cartes du catalogue", () => {
     expect(await planning.getRoutine(first)).not.toBeNull();
   });
 
+  it("p4-rattacher, D-566 : routines proposées avec « X créneaux sur la période, Y en dehors » ; « Supprimer » retire les créneaux à venir hors période", async () => {
+    const program = await createProgram({ startDate: "2030-08-01", endDate: "2030-08-20" });
+    const free = await createRoutine({ name: "Libre" });
+    const taken = await createRoutine({ name: "Prise", programId: program.id, entries: [{ id: "e-p", sessionId: "s-p", frequency: EVERY_TIME }] } as Partial<RoutineDraft>);
+    const choices = await programs.attachChoices({ start: "2030-08-01", end: "2030-08-20" }, new Set(), new Set([taken]));
+    // Lundis et jeudis à 8 h, du 5 au 29 août ; maintenant : 10 août, midi. À venir : 12, 15, 19 (période) ; 22, 26, 29 (après).
+    expect(choices.map((choice) => [choice.routine.name, choice.period])).toEqual([
+      ["Libre", { inside: 3, outside: 3, unstartedInside: 5 }],
+      ["Prise", { inside: 3, outside: 3, unstartedInside: 5 }],
+    ]);
+    expect((await programs.attachChoices({ start: "2030-08-01", end: "2030-08-20" }, new Set([free]), new Set())).map((choice) => choice.routine.id)).toEqual([]);
+    await programs.applyRoutineChanges(program, { detach: [taken], attach: [{ routineId: free, removeOutside: true }] });
+    expect((await planning.getRoutine(taken))?.programId).toBeUndefined();
+    expect((await planning.getRoutine(free))?.programId).toBe(program.id);
+    const after = await planning.periodSlotCountsFor([(await planning.getRoutine(free))!], "2030-08-01", "2030-08-20");
+    expect(after.get(free)).toEqual({ inside: 3, outside: 0, unstartedInside: 5 });
+  });
+
+  it("D-564 : « Supprimer avec ses routines » ne supprime que les créneaux de la période ; la routine garde les autres, sans programme", async () => {
+    const program = await createProgram({ startDate: "2030-08-01", endDate: "2030-08-20" });
+    const routineId = await createRoutine({ programId: program.id } as Partial<RoutineDraft>);
+    // 5, 8, 12, 15, 19 août dans la période.
+    expect((await programs.deletionPlan(program.id))?.slotCount).toBe(5);
+    expect(await programs.deleteProgram(program.id, "WITH_ROUTINES")).toBe("DELETED");
+    const routine = await planning.getRoutine(routineId);
+    expect(routine?.programId).toBeUndefined();
+    expect(await planning.upcomingSlotCount(routineId)).toBe(3);
+  });
+
+  it("p4-croix : routines planifiées depuis la modale et programme enregistré pour les planifier supprimés", async () => {
+    const program = await createProgram();
+    const routineId = await createRoutine({ programId: program.id } as Partial<RoutineDraft>);
+    await programs.discardModalWork([routineId], program.id);
+    expect(await planning.getRoutine(routineId)).toBeNull();
+    expect(await programs.getProgram(program.id)).toBeNull();
+  });
+
   it("modifier une routine rattachée conserve son programme", async () => {
     const program = await createProgram();
     const routineId = await createRoutine({ programId: program.id } as Partial<RoutineDraft>);

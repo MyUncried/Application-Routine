@@ -365,7 +365,8 @@ export function ProfileEditScreen() {
           ) : null}
 
           {/* PROG-CAT-01 (CE-PRF-01, mission §5) : ce qui dépend de la gestion des comptes (pseudo public, accès au compte et
-              connexion) est affiché grisé et inactif, avec la mention « Disponible avec la gestion des comptes ». Nom, photo,
+              connexion) est affiché grisé et inactif. [Mention « Disponible avec la gestion des comptes » — retirée (recette du
+              23/11/2026, p6-compte, Hermann : « Supprime le texte »).] Nom, photo,
               silhouette et bibliothèques fonctionnent en local et restent actifs. [Aucune maquette de ces lignes : présentation
               reprise des cartes du Profil — interprétation listée au rapport.] */}
           <View style={styles.accountCard} accessibilityState={{ disabled: true }} testID="profile-edit-account">
@@ -378,9 +379,6 @@ export function ProfileEditScreen() {
               </View>
             ))}
           </View>
-          <Text style={styles.accountMention} testID="profile-edit-account-unavailable">
-            {ACCOUNT_UNAVAILABLE}
-          </Text>
 
           {/* A1 (A-4 du 11/11/2026, Figma 12119:25611) : Bibliothèques du premier lot. */}
           <ProfileLibrariesSection />
@@ -394,7 +392,6 @@ export function ProfileEditScreen() {
 
 /** PROG-CAT-01 (mission §5) : éléments du Compte qui dépendent de la gestion des comptes. */
 const ACCOUNT_ROWS = ["Pseudo public", "Accès au compte et connexion"] as const;
-const ACCOUNT_UNAVAILABLE = "Disponible avec la gestion des comptes";
 
 const styles = StyleSheet.create({
   accountCard: {
@@ -408,7 +405,6 @@ const styles = StyleSheet.create({
   accountRow: { minHeight: 52, justifyContent: "center", paddingHorizontal: spacing[16] },
   accountLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 15, color: colors.textPrimary },
   accountSeparator: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing[16] },
-  accountMention: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, color: colors.textSecondary, marginTop: spacing[8], marginBottom: spacing[8], paddingHorizontal: spacing[16] },
   body: {
     flex: 1,
     // Recette c1 : le corps remonte sous la part fondue de la zone de contexte et défile derrière elle.

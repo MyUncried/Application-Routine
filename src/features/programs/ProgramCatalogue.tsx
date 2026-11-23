@@ -182,7 +182,17 @@ export function ProgramCatalogueBody({
   const [deleteCandidate, setDeleteCandidate] = useState<DeleteCandidate | null>(null);
   const [actionFailed, setActionFailed] = useState(false);
   const [swipeLocked, setSwipeLocked] = useState(false);
-  const lockList = useCallback((locked: boolean) => setSwipeLocked(locked), []);
+  const listRef = useRef<ScrollView>(null);
+  // Recette du 23/11/2026 (p2-glisser, « La liste n'est pas figée pendant le geste ») : le verrou est posé tout de suite sur la
+  // vue native, comme dans l'Agenda ; l'état de l'écran seul arrivait après la prise du geste par la liste.
+  const lockList = useCallback((locked: boolean) => {
+    try {
+      listRef.current?.setNativeProps({ scrollEnabled: !locked });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+    setSwipeLocked(locked);
+  }, []);
   const deleting = useRef(false);
 
   const askDelete = (summary: ProgramSummary) => {
@@ -242,6 +252,7 @@ export function ProgramCatalogueBody({
     <View style={styles.container}>
       <SwipeScrollLockContext.Provider value={lockList}>
         <ScrollView
+          ref={listRef}
           scrollEnabled={!swipeLocked}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: topInset, paddingBottom: bottomInset + spacing[24] }}
@@ -280,7 +291,6 @@ export function ProgramCatalogueBody({
                   accessibilityHint={t.openAccessibility}
                   actionsHeight={CARD_HEIGHT}
                   actionWidth={PROGRAM_ACTION_WIDTH}
-                  actionsRightMargin={layout.screenGutter}
                   testID={`program-item-${id}-swipe`}
                 >
                   <ProgramCard summary={summary} today={today} />
@@ -352,11 +362,12 @@ const styles = StyleSheet.create({
   toggleLabel: { ...type.contextLine, color: colors.textSecondary },
   toggleLabelSelected: { ...CONTEXT_LINE_SELECTED, color: colors.primary },
   toggleCount: { ...type.contextLine, color: CONTEXT_TEXT_COLOR, marginLeft: spacing[6] },
-  item: { paddingBottom: spacing[12] },
+  // D-565 (recette du 23/11/2026, constat g) : la rangée porte les marges de 16, comme le catalogue des séances ; la carte ouverte
+  // s'arrête à 8 de ses actions (`SWIPE_ACTIONS_GAP`). [Avant : carte à marges propres et actions décalées de 16 — écart de 24.]
+  item: { paddingBottom: spacing[12], paddingHorizontal: layout.screenGutter },
   // Figma « PROG — 7 » : 370 × 90, fond #F9FAFC, liseré 0,5 #CCD1E0, rayon 8, ombre 0 2 10 rgba(26,26,38,0.08) ;
   // nom à 14 du haut et 16 du bord, lignes à 40 et 60.
   card: {
-    marginHorizontal: layout.screenGutter,
     height: CARD_HEIGHT,
     backgroundColor: colors.surfaceSubtle,
     borderWidth: 0.5,

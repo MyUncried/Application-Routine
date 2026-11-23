@@ -316,7 +316,8 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     expect(screen.getByTestId("profile-edit-tabs-privacy").props.accessibilityLabel).toBe("Confidentialité");
     expect(screen.queryByTestId("profile-edit-tabs-community")).toBeNull();
     expect(screen.getByTestId("profile-edit-account").props.accessibilityState).toEqual({ disabled: true });
-    expect(screen.getByText("Disponible avec la gestion des comptes")).toBeTruthy();
+    // Recette du 23/11/2026 (p6-compte, Hermann : « Supprime le texte "Disponible avec la gestion des comptes" »).
+    expect(screen.queryByText("Disponible avec la gestion des comptes")).toBeNull();
 
     fireEvent.press(accountTab);
     expect(router.getPathname()).toBe("/profile-edit");

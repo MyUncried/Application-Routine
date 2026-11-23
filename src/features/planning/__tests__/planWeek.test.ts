@@ -74,7 +74,12 @@ describe("grille d'une semaine (DSF Plan § 3 à § 6)", () => {
     updatedAt: "t",
     ...patch,
   });
-  const build = (routines: readonly Routine[], executions: readonly AgendaExecution[], programmes: Record<string, PlanProgramme> = {}) => {
+  const build = (
+    routines: readonly Routine[],
+    executions: readonly AgendaExecution[],
+    programmes: Record<string, PlanProgramme> = {},
+    bands: readonly PlanProgramme[] = [],
+  ) => {
     const started = new Set(executions.flatMap((item) => (item.link === null ? [] : [`${item.link.routineId}|${item.link.occurrenceKey}`])));
     const now = at(20, 9);
     const occurrences = routines.flatMap((item) => withExpiry(routineOccurrences(item, (id, key) => started.has(`${id}|${key}`)), now));
@@ -88,8 +93,29 @@ describe("grille d'une semaine (DSF Plan § 3 à § 6)", () => {
       now: now.getTime(),
       displayName: (item) => item.name,
       programmeOf: (item) => programmes[item.id] ?? null,
+      programmes: bands,
     });
   };
+
+  it("D-564 : occurrences dans la période sous la bande du programme, les autres sous « Sans programme » (même semaine)", () => {
+    const week = build([routine({ id: "g", name: "Genou" })], [], { g: { id: "p1", name: "Genou", start: "2026-11-01", end: "2026-11-17" } });
+    expect(week.groups.map((group) => [group.programme?.name ?? null, group.rows.map((row) => row.key)])).toEqual([
+      ["Genou", ["g"]],
+      [null, ["out|g"]],
+    ]);
+    const cells = (index: number) => week.groups[index]!.rows[0]!.cells.map((list) => list.length);
+    // Lundi 16 dans la période, jeudi 19 après sa fin.
+    expect(cells(0)).toEqual([1, 0, 0, 0, 0, 0, 0]);
+    expect(cells(1)).toEqual([0, 0, 0, 1, 0, 0, 0]);
+  });
+
+  it("D-561 : bande seule d'un programme dont la période recouvre la semaine, même sans créneau ; pas hors période", () => {
+    const week = build([], [], {}, [
+      { id: "p1", name: "Genou", start: "2026-11-20", end: "2026-12-31" },
+      { id: "p2", name: "Dos", start: "2026-12-01", end: "2026-12-31" },
+    ]);
+    expect(week.groups.map((group) => [group.programme?.name ?? null, group.rows.length])).toEqual([["Genou", 0]]);
+  });
 
   it("groupes : programmes puis « Sans programme » ; routines par ordre alphabétique ; seulement celles qui ont un créneau dans la semaine", () => {
     const week = build(

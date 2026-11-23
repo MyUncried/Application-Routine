@@ -44,6 +44,7 @@ import { ProgramCatalogueBody, ProgramContext, useProgramSummaries } from "@/fea
 import { programCounts, visiblePrograms } from "@/features/programs/programPresentation";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
+import { noteCatalogueSegment } from "@/features/planning/calendarArrival";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
@@ -98,6 +99,8 @@ export function CatalogueScreen() {
   // T01-S10/V2-CAT-01 (D-108) : `Séances` sélectionné par défaut à
   // l'ouverture et après relance complète — aucun segment n'est persisté.
   const [activeSegment, setActiveSegment] = useState<CatalogueContentType>("sessions");
+  // D-562 (23/11/2026) : segment affiché, pour l'onglet ouvert en arrivant dans le calendrier (Programmes → Plan).
+  useEffect(() => noteCatalogueSegment(activeSegment), [activeSegment]);
   // E.4 : vue « Un exercice | Plusieurs » (aucune = collection complète), état de l'écran conservé au
   // retour d'un parcours, jamais persisté (relance : collection complète).
   const [sessionView, setSessionView] = useState<SessionCatalogueView | null>(null);

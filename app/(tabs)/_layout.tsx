@@ -9,6 +9,7 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
+import { noteTabFocus } from "@/features/planning/calendarArrival";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
   NAVIGATION_ACTIVE_FRAME,
@@ -48,6 +49,8 @@ export default function TabsLayout() {
       <Tabs
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{ headerShown: false }}
+        // D-562 (23/11/2026) : onglet quitté, pour l'onglet ouvert à l'arrivée dans le calendrier.
+        screenListeners={({ route }) => ({ focus: () => noteTabFocus(route.name) })}
       >
         <Tabs.Screen
           name="index"

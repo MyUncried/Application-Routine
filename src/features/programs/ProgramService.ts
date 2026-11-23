@@ -7,6 +7,7 @@ import {
 } from "@/domain/programs/Program";
 import type { ProgramRepository } from "@/domain/programs/ProgramRepository";
 import type { PlanningService } from "@/features/planning/PlanningService";
+import type { RoutineFilterChoice } from "@/features/planning/RoutineFilterSheet";
 
 /**
  * `ProgramService` (PROG-CAT-01, 21/11/2026) — catalogue, création, configuration et suppression des programmes (CE-PROG-01 à
@@ -44,6 +45,9 @@ export type ProgramDeletionPlan = {
 };
 
 export type ProgramDeletionMode = "WITH_ROUTINES" | "KEEP_ROUTINES";
+
+/** Feuille « Rattacher » : choix du filtre des routines, avec les créneaux à venir dans la période et hors de celle-ci (D-566). */
+export type AttachChoice = RoutineFilterChoice & { readonly period: { readonly inside: number; readonly outside: number } };
 
 /** Profil › Confidentialité (D-551) : état déduit des programmes. */
 export type PainTrackingState =
@@ -134,6 +138,57 @@ export class ProgramService {
     return this.deps.repository.setRoutineProgram(routineId, programId);
   }
 
+  /**
+   * « Rattacher des routines existantes » (recette du 23/11/2026, p4-rattacher) : routines proposées — sans programme, ou retirées
+   * du programme dans la modale en cours (`released`) — hors celles déjà rattachées dans la modale (`excluded`). Même liste et
+   * même ordre que le filtre des routines de l'Agenda (`routineFilterChoices`), avec les créneaux à venir dans la période du
+   * programme et hors de celle-ci (D-566).
+   */
+  async attachChoices(
+    period: { readonly start: LocalDate; readonly end: LocalDate },
+    excluded: ReadonlySet<string>,
+    released: ReadonlySet<string>,
+  ): Promise<readonly AttachChoice[]> {
+    const choices = (await this.deps.planning.routineFilterChoices()).filter(
+      (choice) =>
+        !excluded.has(choice.routine.id) &&
+        (choice.routine.programId === undefined || choice.routine.programId === null || released.has(choice.routine.id)),
+    );
+    const counts = await this.deps.planning.periodSlotCountsFor(
+      choices.map((choice) => choice.routine),
+      period.start,
+      period.end,
+    );
+    return choices.map((choice) => ({ ...choice, period: counts.get(choice.routine.id) ?? { inside: 0, outside: 0 } }));
+  }
+
+  /**
+   * Coche de la modale du programme (recette du 23/11/2026, p4-croix — Hermann : « La croix doit tout annuler ») : les retraits et
+   * rattachements faits dans la modale ne sont écrits qu'ici. D-566 : `removeOutside` — « Supprimer » choisi au rattachement, les
+   * créneaux à venir hors de la période sont retirés ; sinon (« Garder dans le calendrier ») ils restent, hors programme.
+   */
+  async applyRoutineChanges(
+    program: Program,
+    changes: { readonly detach: readonly string[]; readonly attach: readonly { readonly routineId: string; readonly removeOutside: boolean }[] },
+  ): Promise<void> {
+    for (const routineId of changes.detach) await this.deps.repository.setRoutineProgram(routineId, null);
+    for (const { routineId, removeOutside } of changes.attach) {
+      await this.deps.repository.setRoutineProgram(routineId, program.id);
+      if (removeOutside) await this.deps.planning.removeUpcomingSlots(routineId, (date) => date < program.startDate || date > program.endDate);
+    }
+  }
+
+  /**
+   * Croix de la modale (p4-croix) : les routines planifiées depuis la modale sont supprimées (règle du Journal), puis le programme
+   * créé dans la modale, enregistré avant « + Planifier une séance », est supprimé.
+   */
+  async discardModalWork(createdRoutineIds: readonly string[], createdProgramId: string | null): Promise<void> {
+    for (const routineId of createdRoutineIds) await this.deps.planning.deleteRoutine(routineId);
+    if (createdProgramId === null) return;
+    await this.deps.repository.detachAll(createdProgramId);
+    if ((await this.deps.repository.executionCount(createdProgramId)) === 0) await this.deps.repository.delete(createdProgramId);
+  }
+
   /** D-549 : glisser une routine à gauche la retire du programme sans la supprimer. */
   detachRoutine(routineId: string): Promise<void> {
     return this.deps.repository.setRoutineProgram(routineId, null);
@@ -145,9 +200,11 @@ export class ProgramService {
     const routines = await this.routinesOf(programId);
     let slotCount = 0;
     let canKeepRoutines = false;
+    // D-564 (23/11/2026) : « Supprimer avec ses routines » ne supprime que les créneaux compris dans la période — non commencés,
+    // selon la règle du Journal ; ceux d'avant ou d'après la période restent.
+    const counts = await this.deps.planning.periodSlotCountsFor(routines, program.startDate, program.endDate);
     for (const routine of routines) {
-      const plan = await this.deps.planning.deletionPlan(routine.id);
-      slotCount += plan?.count ?? 0;
+      slotCount += counts.get(routine.id)?.unstartedInside ?? 0;
       if (!canKeepRoutines && (await this.deps.planning.upcomingSlotCount(routine.id)) > 0) canKeepRoutines = true;
     }
     return { history: (await this.deps.repository.executionCount(programId)) > 0, slotCount, canKeepRoutines };
@@ -164,11 +221,23 @@ export class ProgramService {
     const program = await this.deps.repository.get(programId);
     if (program === null) return null;
     if (mode === "WITH_ROUTINES") {
-      for (const routine of await this.routinesOf(programId)) await this.deps.planning.deleteRoutine(routine.id);
+      // D-564 (23/11/2026) : seuls les créneaux de la période sont supprimés (non commencés, règle du Journal) ; une routine sans
+      // historique dont tous les créneaux sont dans la période est supprimée entière. [Avant : règle du Journal appliquée à toute
+      // la routine.]
+      const routines = await this.routinesOf(programId);
+      const counts = await this.deps.planning.periodSlotCountsFor(routines, program.startDate, program.endDate);
+      const within = (date: LocalDate) => date >= program.startDate && date <= program.endDate;
+      for (const routine of routines) {
+        const plan = await this.deps.planning.deletionPlan(routine.id);
+        if (plan !== null && !plan.history && plan.count === (counts.get(routine.id)?.unstartedInside ?? 0)) await this.deps.planning.deleteRoutine(routine.id);
+        else await this.deps.planning.removeUpcomingSlots(routine.id, within, { includePast: true });
+      }
     } else {
       await this.deps.repository.detachAll(programId);
     }
     if ((await this.deps.repository.executionCount(programId)) === 0) {
+      // Routines gardées pour leurs créneaux hors période (D-564) : elles ne désignent plus le programme supprimé.
+      await this.deps.repository.detachAll(programId);
       await this.deps.repository.delete(programId);
       return "DELETED";
     }

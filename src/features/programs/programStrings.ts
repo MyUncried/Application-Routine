@@ -78,11 +78,24 @@ export const programStrings = {
   },
   /** « Rattacher une routine existante » (D-549). */
   attach: {
-    title: "Rattacher une routine",
+    /** Recette du 23/11/2026 (p4-rattacher) : plusieurs routines à la fois. [« Rattacher une routine » — remplacé.] */
+    title: "Rattacher des routines",
     cancel: "Fermer",
     validate: "Rattacher",
+    /** Bouton du bas (même patron que « Filtrer N routines »). */
+    applyOne: "Rattacher 1 routine",
+    applyMany: "Rattacher {count} routines",
+    /** Hermann, 23/11/2026 (p4-rattacher) : « X créneaux sur la période, Y en dehors ». */
+    slots: "{inside} créneaux sur la période, {outside} en dehors",
+    slotsOne: "1 créneau sur la période, {outside} en dehors",
     /** [interprétation] Aucune routine sans programme. */
     empty: "Toutes vos routines appartiennent déjà à un programme.",
+    /** D-566 (23/11/2026) : créneaux à venir hors de la période. */
+    outsideMany: "{count} créneaux sont en dehors de la période du programme.",
+    outsideOne: "1 créneau est en dehors de la période du programme.",
+    outsideKeep: "Garder dans le calendrier",
+    outsideDelete: "Supprimer",
+    outsideCancel: "Annuler",
   },
   /** Figma « PROG — 13b » (`12848:47353`). */
   consent: {

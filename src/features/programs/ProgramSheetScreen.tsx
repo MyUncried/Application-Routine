@@ -19,10 +19,11 @@ import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
 import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import { switchNudge } from "@/shared/ui/switchNudge";
+import { colors, layout, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
 import { formatDayMonthYear, routineSlotLine } from "./programPresentation";
-import { requestProgramSheet } from "./programSheetRelay";
+import { requestProgramSheet, type AttachedRoutine } from "./programSheetRelay";
 import { useProgramService } from "./ProgramServiceContext";
 import { programStrings } from "./programStrings";
 
@@ -38,10 +39,12 @@ import { programStrings } from "./programStrings";
  *   « Rattacher une routine existante ».
  * - Suivi de la douleur : interrupteur natif ; sans accord, la feuille de consentement s'ouvre (« PROG — 13b »).
  *
- * [Interprétations techniques, listées au rapport : le rattachement, le retrait et la planification d'une routine
- * s'appliquent aussitôt (ce sont des écritures sur la routine, comme dans la planification) ; la coche enregistre les champs
- * du programme. Un nouveau programme est enregistré avant « + Planifier une séance » ou « Rattacher… », la routine devant
- * désigner un programme existant.]
+ * Recette du 23/11/2026 (p4-croix, Hermann : « La croix doit tout annuler ») : rattachements et retraits restent dans la modale
+ * jusqu'à la coche ; la croix, ou la fermeture de la feuille par le geste, supprime les routines planifiées depuis la modale et
+ * le programme enregistré pour les planifier (`ProgramService.discardModalWork`). Un nouveau programme est toujours enregistré
+ * avant « + Planifier une séance » (la routine doit désigner un programme existant) ; « Rattacher… » ne l'enregistre plus.
+ * [Interprétations techniques du 21/11/2026 — rattachement, retrait et planification appliqués aussitôt, croix limitée aux
+ * champs du programme — remplacées.] L'accord au suivi de la douleur, valable pour toute l'application, n'est pas annulé.
  */
 
 const t = programStrings.sheet;
@@ -67,14 +70,48 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
   );
   // Programme enregistré (configuration, ou nouveau programme enregistré avant de planifier) ; `null` : création.
   const [stored, setStored] = useState<Program | null>(null);
+  // Routines rattachées enregistrées ; retraits et rattachements de la modale, écrits à la coche (p4-croix).
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
+  const [attaching, setAttaching] = useState<readonly AttachedRoutine[]>([]);
+  const [detaching, setDetaching] = useState<ReadonlySet<string>>(() => new Set());
+  // Travail à défaire si la modale est fermée sans la coche : programme enregistré pour planifier, routines planifiées.
+  const createdProgramRef = useRef<string | null>(null);
+  const createdRoutinesRef = useRef<Set<string>>(new Set());
+  const knownRoutinesRef = useRef<ReadonlySet<string> | null>(null);
+  const committedRef = useRef(false);
+  const programsRef = useRef(programs);
+  useEffect(() => {
+    programsRef.current = programs;
+  }, [programs]);
+  useEffect(
+    () => () => {
+      if (committedRef.current) return;
+      const routinesToDelete = [...createdRoutinesRef.current];
+      const programToDelete = createdProgramRef.current;
+      if (routinesToDelete.length === 0 && programToDelete === null) return;
+      programsRef.current.discardModalWork(routinesToDelete, programToDelete).catch((error: unknown) => {
+        console.error("Le travail de la modale du programme n'a pas pu être annulé.", error);
+      });
+    },
+    [],
+  );
   const [popover, setPopover] = useState<{ readonly field: DateField; readonly anchor: PopoverAnchor } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [hint, setHint] = useState(false);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [swipeLocked, setSwipeLocked] = useState(false);
-  const lockList = useCallback((locked: boolean) => setSwipeLocked(locked), []);
+  const formRef = useRef<ScrollView>(null);
+  // D-565 (recette du 23/11/2026, constat f) : verrou posé tout de suite sur la vue native (comme l'Agenda) ; sinon la liste prenait
+  // le geste et l'annulait — la routine revenait à sa position précédente (« rebond »).
+  const lockList = useCallback((locked: boolean) => {
+    try {
+      formRef.current?.setNativeProps({ scrollEnabled: !locked });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+    setSwipeLocked(locked);
+  }, []);
   const startRef = useRef<View>(null);
   const endRef = useRef<View>(null);
   const savingRef = useRef(false);
@@ -115,7 +152,18 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
       setRoutines([]);
       return;
     }
-    programs.routinesOf(storedId).then(setRoutines, () => undefined);
+    programs.routinesOf(storedId).then(
+      (list) => {
+        // Retour de « + Planifier une séance » : la routine créée est notée, pour être supprimée si la modale est annulée.
+        const known = knownRoutinesRef.current;
+        if (known !== null) {
+          for (const routine of list) if (!known.has(routine.id)) createdRoutinesRef.current.add(routine.id);
+          knownRoutinesRef.current = null;
+        }
+        setRoutines(list);
+      },
+      () => undefined,
+    );
   }, [programs, storedId]);
   // Retour de la planification ou de « Rattacher… » : la liste est relue.
   useFocusEffect(
@@ -146,12 +194,23 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
-    persist().then(
+    persist()
+      .then(async (program) => {
+        if (program === null) return null;
+        await programs.applyRoutineChanges(program, {
+          detach: [...detaching],
+          attach: attaching.map((item) => ({ routineId: item.routine.id, removeOutside: item.removeOutside })),
+        });
+        return program;
+      })
+      .then(
       (program) => {
         savingRef.current = false;
         setSaving(false);
-        if (program !== null) router.back();
-        else setSaveFailed(true);
+        if (program !== null) {
+          committedRef.current = true;
+          router.back();
+        } else setSaveFailed(true);
       },
       (error: unknown) => {
         console.error("Le programme n'a pas pu être enregistré.", error);
@@ -174,23 +233,51 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     }
     persist().then(
       (program) => {
-        if (program !== null) then(program);
-        else setSaveFailed(true);
+        if (program === null) {
+          setSaveFailed(true);
+          return;
+        }
+        createdProgramRef.current = program.id;
+        then(program);
       },
       () => setSaveFailed(true),
     );
   };
 
-  const plan = () => withStoredProgram((program) => router.push({ pathname: "/planning", params: { programId: program.id } }));
-  const attach = () =>
+  const plan = () =>
     withStoredProgram((program) => {
-      requestProgramSheet({ kind: "attach", programId: program.id, onAttached: loadRoutines });
-      router.push("/program-attach");
+      knownRoutinesRef.current = new Set(routines.map((routine) => routine.id));
+      router.push({ pathname: "/planning", params: { programId: program.id } });
     });
+  // p4-rattacher : plusieurs routines, rendues sans écriture ; la période du brouillon sert aux décomptes (D-566).
+  const attach = () => {
+    if (draft.startDate === null || draft.endDate === null || issues.length > 0) {
+      setHint(true);
+      return;
+    }
+    requestProgramSheet({
+      kind: "attach",
+      period: { start: draft.startDate, end: draft.endDate },
+      excluded: new Set([...routines.filter((routine) => !detaching.has(routine.id)), ...attaching.map((item) => item.routine)].map((routine) => routine.id)),
+      released: detaching,
+      onAttach: (added) => {
+        const ids = new Set(added.map((item) => item.routine.id));
+        setDetaching((current) => new Set([...current].filter((id) => !ids.has(id))));
+        // Une routine retirée puis rattachée de nouveau redevient une routine enregistrée du programme.
+        setAttaching((current) => [...current, ...added.filter((item) => !routines.some((routine) => routine.id === item.routine.id))]);
+      },
+    });
+    router.push("/program-attach");
+  };
   const detach = (routineId: string) => {
     setRevealed(null);
-    programs.detachRoutine(routineId).then(loadRoutines, () => setSaveFailed(true));
+    if (attaching.some((item) => item.routine.id === routineId)) {
+      setAttaching((current) => current.filter((item) => item.routine.id !== routineId));
+      return;
+    }
+    setDetaching((current) => new Set([...current, routineId]));
   };
+  const listed = [...routines.filter((routine) => !detaching.has(routine.id)), ...attaching.map((item) => item.routine)];
 
   // D-551 : activer sans accord ouvre la feuille de consentement ; Autoriser enregistre l'accord et active l'interrupteur ;
   // Annuler le laisse désactivé. Les activations suivantes ne redemandent pas l'accord.
@@ -264,6 +351,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
         renderScroll={(topHeight) => (
           <SwipeScrollLockContext.Provider value={lockList}>
             <ScrollView
+              ref={formRef}
               contentInsetAdjustmentBehavior="never"
               automaticallyAdjustContentInsets={false}
               style={styles.scroll}
@@ -304,7 +392,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                 {t.plannings}
               </Text>
               <View style={styles.card} testID="program-plannings">
-                {routines.map((routine) => (
+                {listed.map((routine) => (
                   <View key={routine.id}>
                     <SwipeActionsRow
                       actions={[{ key: "detach", label: t.detach, backgroundColor: colors.movementLevelAction, onPress: () => detach(routine.id) }]}
@@ -347,7 +435,10 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
               {/* Suivi de la douleur (D-551) : interrupteur natif, désactivé par défaut. */}
               <View style={[styles.card, styles.lineCard, styles.switchCard]} testID="program-pain">
                 <Text style={styles.label}>{t.painTracking}</Text>
+                {/* Recette du 23/11/2026 (p4-douleur) : interrupteur au format du Profil (désactivé visible, centré sur sa ligne). */}
                 <Switch
+                  {...switchOffColors}
+                  style={switchNudge}
                   value={draft.painTracking}
                   onValueChange={togglePain}
                   accessibilityLabel={t.painTracking}

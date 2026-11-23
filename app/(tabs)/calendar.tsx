@@ -2,6 +2,7 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 
 import { isLocalDate } from "@/domain/planning/Routine";
+import { calendarArrivalView } from "@/features/planning/calendarArrival";
 import { CalendarWeekScreen } from "@/features/planning/CalendarWeekScreen";
 import type { CalendarView } from "@/features/planning/CalendarViewTabs";
 import { JournalScreen } from "@/features/planning/JournalScreen";
@@ -30,7 +31,7 @@ export default function CalendarScreen() {
   const [chosen, setChosen] = useState<{
     readonly view: CalendarView;
     readonly at: string;
-  }>({ view: "agenda", at });
+  }>(() => ({ view: calendarArrivalView() ?? "agenda", at }));
   // Toucher l’onglet : nombre de touchers (clé de l’Agenda) et demande alors en vigueur, qui ne s’applique plus.
   const [tabPress, setTabPress] = useState<{
     readonly count: number;
@@ -40,10 +41,15 @@ export default function CalendarScreen() {
   useEffect(() => {
     const tabs = navigation as unknown as {
       addListener: (event: "tabPress", handler: () => void) => () => void;
+      isFocused: () => boolean;
     };
-    return tabs.addListener("tabPress", () =>
-      setTabPress((current) => ({ count: current.count + 1, at })),
-    );
+    return tabs.addListener("tabPress", () => {
+      // D-562 (23/11/2026) : arrivée depuis le catalogue — Programmes ouvre le Plan, Séances ou Mouvements l'Agenda ; depuis un
+      // autre onglet, la dernière vue utilisée. Toucher l'onglet déjà affiché ne change pas de vue.
+      const arrival = tabs.isFocused() ? null : calendarArrivalView();
+      if (arrival !== null) setChosen({ view: arrival, at });
+      setTabPress((current) => ({ count: current.count + 1, at }));
+    });
   }, [navigation, at]);
 
   const pendingDay =

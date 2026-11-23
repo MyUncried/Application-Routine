@@ -67,6 +67,7 @@ import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
 import type { Program } from "@/domain/programs/Program";
 import { maxEndCount, windowStartMinimum, withinWindow, type ProgramWindow } from "@/features/planning/programWindow";
+import { OutsidePeriodDialog } from "@/features/programs/OutsidePeriodDialog";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
@@ -193,6 +194,10 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [saveFailed, setSaveFailed] = useState(false);
   // Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ».
   const [modifyCount, setModifyCount] = useState<number | null>(null);
+  // D-566 (23/11/2026) : routine d'un programme modifiée depuis le Journal — créneaux à venir hors de la période ; « Supprimer »
+  // retire ces créneaux après l'enregistrement.
+  const [outsideCount, setOutsideCount] = useState<number | null>(null);
+  const removeOutsideRef = useRef(false);
   // RM-259 : la synthèse dont les jours ne tenaient pas, mémorisée pour passer à « X jours par semaine ».
   const [overflowing, setOverflowing] = useState<string | null>(null);
   const savingRef = useRef(false);
@@ -435,13 +440,35 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         router.back();
         return;
       }
-      planning.pendingSlotCount(mode.routineId).then(
-        (count) => (count > 0 ? setModifyCount(count) : commit()),
-        () => commit(),
-      );
+      const routineId = mode.routineId;
+      const askModify = () =>
+        planning.pendingSlotCount(routineId).then(
+          (count) => (count > 0 ? setModifyCount(count) : commit()),
+          () => commit(),
+        );
+      removeOutsideRef.current = false;
+      if (program !== null) {
+        planning.outsidePeriodSlotCount(routineId, program.startDate, program.endDate, draft).then(
+          (count) => (count > 0 ? setOutsideCount(count) : askModify()),
+          () => askModify(),
+        );
+        return;
+      }
+      askModify();
       return;
     }
     commit();
+  };
+
+  /** D-566 : réponse à la question des créneaux hors période, puis confirmation habituelle (D-536). */
+  const answerOutside = (removeOutside: boolean) => {
+    if (mode.kind !== "edit") return;
+    setOutsideCount(null);
+    removeOutsideRef.current = removeOutside;
+    planning.pendingSlotCount(mode.routineId).then(
+      (count) => (count > 0 ? setModifyCount(count) : commit()),
+      () => commit(),
+    );
   };
 
   const commit = () => {
@@ -464,7 +491,13 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               reminderMinutes: form.reminderMinutes,
             }))
         : mode.kind === "edit"
-          ? planning.updateRoutine(mode.routineId, draft)
+          ? planning.updateRoutine(mode.routineId, draft).then(async (result) => {
+              const window = program;
+              if (result.status === "SAVED" && removeOutsideRef.current && window !== null) {
+                await planning.removeUpcomingSlots(mode.routineId, (date) => date < window.startDate || date > window.endDate);
+              }
+              return result;
+            })
           : planning.createRoutine(params.programId !== undefined ? { ...draft, programId: params.programId } : draft);
     request.then(
       (result) => {
@@ -803,6 +836,15 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         )}
       />
 
+      {outsideCount !== null ? (
+        <OutsidePeriodDialog
+          count={outsideCount}
+          onKeep={() => answerOutside(false)}
+          onDelete={() => answerOutside(true)}
+          onCancel={() => setOutsideCount(null)}
+          testIDPrefix="planning-outside"
+        />
+      ) : null}
       {modifyCount !== null ? (
         <DecisionDialog
           // Recette du 21/11/2026 (Journal, Hermann : « Dans le message de modification, mettre "Annuler" sur la même ligne que

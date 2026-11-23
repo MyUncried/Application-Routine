@@ -113,7 +113,11 @@ export type PlanRow = {
   readonly last?: boolean;
 };
 
-export type PlanProgramme = { readonly id: string; readonly name: string };
+/**
+ * `start` / `end` : période du programme (D-564, 23/11/2026) — seules les occurrences comprises dans la période appartiennent au
+ * programme ; absentes : toutes les occurrences de la routine.
+ */
+export type PlanProgramme = { readonly id: string; readonly name: string; readonly start?: LocalDate; readonly end?: LocalDate };
 
 export type PlanGroup = {
   readonly key: string;
@@ -160,6 +164,11 @@ export type PlanWeekInput = {
   readonly displayName: (routine: Routine) => string;
   /** Programme de la routine ; \`null\` : « Sans programme ». */
   readonly programmeOf: (routine: Routine) => PlanProgramme | null;
+  /**
+   * D-561 (23/11/2026) : programmes dont la période recouvre la semaine — leur bande est affichée même sans créneau ; seule, sans
+   * les routines du programme absentes de la semaine.
+   */
+  readonly programmes?: readonly PlanProgramme[];
   /** Recette du 22/11/2026 (constat b) : Séance telle qu'exécutée, par Exécution. */
   readonly executionProjections?: ReadonlyMap<string, SessionCatalogueProjection>;
 };
@@ -209,8 +218,7 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
   }
 
   const dayTotals: (number | null)[] = days.map(() => null);
-  const rowsOf = (routine: Routine): PlanRow[] => {
-    const cards = cardsOf.get(routine.id) ?? [];
+  const rowsOf = (routine: Routine, cards: readonly { readonly card: AgendaCard; readonly dayIndex: number; readonly parcours: boolean }[], prefix = ""): PlanRow[] => {
     const parcours = routine.entries.length > 1 || cards.some((item) => item.parcours);
     const emptyCells = () => days.map(() => [] as PlanCell[]);
     const cell = (card: AgendaCard): PlanCell => ({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card });
@@ -222,7 +230,7 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
       const cells = emptyCells();
       for (const { card, dayIndex } of cards) cells[dayIndex]!.push(cell(card));
       for (const list of cells) list.sort((a, b) => (a.card.sortTime < b.card.sortTime ? -1 : a.card.sortTime > b.card.sortTime ? 1 : 0));
-      return [{ key: routine.id, kind: "ROUTINE", routine, title: displayName(routine), sessionId: routine.entries[0]?.sessionId ?? cards[0]?.card.sessionId ?? null, cells }];
+      return [{ key: prefix + routine.id, kind: "ROUTINE", routine, title: displayName(routine), sessionId: routine.entries[0]?.sessionId ?? cards[0]?.card.sessionId ?? null, cells }];
     }
     // Lignes de Séance : entrées de la routine dans l'ordre de sa liste, puis Séances ajoutées à un seul créneau.
     const rowKeyOf = (card: AgendaCard) => {
@@ -240,9 +248,9 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     }
     const sessions = [...sessionRows.entries()].map(([key, row]) => ({ key, ...row }));
     return [
-      { key: `${routine.id}|title`, kind: "TITLE", routine, title: displayName(routine), cells: days.map(() => []) },
+      { key: `${prefix}${routine.id}|title`, kind: "TITLE", routine, title: displayName(routine), cells: days.map(() => []) },
       ...sessions.map((row, index) => ({
-        key: `${routine.id}|${row.key}`,
+        key: `${prefix}${routine.id}|${row.key}`,
         kind: "SESSION" as const,
         routine,
         title: row.title,
@@ -254,21 +262,50 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
   };
 
   // Groupes : programmes (ordre alphabétique de leur nom), puis « Sans programme » ; routines par ordre alphabétique.
-  const shown = routines.filter((routine) => (cardsOf.get(routine.id) ?? []).length > 0);
-  const byProgramme = new Map<string, { programme: PlanProgramme | null; routines: Routine[] }>();
-  for (const routine of shown) {
-    const programme = programmeOf(routine);
+  // D-564 (23/11/2026) : une routine figure sous la bande de son programme pour ses occurrences comprises dans la période, et sous
+  // « Sans programme » pour les autres ; elle peut donc apparaître dans les deux groupes la même semaine.
+  type Part = {
+    readonly routine: Routine;
+    readonly cards: readonly { readonly card: AgendaCard; readonly dayIndex: number; readonly parcours: boolean }[];
+    readonly prefix: string;
+  };
+  const byProgramme = new Map<string, { programme: PlanProgramme | null; routines: Part[] }>();
+  const place = (programme: PlanProgramme | null, part: Part) => {
     const key = programme?.id ?? "";
     const group = byProgramme.get(key) ?? { programme, routines: [] };
-    group.routines.push(routine);
+    group.routines.push(part);
     byProgramme.set(key, group);
+  };
+  for (const routine of routines) {
+    const cards = cardsOf.get(routine.id) ?? [];
+    if (cards.length === 0) continue;
+    const programme = programmeOf(routine);
+    if (programme === null) {
+      place(null, { routine, cards, prefix: "" });
+      continue;
+    }
+    const within = (dayIndex: number) =>
+      (programme.start === undefined || days[dayIndex]! >= programme.start) && (programme.end === undefined || days[dayIndex]! <= programme.end);
+    const inside = cards.filter((item) => within(item.dayIndex));
+    const outside = cards.filter((item) => !within(item.dayIndex));
+    if (inside.length > 0) place(programme, { routine, cards: inside, prefix: "" });
+    if (outside.length > 0) place(null, { routine, cards: outside, prefix: inside.length > 0 ? "out|" : "" });
+  }
+  // D-561 : bande seule d'un programme dont la période recouvre la semaine.
+  for (const programme of input.programmes ?? []) {
+    if (byProgramme.has(programme.id)) continue;
+    if ((programme.start !== undefined && programme.start > days[6]!) || (programme.end !== undefined && programme.end < days[0]!)) continue;
+    byProgramme.set(programme.id, { programme, routines: [] });
   }
   const compare = (a: string, b: string) => a.localeCompare(b, "fr", { sensitivity: "base" });
   const byTime = (a: PlanCell, b: PlanCell) => (a.card.sortTime < b.card.sortTime ? -1 : a.card.sortTime > b.card.sortTime ? 1 : 0);
   const unplannedCell = (card: AgendaCard): PlanCell => ({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card, unplanned: true });
   // Constat a (22/11/2026) : routines « Sans programme » et Séances exécutées hors planification, mêlées par ordre alphabétique.
-  const noneRoutines = (byProgramme.get("")?.routines ?? []).sort((a, b) => compare(displayName(a), displayName(b)));
-  const noneEntries: { readonly name: string; rows: PlanRow[] }[] = noneRoutines.map((routine) => ({ name: displayName(routine), rows: rowsOf(routine) }));
+  const noneRoutines = (byProgramme.get("")?.routines ?? []).sort((a, b) => compare(displayName(a.routine), displayName(b.routine)));
+  const noneEntries: { readonly name: string; rows: PlanRow[] }[] = noneRoutines.map((part) => ({
+    name: displayName(part.routine),
+    rows: rowsOf(part.routine, part.cards, part.prefix),
+  }));
   for (const [key, row] of unplanned) {
     const host =
       row.sessionId === null
@@ -291,7 +328,9 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     .map(([key, group]) => ({
       key,
       programme: group.programme,
-      rows: group.routines.sort((a, b) => compare(displayName(a), displayName(b))).flatMap(rowsOf),
+      rows: group.routines
+        .sort((a, b) => compare(displayName(a.routine), displayName(b.routine)))
+        .flatMap((part) => rowsOf(part.routine, part.cards, part.prefix)),
     }));
   if (noneEntries.length > 0) {
     groups.push({ key: "none", programme: null, rows: [...noneEntries].sort((a, b) => compare(a.name, b.name)).flatMap((entry) => entry.rows) });

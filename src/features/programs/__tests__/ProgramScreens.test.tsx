@@ -282,10 +282,74 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent(screen.getByTestId(`program-routine-${created.routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "detach" } });
     await flush();
-    expect((await planning.getRoutine(created.routine.id))?.programId).toBeUndefined();
+    // Recette du 23/11/2026 (p4-croix) : le retrait n'est écrit qu'à la coche.
     expect(screen.queryByText("tous les jours, 14 h  ·  2 contenus")).toBeNull();
+    expect((await planning.getRoutine(created.routine.id))?.programId).toBe(program.id);
     fireEvent.press(screen.getByTestId("program-plan"));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/planning", params: { programId: program.id } });
+    fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
+    await flush();
+    expect((await planning.getRoutine(created.routine.id))?.programId).toBeUndefined();
+  });
+
+  it("p4-croix : la croix annule tout — retrait non écrit, routine planifiée depuis la modale supprimée", async () => {
+    const program = await createProgram();
+    const kept = await planning.createRoutine({ ...routineDraft(), programId: program.id });
+    if (kept.status !== "SAVED") throw new Error(kept.status);
+    const view = render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    fireEvent(screen.getByTestId(`program-routine-${kept.routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "detach" } });
+    fireEvent.press(screen.getByTestId("program-plan"));
+    // Retour de la planification : une routine du programme a été créée.
+    const planned = await planning.createRoutine({ ...routineDraft({ name: "Planifiée" }), programId: program.id });
+    if (planned.status !== "SAVED") throw new Error(planned.status);
+    await runFocus();
+    fireEvent.press(screen.getByLabelText("Fermer sans enregistrer"));
+    view.unmount();
+    await flush();
+    expect(await planning.getRoutine(planned.routine.id)).toBeNull();
+    expect((await planning.getRoutine(kept.routine.id))?.programId).toBe(program.id);
+    expect(await programs.getProgram(program.id)).not.toBeNull();
+  });
+
+  it("p4-rattacher : plusieurs routines rendues par la feuille, écrites à la coche ; « Supprimer » retire les créneaux hors période (D-566)", async () => {
+    const requests: relay.ProgramSheetRequest[] = [];
+    const spy = jest.spyOn(relay, "requestProgramSheet").mockImplementation((request) => {
+      requests.push(request);
+    });
+    const program = await createProgram();
+    const first = await planning.createRoutine(routineDraft({ name: "Hanche" }));
+    const second = await planning.createRoutine(
+      routineDraft({ name: "Dos", repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "UNTIL", date: "2030-10-10" } } }),
+    );
+    if (first.status !== "SAVED" || second.status !== "SAVED") throw new Error("routine");
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    fireEvent.press(screen.getByTestId("program-attach"));
+    expect(mockPush).toHaveBeenCalledWith("/program-attach");
+    const request = requests[0];
+    if (request?.kind !== "attach") throw new Error("attach");
+    expect(request.period).toEqual({ start: "2030-08-01", end: "2030-09-30" });
+    act(() =>
+      request.onAttach([
+        { routine: first.routine, removeOutside: false },
+        { routine: second.routine, removeOutside: true },
+      ]),
+    );
+    await flush();
+    expect(screen.getByText("Hanche")).toBeTruthy();
+    expect(screen.getByText("Dos")).toBeTruthy();
+    expect((await planning.getRoutine(first.routine.id))?.programId).toBeUndefined();
+    fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
+    await flush();
+    expect((await planning.getRoutine(first.routine.id))?.programId).toBe(program.id);
+    expect((await planning.getRoutine(second.routine.id))?.programId).toBe(program.id);
+    // Du 1er au 10 octobre : dix créneaux à venir hors période, supprimés.
+    const counts = await planning.periodSlotCountsFor([(await planning.getRoutine(second.routine.id))!], "2030-08-01", "2030-09-30");
+    expect(counts.get(second.routine.id)?.outside).toBe(0);
+    spy.mockRestore();
   });
 
   it("la coche enregistre ; la croix ferme sans enregistrer", async () => {

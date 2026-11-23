@@ -71,14 +71,29 @@ export function RoutineFilterSheet({
   sessions,
   onClose,
   onValidate,
+  texts,
 }: {
   readonly choices: readonly RoutineFilterChoice[];
   readonly loading: boolean;
   readonly sessions: ReadonlyMap<string, SessionCatalogueProjection>;
   readonly onClose: () => void;
   readonly onValidate: (selected: readonly string[]) => void;
+  /**
+   * Recette du 23/11/2026 (p4-rattacher, Hermann : « la modale de sélection des routines doit être identique à celle du filtre des
+   * routines ») : même modale pour « Rattacher des routines existantes » d'un programme — titre, ligne des créneaux de chaque
+   * carte et libellé du bouton propres à l'appelant ; absent : filtre de l'Agenda.
+   */
+  readonly texts?: {
+    readonly title: string;
+    readonly empty: string;
+    readonly slotsLine: (choice: RoutineFilterChoice) => string;
+    readonly buttonLabel: (count: number) => string;
+  };
 }) {
   const t = planningStrings.routineFilter;
+  const title = texts?.title ?? t.title;
+  const slotsLine = texts?.slotsLine ?? routineFilterSlotsLine;
+  const buttonLabel = texts?.buttonLabel ?? routineFilterButtonLabel;
   const tJournal = planningStrings.journal;
   const tSessions = strings.screens.sessions;
   const router = useRouter();
@@ -123,7 +138,7 @@ export function RoutineFilterSheet({
           <ContextBand fadeToTransparent color={CALENDAR_PALETTE.context} backHalo={CALENDAR_PALETTE.context} padding={{ top: 0, bottom: 15 }}>
             {/* En-tête posé sur la zone de contexte (Figma : bande de 115 depuis le haut de la modale, rangée à y = 66). */}
             <View style={styles.header}>
-              <FixedHeader title={t.title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={t.close} />
+              <FixedHeader title={title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={t.close} />
             </View>
             <View style={styles.commands} testID="routine-filter-commands">
               <CatalogueSearchField
@@ -176,7 +191,7 @@ export function RoutineFilterSheet({
             {loading ? <ActivityIndicator color={colors.primary} /> : null}
             {!loading && choices.length === 0 ? (
               <Text style={styles.message} testID="routine-filter-empty">
-                {t.empty}
+                {texts?.empty ?? t.empty}
               </Text>
             ) : null}
             {!loading && choices.length > 0 && visible.length === 0 ? (
@@ -197,7 +212,7 @@ export function RoutineFilterSheet({
                     // D-553 (21/11/2026, § 5) : même présentation que le Journal — Ⓟ après le nom de Routine d'un parcours.
                     parcours={choice.routine.entries.length > 1}
                     detail=""
-                    slots={routineFilterSlotsLine(choice)}
+                    slots={slotsLine(choice)}
                     planned={choice.upcoming > 0 && routineLastDate(choice.routine) >= today}
                     expanded={false}
                     onOpen={() => undefined}
@@ -214,7 +229,7 @@ export function RoutineFilterSheet({
       {/* Bouton primaire en bas, sans trait de séparation (DSF Agenda § 9). */}
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="routine-filter-action-zone">
         <PrimaryActionButton
-          label={routineFilterButtonLabel(kept.length)}
+          label={buttonLabel(kept.length)}
           disabled={kept.length === 0}
           onPress={() => {
             if (kept.length > 0) onValidate(kept);

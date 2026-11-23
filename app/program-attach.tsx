@@ -6,7 +6,10 @@ import { useProgramService } from "@/features/programs/ProgramServiceContext";
 import { pendingProgramSheet, releaseProgramSheet } from "@/features/programs/programSheetRelay";
 import { useTitleCappedSheetDetent } from "@/shared/ui/nativeSheet";
 
-/** « Rattacher une routine existante » (D-549) — feuille native posée sur la modale du programme. */
+/**
+ * « Rattacher des routines existantes » (D-549 ; recette du 23/11/2026, p4-rattacher) — feuille native posée sur la modale du
+ * programme, comme « Filtrer par routine » sur l'Agenda.
+ */
 export default function ProgramAttachRoute() {
   const router = useRouter();
   const service = useProgramService();
@@ -20,7 +23,7 @@ export default function ProgramAttachRoute() {
   return (
     <>
       <Stack.Screen options={{ sheetAllowedDetents: [detent] }} />
-      <ProgramAttachSheet service={service} programId={request.programId} onAttached={request.onAttached} onClose={() => router.back()} />
+      <ProgramAttachSheet service={service} request={request} onClose={() => router.back()} />
     </>
   );
 }
