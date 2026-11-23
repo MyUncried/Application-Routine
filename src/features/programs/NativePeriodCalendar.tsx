@@ -16,6 +16,8 @@ type NativeProps = {
   readonly visibleDate: LocalDate | null;
   readonly tintColor: string;
   readonly onPressDate: (event: { readonly nativeEvent: { readonly date: string } }) => void;
+  /** Hauteur nécessaire à la largeur reçue, calculée par la vue native. */
+  readonly onMeasure?: (event: { readonly nativeEvent: { readonly height: number } }) => void;
   readonly style?: ViewStyle;
   readonly testID?: string;
 };

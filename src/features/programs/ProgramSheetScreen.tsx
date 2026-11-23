@@ -75,6 +75,10 @@ import { programStrings } from "./programStrings";
 const t = programStrings.sheet;
 const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
 const DATE_PANEL_WIDTH = 360;
+/** Recette du 23/11/2026 (« Est ce que le calendrier peut être plus petit ») : calendrier natif plus étroit ; sa hauteur suit. */
+const NATIVE_CALENDAR_WIDTH = 320;
+/** Hauteur avant la première mesure native (6 rangs à 320 de large). */
+const NATIVE_CALENDAR_INITIAL_HEIGHT = 380;
 /** Figma « PROG — 13 » : objectif Inter Medium 14 #666C7E ; ligne secondaire d'une routine #9499A8. */
 const OBJECTIVE_COLOR = "#666C7E";
 const MUTED = "#9499A8";
@@ -130,6 +134,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
   const [popover, setPopover] = useState<{ readonly field: DateField; readonly anchor: PopoverAnchor } | null>(null);
   // D-563 : sélection en deux appuis dans le calendrier natif unique (module `kodjo-calendar`).
   const [period, setPeriod] = useState<PeriodSelection | null>(null);
+  const [calendarHeight, setCalendarHeight] = useState(NATIVE_CALENDAR_INITIAL_HEIGHT);
   // D-543 : « au [date] » ou « pendant [N] [unité] » ; le mode n'est pas enregistré (le programme garde début et fin).
   const [periodMode, setPeriodMode] = useState<PeriodMode>("DATES");
   const [duration, setDuration] = useState<PeriodDuration>(DEFAULT_DURATION);
@@ -658,7 +663,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
           </SwipeScrollLockContext.Provider>
         )}
       />
-      <PlanningPopover anchor={popover?.anchor ?? null} width={DATE_PANEL_WIDTH} onDismiss={() => setPopover(null)} testID="program-date-popover">
+      <PlanningPopover anchor={popover?.anchor ?? null} width={NativePeriodCalendar !== null ? NATIVE_CALENDAR_WIDTH : DATE_PANEL_WIDTH} onDismiss={() => setPopover(null)} testID="program-date-popover">
         {popover !== null && period !== null && NativePeriodCalendar !== null ? (
           // D-563 : un seul calendrier natif (UICalendarView) pour le début et la fin ; période marquée sous chaque jour.
           <NativePeriodCalendar
@@ -686,7 +691,8 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
               }
               if (step.close) setPopover(null);
             }}
-            style={styles.nativeCalendar}
+            onMeasure={(event) => setCalendarHeight(event.nativeEvent.height)}
+            style={{ width: NATIVE_CALENDAR_WIDTH, height: calendarHeight }}
             testID="program-period-calendar"
           />
         ) : popover !== null && Platform.OS === "ios" ? (
@@ -854,5 +860,4 @@ const styles = StyleSheet.create({
   error: { ...type.supporting, color: colors.danger },
   calendar: { width: DATE_PANEL_WIDTH },
   // UICalendarView : six semaines et l'en-tête du mois tiennent dans 400.
-  nativeCalendar: { width: DATE_PANEL_WIDTH, height: 400 },
 });

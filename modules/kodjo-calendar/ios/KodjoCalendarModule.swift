@@ -26,7 +26,7 @@ public final class KodjoCalendarModule: Module {
     Name("KodjoCalendar")
 
     View(KodjoCalendarView.self) {
-      Events("onPressDate")
+      Events("onPressDate", "onMeasure")
 
       Prop("selectedDate") { (view: KodjoCalendarView, value: String?) in
         view.setSelectedDate(value)
@@ -49,6 +49,8 @@ public final class KodjoCalendarModule: Module {
 
 final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelectionMultiDateDelegate {
   let onPressDate = EventDispatcher()
+  let onMeasure = EventDispatcher()
+  private var measuredHeight: CGFloat = 0
 
   private static let french = Locale(identifier: "fr_FR")
 
@@ -85,6 +87,22 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
   override func layoutSubviews() {
     super.layoutSubviews()
     calendarView.frame = bounds
+    reportHeight()
+  }
+
+  /// Recette du 23/11/2026 (« Est ce que le calendrier peut être plus petit ») : la hauteur n’est plus fixée par JavaScript.
+  /// La vue native calcule la hauteur qu’il lui faut pour la largeur reçue (aucun rang ni repère coupé) et la signale.
+  private func reportHeight() {
+    guard bounds.width > 0 else { return }
+    let fitting = calendarView.systemLayoutSizeFitting(
+      CGSize(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
+      withHorizontalFittingPriority: .required,
+      verticalFittingPriority: .fittingSizeLevel
+    )
+    let height = ceil(fitting.height)
+    guard height > 0, abs(height - measuredHeight) >= 1 else { return }
+    measuredHeight = height
+    onMeasure(["height": height])
   }
 
   override func didMoveToWindow() {
