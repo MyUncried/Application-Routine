@@ -25,7 +25,7 @@ describe("migration 036 — routines.name_generated", () => {
     );
     await migrateDatabase(database);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-    expect(version?.user_version).toBe(38);
+    expect(version?.user_version).toBe(39);
     const repository = new SqliteRoutineRepository(database);
     const named = await repository.get("named");
     expect(named).toMatchObject({ name: "Mobilité du matin", startDate: "2026-08-03", reminderMinutes: 15 });
