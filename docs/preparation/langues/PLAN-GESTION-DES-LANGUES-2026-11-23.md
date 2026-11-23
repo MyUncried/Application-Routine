@@ -21,9 +21,10 @@ H3 et H6 attendent une recommandation (§ 2) ; H7 (gabarits de phrases) est rée
 
 ### 2.1 Voix liée à l'interface (H3)
 
-Recommandation : **liée, sans réglage séparé** — à confirmer par le benchmark.
+Recommandation : **liée, sans réglage séparé** — c'est l'usage majoritaire (benchmark § C ; seul le minuteur Seconds propose un choix de voix séparé).
 - Les annonces vocales sont produites à partir des mêmes textes que l'interface (nom de l'exercice, « Préparez-vous », phrases du générateur). Une voix dans une autre langue que l'interface lirait un texte qu'elle n'a pas, ou exigerait une seconde traduction de chaque annonce.
 - La voix utilisée reste la voix système de la langue choisie (règle actuelle : pas de choix de voix au MVP).
+- Point technique : par défaut iOS prend la voix de la langue du **système**, pas de l'app ; KODJO doit donc passer explicitement la langue de l'interface à la synthèse vocale (benchmark § B).
 - Cas à traiter : contenu non traduit (exercice créé par l'utilisateur en français, interface en anglais) → la voix anglaise prononcera un nom français. Comportement accepté par défaut ; à confirmer.
 - Conséquence documentaire : la phrase de D-034 « l'évolution multilingue pourra gérer séparément la langue de l'interface et celle de la synthèse vocale » est remplacée.
 
@@ -31,7 +32,7 @@ Recommandation : **liée, sans réglage séparé** — à confirmer par le bench
 
 Le Profil comporte les onglets **Compte · Préférences · Confidentialité** (CE-PRF-01). Recommandation :
 - **Langue** et **Unité de charge (kg / lb)** dans **Préférences** : ce sont des réglages d'usage, locaux, sans compte distant. « Compte » porte l'identité.
-- **Valeur par défaut de l'unité** déduite de la **région** du téléphone, pas de la langue (un Britannique en anglais utilise le kg, un Américain la livre).
+- **Valeur par défaut de l'unité** déduite de la **région** du téléphone (`measurementSystem` d'`expo-localization`), pas de la langue (un Britannique en anglais utilise le kg, un Américain la livre). Hevy et Fitbod règlent aussi l'unité dans l'app (benchmark).
 - **Dates, heures, séparateur décimal, premier jour de la semaine du Calendrier** : suivent automatiquement les réglages régionaux du téléphone, sans réglage dans KODJO (usage iOS).
 - Point de conception à trancher : stockage d'une charge saisie en livres (valeur + unité conservées telles que saisies, ou conversion en kg). Aujourd'hui RM-235 : « valeur numérique en kilogrammes … exactement la valeur saisie ».
 
@@ -56,7 +57,7 @@ Chaîne proposée :
 |---|---|---|
 | A0 | Portugais (rang tranché : avant l'allemand) : quelle variante — **Brésil (pt-BR)**, **Portugal (pt-PT)** ou les deux ? Les deux diffèrent sensiblement (vocabulaire, tutoiement/vouvoiement, voix iOS distinctes). | Nombre de traductions à produire et à recetter. |
 | A1 | Le multilingue entre-t-il dans le **MVP** ? D-034, RM-091, ch. 05 et ch. 12 disent « MVP monolingue, aucun sélecteur, aucune préférence de langue persistée ». | Remplace des décisions validées ; change le périmètre et le planning. |
-| A2 | Changement de langue dans le Profil : **ligne qui ouvre le réglage iOS « Langue » de l'application** (pratique recommandée par Apple, sans préférence stockée par KODJO) ou **sélecteur dans KODJO** (préférence stockée) ? | Définit l'écran Préférences, le stockage et Figma. |
+| A2 | Changement de langue dans le Profil : **ligne « Langue » qui ouvre le réglage iOS de l'application** (recommandation : pratique d'Apple et des concurrents documentés ; KODJO ne stocke rien, iOS relance l'app au changement) ou **sélecteur dans KODJO** (préférence stockée par KODJO, à synchroniser avec le réglage iOS) ? | Définit l'écran Préférences, le stockage et Figma. |
 | A3 | « ou seulement en anglais » (H4) : les contenus créés par l'utilisateur ne sont jamais traduits par KODJO, mais l'utilisateur peut-il saisir **une version anglaise** (par exemple pour la Communauté) ? | Change le modèle de données des contenus utilisateur. |
 | A4 | Contenu KODJO **modifié par l'utilisateur** puis changement de langue : le champ modifié reste-t-il dans la langue de modification (proposition : oui), les champs non modifiés suivent-ils la nouvelle langue (proposition : oui) ? | Règles d'import, de conflit et d'affichage du catalogue. |
 | A5 | Alias (H5) : la saisie d'alias par l'utilisateur, reportée le 27/10, est-elle **rouverte** maintenant ? À quoi servent-ils sans recherche au MVP (D-221) : affichage sur la fiche, détection de doublons à l'import ? | Périmètre de la fiche Mouvement. |
@@ -85,7 +86,7 @@ Ordre conseillé ; chaque lot passe par le protocole habituel (plan, revue, rece
 | Lot | Contenu | Dépend de |
 |---|---|---|
 | T1 | **Terminer l'externalisation** des textes encore écrits dans le code (`LibraryScreens.tsx`, `executionStrings.ts`, `catalogueLoadPresentation.ts`, `executionPhrase.ts`, `formats/registry.ts`…). Déjà exigé par RM-092 ; utile même en français seul. | — (peut démarrer) |
-| T2 | Socle i18n : détection de la langue (`expo-localization`), déclaration des langues supportées pour le réglage iOS par application, chargement des ressources, pluriels par règles de langue (pas seulement singulier/pluriel), interpolation, repli anglais, tests. | D0, D1, A1, A2 |
+| T2 | Socle i18n : détection de la langue (`expo-localization`), déclaration des langues supportées (`supportedLocales`) pour le réglage iOS par application, chargement des ressources, pluriels par règles de langue (pas seulement singulier/pluriel ; support d'`Intl.PluralRules` par Hermes à vérifier sur iPhone), interpolation, repli anglais, tests. | D0, D1, A1, A2 |
 | T3 | Formats régionaux (nombres, dates, durées) ; voix = langue de l'interface (remplace la constante `fr-FR`). | T2, D3, D6 |
 | T4 | Profil › Préférences : Langue, Unité de charge. | T2, D2 (Figma) |
 | T5 | Unité livre : saisie, affichage, phrases, stockage. | D6, A7 |
