@@ -21,6 +21,16 @@
         "APP_VARIANT": "bmad"
       }
     },
+    "recette-bmad": {
+      "developmentClient": false,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "APP_VARIANT": "bmad"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "stable",
