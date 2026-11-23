@@ -382,12 +382,13 @@ export function PlanScreen({
                     onPress={() => openOccurrence(cell.card.occurrence)}
                     disabled={cell.card.deleted === true}
                     accessibilityRole="button"
+                    // D-560 (22/11/2026), développé le 23/11/2026 : créneau ajouté hors répétition annoncé (trace « Supprimée » comprise).
                     accessibilityLabel={
                       cell.unplanned === true
                         ? `${cell.card.title}, ${cell.label}, ${t.plan.unplanned}`
-                        : cell.card.deleted === true
-                          ? `${cell.card.title}, ${cell.label}, ${t.calendar.status.deleted}`
-                          : `${cell.card.title}, ${cell.label}`
+                        : [cell.card.title, cell.label, cell.added === true ? t.plan.addedAccessibility : "", cell.card.deleted === true ? t.calendar.status.deleted : ""]
+                            .filter((part) => part !== "")
+                            .join(", ")
                     }
                     style={[styles.cell, { backgroundColor: tint.background }]}
                     testID={`plan-cell-${cell.key}`}
@@ -396,6 +397,9 @@ export function PlanScreen({
                       {cell.label}
                       {/* Recette du 22/11/2026 (constat a) : exécution hors planification — petite astérisque. */}
                       {cell.unplanned === true ? <Text style={styles.cellMark} testID={`plan-cell-${cell.key}-unplanned`}>*</Text> : null}
+                      {/* D-560 (22/11/2026), développé le 23/11/2026 : même astérisque pour un créneau ajouté hors répétition. */}
+                      {/* [« — » : pas d'heure, pas d'astérisque — choix de Claude.] */}
+                      {cell.added === true && cell.label !== "—" ? <Text style={styles.cellMark} testID={`plan-cell-${cell.key}-added`}>*</Text> : null}
                     </Text>
                   </Pressable>
                 );
@@ -639,6 +643,7 @@ const styles = StyleSheet.create({
   cell: { width: CELL_WIDTH, height: CELL_HEIGHT, borderRadius: 8, alignItems: "center", justifyContent: "center" },
   cellLabel: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 9 },
   // Recette du 22/11/2026 (constat a) : « une petite astérisque » à la suite de l'heure. [Taille : choix de Claude.]
+  // D-560 (22/11/2026), développé le 23/11/2026 : 7 pour une heure de 9, couleur de l'heure (héritée).
   cellMark: { fontSize: 7 },
   totalSeparator: { height: 2.5, marginHorizontal: LEFT, borderTopWidth: LINE, borderBottomWidth: LINE, borderColor: SEPARATOR },
   total: { height: 25.5, backgroundColor: colors.catalogueSessionsContext, justifyContent: "center" },

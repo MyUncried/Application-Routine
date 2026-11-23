@@ -150,6 +150,15 @@ const sectionDays = () => {
 const items = () => screen.queryAllByTestId(/^calendar-item-[^]*-swipe$/).map((node) => node.props.testID as string);
 const swipeCard = (routineId: string, day: string) => screen.getByTestId(new RegExp(`^calendar-item-${routineId}\\|${day}T\\d{2}:\\d{2}-swipe-card$`));
 /** Carte d'une occurrence de routine (D-534) : `calendar-item-<routine>|<date>T<heure>-card`. */
+/**
+ * D-560 (22/11/2026), développé le 23/11/2026 : heure affichée d'une carte, suivie de « * » quand elle porte l'astérisque des
+ * séances hors de la répétition (créneau unique compris : les routines de ces tests sont, par défaut, sans répétition).
+ */
+const timeOf = (testID: string) => {
+  const children: unknown = screen.getByTestId(testID).props.children;
+  const time = Array.isArray(children) ? children[0] : children;
+  return `${String(time)}${screen.queryByTestId(`${testID}-mark`) !== null ? "*" : ""}`;
+};
 const card = (routineId: string, day: string, time = "08:00") => `calendar-item-${routineId}|${day}T${time}-card`;
 
 describe("Calendrier Semaine", () => {
@@ -319,7 +328,7 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByText("Jeudi 8 août")).toBeTruthy();
     // D-533 : heure « 14h30 », durée sous l'heure. D-553 (21/11/2026) : titre = nom de la Séance, jamais celui de la Routine.
     // [Nom de la routine en titre — remplacé.]
-    expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-time`).props.children).toBe("14h30");
+    expect(timeOf(`${card(routine.id, THURSDAY, "14:30")}-time`)).toBe("14h30*");
     expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-name`).props.children).toBe("Gainage");
     expect(routine.name).not.toBe("Gainage");
     expect(screen.getByTestId(`${card(routine.id, THURSDAY, "14:30")}-duration`).props.children).not.toBe("");
@@ -398,7 +407,7 @@ describe("Calendrier Semaine", () => {
     // Titres : noms des Séances ; heure prévue pour la première, « — » pour la suivante.
     expect(screen.getByTestId(`calendar-item-${group}|1-card-name`).props.children).toBe("Alpha");
     expect(screen.getByTestId(`calendar-item-${group}|2-card-name`).props.children).toBe("Bravo");
-    expect(screen.getByTestId(`calendar-item-${group}|1-card-time`).props.children).toBe("10h00");
+    expect(timeOf(`calendar-item-${group}|1-card-time`)).toBe("10h00*");
     expect(screen.getByTestId(`calendar-item-${group}|2-card-time`).props.children).toBe("—");
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${group}|1-card-frame`).props.style)).toMatchObject({ marginLeft: 10, width: 70 });
     expect(StyleSheet.flatten(screen.getByTestId(`${card(single.id, MONDAY)}-frame`).props.style).marginLeft).toBeUndefined();
@@ -500,7 +509,7 @@ describe("Calendrier Semaine", () => {
     ];
     await renderCalendar();
     const group = `${routine.id}|${MONDAY}T14:00`;
-    expect(screen.getByTestId(`calendar-item-${group}|1-card-time`).props.children).toBe("14h07");
+    expect(timeOf(`calendar-item-${group}|1-card-time`)).toBe("14h07*");
     expect(screen.getByTestId(`calendar-item-${group}|1-card-duration`).props.children).toBe("6′10″");
     expect(screen.getByTestId(`calendar-item-${group}|1-card-status-COMPLETED`)).toBeTruthy();
     expect(screen.getByTestId(`calendar-item-${group}|2-card-time`).props.children).toBe("—");
@@ -529,7 +538,7 @@ describe("Calendrier Semaine", () => {
     ];
     await renderCalendar();
     expect(sectionDays()).toEqual([addDays(MONDAY, 1)]);
-    expect(screen.getByTestId(`calendar-item-${routine.id}|${key}-card-time`).props.children).toBe("18h20");
+    expect(timeOf(`calendar-item-${routine.id}|${key}-card-time`)).toBe("18h20*");
     expect(screen.getByTestId(`calendar-item-${routine.id}|${key}-card-status-COMPLETED`)).toBeTruthy();
   });
 
@@ -559,7 +568,9 @@ describe("Calendrier Semaine", () => {
     expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([`${MONDAY}T08:00`]);
   });
 
-  it("Exécution hors planification : carte à l'heure réelle, « Hors planification » en ligne 2 ; masquée par un filtre actif (D-553, § 4 et § 5)", async () => {
+  // D-560 (22/11/2026), développé le 23/11/2026 : l'Exécution hors planification porte la spécialité comme les autres cartes et une
+  // astérisque à l'heure. [« Hors planification » en ligne 2 (D-553) — remplacé.]
+  it("Exécution hors planification : carte à l'heure réelle avec astérisque, spécialité comme les autres cartes ; masquée par un filtre actif (D-553, § 4 et § 5 ; D-560)", async () => {
     const created = await sessions.createStructured(input("Gainage"));
     const other = await sessions.createStructured(input("Dos"));
     const routine = await plan({ entries: [entry(other.id)] });
@@ -572,9 +583,13 @@ describe("Calendrier Semaine", () => {
       { executionId: "f3", sessionId: created.id, sessionName: "Gainage", startedAt: at(20, 0), endedAt: null, businessStatus: null, link: null },
     ];
     await renderCalendar();
-    expect(screen.getByTestId("calendar-item-free|f1-card-time").props.children).toBe("17h05");
+    expect(timeOf("calendar-item-free|f1-card-time")).toBe("17h05*");
     expect(screen.getByTestId("calendar-item-free|f1-card-name").props.children).toBe("Gainage");
-    expect(screen.getByTestId("calendar-item-free|f1-card-detail-prefix").props.children).toBe("Hors planification"); // sans zone connue : pas de point
+    expect(screen.queryByTestId("calendar-item-free|f1-card-detail-prefix")).toBeNull();
+    expect(screen.queryByText(/Hors planification/)).toBeNull();
+    expect(screen.getByTestId("calendar-item-free|f1-card-detail").props.children).toBe(screen.getByTestId(`${card(routine.id, MONDAY)}-detail`).props.children);
+    expect(StyleSheet.flatten(screen.getByTestId("calendar-item-free|f1-card-time-mark").props.style)).toMatchObject({ fontSize: 11 });
+    expect(screen.getByTestId("calendar-item-free|f1-swipe-card").props.accessibilityLabel).toContain(", hors planification");
     expect(screen.getByTestId("calendar-item-free|f2-card-status-PARTIAL")).toBeTruthy();
     expect(screen.queryByTestId("calendar-item-free|f3-card")).toBeNull();
     // Ordre chronologique du jour : 8h00 planifiée, 17h05 puis 19h00.
@@ -587,6 +602,38 @@ describe("Calendrier Semaine", () => {
     setAgendaRoutineFilter(new Set([routine.id]));
     await renderCalendar();
     expect(screen.queryAllByTestId("calendar-item-free|f1-swipe")).toHaveLength(0);
+  });
+
+  // D-560 (22/11/2026), développé le 23/11/2026 : créneau ajouté à la main hors répétition (RM-273) et créneau unique (D-559 ;
+  // Hermann, 23/11/2026 : « Oui. C'est le même concept ») — astérisque à l'heure, « ajouté hors répétition » au lecteur d'écran ;
+  // créneau de la répétition sans marque. [Créneau unique non marqué (D-560, choix de Claude) — remplacé le 23/11/2026]
+  it("D-560 : créneau ajouté et créneau unique marqués d'une astérisque (11 pour 15) ; créneau de la répétition non marqué", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    const other = await sessions.createStructured(input("Dos"));
+    const weekly = await plan({ entries: [entry(created.id)], repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 1 } } });
+    const single = await plan({ entries: [entry(other.id)], time: "18:30", startDate: THURSDAY });
+    const added = await planning.addOccurrence(weekly.id, {
+      date: MONDAY,
+      time: "17:05",
+      sessions: [{ sessionId: created.id, entryId: `entry-${created.id}`, origin: "ROUTINE", active: true }],
+      reminderMinutes: null,
+    });
+    expect(added.status).toBe("SAVED");
+    await renderCalendar();
+    const regular = card(weekly.id, MONDAY);
+    const extra = `${card(weekly.id, MONDAY, "17:05+A1")}-time`;
+    expect(timeOf(`${regular}-time`)).toBe("8h00");
+    expect(timeOf(extra)).toBe("17h05*");
+    expect(timeOf(`${card(single.id, THURSDAY, "18:30")}-time`)).toBe("18h30*");
+    const mark = screen.getByTestId(`${extra}-mark`);
+    expect(mark.props.children).toBe("*");
+    // Même couleur que l'heure (héritée du texte de l'heure), plus petite : 11 pour 15.
+    expect(StyleSheet.flatten(mark.props.style)).toEqual({ fontSize: 11 });
+    expect(StyleSheet.flatten(screen.getByTestId(extra).props.style)).toMatchObject({ fontSize: 15 });
+    // Lecteur d'écran.
+    expect(screen.getByTestId(`calendar-item-${weekly.id}|${MONDAY}T08:00-swipe-card`).props.accessibilityLabel).not.toMatch(/hors/);
+    expect(screen.getByTestId(extra.replace(/-card-time$/, "-swipe-card")).props.accessibilityLabel).toContain(", ajouté hors répétition");
+    expect(screen.getByTestId(`calendar-item-${single.id}|${THURSDAY}T18:30-swipe-card`).props.accessibilityLabel).toContain(", ajouté hors répétition");
   });
 
   it("Démarrer ouvre l'Exécution PRE-10 ; la carte ouvre la modification ; Dupliquer ouvre un brouillon", async () => {

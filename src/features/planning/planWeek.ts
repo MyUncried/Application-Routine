@@ -101,6 +101,11 @@ export type PlanCell = {
   readonly card: AgendaCard;
   /** Exécution hors planification (recette du 22/11/2026, constat a) : case marquée d'un astérisque. */
   readonly unplanned?: boolean;
+  /**
+   * D-560 (22/11/2026), développé le 23/11/2026 : créneau hors de la répétition (ajouté à la main, RM-273, ou créneau unique d’une
+   * routine sans répétition) — case marquée de la même astérisque (`AgendaCard.addedSlot`).
+   */
+  readonly added?: true;
 };
 
 export type PlanRow = {
@@ -196,6 +201,8 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     now: input.now,
     ...(input.executionProjections !== undefined ? { executionProjections: input.executionProjections } : {}),
     ...(input.deletedOccurrences !== undefined ? { deletedOccurrences: input.deletedOccurrences } : {}),
+    // D-560 (22/11/2026), développé le 23/11/2026 : créneaux des routines sans répétition marqués hors répétition.
+    singleSlotRoutines: new Set(routines.filter((routine) => routine.repetition === null).map((routine) => routine.id)),
   });
   const routinesById = new Map(routines.map((routine) => [routine.id, routine]));
   // Cartes de la semaine par routine (Exécutions hors planification exclues : DSF Plan § 3).
@@ -234,7 +241,13 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
   const rowsOf = (routine: Routine, cards: readonly { readonly card: AgendaCard; readonly dayIndex: number; readonly parcours: boolean }[], prefix = ""): PlanRow[] => {
     const parcours = routine.entries.length > 1 || cards.some((item) => item.parcours);
     const emptyCells = () => days.map(() => [] as PlanCell[]);
-    const cell = (card: AgendaCard): PlanCell => ({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card });
+    const cell = (card: AgendaCard): PlanCell => ({
+      key: card.key,
+      label: planTimeLabel(card.timeLabel),
+      tint: planTint(card.status),
+      card,
+      ...(card.addedSlot === true ? { added: true as const } : {}),
+    });
     for (const { card, dayIndex } of cards) {
       // D-568 : une Séance supprimée (trace) n'est plus prévue — hors du Total (lot 5, x11-trace).
       if (!card.planned || card.deleted === true) continue;

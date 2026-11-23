@@ -185,6 +185,28 @@ describe("grille d'une semaine (DSF Plan § 3 à § 6)", () => {
     expect(week.dayTotals[1]).toBeNull();
   });
 
+  // D-560 (22/11/2026), développé le 23/11/2026 : créneau hors de la répétition — ajouté à la main (RM-273) ou créneau unique d'une
+  // routine sans répétition (D-559 ; Hermann, 23/11/2026 : « Oui. C'est le même concept ») — case marquée (`added`), Total inchangé.
+  // [Créneau unique non marqué (D-560, choix de Claude) — remplacé le 23/11/2026]
+  it("D-560 : créneau ajouté à la main et créneau unique marqués ; créneaux de la répétition non marqués ; Total inchangé", () => {
+    const weekly = routine({
+      id: "w",
+      name: "Dos",
+      time: "18:30",
+      entries: [entry("s-d")],
+      overrides: [{ key: "2026-11-17T07:00+A1", index: 1, date: "2026-11-17", time: "07:00", sessions: null, reminderOverridden: false, reminderMinutes: null, startedAt: null, added: true }],
+    });
+    const single = routine({ id: "u", name: "Genou", time: "09:00", repetition: null, startDate: "2026-11-18", entries: [entry("s-c")] });
+    const week = build([weekly, single], []);
+    const rows = week.groups.flatMap((group) => group.rows);
+    const marks = (title: string) =>
+      rows.find((row) => row.title === title)!.cells.map((cells) => cells.map((cell) => `${cell.label}:${cell.added === true}:${cell.unplanned === true}`).join(","));
+    expect(marks("Dos")).toEqual(["18h30:false:false", "7h:true:false", "", "18h30:false:false", "", "", ""]);
+    expect(marks("Genou")).toEqual(["", "", "9h:true:false", "", "", "", ""]);
+    // Total : le créneau ajouté et le créneau unique comptent comme avant (5′ le mardi, 15′ le mercredi).
+    expect(week.dayTotals.map(formatPlanTotal)).toEqual(["5’", "5’", "15’", "5’", "—", "—", "—"]);
+  });
+
   it("deux créneaux le même jour : empilés dans l'ordre chronologique ; Total par jour et par semaine, jours passés compris", () => {
     const single = routine({
       id: "s",

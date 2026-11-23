@@ -299,6 +299,39 @@ describe("cartes de l'Agenda (D-553, § 1, § 3 à § 5)", () => {
     expect(both.flatMap((group) => group.cards.map((card) => card.key))).toEqual(["r1|2030-08-05T08:00|1", "r1|2030-08-05T08:00|2", "r2|2030-08-05T09:00"]);
   });
 
+  // D-560 (22/11/2026), développé le 23/11/2026 : séance hors de la répétition — Exécution hors planification (`planned: false`),
+  // créneau ajouté à la main (RM-273) et créneau unique d'une routine sans répétition (D-559 ; Hermann, 23/11/2026 : « Oui. C'est
+  // le même concept ») ; trace « Supprimée » comprise. [Créneau unique non marqué (D-560, choix de Claude) — remplacé le 23/11/2026]
+  it("D-560 : créneau ajouté et créneau unique marqués (`addedSlot`), créneaux de la répétition non ; statuts inchangés", () => {
+    const daily = routine({
+      id: "d",
+      entries: [entry("s-c")],
+      time: "08:00",
+      repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "UNTIL", date: "2030-08-06" } },
+      overrides: [{ key: "2030-08-05T17:05+A1", index: 1, date: "2030-08-05", time: "17:05", sessions: null, reminderOverridden: false, reminderMinutes: null, startedAt: null, added: true }],
+    });
+    const single = routine({ id: "u", entries: [entry("s-a")], time: "18:30", startDate: "2030-08-06" });
+    const free = execution({ executionId: "f", sessionId: "s-c", startedAt: iso(6, 10, 0), endedAt: iso(6, 10, 5), link: null });
+    const occurrences = [daily, single].flatMap((item) => withExpiry(routineOccurrences(item), at(4, 9, 0)));
+    const input = { occurrences, executions: [free], projections, isPlannable: () => true, routineFilter: null, now: at(4, 9, 0).getTime() };
+    const cards = (groups: ReturnType<typeof buildAgendaGroups>) =>
+      [...groups.values()].flat().flatMap((group) => group.cards.map((card) => [card.timeLabel, card.planned, card.addedSlot === true, card.status]));
+    expect(cards(buildAgendaGroups({ ...input, singleSlotRoutines: new Set(["u"]) }))).toEqual([
+      ["8h00", true, false, "UPCOMING"],
+      ["17h05", true, true, "UPCOMING"],
+      ["8h00", true, false, "UPCOMING"],
+      ["10h00", false, false, "COMPLETED"],
+      ["18h30", true, true, "UPCOMING"],
+    ]);
+    // Sans la liste des créneaux uniques : seul le créneau ajouté à la main est marqué.
+    expect(cards(buildAgendaGroups(input)).map((card) => card[2])).toEqual([false, true, false, false, false]);
+    // Trace « Supprimée » d'un créneau ajouté : la marque reste.
+    const added = occurrences.find((item) => item.added === true)!;
+    const trace = { ...added, sessions: added.sessions.map((session) => ({ ...session, deleted: true as const })), deleted: true as const };
+    const traced = buildAgendaGroups({ ...input, occurrences: [], executions: [], deletedOccurrences: [trace] });
+    expect([...traced.values()].flat()[0]!.cards[0]).toMatchObject({ status: "DELETED", addedSlot: true });
+  });
+
   it("créneaux multiples et expirés d'une même routine : une carte par créneau, l'expiré marqué « Expirée » (D-540)", () => {
     const daily = routine({ entries: [entry("s-c")], time: "08:00", repetition: { unit: "DAY", every: 1, weekdays: [], end: { kind: "UNTIL", date: "2030-08-07" } } });
     const groups = build([daily], [], at(6, 9, 0));

@@ -74,6 +74,9 @@ export const planningStrings = {
     // D-540 (20/11/2026) : « Expirée » — créneau manqué dont le délai de rattrapage est passé.
     // D-553 (21/11/2026) : ligne 2 d’une Exécution lancée hors Agenda sans créneau éligible.
     unplanned: "Hors planification",
+    // D-560 (22/11/2026), développé le 23/11/2026 : astérisque de l'heure annoncée au lecteur d'écran [libellés techniques].
+    unplannedAccessibility: "hors planification",
+    addedAccessibility: "ajouté hors répétition",
     // D-568 / RM-276 (23/11/2026) : « Supprimée » — occurrence supprimée depuis l'Agenda avec trace.
     status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée", deleted: "Supprimée" },
   },
@@ -88,6 +91,8 @@ export const planningStrings = {
     legend: { COMPLETED: "Complétée", PARTIAL: "Partielle", MISSED: "Manquée", UPCOMING: "À venir", STOPPED: "Arrêtée" },
     unplanned: "Hors planification",
     // Accessibilité [libellés techniques].
+    // D-560 (22/11/2026), développé le 23/11/2026 : case d'un créneau ajouté hors répétition (astérisque).
+    addedAccessibility: "ajouté hors répétition",
     weekAccessibility: "Semaine {number}, du {days}",
     addAccessibility: "Ajouter un créneau de {routine}, {day}",
   },

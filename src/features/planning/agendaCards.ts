@@ -59,6 +59,14 @@ export type AgendaCard = {
    */
   readonly deleted?: boolean;
   readonly restorable?: boolean;
+  /**
+   * D-560 (22/11/2026), développé le 23/11/2026 — Hermann : « les deux concepts se rejoignent, une séance exécutée ou à exécuter
+   * hors routine » : créneau hors de la répétition d'une routine — ajouté à la main (RM-273, occurrence `added`) ou créneau unique
+   * d'une routine sans répétition (bouton flottant de l'Agenda, D-559 ; Hermann, 23/11/2026 : « Oui. C'est le même concept »).
+   * Heure marquée d'une petite astérisque, comme une Exécution hors planification (`planned: false`) ; trace « Supprimée »
+   * comprise. [Créneau unique non marqué (D-560, choix de Claude) — remplacé le 23/11/2026]
+   */
+  readonly addedSlot?: true;
 };
 
 export type AgendaGroup = {
@@ -160,6 +168,11 @@ export type AgendaBuildInput = {
   readonly parcoursRoutines?: ReadonlySet<string>;
   /** D-568 / RM-276 : créneaux entièrement supprimés avec trace (`PlanningService.agendaData`). Absent : aucun. */
   readonly deletedOccurrences?: readonly Occurrence[];
+  /**
+   * D-560 (22/11/2026), développé le 23/11/2026 : routines sans répétition (créneau unique, D-559) — leurs créneaux sont marqués
+   * hors répétition (`addedSlot`). Absent : seuls les créneaux ajoutés à la main (`added`) le sont.
+   */
+  readonly singleSlotRoutines?: ReadonlySet<string>;
 };
 
 /**
@@ -197,6 +210,8 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
   const groups: AgendaGroup[] = [];
   // D-568 : « Rétablir » tant que la date n'est pas passée (comparaison au jour).
   const today = formatLocalDate(new Date(now));
+  // D-560 (22/11/2026), développé le 23/11/2026 : créneau hors de la répétition (ajouté à la main ou créneau unique).
+  const outsideRepetition = (occurrence: Occurrence) => occurrence.added === true || input.singleSlotRoutines?.has(occurrence.routineId) === true;
   /** Cartes « Supprimée » des Séances supprimées avec trace d'une occurrence, à l'heure prévue, dans l'ordre du créneau. */
   const traceCards = (occurrence: Occurrence, occurrenceKey: string, parcours: boolean): AgendaCard[] =>
     occurrence.sessions
@@ -220,6 +235,7 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
           sessionIndex: rank,
           deleted: true,
           restorable: occurrence.date >= today,
+          ...(outsideRepetition(occurrence) ? { addedSlot: true as const } : {}),
         };
       });
 
@@ -244,9 +260,12 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     // afficher le parcours à chaque fois, une fois sur deux avec une séance et l'autre fois avec deux séances. ») : une routine à
     // plusieurs Séances est un parcours à chaque créneau, même réduit à une Séance par la rotation.
     const parcours = occurrence.sessions.length > 1 || input.parcoursRoutines?.has(occurrence.routineId) === true;
-    const active = shown.map(({ content, sessionId, position, execution }) =>
-      plannedCard({ occurrence, occurrenceKey, content, sessionId, position, execution, projection: executed(execution) ?? projections.get(sessionId), parcours, slotStatus, now }),
-    );
+    const marked = outsideRepetition(occurrence);
+    const active = shown
+      .map(({ content, sessionId, position, execution }) =>
+        plannedCard({ occurrence, occurrenceKey, content, sessionId, position, execution, projection: executed(execution) ?? projections.get(sessionId), parcours, slotStatus, now }),
+      )
+      .map((card) => (marked ? { ...card, addedSlot: true as const } : card));
     // D-568 / RM-276 : parcours — trace par Séance supprimée depuis l'Agenda, à son rang dans le créneau.
     const traces = parcours ? traceCards(occurrence, occurrenceKey, true) : [];
     const cards =

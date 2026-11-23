@@ -257,6 +257,37 @@ describe("Calendrier — Plan (D-554)", () => {
     const labels = screen.queryAllByTestId(/^plan-cell-.*-label$/).map(ownText);
     expect(labels).toEqual(["7h", "18h30"]);
   });
+
+  // D-560 (22/11/2026), développé le 23/11/2026 : créneau ajouté à la main hors répétition (RM-273) et créneau unique (D-559 ;
+  // Hermann, 23/11/2026 : « Oui. C'est le même concept ») — même astérisque que l'Exécution hors planification (7 pour 9),
+  // « ajouté hors répétition » au lecteur d'écran ; créneau de la répétition sans marque ; Total inchangé.
+  // [Créneau unique non marqué (D-560, choix de Claude) — remplacé le 23/11/2026]
+  it("D-560 : créneau ajouté et créneau unique marqués d'une astérisque (7 pour 9) ; créneau de la répétition non marqué", async () => {
+    const a = await sessions.createStructured(input("Échauffement"));
+    const b = await sessions.createStructured(input("Gainage"));
+    const weekly = await plan({ name: "Hebdo", entries: [entry(a.id)], repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 1 } } });
+    const single = await plan({ name: "Unique", time: "18:30", startDate: THURSDAY, entries: [entry(b.id)] });
+    const added = await planning.addOccurrence(weekly.id, {
+      date: addDays(MONDAY, 1),
+      time: "17:05",
+      sessions: [{ sessionId: a.id, entryId: `entry-${a.id}`, origin: "ROUTINE", active: true }],
+      reminderMinutes: null,
+    });
+    expect(added.status).toBe("SAVED");
+    await renderPlan();
+    const regular = `plan-cell-${weekly.id}|${MONDAY}T08:00`;
+    const extra = `plan-cell-${weekly.id}|${addDays(MONDAY, 1)}T17:05+A1`;
+    const unique = `plan-cell-${single.id}|${THURSDAY}T18:30`;
+    expect(screen.queryByTestId(`${regular}-added`)).toBeNull();
+    expect(screen.getByTestId(regular).props.accessibilityLabel).toBe("Échauffement, 8h");
+    expect(ownText(screen.getByTestId(`${extra}-label`))).toBe("17h05");
+    expect(screen.getByTestId(`${extra}-added`).props.children).toBe("*");
+    expect(StyleSheet.flatten(screen.getByTestId(`${extra}-added`).props.style)).toEqual({ fontSize: 7 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${extra}-label`).props.style)).toMatchObject({ fontSize: 9 });
+    expect(screen.getByTestId(extra).props.accessibilityLabel).toBe("Échauffement, 17h05, ajouté hors répétition");
+    expect(screen.getByTestId(`${unique}-added`).props.children).toBe("*");
+    expect(screen.getByTestId(unique).props.accessibilityLabel).toBe("Gainage, 18h30, ajouté hors répétition");
+  });
   // Lot 5, 23/11/2026 (x11-trace — Hermann : « Le plan doit montrer la case avec l'heure supprimée texte gris sur fond gris »).
   // [D-568 : case vide — remplacé.]
   it("D-568 : occurrence supprimée de l'Agenda — case grise à l'heure prévue, qui ne s'ouvre pas ; Total diminué de un", async () => {

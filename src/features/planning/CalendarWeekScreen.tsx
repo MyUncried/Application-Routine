@@ -252,6 +252,8 @@ export function CalendarWeekScreen({
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
   // Contre-recette du 23/11/2026 (constat i) : routines à plusieurs Séances, parcours à chaque créneau.
   const parcoursRoutines = useMemo(() => new Set(routines.filter((routine) => routine.entries.length > 1).map((routine) => routine.id)), [routines]);
+  // D-560 (22/11/2026), développé le 23/11/2026 : routines sans répétition (créneau unique), créneaux marqués hors répétition.
+  const singleSlotRoutines = useMemo(() => new Set(routines.filter((routine) => routine.repetition === null).map((routine) => routine.id)), [routines]);
 
   /**
    * D-553 (21/11/2026) : une carte par Séance (planifiée, exécutée ou hors planification), groupes de parcours sous le jour du
@@ -270,8 +272,9 @@ export function CalendarWeekScreen({
         executionProjections,
         parcoursRoutines,
         deletedOccurrences,
+        singleSlotRoutines,
       }),
-    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections, parcoursRoutines, deletedOccurrences],
+    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections, parcoursRoutines, deletedOccurrences, singleSlotRoutines],
   );
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);
@@ -507,6 +510,9 @@ export function CalendarWeekScreen({
               : []),
           ];
     const startable = card.action !== null;
+    // D-560 (22/11/2026), développé le 23/11/2026 : séance hors de la répétition d'une routine — Exécution hors planification ou
+    // créneau ajouté hors répétition (créneau unique compris) ; astérisque collée à l'heure, annoncée au lecteur d'écran.
+    const outsideMark = !card.planned ? t.calendar.unplannedAccessibility : card.addedSlot === true ? t.calendar.addedAccessibility : "";
     return (
       <View key={card.key} style={inParcours ? styles.parcoursItem : styles.item} testID={`calendar-item-${card.key}`}>
         {/* DSF Agenda § 6 : la carte glisse de 180 et découvre Dupliquer (gris) et Supprimer (rouge), 90 × 52. */}
@@ -516,7 +522,7 @@ export function CalendarWeekScreen({
           onReveal={() => setRevealed(card.key)}
           onHide={() => setRevealed((current) => (current === card.key ? null : current))}
           onPress={() => openOccurrence(card)}
-          accessibilityLabel={[card.title, fillTemplate(t.calendar.timeAccessibility, { time: card.timeLabel }), card.duration, card.deleted === true ? t.calendar.status.deleted : ""].filter((part) => part !== "").join(", ")}
+          accessibilityLabel={[card.title, fillTemplate(t.calendar.timeAccessibility, { time: card.timeLabel }), card.duration, outsideMark, card.deleted === true ? t.calendar.status.deleted : ""].filter((part) => part !== "").join(", ")}
           accessibilityHint={t.calendar.openRoutine}
           accessibilityState={{ expanded: isExpanded }}
           extraAccessibilityActions={[
@@ -535,7 +541,10 @@ export function CalendarWeekScreen({
             duration={card.duration}
             name={card.title}
             inParcours={inParcours}
-            detailPrefix={card.planned ? "" : t.calendar.unplanned}
+            // D-560 (22/11/2026), développé le 23/11/2026 : l'Exécution hors planification porte la spécialité comme les autres
+            // cartes ; l'astérisque de l'heure la distingue. [Libellé « Hors planification » en tête de ligne 2 — remplacé.]
+            // [« — » d'une Séance suivante de parcours : pas d'heure, pas d'astérisque — choix de Claude.]
+            timeMarked={outsideMark !== "" && card.timeLabel !== "—"}
             detail={detailOf(card)}
             status={card.status}
             startable={startable}

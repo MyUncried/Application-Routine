@@ -87,6 +87,7 @@ export function RoutineAgendaCard({
   parcours = false,
   inParcours = false,
   detailPrefix = "",
+  timeMarked = false,
   startable = true,
   detail,
   status,
@@ -105,6 +106,11 @@ export function RoutineAgendaCard({
   readonly inParcours?: boolean;
   /** D-553 : début de la ligne 2 — « Hors planification » (à la place de la spécialité, Figma `12906:106`). */
   readonly detailPrefix?: string;
+  /**
+   * D-560 (22/11/2026), développé le 23/11/2026 : séance hors de la répétition d'une routine — petite astérisque collée à
+   * l'heure (« 17h05* »), même couleur, plus petite ; sans légende.
+   */
+  readonly timeMarked?: boolean;
   /** D-553 (arbitrage 5) : faux — aucune action à droite (Séance suivante d'un parcours non lancé). */
   readonly startable?: boolean;
   readonly detail: string;
@@ -134,7 +140,15 @@ export function RoutineAgendaCard({
       >
         <View style={[styles.bar, { backgroundColor: colorsOf.bar }]} testID={`${testID}-status-${status}`} />
         <Text style={[styles.time, muted]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-time`}>
-          {time}
+          {/* Heure seule quand la séance n'est pas marquée (contenu inchangé). */}
+          {timeMarked
+            ? [
+                time,
+                <Text key="mark" style={styles.timeMark} testID={`${testID}-time-mark`}>
+                  *
+                </Text>,
+              ]
+            : time}
         </Text>
         {duration === "" ? null : (
           <View style={styles.durationLine}>
@@ -238,6 +252,8 @@ const styles = StyleSheet.create({
   // Figma `12906:75` : cadre d'une Séance de parcours à x = 10 de l'écran, 70 de large.
   frameInParcours: { marginLeft: AGENDA_PARCOURS_FRAME_OFFSET, width: FRAME_WIDTH - AGENDA_PARCOURS_FRAME_OFFSET },
   time: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 15, color: colors.textPrimary },
+  // D-560 (22/11/2026), développé le 23/11/2026 : astérisque de l'heure — 11 pour une heure de 15 ; couleur héritée de l'heure.
+  timeMark: { fontSize: 11 },
   durationLine: { flexDirection: "row", alignItems: "center", gap: 3 },
   chronometerBox: { width: 14, height: 14, alignItems: "center", justifyContent: "center" },
   chronometer: { width: 10.8333, height: 12.5833 },
