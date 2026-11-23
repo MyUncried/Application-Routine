@@ -36,15 +36,12 @@ const EXCLUDED: readonly { readonly path: string; readonly reason: string }[] = 
   { path: "src/features/sessions/sessionFormats.ts", reason: "libellés de référentiel KODJO (lot T7)" },
   { path: "src/features/reference-data/bodyZones.ts", reason: "référentiel KODJO des Zones (lot T7)" },
   { path: "src/features/activities/ActivityEditorForm.tsx", reason: "« Durée totale » de la phrase de synthèse (lot T6)" },
-  {
-    path: "src/shared/ui/KodjoSplash.tsx",
-    reason: "texte de marque vérifié dans la source par visualAssets.test (à traiter au lot T2)",
-  },
 ];
 
 /** Littéraux techniques autorisés dans un fichier en portée : fichier, texte exact, motif. */
 const ALLOWED_LITERALS: readonly { readonly path: string; readonly text: string; readonly reason: string }[] = [
   { path: "src/features/activities/loadOptionWidth.ts", text: "é", reason: "table de largeur de glyphes, pas un texte" },
+  { path: "src/shared/ui/KodjoSplash.tsx", text: "Keep On. Do Just One.", reason: "slogan de marque, identique dans toutes les langues" },
   { path: "src/features/sessions/SessionFilterSheet.tsx", text: "Les catégories", reason: "libellé du journal console.error" },
   { path: "src/features/sessions/SessionFilterSheet.tsx", text: "Les étiquettes", reason: "libellé du journal console.error" },
 ];

@@ -42,6 +42,20 @@ const SEMI_BOLD_12_ADVANCES: Readonly<Record<string, number>> = {
   a: 6.89,
   b: 7.49,
   l: 3.14,
+  // J1 « Gestion des langues » (23/11/2026) : autres minuscules (libellés anglais, « 3 identical sets »), mesurées
+  // dans le même fichier de police (Inter_600SemiBold.ttf, avances × 12 / 2048) ; « m » et « w » dépassent le chiffre
+  // le plus large, qui ne peut donc pas les remplacer.
+  c: 6.99,
+  f: 4.66,
+  h: 7.35,
+  j: 3.14,
+  m: 10.8,
+  o: 7.31,
+  p: 7.49,
+  w: 10.07,
+  x: 6.83,
+  y: 7.06,
+  z: 6.79,
 };
 const WIDEST_ADVANCE = 7.99;
 /** Marge de rendu de chaque côté du texte dans l'option. */

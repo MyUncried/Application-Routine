@@ -12,6 +12,7 @@
       "bundleIdentifier": "com.ankusha.kodjo",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true,
         "NSLocalNetworkUsageDescription": "Routine se connecte à l’administration KODJO de votre PC, sur le même Wi-Fi, pour recevoir vos bibliothèques de mouvements et y envoyer vos mouvements.",
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true
@@ -68,6 +69,10 @@
         }
       ]
     ],
+    "locales": {
+      "fr": "./locales/fr.json",
+      "en": "./locales/en.json"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
