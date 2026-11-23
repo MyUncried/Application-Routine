@@ -2,6 +2,7 @@ import { DEFAULT_GUIDANCE_EVENTS, type GuidanceEvent, type GuidanceEvents, type 
 import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
 import { ExecutionSounds, type BeepPort, type BeepTone } from "@/infrastructure/audio/ExecutionSounds";
 import { ExecutionVoice, type VoicePort } from "@/infrastructure/speech/ExecutionVoice";
+import { strings } from "@/shared/i18n";
 
 import { deviceVibration, type VibrationPort } from "./ExecutionVibration";
 
@@ -310,7 +311,7 @@ export class ExecutionSignalAdapter {
     if (signal.kind === "HALF_TIME") return { cue: GUIDANCE.halfTime, announcement: null, event: "HALF_TIME" };
     if (signal.kind === "PHASE") return { cue: GUIDANCE.phase, announcement: this.announce.phases ? cleanName(signal.phaseLabel) : null, event: "PHASE_CHANGE" };
     // Recette du 10/11/2026 (a1) : « Bravo, séance terminée » après la fanfare, catégorie début et fin de séance.
-    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? "Bravo, séance terminée" : null, event: "SESSION_END" };
+    if (signal.kind === "FINISH") return { cue: GUIDANCE.finish, announcement: this.announce.session ? strings.voice.sessionFinished : null, event: "SESSION_END" };
     if (signal.kind === "PAUSE") return { cue: GUIDANCE.userPause, announcement: null, event: "STOP_POINT" };
     // Recette du 17/11/2026 (Hermann : « Quand on appuie sur pause dans le centre du cercle, on doit entendre le double bip (paramétrage partagé avec la pause) et un bip long (celui de la minute) lorsqu'on redémarre ») : reprise d'une durée retenue — le son choisi pour « Toutes les minutes », sinon un bip long (ce son joue même si la minute
     // est réglée sur « Aucun », son réglage par défaut).
@@ -338,13 +339,13 @@ export class ExecutionSignalAdapter {
     const name = cleanName(signal.exerciseName);
     switch (signal.phase) {
       case "INITIAL_COUNTDOWN":
-        return { cue: GUIDANCE.countdownStart, announcement: sentences(this.announce.session ? "Préparez-vous" : null, this.nextPart(signal)) };
+        return { cue: GUIDANCE.countdownStart, announcement: sentences(this.announce.session ? strings.voice.getReady : null, this.nextPart(signal)) };
       case "SERIES_PAUSE":
-        return { cue: GUIDANCE.seriesPause, announcement: sentences(this.announce.pauses ? "Pause" : null, this.nextPart(signal)) };
+        return { cue: GUIDANCE.seriesPause, announcement: sentences(this.announce.pauses ? strings.voice.pause : null, this.nextPart(signal)) };
       case "SIDE_RECOVERY":
       case "POST_ACTIVITY_RECOVERY":
       case "BLOCK_REST":
-        return { cue: GUIDANCE.recovery, announcement: sentences(this.announce.pauses ? "Récupération" : null, this.nextPart(signal)) };
+        return { cue: GUIDANCE.recovery, announcement: sentences(this.announce.pauses ? strings.voice.recovery : null, this.nextPart(signal)) };
       case "STOP_POINT":
         return { cue: GUIDANCE.stopPoint, announcement: null };
       case "SESSION_END":
@@ -362,21 +363,21 @@ export class ExecutionSignalAdapter {
         const continuing = previous !== null && previous.name === name && (previous.series !== (series?.current ?? null) || (previous.sideRank !== null && signal.sideRank !== null && previous.sideRank !== signal.sideRank));
         if (continuing) {
           const sideChanged = previous.sideRank !== signal.sideRank;
-          const seriesPart = series !== null && series.total > 1 && previous.series !== series.current ? `${ordinal(series.current)} série` : null;
+          const seriesPart = series !== null && series.total > 1 && previous.series !== series.current ? strings.voice.seriesOrdinal.replace("{ordinal}", ordinal(series.current)) : null;
           const objectivePart = this.announce.objective && objective !== previous.objective ? objective : null;
           if (sideChanged && signal.sideRank === 2) {
-            const parts = [this.announce.sides ? "Second côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
+            const parts = [this.announce.sides ? strings.voice.secondSide : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
             return { cue: GUIDANCE.sideChange, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
           }
-          const parts = [this.announce.sides && sideChanged && signal.sideRank === 1 ? "premier côté" : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
+          const parts = [this.announce.sides && sideChanged && signal.sideRank === 1 ? strings.voice.firstSide : null, seriesPart, objectivePart].filter((part): part is string => part !== null);
           return { cue: signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
         }
-        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: this.announce.sides ? "Second côté" : null };
+        if (signal.sideRank === 2) return { cue: GUIDANCE.sideChange, announcement: this.announce.sides ? strings.voice.secondSide : null };
         const cue = signal.timed === false ? GUIDANCE.startStopwatch : GUIDANCE.startTimed;
         // Après le sifflet : nom (s'il n'a pas été annoncé avant), côté, puis objectif (recette h4, constat c).
         const parts = [
           this.announce.names && !alreadyAnnounced ? name : null,
-          this.announce.sides && signal.sideRank === 1 ? "premier côté" : null,
+          this.announce.sides && signal.sideRank === 1 ? strings.voice.firstSide : null,
           this.announce.objective ? objectiveText(signal.objective) : null,
         ].filter((part): part is string => part !== null);
         return { cue, announcement: parts.length === 0 ? null : capitalize(parts.join(", ")) };
@@ -398,14 +399,14 @@ export class ExecutionSignalAdapter {
     if (!this.announce.names || nextName === null || nextName === cleanName(signal.exerciseName)) return null;
     if (this.voiceEnabled) this.announcedNext = nextName;
     const first = signal.phase === "INITIAL_COUNTDOWN" && (signal.exerciseCount ?? 0) > 1;
-    return first ? `Premier exercice : ${nextName}` : `À suivre : ${nextName}`;
+    return (first ? strings.voice.firstExercise : strings.voice.next).replace("{name}", nextName);
   }
 }
 
 /** « Première », « Deuxième »… (annonce des Séries, recette du 13/11/2026). */
 function ordinal(rank: number): string {
-  const words = ["première", "deuxième", "troisième", "quatrième", "cinquième", "sixième", "septième", "huitième", "neuvième", "dixième"];
-  return words[rank - 1] ?? `${rank}e`;
+  const words: readonly string[] = strings.voice.ordinals;
+  return words[rank - 1] ?? strings.voice.ordinalFallback.replace("{rank}", String(rank));
 }
 
 function signalKey(signal: Pick<ExecutionSignal, "kind" | "atMs">): string {
@@ -450,9 +451,9 @@ function capitalize(text: string): string {
 export function objectiveText(objective: SignalObjective | undefined): string | null {
   const target = objective?.target;
   if (target === undefined) return null;
-  if (target.kind === "FAILURE") return "jusqu'à l'échec";
+  if (target.kind === "FAILURE") return strings.voice.failure;
   if (target.kind !== "NUMBER" || target.value <= 0) return null;
-  if (objective?.mode === "REPETITIONS") return target.value === 1 ? "1 répétition" : `${target.value} répétitions`;
+  if (objective?.mode === "REPETITIONS") return target.value === 1 ? strings.voice.repetitionsOne : strings.voice.repetitionsMany.replace("{n}", String(target.value));
   if (objective?.mode === "DURATION") return durationWords(target.value);
   return null;
 }
@@ -460,10 +461,11 @@ export function objectiveText(objective: SignalObjective | undefined): string | 
 function durationWords(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const rest = Math.round(seconds % 60);
-  const unit = (n: number, word: string) => (n === 1 ? `1 ${word}` : `${n} ${word}s`);
-  if (minutes === 0) return unit(rest, "seconde");
-  if (rest === 0) return unit(minutes, "minute");
-  return `${unit(minutes, "minute")} ${rest}`;
+  const unit = (n: number, one: string, many: string) => (n === 1 ? one : many.replace("{n}", String(n)));
+  const minutesText = unit(minutes, strings.voice.minutesOne, strings.voice.minutesMany);
+  if (minutes === 0) return unit(rest, strings.voice.secondsOne, strings.voice.secondsMany);
+  if (rest === 0) return minutesText;
+  return `${minutesText} ${rest}`;
 }
 
 /** Texte annoncé au début d'une étape, sans contexte d'enchaînement (ch08 « Guidage sonore »). */

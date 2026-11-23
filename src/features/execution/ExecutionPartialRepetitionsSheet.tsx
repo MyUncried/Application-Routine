@@ -4,7 +4,11 @@ import { StyleSheet, Text, View } from "react-native";
 import { MODAL_HEADER_ACTION_SIZE, ModalCancelAction, ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
-import { executionStrings as t, formatClock } from "./executionStrings";
+import { strings } from "@/shared/i18n";
+
+import { formatClock } from "./executionStrings";
+
+const t = strings.execution;
 import { REPETITIONS_WHEEL_ITEM, RepetitionsWheel } from "./RepetitionsWheel";
 
 /**

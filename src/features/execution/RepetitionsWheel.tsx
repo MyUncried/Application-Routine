@@ -5,7 +5,9 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 
 import { colors } from "@/shared/ui/tokens";
 
-import { executionStrings as t } from "./executionStrings";
+import { strings } from "@/shared/i18n";
+
+const t = strings.execution;
 
 /**
  * PRE-11 — roulette horizontale des répétitions, composant partagé par la modale de l'Arrêt (« Répétitions partielles ») et par

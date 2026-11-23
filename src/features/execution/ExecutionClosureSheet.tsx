@@ -1,7 +1,11 @@
 import type { FormatView } from "@/domain/execution/projection";
 
 import { ExecutionPartialRepetitionsSheet } from "./ExecutionPartialRepetitionsSheet";
-import { executionStrings as t, formatClock } from "./executionStrings";
+import { strings } from "@/shared/i18n";
+
+import { formatClock } from "./executionStrings";
+
+const t = strings.execution;
 
 /**
  * PRE-11 (T1) — Clôture d'un élément formaté (D3, §12.5) : la Durée maximum du For time a interrompu une série ; son résultat est

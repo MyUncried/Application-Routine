@@ -49,7 +49,11 @@ import {
   type PreparedExecution,
 } from "./ExecutionService";
 import { useExecution } from "./ExecutionServiceContext";
-import { executionStrings as t, formatClock } from "./executionStrings";
+import { strings } from "@/shared/i18n";
+
+import { formatClock } from "./executionStrings";
+
+const t = strings.execution;
 
 /** Délai avant de rendre la session audio en fin de séance : fanfare puis « Bravo, séance terminée ». */
 const RELEASE_AUDIO_AFTER_END_MS = 4000;

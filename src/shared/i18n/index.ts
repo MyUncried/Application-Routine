@@ -1,4 +1,6 @@
 import { fr } from "./resources/fr";
+import { execution, voice } from "./resources/frExecution";
+import { libraries } from "./resources/frLibraries";
 
 /**
  * PRE-3 (#340) — libellés des surfaces Paramètres d'exécution, médias et
@@ -354,6 +356,6 @@ const executionParameters = {
  * modifier pour introduire une sélection de langue future : les écrans ne
  * doivent jamais importer `./resources/fr` directement.
  */
-export const strings = { ...fr, executionParameters };
+export const strings = { ...fr, executionParameters, execution, voice, libraries };
 
 export type Strings = typeof strings;
