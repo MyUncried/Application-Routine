@@ -7,7 +7,7 @@
 
 | # | Sujet | Réponse de Hermann |
 |---|---|---|
-| H1 | Langues après le français | « 1. Anglais 2. Espagnol 3. Italien 4 Allemand » |
+| H1 | Langues après le français | « 1. Anglais 2. Espagnol 3. Italien 4 Allemand » ; complément du même jour : « J'ai oublié portugais » (rang et variante à préciser, A0) |
 | H2 | Choix de la langue d'interface | « Par défaut celle du téléphone, avec option de changer dans le profil. L'anglais en dernier recours. » |
 | H3 | Langue de la voix | « Liée. » (avec question : « Est ce l'usage, la bonne pratique ? ») |
 | H4 | Contenus | « Les contenus de KODJO sont traduits, ceux fournis par les utilisateurs non, ou seulement en anglais. » |
@@ -54,6 +54,7 @@ Chaîne proposée :
 
 | # | Question | Pourquoi c'est bloquant |
 |---|---|---|
+| A0 | Portugais : à quel rang (après l'allemand ?) et quelle variante — **Brésil (pt-BR)**, **Portugal (pt-PT)** ou les deux ? Les deux diffèrent sensiblement (vocabulaire, tutoiement/vouvoiement, voix iOS distinctes). | Nombre de traductions à produire et à recetter. |
 | A1 | Le multilingue entre-t-il dans le **MVP** ? D-034, RM-091, ch. 05 et ch. 12 disent « MVP monolingue, aucun sélecteur, aucune préférence de langue persistée ». | Remplace des décisions validées ; change le périmètre et le planning. |
 | A2 | Changement de langue dans le Profil : **ligne qui ouvre le réglage iOS « Langue » de l'application** (pratique recommandée par Apple, sans préférence stockée par KODJO) ou **sélecteur dans KODJO** (préférence stockée) ? | Définit l'écran Préférences, le stockage et Figma. |
 | A3 | « ou seulement en anglais » (H4) : les contenus créés par l'utilisateur ne sont jamais traduits par KODJO, mais l'utilisateur peut-il saisir **une version anglaise** (par exemple pour la Communauté) ? | Change le modèle de données des contenus utilisateur. |
@@ -90,10 +91,10 @@ Ordre conseillé ; chaque lot passe par le protocole habituel (plan, revue, rece
 | T5 | Unité livre : saisie, affichage, phrases, stockage. | D6, A7 |
 | T6 | Générateur de phrases en gabarits par langue ; non-régression des 276 cas français. | D7, A6 |
 | T7 | Format catalogue multilingue (champs traduits, référentiels traduits), outil d'administration, import mobile, migration des contenus installés, alias. | D4, D5, A3, A4, A5 |
-| T8 | Traduction **anglaise complète** (interface, contenus, phrases) puis recette ; ensuite espagnol, italien, allemand, une langue à la fois. | T1–T7, D8, D9 |
+| T8 | Traduction **anglaise complète** (interface, contenus, phrases) puis recette ; ensuite espagnol, italien, allemand, portugais (ordre selon A0), une langue à la fois. | T1–T7, D8, D9 |
 
 ## 6. Démarrage proposé
 
-1. Hermann tranche A1–A7 (et consulte le benchmark pour A2 et H3).
+1. Hermann tranche A0–A7 (et consulte le benchmark pour A2 et H3).
 2. D0–D9 : mise à jour de la documentation normative en un lot documentaire.
 3. T1 peut commencer en parallèle de l'étape 2 : il ne dépend d'aucun arbitrage.
