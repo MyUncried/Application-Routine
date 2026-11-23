@@ -35,7 +35,11 @@ describe("cartes du catalogue (CE-PROG-01, Figma « PROG — 7 »)", () => {
   it("période · statut ; N planifications · N séances (Hermann, 21/11/2026, point 2)", () => {
     expect(formatDayMonth("2026-11-01")).toBe("1er nov.");
     expect(formatDayMonthYear("2026-09-15")).toBe("15 sept. 2026");
-    expect(cardStatusLine(program(), "2026-10-01")).toBe("15 sept. – 15 déc.   ·   En cours");
+    // PROG-CAT-01, point 2 : 92 jours → 13 semaines ; 1er octobre = 17e jour → semaine 3 (Figma « PROG — 7 »).
+    expect(cardStatusLine(program(), "2026-10-01")).toBe("15 sept. – 15 déc.   ·   En cours   ·   semaine 3 sur 13");
+    expect(cardStatusLine(program(), "2026-09-15")).toBe("15 sept. – 15 déc.   ·   En cours   ·   semaine 1 sur 13");
+    // Derniers jours (14e semaine entamée) : plafonné au total.
+    expect(cardStatusLine(program(), "2026-12-15")).toBe("15 sept. – 15 déc.   ·   En cours   ·   semaine 13 sur 13");
     expect(cardStatusLine(program({ startDate: "2026-11-01", endDate: "2027-02-15" }), "2026-10-01")).toBe("1er nov. – 15 févr.   ·   À venir");
     expect(cardStatusLine(program({ terminatedAt: "x" }), "2026-10-01")).toBe("15 sept. – 15 déc.   ·   Terminé");
     expect(cardCountsLine({ routineCount: 3, sessionCount: 4 })).toBe("3 planifications   ·   4 séances");

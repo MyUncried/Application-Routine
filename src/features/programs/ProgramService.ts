@@ -1,5 +1,6 @@
-import { addDays, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { addDays, formatLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import {
+  programStatus,
   validateProgramDraft,
   type Program,
   type ProgramDraft,
@@ -52,7 +53,17 @@ export type AttachChoice = RoutineFilterChoice & { readonly period: { readonly i
 /** Profil › Confidentialité (D-551) : état déduit des programmes. */
 export type PainTrackingState =
   | { readonly kind: "NONE" }
-  | { readonly kind: "GRANTED"; readonly grantedAt: string; readonly programs: readonly Program[] };
+  | {
+      readonly kind: "GRANTED";
+      readonly grantedAt: string;
+      /** Programmes qui activent le suivi, terminés compris (retrait de l'accord : D-551). */
+      readonly programs: readonly Program[];
+      /**
+       * PROG-CAT-01, point 8 (Hermann, 23/11/2026 : « Oui ») : « Utilisé par N programmes » ne compte que les programmes actifs.
+       * [Terminés compris — remplacé.]
+       */
+      readonly activePrograms: readonly Program[];
+    };
 
 export type ProgramServiceDeps = {
   readonly repository: ProgramRepository;
@@ -315,7 +326,8 @@ export class ProgramService {
     const grantedAt = await this.deps.repository.painConsentAt();
     if (grantedAt === null) return { kind: "NONE" };
     const programs = (await this.deps.repository.list()).filter((program) => program.painTracking);
-    return { kind: "GRANTED", grantedAt, programs };
+    const today = formatLocalDate(this.deps.now());
+    return { kind: "GRANTED", grantedAt, programs, activePrograms: programs.filter((program) => programStatus(program, today) === "ACTIVE") };
   }
 
   /**

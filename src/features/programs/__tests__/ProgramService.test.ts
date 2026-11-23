@@ -284,6 +284,18 @@ describe("suivi de la douleur (D-551)", () => {
     }
   });
 
+  // PROG-CAT-01, point 8 (Hermann, 23/11/2026 : « Oui ») : « Utilisé par N programmes » ne compte que les programmes actifs.
+  it("« Utilisé par » : programmes actifs seulement ; le retrait de l'accord vise aussi les terminés", async () => {
+    await programs.grantPainConsent();
+    const active = await createProgram({ painTracking: true });
+    // Période passée : programme terminé.
+    const ended = await createProgram({ name: "Trail", painTracking: true, startDate: "2000-01-01", endDate: "2000-01-31" });
+    const state = await programs.painTrackingState();
+    if (state.kind !== "GRANTED") throw new Error(state.kind);
+    expect(state.activePrograms.map((item) => item.id)).toEqual([active.id]);
+    expect(state.programs.map((item) => item.id).sort()).toEqual([active.id, ended.id].sort());
+  });
+
   it("Retirer mon accord efface la date et désactive le suivi dans tous les programmes", async () => {
     await programs.grantPainConsent();
     const first = await createProgram({ painTracking: true });

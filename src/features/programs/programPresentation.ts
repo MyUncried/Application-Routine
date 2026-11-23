@@ -1,5 +1,5 @@
 import { routineOccurrences } from "@/domain/planning/occurrences";
-import type { LocalDate, LocalTime, Routine } from "@/domain/planning/Routine";
+import { daysBetween, type LocalDate, type LocalTime, type Routine } from "@/domain/planning/Routine";
 import { withinProgramPeriod } from "@/domain/programs/programMembership";
 import { programPhase, programStatus, type Program, type ProgramStatus } from "@/domain/programs/Program";
 import { routineLastDate } from "@/features/planning/journal";
@@ -36,9 +36,24 @@ export function formatPeriod(program: Pick<Program, "startDate" | "endDate">): s
   return `${formatDayMonth(program.startDate)} – ${formatDayMonth(program.endDate)}`;
 }
 
-/** Ligne 2 de la carte : « période · statut » (CE-PROG-01). */
+/**
+ * PROG-CAT-01, point 2 (Figma « PROG — 7 », Hermann 23/11/2026 : « ok » à la proposition) : « semaine N sur M » d'un programme
+ * en cours. M = nombre de jours de la période ÷ 7, arrondi au plus proche (92 jours : 13) ; N = semaine en cours comptée depuis
+ * le jour de début (jours 1 à 7 : semaine 1), plafonnée à M.
+ */
+export function programWeek(program: Pick<Program, "startDate" | "endDate">, today: LocalDate): { readonly week: number; readonly total: number } {
+  const total = Math.max(1, Math.round((daysBetween(program.startDate, program.endDate) + 1) / 7));
+  const week = Math.min(total, Math.max(1, Math.floor(daysBetween(program.startDate, today) / 7) + 1));
+  return { week, total };
+}
+
+/** Ligne 2 de la carte : « période · statut », et « semaine N sur M » pour un programme en cours (CE-PROG-01). */
 export function cardStatusLine(program: Program, today: LocalDate): string {
-  return `${formatPeriod(program)}${CARD_SEPARATOR}${programStrings.catalogue.phase[programPhase(program, today)]}`;
+  const phase = programPhase(program, today);
+  const line = `${formatPeriod(program)}${CARD_SEPARATOR}${programStrings.catalogue.phase[phase]}`;
+  if (phase !== "IN_PROGRESS") return line;
+  const { week, total } = programWeek(program, today);
+  return `${line}${CARD_SEPARATOR}${programStrings.catalogue.week.replace("{week}", String(week)).replace("{total}", String(total))}`;
 }
 
 /** Ligne 3 de la carte : « N planifications · N séances » (Hermann, 21/11/2026, point 2). */

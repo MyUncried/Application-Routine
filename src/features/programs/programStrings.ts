@@ -25,6 +25,8 @@ export const programStrings = {
     retry: "Réessayer",
     actionError: "L’action n’a pas pu être effectuée.",
     phase: { IN_PROGRESS: "En cours", UPCOMING: "À venir", TERMINATED: "Terminé" },
+    /** Figma « PROG — 7 » : « semaine 3 sur 13 » (PROG-CAT-01, point 2, 23/11/2026). */
+    week: "semaine {week} sur {total}",
     routinesOne: "1 planification",
     routinesMany: "{count} planifications",
     /** Hermann, 21/11/2026, point 2 : « N séances » (séances distinctes des routines rattachées). */

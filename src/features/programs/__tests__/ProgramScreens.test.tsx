@@ -179,7 +179,7 @@ describe("CE-PROG-01 — catalogue des programmes", () => {
     render(withService(<CatalogueHarness />));
     await flush();
     expect(screen.getByTestId("program-status-ACTIVE").props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByTestId(`program-card-${active.id}-status`).props.children).toBe("1er août – 30 sept.   ·   En cours");
+    expect(screen.getByTestId(`program-card-${active.id}-status`).props.children).toBe("1er août – 30 sept.   ·   En cours   ·   semaine 2 sur 9");
     expect(screen.getByTestId(`program-card-${active.id}-counts`).props.children).toBe("1 planification   ·   2 séances");
     expect(screen.queryByTestId(`program-card-${finished.id}`)).toBeNull();
     fireEvent.press(screen.getByTestId("program-status-TERMINATED"));

@@ -92,7 +92,7 @@ export function PrivacyScreen() {
                 {t.grantedOn.replace("{date}", formatDayMonthYear(state.grantedAt.slice(0, 10)))}
               </Text>
               <Text style={styles.rowHint} testID="privacy-pain-used-by">
-                {usedByLine(state.programs)}
+                {usedByLine(state.activePrograms)}
               </Text>
             </View>
             <View style={styles.separator} />
