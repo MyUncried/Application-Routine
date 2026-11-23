@@ -54,3 +54,10 @@ Donnés dans le compte rendu de livraison.
 ## Complément — D-566
 
 Question posée par la session de développement (routine rattachée qui déborde de la période). Décision de Hermann : demander à l'utilisateur. D-566 ajoutée (registre, compléments § 4, RM-275). Identifiant vérifié libre.
+
+## Complément — D-567, D-568, RM-276
+
+- **D-567** : dates de la routine et période du programme. Écart signalé par Hermann à corriger dans le code : des occurrences hors de la période étaient rattachées au programme.
+- **D-568 / RM-276** : trace « Supprimée » dans l'Agenda.
+- **Figma** : Agenda `12906:47`, carte « Dos et mobilité » du mardi 17 à l'état supprimé ; Plan `12983:19`, case correspondante retirée, Total du mardi « — », semaine « 3h13 ».
+- Documents : registre ch07, ch10 (RM-275 complétée, RM-276), compléments § 4 et § 6, spécification du 21/11 § 8, DSF Agenda, DSF Plan. Identifiants vérifiés libres.

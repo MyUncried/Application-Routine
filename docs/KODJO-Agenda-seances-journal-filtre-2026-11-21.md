@@ -84,7 +84,7 @@ Questions issues de la revue, tranchées par Hermann le 21/11/2026 et intégrée
 7. Écran Agenda validé `12906:47` : la 2e carte du Parcours affiche « — » (corrigé dans Figma).
 8. Séance suivante non exécutée d'un Parcours commencé : « Rattraper » pour elle seule, jusqu'au créneau suivant, puis « Expirée ».
 9. Gestes sur la carte d'une Séance de Parcours :
-   - **Supprimer** (glisser) ne retire que cette Séance de l'occurrence. Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances. La suppression de la dernière Séance restante supprime le créneau : aucune ligne Ⓟ ne reste seule.
+   - **Supprimer** (glisser) ne retire que cette Séance de l'occurrence. Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances. La suppression de la dernière Séance restante supprime le créneau : aucune ligne Ⓟ ne reste seule. [Complété le 23/11/2026 (D-568) : une occurrence prévue par la répétition reste affichée « Supprimée » (gris, rétablissable tant que la date n'est pas passée) ; voir [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.]
    - Une Séance exécutée ne se supprime pas (historique). Une Séance non exécutée d'un Parcours commencé peut être supprimée ; elle n'est alors plus à rattraper.
    - **Modifier** (cadre gauche) ouvre la modification de tout le créneau du Parcours (date, heure, Séances activées ou non) : une Séance de Parcours n'a pas d'heure propre.
    - Un créneau commencé ne se modifie pas (D-536).

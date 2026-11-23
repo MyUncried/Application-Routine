@@ -120,3 +120,10 @@ Précise D-538 et D-539 :
 - La lecture vocale annonce « hors planification » ou « ajouté hors répétition ».
 - Un créneau unique créé par le bouton flottant n'est pas marqué : il constitue toute sa routine.
 - Figma : « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » `12906:47`, carte Gainage.
+
+## Occurrence supprimée — 23/11/2026 (D-568)
+
+- Une occurrence prévue par la répétition d'une routine et supprimée depuis l'Agenda reste à son heure prévue : cadre et texte en gris, pastille « Supprimée » (gris) à la place de l'action.
+- Glisser la carte propose « Rétablir » tant que la date n'est pas passée.
+- Figma : carte « Dos et mobilité » du mardi 17, écran `12906:47`.
+- Cas sans trace et règles : [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.

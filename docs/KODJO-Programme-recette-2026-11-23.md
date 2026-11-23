@@ -1,6 +1,6 @@
 # KODJO — Programme : compléments de la recette du 23/11/2026
 
-**Décisions :** D-561 à D-566, RM-275 (classe B : remarques de recette de Hermann du 23/11/2026, reformulées et validées).
+**Décisions :** D-561 à D-568, RM-275, RM-276 (classe B : remarques de recette de Hermann du 23/11/2026, reformulées et validées).
 **Complète :** [KODJO — Programme : catalogue, création et configuration](KODJO-Programme-catalogue-creation-configuration-2026-11-20.md) (sur `main`, D-543 à D-552), le [DSF Plan](DSF-PLAN-2026-11-21.md) et le [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
 
 ## 1. Programme dans le Plan (D-561)
@@ -41,8 +41,29 @@ Dans la modale du programme, toucher « Du » ou « au » ouvre **un seul calend
   - **Annuler** : rien n'est enregistré.
 
   Sans créneau à venir hors période, aucune question. Les créneaux réalisés ne sont jamais touchés.
+- **Dates de la routine (D-567).**
+  - « Supprimer » ramène la date de fin de la routine à celle du programme. Si la routine commençait avant le programme sans séance réalisée avant son début, sa date de début est aussi ramenée à celle du programme ; sinon elle ne bouge pas.
+  - Étendre la date de fin de la routine au-delà du programme crée des occurrences **hors programme** et pose la question ci-dessus.
+  - Supprimer des occurrences hors de la période n'a aucun effet sur le programme.
+  - Détacher la routine du programme met toutes ses occurrences hors programme.
+  - Une occurrence hors de la période n'est **jamais** rattachée au programme.
 
 ## 5. Actions glissées (D-565)
 
 - **Modale du programme.** Le glisser d'une routine s'arrête net sur la position de son action, sans rebond. Aller trop loin à gauche ou à droite ne referme ni ne rouvre l'action.
 - **Catalogue des programmes.** L'espace entre la carte et ses actions glissées est celui du catalogue des séances.
+
+## 6. Trace d'une occurrence supprimée (D-568, RM-276)
+
+**Avec trace** : une occurrence prévue par la répétition d'une routine, supprimée depuis l'Agenda.
+- **Agenda** : la carte reste à son heure prévue, cadre et texte en gris, pastille « Supprimée » (Figma : carte « Dos et mobilité » du mardi 17, écran « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) »).
+- **Rétablir** : glisser la carte propose « Rétablir » tant que la date n'est pas passée.
+- **Suivi** : ni manquée ni réalisée ; hors du taux de réalisation.
+- **Parcours** : trace par Séance ; si toutes ses Séances sont supprimées, tout le créneau apparaît supprimé.
+- **Plan** : pas de trace ; la case est vide et la toucher recrée un créneau. Le Total ne la compte pas.
+
+**Sans trace** :
+- suppression de la routine depuis le Journal, réduction de sa période, suppression d'un programme avec ses routines, créneaux hors période supprimés (D-566) ;
+- créneau ajouté à la main (RM-273) ou créneau unique : il disparaît.
+
+Les séances réalisées restent toujours dans l'historique.
