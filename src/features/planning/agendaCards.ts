@@ -53,6 +53,12 @@ export type AgendaCard = {
   readonly occurrence?: Occurrence;
   readonly position?: number;
   readonly sessionIndex?: number;
+  /**
+   * D-568 / RM-276 : trace d'une Séance (ou de tout le créneau) supprimée depuis l'Agenda — carte grise « Supprimée », à l'heure
+   * prévue ; `restorable` : « Rétablir » proposé au glisser tant que la date n'est pas passée.
+   */
+  readonly deleted?: boolean;
+  readonly restorable?: boolean;
 };
 
 export type AgendaGroup = {
@@ -152,6 +158,8 @@ export type AgendaBuildInput = {
    * n'y joue qu'une Séance. Absent : parcours selon les seules Séances du créneau.
    */
   readonly parcoursRoutines?: ReadonlySet<string>;
+  /** D-568 / RM-276 : créneaux entièrement supprimés avec trace (`PlanningService.agendaData`). Absent : aucun. */
+  readonly deletedOccurrences?: readonly Occurrence[];
 };
 
 /**
@@ -187,6 +195,33 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     byOccurrence.set(key, [...(byOccurrence.get(key) ?? []), execution]);
   }
   const groups: AgendaGroup[] = [];
+  // D-568 : « Rétablir » tant que la date n'est pas passée (comparaison au jour).
+  const today = formatLocalDate(new Date(now));
+  /** Cartes « Supprimée » des Séances supprimées avec trace d'une occurrence, à l'heure prévue, dans l'ordre du créneau. */
+  const traceCards = (occurrence: Occurrence, occurrenceKey: string, parcours: boolean): AgendaCard[] =>
+    occurrence.sessions
+      .flatMap((session, rank) => (session.deleted === true && isPlannable(session.sessionId) && projections.has(session.sessionId) ? [{ session, rank }] : []))
+      .map(({ session, rank }, index) => {
+        const projection = projections.get(session.sessionId);
+        return {
+          key: parcours ? `${occurrenceKey}|s${rank}` : occurrenceKey,
+          planned: true,
+          sessionId: session.sessionId,
+          title: projection?.name ?? "",
+          projection,
+          day: occurrence.date,
+          timeLabel: index === 0 ? formatAgendaTime(occurrence.time) : "—",
+          sortTime: occurrence.time,
+          duration: projection !== undefined ? sessionsDurationLabel([projection]) : "",
+          status: "DELETED" as const,
+          action: null,
+          executed: false,
+          occurrence,
+          sessionIndex: rank,
+          deleted: true,
+          restorable: occurrence.date >= today,
+        };
+      });
 
   for (const occurrence of occurrences) {
     if (routineFilter !== null && !routineFilter.has(occurrence.routineId)) continue;
@@ -209,9 +244,17 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     // afficher le parcours à chaque fois, une fois sur deux avec une séance et l'autre fois avec deux séances. ») : une routine à
     // plusieurs Séances est un parcours à chaque créneau, même réduit à une Séance par la rotation.
     const parcours = occurrence.sessions.length > 1 || input.parcoursRoutines?.has(occurrence.routineId) === true;
-    const cards = shown.map(({ content, sessionId, position, execution }) =>
+    const active = shown.map(({ content, sessionId, position, execution }) =>
       plannedCard({ occurrence, occurrenceKey, content, sessionId, position, execution, projection: executed(execution) ?? projections.get(sessionId), parcours, slotStatus, now }),
     );
+    // D-568 / RM-276 : parcours — trace par Séance supprimée depuis l'Agenda, à son rang dans le créneau.
+    const traces = parcours ? traceCards(occurrence, occurrenceKey, true) : [];
+    const cards =
+      traces.length === 0
+        ? active
+        : [...active, ...traces]
+            .sort((a, b) => (a.sessionIndex ?? 0) - (b.sessionIndex ?? 0))
+            .map((card, index) => (card.deleted === true ? { ...card, timeLabel: index === 0 ? formatAgendaTime(occurrence.time) : "—" } : card));
     if (!parcours) {
       const card = cards[0]!;
       groups.push({ key: `${occurrenceKey}`, day: card.day, sortTime: card.sortTime, routineId: occurrence.routineId, parcours: false, cards });
@@ -220,6 +263,17 @@ export function buildAgendaGroups(input: AgendaBuildInput): Map<LocalDate, Agend
     // Arbitrage 2 : les cartes d'un parcours restent groupées sous le jour du créneau, chacune à son heure.
     const grouped = cards.map((card) => ({ ...card, day: occurrence.date }));
     groups.push({ key: occurrenceKey, day: occurrence.date, sortTime: grouped[0]!.sortTime, routineId: occurrence.routineId, parcours: true, cards: grouped });
+  }
+
+  // D-568 / RM-276 : créneaux entièrement supprimés avec trace — carte grise à l'heure prévue ; parcours : toutes ses Séances
+  // supprimées, le créneau entier apparaît supprimé (ligne « Ⓟ » et cartes).
+  for (const occurrence of input.deletedOccurrences ?? []) {
+    if (routineFilter !== null && !routineFilter.has(occurrence.routineId)) continue;
+    const occurrenceKey = `${occurrence.routineId}|${occurrence.key}`;
+    const parcours = occurrence.sessions.length > 1 || input.parcoursRoutines?.has(occurrence.routineId) === true;
+    const cards = traceCards(occurrence, occurrenceKey, parcours);
+    if (cards.length === 0) continue;
+    groups.push({ key: occurrenceKey, day: occurrence.date, sortTime: occurrence.time, routineId: occurrence.routineId, parcours, cards: parcours ? cards : cards.slice(0, 1) });
   }
 
   // § 4 : Exécutions hors planification, à leur heure réelle ; masquées quand un filtre par routine est actif (§ 5).

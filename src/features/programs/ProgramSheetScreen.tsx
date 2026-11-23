@@ -1,5 +1,5 @@
-import { DatePicker, Host } from "@expo/ui/swift-ui";
-import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
+import { Button as SwiftUIButton, DatePicker, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
+import { accessibilityLabel as swiftUIAccessibilityLabel, datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
@@ -15,7 +15,11 @@ import {
   type ProgramDraft,
 } from "@/domain/programs/Program";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
-import { PlanningPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
+import { creationDateParts } from "@/features/planning/journal";
+import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
+import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
+import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
@@ -23,7 +27,21 @@ import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 import { switchNudge } from "@/shared/ui/switchNudge";
 import { colors, layout, spacing, switchOffColors, type } from "@/shared/ui/tokens";
 
-import { formatDayMonthYear, routineSlotLine } from "./programPresentation";
+import {
+  boundedEnd,
+  datesInfoLine,
+  DURATION_MAX,
+  DURATION_MIN,
+  DURATION_UNITS,
+  durationEnd,
+  durationFromDates,
+  durationInfoLine,
+  unitLabel,
+  type DurationUnit,
+  type PeriodDuration,
+  type PeriodMode,
+} from "./programPeriod";
+import { formatDayMonthYear, routineSpanLine } from "./programPresentation";
 import { requestProgramSheet, type AttachedRoutine } from "./programSheetRelay";
 import { useProgramService } from "./ProgramServiceContext";
 import { NativePeriodCalendar } from "./NativePeriodCalendar";
@@ -61,6 +79,13 @@ const DATE_PANEL_WIDTH = 360;
 const OBJECTIVE_COLOR = "#666C7E";
 const MUTED = "#9499A8";
 const ROW_ACTION_WIDTH = 90;
+const DURATION_COUNTS = Array.from({ length: DURATION_MAX - DURATION_MIN + 1 }, (_, index) => DURATION_MIN + index);
+/** [Interprétation] « pendant » choisi sans fin connue : 1 jour (borne basse de D-543). */
+const DEFAULT_DURATION: PeriodDuration = { unit: "DAY", count: DURATION_MIN };
+const tp = programStrings.period;
+
+/** D-543 : raccourcissement confirmé (« N créneaux seront supprimés »), appliqué à la coche. */
+type Shortening = { readonly count: number; readonly routineIds: readonly string[]; readonly previousEnd: LocalDate; readonly nextEnd: LocalDate };
 
 type Params = { readonly programId?: string; readonly duplicateOf?: string };
 type DateField = "START" | "END";
@@ -105,6 +130,12 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
   const [popover, setPopover] = useState<{ readonly field: DateField; readonly anchor: PopoverAnchor } | null>(null);
   // D-563 : sélection en deux appuis dans le calendrier natif unique (module `kodjo-calendar`).
   const [period, setPeriod] = useState<PeriodSelection | null>(null);
+  // D-543 : « au [date] » ou « pendant [N] [unité] » ; le mode n'est pas enregistré (le programme garde début et fin).
+  const [periodMode, setPeriodMode] = useState<PeriodMode>("DATES");
+  const [duration, setDuration] = useState<PeriodDuration>(DEFAULT_DURATION);
+  const [countAnchor, setCountAnchor] = useState<PopoverAnchor | null>(null);
+  const [shortening, setShortening] = useState<Shortening | null>(null);
+  const countRef = useRef<View>(null);
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [hint, setHint] = useState(false);
@@ -223,8 +254,39 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     return result.program;
   };
 
+  /**
+   * D-543 (« Raccourcir la période : si des créneaux d'une planification dépassent la nouvelle fin, confirmation « N créneaux
+   * seront supprimés » ») : la coche compte d'abord les créneaux à venir des routines du programme entre la nouvelle fin et
+   * l'ancienne ; s'il y en a, la confirmation s'ouvre ; « Confirmer » enregistre et les supprime, « Annuler » n'enregistre rien.
+   */
   const save = () => {
     if (!canSave || savingRef.current) return;
+    const previousEnd = stored?.endDate ?? null;
+    const nextEnd = draft.endDate;
+    const kept = routines.filter((routine) => !detaching.has(routine.id)).map((routine) => routine.id);
+    if (previousEnd === null || nextEnd === null || nextEnd >= previousEnd || kept.length === 0) {
+      commit(null);
+      return;
+    }
+    savingRef.current = true;
+    setSaving(true);
+    programs.shortenedSlotCount(kept, previousEnd, nextEnd).then(
+      (count) => {
+        savingRef.current = false;
+        setSaving(false);
+        if (count > 0) setShortening({ count, routineIds: kept, previousEnd, nextEnd });
+        else commit(null);
+      },
+      () => {
+        savingRef.current = false;
+        setSaving(false);
+        setSaveFailed(true);
+      },
+    );
+  };
+
+  const commit = (shorten: Shortening | null) => {
+    if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
@@ -235,6 +297,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
           detach: [...detaching],
           attach: attaching.map((item) => ({ routineId: item.routine.id, removeOutside: item.removeOutside })),
         });
+        if (shorten !== null) await programs.removeShortenedSlots(shorten.routineIds, shorten.previousEnd, shorten.nextEnd);
         // d3 (23/11, Hermann) : snackbar du nombre de créneaux supprimés, affichée par l'écran qui reprend le focus.
         if (removed > 0) postPlanningNotice(removedSlotsNotice(removed));
         return program;
@@ -362,6 +425,32 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
     });
   };
 
+  // D-543 : changement de mode sans perte — de dates vers durée, en jours, ou en semaines si multiple de 7 ; de durée vers dates,
+  // la fin calculée est gardée.
+  const chooseMode = (mode: PeriodMode) => {
+    if (mode === periodMode) return;
+    if (mode === "DURATION") {
+      const next = draft.startDate !== null && draft.endDate !== null ? durationFromDates(draft.startDate, boundedEnd(draft.startDate, draft.endDate)) : DEFAULT_DURATION;
+      setDuration(next);
+      if (draft.startDate !== null) update({ endDate: durationEnd(draft.startDate, next) });
+    }
+    setPeriodMode(mode);
+  };
+  const changeDuration = (next: PeriodDuration) => {
+    setDuration(next);
+    if (draft.startDate !== null) update({ endDate: durationEnd(draft.startDate, next) });
+  };
+  const openCount = () => {
+    countRef.current?.measureInWindow((x, y, width, height) => setCountAnchor({ x, y, width, height }));
+  };
+  const periodInfo =
+    draft.startDate === null || draft.endDate === null
+      ? null
+      : periodMode === "DATES"
+        ? datesInfoLine(draft.startDate, boundedEnd(draft.startDate, draft.endDate))
+        : durationInfoLine(draft.endDate);
+  const modeLabel = periodMode === "DATES" ? tp.modeDates : tp.modeDuration;
+
   // Contre-recette du 23/11/2026 (m) : « Créer un programme » (création, copie) ; « Modifier le programme » (programme ouvert
   // depuis le catalogue). Un nouveau programme enregistré pour planifier reste en création.
   const title = params.programId === undefined ? t.titleNew : t.titleEdit;
@@ -415,8 +504,11 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
               scrollEnabled={!swipeLocked}
               testID="program-form"
             >
-              {/* Période : une ligne « Du … au … », dates bleues sans cadre (D-548). */}
-              <View style={[styles.card, styles.lineCard]} testID="program-period">
+              {/* Période (D-548, D-543 ; Figma « PROG — 13 », carte Période de 64) : « Du [date] », puis « au [date] » ou
+                  « pendant [N] [unité] » (le mot est une valeur modifiable qui ouvre un menu natif), puis la ligne
+                  d'information en gris, non modifiable. [Une seule ligne « Du … au … » de 44 — remplacée.] */}
+              <View style={[styles.card, styles.periodCard]} testID="program-period">
+              <View style={styles.periodLine}>
                 <Text style={styles.label}>{t.from}</Text>
                 <View ref={startRef} collapsable={false}>
                   <Pressable
@@ -429,51 +521,106 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                     <Text style={styles.date}>{draft.startDate === null ? t.chooseDate : formatDayMonthYear(draft.startDate)}</Text>
                   </Pressable>
                 </View>
-                <Text style={styles.label}>{t.to}</Text>
-                <View ref={endRef} collapsable={false}>
-                  <Pressable
-                    onPress={() => openDate("END")}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${t.endAccessibility}, ${draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}`}
-                    hitSlop={8}
-                    testID="program-end-date"
-                  >
-                    <Text style={styles.date}>{draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}</Text>
-                  </Pressable>
-                </View>
+                <ValueMenu
+                  label={modeLabel}
+                  accessibilityLabel={tp.modeAccessibility.replace("{value}", modeLabel)}
+                  options={[
+                    { key: "DATES", label: tp.modeDates },
+                    { key: "DURATION", label: tp.modeDuration },
+                  ]}
+                  selected={periodMode}
+                  onChoose={chooseMode}
+                  testID="program-period-mode"
+                />
+                {periodMode === "DATES" ? (
+                  <View ref={endRef} collapsable={false}>
+                    <Pressable
+                      onPress={() => openDate("END")}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t.endAccessibility}, ${draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}`}
+                      hitSlop={8}
+                      testID="program-end-date"
+                    >
+                      <Text style={styles.date}>{draft.endDate === null ? t.chooseDate : formatDayMonthYear(draft.endDate)}</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <>
+                    <View ref={countRef} collapsable={false}>
+                      <Pressable
+                        onPress={openCount}
+                        accessibilityRole="button"
+                        accessibilityLabel={tp.countAccessibility.replace("{value}", String(duration.count))}
+                        hitSlop={8}
+                        testID="program-period-count"
+                      >
+                        <Text style={styles.date}>{String(duration.count)}</Text>
+                      </Pressable>
+                    </View>
+                    <ValueMenu
+                      label={unitLabel(duration.unit, duration.count)}
+                      accessibilityLabel={tp.unitAccessibility.replace("{value}", unitLabel(duration.unit, duration.count))}
+                      options={DURATION_UNITS.map((unit) => ({ key: unit, label: unitLabel(unit, duration.count) }))}
+                      selected={duration.unit}
+                      onChoose={(unit: DurationUnit) => changeDuration({ unit, count: duration.count })}
+                      testID="program-period-unit"
+                    />
+                  </>
+                )}
+              </View>
+              {periodInfo === null ? null : (
+                <Text style={styles.periodInfo} testID="program-period-info">
+                  {periodInfo}
+                </Text>
+              )}
               </View>
 
               <Text style={styles.sectionTitle} accessibilityRole="header">
                 {t.plannings}
               </Text>
               <View style={styles.card} testID="program-plannings">
-                {listed.map((routine) => (
-                  <View key={routine.id}>
+                {/* D-544 (Figma « PROG — 13 », carte Planifications) : routines au format des lignes du Journal
+                    (`JournalRoutineCard` compacte), séparées de 8, puis le filet et les actions. [Nom et « créneau · N contenus »
+                    séparés par un filet — remplacés.] */}
+                {listed.length === 0 ? null : (
+                <View style={styles.routines}>
+                {listed.map((routine) => {
+                  const created = creationDateParts(routine.createdAt);
+                  return (
                     <SwipeActionsRow
+                      key={routine.id}
                       actions={[{ key: "detach", label: t.detach, backgroundColor: colors.movementLevelAction, onPress: () => detach(routine.id) }]}
                       revealed={revealed === routine.id}
                       onReveal={() => setRevealed(routine.id)}
                       onHide={() => setRevealed((current) => (current === routine.id ? null : current))}
                       onPress={() => edit(routine.id)}
-                      accessibilityLabel={`${routine.name}, ${routineSlotLine(routine)}`}
+                      accessibilityLabel={`${routine.name}, ${routineSpanLine(routine)}`}
                       accessibilityHint={t.routineEditAccessibility}
                       extraAccessibilityActions={[{ name: "detach", label: t.detachAccessibility.replace("{name}", routine.name), onAction: () => detach(routine.id) }]}
                       actionWidth={ROW_ACTION_WIDTH}
                       nativeGesture
                       testID={`program-routine-${routine.id}-swipe`}
                     >
-                      <View style={styles.routineRow} testID={`program-routine-${routine.id}`}>
-                        <Text style={styles.routineName} numberOfLines={1}>
-                          {routine.name}
-                        </Text>
-                        <Text style={styles.routineLine} numberOfLines={1}>
-                          {routineSlotLine(routine)}
-                        </Text>
-                      </View>
+                      <JournalRoutineCard
+                        compact
+                        date={created?.day ?? ""}
+                        year={created?.year ?? ""}
+                        name={routine.name}
+                        parcours={routine.entries.length > 1}
+                        detail=""
+                        slots={routineSpanLine(routine)}
+                        planned
+                        expanded={false}
+                        onOpen={noop}
+                        onToggleExpanded={noop}
+                        testID={`program-routine-${routine.id}`}
+                      />
                     </SwipeActionsRow>
-                    <View style={styles.separator} />
-                  </View>
-                ))}
+                  );
+                })}
+                </View>
+                )}
+                {listed.length === 0 ? null : <View style={styles.separator} />}
                 <Pressable onPress={plan} accessibilityRole="button" style={styles.linkRow} testID="program-plan">
                   <Text style={styles.link}>{t.plan}</Text>
                 </Pressable>
@@ -522,6 +669,14 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
             tintColor={colors.primary}
             onPressDate={(event) => {
               const step = pressPeriodDate(period, event.nativeEvent.date);
+              if (periodMode === "DURATION") {
+                // D-543, mode durée : seul le début se choisit au calendrier ; la fin suit la durée.
+                if (step.write.startDate !== undefined) {
+                  update({ startDate: step.write.startDate, endDate: durationEnd(step.write.startDate, duration) });
+                  setPopover(null);
+                } else setPeriod(step.state);
+                return;
+              }
               setPeriod(step.state);
               if (step.write.startDate !== undefined || step.write.endDate !== undefined) {
                 update({
@@ -546,7 +701,8 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                 {...(popover.field === "END" && draft.startDate !== null ? { range: { start: dateAt(draft.startDate, "00:00") } } : {})}
                 onDateChange={(date) => {
                   const value = formatLocalDate(date);
-                  if (popover.field === "START") {
+                  if (popover.field === "START" && periodMode === "DURATION") update({ startDate: value, endDate: durationEnd(value, duration) });
+                  else if (popover.field === "START") {
                     // Fin antérieure au nouveau début : ramenée au début (période cohérente, D-499).
                     update({ startDate: value, ...(draft.endDate !== null && draft.endDate < value ? { endDate: value } : {}) });
                   } else update({ endDate: value });
@@ -557,9 +713,115 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
           </View>
         ) : null}
       </PlanningPopover>
+      {/* D-543 : nombre de la durée, roulette native en popover près du champ (même composant que « pendant N » de la planification). */}
+      <PlanningWheelPopover
+        anchor={countAnchor}
+        columns={[
+          {
+            values: DURATION_COUNTS,
+            selected: duration.count,
+            onChange: (count) => changeDuration({ unit: duration.unit, count }),
+            accessibilityLabel: tp.countAccessibility.replace("{value}", String(duration.count)),
+            testID: "program-period-count-wheel",
+          },
+        ]}
+        onDismiss={() => setCountAnchor(null)}
+        android={
+          <NumberWheelPicker
+            value={duration.count}
+            accessibilityLabel={tp.countAccessibility.replace("{value}", String(duration.count))}
+            onCancel={() => setCountAnchor(null)}
+            onValidate={(count) => {
+              setCountAnchor(null);
+              changeDuration({ unit: duration.unit, count: Math.max(DURATION_MIN, Math.min(DURATION_MAX, count)) });
+            }}
+            cancelAccessibilityLabel={tp.shortenedCancel}
+            validateAccessibilityLabel={tp.validate}
+          />
+        }
+        testID="program-period-count-popover"
+      />
+      {shortening !== null ? (
+        <DecisionDialog
+          title={shortening.count === 1 ? tp.shortenedOne : tp.shortenedMany.replace("{count}", String(shortening.count))}
+          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
+          message=""
+          messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
+          cancelLabel={tp.shortenedCancel}
+          cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
+          confirmLabel={tp.shortenedConfirm}
+          confirmLabelStyle={type.dialogDestructiveActionLabel}
+          confirmBordered={false}
+          onCancel={() => setShortening(null)}
+          onConfirm={() => {
+            const confirmed = shortening;
+            setShortening(null);
+            commit(confirmed);
+          }}
+          testIDPrefix="program-shortened"
+        />
+      ) : null}
       <PainConsentDialog visible={consentAsked} onCancel={() => answerConsent(false)} onAllow={() => answerConsent(true)} />
     </ScreenShell>
     </GestureHandlerRootView>
+  );
+}
+
+function noop() {}
+
+/**
+ * D-543 : valeur modifiable qui ouvre un menu natif (`Menu` SwiftUI d'`@expo/ui`, même procédé que la ligne Programme de la
+ * planification) — la valeur en cours est cochée. Hors iOS : un toucher passe à l'option suivante.
+ */
+function ValueMenu<K extends string>({
+  label,
+  accessibilityLabel,
+  options,
+  selected,
+  onChoose,
+  testID,
+}: {
+  readonly label: string;
+  readonly accessibilityLabel: string;
+  readonly options: readonly { readonly key: K; readonly label: string }[];
+  readonly selected: K;
+  readonly onChoose: (key: K) => void;
+  readonly testID: string;
+}) {
+  if (Platform.OS !== "ios") {
+    const index = options.findIndex((option) => option.key === selected);
+    const next = options[(index + 1) % options.length];
+    return (
+      <Pressable onPress={() => next !== undefined && onChoose(next.key)} accessibilityRole="button" accessibilityLabel={accessibilityLabel} hitSlop={8} testID={testID}>
+        <Text style={styles.date}>{label}</Text>
+      </Pressable>
+    );
+  }
+  return (
+    <View testID={testID}>
+      <Host matchContents>
+        <Menu
+          label={
+            <RNHostView matchContents>
+              <View pointerEvents="none">
+                <Text style={styles.date}>{label}</Text>
+              </View>
+            </RNHostView>
+          }
+          modifiers={[swiftUIAccessibilityLabel(accessibilityLabel)]}
+        >
+          {options.map((option) => (
+            <SwiftUIButton
+              key={option.key}
+              label={option.label}
+              {...(option.key === selected ? { systemImage: "checkmark" as const } : {})}
+              onPress={() => onChoose(option.key)}
+              testID={`${testID}-option-${option.key}`}
+            />
+          ))}
+        </Menu>
+      </Host>
+    </View>
   );
 }
 
@@ -578,9 +840,12 @@ const styles = StyleSheet.create({
   label: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 14, color: colors.textPrimary },
   date: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, lineHeight: 18, color: colors.primary },
   sectionTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary, marginTop: spacing[8] },
-  routineRow: { backgroundColor: colors.background, paddingHorizontal: spacing[12], paddingVertical: spacing[12], gap: 4 },
-  routineName: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 14, color: colors.textPrimary },
-  routineLine: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: MUTED },
+  // D-543 (Figma « PROG — 13 », carte Période de 64) : ligne des valeurs (26), information à 6 dessous, en gris (Inter Regular 12).
+  periodCard: { paddingHorizontal: spacing[16], paddingVertical: spacing[8], gap: spacing[6] },
+  periodLine: { minHeight: 26, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: spacing[8] },
+  periodInfo: { ...type.supporting, color: colors.textSecondary },
+  // D-544 (Figma « PROG — 13 ») : routines à 8 du haut de la carte, 8 entre elles, filet à 8 sous la dernière.
+  routines: { paddingVertical: spacing[8], gap: spacing[8] },
   separator: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing[12] },
   linkRow: { minHeight: 40, justifyContent: "center", paddingHorizontal: spacing[12] },
   linkRowChevron: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },

@@ -141,6 +141,8 @@ export function CalendarWeekScreen({
   const [routineFilter, setRoutineFilterState] = useState<ReadonlySet<string> | null>(() => agendaRoutineFilter());
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
+  // D-568 / RM-276 : créneaux entièrement supprimés avec trace (cartes grises « Supprimée »).
+  const [deletedOccurrences, setDeletedOccurrences] = useState<readonly Occurrence[]>([]);
   const [executions, setExecutions] = useState<readonly OccurrenceExecution[]>([]);
   // D-553 : toutes les Exécutions (Séances exécutées et « Hors planification »).
   const [allExecutions, setAllExecutions] = useState<readonly AgendaExecution[]>([]);
@@ -205,10 +207,11 @@ export function CalendarWeekScreen({
     (window: AgendaRange) => {
       const id = ++requestId.current;
       planning.agendaData(window.start, addDays(window.start, window.weeks * 7 - 1)).then(
-        ({ routines: list, occurrences: weekItems, executions: linked, allExecutions: everything, snapshots: executed }) => {
+        ({ routines: list, occurrences: weekItems, executions: linked, allExecutions: everything, snapshots: executed, deletedOccurrences: traces }) => {
           if (id !== requestId.current) return;
           setRoutines(list);
           setOccurrences(weekItems);
+          setDeletedOccurrences(traces ?? []);
           setExecutions(linked);
           setAllExecutions(everything);
           setSnapshots(executed);
@@ -266,8 +269,9 @@ export function CalendarWeekScreen({
         now: loadedAt,
         executionProjections,
         parcoursRoutines,
+        deletedOccurrences,
       }),
-    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections, parcoursRoutines],
+    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt, executionProjections, parcoursRoutines, deletedOccurrences],
   );
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);
@@ -372,13 +376,30 @@ export function CalendarWeekScreen({
     // D-553 (arbitrage 9) : le cadre gauche d'une Séance de parcours ouvre la modification de tout le créneau ; un créneau
     // commencé ne se modifie pas (D-536) ; une Exécution hors planification n'a pas de créneau.
     const occurrence = card.occurrence;
-    if (occurrence === undefined || occurrence.started) return;
+    // D-568 : une carte « Supprimée » ne s'ouvre pas ; elle se rétablit au glisser.
+    if (occurrence === undefined || occurrence.started || card.deleted === true) return;
     router.push({ pathname: "/planning", params: { routineId: occurrence.routineId, occurrenceKey: occurrence.key } });
   };
 
   const duplicate = (routineId: string) => {
     setRevealed(null);
     router.push({ pathname: "/planning", params: { duplicateOf: routineId } });
+  };
+
+  /**
+   * D-568 : « Rétablir » (glisser d'une carte « Supprimée »). Fonction appelée depuis les cartes construites au rendu : elle recharge
+   * la fenêtre de l'état `range` (miroir de `rangeRef`) sans lire de référence (règle `react-hooks/refs`).
+   */
+  const restore = (routineId: string, occurrenceKey: string, sessionIndex: number | null) => {
+    setActionFailed(false);
+    planning.restoreOccurrence(routineId, occurrenceKey, sessionIndex).then(
+      () => load(range),
+      (error: unknown) => {
+        console.error("L'action de planification a échoué.", error);
+        setActionFailed(true);
+        load(range);
+      },
+    );
   };
 
   const runAction = (action: () => Promise<unknown>) => {
@@ -449,8 +470,25 @@ export function CalendarWeekScreen({
     // D-537 : un créneau commencé n'est pas supprimé ; D-553 (arbitrage 9) : une Séance de parcours non exécutée se supprime
     // seule, même dans un créneau commencé ; une Séance exécutée ne se supprime pas. Hors planification : aucune action glissée.
     const deletable = occurrence !== undefined && routine !== undefined && !card.executed && (inParcours || !occurrence.started);
+    // D-568 / RM-276 (23/11/2026) : carte « Supprimée » — le glisser propose « Rétablir » tant que la date n'est pas passée, seul.
+    const restoreActions: readonly SwipeAction[] =
+      occurrence !== undefined && card.restorable === true
+        ? [
+            {
+              key: "restore",
+              label: t.calendar.restore,
+              backgroundColor: colors.primary,
+              onPress: () => {
+                setRevealed(null);
+                restore(occurrence.routineId, occurrence.key, inParcours ? (card.sessionIndex ?? null) : null);
+              },
+            },
+          ]
+        : [];
     const actions: readonly SwipeAction[] =
-      occurrence === undefined
+      card.deleted === true
+        ? restoreActions
+        : occurrence === undefined
         ? []
         : [
             { key: "duplicate", label: t.calendar.duplicate, backgroundColor: colors.movementLevelAction, onPress: () => duplicate(occurrence.routineId) },
@@ -478,7 +516,7 @@ export function CalendarWeekScreen({
           onReveal={() => setRevealed(card.key)}
           onHide={() => setRevealed((current) => (current === card.key ? null : current))}
           onPress={() => openOccurrence(card)}
-          accessibilityLabel={[card.title, fillTemplate(t.calendar.timeAccessibility, { time: card.timeLabel }), card.duration].filter((part) => part !== "").join(", ")}
+          accessibilityLabel={[card.title, fillTemplate(t.calendar.timeAccessibility, { time: card.timeLabel }), card.duration, card.deleted === true ? t.calendar.status.deleted : ""].filter((part) => part !== "").join(", ")}
           accessibilityHint={t.calendar.openRoutine}
           accessibilityState={{ expanded: isExpanded }}
           extraAccessibilityActions={[
@@ -511,7 +549,7 @@ export function CalendarWeekScreen({
         {isExpanded && card.projection !== undefined ? (
           // DSF Agenda § 6 : composition de la Séance sous la carte. D-553 : le nom de la Séance, titre de la carte, n'est pas
           // répété. [Nom de chaque séance au-dessus de sa composition (r20-recap) — remplacé.]
-          <View style={inParcours ? styles.expandedInParcours : null}>
+          <View style={inParcours ? styles.expandedInParcours : null} testID={`calendar-item-${card.key}-expanded-wrapper`}>
             {/* Contre-recette du 23/11/2026 (constat k — Hermann : « agenda, séance déployée dans un parcours : étendre les deux
                 traits verticaux de couleur de la séance à gauche et à droite ») : les traits de la carte se prolongent le long de
                 la composition déployée. */}
@@ -695,7 +733,10 @@ export function CalendarWeekScreen({
             </Pressable>
             <View style={styles.dayBar} accessibilityRole="tablist" testID="calendar-day-bar">
               {days.map((day, index) => {
-                const sessionsOfDay = (groupsByDay.get(day) ?? []).flatMap((group) => group.cards.map((card) => ({ key: card.key, projection: card.projection })));
+                // D-568 (Figma `12906:184`) : une Séance supprimée n'a pas de point.
+                const sessionsOfDay = (groupsByDay.get(day) ?? []).flatMap((group) =>
+                  group.cards.filter((card) => card.deleted !== true).map((card) => ({ key: card.key, projection: card.projection })),
+                );
                 const selected = day === selectedDay;
                 return (
                   <Pressable
@@ -879,14 +920,26 @@ const styles = StyleSheet.create({
   // x = 28), cartes espacées de 4, lien noir de 1 du bas du Ⓟ au bas de la dernière carte.
   parcours: { paddingBottom: spacing[4] },
   parcoursHeader: { flexDirection: "row", alignItems: "center", paddingLeft: 4, paddingTop: 10, paddingBottom: 4, gap: 6, paddingRight: layout.screenGutter },
-  parcoursName: { ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary, flexShrink: 1 },
+  // Contre-recette du 23/11/2026, lot 4 (constat e — Hermann : « Agenda : mettre la couleur du nom des parcours en gris, et pas en
+  // gras ») : Inter Regular (graisse de `type.supporting`), gris `textSecondary`, taille 15 inchangée. [Semi-gras noir — remplacé.]
+  parcoursName: {
+    ...type.listCardTitle,
+    fontFamily: type.supporting.fontFamily,
+    fontWeight: type.supporting.fontWeight,
+    lineHeight: undefined,
+    color: colors.textSecondary,
+    flexShrink: 1,
+  },
   parcoursLink: { position: "absolute", left: 12.5, width: 1, top: 28, bottom: spacing[8], backgroundColor: "#000000" },
   parcoursItem: { paddingBottom: spacing[4] },
   expanded: { marginHorizontal: layout.screenGutter, marginTop: spacing[8], gap: spacing[8] },
   // Contre-recette du 23/11/2026 (constat k) : composition d'une Séance de parcours entre les traits prolongés de la carte, qui
   // partent du bas de la carte (écart de 8 compris) jusqu'au bas de la composition. [Hauteur des traits : celle de la composition,
   // choix technique.]
-  expandedInParcours: { paddingTop: spacing[8] },
+  // Contre-recette du 23/11/2026, lot 4 (constat f — Hermann : « séance déployée dans un parcours : il y a trop d'espace avant la
+  // première ligne ») : la composition suit la carte sans écart propre (reste le retrait de 4 de la composition). [Écart de 8 —
+  // remplacé.] Les traits prolongés (constat k) partent toujours du bas de la carte jusqu'au bas de la composition.
+  expandedInParcours: { paddingTop: 0 },
   expandedContentInParcours: { marginTop: 0 },
   expandedBar: { position: "absolute", top: 0, bottom: 0, width: AGENDA_BAR_WIDTH },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },

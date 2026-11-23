@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
-import { colors, dimensions, layout, spacing } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
 import { programStrings } from "./programStrings";
 
@@ -79,9 +79,14 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
-  title: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 22, color: colors.textPrimary },
-  body: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 16, lineHeight: 21, color: colors.textPrimary },
-  note: { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 13, lineHeight: 17, color: colors.textSecondary },
+  // Lot 4 du 23/11/2026 (x5, Hermann : « Le format du titre n'est pas conforme, il est trop gros, et pas centré horizontalement » ;
+  // « vérifier que les tokens utilisés sont ceux d'une modale pour les titres, textes primaires et secondaires ») : tokens des
+  // fenêtres de confirmation (`DecisionDialog`, appelants des programmes) — titre `modalTitle` centré, texte primaire
+  // `dialogMessage`. Aucune fenêtre n'a de texte secondaire : `supporting` en `textSecondary` (métadonnée des cartes)
+  // [interprétation]. [Titre 22, texte 16/21 et mention 13/17 de « PROG — 13b » (feuille) — remplacés.]
+  title: { ...type.modalTitle, color: colors.dialogTitleText, textAlign: "center" },
+  body: { ...type.dialogMessage, color: colors.dialogMessageText },
+  note: { ...type.supporting, color: colors.textSecondary },
   actions: { flexDirection: "row", gap: spacing[12], marginTop: spacing[16] },
   action: { flex: 1, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
   cancel: { backgroundColor: "#F3F4F6" },

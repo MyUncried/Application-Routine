@@ -189,6 +189,8 @@ export default function RootLayout() {
                   écran — remplacées.] */}
               <Stack.Screen name="planning" options={NATIVE_SHEET_OPTIONS} />
               <Stack.Screen name="planning-selection" options={NATIVE_SHEET_OPTIONS} />
+              {/* D-545 (23/11/2026) : modale « Rattacher un programme » ouverte par la ligne Programme, feuille native. */}
+              <Stack.Screen name="planning-program" options={NATIVE_SHEET_OPTIONS} />
               {/* D-539 (20/11/2026) : modale « Filtrer par routine » de l'Agenda, feuille native. */}
               <Stack.Screen name="agenda-routine-filter" options={NATIVE_SHEET_OPTIONS} />
               {/* PROG-CAT-01 (CE-PROG-02, D-548) : « Créer ou configurer un programme », feuille native avec poignée au-dessus du

@@ -115,10 +115,18 @@ export class SqliteExecutionRepository implements ExecutionRepository {
         );
         // PROG-CAT-01 (Hermann, 21/11/2026, point 3 ; migration 035) : programme du moment, figé sur l'exécution. Détacher ou
         // supprimer la routine ensuite ne retire jamais cette exécution de l'historique du programme.
-        await transaction.runAsync("UPDATE executions SET program_id = (SELECT program_id FROM routines WHERE id = ?) WHERE id = ?", [
-          record.occurrence.routineId,
-          record.id,
-        ]);
+        // D-564 / RM-275 (23/11/2026, lot 4) : seulement si la date de l'occurrence (déplacée à la main, sinon sa date d'origine) est
+        // comprise dans la période du programme ; sinon l'exécution est hors programme (suivi de la douleur compris). [Programme de
+        // la routine quelle que soit la date — remplacé.]
+        await transaction.runAsync(
+          `UPDATE executions SET program_id = (
+             SELECT programs.id FROM routines JOIN programs ON programs.id = routines.program_id
+             WHERE routines.id = ?
+               AND COALESCE((SELECT occurrence_date FROM routine_occurrences WHERE routine_id = ? AND occurrence_key = ?), substr(?, 1, 10))
+                 BETWEEN programs.start_date AND programs.end_date
+           ) WHERE id = ?`,
+          [record.occurrence.routineId, record.occurrence.routineId, record.occurrence.occurrenceKey, record.occurrence.occurrenceKey, record.id],
+        );
       }
     });
   }

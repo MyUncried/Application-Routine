@@ -68,6 +68,8 @@ function parseSessions(value: string | null): OccurrenceSession[] | null {
         entryId: typeof record.entryId === "string" ? record.entryId : null,
         origin: record.origin === "ADDED" ? ("ADDED" as const) : ("ROUTINE" as const),
         active: record.active !== false,
+        // D-568 : trace d'une séance supprimée depuis l'Agenda (champ du JSON `sessions_json`, sans changement de schéma).
+        ...(record.deleted === true ? { deleted: true as const } : {}),
       },
     ];
   });

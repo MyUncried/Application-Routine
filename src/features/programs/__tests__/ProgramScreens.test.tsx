@@ -12,6 +12,8 @@ import { PrivacyScreen } from "@/features/programs/PrivacyScreen";
 import { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { ProgramSheetScreen } from "@/features/programs/ProgramSheetScreen";
+import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
+import { Button as SwiftUIButton } from "@expo/ui/swift-ui";
 import * as relay from "@/features/programs/programSheetRelay";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
@@ -269,7 +271,7 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("configuration : titre « Modifier le programme » (contre-recette du 23/11, m) ; période « Du … au … » ; routines « créneau · N contenus » ; glisser retire sans supprimer", async () => {
+  it("configuration : titre « Modifier le programme » (contre-recette du 23/11, m) ; période « Du … au … » ; routines au format du Journal, « du X au Y » (D-544) ; glisser retire sans supprimer", async () => {
     const program = await createProgram();
     const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
     if (created.status !== "SAVED") throw new Error(created.status);
@@ -280,12 +282,12 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect(screen.getByTestId("program-name").props.value).toBe("Rééducation genou");
     expect(screen.getByText("1er août 2030")).toBeTruthy();
     expect(screen.getByText("30 sept. 2030")).toBeTruthy();
-    expect(screen.getByText("tous les jours, 14 h  ·  2 contenus")).toBeTruthy();
+    expect(screen.getByText("du 5 août au 29 août")).toBeTruthy();
     expect(screen.getByLabelText("Enregistrer le programme").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent(screen.getByTestId(`program-routine-${created.routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "detach" } });
     await flush();
     // Recette du 23/11/2026 (p4-croix) : le retrait n'est écrit qu'à la coche.
-    expect(screen.queryByText("tous les jours, 14 h  ·  2 contenus")).toBeNull();
+    expect(screen.queryByText("du 5 août au 29 août")).toBeNull();
     expect((await planning.getRoutine(created.routine.id))?.programId).toBe(program.id);
     fireEvent.press(screen.getByTestId("program-plan"));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/planning", params: { programId: program.id } });
@@ -443,6 +445,118 @@ describe("CE-PROG-02 — créer ou configurer un programme", () => {
     expect((await planning.getRoutine(free.routine.id))?.name).toBe("Hanche droite");
     expect(await planning.getRoutine(own.routine.id)).not.toBeNull();
     spy.mockRestore();
+  });
+});
+
+/** Lot 4 du 23/11/2026, chantier A : D-544 (routines au format du Journal), D-543 (période), x5 (fenêtre de consentement). */
+describe("Lot 4 — modale du programme", () => {
+  const option = (testID: string) => screen.UNSAFE_getAllByType(SwiftUIButton).find((button) => button.props.testID === testID)!;
+
+  it("D-544 : chaque routine utilise la ligne du Journal (JournalRoutineCard compacte) — date de création, nom, « du X au Y »", async () => {
+    const program = await createProgram();
+    const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    const cards = screen.UNSAFE_getAllByType(JournalRoutineCard);
+    expect(cards).toHaveLength(1);
+    expect(cards[0]!.props.compact).toBe(true);
+    expect(cards[0]!.props.planned).toBe(true);
+    const id = `program-routine-${created.routine.id}`;
+    // Cadre : date de création (NOW, 10 août 2030) — jour et mois abrégé, année dessous.
+    expect(screen.getByTestId(`${id}-date`).props.children).toBe("10 août");
+    expect(screen.getByTestId(`${id}-year`).props.children).toBe("2030");
+    expect(screen.getByTestId(`${id}-name`).props.children).toBe("Routine du soir");
+    expect(screen.getByTestId(`${id}-slots`).props.children).toBe("du 5 août au 29 août");
+    expect(screen.queryByText(/14 h/)).toBeNull();
+  });
+
+  it("D-543 : « N jours, soit S semaines et J jour » ; menu « au / pendant » ; de dates vers durée sans perte ; mois ; « Se termine le … »", async () => {
+    const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-15" });
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    expect(screen.getByTestId("program-period-info").props.children).toBe("92 jours, soit 13 semaines et 1 jour");
+    act(() => option("program-period-mode-option-DURATION").props.onPress());
+    expect(screen.getByText("92")).toBeTruthy();
+    expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 15 décembre 2030");
+    act(() => option("program-period-unit-option-MONTH").props.onPress());
+    fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
+    await flush();
+    // 92 mois depuis le 15 septembre 2030 : même quantième moins un jour.
+    expect((await programs.getProgram(program.id))?.endDate).toBe("2038-05-14");
+  });
+
+  it("D-543 : retour au mode dates sans perte (91 jours → 13 semaines → « au 14 déc. 2030 »)", async () => {
+    const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-14" });
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    act(() => option("program-period-mode-option-DURATION").props.onPress());
+    expect(screen.getByText("13")).toBeTruthy();
+    expect(screen.getByText("semaines")).toBeTruthy();
+    expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 14 décembre 2030");
+    act(() => option("program-period-mode-option-DATES").props.onPress());
+    expect(screen.getByText("14 déc. 2030")).toBeTruthy();
+    expect(screen.getByTestId("program-period-info").props.children).toBe("91 jours, soit 13 semaines");
+  });
+
+  it("D-543 : raccourcir la période demande « N créneaux seront supprimés » ; Annuler n'enregistre rien, Confirmer enregistre et supprime", async () => {
+    const program = await createProgram({ startDate: "2030-08-01", endDate: "2030-09-30" });
+    // Tous les jours du 5 au 29 août 2030 (aujourd'hui : 10 août).
+    const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    act(() => option("program-period-mode-option-DURATION").props.onPress());
+    act(() => option("program-period-unit-option-DAY").props.onPress());
+    const wheel = screen.UNSAFE_root.findAll((node) => node.props.testID === "program-period-count-popover" && Array.isArray(node.props.columns))[0]!;
+    act(() => wheel.props.columns[0].onChange(24));
+    expect(screen.getByTestId("program-period-info").props.children).toBe("Se termine le 24 août 2030");
+    fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
+    await flush();
+    // Créneaux du 25 au 29 août.
+    expect(screen.getByText("5 créneaux seront supprimés")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("program-shortened-cancel"));
+    await flush();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect((await programs.getProgram(program.id))?.endDate).toBe("2030-09-30");
+    fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
+    await flush();
+    fireEvent.press(screen.getByTestId("program-shortened-confirm"));
+    await flush();
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect((await programs.getProgram(program.id))?.endDate).toBe("2030-08-24");
+    const stored = await planning.getRoutine(created.routine.id);
+    if (stored === null) throw new Error("routine");
+    expect((await planning.periodSlotCountsFor([stored], "2030-08-25", "2030-09-30")).get(stored.id)?.inside).toBe(0);
+    expect((await planning.periodSlotCountsFor([stored], "2030-08-10", "2030-08-24")).get(stored.id)?.inside).toBe(15);
+  });
+
+  it("D-543 : prolonger ou garder la fin : aucune question", async () => {
+    const program = await createProgram({ startDate: "2030-08-01", endDate: "2030-08-31" });
+    const created = await planning.createRoutine({ ...routineDraft(), programId: program.id });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    await runFocus();
+    fireEvent.press(screen.getByLabelText("Enregistrer le programme"));
+    await flush();
+    expect(screen.queryByTestId("program-shortened-card")).toBeNull();
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("x5 : fenêtre de consentement — titre centré au token des modales (18), texte de Hermann recopié tel quel", async () => {
+    const program = await createProgram();
+    render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
+    await flush();
+    fireEvent(screen.getByTestId("program-pain-switch"), "valueChange", true);
+    await flush();
+    const title = screen.getAllByText("Suivi de la douleur").find((node) => node.props.accessibilityRole === "header")!;
+    expect(Object.assign({}, ...[title.props.style].flat())).toMatchObject({ fontSize: 18, fontWeight: "600", textAlign: "center" });
+    expect(
+      screen.getByText("Une échelle de douleur et la zone concernée vous seront demandés avant et après chaque séance exécutée dans ce programme"),
+    ).toBeTruthy();
   });
 });
 

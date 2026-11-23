@@ -31,7 +31,8 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  */
 
 /** D-540 : `EXPIRED` — créneau manqué dont le délai de rattrapage est passé. */
-export type AgendaStatus = "UPCOMING" | "MISSED" | "EXPIRED" | "COMPLETED" | "PARTIAL" | "STOPPED";
+/** D-568 / RM-276 : `DELETED` — occurrence (ou Séance de parcours) supprimée depuis l'Agenda, gardée comme trace. */
+export type AgendaStatus = "UPCOMING" | "MISSED" | "EXPIRED" | "COMPLETED" | "PARTIAL" | "STOPPED" | "DELETED";
 
 /** Cadre, trait et bande (bande = cadre à 18 %). Gris, vert et rouge : Figma ; bleu et orange : même construction. */
 const TINTS: Readonly<Record<AgendaStatus, { readonly frame: string; readonly bar: string; readonly band: string }>> = {
@@ -42,7 +43,12 @@ const TINTS: Readonly<Record<AgendaStatus, { readonly frame: string; readonly ba
   COMPLETED: { frame: "#E0F5E8", bar: "#8FCCA8", band: "rgba(224, 245, 232, 0.18)" },
   PARTIAL: { frame: "#FDECD9", bar: "#EDB16E", band: "rgba(253, 236, 217, 0.18)" },
   STOPPED: { frame: "#F0F0F5", bar: "#B8BAC9", band: "rgba(240, 240, 245, 0.18)" },
+  // D-568 (Figma `12906:124`, « Dos et mobilité (occurrence supprimée) ») : cadre, traits et bande gris.
+  DELETED: { frame: "#F6F6F9", bar: "#D9DBE3", band: "rgba(246, 246, 249, 0.18)" },
 };
+
+/** D-568 (Figma `12906:124`) : texte de la carte supprimée en gris (heure, durée, nom, ligne 2). */
+const DELETED_TEXT = "#8F949E";
 
 /** Étiquette de statut d'une occurrence exécutée. */
 const TAGS: Readonly<Partial<Record<AgendaStatus, { readonly label: string; readonly background: string; readonly text: string }>>> = {
@@ -52,6 +58,8 @@ const TAGS: Readonly<Partial<Record<AgendaStatus, { readonly label: string; read
   // D-540 (DSF Agenda § 10, Figma « P-Calendrier — Semaine — Créneau expiré (proposition) ») : étiquette 76 × 24, fond #FCE6E6,
   // texte #B33838, à la place de « Rattraper ».
   EXPIRED: { label: planningStrings.calendar.status.expired, background: "#FCE6E6", text: "#B33838" },
+  // D-568 (Figma `12906:133`) : pastille grise « Supprimée » à la place de l'action.
+  DELETED: { label: planningStrings.calendar.status.deleted, background: "#EDF0F2", text: "#737882" },
 };
 
 export const AGENDA_ROW_HEIGHT = 52;
@@ -112,6 +120,7 @@ export function RoutineAgendaCard({
 }) {
   const colorsOf = TINTS[status];
   const tag = TAGS[status];
+  const muted = status === "DELETED" ? styles.deletedText : null;
   return (
     <View style={styles.row} testID={testID}>
       <View style={[styles.band, { backgroundColor: colorsOf.band }]} testID={`${testID}-band`} />
@@ -124,7 +133,7 @@ export function RoutineAgendaCard({
         testID={`${testID}-frame`}
       >
         <View style={[styles.bar, { backgroundColor: colorsOf.bar }]} testID={`${testID}-status-${status}`} />
-        <Text style={styles.time} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-time`}>
+        <Text style={[styles.time, muted]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-time`}>
           {time}
         </Text>
         {duration === "" ? null : (
@@ -132,7 +141,7 @@ export function RoutineAgendaCard({
             <View style={styles.chronometerBox}>
               <Image source={CHRONOMETER} style={styles.chronometer} accessible={false} />
             </View>
-            <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-duration`}>
+            <Text style={[styles.secondary, muted]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-duration`}>
               {duration}
             </Text>
           </View>
@@ -151,7 +160,7 @@ export function RoutineAgendaCard({
             <Image source={CHEVRON} style={[styles.chevron, expanded ? styles.chevronDown : null]} accessible={false} testID={`${testID}-chevron${expanded ? "-open" : ""}`} />
             {/* Recette du 20/11/2026 (Hermann) : « mettre le symbole du Parcours après le nom, pas avant, et affiner le trait
                 du cercle ». [Repère devant le nom, trait de 1,5 — remplacé.] [Trait de 1 : valeur technique.] */}
-            <Text style={styles.name} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
+            <Text style={[styles.name, muted]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
               {name}
             </Text>
             {parcours ? <ParcoursBadge placement="after" stroke={1} testID={`${testID}-parcours`} /> : null}
@@ -160,12 +169,12 @@ export function RoutineAgendaCard({
               de la carte du Journal). */}
           <View style={styles.detailLine}>
             {detailPrefix === "" ? null : (
-              <Text style={styles.secondary} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail-prefix`}>
+              <Text style={[styles.secondary, muted]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail-prefix`}>
                 {detail === "" ? detailPrefix : `${detailPrefix} ·`}
               </Text>
             )}
             {detail === "" ? null : <KodjoIcon name="card-body-zone-badge" testID={`${testID}-zones-badge`} />}
-            <Text style={[styles.secondary, styles.detail]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
+            <Text style={[styles.secondary, styles.detail, muted]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-detail`}>
               {detail}
             </Text>
           </View>
@@ -261,4 +270,5 @@ const styles = StyleSheet.create({
   startLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: colors.primary },
   tag: pill,
   tagLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12 },
+  deletedText: { color: DELETED_TEXT },
 });

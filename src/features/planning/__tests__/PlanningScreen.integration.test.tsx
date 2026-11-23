@@ -1,5 +1,4 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { Button as SwiftUIButton } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Alert, AppState, Linking, ScrollView, View } from "react-native";
 
@@ -9,7 +8,7 @@ import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { PlanningScreen } from "@/features/planning/PlanningScreen";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
-import { pendingPlanningSheet } from "@/features/planning/planningSheetRelay";
+import { pendingPlanningSheet, releasePlanningSheet } from "@/features/planning/planningSheetRelay";
 import { takePlanningNotice } from "@/features/planning/planningNotice";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
@@ -501,7 +500,9 @@ describe("Planifier (CE-UI-12)", () => {
        SELECT 'legacy', id, '', '${START}', '08:00', 'WEEK', 1, '1', 'FOR', NULL, 6, NULL, '${now}', '${now}' FROM users`,
     );
     await database.runAsync(`INSERT INTO routine_entries VALUES ('l1', 'legacy', 0, '${a.id}', 2, 2, '1,2'), ('l2', 'legacy', 1, '${b.id}', 2, 3, '1,3')`);
-    await planning.excludeOccurrence("legacy", "2030-08-12T08:00");
+    // Retrait existant (données antérieures, sans trace — D-568 : aucune reprise rétroactive). [Retrait par `excludeOccurrence` —
+    // remplacé le 23/11/2026 : depuis D-568, une suppression depuis l'Agenda d'un créneau de la répétition laisse une trace.]
+    await database.runAsync("INSERT INTO routine_exclusions (routine_id, occurrence_key, created_at) VALUES ('legacy', '2030-08-12T08:00', ?)", [now]);
     await renderPlanning({ routineId: "legacy" });
     expect(screen.getByTestId("planning-name").props.value).toBe("");
     expect(validateEnabled()).toBe(false);
@@ -781,7 +782,9 @@ describe("Planifier depuis un programme (PROG-CAT-01)", () => {
 /**
  * Recette du 23/11/2026 (RECETTE-PROG-2311, retours d, h, g2 de Hermann) : modale Planifier en modification — dates non bornées
  * par le programme (d4, D-566), « Supprimer » qui raccourcit la routine (d6) avec snackbar (d3), compte de la confirmation sur
- * le brouillon (d7), ligne Programme en menu natif (h, g2). Jest n'exerce pas le menu SwiftUI réel : vérification sur iPhone.
+ * le brouillon (d7). Lot 4 (x17, D-545) : la ligne Programme ouvre la modale « Rattacher un programme » (route
+ * `planning-program`, relais `program`) ; x18 : non modifiable depuis l'Agenda ; x9 / x10 : textes du dialogue hors période.
+ * [Ligne Programme en menu natif (h, g2) — remplacée.] Jest n'exerce pas la feuille native réelle : vérification sur iPhone.
  */
 describe("Recette du 23/11/2026 — programme d'une routine en modification", () => {
   let programs: ProgramService;
@@ -841,7 +844,19 @@ describe("Recette du 23/11/2026 — programme d'une routine en modification", ()
     return range;
   }
 
-  const option = (id: string) => screen.UNSAFE_getAllByType(SwiftUIButton).find((button) => button.props.testID === `planning-program-option-${id}`)!;
+  /** D-545 : toucher la ligne Programme ouvre la modale ; le relais porte le programme actuel et rend le choix. */
+  function openProgramChoice() {
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId("planning-program"));
+    expect(mockPush).toHaveBeenCalledWith("/planning-program");
+    const request = pendingPlanningSheet("program");
+    if (request === null) throw new Error("modale non demandée");
+    return request;
+  }
+  function chooseProgram(id: string | null) {
+    const request = openProgramChoice();
+    act(() => request.onChoose(id));
+  }
   const dates = async (routineId: string) =>
     (await planning.rangeOccurrences("2030-08-01", "2030-12-31", () => true)).filter((item) => item.routineId === routineId).map((item) => item.date);
 
@@ -856,8 +871,11 @@ describe("Recette du 23/11/2026 — programme d'une routine en modification", ()
     expect(range.end).toBeUndefined();
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     await flush();
-    // Créneaux à venir après le 31 août : 2, 9, 16, 23, 30 septembre et 7 octobre.
-    expect(screen.getByText("6 créneaux sont en dehors de la période du programme.")).toBeTruthy();
+    // Créneaux à venir après le 31 août : 2, 9, 16, 23, 30 septembre et 7 octobre. x10 : titre sans point final, « du
+    // programme » (modification depuis le Journal) ; « Les supprimer », « Les garder dans le calendrier ».
+    expect(screen.getByText("6 créneaux sont en dehors de la période du programme")).toBeTruthy();
+    expect(screen.getByText("Les supprimer")).toBeTruthy();
+    expect(screen.getByText("Les garder dans le calendrier")).toBeTruthy();
     fireEvent.press(screen.getByTestId("planning-outside-confirm"));
     await flush();
     fireEvent.press(screen.getByTestId("planning-modify-confirm"));
@@ -873,7 +891,10 @@ describe("Recette du 23/11/2026 — programme d'une routine en modification", ()
     screen.unmount();
     mockBack.mockClear();
     await renderWithPrograms({ routineId });
-    act(() => option("none").props.onPress());
+    // D-545 : à l'ouverture, le programme actuel est sélectionné ; toucher sa carte rend « Aucun » (D-332).
+    const request = openProgramChoice();
+    expect(request.selectedId).toBe(genou.id);
+    act(() => request.onChoose(null));
     expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
     expect(chooseEndDate(new Date(2030, 8, 16, 12, 0)).end).toBeUndefined();
     fireEvent.press(screen.getByTestId("screen-header-validate"));
@@ -889,23 +910,25 @@ describe("Recette du 23/11/2026 — programme d'une routine en modification", ()
     expect(takePlanningNotice()).toBeNull();
   });
 
-  it("h : seul le programme change — rattachement sans confirmation de modification ; programmes terminés non proposés ; « Garder » ne supprime rien", async () => {
-    // Terminé : date de fin passée (l'écran lit la date du jour réelle).
-    await program("Ancien", "2020-01-01", "2020-12-31");
+  it("x17 / h : seul le programme change — rattachement par la modale, sans confirmation de modification ; « Garder » ne supprime rien", async () => {
     const dos = await program("Dos", "2030-08-01", "2030-08-20");
     const routineId = await mondays();
     await renderWithPrograms({ routineId });
     expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
-    // D-545 : « Aucun » puis les programmes non terminés ; le choix en vigueur coché.
-    expect(screen.UNSAFE_getAllByType(SwiftUIButton).map((button) => button.props.label)).toEqual(["Aucun", "Dos"]);
-    expect(option("none").props.systemImage).toBe("checkmark");
-    act(() => option(dos.id).props.onPress());
+    // D-545 : la ligne est une commande qui ouvre la modale (plus de menu) ; aucun programme sélectionné à l'ouverture.
+    expect(screen.getByTestId("planning-program").props.accessibilityRole).toBe("button");
+    expect(openProgramChoice().selectedId).toBeNull();
+    chooseProgram(dos.id);
     expect(within(screen.getByTestId("planning-program")).getByText("Dos")).toBeTruthy();
-    expect(option(dos.id).props.systemImage).toBe("checkmark");
+    // Rouverte, la modale présélectionne le programme choisi.
+    expect(openProgramChoice().selectedId).toBe(dos.id);
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     await flush();
-    // Créneaux à venir après le 20 août : 26 août, 2, 9, 16, 23, 30 septembre.
-    expect(screen.getByText("6 créneaux sont en dehors de la période du programme.")).toBeTruthy();
+    // Créneaux à venir après le 20 août : 26 août, 2, 9, 16, 23, 30 septembre. x9 : rattachement — « de ce programme », sans
+    // point final ; « Les supprimer » (arbitrage de Hermann), « Les garder dans le calendrier ».
+    expect(screen.getByText("6 créneaux sont en dehors de la période de ce programme")).toBeTruthy();
+    expect(screen.getByText("Les supprimer")).toBeTruthy();
+    expect(screen.getByText("Les garder dans le calendrier")).toBeTruthy();
     fireEvent.press(screen.getByTestId("planning-outside-secondary"));
     await flush();
     expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
@@ -917,18 +940,47 @@ describe("Recette du 23/11/2026 — programme d'une routine en modification", ()
     expect(takePlanningNotice()).toBeNull();
   });
 
-  it("g2 : depuis une occurrence de l'Agenda, rattacher la routine à un programme (« Supprimer » : créneaux hors période retirés, snackbar)", async () => {
+  it("r11 : rattachement d'une routine qui déborde — « Annuler » : rien n'est rattaché, le formulaire reste ouvert", async () => {
     const dos = await program("Dos", "2030-08-01", "2030-08-20");
     const routineId = await mondays();
-    await renderWithPrograms({ routineId, occurrenceKey: "2030-08-12T08:00" });
-    act(() => option(dos.id).props.onPress());
+    await renderWithPrograms({ routineId });
+    chooseProgram(dos.id);
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     await flush();
-    fireEvent.press(screen.getByTestId("planning-outside-confirm"));
+    expect(screen.getByText("6 créneaux sont en dehors de la période de ce programme")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-outside-cancel"));
     await flush();
-    expect(mockBack).toHaveBeenCalled();
+    expect(screen.queryByTestId("planning-outside-confirm")).toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect((await planning.getRoutine(routineId))?.programId).toBeUndefined();
+    expect(await dates(routineId)).toHaveLength(9);
+  });
+
+  it("x18 : depuis une occurrence de l'Agenda, le programme est visible mais non modifiable", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await programs.attachRoutine(routineId, dos.id);
+    releasePlanningSheet();
+    await renderWithPrograms({ routineId, occurrenceKey: "2030-08-12T08:00" });
+    const line = screen.getByTestId("planning-program");
+    expect(within(line).getByText("Dos")).toBeTruthy();
+    expect(line.props.accessibilityRole).toBeUndefined();
+    expect(line.props.onPress).toBeUndefined();
+    mockPush.mockClear();
+    fireEvent.press(line);
+    expect(mockPush).not.toHaveBeenCalledWith("/planning-program");
+    expect(pendingPlanningSheet("program")).toBeNull();
+  });
+
+  it("x10 (D-564) : une occurrence de l'Agenda hors de la période du programme affiche « Aucun »", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await programs.attachRoutine(routineId, dos.id);
+    releasePlanningSheet();
+    // 26 août : hors de la période (1er au 20 août) — la routine reste rattachée, l'occurrence n'appartient pas au programme.
+    await renderWithPrograms({ routineId, occurrenceKey: "2030-08-26T08:00" });
+    expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-program")).queryByText("Dos")).toBeNull();
     expect((await planning.getRoutine(routineId))?.programId).toBe(dos.id);
-    expect(await dates(routineId)).toEqual(["2030-08-05", "2030-08-12", "2030-08-19"]);
-    expect(takePlanningNotice()).toBe("6 créneaux supprimés");
   });
 });

@@ -238,6 +238,11 @@ export function SwipeActionsRow({
   // r3 (23/11/2026) : en feuille native, le geste natif porte seul le glissement ; les touchers de React Native ne servent plus
   // qu'à l'appui (annulés à l'activation du geste natif, sans effet sur la position).
   const native = nativeGesture && offset > 0;
+  // Lot 4 du 23/11/2026 (x4, Hermann : « le glisser gauche provoque l'ouverture systématique de l'écran de planification d'une
+  // séance ») : en feuille native, les touchers de React Native ne sont pas annulés à l'activation du Pan — la fin du glissé
+  // arrivait au `Pressable` comme un appui, après `onFinalize` (qui remet `isSwipingRef` à faux) et avant que `revealed` ne
+  // change. Un toucher dont le Pan s'est activé n'est donc jamais un appui ; le marqueur est remis à zéro au toucher suivant.
+  const pannedRef = useRef(false);
 
   const showActions = translateX < 0 || isSettling;
   const actionsSlide = useMemo(
@@ -249,7 +254,10 @@ export function SwipeActionsRow({
   const row = (
     <View
       onTouchStart={(event) => {
-        if (native) return;
+        if (native) {
+          pannedRef.current = false;
+          return;
+        }
         originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
         isSwipingRef.current = false;
         baseRef.current = revealed ? -offset : 0;
@@ -351,13 +359,13 @@ export function SwipeActionsRow({
         accessible={!passive}
         onPress={() => {
           // Carte ouverte : appui neutre (seul un balayage droit la referme).
-          if (!passive && !revealed && !isSwipingRef.current) onPress();
+          if (!passive && !revealed && !isSwipingRef.current && !pannedRef.current) onPress();
         }}
         onLongPress={
           onLongPress === undefined
             ? undefined
             : () => {
-                if (!revealed && !isSwipingRef.current) onLongPress();
+                if (!revealed && !isSwipingRef.current && !pannedRef.current) onLongPress();
               }
         }
         accessibilityRole={passive ? undefined : "button"}
@@ -393,6 +401,7 @@ export function SwipeActionsRow({
       enabled={native}
       testID={`${testID}-pan`}
       onStart={() => {
+        pannedRef.current = true;
         baseRef.current = revealed ? -offset : 0;
       }}
       onUpdate={follow}

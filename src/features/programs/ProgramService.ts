@@ -1,4 +1,4 @@
-import type { LocalDate, Routine } from "@/domain/planning/Routine";
+import { addDays, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import {
   validateProgramDraft,
   type Program,
@@ -76,14 +76,22 @@ export class ProgramService {
     return this.deps.repository.get(programId);
   }
 
-  /** Cartes du catalogue : programmes avec le nombre de planifications et de séances distinctes. */
+  /**
+   * Cartes du catalogue : programmes avec le nombre de planifications et de séances distinctes.
+   * D-564 (23/11/2026) : seules comptent les occurrences comprises dans la période du programme — une routine rattachée sans
+   * occurrence dans la période n'est pas comptée ; les séances sont celles de ses occurrences de la période. [Toutes les routines
+   * rattachées et toutes leurs séances — remplacé.]
+   */
   async listSummaries(): Promise<readonly ProgramSummary[]> {
     const [programs, routines] = await Promise.all([this.deps.repository.list(), this.deps.planning.listRoutines()]);
-    return programs.map((program) => {
-      const own = routines.filter((routine) => routine.programId === program.id);
-      const sessions = new Set(own.flatMap((routine) => routine.entries.map((entry) => entry.sessionId)));
-      return { program, routineCount: own.length, sessionCount: sessions.size };
-    });
+    return Promise.all(
+      programs.map(async (program) => {
+        const own = routines.filter((routine) => routine.programId === program.id);
+        const inPeriod = await this.deps.planning.periodSessionsFor(own, program.startDate, program.endDate);
+        const sessions = new Set([...inPeriod.values()].flatMap((ids) => [...ids]));
+        return { program, routineCount: inPeriod.size, sessionCount: sessions.size };
+      }),
+    );
   }
 
   /** Routines rattachées au programme, dans l'ordre de création. */
@@ -192,6 +200,29 @@ export class ProgramService {
   }
 
   /**
+   * D-543 (23/11/2026, DSF Programmes § 1, chantier A du lot 4) : « Raccourcir la période : si des créneaux d'une planification
+   * dépassent la nouvelle fin, confirmation « N créneaux seront supprimés » ». Créneaux à venir des routines données entre la
+   * nouvelle fin (exclue) et l'ancienne (incluse) ; les créneaux déjà hors de l'ancienne période ne sont pas comptés.
+   * Délègue à `PlanningService.periodSlotCountsFor` (aucune règle d'occurrence réécrite).
+   */
+  async shortenedSlotCount(routineIds: readonly string[], previousEnd: LocalDate, nextEnd: LocalDate): Promise<number> {
+    if (nextEnd >= previousEnd || routineIds.length === 0) return 0;
+    const routines = await this.routinesByIds(routineIds);
+    const counts = await this.deps.planning.periodSlotCountsFor(routines, addDays(nextEnd, 1), previousEnd);
+    let total = 0;
+    for (const count of counts.values()) total += count.inside;
+    return total;
+  }
+
+  /** D-543 : suppression confirmée des créneaux comptés par `shortenedSlotCount` (`PlanningService.removeUpcomingSlots`). */
+  async removeShortenedSlots(routineIds: readonly string[], previousEnd: LocalDate, nextEnd: LocalDate): Promise<number> {
+    if (nextEnd >= previousEnd) return 0;
+    let removed = 0;
+    for (const routineId of routineIds) removed += await this.deps.planning.removeUpcomingSlots(routineId, (date) => date > nextEnd && date <= previousEnd);
+    return removed;
+  }
+
+  /**
    * Croix de la modale (p4-croix) : les routines planifiées depuis la modale sont supprimées (règle du Journal), puis le programme
    * créé dans la modale, enregistré avant « + Planifier une séance », est supprimé.
    */
@@ -215,10 +246,12 @@ export class ProgramService {
     let canKeepRoutines = false;
     // D-564 (23/11/2026) : « Supprimer avec ses routines » ne supprime que les créneaux compris dans la période — non commencés,
     // selon la règle du Journal ; ceux d'avant ou d'après la période restent.
+    // Lot 4 (D-564) : « Garder les routines dans le calendrier » n'est proposé que si une routine a des créneaux à venir dans la
+    // période — ceux d'en dehors restent dans le calendrier quel que soit le choix. [Créneaux à venir de toute la routine — remplacé.]
     const counts = await this.deps.planning.periodSlotCountsFor(routines, program.startDate, program.endDate);
     for (const routine of routines) {
       slotCount += counts.get(routine.id)?.unstartedInside ?? 0;
-      if (!canKeepRoutines && (await this.deps.planning.upcomingSlotCount(routine.id)) > 0) canKeepRoutines = true;
+      if ((counts.get(routine.id)?.inside ?? 0) > 0) canKeepRoutines = true;
     }
     return { history: (await this.deps.repository.executionCount(programId)) > 0, slotCount, canKeepRoutines };
   }

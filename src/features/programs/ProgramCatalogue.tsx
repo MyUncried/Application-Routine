@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import type { ProgramStatus } from "@/domain/programs/Program";
@@ -26,6 +26,8 @@ const t = programStrings.catalogue;
 const CARD_MUTED = "#9499A8";
 /** Figma « PROG — 7 » : carte 370 × 90, rayon 8. */
 const CARD_HEIGHT = 90;
+/** D-545 : bouton radio « DSF / Controls / Radio » (`5544:4736`, `5544:4739`), 20 × 20, comme les cartes du catalogue des mouvements. */
+export const PROGRAM_RADIO_SIZE = 20;
 /** Figma « PROG — 7b » : trois actions de 90 de large sur la hauteur de la carte. */
 const PROGRAM_ACTION_WIDTH = 90;
 const LABEL_LINE = 17;
@@ -98,7 +100,8 @@ export function ProgramContext({
   readonly counts: ProgramCounts | null;
   readonly query: string;
   readonly onChangeQuery: (query: string) => void;
-  readonly onCreate: () => void;
+  /** Absent : pas de bouton Créer (D-545, modale « Rattacher un programme »). */
+  readonly onCreate?: () => void;
 }) {
   return (
     <CatalogueContextZone
@@ -114,16 +117,28 @@ export function ProgramContext({
       }}
       filter={<CommandCircle label={t.filter} icon="filter" disabled testID="program-filter-action" />}
       sortLabel={t.sort}
-      createLabel={t.create}
-      onCreate={onCreate}
+      {...(onCreate !== undefined ? { createLabel: t.create, onCreate } : {})}
     />
   );
 }
 
 /** Carte d'un programme (Figma « PROG — 7 ») : nom ; « période · statut » ; « N planifications · N séances ». */
-export function ProgramCard({ summary, today }: { readonly summary: ProgramSummary; readonly today: string }) {
+export function ProgramCard({
+  summary,
+  today,
+  accessory,
+}: {
+  readonly summary: ProgramSummary;
+  readonly today: string;
+  /**
+   * D-545 (« Rattacher un programme », Figma `13092:50055`) : bouton radio posé à droite de la carte, centré verticalement ; le
+   * texte s'arrête avant lui. Absent : carte du catalogue inchangée.
+   */
+  readonly accessory?: ReactNode;
+}) {
   return (
-    <View style={styles.card} testID={`program-card-${summary.program.id}`}>
+    <View style={[styles.card, accessory !== undefined ? styles.cardWithAccessory : null]} testID={`program-card-${summary.program.id}`}>
+      {accessory !== undefined ? <View style={styles.cardAccessory} pointerEvents="none">{accessory}</View> : null}
       <Text style={styles.cardName} numberOfLines={1} testID={`program-card-${summary.program.id}-name`}>
         {summary.program.name}
       </Text>
@@ -381,6 +396,9 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
+  // D-545 : radio de 20 à 16 du bord droit, texte arrêté à 12 de lui.
+  cardWithAccessory: { paddingRight: spacing[16] + PROGRAM_RADIO_SIZE + spacing[12] },
+  cardAccessory: { position: "absolute", right: spacing[16], top: 0, bottom: 0, justifyContent: "center" },
   cardName: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 16, color: colors.textPrimary },
   cardLine: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: CARD_MUTED, marginTop: 5 },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing[16] },

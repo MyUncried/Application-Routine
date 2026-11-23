@@ -52,6 +52,8 @@ export const planningStrings = {
     actionError: "L’action n’a pas pu être effectuée.",
     duplicate: "Dupliquer",
     delete: "Supprimer",
+    // D-568 / RM-276 (23/11/2026) : glisser une occurrence supprimée avec trace, tant que sa date n'est pas passée.
+    restore: "Rétablir",
     everyWeekdayPrefix: "Chaque",
     everyDay: "Tous les jours",
     everyDays: "Tous les {count} jours",
@@ -72,7 +74,8 @@ export const planningStrings = {
     // D-540 (20/11/2026) : « Expirée » — créneau manqué dont le délai de rattrapage est passé.
     // D-553 (21/11/2026) : ligne 2 d’une Exécution lancée hors Agenda sans créneau éligible.
     unplanned: "Hors planification",
-    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée" },
+    // D-568 / RM-276 (23/11/2026) : « Supprimée » — occurrence supprimée depuis l'Agenda avec trace.
+    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée", deleted: "Supprimée" },
   },
   // D-554 (21/11/2026) : Plan (DSF Plan, Figma « P-Calendrier — Plan » `12983:19`).
   plan: {
@@ -212,8 +215,8 @@ export const planningStrings = {
     start: "Début",
     program: "Programme",
     programNone: "Aucun",
-    // Recette du 23/11/2026 (h, g2 — Hermann : « je dois pouvoir attacher / détacher un programme ») : menu natif de la ligne
-    // Programme, en modification d'une routine.
+    // Recette du 23/11/2026 (h, g2 — Hermann : « je dois pouvoir attacher / détacher un programme ») : ligne Programme, en
+    // modification d'une routine — ouvre la modale « Rattacher un programme » (D-545). [Menu natif — remplacé.]
     programMenuAccessibility: "Programme : {value}. Toucher pour choisir un programme.",
     nameAccessibility: "Nom de la planification",
     namePlaceholder: "Nom de la planification",
@@ -290,5 +293,16 @@ export const planningStrings = {
     loadError: "Les séances n’ont pas pu être chargées.",
     checked: "sélectionnée",
     unchecked: "non sélectionnée",
+  },
+  /** D-545 (Hermann, 23/11/2026) : modale « Rattacher un programme » ouverte par la ligne Programme. */
+  programChoice: {
+    title: "Rattacher un programme",
+    cancel: "Fermer sans changer de programme",
+    loadError: "Les programmes n’ont pas pu être chargés.",
+    selected: "sélectionné",
+    unselected: "non sélectionné",
+    /** Toucher la carte sélectionnée retire le rattachement (« Aucun », D-332). */
+    selectedHint: "Toucher pour retirer le rattachement.",
+    unselectedHint: "Toucher pour rattacher ce programme.",
   },
 } as const;

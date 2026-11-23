@@ -82,6 +82,40 @@ export const programStrings = {
     saveFailed: "Le programme n’a pas pu être enregistré.",
     /** [interprétation] « + Planifier une séance » d'un nouveau programme : il est d'abord enregistré. */
     saveBeforePlanning: "Renseignez le nom et la période pour planifier une séance.",
+    /** D-544 (23/11/2026) : seconde ligne d'une routine, « du 15 septembre au 15 décembre ». */
+    span: "du {start} au {end}",
+    /** [interprétation] Créneau unique (D-544 ne prévoit que « du X au Y »). */
+    spanSingle: "le {date}",
+  },
+  /** D-543 (Hermann, 23/11/2026 ; DSF Programmes § 1) : période d'un programme. */
+  period: {
+    /** Le mot « au » / « pendant » est une valeur modifiable qui ouvre un menu pour changer de mode. */
+    modeDates: "au",
+    modeDuration: "pendant",
+    /** [interprétation] Libellés d'accessibilité des menus et de la roulette. */
+    modeAccessibility: "Fin de la période, {value}",
+    countAccessibility: "Durée, {value}",
+    unitAccessibility: "Unité de la durée, {value}",
+    units: {
+      DAY: { one: "jour", many: "jours" },
+      WEEK: { one: "semaine", many: "semaines" },
+      MONTH: { one: "mois", many: "mois" },
+    },
+    daysOne: "1 jour",
+    daysMany: "{count} jours",
+    weeksOne: "1 semaine",
+    weeksMany: "{count} semaines",
+    /** « 91 jours, soit 13 semaines » ; « 92 jours, soit 13 semaines et 1 jour ». */
+    datesInfo: "{days}, soit {weeks}",
+    datesInfoRest: "{line} et {rest}",
+    endsOn: "Se termine le {date}",
+    /** Raccourcir la période : « N créneaux seront supprimés ». [Singulier, Annuler et Confirmer : interprétation.] */
+    shortenedOne: "1 créneau sera supprimé",
+    shortenedMany: "{count} créneaux seront supprimés",
+    shortenedCancel: "Annuler",
+    shortenedConfirm: "Confirmer",
+    /** [interprétation] Roulette du nombre hors iOS. */
+    validate: "Valider",
   },
   /** « Rattacher une routine existante » (D-549). */
   attach: {
@@ -97,11 +131,19 @@ export const programStrings = {
     slotsOne: "1 créneau sur la période, {outside} en dehors",
     /** [interprétation] Aucune routine sans programme. */
     empty: "Toutes vos routines appartiennent déjà à un programme.",
-    /** D-566 (23/11/2026) : créneaux à venir hors de la période. */
-    outsideMany: "{count} créneaux sont en dehors de la période du programme.",
-    outsideOne: "1 créneau est en dehors de la période du programme.",
-    outsideKeep: "Garder dans le calendrier",
-    outsideDelete: "Supprimer",
+    /**
+     * D-566 (23/11/2026) : créneaux à venir hors de la période. Contre-recette du 23/11/2026, lot 4 — rattachement (x9, Hermann :
+     * « titre : "de ce programme" et non pas "du programme", enlever le point final ») ; modification depuis le Journal (x10 :
+     * « Enlever le point final dans le titre de la fenêtre de confirmation »). [« … de la période du programme. » — remplacé.]
+     */
+    outsideMany: "{count} créneaux sont en dehors de la période de ce programme",
+    outsideOne: "1 créneau est en dehors de la période de ce programme",
+    outsideManyJournal: "{count} créneaux sont en dehors de la période du programme",
+    outsideOneJournal: "1 créneau est en dehors de la période du programme",
+    /** x9 et x10 (Hermann) : « Les garder dans le calendrier ». [« Garder dans le calendrier » — remplacé.] */
+    outsideKeep: "Les garder dans le calendrier",
+    /** x10 et arbitrage de Hermann du 23/11/2026 (« Les supprimer », dans les deux contextes). [« Supprimer » — remplacé.] */
+    outsideDelete: "Les supprimer",
     outsideCancel: "Annuler",
   },
   /**
@@ -110,7 +152,12 @@ export const programStrings = {
    */
   consent: {
     title: "Suivi de la douleur",
-    body: "Une échelle de douleur et la zone concernée vous seront demandées avant et après les séances des programmes qui activent ce suivi.",
+    /**
+     * Lot 4 du 23/11/2026 (x5, Hermann) : texte recopié tel quel (« demandés » : accord signalé, non corrigé). [« Une échelle de
+     * douleur et la zone concernée vous seront demandées avant et après les séances des programmes qui activent ce suivi. » —
+     * remplacé.]
+     */
+    body: "Une échelle de douleur et la zone concernée vous seront demandés avant et après chaque séance exécutée dans ce programme",
     note: "Ces relevés restent sur votre téléphone et ne sont jamais interprétés. Vous pouvez retirer votre accord et effacer vos relevés à tout moment dans Profil › Confidentialité.",
     cancel: "Annuler",
     allow: "Autoriser",

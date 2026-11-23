@@ -1,5 +1,5 @@
-import { Button as SwiftUIButton, DatePicker, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
-import { accessibilityLabel as swiftUIAccessibilityLabel, datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
+import { DatePicker, Host } from "@expo/ui/swift-ui";
+import { datePickerStyle, tint } from "@expo/ui/swift-ui/modifiers";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
@@ -66,9 +66,10 @@ import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTab
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
-import { programStatus, type Program } from "@/domain/programs/Program";
+import type { Program } from "@/domain/programs/Program";
 import { maxEndCount, windowStartMinimum, withinWindow, type ProgramWindow } from "@/features/planning/programWindow";
 import { OutsidePeriodDialog } from "@/features/programs/OutsidePeriodDialog";
+import { withinProgramPeriod } from "@/domain/programs/programMembership";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
@@ -458,7 +459,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // D-566 : la routine n'est pas coupée, des créneaux peuvent rester hors programme (question posée à l'enregistrement).
   // [Bornes du programme en modification (PROG-CAT-01, point 5) — remplacé ; conservées pour la création depuis un programme et
   // pour une occurrence seule.]
-  const boundWindow = mode.kind === "edit" ? null : programWindow;
+  // D-564 / D-567 (lot 4, x10 — Hermann : « les créneaux en dehors de la période du programme sont toujours affectés au programme
+  // dans l'agenda : il faut que la valeur soit "Aucun" et qu'ils ne soient plus affectés au programme ») : une occurrence de
+  // l'Agenda datée hors de la période n'appartient pas au programme — valeur « Aucun », dates non bornées par le programme.
+  const occurrenceOutside = mode.kind === "occurrence" && selectedProgram !== null && !withinProgramPeriod(selectedProgram, form.startDate);
+  const shownProgram = occurrenceOutside ? null : selectedProgram;
+  const boundWindow = mode.kind === "edit" || occurrenceOutside ? null : programWindow;
   // Routine modifiée (au-delà du seul programme) : recette du 21/11/2026, sans changement rien n'est enregistré.
   const routineChanged = () => {
     const before = loadedForm.current;
@@ -501,15 +507,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       askModify(routineId);
       return;
     }
-    // Recette du 23/11/2026 (g2) : programme choisi depuis une occurrence de l'Agenda — question D-566 au rattachement.
-    const occurrenceRoutine = routineIdOf(mode);
-    if (mode.kind === "occurrence" && occurrenceRoutine !== null && programChanged && selectedProgram !== null) {
-      planning.outsidePeriodSlotCount(occurrenceRoutine, selectedProgram.startDate, selectedProgram.endDate).then(
-        (count) => (count > 0 ? setOutsideCount(count) : commit()),
-        () => commit(),
-      );
-      return;
-    }
+    // [Recette du 23/11/2026 (g2) : programme choisi depuis une occurrence de l'Agenda, question D-566 au rattachement — retiré
+    // le 23/11/2026 (x18) : le programme n'est plus modifiable depuis l'Agenda.]
     commit();
   };
 
@@ -600,6 +599,13 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       },
     });
     router.push("/planning-selection");
+  };
+
+  // D-545 : modale « Rattacher un programme » — le programme affiché y est sélectionné ; le choix (ou « Aucun ») est appliqué à
+  // l'enregistrement, avec la question D-566 si des créneaux à venir tombent hors de la période du programme choisi.
+  const openProgramChoice = () => {
+    requestPlanningSheet({ kind: "program", selectedId: selectedProgram?.id ?? null, onChoose: setChosenProgramId });
+    router.push("/planning-program");
   };
 
   /**
@@ -733,17 +739,21 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             <View style={styles.card} testID="planning-slot">
               <View style={styles.line}>
                 <Text style={styles.label}>{t.program}</Text>
-                {programChoosable && routineIdOf(mode) !== null && Platform.OS === "ios" ? (
-                  <ProgramMenu
+                {/* D-545 (Hermann, 23/11/2026) : en modification depuis le Journal, la ligne ouvre la modale « Rattacher un
+                    programme » (feuille native). [Menu SwiftUI natif (recette du 23/11/2026, h) — remplacé ; sa largeur, mesurée
+                    une fois par `Host matchContents`, tronquait le nom après un changement de répétition (constat b).]
+                    x18 (Hermann : « On ne doit pas pouvoir modifier le programme depuis l'agenda. Le champ doit être visible mais
+                    non éditable. ») : occurrence de l'Agenda — valeur fixe. [Menu depuis l'Agenda (g2) — remplacé.] */}
+                {programChoosable && mode.kind === "edit" ? (
+                  <Pill
                     label={selectedProgram?.name ?? t.programNone}
-                    selectedId={selectedProgram?.id ?? null}
-                    // D-545 : programmes non terminés.
-                    programs={programList.filter((item) => programStatus(item, todayLocal()) === "ACTIVE")}
-                    onChoose={setChosenProgramId}
+                    onPress={openProgramChoice}
+                    accessibilityLabel={fillTemplate(t.programMenuAccessibility, { value: selectedProgram?.name ?? t.programNone })}
+                    testID="planning-program"
                   />
                 ) : (
-                  <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${selectedProgram?.name ?? t.programNone}`} testID="planning-program">
-                    <Text style={styles.pillText}>{selectedProgram?.name ?? t.programNone}</Text>
+                  <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${shownProgram?.name ?? t.programNone}`} testID="planning-program">
+                    <Text style={styles.pillText}>{shownProgram?.name ?? t.programNone}</Text>
                   </View>
                 )}
               </View>
@@ -916,6 +926,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       {outsideCount !== null ? (
         <OutsidePeriodDialog
           count={outsideCount}
+          // Lot 4 (x9, x10) : programme choisi dans la modale = rattachement (« de ce programme ») ; sinon modification depuis
+          // le Journal (« du programme »).
+          context={programChanged ? "ATTACH" : "JOURNAL"}
           onKeep={() => answerOutside(false)}
           onDelete={() => answerOutside(true)}
           onCancel={() => setOutsideCount(null)}
@@ -1100,52 +1113,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         <TransientNotification message={notice} onDismiss={() => setNotice(null)} durationMs={RENAMED_NOTICE_MS} testID="planning-renamed-notice" />
       </View>
     </ScreenShell>
-  );
-}
-
-/**
- * Ligne Programme en modification d'une routine (recette du 23/11/2026, h et g2) : `Menu` SwiftUI natif d'`@expo/ui`, même
- * procédé que les menus des niveaux et de Ma bibliothèque — la pastille bleue est le libellé du menu ; « Aucun » puis les
- * programmes non terminés, le programme en vigueur coché (symbole système). iOS seulement ; ailleurs la pastille reste fixe.
- */
-function ProgramMenu({
-  label,
-  selectedId,
-  programs,
-  onChoose,
-}: {
-  readonly label: string;
-  readonly selectedId: string | null;
-  readonly programs: readonly Program[];
-  readonly onChoose: (programId: string | null) => void;
-}) {
-  const accessibility = fillTemplate(t.programMenuAccessibility, { value: label });
-  const options = [{ id: null, name: t.programNone }, ...programs.map((item) => ({ id: item.id as string | null, name: item.name }))];
-  return (
-    <View testID="planning-program">
-      <Host matchContents>
-        <Menu
-          label={
-            <RNHostView matchContents>
-              <View pointerEvents="none" style={styles.pill}>
-                <Text style={styles.pillText}>{label}</Text>
-              </View>
-            </RNHostView>
-          }
-          modifiers={[swiftUIAccessibilityLabel(accessibility)]}
-        >
-          {options.map((option) => (
-            <SwiftUIButton
-              key={option.id ?? "none"}
-              label={option.name}
-              {...(option.id === selectedId ? { systemImage: "checkmark" as const } : {})}
-              onPress={() => onChoose(option.id)}
-              testID={`planning-program-option-${option.id ?? "none"}`}
-            />
-          ))}
-        </Menu>
-      </Host>
-    </View>
   );
 }
 

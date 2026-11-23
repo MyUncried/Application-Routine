@@ -77,6 +77,12 @@ export type Occurrence = {
   readonly catchUpEnd?: number;
   /** D-554 / RM-273 : créneau ajouté hors de la répétition (Plan). */
   readonly added?: boolean;
+  /**
+   * D-568 / RM-276 : trace d'un créneau entièrement supprimé depuis l'Agenda (`deletedOccurrences`) ; `contents` porte alors les
+   * séances supprimées (affichage seul). Jamais présent dans `routineOccurrences` : le créneau n'est ni prévu, ni manqué, ni
+   * réalisé (Plan, Total, rappels, comptages et taux de réalisation l'ignorent).
+   */
+  readonly deleted?: true;
 };
 
 /** Occurrence commencée connue par ses Exécutions (lien de la migration 033) sans être enregistrée (données antérieures). */
@@ -158,11 +164,16 @@ function effectiveOccurrence(
   index: number,
   saved: OccurrenceOverride | undefined,
   isStarted: IsOccurrenceStarted,
+  traces = false,
 ): Occurrence | null {
   const sessions = saved?.sessions ?? (saved?.added === true ? addedOccurrenceSessions(routine) : routineSessionsAt(routine, index));
-  const contents = sessions.flatMap((session, rank) => (session.active ? [{ entryId: session.entryId, sessionId: session.sessionId, rank }] : []));
+  let contents = sessions.flatMap((session, rank) => (session.active ? [{ entryId: session.entryId, sessionId: session.sessionId, rank }] : []));
+  // D-568 : créneau dont toutes les séances jouées ont été supprimées depuis l'Agenda — trace (`deletedOccurrences`) seulement.
+  const traced = contents.length === 0 && traces && sessions.some((session) => session.deleted === true);
+  if (traced) contents = sessions.flatMap((session, rank) => (session.deleted === true ? [{ entryId: session.entryId, sessionId: session.sessionId, rank }] : []));
   if (contents.length === 0) return null;
   return {
+    ...(traced ? { deleted: true as const } : {}),
     routineId: routine.id,
     date: saved?.date ?? originDate,
     time: saved?.time ?? routine.time,
@@ -195,6 +206,21 @@ function effectiveOccurrence(
  * d'archivage ; les créneaux non commencés d'une routine supprimée avec historique sont retirés.]
  */
 export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStarted = NEVER_STARTED): Occurrence[] {
+  return collectOccurrences(routine, isStarted, false);
+}
+
+/**
+ * D-568 / RM-276 (23/11/2026) : créneaux de la répétition entièrement supprimés depuis l'Agenda avec trace — à leur date et heure
+ * prévues (`deleted: true`), pour l'Agenda seul. Une trace suit la routine comme un créneau : un créneau que la routine ne
+ * produit plus (période réduite) ou retiré (`exclusions` : suppression depuis le Journal, d'un programme, hors période D-566)
+ * n'en laisse aucune.
+ */
+export function deletedOccurrences(routine: Routine, isStarted: IsOccurrenceStarted = NEVER_STARTED): Occurrence[] {
+  if (!(routine.overrides ?? []).some((saved) => saved.sessions?.some((session) => session.deleted === true) === true)) return [];
+  return collectOccurrences(routine, isStarted, true).filter((occurrence) => occurrence.deleted === true);
+}
+
+function collectOccurrences(routine: Routine, isStarted: IsOccurrenceStarted, traces: boolean): Occurrence[] {
   const savedByDay = new Map<LocalDate, OccurrenceOverride>();
   // D-554 : un créneau ajouté n'est jamais rattaché à une occurrence produite par la répétition.
   for (const saved of routine.overrides ?? []) if (saved.added !== true) savedByDay.set(saved.key.slice(0, 10), saved);
@@ -209,19 +235,19 @@ export function routineOccurrences(routine: Routine, isStarted: IsOccurrenceStar
     if (saved !== undefined) matched.add(date);
     const key = saved?.key ?? occurrenceKey(date, routine.time);
     if (excluded.has(key)) continue;
-    const occurrence = effectiveOccurrence(routine, key, date, index, saved, isStarted);
+    const occurrence = effectiveOccurrence(routine, key, date, index, saved, isStarted, traces);
     if (occurrence !== null) result.push(occurrence);
   }
   for (const [day, saved] of savedByDay) {
     if (matched.has(day) || excluded.has(saved.key)) continue;
     if (saved.startedAt === null && saved.date === null && !isStarted(routine.id, saved.key)) continue;
-    const occurrence = effectiveOccurrence(routine, saved.key, day, saved.index, saved, isStarted);
+    const occurrence = effectiveOccurrence(routine, saved.key, day, saved.index, saved, isStarted, traces);
     if (occurrence !== null) result.push(occurrence);
   }
   // D-554 / RM-273 : créneaux ajoutés hors de la répétition — présentés à leur date et heure, quelle que soit la répétition.
   for (const saved of routine.overrides ?? []) {
     if (saved.added !== true || excluded.has(saved.key)) continue;
-    const occurrence = effectiveOccurrence(routine, saved.key, saved.date ?? saved.key.slice(0, 10), saved.index, saved, isStarted);
+    const occurrence = effectiveOccurrence(routine, saved.key, saved.date ?? saved.key.slice(0, 10), saved.index, saved, isStarted, traces);
     if (occurrence !== null) result.push({ ...occurrence, added: true });
   }
   return result.sort(byInstant);

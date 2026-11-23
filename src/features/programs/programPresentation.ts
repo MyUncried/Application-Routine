@@ -1,6 +1,8 @@
 import type { LocalDate, LocalTime, Routine } from "@/domain/planning/Routine";
 import { programPhase, programStatus, type Program, type ProgramStatus } from "@/domain/programs/Program";
+import { routineLastDate } from "@/features/planning/journal";
 import { formatRecurrence } from "@/features/planning/planningSummary";
+import { planningStrings } from "@/features/planning/planningStrings";
 
 import type { ProgramDeletionPlan, ProgramSummary } from "./ProgramService";
 import { programStrings } from "./programStrings";
@@ -89,6 +91,24 @@ export function routineSlotLine(routine: Pick<Routine, "repetition" | "startDate
   const t = programStrings.sheet;
   const contents = routine.entries.length === 1 ? t.contentsOne : t.contentsMany.replace("{count}", String(routine.entries.length));
   return `${when}, ${formatHour(routine.time)}  ·  ${contents}`;
+}
+
+/** « 15 septembre » : jour en chiffres, mois en toutes lettres, sans année (D-544). */
+function formatDayMonthLong(date: LocalDate): string {
+  const [, month, day] = date.split("-");
+  return `${Number(day)} ${planningStrings.months[Number(month) - 1] ?? ""}`;
+}
+
+/**
+ * D-544 (23/11/2026, DSF Programmes § 2) : seconde ligne d'une routine dans la modale du programme — « du 15 septembre au
+ * 15 décembre » (début et dernière date de la répétition), sans fréquence ni heure. [Interprétation : créneau unique →
+ * « le 18 novembre ».] [Ligne « créneau, heure · N contenus » (`routineSlotLine`) — remplacée sur la ligne.]
+ */
+export function routineSpanLine(routine: Routine): string {
+  const t = programStrings.sheet;
+  const last = routineLastDate(routine);
+  if (last === routine.startDate) return t.spanSingle.replace("{date}", formatDayMonthLong(routine.startDate));
+  return t.span.replace("{start}", formatDayMonthLong(routine.startDate)).replace("{end}", formatDayMonthLong(last));
 }
 
 /**

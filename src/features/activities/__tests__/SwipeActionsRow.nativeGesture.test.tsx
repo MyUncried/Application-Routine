@@ -67,3 +67,65 @@ describe("SwipeActionsRow — nativeGesture (r3)", () => {
     expect(onReveal).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * Lot 4 du 23/11/2026 (x4, Hermann : « le glisser gauche provoque l'ouverture systématique de l'écran de planification d'une
+ * séance ») : la fin d'un glissé, non annulée par iOS pour React Native, arrivait à la carte comme un appui.
+ */
+describe("SwipeActionsRow — nativeGesture : un glissé n'est jamais un appui (x4)", () => {
+  function pressableRow(onPress: () => void) {
+    return (
+      <SwipeActionsRow
+        actions={[{ key: "detach", label: "Retirer", backgroundColor: "#7A5AF8", onPress: () => undefined }]}
+        revealed={false}
+        onReveal={() => undefined}
+        onHide={() => undefined}
+        onPress={onPress}
+        accessibilityLabel="Routine"
+        actionWidth={90}
+        nativeGesture
+        testID="row"
+      >
+        <Text>Routine</Text>
+      </SwipeActionsRow>
+    );
+  }
+
+  it.each([
+    ["ouverture", -80],
+    ["glissé court", -20],
+  ])("%s : la fin du glissé n'appelle pas onPress", (_label, translationX) => {
+    const onPress = jest.fn();
+    render(pressableRow(onPress));
+    fireEvent(screen.getByTestId("row"), "touchStart", { nativeEvent: { pageX: 200, pageY: 20 } });
+    fireGestureHandler(getByGestureTestId("row-pan"), [
+      { state: State.BEGAN, translationX: 0 },
+      { state: State.ACTIVE, translationX: translationX / 2, translationY: 4 },
+      { state: State.ACTIVE, translationX, translationY: 6 },
+      { state: State.END, translationX, translationY: 6 },
+    ]);
+    // iOS livre ensuite la fin du toucher au Pressable (onPressOut → onPress).
+    fireEvent.press(screen.getByTestId("row-card"));
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("toucher simple, y compris juste après un glissé : onPress est appelé", () => {
+    const onPress = jest.fn();
+    render(pressableRow(onPress));
+    fireEvent(screen.getByTestId("row"), "touchStart", { nativeEvent: { pageX: 200, pageY: 20 } });
+    fireEvent.press(screen.getByTestId("row-card"));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    fireEvent(screen.getByTestId("row"), "touchStart", { nativeEvent: { pageX: 200, pageY: 20 } });
+    fireGestureHandler(getByGestureTestId("row-pan"), [
+      { state: State.BEGAN, translationX: 0 },
+      { state: State.ACTIVE, translationX: -20 },
+      { state: State.END, translationX: -20 },
+    ]);
+    fireEvent.press(screen.getByTestId("row-card"));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    // Toucher suivant : de nouveau un appui.
+    fireEvent(screen.getByTestId("row"), "touchStart", { nativeEvent: { pageX: 200, pageY: 20 } });
+    fireEvent.press(screen.getByTestId("row-card"));
+    expect(onPress).toHaveBeenCalledTimes(2);
+  });
+});

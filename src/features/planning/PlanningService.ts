@@ -1,5 +1,6 @@
 import {
   addDays,
+  endDateForCount,
   formatLocalDate,
   isLocalDate,
   isLocalTime,
@@ -18,6 +19,7 @@ import {
 import type { RoutineRepository } from "@/domain/planning/RoutineRepository";
 import {
   addedOccurrenceSessions,
+  deletedOccurrences,
   isRoutineActiveAt,
   routineOccurrences,
   routineSessionsAt,
@@ -94,6 +96,47 @@ export type PlanningServiceDeps = {
 /** Routine enregistrée telle que le brouillon la réécrirait (dates, heure, répétition, séances), avant enregistrement. */
 function withDraft(stored: Routine, draft: RoutineDraft): Routine {
   return { ...stored, startDate: draft.startDate, time: draft.time, repetition: draft.repetition, entries: draft.entries };
+}
+
+/**
+ * D-567 (23/11/2026) : dates de la routine ramenées à la période [`start`, `end`] de son programme par « Supprimer » (D-566).
+ * `removed` : clés des créneaux à venir hors période retirés. Fin : celle du programme, ou le jour d'origine du dernier créneau
+ * conservé (passé, commencé ou dans la période) s'il est postérieur ; « pendant N » devient « jusqu'au ». Début : celui du
+ * programme si aucune séance n'a été réalisée avant, à condition que les créneaux de la période restent identiques (sinon le
+ * premier jour produit dans la période, sinon inchangé). Voir `PlanningService.removeOutsidePeriod`.
+ */
+function withinProgramDates(stored: Routine, removed: ReadonlySet<string>, start: LocalDate, end: LocalDate, isStarted: IsOccurrenceStarted): Routine {
+  const repetition = stored.repetition;
+  if (repetition === null) return stored;
+  const occurrences = routineOccurrences(stored, isStarted);
+  const originDay = (occurrence: Occurrence) => occurrence.key.slice(0, 10);
+  const produced = occurrences.filter((occurrence) => occurrence.added !== true);
+  const lastKept = produced
+    .filter((occurrence) => !removed.has(occurrence.key))
+    .reduce<LocalDate>((last, occurrence) => (originDay(occurrence) > last ? originDay(occurrence) : last), stored.startDate);
+  const cut = lastKept > end ? lastKept : end;
+  const lastDate = repetition.end.kind === "UNTIL" ? repetition.end.date : endDateForCount(repetition.unit, stored.startDate, repetition.end.count);
+  const endDate = cut < lastDate ? cut : lastDate;
+  const shortened: Routine = cut < lastDate ? { ...stored, repetition: { ...repetition, end: { kind: "UNTIL", date: cut } } } : stored;
+  // Début : inchangé si la routine commence dans la période ou si une séance a été réalisée avant le début du programme.
+  if (stored.startDate >= start || occurrences.some((occurrence) => occurrence.started && originDay(occurrence) < start)) return shortened;
+  const inPeriod = (routine: Routine) =>
+    JSON.stringify(
+      routineOccurrences(routine, isStarted)
+        .filter((occurrence) => occurrence.added !== true && originDay(occurrence) >= start)
+        .map((occurrence) => [occurrence.key, occurrence.date, occurrence.time, occurrence.sessions]),
+    );
+  const reference = inPeriod(shortened);
+  const firstInPeriod = produced
+    .map(originDay)
+    .filter((day) => day >= start)
+    .reduce<LocalDate | null>((first, day) => (first === null || day < first ? day : first), null);
+  for (const candidate of firstInPeriod === null || firstInPeriod === start ? [start] : [start, firstInPeriod]) {
+    if (candidate > endDate) continue;
+    const moved: Routine = { ...stored, startDate: candidate, repetition: { ...repetition, end: { kind: "UNTIL", date: endDate } } };
+    if (inPeriod(moved) === reference) return moved;
+  }
+  return shortened;
 }
 
 export class PlanningService {
@@ -428,6 +471,21 @@ export class PlanningService {
   }
 
   /**
+   * D-564 (23/11/2026) : Séances des occurrences de chaque routine comprises dans [`start`, `end`] (passées, commencées et à venir) —
+   * seules ces occurrences appartiennent au programme. Une routine sans occurrence dans la période est absente du résultat
+   * (cartes du catalogue des programmes, « N planifications · N séances »).
+   */
+  async periodSessionsFor(routines: readonly Routine[], start: LocalDate, end: LocalDate): Promise<ReadonlyMap<string, ReadonlySet<string>>> {
+    const isStarted = await this.startedTest();
+    const result = new Map<string, ReadonlySet<string>>();
+    for (const routine of routines) {
+      const inside = routineOccurrences(routine, isStarted).filter((occurrence) => occurrence.date >= start && occurrence.date <= end);
+      if (inside.length > 0) result.set(routine.id, new Set(inside.flatMap((occurrence) => occurrence.contents.map((content) => content.sessionId))));
+    }
+    return result;
+  }
+
+  /**
    * D-566 : créneaux à venir hors de [`start`, `end`] d'une routine modifiée depuis le Journal, avant enregistrement (`draft`) ;
    * sans brouillon, la routine enregistrée.
    */
@@ -450,7 +508,17 @@ export class PlanningService {
    * recrée. Les autres créneaux hors période (avant le début, routine « pendant N » ou sans répétition, créneau déplacé à la main)
    * restent retirés un à un. [Retrait un à un de tous les créneaux, définitif (`removeUpcomingSlots`) — remplacé pour D-566.]
    * [« pendant N » non raccourci : N compte des semaines entières, une coupe au milieu d'une semaine retirerait des créneaux de
-   * la période — interprétation technique.]
+   * la période — interprétation technique. — Remplacé le 23/11/2026 (D-567, lot 4) : voir ci-dessous.]
+   *
+   * D-567 (Hermann, 23/11/2026 ; `docs/KODJO-Programme-recette-2026-11-23.md` § 4) : « Supprimer » ramène la date de fin de la
+   * routine à celle du programme — aussi pour une routine « pendant N », qui devient « jusqu'au » la fin du programme (aucun
+   * créneau de la période n'est retiré ; étendre ensuite la fin recrée les créneaux). Constat x10 du 23/11/2026 (parcours
+   * « pendant 9 semaines » sans créneau du 2 au 9 janvier) : les créneaux d'une routine « pendant N » retirés un à un restaient
+   * retirés après une extension. Si la routine commençait avant le programme sans séance réalisée avant son début, sa date de
+   * début est ramenée à celle du programme ; sinon elle ne bouge pas. [Le début n'est déplacé que si les créneaux de la période
+   * restent identiques (dates et séances : ancrage des semaines « toutes les N semaines », rotation « x fois sur n ») — sinon
+   * il ne bouge pas et les créneaux d'avant la période sont retirés un à un : interprétation technique.] Les créneaux réalisés
+   * ne sont jamais touchés.
    */
   async removeOutsidePeriod(routineId: string, start: LocalDate, end: LocalDate): Promise<number> {
     const stored = await this.deps.repository.get(routineId);
@@ -459,20 +527,13 @@ export class PlanningService {
     const removed = this.upcomingOf(stored, isStarted).filter((occurrence) => occurrence.date < start || occurrence.date > end);
     if (removed.length === 0) return 0;
     const keys = new Set(removed.map((occurrence) => occurrence.key));
-    let routine = stored;
-    const repetition = stored.repetition;
-    if (repetition !== null && repetition.end.kind === "UNTIL") {
-      // Jour d'origine (clé) du dernier créneau conservé produit par la répétition : passé, commencé ou dans la période.
-      const lastKept = routineOccurrences(stored, isStarted)
-        .filter((occurrence) => !keys.has(occurrence.key) && occurrence.added !== true)
-        .reduce<LocalDate>((last, occurrence) => (occurrence.key.slice(0, 10) > last ? occurrence.key.slice(0, 10) : last), stored.startDate);
-      const cut = lastKept > end ? lastKept : end;
-      if (cut < repetition.end.date) routine = { ...stored, repetition: { ...repetition, end: { kind: "UNTIL", date: cut } } };
-    }
+    const routine = withinProgramDates(stored, keys, start, end, isStarted);
     const remaining = routineOccurrences(routine, isStarted)
       .filter((occurrence) => keys.has(occurrence.key))
       .map((occurrence) => occurrence.key);
-    await this.deps.repository.save({ ...routine, exclusions: [...new Set([...routine.exclusions, ...remaining])], updatedAt: this.deps.now().toISOString() });
+    // D-568 : créneaux hors période supprimés (D-566) — sans trace ; une trace hors période disparaît aussi (non comptée).
+    const traces = traceKeys(routine, isStarted, (occurrence) => occurrence.date < start || occurrence.date > end);
+    await this.deps.repository.save({ ...routine, exclusions: [...new Set([...routine.exclusions, ...remaining, ...traces])], updatedAt: this.deps.now().toISOString() });
     return this.written(removed.length);
   }
 
@@ -488,8 +549,15 @@ export class PlanningService {
     // `includePast` (D-564, suppression d'un programme) : tous les créneaux non commencés, passés compris (règle du Journal).
     const candidates = options.includePast === true ? routineOccurrences(stored, isStarted).filter((occurrence) => !occurrence.started) : this.upcomingOf(stored, isStarted);
     const keys = candidates.filter((occurrence) => remove(occurrence.date)).map((occurrence) => occurrence.key);
-    if (keys.length === 0) return 0;
-    await this.deps.repository.save({ ...stored, exclusions: [...new Set([...stored.exclusions, ...keys])], updatedAt: this.deps.now().toISOString() });
+    // D-568 : suppression d'un programme ou hors période — sans trace ; une trace de ces dates disparaît aussi (non comptée).
+    const now = this.deps.now().getTime();
+    const traces = traceKeys(
+      stored,
+      isStarted,
+      (occurrence) => remove(occurrence.date) && (options.includePast === true || occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now),
+    );
+    if (keys.length === 0 && traces.length === 0) return 0;
+    await this.deps.repository.save({ ...stored, exclusions: [...new Set([...stored.exclusions, ...keys, ...traces])], updatedAt: this.deps.now().toISOString() });
     return this.written(keys.length);
   }
 
@@ -557,7 +625,7 @@ export class PlanningService {
       reminderMinutes: draft.reminderMinutes ?? null,
       updatedAt: this.deps.now().toISOString(),
     };
-    await this.deps.repository.save(routine);
+    await this.deps.repository.save(withoutStaleTraces(routine, await this.startedTest()));
     return this.written({ status: "SAVED", routine } as const);
   }
 
@@ -574,7 +642,8 @@ export class PlanningService {
     if (!occurrences.some((occurrence) => occurrence.started)) return this.written(await this.deps.repository.delete(routineId));
     // D-540 (20/11/2026) : plus d'archivage — les créneaux non commencés (expirés compris) sont retirés ; la routine, sans créneau
     // à venir ni rattrapable, est terminée (état calculé). [D-537 : routine archivée (`archivedAt`) — remplacé.]
-    const removed = occurrences.filter((occurrence) => !occurrence.started).map((occurrence) => occurrence.key);
+    // D-568 : suppression de la routine depuis le Journal — sans trace (les traces non commencées sont retirées aussi).
+    const removed = [...occurrences.filter((occurrence) => !occurrence.started).map((occurrence) => occurrence.key), ...traceKeys(routine, isStarted, () => true)];
     const at = this.deps.now().toISOString();
     await this.deps.repository.save({
       ...routine,
@@ -585,11 +654,68 @@ export class PlanningService {
     return this.written(true);
   }
 
-  /** D-537 (Agenda) : retire une occurrence ; refusé pour une occurrence commencée. */
+  /**
+   * D-537 (Agenda) : retire une occurrence ; refusé pour une occurrence commencée.
+   * D-568 / RM-276 (23/11/2026) : une occurrence prévue par la répétition d'une routine garde une trace « Supprimée » (ses séances
+   * jouées passent à l'état supprimé, date et heure prévues conservées) ; un créneau ajouté à la main (RM-273) ou un créneau
+   * unique disparaît (retrait, comme avant).
+   */
   async excludeOccurrence(routineId: string, occurrenceKey: string): Promise<boolean> {
     const found = await this.getOccurrence(routineId, occurrenceKey);
     if (found !== null && found.occurrence.started) return false;
+    if (found !== null && keepsTrace(found.routine, found.occurrence)) {
+      const routine = await this.frozen(found.routine);
+      const sessions = found.occurrence.sessions.map((session) => (session.active ? { ...session, active: false, deleted: true as const } : session));
+      await this.saveOccurrenceSessions(routine, found.occurrence, sessions);
+      return this.written(true);
+    }
     return this.written(await this.deps.repository.addExclusion(routineId, occurrenceKey, this.deps.now().toISOString()));
+  }
+
+  /**
+   * D-568 / RM-276 : « Rétablir » une occurrence supprimée avec trace — toutes ses séances supprimées (`sessionIndex` `null`), ou
+   * une Séance de parcours (`sessionIndex` : rang dans la liste des séances de l'occurrence). L'occurrence redevient prévue.
+   * Refusé (`PAST`) quand sa date est passée (« tant que la date n'est pas passée » : comparaison au jour, interprétation
+   * technique). Une occurrence qui redevient identique à la routine n'est plus enregistrée.
+   */
+  async restoreOccurrence(routineId: string, occurrenceKey: string, sessionIndex: number | null): Promise<"RESTORED" | "PAST" | "NOT_FOUND"> {
+    const current = await this.deps.repository.get(routineId);
+    if (current === null) return "NOT_FOUND";
+    const isStarted = await this.startedTest();
+    const found =
+      deletedOccurrences(current, isStarted).find((item) => item.key === occurrenceKey) ??
+      routineOccurrences(current, isStarted).find((item) => item.key === occurrenceKey);
+    if (found === undefined || !found.sessions.some((session, index) => session.deleted === true && (sessionIndex === null || index === sessionIndex))) return "NOT_FOUND";
+    if (found.date < formatLocalDate(this.deps.now())) return "PAST";
+    const sessions = found.sessions.map((session, index) => {
+      if (session.deleted !== true || (sessionIndex !== null && index !== sessionIndex)) return session;
+      const { deleted: _trace, ...rest } = session;
+      return { ...rest, active: true };
+    });
+    await this.saveOccurrenceSessions(current, found, sessions);
+    return this.written("RESTORED" as const);
+  }
+
+  /**
+   * Enregistre le groupe « séances » d'une occurrence (D-536) ; redevenu égal à la routine et sans autre groupe modifié, l'occurrence
+   * n'est plus enregistrée (D-568, rétablissement).
+   */
+  private async saveOccurrenceSessions(routine: Routine, occurrence: Occurrence, sessions: readonly OccurrenceSession[]): Promise<void> {
+    const saved = (routine.overrides ?? []).find((item) => item.key === occurrence.key);
+    const defaults = saved?.added === true ? addedOccurrenceSessions(routine) : routineSessionsAt(routine, occurrence.index);
+    const followsRoutine =
+      defaults.length === sessions.length &&
+      defaults.every((session, rank) => {
+        const other = sessions[rank]!;
+        return other.deleted !== true && other.sessionId === session.sessionId && other.entryId === session.entryId && other.origin === session.origin && other.active === session.active;
+      });
+    const next: OccurrenceOverride =
+      saved !== undefined
+        ? { ...saved, sessions: followsRoutine ? null : sessions }
+        : { key: occurrence.key, index: occurrence.index, date: null, time: null, sessions: followsRoutine ? null : sessions, reminderOverridden: false, reminderMinutes: null, startedAt: null };
+    const empty = next.sessions === null && next.date === null && next.time === null && !next.reminderOverridden && next.startedAt === null && next.added !== true;
+    const others = (routine.overrides ?? []).filter((item) => item.key !== occurrence.key);
+    await this.deps.repository.save({ ...routine, overrides: empty ? others : [...others, next], updatedAt: this.deps.now().toISOString() });
   }
 
   /** RM-123 : brouillon de duplication — liste ordonnée, motifs et paramètres ; nouvelles identités d'entrée. */
@@ -671,6 +797,16 @@ export class PlanningService {
         : execution.rank === position,
     );
     if (executed) return "EXECUTED";
+    // D-568 / RM-276 (23/11/2026) : parcours prévu par la répétition — trace par Séance ; la dernière supprimée laisse tout le
+    // créneau visible, supprimé. [« La dernière Séance restante supprime le créneau » — remplacé pour ces créneaux ; inchangé pour
+    // un créneau ajouté à la main ou unique.]
+    if (keepsTrace(routine, occurrence)) {
+      if (occurrence.contents.length <= 1 && occurrence.started) return "EXECUTED";
+      const traced = occurrence.sessions.map((session, index) => (index === sessionIndex ? { ...session, active: false, deleted: true as const } : session));
+      await this.saveOccurrenceSessions(routine, occurrence, traced);
+      await this.refreshReminders();
+      return occurrence.contents.length <= 1 ? "SLOT_REMOVED" : "REMOVED";
+    }
     if (occurrence.contents.length <= 1) {
       if (occurrence.started) return "EXECUTED";
       await this.deps.repository.addExclusion(routineId, occurrenceKey, this.deps.now().toISOString());
@@ -709,6 +845,11 @@ export class PlanningService {
      * été exécutée, indépendante des modifications ultérieures du Catalogue (FMT-06).
      */
     readonly snapshots: ReadonlyMap<string, SessionSnapshot>;
+    /**
+     * D-568 / RM-276 (23/11/2026) : créneaux entièrement supprimés avec trace dans [`from`, `to`], à leur date et heure prévues —
+     * Agenda seul (le Plan ne les montre pas : case vide, hors du Total).
+     */
+    readonly deletedOccurrences: readonly Occurrence[];
   }> {
     const [routines, executions, allExecutions] = await Promise.all([
       this.deps.repository.list(),
@@ -753,7 +894,9 @@ export class PlanningService {
       const snapshot = this.snapshotCache.get(id);
       if (snapshot !== undefined && snapshot !== null) snapshots.set(id, snapshot);
     }
-    return { routines, occurrences, executions, allExecutions, snapshots };
+    const startedKey: IsOccurrenceStarted = (routineId, key) => keys.has(occurrenceExecutionKey(routineId, key));
+    const traces = routines.flatMap((routine) => deletedOccurrences(routine, startedKey)).filter((occurrence) => occurrence.date >= from && occurrence.date <= to);
+    return { routines, occurrences, executions, allExecutions, snapshots, deletedOccurrences: traces };
   }
 
   /** Occurrences de [`from`, `to`] (liste continue de l'Agenda sur plusieurs semaines, recette du 20/11/2026, constat C). */
@@ -779,4 +922,33 @@ export class PlanningService {
       .map((occurrence) => ({ ...occurrence, contents: occurrence.contents.filter((content) => isPlannable(content.sessionId)) }))
       .filter((occurrence) => occurrence.contents.length > 0);
   }
+}
+
+/**
+ * D-568 / RM-276 : une suppression depuis l'Agenda garde une trace pour une occurrence prévue par la répétition d'une routine ; un
+ * créneau ajouté à la main (RM-273) ou un créneau unique (sans répétition) n'en garde pas.
+ */
+function keepsTrace(routine: Routine, occurrence: Occurrence): boolean {
+  return routine.repetition !== null && occurrence.added !== true;
+}
+
+/** D-568 : clés des traces non commencées de la routine qui vérifient `select` (à retirer sans trace). */
+function traceKeys(routine: Routine, isStarted: IsOccurrenceStarted, select: (occurrence: Occurrence) => boolean): string[] {
+  return deletedOccurrences(routine, isStarted)
+    .filter((occurrence) => !occurrence.started && select(occurrence))
+    .map((occurrence) => occurrence.key);
+}
+
+/**
+ * D-568 : réduction de la période d'une routine depuis le Journal — sans trace. Une occurrence enregistrée seulement pour sa trace,
+ * que la routine modifiée ne produit plus, est oubliée (elle ne reparaît pas si la période est de nouveau étendue).
+ */
+function withoutStaleTraces(routine: Routine, isStarted: IsOccurrenceStarted): Routine {
+  const overrides = routine.overrides ?? [];
+  if (!overrides.some((saved) => saved.sessions?.some((session) => session.deleted === true) === true)) return routine;
+  const shown = new Set([...routineOccurrences(routine, isStarted), ...deletedOccurrences(routine, isStarted)].map((occurrence) => occurrence.key));
+  const kept = overrides.filter(
+    (saved) => shown.has(saved.key) || saved.startedAt !== null || saved.sessions?.some((session) => session.deleted === true) !== true,
+  );
+  return kept.length === overrides.length ? routine : { ...routine, overrides: kept };
 }

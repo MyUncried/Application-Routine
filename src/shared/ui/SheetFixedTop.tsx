@@ -42,6 +42,7 @@ export function SheetFixedTop({ top, renderScroll }: { readonly top: ReactNode; 
  * - zone de contexte `ContextBand` du Catalogue : fondu vers la transparence, halo et courbure sous ✕ (`backHalo`) et
  *   sous la coche (`validateHalo`), de la couleur de l'en-tête ;
  * - posés par-dessus la liste (`SheetFixedTop`).
+ * D-545 (« Rattacher un programme », 23/11/2026) : `validate` absent — feuille sans bouton Valider, ni coche ni halo à droite.
  */
 export function NativeSheetTop({
   title,
@@ -58,7 +59,7 @@ export function NativeSheetTop({
   readonly title: string;
   readonly onClose: () => void;
   readonly closeAccessibilityLabel: string;
-  readonly validate: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
+  readonly validate?: { readonly onPress: () => void; readonly enabled: boolean; readonly accessibilityLabel: string };
   /** Fond de l'en-tête, repris par les halos. */
   readonly headerBackground: string;
   /** Couleur de la zone (défaut de `ContextBand`). */
@@ -74,12 +75,12 @@ export function NativeSheetTop({
       top={
         <>
           <View style={{ backgroundColor: headerBackground }}>
-            <FixedHeader title={title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={closeAccessibilityLabel} validate={validate} />
+            <FixedHeader title={title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={closeAccessibilityLabel} {...(validate !== undefined ? { validate } : {})} />
           </View>
           <ContextBand
             fadeToTransparent
             backHalo={headerBackground}
-            validateHalo={headerBackground}
+            {...(validate !== undefined ? { validateHalo: headerBackground } : {})}
             {...(bandColor !== undefined ? { color: bandColor } : {})}
             {...(bandPadding !== undefined ? { padding: bandPadding } : {})}
           >

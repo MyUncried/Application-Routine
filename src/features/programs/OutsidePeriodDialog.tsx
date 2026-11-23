@@ -15,18 +15,27 @@ import { programStrings } from "./programStrings";
  */
 const t = programStrings.attach;
 
-export function outsidePeriodMessage(count: number): string {
-  return count === 1 ? t.outsideOne : fillTemplate(t.outsideMany, { count: String(count) });
+/**
+ * Contre-recette du 23/11/2026, lot 4 : `ATTACH` — rattachement d'une routine à un programme (« de ce programme », x9) ;
+ * `JOURNAL` — modification de la routine depuis le Journal, sans changement de programme (« du programme », x10).
+ */
+export type OutsidePeriodContext = "ATTACH" | "JOURNAL";
+
+export function outsidePeriodMessage(count: number, context: OutsidePeriodContext = "ATTACH"): string {
+  const journal = context === "JOURNAL";
+  return count === 1 ? (journal ? t.outsideOneJournal : t.outsideOne) : fillTemplate(journal ? t.outsideManyJournal : t.outsideMany, { count: String(count) });
 }
 
 export function OutsidePeriodDialog({
   count,
+  context = "ATTACH",
   onKeep,
   onDelete,
   onCancel,
   testIDPrefix,
 }: {
   readonly count: number;
+  readonly context?: OutsidePeriodContext;
   readonly onKeep: () => void;
   readonly onDelete: () => void;
   readonly onCancel: () => void;
@@ -35,7 +44,7 @@ export function OutsidePeriodDialog({
   return (
     <DecisionDialog
       stacked
-      title={outsidePeriodMessage(count)}
+      title={outsidePeriodMessage(count, context)}
       titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText, textAlign: "center" }}
       message=""
       messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}

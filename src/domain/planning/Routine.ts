@@ -158,6 +158,12 @@ export type OccurrenceSession = {
   readonly entryId: string | null;
   readonly origin: "ROUTINE" | "ADDED";
   readonly active: boolean;
+  /**
+   * D-568 / RM-276 (23/11/2026) : séance supprimée depuis l'Agenda avec trace (« Supprimée ») — toujours inactive ; l'occurrence
+   * garde sa date et son heure prévues et peut être rétablie tant que sa date n'est pas passée. Absent : pas de trace (séance
+   * active, désactivée à la main, ou retirée avant le 23/11/2026 — aucune reprise rétroactive).
+   */
+  readonly deleted?: true;
 };
 
 /**

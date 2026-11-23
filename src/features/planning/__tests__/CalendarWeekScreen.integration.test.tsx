@@ -384,6 +384,13 @@ describe("Calendrier Semaine", () => {
     await renderCalendar();
     const group = `${parcours.id}|${MONDAY}T10:00`;
     expect(screen.getByTestId(`calendar-parcours-${group}-name`).props.children).toBe("Mobilité du matin");
+    // Contre-recette du 23/11/2026, lot 4 (constat e — « mettre la couleur du nom des parcours en gris, et pas en gras »).
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-parcours-${group}-name`).props.style)).toMatchObject({
+      fontFamily: "Inter_400Regular",
+      fontWeight: "400",
+      fontSize: 15,
+      color: "#595E66",
+    });
     expect(screen.getByTestId(`calendar-parcours-${group}-badge`)).toBeTruthy();
     expect(StyleSheet.flatten(screen.getByTestId(`calendar-parcours-${group}-link`).props.style)).toMatchObject({ width: 1, backgroundColor: "#000000" });
     expect(screen.queryAllByTestId(/^calendar-parcours-.*-name$/)).toHaveLength(1);
@@ -435,6 +442,10 @@ describe("Calendrier Semaine", () => {
     expect(left).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: 10, width: 6, backgroundColor: "#8EAAE8" });
     expect(right).toMatchObject({ position: "absolute", top: 0, bottom: 0, right: 0, width: 6, backgroundColor: "#8EAAE8" });
     expect(screen.getByTestId(`calendar-item-${full}|2-composition`)).toBeTruthy();
+    // Contre-recette du 23/11/2026, lot 4 (constat f — « trop d'espace avant la première ligne ») : aucun écart propre entre la carte
+    // et la composition ; les traits prolongés partent toujours du bas de la carte. [Écart de 8 — remplacé.]
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${full}|2-expanded-wrapper`).props.style)).toMatchObject({ paddingTop: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId(`calendar-item-${full}|2-expanded`).props.style)).toMatchObject({ marginTop: 0 });
   });
 
   // D-553 (21/11/2026) : une carte par Séance, dans l'ordre de la liste ; « Démarrer » sur la première lance toute la chaîne
@@ -616,11 +627,90 @@ describe("Calendrier Semaine", () => {
     expect(screen.queryByText("Toutes les occurrences à venir")).toBeNull();
     fireEvent.press(screen.getByText("Confirmer"));
     await flush();
-    expect(sectionDays()).toEqual([THURSDAY]);
-    expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([`${MONDAY}T08:00`]);
+    // D-568 / RM-276 (23/11/2026) : l'occurrence prévue par la répétition reste à son heure, « Supprimée » (trace), sans retrait.
+    // [Occurrence retirée (`exclusions`), lundi vide — remplacé.]
+    expect(sectionDays()).toEqual([MONDAY, THURSDAY]);
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-DELETED`)).toBeTruthy();
+    expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([]);
     fireEvent.press(screen.getByTestId("calendar-next-week"));
     await flush();
     expect(sectionDays()).toEqual([addDays(MONDAY, 7), addDays(MONDAY, 10)]);
+  });
+
+  // D-568 / RM-276 (Hermann, 23/11/2026 ; Figma `12906:124`, « Dos et mobilité » du mardi 17) : trace d'une occurrence supprimée.
+  it("occurrence supprimée avec trace : carte grise « Supprimée » à l'heure prévue, sans point ; le glisser propose « Rétablir » seul (D-568)", async () => {
+    const created = await sessions.createStructured(input("Dos et mobilité"));
+    const routine = await plan({
+      time: "18:30",
+      entries: [entry(created.id)],
+      repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: addDays(MONDAY, 30) } },
+    });
+    await renderCalendar();
+    const id = `${card(routine.id, MONDAY, "18:30")}`;
+    fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    fireEvent.press(screen.getByText("Confirmer"));
+    await flush();
+    expect(screen.getByTestId(`${id}-status-DELETED`)).toBeTruthy();
+    expect(screen.getByTestId(`${id}-time`).props.children).toBe("18h30");
+    expect(within(screen.getByTestId(`${id}-status-tag`)).getByText("Supprimée")).toBeTruthy();
+    expect(screen.queryByTestId(`${id}-start`)).toBeNull();
+    // Cadre, traits et texte gris (Figma `12906:124`).
+    expect(StyleSheet.flatten(screen.getByTestId(`${id}-frame`).props.style)).toMatchObject({ backgroundColor: "#F6F6F9" });
+    expect(StyleSheet.flatten(screen.getByTestId(`${id}-name`).props.style)).toMatchObject({ color: "#8F949E" });
+    expect(StyleSheet.flatten(screen.getByTestId(`${id}-time`).props.style)).toMatchObject({ color: "#8F949E" });
+    // Figma `12906:184` : une Séance supprimée n'a pas de point dans la rangée des jours.
+    expect(screen.queryAllByTestId(`calendar-day-${MONDAY}-dot`)).toHaveLength(0);
+    // Le cadre n'ouvre rien ; le glisser ne propose que « Rétablir ».
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId(`${id}-frame`));
+    expect(mockPush).not.toHaveBeenCalled();
+    const actions = (swipeCard(routine.id, MONDAY).props.accessibilityActions as readonly { name: string }[]).map((action) => action.name);
+    expect(actions).toContain("restore");
+    expect(actions).not.toContain("delete");
+    expect(actions).not.toContain("duplicate");
+    fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "restore" } });
+    await flush();
+    expect(screen.getByTestId(`${id}-status-UPCOMING`)).toBeTruthy();
+    expect(screen.getAllByTestId(`calendar-day-${MONDAY}-dot`)).toHaveLength(1);
+    expect((await planning.getRoutine(routine.id))?.overrides ?? []).toEqual([]);
+  });
+
+  it("parcours prévu par la répétition : trace par Séance ; toutes supprimées, le créneau entier reste visible, supprimé (D-568)", async () => {
+    const first = await sessions.createStructured(input("Alpha"));
+    const second = await sessions.createStructured(input("Bravo"));
+    const routine = await plan({
+      name: "Genou",
+      entries: [entry(first.id), entry(second.id)],
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: addDays(MONDAY, 14) } },
+    });
+    await renderCalendar();
+    const group = `${routine.id}|${MONDAY}T08:00`;
+    fireEvent(screen.getByTestId(`calendar-item-${group}|2-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await act(async () => {
+      fireEvent.press(screen.getByText("Confirmer"));
+    });
+    await flush();
+    // Bravo : trace grise à son rang ; Alpha reste prévue.
+    expect(screen.getByTestId(`calendar-item-${group}|s1-card-status-DELETED`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|s1-card-time`).props.children).toBe("—");
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-status-UPCOMING`)).toBeTruthy();
+    fireEvent(screen.getByTestId(`calendar-item-${group}|1-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    await act(async () => {
+      fireEvent.press(screen.getByText("Confirmer"));
+    });
+    await flush();
+    // Toutes supprimées : le créneau reste visible (ligne « Ⓟ », deux cartes « Supprimée »). [« La dernière Séance supprimée
+    // supprime le créneau » — remplacé pour un créneau de la répétition.]
+    expect(screen.getByTestId(`calendar-parcours-${group}-name`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|s0-card-status-DELETED`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|s1-card-status-DELETED`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|s0-card-time`).props.children).toBe("8h00");
+    expect((await planning.getRoutine(routine.id))?.exclusions).toEqual([]);
+    // Rétablir une Séance : elle redevient prévue, l'autre reste supprimée.
+    fireEvent(screen.getByTestId(`calendar-item-${group}|s0-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "restore" } });
+    await flush();
+    expect(screen.getByTestId(`calendar-item-${group}|1-card-status-UPCOMING`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|s1-card-status-DELETED`)).toBeTruthy();
   });
 
   it("Séance archivée : ses occurrences ne sont plus proposées", async () => {
