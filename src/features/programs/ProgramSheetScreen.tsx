@@ -75,10 +75,13 @@ import { programStrings } from "./programStrings";
 const t = programStrings.sheet;
 const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
 const DATE_PANEL_WIDTH = 360;
-/** Recette du 23/11/2026 (« Est ce que le calendrier peut être plus petit ») : calendrier natif plus étroit ; sa hauteur suit. */
-const NATIVE_CALENDAR_WIDTH = 320;
-/** Hauteur avant la première mesure native (6 rangs à 320 de large). */
-const NATIVE_CALENDAR_INITIAL_HEIGHT = 380;
+/**
+ * Recette du 23/11/2026 (« plus petit », puis « les chiffres plus petits … plus ramassé ») : le calendrier natif est réduit
+ * d’un bloc par la vue Swift, de sa largeur d’origine (360) à cette largeur ; chiffres, espaces et repères suivent.
+ */
+const NATIVE_CALENDAR_WIDTH = 280;
+/** Hauteur avant la première mesure native (environ 6 rangs réduits). */
+const NATIVE_CALENDAR_INITIAL_HEIGHT = 330;
 /** Figma « PROG — 13 » : objectif Inter Medium 14 #666C7E ; ligne secondaire d'une routine #9499A8. */
 const OBJECTIVE_COLOR = "#666C7E";
 const MUTED = "#9499A8";

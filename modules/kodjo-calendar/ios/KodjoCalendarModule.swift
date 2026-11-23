@@ -80,27 +80,34 @@ final class KodjoCalendarView: ExpoView, UICalendarViewDelegate, UICalendarSelec
     let multi = UICalendarSelectionMultiDate(delegate: self)
     selection = multi
     calendarView.selectionBehavior = multi
-    calendarView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     addSubview(calendarView)
   }
 
+  /// Largeur à laquelle UIKit dispose le calendrier : ses proportions d’origine (chiffres, rangs, colonnes, repères).
+  private static let naturalWidth: CGFloat = 360
+
+  /// Recette du 23/11/2026 (Hermann : « J’aimerais les chiffres plus petits, les espaces entre les lignes et entre les
+  /// colonnes plus petits, plus ramassé, de même que l’espace entre les chiffres et les points ») : UICalendarView n’expose ni
+  /// taille de police ni espacements. Le calendrier natif est donc disposé à sa largeur d’origine puis réduit d’un bloc
+  /// (transformation d’échelle) à la largeur reçue de JavaScript : chiffres, espaces et repères diminuent ensemble, les
+  /// proportions sont gardées et les appuis restent ceux du calendrier natif. La hauteur nécessaire est signalée (onMeasure).
   override func layoutSubviews() {
     super.layoutSubviews()
-    calendarView.frame = bounds
-    reportHeight()
-  }
-
-  /// Recette du 23/11/2026 (« Est ce que le calendrier peut être plus petit ») : la hauteur n’est plus fixée par JavaScript.
-  /// La vue native calcule la hauteur qu’il lui faut pour la largeur reçue (aucun rang ni repère coupé) et la signale.
-  private func reportHeight() {
     guard bounds.width > 0 else { return }
+    let scale = min(1, bounds.width / KodjoCalendarView.naturalWidth)
+    let layoutWidth = bounds.width / scale
     let fitting = calendarView.systemLayoutSizeFitting(
-      CGSize(width: bounds.width, height: UIView.layoutFittingCompressedSize.height),
+      CGSize(width: layoutWidth, height: UIView.layoutFittingCompressedSize.height),
       withHorizontalFittingPriority: .required,
       verticalFittingPriority: .fittingSizeLevel
     )
-    let height = ceil(fitting.height)
-    guard height > 0, abs(height - measuredHeight) >= 1 else { return }
+    let layoutHeight = max(ceil(fitting.height), 1)
+    calendarView.transform = .identity
+    calendarView.bounds = CGRect(x: 0, y: 0, width: layoutWidth, height: layoutHeight)
+    calendarView.transform = CGAffineTransform(scaleX: scale, y: scale)
+    calendarView.center = CGPoint(x: bounds.width / 2, y: layoutHeight * scale / 2)
+    let height = ceil(layoutHeight * scale)
+    guard abs(height - measuredHeight) >= 1 else { return }
     measuredHeight = height
     onMeasure(["height": height])
   }
