@@ -115,7 +115,7 @@ Précise D-538 et D-539 :
 
 ## Marque « hors routine » — 22/11/2026 (D-560)
 
-- Un astérisque collé à l'heure (« 17h05* ») signale une Séance hors de la répétition d'une routine : Exécution hors planification, ou créneau ajouté à la main hors répétition. Même police, taille et couleur que l'heure ; pas de légende.
+- Un astérisque collé à l'heure (« 17h05* ») signale une Séance hors de la répétition d'une routine : Exécution hors planification, ou créneau ajouté à la main hors répétition. Couleur de l'heure, plus petit qu'elle (11 pour 15) ; pas de légende.
 - La carte d'une Exécution hors planification porte la spécialité comme les autres ; le libellé « Hors planification » est retiré.
 - La lecture vocale annonce « hors planification » ou « ajouté hors répétition ».
 - Un créneau unique créé par le bouton flottant n'est pas marqué : il constitue toute sa routine.

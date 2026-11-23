@@ -53,3 +53,9 @@
 ## Commit final et état Git
 
 Donnés dans le compte rendu de livraison.
+
+## Complément du 23/11/2026
+
+- **Constat :** le code de `feat/plan-20261121` affiche déjà les Exécutions hors planification dans le Plan, sous « Sans programme », avec un petit astérisque (recette de Hermann du 22/11/2026, constat a). Cette règle n'était pas écrite ; le DSF Plan disait l'inverse. Le créneau ajouté (RM-273), lui, n'est pas encore marqué.
+- **Correction :** D-560 couvre les deux cas dans les deux écrans ; astérisque plus petit que l'heure, comme dans le code (« petite astérisque ») ; DSF Plan § 3 annoté ; Figma ajusté (11 pour 15 dans l'Agenda, 7 pour 9 dans le Plan).
+- Prompt de développement rédigé pour `feat/plan-20261121`.
