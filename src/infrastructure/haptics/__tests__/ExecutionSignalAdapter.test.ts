@@ -3,7 +3,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import type { ExecutionSignal, SignalObjective } from "@/features/execution/ExecutionService";
 import { DEFAULT_GUIDANCE_EVENTS } from "@/domain/preferences/guidanceSettings";
 import type { BeepTone } from "@/infrastructure/audio/ExecutionSounds";
-import { bestFrenchVoice } from "@/infrastructure/speech/ExecutionVoice";
+import { bestFrenchVoice, bestVoiceFor } from "@/infrastructure/speech/ExecutionVoice";
 
 import type { VibrationLevel } from "../ExecutionVibration";
 import { ALL_ANNOUNCEMENTS, announcementOf, ExecutionSignalAdapter, objectiveText } from "../ExecutionSignalAdapter";
@@ -281,5 +281,18 @@ describe("ExecutionSignalAdapter — guidage sonore du 10/11/2026", () => {
     expect(bestFrenchVoice([v("thomas", "Default"), v("amelie-ca", "Enhanced", "fr-CA"), v("audrey", "Enhanced")])).toBe("audrey");
     expect(bestFrenchVoice([v("audrey", "Enhanced"), v("com.apple.voice.premium.fr-FR.Thomas", "Enhanced")])).toBe("com.apple.voice.premium.fr-FR.Thomas");
     expect(bestFrenchVoice([v("anna", "Enhanced", "de-DE")])).toBeNull();
+  });
+});
+
+// J1 « Gestion des langues » (23/11/2026, règle 4) : voix de la langue de l'interface.
+describe("J1 — voix liée à la langue de l'interface", () => {
+  const voice = (identifier: string, quality: string, language: string) => ({ identifier, quality, language });
+  it("prend la région exacte, sinon la même langue, sinon la voix par défaut", () => {
+    const voices = [voice("thomas", "Default", "fr-FR"), voice("daniel", "Enhanced", "en-GB"), voice("samantha", "Default", "en-US")];
+    expect(bestVoiceFor(voices, "fr-FR")).toBe("thomas");
+    expect(bestVoiceFor(voices, "en-GB")).toBe("daniel");
+    expect(bestVoiceFor(voices, "en-AU")).toBe("daniel");
+    expect(bestVoiceFor(voices, "en-US")).toBe("samantha");
+    expect(bestVoiceFor([voice("anna", "Enhanced", "de-DE")], "en-US")).toBeNull();
   });
 });

@@ -49,6 +49,7 @@ import {
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -575,7 +576,7 @@ export function MovementCatalogueList({
         const names = titles.map((title) => fillTemplate(tLibraries.libraryName, { title })).join(", ");
         Alert.alert(
           tLibraries.archiveTitle,
-          fillTemplate(titles.length > 1 ? tLibraries.archiveMessagePlural : tLibraries.archiveMessageSingular, { names }),
+          fillTemplate(pluralOf(titles.length, { one: tLibraries.archiveMessageSingular, other: tLibraries.archiveMessagePlural }), { names }),
           [
             { text: tLibraries.cancel, style: "cancel" },
             { text: tLibraries.archive, onPress: proceed },
@@ -619,7 +620,7 @@ export function MovementCatalogueList({
       const origin =
         libraries.length === 0
           ? tLibraries.originUnknown
-          : fillTemplate(libraries.length > 1 ? tLibraries.originPlural : tLibraries.originSingular, { names });
+          : fillTemplate(pluralOf(libraries.length, { one: tLibraries.originSingular, other: tLibraries.originPlural }), { names });
       Alert.alert(
         tLibraries.deleteImpossibleTitle,
         fillTemplate(tLibraries.deleteImpossibleMessage, { origin }),

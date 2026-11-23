@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { ImportedMovementInfo } from "@/features/catalogue/importedMovements";
 import { strings } from "@/shared/i18n";
+import { formatShortDate } from "@/shared/i18n/format";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -44,7 +45,7 @@ const ORIGIN_LABELS: Record<string, string> = L.origins;
 
 function day(iso: string): string {
   const value = new Date(iso);
-  return Number.isNaN(value.getTime()) ? iso : value.toLocaleDateString("fr-FR");
+  return Number.isNaN(value.getTime()) ? iso : formatShortDate(value);
 }
 
 /** Lignes de la fenêtre d'information (exportées pour les tests). */

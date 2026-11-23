@@ -7,10 +7,11 @@ import type { LibraryPreview, LibraryReviewItem, ReviewReason } from "@/domain/c
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { fieldLabel, formatValue } from "@/features/catalogue/catalogueLoadPresentation";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 
 const L = strings.libraries.presentation;
 
-export const plural = (count: number, singular: string, pluralForm: string) => `${count} ${count > 1 ? pluralForm : singular}`;
+export const plural = (count: number, singular: string, pluralForm: string) => `${count} ${pluralOf(count, { one: singular, other: pluralForm })}`;
 
 /** Pastille et sous-titre d'une Bibliothèque dans « Bibliothèques disponibles » (Figma 12118:25124). */
 export function availableLine(preview: LibraryPreview): { readonly subtitle: string; readonly pill: string; readonly tone: "neutral" | "action" | "positive" | "warning" } {

@@ -66,6 +66,8 @@ import { buildMovementInbox } from "@/features/catalogue/movementInboxBuilder";
 import { pickCatalogueFile } from "@/features/catalogue/pickCatalogueFile";
 import { useLibraryServices, type LibraryServices } from "@/features/catalogue/useLibraryServices";
 import { strings } from "@/shared/i18n";
+import { appLocaleTag } from "@/shared/i18n/locale";
+import { pluralOf } from "@/shared/i18n/plural";
 import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
@@ -640,13 +642,13 @@ export function LibraryPreviewScreen() {
           <Divider />
           <SummaryLine
             dot={colors.primary}
-            title={fillTemplate(preview.newCount > 1 ? L.preview.newCountPlural : L.preview.newCountSingular, { count: String(preview.newCount) })}
+            title={fillTemplate(pluralOf(preview.newCount, { one: L.preview.newCountSingular, other: L.preview.newCountPlural }), { count: String(preview.newCount) })}
             subtitle={L.preview.addedToCatalogue}
             testID="library-preview-added"
           />
           <SummaryLine
             dot={LIBRARY_COLORS.positiveText}
-            title={fillTemplate(preview.presentCount > 1 ? L.preview.presentCountPlural : L.preview.presentCountSingular, { count: String(preview.presentCount) })}
+            title={fillTemplate(pluralOf(preview.presentCount, { one: L.preview.presentCountSingular, other: L.preview.presentCountPlural }), { count: String(preview.presentCount) })}
             subtitle={L.preview.attachedNoDuplicate}
             testID="library-preview-attached"
           />
@@ -695,9 +697,9 @@ export function LibraryPreviewScreen() {
     >
       {/* 12118:25270 : une carte, trois compteurs. */}
       <Card style={screenStyles.counters} testID="library-preview-counters">
-        <Counter value={preview.modified.length} label={preview.modified.length > 1 ? L.preview.counterModifiedPlural : L.preview.counterModifiedSingular} />
-        <Counter value={joinedCount} label={joinedCount > 1 ? L.preview.counterNewPlural : L.preview.counterNewSingular} />
-        <Counter value={preview.removed.length} label={preview.removed.length > 1 ? L.preview.counterRemovedPlural : L.preview.counterRemovedSingular} />
+        <Counter value={preview.modified.length} label={pluralOf(preview.modified.length, { one: L.preview.counterModifiedSingular, other: L.preview.counterModifiedPlural })} />
+        <Counter value={joinedCount} label={pluralOf(joinedCount, { one: L.preview.counterNewSingular, other: L.preview.counterNewPlural })} />
+        <Counter value={preview.removed.length} label={pluralOf(preview.removed.length, { one: L.preview.counterRemovedSingular, other: L.preview.counterRemovedPlural })} />
       </Card>
       <Section label={fillTemplate(L.preview.revisionSection, { from: String(preview.installedRevision), to: String(preview.targetRevision) })}>
         <Card testID="library-preview-sheets">
@@ -1183,7 +1185,7 @@ export function LibrarySendScreen({ client = defaultClient, deviceName }: Librar
           if (!(await services.registry.isInstalledMovement(entry.movement.id))) personal.push(entry.movement);
         }
         if (!cancelled) {
-          setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, "fr")));
+          setMovements(personal.sort((a, b) => a.name.localeCompare(b.name, appLocaleTag)));
           setPhase({ kind: "ready" });
         }
       } catch {

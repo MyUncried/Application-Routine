@@ -3,6 +3,7 @@ import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-nati
 
 import type { PlacementConfirmation } from "@/domain/sessions/placement";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, spacing } from "@/shared/ui/tokens";
 
@@ -29,7 +30,7 @@ export function formatPlacementConfirmLabel(confirmation: PlacementConfirmation)
   const t = strings.screens.composition.placement;
   if (confirmation.kind === "CHANGES") return t.confirmChanges;
   const count = confirmation.kind === "ADDITIONS_ONLY" ? confirmation.count : 0;
-  return (count > 1 ? t.confirmPlural : t.confirmSingular).replace("{n}", String(count));
+  return pluralOf(count, { one: t.confirmSingular, other: t.confirmPlural }).replace("{n}", String(count));
 }
 
 export type PlacementBarProps = {

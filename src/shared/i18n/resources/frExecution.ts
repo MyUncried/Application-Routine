@@ -2,6 +2,8 @@
  * T1 « Gestion des langues » (23/11/2026) : textes de l'écran d'Exécution déplacés à l'identique depuis
  * `src/features/execution/executionStrings.ts` (RM-092, D-081). Exposés par `strings.execution`.
  */
+import { appLocaleTag } from "../locale";
+
 /*
  * PRE-10.3 — textes de l'écran d'Exécution (CE-EXEC-SESSION-01, ch08, ch12 §12.33). Libellés des
  * dialogues repris tels quels du contrat d'écran (titres, messages, actions).
@@ -45,7 +47,7 @@ export const execution = {
   /** « À suivre » d'un Point d'arrêt (recette PRE-10 du 09/11/2026, Hermann). */
   nextStopPoint: "Arrêt de la séance, redémarrage manuel",
   elapsed: "Temps écoulé",
-  load: (kg: number) => `${kg.toLocaleString("fr-FR")} kg`,
+  load: (kg: number) => `${kg.toLocaleString(appLocaleTag)} kg`,
   target: "Sur",
   repetitions: (value: number) => `${value} rép.`,
   failure: "À l'échec",
