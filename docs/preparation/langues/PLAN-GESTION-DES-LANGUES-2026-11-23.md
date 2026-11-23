@@ -114,3 +114,17 @@ Ordre conseillé ; chaque lot passe par le protocole habituel (plan, revue, rece
 1. Hermann tranche A0–A5, A7, A8 (et consulte le benchmark pour A2 et H3).
 2. D0–D9 : mise à jour de la documentation normative en un lot documentaire.
 3. T1 peut commencer en parallèle de l'étape 2 : il ne dépend d'aucun arbitrage.
+
+## 7. Feuille de route du 23/11/2026 (après T1)
+
+Choix de Hermann : « option A » — pas de recette iPhone isolée de T1 ; T1 est recetté avec le jalon 1 (cahier `_bmad-output/langues/implementation-artifacts/recette-iphone-langues-t1.md` repris dans le cahier du jalon).
+
+| Jalon | Contenu | Ce que fait Hermann | Visible sur iPhone |
+|---|---|---|---|
+| **J1 — KODJO en anglais (interface)** | T2 socle (langue du téléphone, repli anglais, `supportedLocales`, voix liée, formats régionaux, écran de lancement) ; ligne Langue dans Profil › Compte (ouvre le réglage iOS) ; glossaire anglais ; traduction IA de l'interface en anglais | Valider le glossaire anglais (≈ 40 termes) ; Figma de la ligne Langue ou accord pour reprendre une ligne existante ; recette sur un build EAS (module natif) | Oui : iPhone en anglais → app en anglais ; voix anglaise |
+| **J2 — Phrase de synthèse simplifiée** | T6 : proposition de phrase normée et simplifiée en français, nouveau corpus, puis gabarits FR/EN | Valider la phrase simplifiée (exemples avant/après) | Oui |
+| **J3 — Unité kg / lb** | T5 : ligne Unité dans Profil › Compte, conversion au changement d'unité, arrondi | Figma de la ligne ; règle d'arrondi | Oui |
+| **J4 — Contenus KODJO traduits** | T7 : format catalogue multilingue, référentiels, Bibliothèques, alias | Répondre à A3 | Oui |
+| **J5 — Espagnol, italien, portugais du Brésil, allemand** | T8 : une langue à la fois | Relecture native (à organiser) | Oui |
+
+Ordre : J1 d'abord (débloque la recette visible) ; J2 et J3 indépendants ensuite ; J4 après A3 ; J5 en dernier (l'anglais complet est le repli).

@@ -76,3 +76,7 @@ Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
 ## Complément — cahier de recette BMAD
 
 Cahier de recette iPhone : `_bmad-output/langues/implementation-artifacts/recette-iphone-langues-t1.md` (23 cas, OK/KO), à exécuter par Hermann.
+
+## Complément — option A et feuille de route
+
+Hermann retient l'option A : pas de recette iPhone isolée de T1, reprise dans la recette du jalon J1. Feuille de route J1 à J5 ajoutée au plan (§ 7).
