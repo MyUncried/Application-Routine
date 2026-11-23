@@ -43,6 +43,15 @@
       ],
       "expo-sqlite",
       [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["fr", "en"],
+            "android": ["fr", "en"]
+          }
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Routine accède à vos photos et vidéos pour choisir la photo de votre profil et ajouter des médias à vos exercices.",
