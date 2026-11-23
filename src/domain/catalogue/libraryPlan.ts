@@ -136,10 +136,23 @@ function hash(text: string): string {
  */
 export function libraryTargetKey(file: MovementCatalogueFile, library: CatalogueLibrary): string {
   const revisions = new Map(file.sheets.map((sheet) => [sheet.sheetId, sheet.revision]));
+  return libraryCompositionKey(library, file.catalogue.id, (sheetId) => revisions.get(sheetId));
+}
+
+/**
+ * Même calcul que `libraryTargetKey`, la révision de chaque fiche membre étant fournie par `revisionOf`.
+ * Sert aussi à la migration du registre (schéma 4) : une Bibliothèque installée relue dans un format
+ * antérieur (avec `editor`, `publicationAllowed`) donne la clé qui avait été enregistrée.
+ */
+export function libraryCompositionKey(
+  library: CatalogueLibrary,
+  catalogueId: string,
+  revisionOf: (sheetId: string) => string | undefined,
+): string {
   const { history: _history, ...composition } = library;
   void _history;
   const members = library.members.map((member) =>
-    memberKey(member) + "@" + (member.catalogueId === file.catalogue.id ? revisions.get(member.sheetId) ?? "?" : "ext"));
+    memberKey(member) + "@" + (member.catalogueId === catalogueId ? revisionOf(member.sheetId) ?? "?" : "ext"));
   return library.revision + "." + hash(canonicalJson({ composition, members }, null));
 }
 

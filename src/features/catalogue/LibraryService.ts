@@ -48,7 +48,7 @@ export type LibraryServiceDependencies = {
     | "beginLibraryOperation"
     | "commitLibrary"
     | "recordLibraryDecision"
-  > & Partial<Pick<SqliteCatalogueRegistry, "personalLibraries" | "uninstallLibrary">>;
+  > & Partial<Pick<SqliteCatalogueRegistry, "personalLibraries" | "uninstallLibrary" | "saveReferences">>;
   readonly load: Pick<CatalogueLoadService, "prepare" | "accept">;
   /** Désinstallation : absent, `uninstall` est indisponible (doublures antérieures). */
   readonly movements?: Pick<MovementCatalogueService, "removeForUninstall" | "sessionUseCount">;
@@ -122,7 +122,8 @@ export class LibraryService {
     if (parsed.ok) {
       const diffusable = diffusableCatalogue(parsed.file);
       if (!diffusable.ok) return { ok: false, issues: diffusable.issues };
-      if (diffusable.withheld.length > 0) source = diffusable.file;
+      // Version diffusable dans tous les cas : elle retire aussi les notes internes (format 3.0.0).
+      source = diffusable.file;
     }
     const prepared = await this.deps.load.prepare(source);
     if (!prepared.ok) return { ok: false, issues: prepared.issues };
@@ -310,6 +311,8 @@ export class LibraryService {
       }
     }
     const key: LibraryKey = { catalogueId: file.catalogue.id, libraryId: library.libraryId };
+    // Référentiels de classification du catalogue, pour les filtres validés (format 3.0.0).
+    await this.deps.registry.saveReferences?.(file.catalogue.id, file.references);
     await this.deps.registry.commitLibrary(key, library, libraryTargetKey(file, library));
     return {
       ...key,

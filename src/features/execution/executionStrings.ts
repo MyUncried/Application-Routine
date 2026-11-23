@@ -92,16 +92,43 @@ export const executionStrings = {
   },
   saveError: "La progression n’a pas pu être enregistrée.",
   retry: "Réessayer",
+  // D-534 (19/11/2026) : écran de transition entre deux séances d'une routine, sur trois lignes (rang calculé : 2è, 3è…).
+  chain: {
+    lines: (rank: number): readonly string[] => ["Appuyer pour", `démarrer la ${rank}è séance`, "du parcours"],
+    // Recette du 19/11/2026 au soir (s19-voile) : présentation du parcours au premier départ.
+    routeTitle: "Parcours",
+    routeItem: (rank: number) => `Séance ${rank}`,
+  },
   end: {
     COMPLETED: "Séance terminée",
     PARTIAL: "Séance partiellement exécutée",
     INTERRUPTED: "Séance interrompue",
     exercisePartial: "Partielle",
     exerciseCompleted: "Terminée",
+    // Recette EMOM du 18/11/2026 (Hermann : « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries / objectif ») :
+    // une ligne par Série d'un Exercice exécuté en EMOM — « Série 2 · Non terminée · 4 / 10 rép. ».
+    seriesNotTerminated: "Non terminée",
+    seriesLine: (series: number, status: string, done: string, objective?: string) => `Série ${series} · ${status} · ${objective === undefined ? done : `${done} / ${objective}`}`,
   },
   notLaunchable: "Cette séance ne peut pas encore être exécutée.",
   // PRE-11 (T1, 13/11/2026) : For time exécutable. [« Les Formats AMRAP, EMOM, For time et Death by… » — remplacé.]
-  notLaunchableFormats: "Les Formats AMRAP, EMOM et Death by seront exécutables dans une prochaine version.",
+  // PRE-11 (T2, 18/11/2026) : EMOM exécutable. [« Les Formats AMRAP, EMOM et Death by… » — remplacé.]
+  // PRE-11 (T3, 18/11/2026) : AMRAP exécutable. PRE-11 (T4, 18/11/2026) : Death by exécutable — plus aucun Format spécialisé non
+  // lançable ; message conservé pour un Format futur. [« Les Formats AMRAP et Death by… » — remplacé.]
+  notLaunchableFormats: "Ce Format sera exécutable dans une prochaine version.",
+  // PRE-11 (T2, 18/11/2026) — EMOM : feuille de l'Arrêt (arbitrage « Comme le For time »), Clôture des fenêtres non saisies (§12.2),
+  // bandeau Q1.
+  emomStopTitle: "Arrêt de l’EMOM",
+  /** PRE-11 (T3), arbitrage de Hermann du 18/11/2026 : feuilles de l'AMRAP, modèle du For time. */
+  amrapStopTitle: "Arrêt de l’AMRAP",
+  amrapClosureTitle: "Fin du bloc",
+  emomClosureTitle: "Fin de l’EMOM",
+  /** PRE-11 (T4), arbitrage de Hermann du 18/11/2026 : feuilles du Death by, modèle du For time. */
+  deathByStopTitle: "Arrêt du Death by",
+  deathByClosureTitle: "Fin du Death by",
+  // Recette EMOM du 18/11/2026 (Hermann : « Modale de résultat partiel : remplacer Fenêtre par Série »). [« · fenêtre N » — remplacé.]
+  emomWindowName: (name: string | null, window: number) => `${name ?? ""} · série ${window}`,
+  // Recette EMOM du 18/11/2026 (emom-3 : « Supprimer ce bandeau ») : libellés du bandeau retirés.
   notLaunchableInvalid: "Cette séance comporte des paramètres à compléter.",
   blocked: "Une séance interrompue doit d’abord être reprise ou arrêtée.",
   // PRE-11 (T1) — For time : borne dans le coin du haut à gauche (Hermann, 13/11/2026), Clôture « Vos résultats »

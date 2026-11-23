@@ -30,6 +30,7 @@ import { pickCatalogueFile } from "@/features/catalogue/pickCatalogueFile";
 import { freshLocalMovementReader } from "@/features/catalogue/readLocalMovements";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
 import { colors } from "@/shared/ui/tokens";
+import { getCatalogueMediaWriter } from "@/infrastructure/media/CatalogueMediaWriter";
 
 /**
  * CA-4 — Écran de recette « Charger un catalogue » (variante « Routine Catalogue », hors MVP, sans
@@ -128,6 +129,7 @@ export function CatalogueLoadScreen({
       }),
       newMovementId,
       families: movements,
+      catalogueMedia: getCatalogueMediaWriter(),
     });
   }, [registry, activityDefinitionService, newMovementId]);
 

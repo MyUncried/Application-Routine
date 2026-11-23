@@ -8,7 +8,7 @@
 
 ## Modèle — socle éditorial du catalogue autonome (six étapes)
 
-Le **Mouvement utilisable** par les Exercices/Séances conserve son identifiant local et ses propriétés d'usage. La **fiche éditoriale** conserve séparément ses métadonnées, références/médias, identité source stable, provenance, révision et droits de source ; ce sont des exigences du chantier CA-1/CA-2/CA-3, **non reportées** avec le partage. La **Bibliothèque KODJO** est une collection identifiée de références vers des fiches, indépendante des catégories Fitness/Hyrox/Pilates existantes ; l'installation/mise à jour ne modifie pas directement les fiches publiées. Les copies ou adaptations de l'utilisateur ne doivent pas muter la source ; détails des conflits restent À CLARIFIER. Services d'import/export et administration Web concourent au même contrat de fiche. Les Bibliothèques de coachs, personnelles et les droits d'accès des destinataires sont hors premier lot.
+Le **Mouvement utilisable** par les Exercices/Séances conserve son identifiant local et ses propriétés d'usage. La **fiche éditoriale** conserve séparément ses métadonnées, références/médias, identité source stable, provenance, révision et droits de source ; ce sont des exigences du chantier CA-1/CA-2/CA-3, **non reportées** avec le partage. [Précisé le 19/11/2026 (décision de Hermann) : pour l'utilisateur, un Mouvement n'a qu'**une seule liste de médias**. À l'installation et à chaque mise à jour acceptée, les photos de la fiche dont les droits sont confirmés deviennent des médias du Mouvement, affichés partout comme une photo ajoutée sur le téléphone (fiche, Catalogue, Formats). La fiche garde ses métadonnées éditoriales. Voir [registre, « Médias du Mouvement — une seule notion (19/11/2026) »](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md).] La **Bibliothèque KODJO** est une collection identifiée de références vers des fiches, indépendante des catégories Fitness/Hyrox/Pilates existantes ; l'installation/mise à jour ne modifie pas directement les fiches publiées. Les copies ou adaptations de l'utilisateur ne doivent pas muter la source ; détails des conflits restent À CLARIFIER. Services d'import/export et administration Web concourent au même contrat de fiche. Les Bibliothèques de coachs, personnelles et les droits d'accès des destinataires sont hors premier lot.
 
 ## Bibliothèques génériques KODJO — premier lot (BIB-19 à BIB-23, 10/11/2026)
 
@@ -257,7 +257,7 @@ La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les 
 
 Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
+Programme facultatif (« Aucun » par défaut) précède Début le [libellé « Planifié le » depuis la recette du 17/11/2026]. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
 La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
@@ -551,7 +551,7 @@ L’ancien usage de **circuit** pour cet objet autonome est supprimé. Le **Circ
 
 #### Ordre des contenus
 
-La liste est ordonnée et réordonnable. Chaque ligne porte une poignée de réordonnancement (icône `icon/poignee`, 12 × 18), le nom du contenu, et sa fréquence propre.
+La liste est ordonnée et réordonnable. Chaque ligne porte une poignée de réordonnancement (icône `icon/poignee`, 12 × 18), le nom du contenu, et sa fréquence propre. [Remplacé le 18/11/2026, D-519 : en planification d’un parcours, l’ordre est celui de la sélection, les séances sont les lignes d’une grille créneaux × rotation et la fréquence propre est calculée à partir des points (RM-253 à RM-256).]
 
 ---
 
@@ -661,3 +661,7 @@ La révision est installée sur demande de l'utilisateur depuis une Bibliothèqu
 Un catalogue source par compte ; une fiche source dans plusieurs bibliothèques, un seul mouvement local. Les accès bibliothèque/direct/séance partagée sont distincts des droits de redistribution et des attributs de classification.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Complément du 21/11/2026 — Routine, Parcours et Séance dans l'Agenda
+
+La Routine demeure l'objet de planification et garde une identité stable ; son nom par défaut dérive des Séances, peut être personnalisé et n'est plus unique. Une Routine à plusieurs Séances est présentée comme Parcours, sans Exécution ni statut global propres. L'Agenda présente chaque Séance individuellement ; le Journal présente chaque Routine individuellement. Voir [décisions du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md), qui supersèdent les seules descriptions antérieures incompatibles.

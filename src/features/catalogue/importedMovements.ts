@@ -9,6 +9,15 @@
  * Sous Jest, aucun module natif : `jest.setup.js` remplace ce module par une garde inactive ; les
  * tests de la garde injectent un registre réel (`ImportedMovementCheck`).
  */
+import {
+  classificationFilterOptions,
+  movementClassifications,
+  sheetClassification,
+  type ClassificationFilterAxis,
+  type ClassificationValue,
+  type MovementClassification,
+} from "@/domain/catalogue/catalogueFilters";
+import type { MovementLicense } from "@/domain/catalogue/MovementEditorialProvenance";
 import type { ImportedMovementCheck } from "@/features/activities/MovementCatalogueService";
 import { openCatalogueRegistry } from "@/infrastructure/catalogue/openCatalogueRegistry";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
@@ -56,10 +65,18 @@ export type ImportedMovementInfo = {
   readonly upstream: { readonly catalogueId: string; readonly sheetId: string; readonly revision: string } | null;
   readonly owner: string | null;
   readonly author: string | null;
-  readonly publisher: string | null;
-  readonly editors: readonly string[];
+  /** `null` = le propriétaire (MOUV-ADM n° 14). */
   readonly rightsHolder: string | null;
-  readonly license: string | null;
+  /** `null` = non renseignée (MOUV-ADM n° 15). */
+  readonly license: MovementLicense | null;
+  /** Informations destinées à l'utilisateur ; les notes internes de l'administration n'en font jamais partie. */
+  readonly equipment: string | null;
+  readonly safetyNotes: string | null;
+  readonly classification: MovementClassification;
+  /*
+   * [Retirés le 18/11/2026 (format 3.0.0, MOUV-ADM n° 13 et 21) : `publisher` (diffuseur) et `editors`
+   * (éditeurs des Bibliothèques), qui alimentaient la ligne « Éditeur ».]
+   */
 };
 
 const actor = (ref: { readonly kind: string; readonly id: string } | null): string | null => (ref ? ref.id : null);
@@ -75,6 +92,7 @@ export async function importedMovementInfo(movementId: string): Promise<Imported
   const containing = (await registry.installedLibraries()).filter((entry) =>
     entry.library.members.some((member) => member.catalogueId === record.catalogueId && member.sheetId === record.sheetId));
   const provenance = record.sheet.provenance;
+  const references = (await registry.installedReferences()).get(record.catalogueId);
   return {
     libraries: containing.map((entry) => entry.library.title),
     catalogueId: record.catalogueId,
@@ -86,11 +104,25 @@ export async function importedMovementInfo(movementId: string): Promise<Imported
     upstream: provenance.upstream,
     owner: actor(provenance.owner),
     author: actor(provenance.author),
-    publisher: actor(provenance.publisher),
-    editors: containing.flatMap((entry) => (entry.library.editor ? [entry.library.editor.id] : [])),
     rightsHolder: actor(provenance.rightsHolder),
     license: provenance.license,
+    equipment: record.sheet.content.equipment,
+    safetyNotes: record.sheet.content.safetyNotes,
+    classification: sheetClassification(record.catalogueId, record.sheet, references),
   };
+}
+
+/**
+ * Classifications de tous les Mouvements importés et valeurs proposables par axe, pour les filtres validés
+ * (MOUV-UX-20261117). Aucune interface : le parcours de filtre sera défini dans Figma.
+ */
+export async function importedMovementClassifications(): Promise<{
+  readonly byMovement: ReadonlyMap<string, MovementClassification>;
+  readonly options: Readonly<Record<ClassificationFilterAxis, readonly ClassificationValue[]>>;
+}> {
+  const registry = await sharedCatalogueRegistry();
+  const byMovement = movementClassifications(await registry.allInstalledSheets(), await registry.installedReferences());
+  return { byMovement, options: classificationFilterOptions(byMovement) };
 }
 
 /**

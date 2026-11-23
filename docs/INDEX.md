@@ -173,3 +173,5 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 Arbitrages clos : inventaire des 30 champs, identité et multi-appartenance, accès et révocation, phases, filtres et partage personnalisé. Glossaire utilisateur et contrôle central reportés. La licence propose « Non renseignée » ou « Licence ou conditions connues ».
 
 [Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+**Agenda, Journal et filtre, 21/11/2026 (D-553, classe B)** : [Agenda centré sur les Séances, Journal et filtre](KODJO-Agenda-seances-journal-filtre-2026-11-21.md) ; rendus : [DSF Agenda](DSF-AGENDA-PLANNING-2026-11-19.md), [DSF Journal](DSF-JOURNAL-2026-11-19.md).

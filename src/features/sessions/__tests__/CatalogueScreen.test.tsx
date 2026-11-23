@@ -143,9 +143,9 @@ describe("CatalogueScreen — cadre commun", () => {
     const types = strings.screens.sessions.contentTypes;
     expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
-    // PRE-8 (E.4, E.8-a) : trois segments, Programmes indisponible, plus de segment Exercices.
+    // PRE-8 (E.4, E.8-a) : trois segments, plus de segment Exercices. PROG-CAT-01 (CE-PROG-01) : Programmes actif.
     expect(screen.queryByLabelText(types.activities)).toBeNull();
-    expect(screen.getByLabelText(strings.screens.sessions.programsUnavailableAccessibilityLabel)).toBeTruthy();
+    expect(screen.getByLabelText(strings.screens.sessions.programsSegment)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
 
     await act(async () => {
@@ -345,7 +345,8 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(flattened.paddingBottom).toBe(navigationBarTotalHeight());
   });
 
-  it("marks Séances as selected (centre) at first render, and Circuits as disabled with an explicit unavailable label, with no navigation when pressed (T01-S10/V2-CAT-01, D-108)", async () => {
+  // PROG-CAT-01 (CE-PROG-01, D-544) : l'onglet Programmes devient actif. [Avant : visible et indisponible — remplacé.]
+  it("marks Séances as selected (centre) at first render; Programmes is enabled and switches without navigation (D-108, D-544)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -365,18 +366,16 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(options[1]?.props.accessibilityLabel).toBe(types.sessions);
 
     const sessionsTab = screen.getByLabelText(types.sessions);
-    const circuitsTab = screen.getByLabelText(strings.screens.sessions.programsUnavailableAccessibilityLabel);
+    const programsTab = screen.getByLabelText(strings.screens.sessions.programsSegment);
 
     expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
-    expect(circuitsTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    expect(programsTab.props.accessibilityState).toMatchObject({ disabled: false, selected: false });
 
-    fireEvent.press(circuitsTab);
+    fireEvent.press(programsTab);
 
+    // Changement d'onglet dans l'écran, sans navigation.
     expect(mockPush).not.toHaveBeenCalled();
-    // Toujours sur Séances : Circuit ne déclenche aucune navigation.
-    expect(screen.getByLabelText(types.sessions).props.accessibilityState).toMatchObject({
-      selected: true,
-    });
+    expect(screen.getByLabelText(strings.screens.sessions.programsSegment).props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("E.8-a — aucun segment Exercices : le Catalogue ne lit plus les anciennes définitions", async () => {

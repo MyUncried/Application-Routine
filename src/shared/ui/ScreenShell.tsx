@@ -281,6 +281,7 @@ export function ContextBand({
   padding,
   color = colors.contextBand,
   backHalo,
+  validateHalo,
 }: {
   children: ReactNode;
   /**
@@ -290,6 +291,12 @@ export function ContextBand({
    * aucun halo (rendu inchangé des autres écrans ; la Composition et l’éditeur gardent leur dessin propre).
    */
   backHalo?: string;
+  /**
+   * Recette Planification du 18/11/2026 (k2c, Hermann : « mettre une courbure sous le bouton valider (avec le halo) ») :
+   * même halo que `backHalo`, centré sous la coche de l’en-tête (`validate`, cercle 38 à la marge droite). Absent : rendu
+   * inchangé.
+   */
+  validateHalo?: string;
   /**
    * D-509 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §8) : couleur de la zone de
    * contexte. Défaut `colors.contextBand` (#EAEAFF, chapitre 06) pour la Composition, la sélection d'un
@@ -353,7 +360,7 @@ export function ContextBand({
           </View>
         </View>
       ) : null}
-      {backHalo !== undefined ? (
+      {backHalo !== undefined || validateHalo !== undefined ? (
         <View
           pointerEvents="none"
           accessibilityElementsHidden
@@ -361,7 +368,15 @@ export function ContextBand({
           style={styles.contextBandEffects}
           testID="screen-context-band-effects"
         >
-          <View style={[styles.contextBandHalo, { backgroundColor: backHalo }]} testID="screen-context-band-halo" />
+          {backHalo !== undefined ? (
+            <View style={[styles.contextBandHalo, { backgroundColor: backHalo }]} testID="screen-context-band-halo" />
+          ) : null}
+          {validateHalo !== undefined ? (
+            <View
+              style={[styles.contextBandHalo, styles.contextBandValidateHalo, { backgroundColor: validateHalo }]}
+              testID="screen-context-band-validate-halo"
+            />
+          ) : null}
         </View>
       ) : null}
       {children}
@@ -410,6 +425,11 @@ const styles = StyleSheet.create({
     // de contenu 48, juste au-dessus de la bande) — même géométrie que la Composition.
     left: layout.screenGutter + dimensions.backAction.visualCircle / 2 - BACK_ACTION_HALO_DIAMETER / 2,
     top: -dimensions.header.contentHeight / 2 - BACK_ACTION_HALO_DIAMETER / 2,
+  },
+  // Halo de la coche : symétrique du halo de gauche (coche 38 à la marge droite).
+  contextBandValidateHalo: {
+    left: undefined,
+    right: layout.screenGutter + dimensions.backAction.visualCircle / 2 - BACK_ACTION_HALO_DIAMETER / 2,
   },
   container: {
     flex: 1,

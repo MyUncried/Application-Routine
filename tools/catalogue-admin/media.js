@@ -69,7 +69,8 @@ function preview(item) {
   if (item.kind === "PHOTO") {
     const img = document.createElement("img");
     img.src = item.url;
-    img.alt = item.alt;
+    // Format 3.0.0 : texte alternatif éditorial supprimé (MOUV-ADM) ; la légende sert de libellé dans l'administration.
+    img.alt = item.caption || "Photo du mouvement";
     img.loading = "lazy";
     img.referrerPolicy = "no-referrer";
     img.addEventListener("error", () => wrap.classList.add("media-broken"));
@@ -166,7 +167,6 @@ export function mountMediaEditor(container, options) {
       syncLicense();
     },
   };
-  const alt = field(180, "Décrire l'image (obligatoire pour une photo)");
   const caption = field(180, "Ex. position de départ");
   const rightsBlock = el("div", "rights-block");
   const rightsButtons = el("div", "split");
@@ -199,7 +199,7 @@ export function mountMediaEditor(container, options) {
     input("Mode d'ajout", typeSelect),
     fileGroup, currentFile, urlGroup,
     grid(input("Source originale / justificatif (URL)", sourceUrl), input("Auteur / fournisseur / crédit", attribution)),
-    grid(input("Licence / base d'utilisation", licenseSelect), input("Texte alternatif de la photo", alt)),
+    input("Licence / base d'utilisation", licenseSelect),
     licenseOtherGroup,
     rightsBlock,
     input("Légende / position dans l'exercice", caption),
@@ -218,7 +218,7 @@ export function mountMediaEditor(container, options) {
     editedId = null;
     typeSelect.value = "PHOTO_FILE";
     fileInput.value = "";
-    for (const node of [urlInput, sourceUrl, attribution, license, alt, caption]) node.value = "";
+    for (const node of [urlInput, sourceUrl, attribution, license, caption]) node.value = "";
     rights.value = "UNVERIFIED";
     currentFile.textContent = "";
     submit.textContent = "Ajouter à la galerie";
@@ -303,7 +303,6 @@ export function mountMediaEditor(container, options) {
       ? "Fichier actuel : " + (item.fileName || "photo intégrée") + " — conservé si aucun nouveau fichier n'est choisi."
       : "";
     status.className = "media-status hidden";
-    alt.value = item.alt;
     caption.value = item.caption;
     submit.textContent = "Enregistrer ce média";
     cancel.classList.remove("hidden");
@@ -339,7 +338,7 @@ export function mountMediaEditor(container, options) {
     const item = {
       id: old?.id ?? freshMediaId(), kind, storage, url,
       fileName: storage === "EMBEDDED" ? (fileInput.files[0]?.name ?? old?.fileName ?? "image") : "",
-      caption: caption.value.trim(), alt: alt.value.trim(),
+      caption: caption.value.trim(),
       sourceUrl: origin || (storage === "REMOTE" ? url : null),
       attribution: attribution.value.trim(), license: license.value.trim(), rightsStatus: rights.value,
     };

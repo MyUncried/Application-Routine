@@ -32,6 +32,7 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
+import { preloadPhotoThumbnails } from "@/features/activities/photoThumbnails";
 import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
 import { importedMovementInfo, personalLibraryTitlesContaining } from "@/features/catalogue/importedMovements";
 import {
@@ -142,13 +143,19 @@ export function useMovementCatalogue(reloadToken: number): {
     catalogue.listEntries().then(
       (entries) => {
         if (generation.current === current) setState({ status: "ready", entries });
+        // Recette iPhone du 19/11/2026 : miniatures préparées pour toute la liste (défilement, grille, retours).
+        preloadPhotoThumbnails(entries.flatMap(({ movement }) => {
+          const first = firstMediaPreviewSource(movement.media);
+          if (!first || first.isVideo) return [];
+          return [typeof service.resolveMediaUri === "function" ? service.resolveMediaUri(first.uri) : first.uri];
+        }));
       },
       (error: unknown) => {
         console.error("Le catalogue des mouvements n'a pas pu être chargé.", error);
         if (generation.current === current) setState({ status: "error" });
       },
     );
-  }, [catalogue]);
+  }, [catalogue, service]);
   useEffect(() => {
     reload();
   }, [reload, reloadToken]);

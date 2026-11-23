@@ -64,3 +64,49 @@ export function businessStatusOf(finish: FinishReason, occurrences: readonly Occ
   if (finish === "STOPPED") return "INTERRUPTED";
   return occurrences.some((occurrence) => occurrence.status === "PARTIAL") ? "PARTIAL" : "COMPLETED";
 }
+
+/**
+ * Recette EMOM du 18/11/2026 (Hermann, autres remarques : « Séance terminée, appui suivant à chaque série : le récapitulatif n'indique
+ * qu'une minute, pas les séries ni les répétitions » ; « Synthèse : mettre chaque série sur une ligne avec statut, nombre de séries /
+ * objectif ») : une ligne par Série d'un Exercice exécuté en EMOM — terminée ou non, réalisé / objectif. Une Série terminée a fait son
+ * objectif ; une Série non terminée a les répétitions saisies (Clôture « Fin de l'EMOM » ou Arrêt), ou la durée tenue.
+ */
+export type SeriesLine = {
+  readonly series: number;
+  readonly terminated: boolean;
+  readonly mode: "REPETITIONS" | "DURATION";
+  /** Répétitions faites, ou durée tenue (ms) ; `null` si non saisies. */
+  readonly done: number | null;
+  /** Objectif chiffré (répétitions, ou durée en ms) ; `null` sans objectif chiffré (À l'échec). */
+  readonly target: number | null;
+};
+
+export function seriesLines(
+  occurrence: OccurrenceResult,
+  leafOf: (key: string) => { readonly mode?: "REPETITIONS" | "DURATION"; readonly target?: { readonly kind: string; readonly value?: number } } | undefined,
+  partials: ReadonlyMap<string, number>,
+): readonly SeriesLine[] {
+  const bySeries = new Map<number, StepResult[]>();
+  for (const step of occurrence.series) {
+    const rank = step.series ?? 1;
+    bySeries.set(rank, [...(bySeries.get(rank) ?? []), step]);
+  }
+  return [...bySeries.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([series, steps]) => {
+      const leaf = leafOf(steps[0]!.key);
+      const mode = leaf?.mode === "DURATION" ? "DURATION" : "REPETITIONS";
+      const value = leaf?.target?.kind === "NUMBER" && typeof leaf.target.value === "number" ? leaf.target.value : null;
+      const target = value === null ? null : mode === "DURATION" ? value * 1000 : value;
+      const terminated = steps.every((step) => step.completion === "COMPLETED");
+      const interrupted = steps.find((step) => step.completion !== "COMPLETED");
+      const done = terminated
+        ? target
+        : mode === "DURATION"
+          ? (interrupted?.cumulativeActiveMs ?? null)
+          : interrupted !== undefined && partials.has(interrupted.key)
+            ? partials.get(interrupted.key)!
+            : null;
+      return { series, terminated, mode, done, target };
+    });
+}

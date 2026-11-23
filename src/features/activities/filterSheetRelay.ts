@@ -19,6 +19,8 @@ export type FilterSheetRequest = (
       readonly kind: "sessions";
       readonly filters: SessionCatalogueFilters;
       readonly onApply: (filters: SessionCatalogueFilters, labels: readonly string[]) => void;
+      /** D-540 (20/11/2026) : libellés du statut pour les routines du Journal (« Actives », « Terminées ») ; absent : séances. */
+      readonly statusLabels?: { readonly active: string; readonly archived: string };
     }
 ) & {
   /**

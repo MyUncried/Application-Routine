@@ -79,7 +79,7 @@ Elle possède notamment :
 
 Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
+Programme facultatif (« Aucun » par défaut) précède Début le [libellé « Planifié le » depuis la recette du 17/11/2026]. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
 La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
@@ -275,7 +275,7 @@ En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon se
 
 Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
+Programme facultatif (« Aucun » par défaut) précède Début le [libellé « Planifié le » depuis la recette du 17/11/2026]. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
 La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours. [Remplacé le 06/11/2026, D-499 : validation de la sélection de planification par la coche de l’en-tête, sans bouton inférieur ; le récapitulatif de planification reste en bas.]
 
@@ -642,3 +642,7 @@ Une collection unique de séances, une carte commune et deux vues désélectionn
 La cible conserve la fiche complète et ses classifications exploitables sur mobile ; les phases source sont transmises. Un catalogue par compte ; une fiche peut appartenir à plusieurs bibliothèques. La perte du dernier accès rend le mouvement indisponible et les séances à corriger ; une exécution en cours se termine. Partage direct/personnalisé et de séance prévus dans le lot futur ; médias personnalisés conservés chez le destinataire. L’accès utilisateur au glossaire relève du futur chantier des aides.
 
 [Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Orientation validée du 21/11/2026 — Agenda des Séances
+
+L'Agenda présente les Séances planifiées et réellement exécutées, y compris hors planification, en cartes uniformes ; les Parcours sont identifiés par une ligne Ⓟ compacte et un rail. Le Journal reste une liste de Routines. Les noms de Routines sont générés par défaut, personnalisables et non uniques. Le détail des règles et exceptions est dans [KODJO — Agenda / Journal / filtre, 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). L'Agenda est validé dans Figma (D-553) ; Journal et filtre ont été ajustés le 21/11/2026 et restent à valider.

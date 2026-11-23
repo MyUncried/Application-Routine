@@ -23,7 +23,7 @@ jest.mock("expo-router", () => ({
   useFocusEffect: (effect: () => (() => void) | void) => {
     focusEffectHarness.effect = effect;
   },
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, navigate: mockPush }),
 }));
 
 /**
@@ -95,13 +95,17 @@ describe("ProfileScreen", () => {
     }
   });
 
-  it("en-tête du Figma : onglets Profil, Préférences (sélectionné), Communauté (indisponible)", async () => {
+  // PROG-CAT-01 (CE-PRF-01, D-552) : Compte · Préférences (sélectionné) · Confidentialité ; zone centrale uniforme #EAEAFF.
+  // [Avant : Profil, Préférences, Communauté (indisponible) — remplacé.]
+  it("en-tête : onglets Compte, Préférences (sélectionné), Confidentialité ; Confidentialité ouvre son écran", async () => {
     await renderScreen();
 
     expect(screen.getByTestId("profile-tabs-preferences").props.accessibilityState).toEqual({ selected: true, disabled: false });
-    expect(screen.getByTestId("profile-tabs-community").props.accessibilityState).toEqual({ selected: false, disabled: true });
-    fireEvent.press(screen.getByTestId("profile-tabs-community"));
+    expect(screen.queryByTestId("profile-tabs-community")).toBeNull();
+    fireEvent.press(screen.getByTestId("profile-tabs-preferences"));
     expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("profile-tabs-privacy"));
+    expect(mockPush).toHaveBeenCalledWith("/profile-privacy");
   });
 
   // Profil › Préférences (Figma `1992:684`, `12093:25010` ; documentation de main `ebe72f76`) : six annonces vocales
@@ -222,10 +226,10 @@ describe("ProfileScreen", () => {
 
   // Section Profil non développée (Hermann, 11/11/2026) : l'onglet Profil ouvre l'écran existant Modifier le profil.
   // [Remplacé — bloc Identité et action Modifier le profil en tête de l'écran.]
-  it("onglet Profil : ouvre Modifier le profil", async () => {
+  it("onglet Compte : ouvre Modifier le profil", async () => {
     await renderScreen();
 
-    fireEvent.press(screen.getByTestId("profile-tabs-profile"));
+    fireEvent.press(screen.getByTestId("profile-tabs-account"));
 
     expect(mockPush).toHaveBeenCalledWith("/profile-edit");
   });

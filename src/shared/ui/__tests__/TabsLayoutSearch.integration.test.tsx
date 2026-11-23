@@ -187,6 +187,9 @@ describe("Navigation basse — cadre actif animé (V2-CAT-01)", () => {
     // Centré verticalement dans la boîte intérieure de la barre (bordure de 1).
     const top = indicator.top as number;
     expect(top + NAVIGATION_ACTIVE_FRAME.height + top).toBe(NAVIGATION_BAR_HEIGHT - 2);
+    // Recette du 20/11/2026 : glissement par translation (pilote natif), centré dans l'emplacement mesuré.
+    expect(indicator.left).toBe(0);
+    expect(indicator.transform).toEqual([{ translateX: (70.8 - NAVIGATION_ACTIVE_FRAME.width) / 2 }]);
   });
 
   it("remains present (never masked) across a destination change", () => {

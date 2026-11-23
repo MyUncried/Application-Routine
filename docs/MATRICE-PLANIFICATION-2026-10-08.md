@@ -57,3 +57,5 @@ PROG — 2 (`7420:13824`) et PROG — 3 (`7420:13861`) existent sur la page comm
 Aucun code applicatif ni workflow modifié ; aucune fusion main ni mise à jour du dev local dans ce lot. La vérification visuelle ciblée est terminée ; les limites de spécification restent explicitement ouvertes.
 
 Preuve de clôture ciblée : [relevé après correction](archives/planification-2026-10-08/verification-apres-correction.json). Les dégradés peuvent masquer le bas du formulaire derrière le pied protégé ; les champs doivent rester atteignables par défilement, selon CE-UI-05.
+
+> [Remplacé le 18/11/2026, D-519 à D-523 : écrans de planification en vigueur = Grille de fréquence `12650:27854`, ~~cycle étendu à 3 `12624:29713`~~ [retiré le 19/11/2026], sélecteur numéroté `7599:14197` (ancien `12628:34456` supprimé le 19/11/2026), séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines (roulette) `12652:28447`. Les lignes ci-dessus restent comme historique ; Stepper, Rappel personnalisé sélectionné, Sans répétition, Sélection à plusieurs éléments, Planifier un parcours et Fréquence sont retirés. Captures de la matrice non régénérées.]

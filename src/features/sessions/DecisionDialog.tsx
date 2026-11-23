@@ -27,6 +27,19 @@ export type DecisionDialogProps = {
   confirmAfterDismiss?: boolean;
   /** Préfixe des `testID` internes (`${testIDPrefix}-backdrop`/`-card`/`-actions`) — un contexte par appelant, jamais partagé entre deux instances simultanées. */
   testIDPrefix: string;
+  /**
+   * D-537 (20/11/2026) : variantes « Titre seul » (`12759:24520`) et « Titre et message » (`12759:24619`) de `DSF / Overlays /
+   * Confirmation` — « Annuler » en pastille en haut à gauche, « Confirmer » sur toute la largeur. Absent : deux actions
+   * côte à côte (variantes d'origine).
+   */
+  cancelOnTop?: boolean;
+  /**
+   * PROG-CAT-01 (CE-PROG-03 ; spécification Programme §7, Figma `12874:28` « Titre, message et action secondaire ») : actions
+   * empilées sur toute la largeur, sans croix — principale (rouge), secondaire facultative (violet clair `#EAEAFF`, texte
+   * bleu), « Annuler » (gris). Absent : variantes d'origine.
+   */
+  secondaryAction?: { readonly label: string; readonly onPress: () => void } | null;
+  stacked?: boolean;
 };
 
 /**
@@ -69,6 +82,9 @@ export function DecisionDialog({
   onConfirm,
   confirmAfterDismiss = false,
   testIDPrefix,
+  cancelOnTop = false,
+  secondaryAction = null,
+  stacked = false,
 }: DecisionDialogProps) {
   const [closing, setClosing] = useState(false);
   const confirmedRef = useRef(false);
@@ -95,15 +111,73 @@ export function DecisionDialog({
       {...(confirmAfterDismiss ? { onDismiss: () => { if (closing) fire(); } } : {})}
     >
       <View style={styles.backdrop} testID={`${testIDPrefix}-backdrop`}>
+        {stacked ? (
+          <View style={[styles.card, styles.stackedCard]} accessibilityRole="alert" testID={`${testIDPrefix}-card`}>
+            <Text style={[styles.title, titleStyle]}>{title}</Text>
+            {message === "" ? null : <Text style={[styles.message, messageStyle, styles.stackedMessage]}>{message}</Text>}
+            <View style={styles.stackedActions} testID={`${testIDPrefix}-actions`}>
+              <Pressable
+                onPress={confirmAfterDismiss ? () => setClosing(true) : onConfirm}
+                accessibilityRole="button"
+                accessibilityLabel={confirmLabel}
+                style={[styles.destructiveAction, styles.stackedAction, confirmBordered ? styles.destructiveActionBorder : null]}
+                testID={`${testIDPrefix}-confirm`}
+              >
+                <Text style={[styles.destructiveLabel, confirmLabelStyle]}>{confirmLabel}</Text>
+              </Pressable>
+              {secondaryAction !== null ? (
+                <Pressable
+                  onPress={secondaryAction.onPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={secondaryAction.label}
+                  style={[styles.stackedAction, styles.secondaryAction]}
+                  testID={`${testIDPrefix}-secondary`}
+                >
+                  <Text style={[styles.neutralLabel, cancelLabelStyle, styles.secondaryLabel]}>{secondaryAction.label}</Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                onPress={onCancel}
+                accessibilityRole="button"
+                accessibilityLabel={cancelLabel}
+                style={[styles.stackedAction, styles.stackedCancel]}
+                testID={`${testIDPrefix}-cancel`}
+              >
+                <Text style={[styles.neutralLabel, cancelLabelStyle]}>{cancelLabel}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : cancelOnTop ? (
+          <View style={[styles.card, styles.topCard]} accessibilityRole="alert" testID={`${testIDPrefix}-card`}>
+            <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel={cancelLabel} style={styles.topCancel} testID={`${testIDPrefix}-cancel`}>
+              <Text style={[styles.neutralLabel, cancelLabelStyle]}>{cancelLabel}</Text>
+            </Pressable>
+            <Text style={[styles.title, titleStyle, styles.topTitle]}>{title}</Text>
+            {message === "" ? null : <Text style={[styles.message, messageStyle, styles.topMessage]}>{message}</Text>}
+            <View style={styles.topActions} testID={`${testIDPrefix}-actions`}>
+              <Pressable
+                onPress={confirmAfterDismiss ? () => setClosing(true) : onConfirm}
+                accessibilityRole="button"
+                accessibilityLabel={confirmLabel}
+                style={[styles.destructiveAction, styles.topConfirm, confirmBordered ? styles.destructiveActionBorder : null]}
+                testID={`${testIDPrefix}-confirm`}
+              >
+                <Text style={[styles.destructiveLabel, confirmLabelStyle]}>{confirmLabel}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
         <View style={styles.card} accessibilityRole="alert" testID={`${testIDPrefix}-card`}>
           <Text style={[styles.title, titleStyle]}>{title}</Text>
-          <Text style={[styles.message, messageStyle]}>{message}</Text>
+          {/* Message vide : dialogue « titre seul » (suppression d'une occurrence, recette du 20/11/2026, constat D). */}
+          {message === "" ? null : <Text style={[styles.message, messageStyle]}>{message}</Text>}
           <View style={styles.actions} testID={`${testIDPrefix}-actions`}>
             <Pressable
               onPress={onCancel}
               accessibilityRole="button"
               accessibilityLabel={cancelLabel}
               style={styles.neutralAction}
+              testID={`${testIDPrefix}-cancel`}
             >
               <Text style={[styles.neutralLabel, cancelLabelStyle]}>{cancelLabel}</Text>
             </Pressable>
@@ -112,11 +186,13 @@ export function DecisionDialog({
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
               style={[styles.destructiveAction, confirmBordered ? styles.destructiveActionBorder : null]}
+              testID={`${testIDPrefix}-confirm`}
             >
               <Text style={[styles.destructiveLabel, confirmLabelStyle]}>{confirmLabel}</Text>
             </Pressable>
           </View>
         </View>
+        )}
       </View>
     </Modal>
   );
@@ -185,4 +261,31 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: colors.background,
   },
+  // Variantes « Titre seul » / « Titre et message » (`12759:24520`, `12759:24619`) : carte 370, rayon 18 ; « Annuler »
+  // 88 × 32 à 16 du bord, rayon 16, fond #F3F4F6 ; titre à 16 sous la pastille ; message à 8 sous le titre ; « Confirmer »
+  // 322 × 48 (marges 24), rayon 24, à 16 du texte ; marge basse 24.
+  topCard: { width: 370, maxWidth: "100%", paddingTop: 16, paddingHorizontal: 24, paddingBottom: 24, gap: 0 },
+  topCancel: {
+    alignSelf: "flex-start",
+    marginLeft: -8,
+    width: 88,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  topTitle: { marginTop: 16 },
+  topMessage: { marginTop: 8 },
+  topActions: { marginTop: 16 },
+  topConfirm: { width: "100%", borderRadius: 24 },
+  // Figma `12874:28` (PROG — 7c, 370 de large) : titre à 24 du haut, message 8 dessous, actions 322 × 48 à 16 du message,
+  // écart 12, rayon 24, 24 sous la dernière action.
+  stackedCard: { width: 370, maxWidth: "100%", padding: 24, gap: 0 },
+  stackedMessage: { marginTop: 8 },
+  stackedActions: { marginTop: 16, gap: 12 },
+  stackedAction: { width: "100%", height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
+  secondaryAction: { backgroundColor: colors.catalogueSessionsContext },
+  secondaryLabel: { color: colors.primary },
+  stackedCancel: { backgroundColor: "#F3F4F6" },
 });

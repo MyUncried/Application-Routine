@@ -1,0 +1,84 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# tests
+coverage/
+
+example
+
+# generated native folders
+/ios
+/android
+
+# Obsidian local workspace
+**/.obsidian/
+# Administration locale du catalogue (W1/W2, 11/11/2026) : domaine transpilé, appareils appairés
+# (empreintes de jetons) et boîte d'arrivée des Mouvements reçus du téléphone — jamais versionnés.
+/tools/catalogue-admin/generated/
+/catalogue/admin/appareils.json
+/catalogue/admin/inbox/
+# Identité « Utilisateur local » de cette installation PC (décision du 12/11/2026) : propre au poste.
+/catalogue/admin/installation.json
+# Format catalogue 3.0.0 (18/11/2026) : sauvegardes avant première réécriture au nouveau format
+/catalogue/admin/sauvegardes/
+
+# ————————————————————————————————————————————————————————————————————————————————
+# .easignore (20/11/2026) — demande de Hermann : alléger l'archive envoyée à EAS Build (357 Mo le 20/11).
+# Quand ce fichier existe, EAS ne lit plus .gitignore : son contenu est repris ci-dessus, à l'identique.
+# Ci-dessous : fichiers du dépôt inutiles à la construction de l'application (documentation, orchestration,
+# rapports, tests, outils du PC). L'application n'importe, hors du dossier src/, que catalogue/pilote/ et
+# catalogue/referentiels/ (src/features/activities/pilotMovementImport.ts) : ils restent inclus.
+# ————————————————————————————————————————————————————————————————————————————————
+/.git/
+/.github/
+/.claude/
+/docs/
+/openspec/
+/_bmad-output/
+/Revue-claude/
+/e2e/
+/tests/
+/tools/
+/scripts/
+/coverage/
+/catalogue/catalogues/
+/catalogue/illustrations/
+/catalogue/admin/
+/CLAUDE.md
+/T01-S04-plan-modification-persistante.md
+/start-kodjo.ps1

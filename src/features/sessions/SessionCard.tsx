@@ -61,6 +61,11 @@ export type SessionCardProps = {
   readonly context?: SessionCardContext;
   /** E.3 : composition déployée, rendue sous l'en-tête. */
   readonly children?: ReactNode;
+  /**
+   * Calendrier Semaine (CE-UI-03 §8 : « badge heure 08:00 ») : heure de l'occurrence, en gras devant la ligne de
+   * structure. Absente : rendu inchangé (Catalogue, modales de planification).
+   */
+  readonly timeLabel?: string;
 };
 
 const CHEVRON_ICON = require("../../../assets/icons/icon-catalogue-chevron.svg");
@@ -116,6 +121,7 @@ export function SessionCard({
   onStart,
   context = "catalogue",
   children,
+  timeLabel,
 }: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
   const incomplete = projection.incomplete;
@@ -126,6 +132,10 @@ export function SessionCard({
   const duration = formatCatalogueSessionDuration(projection.duration, projection.forTimeBound);
   // D-504 : Démarrer masqué sur une carte archivée et dans les modales de planification.
   const showStart = !archived && context !== "planning";
+  // Recette Planification du 17/11/2026 (Hermann : « La durée de la séance doit être sur la troisième ligne, après le
+  // nombre ») : dans les modales de planification, la durée suit « N circuits · N exercices » ; la droite de la carte
+  // est laissée à la case de sélection. [Durée en haut à droite dans ce contexte — remplacé.]
+  const durationOnMetaLine = context === "planning";
   const startAvailable = onStart !== undefined;
 
   return (
@@ -149,7 +159,7 @@ export function SessionCard({
           <CardVisual projection={projection} />
         </Pressable>
         <View style={[styles.texts, flagged ? styles.textsFlagged : null]} testID={`session-card-${id}-texts`}>
-          <View style={styles.titleRow}>
+          <View style={[styles.titleRow, durationOnMetaLine ? styles.besideSelection : null]}>
             {/* D-504 : chevron à gauche du nom sur toute carte ; → repliée, ↓ dépliée. */}
             <Pressable
               onPress={onToggleExpanded}
@@ -174,19 +184,27 @@ export function SessionCard({
               <Text style={styles.name} numberOfLines={1} testID={`session-card-${id}-name`}>
                 {projection.name}
               </Text>
-              <Text style={styles.duration} numberOfLines={1} testID={`session-card-${id}-duration`}>
-                {duration}
-              </Text>
+              {durationOnMetaLine ? null : (
+                <Text style={styles.duration} numberOfLines={1} testID={`session-card-${id}-duration`}>
+                  {duration}
+                </Text>
+              )}
             </View>
           </View>
-          <View style={[styles.metaRows, showStart ? styles.besideStart : null]}>
+          <View style={[styles.metaRows, showStart ? styles.besideStart : null, durationOnMetaLine ? styles.besideSelection : null]}>
             <CategoryLine categories={projection.categories} testID={`session-card-${id}-categories`} />
             <View style={styles.metaRow}>
               <View style={styles.symbolColumn}>
                 <Image source={EXERCISES_ICON} style={styles.exercisesIcon} accessible={false} />
               </View>
               <Text style={styles.meta} numberOfLines={1} testID={`session-card-${id}-summary`}>
+                {timeLabel !== undefined ? (
+                  <Text style={styles.time} testID={`session-card-${id}-time`}>
+                    {`${timeLabel}${CATEGORY_SEPARATOR}`}
+                  </Text>
+                ) : null}
                 {formatSessionStructureLine(projection)}
+                {durationOnMetaLine ? <Text testID={`session-card-${id}-duration`}>{`${CATEGORY_SEPARATOR}${duration}`}</Text> : null}
               </Text>
             </View>
           </View>
@@ -450,6 +468,10 @@ const styles = StyleSheet.create({
   besideStart: {
     marginRight: START_WIDTH + spacing[8],
   },
+  /** Case ronde de la sélection de planification (`PlanningSelection` : 24, à 12 du bord droit). */
+  besideSelection: {
+    marginRight: 24 + spacing[12] + spacing[8],
+  },
   titleRow: {
     height: TITLE_ROW_HEIGHT,
     flexDirection: "row",
@@ -530,6 +552,12 @@ const styles = StyleSheet.create({
     ...type.supporting,
     flexShrink: 1,
     color: colors.textSecondary,
+  },
+  // Calendrier Semaine : heure de l'occurrence en gras (Figma `1992:5101`, « 08:00 »).
+  time: {
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: colors.textPrimary,
   },
   // D-504 : pilule Démarrer — fond `color/catalogue/seances/background`, sans liseré, ombre des
   // actions contextuelles (0 / 2 / 4, noir 14 %), à 12 du bord droit et 8 du bas de l'en-tête.

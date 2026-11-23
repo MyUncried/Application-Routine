@@ -1,9 +1,10 @@
 import { seriesCountOf, seriesRowsOf } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
-import type { Activity } from "@/domain/sessions/Session";
+import { SESSION_COLORS, type Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord, SessionStatus } from "@/domain/sessions/SessionRepository";
-import { computeStructureDuration, cycleExercises, structureCircuits, structureExercises, type StructureCircuit, type StructureElement } from "@/domain/sessions/structure";
+import { computeStructureDuration, cycleExercises, mapStructure, structureCircuits, structureExercises, type StructureCircuit, type StructureElement } from "@/domain/sessions/structure";
+import type { SessionSnapshot, SessionSnapshotExercise } from "@/domain/sessions/sessionSnapshot";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
@@ -293,6 +294,13 @@ export function shownCircuitCountOf(structure: Pick<CatalogueSessionRecord["stru
   return only.repeatCount === 1 && cyclePasses === 1 ? null : 1;
 }
 
+/** Catégories distinctes des exercices d'une Séance (projection dérivée des exercices, jamais stockée sur la Séance). */
+export function sessionCategoryIds(record: Pick<CatalogueSessionRecord, "structure">): readonly string[] {
+  const ids: string[] = [];
+  for (const exercise of structureExercises(record.structure).filter(isExercise)) if (exercise.categoryId && !ids.includes(exercise.categoryId)) ids.push(exercise.categoryId);
+  return ids;
+}
+
 export function projectSessionForCatalogue(
   record: CatalogueSessionRecord,
   categoriesById: ReadonlyMap<string, CatalogueCategoryRef>,
@@ -339,4 +347,34 @@ export function projectSessionForCatalogue(
     incomplete,
     toVerify: !incomplete && summaries.some(isToVerifySummary),
   };
+}
+
+/**
+ * Recette du 22/11/2026 (constat b — Hermann : « Modifier une séance dans le catalogue modifie la séance dans la routine (OK), les
+ * occurrences non-exécutées (OK), mais aussi les occurrences exécutées (KO) ») : projection d'une Séance telle qu'elle a été
+ * exécutée, depuis son instantané (FMT-06 : modifier la Séance ne modifie pas rétroactivement une exécution). Composition, Zones,
+ * Catégories et durée viennent de l'instantané ; aucun média (la carte de l'Agenda n'en montre pas).
+ */
+export function projectSnapshotForCatalogue(
+  snapshot: SessionSnapshot,
+  categoriesById: ReadonlyMap<string, CatalogueCategoryRef>,
+): SessionCatalogueProjection {
+  let position = 0;
+  const structure = mapStructure(snapshot.structure, (item: SessionSnapshotExercise): Activity => ({
+    id: item.id,
+    type: item.type,
+    structuralPosition: "IN_TOUR",
+    position: position++,
+    name: item.exercise?.name ?? "",
+    executionParameters: item.executionParameters,
+    postActivityRecoverySeconds: item.postActivityRecoverySeconds,
+    instruction: null,
+    bodyZoneIds: item.exercise?.bodyZoneIds ?? [],
+    categoryId: item.exercise?.categoryId ?? null,
+    format: item.format,
+  }));
+  return projectSessionForCatalogue(
+    { id: snapshot.sessionId, name: snapshot.name, color: SESSION_COLORS[0], labelId: null, status: "ACTIVE", archivedAt: null, updatedAt: "", structure },
+    categoriesById,
+  );
 }

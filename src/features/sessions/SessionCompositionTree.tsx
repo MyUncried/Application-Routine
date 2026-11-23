@@ -76,10 +76,19 @@ export function compositionAccessibilityText(tree: readonly CatalogueTreeLine[])
   return `${t.compositionAccessibilityLabel} : ${lines.join(", ")}`;
 }
 
-export function SessionCompositionTree({ tree, testID }: { readonly tree: readonly CatalogueTreeLine[]; readonly testID: string }) {
+export function SessionCompositionTree({
+  tree,
+  testID,
+  divider = true,
+}: {
+  readonly tree: readonly CatalogueTreeLine[];
+  readonly testID: string;
+  /** Faux : sans filet en tête (Journal, recette du 20/11/2026, r21-j-deploye). */
+  readonly divider?: boolean;
+}) {
   return (
     <SheetMotionView testID={testID}>
-      <View style={styles.divider} testID={`${testID}-divider`} />
+      {divider ? <View style={styles.divider} testID={`${testID}-divider`} /> : null}
       <View style={styles.lines}>
         {tree.map((line) => {
           const { name, value } = treeLineLabel(line);

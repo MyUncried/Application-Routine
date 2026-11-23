@@ -152,7 +152,16 @@ type DurationWheelPickerBaseProps = {
    * Inter Semi Bold 18. Sans lui, barre inchangée.
    */
   title?: string;
+  /**
+   * Planification, « Rappel personnalisé » (Figma `1992:7187`) : libellés et largeurs des unités des deux colonnes
+   * (« heures » / « minutes »). Absent : `min` / `s`, largeurs R4-07 inchangées.
+   */
+  units?: WheelUnits;
 };
+
+export type WheelUnits = { readonly major: string; readonly minor: string; readonly majorWidth: number; readonly minorWidth: number };
+
+const DEFAULT_WHEEL_UNITS: WheelUnits = { major: "min", minor: "s", majorWidth: NATIVE_MINUTES_UNIT_WIDTH, minorWidth: NATIVE_SECONDS_UNIT_WIDTH };
 
 /**
  * PRE-4 story 3.4 (AD-7) : `failureOption` exige `targetBounds` (union de props) —
@@ -354,6 +363,7 @@ function NativeAppleDurationWheelPicker({
   failureOption,
   valueGrid: valueGridProp,
   title,
+  units = DEFAULT_WHEEL_UNITS,
 }: DurationWheelPickerProps) {
   // PRE-6 story 4.1 : une grille vide vaut absence de grille.
   const valueGrid = normalizedGrid(valueGridProp);
@@ -453,14 +463,14 @@ function NativeAppleDurationWheelPicker({
           </SwiftUIPicker>
           <SwiftUIText
             modifiers={[
-              frame({ width: NATIVE_MINUTES_UNIT_WIDTH }),
+              frame({ width: units.majorWidth }),
               padding({ trailing: NATIVE_COLUMN_INTERVAL }),
               bold(),
               font({ size: 14 }),
               foregroundStyle(colors.textPrimary),
             ]}
           >
-            min
+            {units.major}
           </SwiftUIText>
           <SwiftUIPicker
             selection={draftSeconds}
@@ -481,13 +491,13 @@ function NativeAppleDurationWheelPicker({
           </SwiftUIPicker>
           <SwiftUIText
             modifiers={[
-              frame({ width: NATIVE_SECONDS_UNIT_WIDTH }),
+              frame({ width: units.minorWidth }),
               bold(),
               font({ size: 14 }),
               foregroundStyle(colors.textPrimary),
             ]}
           >
-            s
+            {units.minor}
           </SwiftUIText>
         </HStack>
       </Host>
@@ -658,6 +668,7 @@ function LegacyDurationWheelPicker({
   failureOption,
   valueGrid: valueGridProp,
   title,
+  units = DEFAULT_WHEEL_UNITS,
 }: DurationWheelPickerProps) {
   // PRE-6 story 4.1 : une grille vide vaut absence de grille.
   const valueGrid = normalizedGrid(valueGridProp);
@@ -823,7 +834,7 @@ function LegacyDurationWheelPicker({
           onScrollEndDrag={() => alignColumn("minutes")}
           onItemPress={(index) => handleItemPress(index, "minutes")}
         />
-        <Text style={styles.separator}>min</Text>
+        <Text style={styles.separator}>{units.major}</Text>
         <WheelColumn
           scrollRef={secondsScrollRef}
           values={secondsValues}
@@ -836,7 +847,7 @@ function LegacyDurationWheelPicker({
           onScrollEndDrag={() => alignColumn("seconds")}
           onItemPress={(index) => handleItemPress(index, "seconds")}
         />
-        <Text style={styles.separator}>s</Text>
+        <Text style={styles.separator}>{units.minor}</Text>
       </View>
     </View>
   );

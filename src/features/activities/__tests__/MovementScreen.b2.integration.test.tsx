@@ -1237,7 +1237,13 @@ describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibli
     imported.importedMovementInfo = async (id) => (id === "m1" ? {
       libraries: ["Fitness"], catalogueId: "kodjo.pilote-60", sheetId: "s1", revision: "2",
       installedAt: "2026-11-11T10:00:00.000Z", updatedAt: "2026-11-11T10:00:00.000Z", origin: "EXTERNAL_IMPORTED",
-      upstream: null, owner: null, author: "hermann", publisher: null, editors: [], rightsHolder: null, license: null,
+      upstream: null, owner: "pc-admin", author: "hermann", rightsHolder: null,
+      license: { name: "CC BY 4.0", url: null, text: null },
+      equipment: "Kettlebell", safetyNotes: "Sans douleur.",
+      classification: {
+        specialties: [{ catalogueId: "kodjo.pilote-60", id: "crossfit", label: "CrossFit" }],
+        gesturalFamilies: [], anatomicalTargets: [], clinicalProblems: [],
+      },
     } : null);
     try {
       await movements().create(movement("m1", "Squats sautés"));
@@ -1249,6 +1255,14 @@ describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibli
       expect(screen.getByTestId("movement-imported-info", anyNode)).toBeTruthy();
       expect(screen.getByText("Fitness")).toBeTruthy();
       expect(screen.getByText("hermann")).toBeTruthy();
+      // Format 3.0.0 (18/11/2026) : informations utilisateur accessibles ; ayant droit = propriétaire ; pas d'« Éditeur ».
+      expect(screen.getByText("Kettlebell")).toBeTruthy();
+      expect(screen.getByText("Consignes de sécurité")).toBeTruthy();
+      expect(screen.getByText("Sans douleur.")).toBeTruthy();
+      expect(screen.getByText("CrossFit")).toBeTruthy();
+      expect(screen.getByText("CC BY 4.0")).toBeTruthy();
+      expect(screen.getAllByText("pc-admin")).toHaveLength(2);
+      expect(screen.queryByText("Éditeur")).toBeNull();
       fireEvent.press(screen.getByTestId("movement-imported-badge", anyNode));
       expect(screen.queryByTestId("movement-imported-info", anyNode)).toBeNull();
       expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
@@ -1265,7 +1279,8 @@ describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibli
     imported.importedMovementInfo = async (id) => (id === "p1" || id === "p2" ? {
       libraries: ["Pompes"], catalogueId: "kodjo.pilote-60", sheetId: id, revision: "1",
       installedAt: "2026-11-11T10:00:00.000Z", updatedAt: "2026-11-11T10:00:00.000Z", origin: "EXTERNAL_IMPORTED",
-      upstream: null, owner: null, author: null, publisher: null, editors: [], rightsHolder: null, license: null,
+      upstream: null, owner: null, author: null, rightsHolder: null, license: null, equipment: null, safetyNotes: null,
+      classification: { specialties: [], gesturalFamilies: [], anatomicalTargets: [], clinicalProblems: [] },
     } : null);
     try {
       await movements().create(movement("p1", "Pompes au mur", { levelGroup: { groupId: "catalogue:kodjo.pilote-60#pompes", sortKey: 0 } }));

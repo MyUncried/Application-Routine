@@ -18,8 +18,13 @@ import { generatedModuleUrl } from "./build-domain.mjs";
 
 const root = path.resolve(fileURLToPath(new URL("../../", import.meta.url)));
 const PILOT = "kodjo-pilote-60.catalogue.json";
-const { parseMovementCatalogueFile, serializeMovementCatalogueFile } =
+const { diffusableCatalogue, parseMovementCatalogueFile, serializeMovementCatalogueFile } =
   await import(generatedModuleUrl("src/domain/catalogue/MovementCatalogueFile.ts"));
+/** Octets diffusés (export, Wi-Fi) d'un fichier : version diffusable, notes internes retirées (format 3.0.0). */
+const diffused = (bytes) => {
+  const parsed = parseMovementCatalogueFile(JSON.parse(bytes.toString("utf8")));
+  return Buffer.from(serializeMovementCatalogueFile(diffusableCatalogue(parsed.file).file), "utf8");
+};
 const sha = (data) => createHash("sha256").update(data).digest("hex");
 
 let folder, app, admin, phone, clock;
@@ -152,7 +157,11 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       assert.equal(saved.body.saved, true);
       assert.deepEqual(saved.body.createdSheets, ["fiche-test-61"]);
       assert.equal(saved.body.revision, "2");
+      // Format 3.0.0 : copie à l'identique du fichier 2.0.0 avant sa première réécriture, hors des catalogues.
+      assert.match(saved.body.backup, /^catalogue\/admin\/sauvegardes\/kodjo-pilote-60\.v2\.0\.0\.[0-9a-f]{12}\.catalogue\.json$/);
+      assert.deepEqual(await readFile(path.join(folder, saved.body.backup)), await readFile(path.join(root, "catalogue/catalogues", PILOT)));
       const text = await readFile(path.join(folder, "catalogue/catalogues", PILOT), "utf8");
+      assert.equal(JSON.parse(text).formatVersion, "3.0.0");
       assert.equal(saved.body.etag, sha(Buffer.from(text, "utf8")));
       const reread = parseMovementCatalogueFile(JSON.parse(text));
       assert.equal(reread.ok, true);
@@ -172,9 +181,11 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       assert.equal(saved.status, 200, saved.text);
       assert.deepEqual(saved.body.changedSheets, [opened.file.sheets[4].sheetId]);
       assert.equal(saved.body.revision, "3");
+      assert.equal(saved.body.backup, undefined); // fichier déjà au format courant : aucune nouvelle sauvegarde
       const reread = await openPilot();
-      assert.equal(reread.file.sheets[4].revision, "2");
-      assert.equal(reread.file.sheets[3].revision, "1");
+      // Révision 2 = reprise de la position de départ par la conversion 3.0.0 ; la note donne la révision 3.
+      assert.equal(reread.file.sheets[4].revision, "3");
+      assert.equal(reread.file.sheets[3].revision, "2");
       assert.equal(reread.canonical, true);
     });
 
@@ -226,12 +237,17 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       assert.equal(reread.file.libraries[1].revision, "1");
     });
 
-    it("export : octets identiques au fichier enregistré", async () => {
+    it("export : version diffusable du fichier enregistré, sans notes internes (format 3.0.0)", async () => {
       const response = await fetch(admin + "/api/catalogues/" + PILOT + "/export");
       assert.equal(response.status, 200);
       assert.match(response.headers.get("content-disposition"), /attachment/);
       const exported = Buffer.from(await response.arrayBuffer());
-      assert.deepEqual(exported, await readFile(path.join(folder, "catalogue/catalogues", PILOT)));
+      const disk = await readFile(path.join(folder, "catalogue/catalogues", PILOT));
+      assert.deepEqual(exported, diffused(disk));
+      const file = JSON.parse(exported.toString("utf8"));
+      assert.deepEqual(file.catalogue.notes, []);
+      assert(file.sheets.every((sheet) => sheet.content.notes === ""));
+      assert(JSON.parse(disk.toString("utf8")).sheets.some((sheet) => sheet.content.notes !== ""), "le fichier garde ses notes internes");
     });
 
     it("sécurité : Host non local, origine étrangère, chemin forgé, corps trop volumineux", async () => {
@@ -333,10 +349,12 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       assert.equal(pilot.fileRevision, JSON.parse(disk.toString("utf8")).catalogue.revision);
       const download = await phoneCall("GET", "/phone/v1/catalogues/kodjo.pilote-60", { token });
       assert.equal(download.status, 200);
-      assert.deepEqual(download.bytes, disk);
+      // Format 3.0.0 : version diffusable (notes internes retirées), relue par le parseur partagé.
+      assert.deepEqual(download.bytes, diffused(disk));
       const parsed = parseMovementCatalogueFile(JSON.parse(download.bytes.toString("utf8")));
       assert.equal(parsed.ok, true);
-      assert.equal(download.headers.get("etag"), '"' + sha(disk) + '"');
+      assert.deepEqual(parsed.file.catalogue.notes, []);
+      assert.equal(download.headers.get("etag"), '"' + sha(diffused(disk)) + '"');
       const notModified = await phoneCall("GET", "/phone/v1/catalogues/kodjo.pilote-60", { token, headers: { "If-None-Match": download.headers.get("etag") } });
       assert.equal(notModified.status, 304);
       assert.equal((await phoneCall("GET", "/phone/v1/catalogues/inconnu", { token })).status, 404);
@@ -365,7 +383,7 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       withMedia.libraries[0].members = withMedia.libraries[0].members.map((m) => ({ ...m, catalogueId: "kodjo.medias" }));
       withMedia.sheets[0].media = [{
         id: "media-000001", kind: "PHOTO", storage: "REMOTE", url: "https://exemple.fr/photo.webp", fileName: "photo.webp",
-        caption: "", alt: "Position", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
+        caption: "", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
       }];
       await writeFile(path.join(folder, "catalogue/catalogues/medias.catalogue.json"), JSON.stringify(withMedia));
       const served = await phoneCall("GET", "/phone/v1/catalogues/kodjo.medias", { token });
@@ -440,7 +458,7 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
       assert.equal(sheet.provenance.origin, "LOCAL_CREATED");
       assert.equal(sheet.provenance.owner, null);
       assert.equal(sheet.provenance.author, null);
-      assert.equal(sheet.provenance.visibility, "PRIVATE");
+      assert.equal("visibility" in sheet.provenance, false); // MOUV-ADM n° 17 : champ retiré
       assert.equal(sheet.validation.publicationAllowed, false);
       assert.deepEqual(sheet.install.knownLocalMovementIds, ["mv-perso-1"]);
       // Revue du 11/11 : Mouvement personnel marqué, rattachement non appliqué sur le téléphone (règle à arbitrer).

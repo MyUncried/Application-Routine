@@ -23,6 +23,7 @@
  */
 
 import type { ExecutionRepository } from "@/domain/execution/ExecutionRepository";
+import type { OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
 import {
   createInitialState,
   ENGINE_STATE_VERSION,
@@ -84,6 +85,11 @@ export type ExecutionSignal = {
   readonly series?: { readonly current: number; readonly total: number } | null;
   /** Nombre d'Exercices de la Séance (recette du 11/11/2026, constat b : « Premier exercice » s'il y en a plus d'un). */
   readonly exerciseCount?: number;
+  /**
+   * PRE-11 (T2) : début d'une fenêtre EMOM (première étape de la fenêtre) — bip long, réglage « Démarrage d'un exercice » (arbitrage de
+   * Hermann du 18/11/2026 : « Bip long de la minute au début de chaque fenêtre »).
+   */
+  readonly windowStart?: boolean;
 };
 
 export type ExecutionServiceDeps = {
@@ -184,7 +190,10 @@ export class ExecutionService {
     for (const change of this.active.results.values()) {
       if (change.type !== "SCOPE") continue;
       const result = change.result as { readonly format?: string; readonly interruptedKey?: string | null; readonly partialRepetitions?: number | null };
-      if (result.format === "FOR_TIME" && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
+      // PRE-11 (T2) : de même pour une fenêtre EMOM non terminée (répétitions déclarées, Arrêt).
+      // PRE-11 (T3) : de même pour l'exercice en cours à l'échéance d'un bloc AMRAP ou à l'Arrêt.
+      // PRE-11 (T4) : de même pour la fenêtre manquée d'un Death by, ou son Arrêt.
+      if ((result.format === "FOR_TIME" || result.format === "EMOM" || result.format === "AMRAP" || result.format === "DEATH_BY") && typeof result.interruptedKey === "string" && typeof result.partialRepetitions === "number") found.set(result.interruptedKey, result.partialRepetitions);
     }
     return found;
   }
@@ -202,8 +211,11 @@ export class ExecutionService {
     return { status: "ready", snapshot, plan, projection: projectExecution(plan, createInitialState("preview"), 0) };
   }
 
-  /** Démarrer : crée l'Exécution (instantané figé) puis lance le Compte à rebours initial. */
-  start(prepared: Extract<PreparedExecution, { status: "ready" }>): Promise<void> {
+  /**
+   * Démarrer : crée l'Exécution (instantané figé) puis lance le Compte à rebours initial. `occurrence` : séance lancée
+   * depuis une occurrence de routine, enregistrée avec l'Exécution (statut de l'occurrence, recette du 19/11/2026).
+   */
+  start(prepared: Extract<PreparedExecution, { status: "ready" }>, occurrence?: OccurrenceLink): Promise<void> {
     return this.enqueue(async () => {
       if (this.active !== null && this.active.state.status !== "FINISHED") throw new ExecutionBlockedError("An execution is already active.");
       if ((await this.deps.repository.findUnfinished()) !== null) throw new ExecutionBlockedError("An unfinished execution must be resumed or stopped first.");
@@ -224,6 +236,7 @@ export class ExecutionService {
           state: started.state,
           startedAt,
           clockWallMs: reading,
+          ...(occurrence !== undefined ? { occurrence } : {}),
         },
         started.results,
       );
@@ -458,6 +471,7 @@ export class ExecutionService {
       phaseChange: "phaseChange" in signal && signal.phaseChange === true,
       series: projection?.series ?? null,
       exerciseCount: this.active === null ? 0 : Object.keys(this.active.plan.exercises).length,
+      windowStart: signal.kind === "TRANSITION" && this.active?.state.leaf?.spec.windowStart === true && this.active.state.leaf.openedAtMs === signal.atMs,
     };
   }
 
