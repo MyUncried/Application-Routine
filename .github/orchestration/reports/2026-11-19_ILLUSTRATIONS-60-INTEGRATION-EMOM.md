@@ -220,3 +220,11 @@ L'hypothèse précédente (séances archivées) est **écartée** par l'utilisat
 - Mesure de diagnostic (sans changement de comportement) : le message d'erreur nomme désormais le Mouvement (identifiant, nom) et les règles violées (`SqliteMovementRepository.assembleRecords`). Classe D. Tests : `tsc` OK ; Jest 433 suites, 6434 réussis, 32 ignorés, 0 échec.
 - À vérifier sur appareil : nouvelle capture du message après `git pull`.
 - 23:55 : capture reçue avec l'ancien message (sans identifiant ni règle) alors que `ab55f0f4` est la seule source de ce message (`grep` : un seul `throw`) : l'iPhone exécute encore un bundle antérieur à `ab55f0f4` (pull non fait ou cache Metro). Demande : vérifier le commit local et relancer Metro avec `--clear`.
+
+### 23/11/2026 — Avis pour la consolidation (fusion unique demandée par l'utilisateur)
+
+Vérifié sur `origin` (lecture seule) :
+- `assets/illustrations-60-20261117` (`53a2c090`) a 118 commits absents de `integration/bmad-planification-20261120` (`78db25d2`). Leur code (`ActivityEditorForm.tsx`, `MovementScreen.tsx`, `importedMovements.ts`) est le seul commit `6b1c9578` (photo du catalogue affichée à part sur la fiche), **remplacé** dans la ligne d'intégration par le modèle unique des médias (décision du 19/11). À ne pas fusionner tel quel.
+- Le catalogue illustré utilisable par l'application (format 3.0.0, 60 photos 1206 × 987 intégrées) est déjà dans la ligne d'intégration : `catalogue/illustrations/kodjo-pilote-60.illustre-v3.json`.
+- À reprendre de la branche assets, sans code : les 60 sources `catalogue/illustrations/20261117/*.webp`, `catalogue/illustrations/suivi.json` et les 4 rapports `2026-11-18/19_ILLUSTRATIONS-60-*`. Le fichier `catalogue/catalogues/kodjo-pilote-60.catalogue.json` (v2) reste celui de la ligne d'intégration (fixture des tests).
+- Branches `recette/*-20261119` (4 à 13 commits chacune) : absentes de la ligne d'intégration, non développées dans cette session ; décision laissée à la session qui les a produites.
