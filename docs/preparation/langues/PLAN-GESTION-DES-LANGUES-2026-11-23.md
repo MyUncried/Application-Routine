@@ -128,3 +128,18 @@ Choix de Hermann : « option A » — pas de recette iPhone isolée de T1 ; T1 e
 | **J5 — Espagnol, italien, portugais du Brésil, allemand** | T8 : une langue à la fois | Relecture native (à organiser) | Oui |
 
 Ordre : J1 d'abord (débloque la recette visible) ; J2 et J3 indépendants ensuite ; J4 après A3 ; J5 en dernier (l'anglais complet est le repli).
+
+## 8. Écrans touchés par étape (23/11/2026)
+
+| Étape | Écran | Modification | Figma |
+|---|---|---|---|
+| J1 | Profil › Compte (`ProfileEditScreen`, onglet « Compte » sur la branche Programmes) | Nouvelle ligne **Langue**, sous la silhouette (genre) : langue en cours, toucher ouvre le réglage iOS | Oui (ou reprise d'une ligne existante) |
+| J1 | Tous les écrans | Aucune mise en page modifiée ; les textes changent de langue → contrôle visuel des textes longs (boutons, pilules, segmentés, cartes, en-têtes) | Non |
+| J1 | Paramètres d'exécution (`ExecutionParametersSheet`, `loadOptionWidth.ts`) | Largeur des options calculée sur une table de lettres françaises : à rendre indépendante de la langue | Non |
+| J1 | Écran de lancement, autorisation des notifications (texte iOS) | Textes traduits | Non |
+| J2 | Composition (carte d'exercice), éditeur d'Exercice (« Durée totale ») | Phrase de synthèse simplifiée | Exemples à valider |
+| J3 | Profil › Compte | Ligne **Unité de charge** (kg / lb) | Oui |
+| J3 | Paramètres d'exécution (charge, tableau des séries variables), carte d'exercice, écran d'Exécution | Unité affichée et saisie selon le profil | Non |
+| J4 | Catalogue des Mouvements, fiche Mouvement, sélecteurs Catégorie / Zones, Formats, Profil › Bibliothèques | Contenus KODJO dans la langue de l'interface | Non |
+| J4 | Fiche Mouvement (édition) | Saisie des **alias** (rouverte) | Oui |
+| J5 | — | Aucun écran nouveau | — |
