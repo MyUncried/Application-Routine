@@ -92,7 +92,8 @@ export const programStrings = {
   /** D-543 (Hermann, 23/11/2026 ; DSF Programmes § 1) : période d'un programme. */
   period: {
     /** Le mot « au » / « pendant » est une valeur modifiable qui bascule d'un toucher (lot 5, 23/11/2026, y4 ; [menu — remplacé]). */
-    modeDates: "au",
+    // Lot 5 ter (23/11/2026, Hermann : « jusqu’à où pendant ») : « jusqu’au » comme Planifier. [« au » — remplacé.]
+    modeDates: "jusqu’au",
     modeDuration: "pendant",
     /** [interprétation] Libellés d'accessibilité des menus et de la roulette. */
     modeAccessibility: "Fin de la période, {value}",

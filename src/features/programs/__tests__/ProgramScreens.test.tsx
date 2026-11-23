@@ -13,7 +13,7 @@ import { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { ProgramSheetScreen } from "@/features/programs/ProgramSheetScreen";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { DateCalendar, Pill, PillFace } from "@/features/planning/PlanningControls";
+import { DateCalendar, Pill, ValueWord } from "@/features/planning/PlanningControls";
 import { DatePicker } from "@expo/ui/swift-ui";
 import * as relay from "@/features/programs/programSheetRelay";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -529,11 +529,13 @@ describe("Lot 4 — modale du programme", () => {
     const program = await createProgram({ startDate: "2030-09-15", endDate: "2030-12-14" });
     render(withService(<ProgramSheetScreen params={{ programId: program.id }} />));
     await flush();
+    // Lot 5 ter : « jusqu’au » comme Planifier (Hermann : « jusqu’à où pendant »).
+    expect(screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label)).toEqual(["15 sept. 2030", "jusqu’au", "14 déc. 2030"]);
     toggleMode();
     const labels = screen.UNSAFE_getAllByType(Pill).map((pill) => pill.props.label);
     expect(labels).toEqual(["15 sept. 2030", "pendant", "13"]);
-    // Lot 5 bis : l'unité reste un menu natif (popover inchangé), avec une pastille pour étiquette.
-    expect(screen.UNSAFE_getAllByType(PillFace).map((face) => face.props.label)).toEqual(["semaines"]);
+    // Lot 5 bis / ter : l'unité reste un menu natif (popover inchangé), avec un mot bleu sans pastille pour étiquette.
+    expect(screen.UNSAFE_getAllByType(ValueWord).map((face) => face.props.label)).toEqual(["semaines"]);
     expect(screen.UNSAFE_getByProps({ testID: "program-period-unit-option-WEEK" }).props.systemImage).toBe("checkmark");
   });
 

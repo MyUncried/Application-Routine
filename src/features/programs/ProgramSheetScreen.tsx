@@ -16,7 +16,7 @@ import {
 } from "@/domain/programs/Program";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { DATE_PANEL_WIDTH, DateCalendar, Pill, PillFace } from "@/features/planning/PlanningControls";
+import { DATE_PANEL_WIDTH, DateCalendar, Pill, ValueWord } from "@/features/planning/PlanningControls";
 import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
@@ -539,7 +539,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                       />
                     </View>
                     {/* Lot 5 bis (23/11/2026, Hermann : « il ne faut pas changer le popover ») : l'unité garde son menu natif ;
-                        seule son étiquette prend la forme d'une pastille. [Bascule d'un toucher du lot 5 — remplacée.] */}
+                        son étiquette est un mot bleu sans pastille, comme dans Planifier (lot 5 ter). [Bascule d'un toucher du lot 5 — remplacée ; pastille du lot 5 bis — remplacée.] */}
                     <UnitMenu
                       label={unitLabel(duration.unit, duration.count)}
                       accessibilityLabel={tp.unitAccessibility.replace("{value}", unitLabel(duration.unit, duration.count))}
@@ -750,7 +750,7 @@ function UnitMenu({
           label={
             <RNHostView matchContents>
               <View pointerEvents="none">
-                <PillFace label={label} />
+                <ValueWord label={label} />
               </View>
             </RNHostView>
           }
