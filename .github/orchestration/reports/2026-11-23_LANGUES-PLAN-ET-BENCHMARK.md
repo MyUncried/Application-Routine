@@ -18,7 +18,7 @@
 - La voix liée à l'interface correspond à l'usage majoritaire. Le changement de langue passe d'ordinaire par le réglage iOS de l'application. L'unité par défaut se déduit de la région.
 - Le plan (`docs/preparation/langues/PLAN-GESTION-DES-LANGUES-2026-11-23.md`) consigne :
   - les réponses de Hermann (H1–H8, texte d'origine) ;
-  - 8 points à arbitrer (A0–A7) ;
+  - points à arbitrer (A0–A8) ;
   - 10 lots documentaires (D0–D9) et 8 lots techniques (T1–T8).
 
 ## Preuves et tests
@@ -53,3 +53,9 @@ Recherche web, sources citées dans le benchmark avec un niveau de preuve V/P/?.
 ## Commit final et état Git
 
 Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
+
+## Complément — second échange du 23/11
+
+- H6 bis (emplacement Langue / Unité, Notifications) et H7 (phrases : simplifier, traduire par IA, relecture native) recopiés dans le plan.
+- Recommandation révisée : Langue et Unité dans Profil › Compte. Notifications maintenues hors Confidentialité. A6 tranché ; A8 ajouté.
+- Aucun fichier applicatif modifié ; aucun test applicable.
