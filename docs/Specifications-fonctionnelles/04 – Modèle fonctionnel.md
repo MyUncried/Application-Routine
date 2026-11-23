@@ -564,7 +564,7 @@ Référence : document de conception `Programme / Modèle de Programme` V1.2, §
 
 Trois écrans du parcours Programme n'existent pas encore et doivent être signalés comme tels :
 
-- la **création** d'un programme (nom, intention, période) ;
+- la **création** d'un programme (nom, intention, période) ; [23/11/2026 : écran « PROG — 13 Créer ou configurer un programme » conçu ; période D-543, routines D-544, voir `docs/DSF-PROGRAMMES-2026-11-23.md`.]
 - la **proposition de rattachement** automatique des occurrences existantes tombant dans la période ;
 - l'**avertissement** lorsqu'une occurrence tombe hors de la période du programme choisi.
 
