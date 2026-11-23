@@ -238,3 +238,4 @@ Demande : prompt pour générer une courte vidéo de l'exercice avec le personna
 ### 23/11/2026 — Prompt vidéo Higgsfield (Setu Bandha, FIT-YOG-010)
 
 Demande : même principe, femme moins athlétique, tenue de sport plus colorée. Source : `catalogue/illustrations/20261117/FIT-YOG-010.webp` et fiche FIT-YOG-010 (départ sur le dos, pieds près du bassin ; pousser dans les pieds pour lever les hanches ; genoux parallèles ; reposer lentement la colonne ; sécurité : aucune pression sur la tête et la nuque). Le personnage diffère volontairement de l'illustration : l'image (panneau gauche recadré, hors dépôt) ne sert qu'au cadrage. Aucune vidéo générée ni versionnée ; aucun fichier applicatif modifié ; aucun test applicable.
+- Exécution du prompt demandée : **bloquée**. Aucun accès à Higgsfield depuis cette session ; le seul générateur vidéo disponible (Figma Weave) répond que le compte Figma n'est pas lié à Weave. Aucune vidéo générée, aucun crédit dépensé.
