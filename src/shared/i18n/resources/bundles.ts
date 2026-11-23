@@ -11,19 +11,11 @@ import { fr } from "./fr";
 import { execution, voice } from "./frExecution";
 import { executionParameters } from "./frExecutionParameters";
 import { libraries } from "./frLibraries";
+import type { Widen } from "./types";
+
+export type { Widen } from "./types";
 
 export const frBundle = { ...fr, executionParameters, execution, voice, libraries };
-
-/** Forme d'un catalogue : celle du français, textes élargis à `string` (une traduction a ses propres textes). */
-export type Widen<T> = T extends string
-  ? string
-  : T extends (...args: infer A) => infer R
-    ? (...args: A) => Widen<R>
-    : T extends readonly unknown[]
-      ? { readonly [K in keyof T]: Widen<T[K]> }
-      : T extends object
-        ? { readonly [K in keyof T]: Widen<T[K]> }
-        : T;
 
 export type StringBundle = Widen<typeof frBundle>;
 
