@@ -50,3 +50,7 @@
 ## Commit final et état Git
 
 Donnés dans le compte rendu de livraison.
+
+## Complément — D-566
+
+Question posée par la session de développement (routine rattachée qui déborde de la période). Décision de Hermann : demander à l'utilisateur. D-566 ajoutée (registre, compléments § 4, RM-275). Identifiant vérifié libre.

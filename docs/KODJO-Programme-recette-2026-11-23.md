@@ -1,6 +1,6 @@
 # KODJO — Programme : compléments de la recette du 23/11/2026
 
-**Décisions :** D-561 à D-565, RM-275 (classe B : remarques de recette de Hermann du 23/11/2026, reformulées et validées).
+**Décisions :** D-561 à D-566, RM-275 (classe B : remarques de recette de Hermann du 23/11/2026, reformulées et validées).
 **Complète :** [KODJO — Programme : catalogue, création et configuration](KODJO-Programme-catalogue-creation-configuration-2026-11-20.md) (sur `main`, D-543 à D-552), le [DSF Plan](DSF-PLAN-2026-11-21.md) et le [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
 
 ## 1. Programme dans le Plan (D-561)
@@ -35,6 +35,12 @@ Dans la modale du programme, toucher « Du » ou « au » ouvre **un seul calend
 - Dans le Plan, une même routine figure sous la bande du programme pendant la période, et sous « Sans programme » en dehors.
 - « Supprimer avec ses routines » (D-547) ne supprime que les créneaux à venir compris dans la période du programme.
 - **Limite :** une routine appartient à un seul programme à la fois. Pour enchaîner deux programmes sur la même routine, on la duplique.
+- **Routine qui déborde (D-566).** Au rattachement d'une routine, ou à sa modification depuis le Journal, si des créneaux à venir tombent hors de la période, un message le signale : « N créneaux sont en dehors de la période du programme. »
+  - **Garder dans le calendrier** (par défaut) : la routine n'est pas coupée ; ces créneaux restent hors programme.
+  - **Supprimer** : les créneaux à venir hors période sont supprimés.
+  - **Annuler** : rien n'est enregistré.
+
+  Sans créneau à venir hors période, aucune question. Les créneaux réalisés ne sont jamais touchés.
 
 ## 5. Actions glissées (D-565)
 
