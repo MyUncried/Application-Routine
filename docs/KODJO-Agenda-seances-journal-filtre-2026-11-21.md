@@ -41,7 +41,7 @@
 
 - Une Exécution démarrée depuis l'Agenda conserve son rattachement explicite au créneau et, pour un Parcours, son rang ; l'enchaînement actuel est conservé, sans changement de moteur.
 - Une Exécution lancée hors Agenda d'une Séance **hors Parcours** se rattache automatiquement si la même Séance est planifiée le même jour dans un créneau non commencé **et non expiré**. Si plusieurs créneaux éligibles existent, choisir celui dont l'heure prévue est la plus proche de l'heure de lancement ; à égalité, le plus ancien. Un créneau expiré ne reçoit jamais d'Exécution.
-- Sinon, afficher une carte « Hors planification » à l'heure réelle. Plusieurs Exécutions de la même Séance restent distinctes et ne se remplacent pas.
+- Sinon, afficher une carte « Hors planification » à l'heure réelle. Plusieurs Exécutions de la même Séance restent distinctes et ne se remplacent pas. [Rendu remplacé le 22/11/2026 (D-560) : la carte porte la spécialité comme les autres, et l'heure réelle est suivie d'un astérisque (« 17h05* ») ; plus de libellé « Hors planification » sur la carte.]
 - **Exception validée :** une Séance appartenant à un Parcours, lancée directement hors Agenda, est **Hors planification**, sans rattachement automatique au Parcours, même si ce Parcours est prévu le même jour. Elle ne marque aucun rang du Parcours comme exécuté et ne déclenche pas ses autres Séances. Le lancement ultérieur du Parcours garde sa séquence complète actuelle.
 - **Séance planifiée seule et dans un Parcours le même jour** : une Exécution lancée hors Agenda se rattache au créneau autonome de cette Séance (règle de rattachement ci-dessus) ; le Parcours n'est pas modifié.
 - Une Exécution historique garde le nom et la composition instantanés de la Séance, indépendamment de son renommage, archivage ou suppression ultérieurs.
@@ -84,7 +84,7 @@ Questions issues de la revue, tranchées par Hermann le 21/11/2026 et intégrée
 7. Écran Agenda validé `12906:47` : la 2e carte du Parcours affiche « — » (corrigé dans Figma).
 8. Séance suivante non exécutée d'un Parcours commencé : « Rattraper » pour elle seule, jusqu'au créneau suivant, puis « Expirée ».
 9. Gestes sur la carte d'une Séance de Parcours :
-   - **Supprimer** (glisser) ne retire que cette Séance de l'occurrence. Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances. La suppression de la dernière Séance restante supprime le créneau : aucune ligne Ⓟ ne reste seule.
+   - **Supprimer** (glisser) ne retire que cette Séance de l'occurrence. Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances. La suppression de la dernière Séance restante supprime le créneau : aucune ligne Ⓟ ne reste seule. [Complété le 23/11/2026 (D-568) : une occurrence prévue par la répétition reste affichée « Supprimée » (gris, rétablissable tant que la date n'est pas passée) ; voir [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.]
    - Une Séance exécutée ne se supprime pas (historique). Une Séance non exécutée d'un Parcours commencé peut être supprimée ; elle n'est alors plus à rattraper.
    - **Modifier** (cadre gauche) ouvre la modification de tout le créneau du Parcours (date, heure, Séances activées ou non) : une Séance de Parcours n'a pas d'heure propre.
    - Un créneau commencé ne se modifie pas (D-536).

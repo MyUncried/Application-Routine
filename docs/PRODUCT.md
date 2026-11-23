@@ -646,3 +646,7 @@ La cible conserve la fiche complète et ses classifications exploitables sur mob
 ### Orientation validée du 21/11/2026 — Agenda des Séances
 
 L'Agenda présente les Séances planifiées et réellement exécutées, y compris hors planification, en cartes uniformes ; les Parcours sont identifiés par une ligne Ⓟ compacte et un rail. Le Journal reste une liste de Routines. Les noms de Routines sont générés par défaut, personnalisables et non uniques. Le détail des règles et exceptions est dans [KODJO — Agenda / Journal / filtre, 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). L'Agenda est validé dans Figma (D-553) ; Journal et filtre ont été ajustés le 21/11/2026 et restent à valider.
+
+### Orientation validée du 21/11/2026 — Plan
+
+Le Calendrier a trois onglets : Journal (les routines), Agenda (les séances jour par jour) et Plan (la semaine routine par routine, regroupée par programme, où l'on planifie en touchant une case). Détail : [DSF Plan](DSF-PLAN-2026-11-21.md), D-554.

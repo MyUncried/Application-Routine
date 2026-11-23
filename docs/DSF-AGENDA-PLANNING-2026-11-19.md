@@ -88,3 +88,42 @@ Si l’utilisateur arrête une séance, la suite lui est proposée (« Passer à
 ## Évolution validée du 21/11/2026 — Agenda centré sur les Séances
 
 **Remplace**, pour l'Agenda seulement, la carte unique par occurrence de Routine (D-533/D-534) : une carte **par Séance**, y compris Exécution libre, et un en-tête compact « Ⓟ Nom du parcours » avec rail sans numéros au-dessus des Séances d'une Routine à plusieurs Séances. Une Routine à Séance unique n'a pas d'en-tête Parcours. Les cartes utilisent toutes le même format ; le déployé ne répète plus le nom de la Séance. L'heure d'une Séance exécutée est réelle et la carte est repositionnée ; pour les Séances non exécutées à partir de la deuxième d'un Parcours, la zone heure affiche « — ». Pas de statut d'Exécution agrégé du Parcours ; enchaînement actuel conservé. Les autres règles et états non contradictoires de ce DSF demeurent. Voir [spécification consolidée du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **L'affichage Agenda est validé dans Figma** (« P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) », `12906:47`) ; filtre et vue filtrée ajustés le 21/11/2026, à valider.
+
+## Zone de contexte rééquilibrée — 21/11/2026 (D-555)
+
+Précise D-538 et D-539 :
+- Ligne 1 :
+  - le mois et ses doubles flèches sont centrés sur la rangée des jours de la ligne 2, qui est centrée entre les flèches de semaine ;
+  - l'entonnoir est centré au-dessus de la flèche de semaine suivante, symétrique de « Aujourd'hui » autour du mois, et centré verticalement sur la ligne du mois.
+- Entonnoir sans filtre actif : contour bleu, comme « Aujourd'hui » [contour gris jusqu'au 20/11/2026] ; filtre actif : plein bleu.
+- Figma :
+  - les 11 écrans de la vue Agenda ;
+  - composant `icon/filtre-routine`, état Inactif.
+- Onglets : Journal · Agenda · Plan (D-554, [DSF Plan](DSF-PLAN-2026-11-21.md)).
+
+## Modification d'un créneau de parcours — 22/11/2026 (D-556, D-557)
+
+- **Désactiver une séance** : on peut désactiver n'importe quelle séance du créneau, même si elle n'a de pastille sur aucun autre créneau du cycle. Au moins une séance reste active. La règle « chaque séance a au moins une pastille » ne vaut que dans la grille de la routine (Journal).
+- **Ordre des séances** : modifiable dans ce créneau et conservé pour lui seul ; l'enchaînement suit ce nouvel ordre.
+- **Constats** : recette du 22/11/2026. Validation bloquée, et ordre non conservé (RM-274).
+
+## Bouton flottant et zone de contexte — 22/11/2026 (D-558, D-559)
+
+- « Planifier » quitte la zone de contexte. Le bouton flottant (calendrier « + ») crée un **créneau unique** au jour sélectionné : planification pré-remplie, sans répétition.
+- Ligne 1 symétrique : « Aujourd'hui » à gauche, mois centré sur l'écran, entonnoir en miroir à droite. Ligne 2 : flèche, sept jours, flèche, centrés sur l'écran.
+- Voir [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
+
+## Marque « hors routine » — 22/11/2026 (D-560)
+
+- Un astérisque collé à l'heure (« 17h05* ») signale une Séance hors de la répétition d'une routine : Exécution hors planification, ou créneau ajouté à la main hors répétition. Couleur de l'heure, plus petit qu'elle (11 pour 15) ; pas de légende.
+- La carte d'une Exécution hors planification porte la spécialité comme les autres ; le libellé « Hors planification » est retiré.
+- La lecture vocale annonce « hors planification » ou « ajouté hors répétition ».
+- Un créneau unique créé par le bouton flottant n'est pas marqué : il constitue toute sa routine.
+- Figma : « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » `12906:47`, carte Gainage.
+
+## Occurrence supprimée — 23/11/2026 (D-568)
+
+- Une occurrence prévue par la répétition d'une routine et supprimée depuis l'Agenda reste à son heure prévue : cadre et texte en gris, pastille « Supprimée » (gris) à la place de l'action.
+- Glisser la carte propose « Rétablir » tant que la date n'est pas passée.
+- Figma : carte « Dos et mobilité » du mardi 17, écran `12906:47`.
+- Cas sans trace et règles : [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.
