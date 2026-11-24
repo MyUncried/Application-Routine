@@ -96,7 +96,34 @@ export function parseFloatingPosition(raw: string): FloatingPosition {
   }
 }
 
+/**
+ * Recette du 24/11/2026 (Hermann, constats) : « un appui long sur le bouton pour lui faire passer d'un fond blanc symbole
+ * bleu à un bouton d'un fond bleu symbole blanc (mêmes opacités) ». Couleurs conservées avec la position, dans le même
+ * fichier (champ `tone`, écrit seulement pour le bleu : l'ancien fichier reste lisible).
+ */
+export type FloatingTone = "LIGHT" | "BLUE";
+
+export function parseFloatingTone(raw: string): FloatingTone {
+  try {
+    return (JSON.parse(raw) as { tone?: unknown }).tone === "BLUE" ? "BLUE" : "LIGHT";
+  } catch {
+    return "LIGHT";
+  }
+}
+
 let current: FloatingPosition = DEFAULT_FLOATING_POSITION;
+let currentTone: FloatingTone = "LIGHT";
+const toneListeners = new Set<(tone: FloatingTone) => void>();
+
+function writeFile(): void {
+  try {
+    const file = positionFile();
+    if (!file.exists) file.create();
+    file.write(JSON.stringify(currentTone === "BLUE" ? { ...current, tone: currentTone } : current));
+  } catch {
+    // Écriture impossible : la valeur vaut jusqu'à la fermeture de l'application.
+  }
+}
 let restored = false;
 const listeners = new Set<(position: FloatingPosition) => void>();
 
@@ -111,8 +138,11 @@ export function restoreFloatingPosition(): FloatingPosition {
   try {
     const file = positionFile();
     if (file.exists) {
-      current = parseFloatingPosition(file.textSync());
+      const raw = file.textSync();
+      current = parseFloatingPosition(raw);
+      currentTone = parseFloatingTone(raw);
       listeners.forEach((listener) => listener(current));
+      toneListeners.forEach((listener) => listener(currentTone));
     }
   } catch {
     // Fichier inaccessible : position par défaut.
@@ -125,13 +155,28 @@ export function saveFloatingPosition(position: FloatingPosition): void {
   current = position;
   restored = true;
   listeners.forEach((listener) => listener(position));
-  try {
-    const file = positionFile();
-    if (!file.exists) file.create();
-    file.write(JSON.stringify(position));
-  } catch {
-    // Écriture impossible : la position vaut jusqu'à la fermeture de l'application.
-  }
+  writeFile();
+}
+
+/** Couleurs du bouton, relues avec la position. */
+export function restoreFloatingTone(): FloatingTone {
+  restoreFloatingPosition();
+  return currentTone;
+}
+
+/** Nouvelles couleurs : mémoire, écrans montés, puis fichier (position conservée). */
+export function saveFloatingTone(tone: FloatingTone): void {
+  restoreFloatingPosition();
+  currentTone = tone;
+  toneListeners.forEach((listener) => listener(tone));
+  writeFile();
+}
+
+export function subscribeFloatingTone(listener: (tone: FloatingTone) => void): () => void {
+  toneListeners.add(listener);
+  return () => {
+    toneListeners.delete(listener);
+  };
 }
 
 export function subscribeFloatingPosition(listener: (position: FloatingPosition) => void): () => void {
@@ -144,6 +189,8 @@ export function subscribeFloatingPosition(listener: (position: FloatingPosition)
 /** Tests seulement. */
 export function resetFloatingPositionForTests(): void {
   current = DEFAULT_FLOATING_POSITION;
+  currentTone = "LIGHT";
   restored = false;
   listeners.clear();
+  toneListeners.clear();
 }

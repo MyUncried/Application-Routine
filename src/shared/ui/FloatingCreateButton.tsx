@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-effect";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import {
   AccessibilityInfo,
   Platform,
@@ -23,7 +23,11 @@ import {
   clampTop,
   releaseTarget,
   restoreFloatingPosition,
+  restoreFloatingTone,
   saveFloatingPosition,
+  saveFloatingTone,
+  subscribeFloatingTone,
+  type FloatingTone,
   sideLeft,
   subscribeFloatingPosition,
   type FloatingBounds,
@@ -50,6 +54,14 @@ export type FloatingCreateVariant = "plus" | "calendar" | "movement" | "session"
 
 export const FLOATING_CREATE_BLUE = colors.primary;
 const GLASS_VEIL = "rgba(255, 255, 255, 0.65)";
+/**
+ * Recette du 24/11/2026 (appui long, « mêmes opacités ») : fond bleu `#0508E5` au même voile de 65 %, symbole blanc ;
+ * liseré, ombre et transparence d'ensemble inchangés.
+ */
+const GLASS_VEIL_BLUE = "rgba(5, 8, 229, 0.65)";
+export const FLOATING_CREATE_WHITE = "#FFFFFF";
+/** Couleur du symbole, portée par le rond (blanc sur fond bleu). */
+const GlyphColor = createContext<string>(FLOATING_CREATE_BLUE);
 const GLASS_BORDER = "rgba(255, 255, 255, 0.95)";
 const GLASS_BORDER_WIDTH = 1.2;
 const SHADOW = { color: "#1A1A26", opacity: 0.14, offsetY: 4, radius: 24 } as const;
@@ -70,7 +82,8 @@ function liquidGlassAvailable(): boolean {
 
 /** Barre bleue arrondie des pictogrammes (positions de Figma, repère du rond de 60). */
 function Bar({ left, top, width, height }: { readonly left: number; readonly top: number; readonly width: number; readonly height: number }) {
-  return <View style={[styles.bar, { left, top, width, height, borderRadius: Math.min(width, height) / 2 }]} />;
+  const color = useContext(GlyphColor);
+  return <View style={[styles.bar, { left, top, width, height, borderRadius: Math.min(width, height) / 2, backgroundColor: color }]} />;
 }
 
 /** « + » de 10 (pictogrammes Calendrier, Mouvement, Séance, Programme), Figma : barres de 10 × 2,4. */
@@ -85,6 +98,7 @@ function SmallPlus({ left, top }: { readonly left: number; readonly top: number 
 
 /** Contenu bleu de chaque variante (Figma `13026:14915`, `13039:49710`, `13039:49721`, `13041:49880`, `13041:49893`, `13039:49727`). */
 export function FloatingCreateGlyph({ variant }: { readonly variant: FloatingCreateVariant }) {
+  const color = useContext(GlyphColor);
   switch (variant) {
     case "plus":
       return (
@@ -96,14 +110,14 @@ export function FloatingCreateGlyph({ variant }: { readonly variant: FloatingCre
     case "close":
       return (
         <View pointerEvents="none" style={StyleSheet.absoluteFill} testID="floating-create-glyph-close">
-          <View style={[styles.cross, { transform: [{ rotate: "45deg" }] }]} />
-          <View style={[styles.cross, { transform: [{ rotate: "-45deg" }] }]} />
+          <View style={[styles.cross, { backgroundColor: color, transform: [{ rotate: "45deg" }] }]} />
+          <View style={[styles.cross, { backgroundColor: color, transform: [{ rotate: "-45deg" }] }]} />
         </View>
       );
     case "calendar":
       return (
         <View pointerEvents="none" style={StyleSheet.absoluteFill} testID="floating-create-glyph-calendar">
-          <Image source={CALENDAR_ICON} style={styles.calendarIcon} contentFit="contain" accessible={false} />
+          <Image source={CALENDAR_ICON} style={[styles.calendarIcon, { tintColor: color }]} contentFit="contain" accessible={false} />
           <Bar left={23.8} top={30.6} width={10} height={2.4} />
           <Bar left={27.6} top={26.8} width={2.4} height={10} />
         </View>
@@ -111,7 +125,7 @@ export function FloatingCreateGlyph({ variant }: { readonly variant: FloatingCre
     case "movement":
       return (
         <View pointerEvents="none" style={StyleSheet.absoluteFill} testID="floating-create-glyph-movement">
-          <Image source={MOVEMENT_ICON} style={styles.movementIcon} contentFit="contain" accessible={false} />
+          <Image source={MOVEMENT_ICON} style={[styles.movementIcon, { tintColor: color }]} contentFit="contain" accessible={false} />
           <SmallPlus left={38} top={13} />
         </View>
       );
@@ -120,7 +134,7 @@ export function FloatingCreateGlyph({ variant }: { readonly variant: FloatingCre
         <View pointerEvents="none" style={StyleSheet.absoluteFill} testID="floating-create-glyph-session">
           {[0, 8, 16].map((top) => (
             <View key={top}>
-              <View style={[styles.listMark, { left: 13.8, top: 19.8 + top }]} />
+              <View style={[styles.listMark, { left: 13.8, top: 19.8 + top, backgroundColor: color }]} />
               <Bar left={21.8} top={20.6 + top} width={15} height={2.4} />
             </View>
           ))}
@@ -130,8 +144,8 @@ export function FloatingCreateGlyph({ variant }: { readonly variant: FloatingCre
     case "program":
       return (
         <View pointerEvents="none" style={StyleSheet.absoluteFill} testID="floating-create-glyph-program">
-          <View style={styles.notebookFrame} />
-          <View style={styles.notebookSpine} />
+          <View style={[styles.notebookFrame, { borderColor: color }]} />
+          <View style={[styles.notebookSpine, { backgroundColor: color }]} />
           <Bar left={24.8} top={23.8} width={7} height={2.2} />
           <Bar left={24.8} top={28.8} width={7} height={2.2} />
           <SmallPlus left={38.8} top={10.8} />
@@ -145,7 +159,16 @@ export function FloatingCreateGlyph({ variant }: { readonly variant: FloatingCre
 }
 
 /** Rond de verre et son contenu, sans position (bouton flottant, et croix du menu Créer ouvert). */
-export function FloatingCreateFace({ variant, testID }: { readonly variant: FloatingCreateVariant; readonly testID?: string }) {
+export function FloatingCreateFace({
+  variant,
+  tone = "LIGHT",
+  testID,
+}: {
+  readonly variant: FloatingCreateVariant;
+  /** Fond blanc et symbole bleu (défaut), ou fond bleu et symbole blanc (appui long). */
+  readonly tone?: FloatingTone;
+  readonly testID?: string;
+}) {
   const [glass] = useState(liquidGlassAvailable);
   return (
     <View style={styles.shadow} pointerEvents="none" {...(testID !== undefined ? { testID } : {})}>
@@ -159,10 +182,15 @@ export function FloatingCreateFace({ variant, testID }: { readonly variant: Floa
             testID={testID === undefined ? undefined : `${testID}-glass`}
           />
         ) : null}
-        <View style={styles.veil} testID={testID === undefined ? undefined : `${testID}-veil`} />
+        <View
+          style={[styles.veil, tone === "BLUE" ? styles.veilBlue : null]}
+          testID={testID === undefined ? undefined : `${testID}-veil`}
+        />
         {/* Figma place le contenu dans la boîte intérieure au liseré de 1,2. */}
         <View style={styles.content}>
-          <FloatingCreateGlyph variant={variant} />
+          <GlyphColor.Provider value={tone === "BLUE" ? FLOATING_CREATE_WHITE : FLOATING_CREATE_BLUE}>
+            <FloatingCreateGlyph variant={variant} />
+          </GlyphColor.Provider>
         </View>
       </View>
     </View>
@@ -235,6 +263,8 @@ export function FloatingCreateButton({
     [measured, window.width, window.height],
   );
   useEffect(() => subscribeFloatingPosition(setPosition), []);
+  const [tone, setTone] = useState<FloatingTone>(restoreFloatingTone);
+  useEffect(() => subscribeFloatingTone(setTone), []);
   const pressableRef = useRef<View>(null);
   const lastFocusRequest = useRef(focusRequest);
   useEffect(() => {
@@ -300,6 +330,8 @@ export function FloatingCreateButton({
             <Pressable
               ref={pressableRef}
               onPress={onPress}
+              // Recette du 24/11/2026 : l'appui long (500 ms, sans glissement) inverse les couleurs, sans déclencher l'action.
+              onLongPress={() => saveFloatingTone(tone === "BLUE" ? "LIGHT" : "BLUE")}
               disabled={disabled}
               accessibilityRole="button"
               accessibilityLabel={accessibilityLabel}
@@ -307,7 +339,7 @@ export function FloatingCreateButton({
               style={StyleSheet.absoluteFill}
               testID={testID}
             >
-              <FloatingCreateFace variant={variant} testID={`${testID}-face`} />
+              <FloatingCreateFace variant={variant} tone={tone} testID={`${testID}-face`} />
             </Pressable>
           </Reanimated.View>
         </DragDetector>
@@ -432,6 +464,9 @@ const styles = StyleSheet.create({
     backgroundColor: GLASS_VEIL,
     borderWidth: GLASS_BORDER_WIDTH,
     borderColor: GLASS_BORDER,
+  },
+  veilBlue: {
+    backgroundColor: GLASS_VEIL_BLUE,
   },
   content: {
     position: "absolute",

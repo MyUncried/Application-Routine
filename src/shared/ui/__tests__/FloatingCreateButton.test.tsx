@@ -198,6 +198,30 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(mockSpringConfigs.every((config) => config.reduceMotion === "never")).toBe(true);
   });
 
+  it("recette du 24/11 : appui long — fond bleu et symbole blanc (mêmes opacités), sans action ; conservé ; nouvel appui long : retour", () => {
+    const onPress = jest.fn();
+    const first = renderButton(onPress);
+    const veil = () => StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor;
+    const glyph = () => JSON.stringify(screen.getByTestId("floating-create-glyph-movement").children.map((child) => (typeof child === "string" ? child : child.props)));
+    expect(veil()).toBe("rgba(255, 255, 255, 0.65)");
+    fireEvent(screen.getByTestId("floating-create"), "longPress");
+    expect(onPress).not.toHaveBeenCalled();
+    expect(veil()).toBe("rgba(5, 8, 229, 0.65)");
+    expect(glyph()).toContain("#FFFFFF");
+    expect(glyph()).not.toContain("#0508E5");
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.65);
+    expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!)).toMatchObject({ side: "RIGHT", tone: "BLUE" });
+    first.unmount();
+    resetFloatingPositionForTests();
+    const second = renderButton(onPress);
+    expect(veil()).toBe("rgba(5, 8, 229, 0.65)");
+    fireEvent(screen.getByTestId("floating-create"), "longPress");
+    expect(veil()).toBe("rgba(255, 255, 255, 0.65)");
+    expect(glyph()).toContain("#0508E5");
+    expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!).tone).toBeUndefined();
+    second.unmount();
+  });
+
   it("chaque variante a son contenu (Figma 13039:49732)", () => {
     for (const variant of ["plus", "calendar", "movement", "session", "program", "close"] as const) {
       const view = render(<FloatingCreateButton variant={variant} accessibilityLabel="x" onPress={jest.fn()} bottom={BOTTOM} />);
