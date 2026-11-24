@@ -75,3 +75,11 @@ Les changements de lockfile dus à la version de npm de l'environnement (`libc`)
 ## Commit final et état Git
 
 Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
+
+## Complément du 24/11/2026 — après la consolidation (PR #451)
+
+- La branche a été avancée sur `origin/main` (`33bde171`, avance rapide), qui contient J1.
+- **Correction de robustesse** (`locale.ts`) : `expo-localization` est désormais chargé à la demande, dans un `try`. Un client compilé avant l'ajout du module natif (servi par Metro) ne plante plus au démarrage ; il prend alors la langue du moteur JavaScript (`Intl`). Un test a été ajouté dans `englishDevice.test.ts`.
+- **Contradiction documentaire corrigée** : les règles 2, 6 et 7 de la section du 23/11 sont annotées « remplacé par D-569 », car Langue et Unité vont dans Profil › Préférences, et les alias sont invisibles et sans écran de saisie. C'est D-569 qui fait foi.
+- Prompt de la section « Langue et unités » (lien Figma `1992:684`) : `docs/preparation/langues/PROMPT-J1-LANGUE-ET-UNITES.md`.
+- Tests : `tsc` 0 erreur ; `src/shared/i18n` 74 tests verts.

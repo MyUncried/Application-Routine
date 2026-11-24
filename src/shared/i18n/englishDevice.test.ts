@@ -42,3 +42,16 @@ describe("J1 — téléphone en anglais", () => {
     expect(voice.EXECUTION_VOICE_LANGUAGE).toBe("en-US");
   });
 });
+
+describe("J1 — version compilée sans le module natif de langue", () => {
+  it("ne plante pas et prend la langue du moteur JavaScript", () => {
+    let language: string | null = null;
+    jest.isolateModules(() => {
+      jest.doMock("expo-localization", () => {
+        throw new Error("Cannot find native module 'ExpoLocalization'");
+      });
+      language = require("./locale").appLanguage;
+    });
+    expect(["fr", "en"]).toContain(language);
+  });
+});

@@ -9,8 +9,6 @@
  * - La balise régionale (`fr-FR`, `en-GB`…) sert aux formats (nombres, dates) et à la voix : la région du téléphone
  *   quand elle accompagne la langue affichée, sinon une région par défaut.
  */
-import { getLocales } from "expo-localization";
-
 /** Langues traduites, dans l'ordre du chantier ; une langue n'est ajoutée ici qu'une fois traduite. */
 export const SUPPORTED_LANGUAGES = ["fr", "en"] as const;
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -41,11 +39,29 @@ export function resolveLocaleTag(locales: readonly DeviceLocale[], language: App
   return `${language}-${(match?.regionCode ?? DEFAULT_REGION[language]).toUpperCase()}`;
 }
 
-function deviceLocales(): readonly DeviceLocale[] {
+/** Langue du moteur JavaScript (`Intl`), quand le module natif manque. */
+function intlLocales(): readonly DeviceLocale[] {
   try {
-    return getLocales();
+    const [languageCode, ...rest] = Intl.DateTimeFormat().resolvedOptions().locale.split("-");
+    const regionCode = rest.find((part) => /^[A-Za-z]{2}$/.test(part)) ?? null;
+    return languageCode === undefined ? [] : [{ languageCode, regionCode }];
   } catch {
     return [];
+  }
+}
+
+/**
+ * Langues du téléphone. Le module natif est chargé ici, à la demande : une version de l'application compilée avant
+ * l'ajout d'`expo-localization` (client de développement plus ancien servi par Metro) ne plante pas au démarrage ;
+ * elle prend la langue du moteur JavaScript.
+ */
+function deviceLocales(): readonly DeviceLocale[] {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- chargement à la demande, tolérant à l'absence du module natif
+    const { getLocales } = require("expo-localization") as typeof import("expo-localization");
+    return getLocales();
+  } catch {
+    return intlLocales();
   }
 }
 
