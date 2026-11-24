@@ -18,8 +18,12 @@ import { dimensions, type } from "@/shared/ui/tokens";
  *   écart 12.
  * - Bascule liste / grille du catalogue des Mouvements (`summaryAccessory`, décision de Hermann du 16/11/2026, CE-MVT-03) : à
  *   droite de la ligne 1, bord droit à 16 de l’écran (Figma `12530:27177`, `x = 330`, 56 de large), centrée sur la ligne.
- * - Créer est facultatif (recette du 30/10/2026, constat a) : la sélection « Utiliser un mouvement
- *   existant » reprend cette zone sans le bouton Créer).
+ * - [Créer est facultatif (recette du 30/10/2026, constat a) — remplacé le 24/11/2026 (UI-FAB-01, D-558) : le bouton
+ *   rond Créer quitte la zone de contexte pour le bouton flottant « Créer ».]
+ * - UI-FAB-01 (D-558, DSF Bouton flottant § 1 : « le champ Rechercher s'élargit, et le filtre et le tri passent à
+ *   droite ») : `widenSearch` — le champ prend toute la place laissée par les commandes (au moins 216, ou 107 en état
+ *   filtré). Écrans de la mission : Catalogues des Mouvements, des Séances, des Programmes et Journal ; les autres
+ *   écrans gardent leur champ.
  *
  * La hauteur et les marges verticales sont portées par `ContextBand` (`CONTEXT_ZONE_GEOMETRY`).
  */
@@ -29,8 +33,7 @@ export function CatalogueContextZone({
   search,
   filter,
   sortLabel,
-  createLabel,
-  onCreate,
+  widenSearch = false,
   onCommandRowLayout,
   trailingCommand,
   summaryAccessory,
@@ -54,9 +57,8 @@ export function CatalogueContextZone({
   /** Commande Filtre (`FilterCommand`), propre au Catalogue. */
   readonly filter: ReactNode;
   readonly sortLabel: string;
-  /** Absent (avec `onCreate`) : pas de bouton Créer. */
-  readonly createLabel?: string;
-  readonly onCreate?: () => void;
+  /** UI-FAB-01 : champ Rechercher élargi jusqu'aux commandes. */
+  readonly widenSearch?: boolean;
   /** Largeur mesurée de la deuxième ligne (disposition de la commande Filtre étendue, Séances). */
   readonly onCommandRowLayout?: (event: LayoutChangeEvent) => void;
   /** Élément posé à droite de la ligne 1 (bascule liste / grille des Mouvements) ; absent : ligne 1 inchangée. */
@@ -76,14 +78,17 @@ export function CatalogueContextZone({
       <View style={styles.line2} onLayout={onCommandRowLayout} testID="catalogue-command-row">
         <CatalogueSearchField
           {...search}
-          width={results !== null ? { fillFrom: CONTEXT_SEARCH_WIDTH.compact } : CONTEXT_SEARCH_WIDTH.default}
+          width={
+            results !== null
+              ? { fillFrom: CONTEXT_SEARCH_WIDTH.compact }
+              : widenSearch
+                ? { fillFrom: CONTEXT_SEARCH_WIDTH.default }
+                : CONTEXT_SEARCH_WIDTH.default
+          }
         />
         <View style={styles.commands} testID="catalogue-context-commands">
           {filter}
           <CommandCircle label={sortLabel} icon="sort" disabled testID="catalogue-sort-action" />
-          {createLabel !== undefined && onCreate !== undefined ? (
-            <CommandCircle label={createLabel} icon="create" onPress={onCreate} testID="catalogue-create-action" />
-          ) : null}
           {trailingCommand ?? null}
         </View>
       </View>

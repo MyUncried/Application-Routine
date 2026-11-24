@@ -133,7 +133,7 @@ function CatalogueHarness() {
         counts={catalogue.summaries === null ? null : programCounts(catalogue.summaries.map((item) => item.program), today)}
         query={query}
         onChangeQuery={setQuery}
-        onCreate={() => mockPush("/program-sheet")}
+        widenSearch
       />
       <ProgramCatalogueBody
         service={programs}
@@ -168,8 +168,8 @@ describe("CE-PROG-01 — catalogue des programmes", () => {
     expect(screen.getByTestId("program-filter-action")).toBeTruthy();
     expect(screen.getByTestId("catalogue-sort-action")).toBeTruthy();
     expect(screen.getByTestId("program-catalogue-empty")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("catalogue-create-action"));
-    expect(mockPush).toHaveBeenCalledWith("/program-sheet");
+    // UI-FAB-01 (D-558) : plus de Créer dans la zone de contexte (bouton flottant du catalogue, `CatalogueScreen`).
+    expect(screen.queryByTestId("catalogue-create-action")).toBeNull();
   });
 
   it("liste des actifs par défaut, aucun terminé ; cartes « période · statut » et « N planifications · N séances »", async () => {

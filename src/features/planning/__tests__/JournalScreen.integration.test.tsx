@@ -20,6 +20,7 @@ import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { strings } from "@/shared/i18n";
 
 /**
  * Journal des routines (D-535, DSF Journal) sur SQLite réelle : une carte par routine, ordre, compteurs, déployé,
@@ -331,13 +332,18 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.getByTestId("journal-no-result")).toBeTruthy();
   });
 
-  it("zone de contexte : filtre du Catalogue des séances, tri inactif, Planifier ; onglet Agenda", async () => {
+  // UI-FAB-01 (D-558, D-559) : Planifier quitte la zone de contexte ; bouton flottant calendrier « + », créer une routine.
+  it("zone de contexte : filtre du Catalogue des séances, tri inactif, champ élargi ; bouton flottant Créer une routine ; onglet Agenda", async () => {
     await renderJournal();
     expect(screen.getByTestId("journal-empty")).toBeTruthy();
     fireEvent.press(screen.getByTestId("journal-filter"));
     expect(mockPush).toHaveBeenLastCalledWith("/catalogue-filters");
     expect(screen.getByTestId("catalogue-sort-action").props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(screen.getByTestId("journal-plan"));
+    expect(screen.queryByTestId("journal-plan")).toBeNull();
+    expect(screen.queryByTestId("catalogue-create-action")).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("journal-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0 });
+    expect(screen.getByTestId("floating-create-glyph-calendar")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.createRoutine));
     expect(mockPush).toHaveBeenLastCalledWith(expect.objectContaining({ pathname: "/planning" }));
     expect(screen.getByTestId("calendar-view-row-day").props.accessibilityState).toMatchObject({ selected: true });
     // D-542 : deux onglets seulement.

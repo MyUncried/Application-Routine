@@ -146,7 +146,7 @@ const namesClosings = () => mockTiming.calls.filter((call) => call.toValue === 0
 const cardsOpenings = () => mockTiming.calls.filter((call) => call.toValue === 1 && call.duration === CIRCUIT_REVEAL_DURATION_MS).length;
 
 function enterCycleEnvelope() {
-  fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+  fireEvent.press(screen.getByTestId("composition-floating-create"));
   fireEvent.press(screen.getByTestId("composition-add-activity-tree-cycle"));
 }
 
@@ -195,7 +195,7 @@ describe("t-depli (b) — Créer > Ajouter un cycle : les Circuits de la Séance
         structure: { elements: [{ kind: "CIRCUIT", circuit: circuit("tabata", ["ta1", "ta2"]) }, { kind: "EXERCISE", exercise: "e9" }, { kind: "EXERCISE", exercise: "em1" }], stopPoints: [] },
       }),
     );
-    fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-circuit"));
     await act(async () => undefined);
     expect(screen.getByTestId("composition-envelope-bar")).toBeTruthy();

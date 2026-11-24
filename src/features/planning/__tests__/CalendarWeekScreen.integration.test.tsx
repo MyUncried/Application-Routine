@@ -22,6 +22,8 @@ import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { initialDraft } from "@/features/planning/planningDraft";
+import { strings } from "@/shared/i18n";
 
 /**
  * Calendrier — vue Agenda (ancienne vue Semaine ; D-532 à D-534, CE-UI-15) sur SQLite réelle (`node:sqlite`) : écran,
@@ -781,6 +783,18 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-day-${MONDAY}`).props.accessibilityState).toMatchObject({ selected: false });
   });
 
+  // UI-FAB-01 (D-559) : bouton flottant calendrier « + » — créer un créneau unique au jour sélectionné : planification
+  // pré-remplie à ce jour, sans répétition (répétition « Aucune » par défaut). Le créneau porte l'astérisque « hors routine »
+  // (D-560, inchangé : `agendaCards` et `RoutineAgendaCard`, tests du 23/11/2026).
+  it("bouton flottant : créer un créneau unique au jour sélectionné, sans répétition (D-559)", async () => {
+    await renderCalendar();
+    expect(screen.getByTestId("floating-create-glyph-calendar")).toBeTruthy();
+    fireEvent.press(screen.getByTestId(`calendar-day-${THURSDAY}`));
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.createSlot));
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { date: THURSDAY } });
+    expect(initialDraft(THURSDAY, [], new Date()).repetitionOn).toBe(false);
+  });
+
   // Recette du 21/11/2026 (q23-mois) : le mois affiché est celui qui compte le plus de jours dans la semaine ; les doubles flèches
   // ouvrent la première semaine du mois (le 1er choisi s'il y est, sinon le lundi). [Mois du jour choisi — remplacé.]
   // Recette du 22/11/2026 (c33-agenda-mois — Hermann : « Double flèches : doit être la semaine du premier jour du mois,
@@ -866,16 +880,26 @@ describe("Calendrier Semaine", () => {
 
   // D-555 (21/11/2026) : mois centré sur la rangée des jours ; entonnoir au-dessus de la flèche de semaine suivante, centré sur
   // la ligne du mois ; contour bleu sans filtre, plein bleu avec filtre.
-  it("zone de contexte rééquilibrée : positions du mois et de l'entonnoir, entonnoir bleu (D-555)", async () => {
+  // D-559 (UI-FAB-01, Figma `12906:47`) : sans Planifier, zone symétrique — « Aujourd'hui », mois centré sur l'écran,
+  // entonnoir en miroir ; flèche, sept jours, flèche centrés sur l'écran. [D-555 : mois centré sur les jours (x = 160 du
+  // contenu), entonnoir au-dessus de la flèche suivante — remplacé.]
+  it("zone de contexte symétrique : mois et jours centrés sur l'écran, entonnoir en miroir d'Aujourd'hui, entonnoir bleu (D-559, D-555)", async () => {
     await renderCalendar();
+    const center = 370 / 2;
     const nav = StyleSheet.flatten(screen.getByTestId("calendar-month-navigation").props.style);
-    // Centre du mois = 0 + 320 / 2 = 160 du contenu (x = 176 de l'écran, centre de la rangée des jours : 25 + 270 / 2).
-    expect(nav.left + nav.width / 2).toBe(25 + 270 / 2);
-    const filter = StyleSheet.flatten(screen.getByTestId("calendar-routine-filter").props.style);
+    expect(nav.left + nav.width / 2).toBe(center);
+    const days = StyleSheet.flatten(screen.getByTestId("calendar-day-bar").props.style);
+    expect(days.left + days.width / 2).toBe(center + 0.5);
+    const previous = StyleSheet.flatten(screen.getByTestId("calendar-previous-week").props.style);
     const next = StyleSheet.flatten(screen.getByTestId("calendar-next-week").props.style);
-    // Centré au-dessus de la flèche de semaine suivante (24 de large) ; centre vertical sur la ligne du mois (11 + 24 / 2).
-    expect(filter.left + filter.width / 2).toBe(next.left + 12);
+    expect((previous.left + 12 + next.left + 12) / 2).toBeCloseTo(center + 0.625, 3);
+    const today = StyleSheet.flatten(screen.getByTestId("calendar-today").props.style);
+    const filter = StyleSheet.flatten(screen.getByTestId("calendar-routine-filter").props.style);
+    // Miroir : même distance aux bords du contenu, même hauteur (centre vertical sur la ligne du mois, 11 + 24 / 2).
+    expect(today.left + filter.left + filter.width).toBe(370);
+    expect(filter.top).toBe(today.top);
     expect(filter.top + filter.height / 2).toBe(11 + 12);
+    expect(screen.queryByTestId("calendar-plan")).toBeNull();
     expect(screen.getByTestId("calendar-routine-filter-inactive")).toBeTruthy();
     // Icône sans filtre : contour bleu #0508E5 (composant Figma `icon/filtre-routine`, État=Inactif). [Contour gris #333333 — remplacé.]
     const svg = readFileSync(join(__dirname, "../../../../assets/icons/icon-filtre-routine.svg"), "utf8");
