@@ -69,11 +69,28 @@ Les données d'Exécution privées restent sur le téléphone jusqu'au lot sauve
 
 ## 4. Questions à trancher avant `PLAN_APPROVED`
 
-1. **Pseudo.** La recherche se fait par pseudo (document Communautaire, §6.9). Faut-il faire choisir un **pseudo unique** à la création du compte (un écran de plus après É1), ou le proposer à partir du nom du compte, modifiable ensuite ? Le nom transmis par Apple ou Google n'est pas affiché publiquement sans accord.
-2. **Notifications.** Pour les demandes d'Ami, les partages reçus, les commentaires et les invitations d'espace : notifications push (serveur Apple et Google, configuration supplémentaire) ou pastilles dans l'app seulement au départ ?
-3. **Contenu d'un résumé d'exécution dans le fil.** Je propose : titre, type (activité, séance, circuit ou programme), date, durée, nombre d'exercices exécutés, effort perçu ou ressenti. Douleurs exclues (CPT-21).
-4. **Ordre des tranches** : T1 → T2 → T3 → T4 → T5 → T6 vous convient-il, ou faut-il avancer le fil d'activité (T5) ?
-5. **Maquettes** : comme pour É1 à É4, je propose les écrans de chaque tranche avant son développement, à valider par vous. Faut-il les proposer tous maintenant, ou tranche par tranche ?
+Réponses de Hermann du 24/11/2026 :
+- **Notifications :** push et pastilles (CPT-23).
+- **Ordre des tranches :** T1 à T6 confirmé (CPT-24).
+- **Maquettes :** liste des écrans nécessaires établie avant chaque tranche ; Hermann vérifie l'existant (CPT-24). Liste T1 ci-dessous.
+- **Contenu du résumé d'exécution dans le fil :** proposition acceptée sur le principe (titre, type, date, durée, nombre d'exercices exécutés, effort perçu ou ressenti, sans douleurs). **Fixé avant T5**, pas nécessaire maintenant.
+
+**Encore ouvert : identité publique et recherche.** Hermann : la recherche doit aussi se faire par **prénom et nom** ; **pas de proposition automatique** de pseudo ; le pseudo pourrait être **facultatif** ; éviter les écrans supplémentaires. Un benchmark des réseaux sociaux et des applications concurrentes est en cours.
+
+## 5. Écrans nécessaires — T1 (à vérifier par Hermann dans Figma)
+
+| # | Écran ou état | Existant connu dans le dépôt | Nature |
+|---|---|---|---|
+| 1 | Connexion, porte d'entrée (É1) | Aucune frame connue | Écran |
+| 2 | Connexion : variante installation existante, état sans réseau, erreur (É1) | Aucune frame connue | États |
+| 3 | Modifier le profil + section Compte (É2) | « Modifier le profil » `1992:778` (photo, nom d'affichage) ; section Compte absente | Écran existant à compléter |
+| 4 | Profil public minimal : pseudo, prénom et nom visibles, photo, rôle déclaré (CPT-18), réglage du Follow public | Aucune frame connue ; **contenu suspendu au benchmark** | Écran ou section |
+| 5 | Confirmation de suppression du compte (É3) | Alerte native, rien à dessiner | Alerte |
+| 6 | Refus d'un autre compte (É4) | Alerte native, rien à dessiner | Alerte |
+| 7 | Demande d'autorisation des notifications push (CPT-23) | Fenêtre système ; seul le moment de la demande est à décider | Système |
+| 8 | Politique de confidentialité | Page web à publier, hors app | Web |
+
+L'onglet **Communauté** du Profil existe déjà, désactivé (`ProfileScreen.tsx`, « hors MVP, indisponible »). Il servira à partir de T2.
 
 # Tranche T1 — Compte (détail)
 
