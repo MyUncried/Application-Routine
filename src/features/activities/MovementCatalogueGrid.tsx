@@ -52,6 +52,7 @@ export function MovementCatalogueGrid({
   scrollTarget = null,
   onScrollTargetHandled,
   topInset,
+  bottomInset = 0,
 }: {
   readonly reloadToken: number;
   readonly query: string;
@@ -63,6 +64,8 @@ export function MovementCatalogueGrid({
   readonly scrollTarget?: string | null;
   readonly onScrollTargetHandled?: (id: string) => void;
   readonly topInset?: number;
+  /** D-595 complément (Hermann, 24/11/2026, choix « Liste sous la barre ») : réserve sous la dernière carte quand la liste défile sous la barre de navigation. */
+  readonly bottomInset?: number;
 }) {
   const { state, reload } = useMovementCatalogue(reloadToken);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
@@ -138,7 +141,11 @@ export function MovementCatalogueGrid({
           keyExtractor={(cell) => cell.key}
           numColumns={GRID_COLUMNS}
           columnWrapperStyle={styles.row}
-          contentContainerStyle={[styles.content, topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null]}
+          contentContainerStyle={[
+            styles.content,
+            topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
+            bottomInset > 0 ? { paddingBottom: spacing[24] - MOVEMENT_GRID.rowGap + bottomInset } : null,
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={

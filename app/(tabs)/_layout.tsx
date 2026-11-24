@@ -222,7 +222,7 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               <GlassView
                 glassEffectStyle="clear"
                 colorScheme="light"
-                tintColor={NAVIGATION_ACTIVE_FRAME.color}
+                tintColor={ACTIVE_FRAME_LENS_TINT}
                 style={styles.activeIndicatorGlass}
                 testID="navigation-active-indicator-glass"
               />
@@ -256,6 +256,12 @@ function CommunityDestination() {
 function indicatorLeft(layout: { x: number; width: number }): number {
   return layout.x + (layout.width - NAVIGATION_ACTIVE_FRAME.width) / 2;
 }
+
+/**
+ * Recette du 24/11/2026 (barre-lentille, Hermann : « Le cadre qui entoure les options doit être un peu plus coloré pour qu'on
+ * voit le contraste ») : teinte du cadre actif en lentille, bleu à 20 % [10 %, celle du cadre opaque — remplacé].
+ */
+const ACTIVE_FRAME_LENS_TINT = "rgba(5, 8, 229, 0.2)";
 
 const BAR_BORDER_WIDTH = 1;
 /** Hauteur intérieure de la barre (les enfants se placent dans la boîte intérieure à la bordure). */
@@ -301,7 +307,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     backgroundColor: LENS_VEIL,
   },
-  // Cadre actif en lentille : verre clair teinté de son bleu d'origine (10 %), mêmes dimensions.
+  // Cadre actif en lentille : verre clair teinté de bleu (20 %), mêmes dimensions.
   activeIndicatorLens: {
     backgroundColor: "transparent",
     overflow: "hidden",

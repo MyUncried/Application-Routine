@@ -80,6 +80,7 @@ export function SessionCatalogueList({
   emptyMessage,
   resetToken = 0,
   topInset,
+  bottomInset = 0,
   onOpenSession,
   onStartSession,
   onPlanSession,
@@ -94,6 +95,8 @@ export function SessionCatalogueList({
   readonly resetToken?: number;
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
+  /** D-595 complément (Hermann, 24/11/2026, choix « Liste sous la barre ») : réserve sous la dernière carte quand la liste défile sous la barre de navigation. */
+  readonly bottomInset?: number;
   readonly onOpenSession: (sessionId: string) => void;
   /** PRE-10 : Démarrer exécute la Séance (D-504, D-506) ; absent, Démarrer reste présent et indisponible. */
   readonly onStartSession?: (sessionId: string) => void;
@@ -224,7 +227,7 @@ export function SessionCatalogueList({
       ) : null}
       <SheetMotionProvider reduceMotion={reduceMotion}>
         <SheetMotionScrollView
-          contentContainerStyle={topInset !== undefined ? [styles.list, { paddingTop: spacing[4] + topInset }] : styles.list}
+          contentContainerStyle={[styles.list, topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null, bottomInset > 0 ? { paddingBottom: spacing[24] + bottomInset } : null]}
           showsVerticalScrollIndicator={false}
           testID="catalogue-session-list"
         >
