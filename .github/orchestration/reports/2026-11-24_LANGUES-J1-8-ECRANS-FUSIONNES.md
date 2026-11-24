@@ -60,3 +60,14 @@
 ## Commit final et état Git
 
 Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
+
+## Complément — choix de Hermann du 24/11
+
+- `6ce2d832` a été passé sur `main` à la demande de Hermann (« passe la version sur main »), par avance rapide.
+- Choix validés, reportés dans le glossaire :
+  - **Attach** partout (la modale de programme disait « Add ») ;
+  - **heures sur 12 heures avec AM / PM** en anglais (« 8:00 AM », « 6:30 PM » ; « 8 AM » dans le Plan) ;
+  - autres termes confirmés.
+- Les heures du catalogue sont désormais des fonctions (`time.*`, `dates.hour*`), et le français est inchangé. Nouveau test `clock.test.ts`.
+- Non traité : les roulettes de saisie de l'heure restent sur 24 heures (0 à 23).
+- Suite complète : **477 suites, 6 725 tests verts**.

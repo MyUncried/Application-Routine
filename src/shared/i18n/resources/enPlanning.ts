@@ -2,6 +2,11 @@
 import type { planning as frPlanning } from "./frPlanning";
 import type { Widen } from "./types";
 
+/** 12-hour clock: « 8:00 AM », « 12:30 PM », « 12:00 AM » for midnight. */
+function clock12(hours: number, minutes: string): string {
+  return `${hours % 12 === 0 ? 12 : hours % 12}:${minutes} ${hours < 12 ? "AM" : "PM"}`;
+}
+
 export const planning: Widen<typeof frPlanning> = {
   track: "Track",
   months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -21,11 +26,12 @@ export const planning: Widen<typeof frPlanning> = {
     monthYear: "{month} {year}",
     range: "{start} – {end}",
   },
+  // 12-hour clock with AM / PM (Hermann, 24/11/2026: « Il manque AM / PM »).
   time: {
-    compact: "{hours}:{minutes}",
-    compactHour: "{hours}:00",
-    spoken: "{hours}:{minutes}",
-    spokenHour: "{hours}:00",
+    compact: (hours: number, minutes: string) => clock12(hours, minutes),
+    compactHour: (hours: number) => clock12(hours, "00"),
+    spoken: (hours: number, minutes: string) => clock12(hours, minutes),
+    spokenHour: (hours: number) => clock12(hours, "00"),
   },
   weekUnit: { singular: "week", plural: "weeks" },
   dayUnit: { singular: "day", plural: "days" },

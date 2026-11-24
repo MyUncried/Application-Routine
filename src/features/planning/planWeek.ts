@@ -49,6 +49,8 @@ export function planTint(status: AgendaStatus): PlanTint {
 
 /** DSF Plan § 3 : « 8h », « 14h » ; « 18h30 » ; « — » inchangé. */
 export function planTimeLabel(agendaLabel: string): string {
+  // Anglais (AM / PM, 24/11/2026) : « 8:00 AM » → « 8 AM », comme « 8h00 » → « 8h » en français.
+  if (/:00 (AM|PM)$/.test(agendaLabel)) return agendaLabel.replace(":00 ", " ");
   return agendaLabel.endsWith("h00") ? agendaLabel.slice(0, -2) : agendaLabel;
 }
 

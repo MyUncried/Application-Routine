@@ -35,11 +35,12 @@ export const planning = {
     range: "{start} – {end}",
   },
   /** J1.8 : heures (« 8h00 », « 8h », « 8 h 30 »). */
+  // Heures : fonctions, car l’anglais passe sur 12 heures avec AM / PM (Hermann, 24/11/2026). `minutes` : « 00 » à « 59 ».
   time: {
-    compact: "{hours}h{minutes}",
-    compactHour: "{hours}h",
-    spoken: "{hours} h {minutes}",
-    spokenHour: "{hours} h",
+    compact: (hours: number, minutes: string) => `${hours}h${minutes}`,
+    compactHour: (hours: number) => `${hours}h`,
+    spoken: (hours: number, minutes: string) => `${hours} h ${minutes}`,
+    spokenHour: (hours: number) => `${hours} h`,
   },
   weekUnit: { singular: "semaine", plural: "semaines" },
   dayUnit: { singular: "jour", plural: "jours" },

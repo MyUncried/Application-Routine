@@ -13,7 +13,7 @@ const t = strings.planning;
 /** DSF § 5 : heure « 8h00 », « 14h00 », sans zéro initial. */
 export function formatAgendaTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":");
-  return fillTemplate(t.time.compact, { hours: String(Number(hours)), minutes: minutes ?? "00" });
+  return t.time.compact(Number(hours), minutes ?? "00");
 }
 
 /** DSF § 2, ligne 1 : « Novembre 2026 ». */

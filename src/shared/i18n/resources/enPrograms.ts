@@ -2,6 +2,11 @@
 import type { programs as frPrograms } from "./frPrograms";
 import type { Widen } from "./types";
 
+/** 12-hour clock: « 8:00 AM », « 12:30 PM », « 12:00 AM » for midnight. */
+function clock12(hours: number, minutes: string): string {
+  return `${hours % 12 === 0 ? 12 : hours % 12}:${minutes} ${hours < 12 ? "AM" : "PM"}`;
+}
+
 export const programs: Widen<typeof frPrograms> = {
   dates: {
     monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -10,8 +15,9 @@ export const programs: Widen<typeof frPrograms> = {
     dayMonth: "{month} {day}",
     dayMonthYear: "{month} {day}, {year}",
     period: "{start} – {end}",
-    hour: "{hours}:00",
-    hourMinutes: "{hours}:{minutes}",
+    // 12-hour clock with AM / PM (Hermann, 24/11/2026).
+    hour: (hours: number) => clock12(hours, "00"),
+    hourMinutes: (hours: number, minutes: string) => clock12(hours, minutes),
   },
   catalogue: {
     segment: "Programs",
@@ -67,7 +73,7 @@ export const programs: Widen<typeof frPrograms> = {
     endAccessibility: "End date",
     plannings: "Schedules",
     plan: "+ Schedule a workout",
-    attach: "Add an existing routine",
+    attach: "Attach an existing routine",
     detach: "Remove",
     detachAccessibility: "Remove {name} from the program",
     onDate: "{date}",
@@ -106,11 +112,11 @@ export const programs: Widen<typeof frPrograms> = {
     validate: "Done",
   },
   attach: {
-    title: "Add routines",
+    title: "Attach routines",
     cancel: "Close",
-    validate: "Add",
-    applyOne: "Add 1 routine",
-    applyMany: "Add {count} routines",
+    validate: "Attach",
+    applyOne: "Attach 1 routine",
+    applyMany: "Attach {count} routines",
     slots: "{inside} slots in the period, {outside} outside",
     slotsOne: "1 slot in the period, {outside} outside",
     empty: "All your routines already belong to a program.",

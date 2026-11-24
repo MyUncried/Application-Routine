@@ -102,7 +102,7 @@ export function visiblePrograms(
 /** « 14 h », « 8 h 30 » (Figma « PROG — 13 » : « tous les jours, 14 h »). */
 export function formatHour(time: LocalTime): string {
   const [hours, minutes] = time.split(":").map(Number);
-  return minutes === 0 ? fillTemplate(d.hour, { hours: String(hours) }) : fillTemplate(d.hourMinutes, { hours: String(hours), minutes: String(minutes).padStart(2, "0") });
+  return minutes === 0 ? d.hour(hours!) : d.hourMinutes(hours!, String(minutes).padStart(2, "0"));
 }
 
 /**
