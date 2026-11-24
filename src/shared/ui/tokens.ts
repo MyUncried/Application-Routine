@@ -263,8 +263,10 @@ export const colors = {
   agendaLateBar: "#CC8F8F",
   agendaDoneFrame: "#E0F5E8",
   agendaDoneBar: "#8FCCA8",
-  agendaPartialFrame: "#F5EBE0",
-  agendaPartialBar: "#CCAD8F",
+  // Recette du 24/11/2026 (Hermann : « les couleurs orange des cadres ressemblent à du marron, mieux s'aligner avec le orange
+  // du symbole partielle ») : teinte de #F58C1A, saturée. [#F5EBE0 / #CCAD8F de Figma — remplacés.]
+  agendaPartialFrame: "#FDE9D3",
+  agendaPartialBar: "#F4B571",
   agendaDeletedFrame: "#F0F0F5",
   agendaDeletedBar: "#B8BAC9",
   agendaIconStopped: "#CC3838",

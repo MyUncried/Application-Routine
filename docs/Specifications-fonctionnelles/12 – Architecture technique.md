@@ -1203,8 +1203,8 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.agendaLateBar` | `#CC8F8F` | D-599 : trait épais rouge |
 | `color.agendaDoneFrame` | `#E0F5E8` | D-599 : cadre vert — complétée |
 | `color.agendaDoneBar` | `#8FCCA8` | D-599 : trait épais vert |
-| `color.agendaPartialFrame` | `#F5EBE0` | D-599 : cadre orange — partielle |
-| `color.agendaPartialBar` | `#CCAD8F` | D-599 : trait épais orange |
+| `color.agendaPartialFrame` | `#FDE9D3` | D-599 : cadre orange — partielle (recette du 24/11/2026 : teinte du symbole #F58C1A, plus saturée ; [#F5EBE0 — remplacé]) |
+| `color.agendaPartialBar` | `#F4B571` | D-599 : trait épais orange [#CCAD8F — remplacé] |
 | `color.agendaDeletedFrame` | `#F0F0F5` | D-599 : cadre gris — supprimée |
 | `color.agendaDeletedBar` | `#B8BAC9` | D-599 : trait épais gris |
 | `color.agendaIconStopped` | `#CC3838` | D-599 : disque de l’icône Arrêtée |
