@@ -51,7 +51,7 @@ Le Plan n'a pas de bouton flottant. On y crée en touchant une case ou par « + 
   2. Créer un circuit ;
   3. Créer un cycle ;
   4. **Ajouter un point d'arrêt** (icône du sablier).
-- **Comportement des options.** Chaque option garde son comportement existant. « Ajouter un point d'arrêt » ouvre le placement d'un point d'arrêt (écran « P-Composition séance — Placement d'un point d'arrêt »). Pendant ce placement, le bouton flottant disparaît en fondu lent (0,6 s) et réapparaît de même à la fin du placement (recette du 24/11/2026, Hermann : « Faire disparaître le bouton (fondu lent) ») [atténué pendant le placement — remplacé]. En mode enveloppe (circuit, cycle), il reste atténué. Toucher la croix ou le voile ferme le menu sans action.
+- **Comportement des options.** Chaque option garde son comportement existant. « Ajouter un point d'arrêt » ouvre le placement d'un point d'arrêt (écran « P-Composition séance — Placement d'un point d'arrêt »). Pendant ce placement, le bouton flottant disparaît en fondu lent (0,6 s) et réapparaît de même à la fin du placement (recette du 24/11/2026, Hermann : « Faire disparaître le bouton (fondu lent) ») [atténué pendant le placement — remplacé]. [En mode enveloppe (circuit, cycle), il reste atténué — remplacé le 24/11/2026, Hermann : « en mode circuit / cycle, le bouton flottant doit aussi disparaître en fondu ».] En mode enveloppe (circuit, cycle), il disparaît et réapparaît de même. Toucher la croix ou le voile ferme le menu sans action.
 
 ## 5. Déplacement
 
