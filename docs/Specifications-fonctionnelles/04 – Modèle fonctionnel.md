@@ -579,7 +579,7 @@ Référence : document de conception `Programme / Modèle de Programme` V1.2, §
 
 Trois écrans du parcours Programme n'existent pas encore et doivent être signalés comme tels :
 
-- la **création** d'un programme (nom, intention, période) ; [Conçue le 20/11/2026 — D-548, D-549 : modale « Créer ou configurer un programme » ; voir [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md#4-créer-ou-configurer-un-programme).]
+- la **création** d'un programme (nom, intention, période) ; [Conçue le 20/11/2026 — D-548, D-549 : modale « Créer ou configurer un programme » ; voir [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md#4-créer-ou-configurer-un-programme).] [23/11/2026 : écran « PROG — 13 Créer ou configurer un programme » conçu ; période D-560, routines D-561, voir `docs/DSF-PROGRAMMES-2026-11-23.md`.]
 - la **proposition de rattachement** automatique des occurrences existantes tombant dans la période ;
 - l'**avertissement** lorsqu'une occurrence tombe hors de la période du programme choisi.
 

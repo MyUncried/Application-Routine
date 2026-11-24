@@ -2055,6 +2055,14 @@ La suppression d'une Routine n'a aucun effet sur sa source. La modification de l
 | RM-262 | Avec une seule colonne active, la mention de chaque séance est « à chaque fois » ; le point ne peut pas être retiré (au moins un point par colonne). |
 | RM-263 | Planifications existantes : celles réglées par séance en « x fois sur n » (n ≤ 7) s’affichent dans la grille avec les positions retenues ; si n > 7, le cycle reste calculé comme enregistré et l’ouverture en modification demande de le ramener à 7 au plus. Aucune occurrence passée ou future déjà produite n’est réécrite. |
 | RM-264 | Planifications existantes en unité mois : elles continuent de produire leurs occurrences jusqu’à leur fin ; la modification impose de choisir jours ou semaines. Les planifications sans nom reçoivent un nom vide à compléter à la première modification. [Remplacé le 21/11/2026 (D-553) : nom généré par défaut ; nom vidé bloquant ; mécanisme pour les Routines existantes : spécification du 21/11/2026, § 2.] |
+| RM-265 | EMOM en durée : l’anneau unique suit les 60 secondes du tour ; l’appui au centre suspend et reprend seulement le compteur d’effort cumulé. Le temps de pause intra-série n’est pas ajouté à l’effort et ne décale pas la minute suivante. |
+| RM-266 | L’effort cumulé est borné par l’objectif. À l’objectif atteint, l’écran passe seul en Repos pour les secondes restantes de la minute ; l’appui au centre est alors sans effet. |
+| RM-267 | Fin de minute avec effort inférieur à l’objectif : la minute se ferme, la suivante démarre, et le tour est enregistré en effort partiel (cumul réalisé sur objectif). |
+| RM-268 | Guidage sonore EMOM en durée : bips selon l’anneau de la minute (trois dernières secondes) ; signal au passage en Repos. |
+| RM-269 | Annonce des tours : voir D-530. Interrupteur « Annonce des tours » du Profil activé par défaut ; annonce ou bip à chaque début de tour, jamais les deux ; objectif de répétitions du tour qui démarre. |
+| RM-270 | « Max » : mouvement sans objectif de répétitions, fait jusqu’à l’échec ; le résultat est un nombre de répétitions (D-531). |
+| RM-271 | « Max » est autorisé pour le buy-in de l’AMRAP, pour l’AMRAP à un seul mouvement et pour la cellule « à l’échec » de la Progression ; il est interdit, grisé avec un message court, pour un mouvement d’une boucle de plusieurs mouvements en AMRAP ou en For time, où le tour n’aurait plus de longueur définie. Pas de buy-out en Max. |
+| RM-272 | Exécution d’un mouvement en Max : le chronomètre du bloc continue ; Suivant à l’échec. Buy-in : enchaînement avec le bloc, répétitions saisies à la clôture. AMRAP à un seul mouvement : saisie de chaque série au clavier, score cumulé en direct (coin bas droite), ni « +Tour » ni annonce de tour. Progression : saisie des répétitions puis repos ou fin de l’exercice. |
 
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
 
@@ -2296,7 +2304,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | --- | --- |
 | RM-085 | Les Préférences MVP sont Annonces vocales, sons et vibrations par événement, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). |
 | RM-086 | Les Préférences sont sauvegardées immédiatement. |
-| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours. |
+| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours.  [Complété le 18/11/2026, D-530 : sept interrupteurs d’annonce avec « Annonce des tours ».] |
 | RM-088 | La voix utilisée est celle du système et son volume dépend du téléphone. |
 | RM-089 | La valeur initiale des vibrations par événement est activée. |
 | RM-090 | Le feedback haptique léger émis à chaque changement effectif de valeur d’une roulette est systématique dans le MVP et indépendant des vibrations par événement. |

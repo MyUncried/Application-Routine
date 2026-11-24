@@ -14,6 +14,10 @@
 - **Commit final et état Git** : voir le message de livraison (hash et état renseignés après commit).
 
 - **Renumérotation (18/11/2026)** : D-516 à D-518 étant pris par les PR #427 et #431, les décisions de la planification sont D-519 à D-527 ; RM-253 à RM-264 et CE-UI-12 inchangés. D-527 et RM-260 à RM-264 (cycle, nom, migration) sont une proposition de Claude à valider par Hermann.
+- **Ajout EMOM en durée (18/11/2026)** : D-528, RM-265 à RM-268, CE-UI-13 (ch07, ch10, ch13) et `docs/PROMPT-CLAUDE-CODE-EMOM-DUREE-2026-11-18.md`. Compléments d'exécution (effort partiel, sons, Repos sans effet) proposés par Claude, à valider.
+- **Ajout coins du chronomètre (18/11/2026)** : D-529, CE-UI-14 et `docs/PROMPT-CLAUDE-CODE-COINS-CHRONOMETRE-2026-11-18.md`. Format « +Tour · n » proposé par Claude, à valider.
+- **Ajout annonce des tours (18/11/2026)** : D-530, RM-269, CE-UI-14 (ligne ajoutée) et `docs/PROMPT-CLAUDE-CODE-ANNONCE-TOURS-2026-11-18.md`.
+- **Ajout Max (19/11/2026)** : D-531, RM-270 à RM-272, annotations ch13 et `docs/PROMPT-CLAUDE-CODE-MAX-2026-11-19.md`.
 
 ## Complément du 19/11/2026
 
@@ -64,3 +68,104 @@
 - Docs : `docs/DSF-JOURNAL-2026-11-19.md` créé ; D-535 (ch07) ; ch06, ch13 et DSF Navigation annotés ; DSF Agenda (§ 6 actions glissées 86 × 54, renvoi au Journal). Classe B ; définition « Actives / Terminées » retenue par Claude (À CLARIFIER : écran de filtre ; déployé du Journal = celui de l’Agenda et du catalogue, décidé par Hermann).
 - Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
 
+- Journal (suite, 19/11/2026) : ligne 2 = symbole des zones corporelles sans cercle ; ligne 3 = « X à venir, jusqu’au jj/mm/aaaa » ; déployé = phrase de récurrence puis séances (DSF Journal, D-535, prompt mis à jour). Code couleur Journal/Agenda : proposé, non arbitré.
+
+## Complément du 20/11/2026 (modification des occurrences)
+
+- Décision D-536 (ch07) : figement des occurrences commencées, application des modifications de routine aux occurrences non commencées, protection par groupe (date et heure ; séances ; rappel), modification d'une occurrence seule dans l'Agenda, bouton « Rattraper ». DSF Journal § 5, DSF Agenda § 8, `docs/PROMPT-CLAUDE-CODE-MODIFICATION-OCCURRENCES-2026-11-20.md`. Classe B.
+- Précisé le 20/11/2026 : une séance ajoutée à la main se retire, les séances de la routine se désactivent ; créneaux non concernés grisés (règle de rendu, sans écran).
+- Non fait : modale de choix et état rouge « Rattraper » (Figma) ; stockage de la date réelle d'exécution à confirmer dans le code.
+- Non vérifié : tests non applicables (documentation).
+
+## Complément du 20/11/2026 (suppression, photos du catalogue)
+
+- Décision D-537 (ch07) ; ch03 et ch13 annotés (dialogue à trois choix remplacé) ; DSF Journal § 6, DSF Agenda § 8. Classe B ; titre des dialogues du Journal retenu par Claude.
+- Figma : dialogues « Supprimer des occurrences » et « Supprimer une planification unique » passés au format titre seul (doublon à supprimer, à arbitrer) ; deux écrans créés pour le Journal ; variantes « Titre seul » et « Titre et message » ajoutées à `DSF / Overlays / Confirmation` ; bouton « Rattraper » sur les cartes rouges ; 38 photos de la carte de séance du catalogue ramenées à l’aplat du composant.
+- Non fait : fenêtres de choix « Cette occurrence seulement / Toute la routine » et de confirmation de modification globale (textes non fournis).
+- Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
+- Figma (20/11/2026, suite) : doublon « P-Modal — Supprimer une planification unique — Calendrier » supprimé ; bouton crayon « Modifier la planification » retiré des cartes du Journal ; DSF Journal, D-535, D-537 et prompts mis à jour (l'ouverture de la routine passe par le cadre de gauche, à confirmer dans le code).
+- Précisé le 20/11/2026 : dans l'Agenda, toute modification ne concerne que l'occurrence (aucun choix « Cette occurrence / Toute la routine ») ; D-536, DSF Agenda § 8 et les deux prompts corrigés (texte d'origine conservé et annoté). Fenêtre de choix non dessinée, sans objet.
+- Vocabulaire (20/11/2026) : dans l'interface, « créneau » désigne l'occurrence ; messages : « N créneaux non commencés seront modifiés. », « La routine et ses N créneaux seront supprimés. », « N créneaux non commencés seront modifiés ; La routine sera archivée. » (D-536, D-537, DSF Journal, prompts, deux écrans Figma du Journal).
+
+## Complément du 20/11/2026 (Agenda — zone de contexte)
+
+- Décision D-538 (ch07) ; DSF Agenda § 2 réécrit (§ 3 renvoie au § 2) ; D-533 et ch13 annotés ; texte d'origine conservé entre crochets. Classe B (rendu) ; prompt `docs/PROMPT-CLAUDE-CODE-AGENDA-ZONE-CONTEXTE-2026-11-20.md`.
+- Figma : écran « P-Calendrier — Semaine — Carrousel dans la zone de contexte (proposition) » (`12765:24572`) validé par Hermann (deux lignes : « Aujourd'hui » + mois centré entre doubles flèches ; flèches de semaine, sept cartes 36 × 46, « Planifier » 34 × 34). Composant `icon/aujourd'hui` (jeu à deux variantes : Jour courant gris, Autre jour bleu) créé ; « + » de `icon/planifier` recentré dans le composant.
+- Non fait : les écrans Semaine d'origine (dont `1992:5101`) et l'écran Journal n'ont pas été redessinés ; « Planifier » 32 → 34 reste à aligner sur ces écrans.
+- À CLARIFIER : libellé du mois sur une semaine à cheval sur deux mois ; balayage.
+- Non vérifié : rendu visuel côté Claude (contrôle géométrique, puis capture de Hermann sur la version intermédiaire) ; tests non applicables.
+
+## Complément du 20/11/2026 (Agenda — filtre par routine)
+
+- Décision D-539 (ch07) ; DSF Agenda § 9 et § 2 (icône sur la ligne 1) ; ch13 annoté ; prompt `docs/PROMPT-CLAUDE-CODE-AGENDA-FILTRE-ROUTINE-2026-11-20.md`. Classe B (rendu) ; classe C pour le contenu de la liste (routines archivées comprises, ordre alphabétique) et la définition du compteur, retenus par Claude.
+- Figma : composant `icon/filtre-routine` (Inactif / Actif) et `icon/aujourd’hui`, rangés dans le cadre « Icônes — Agenda » à gauche de l'écran carrousel ; icône entonnoir ajoutée à l'écran carrousel ; deux écrans créés (« … — Choix de la routine (proposition) », « … — Vue filtrée (proposition) », sous les autres écrans du prototype). Quatre tranches d'export (« Slice 1 ») supprimées des écrans Semaine.
+- Correction : le composant `icon/aujourd’hui` n'était rattaché à aucune page lors de sa création ; il est maintenant dans le cadre « Icônes — Agenda ».
+- Non fait : écrans Semaine d'origine et Journal non redessinés ; ordre de la liste et compteur à confirmer par Hermann.
+- Non vérifié : rendu visuel (contrôle géométrique seul) ; tests non applicables.
+- Précisé le 20/11/2026 : la fenêtre de choix devient une modale simplifiée du Journal (cartes réduites au nom et à « X à venir, jusqu'au… », sélecteur à cocher, sélection multiple, barre de séparation et bouton « Filtrer N routines ») ; pastille « N routines ✕ » ; D-539, DSF Agenda § 9 et prompt mis à jour. Écrans Figma « Choix de la routine » et « Vue filtrée » redessinés.
+- Précisé le 20/11/2026 : la vue filtrée garde la zone de contexte inchangée (pas de pastille ni de compteur) ; l'icône entonnoir devient pleine et bleue quand le filtre est actif ; la liste ne montre que les créneaux des routines choisies pour la semaine affichée. Bouton « Afficher toutes les routines » sans sélection et durée du filtre retenus par Claude. D-539, DSF Agenda § 9 et prompt mis à jour (texte précédent sur la pastille et le compteur remplacé). Écran Figma « Vue filtrée » refait.
+- Précisé le 20/11/2026 : la modale « Filtrer par routine » affiche la zone de contexte du Journal sans « Planifier » (compteurs, recherche, filtre, tri) ; DSF Agenda § 9, D-539 et prompt mis à jour ; écran Figma « Choix de la routine » complété.
+- Précisé le 20/11/2026 : modale du filtre sans compteurs ni trait de séparation en bas ; fond de la zone de contexte du Journal depuis le haut de la modale, en-tête posé dessus. DSF Agenda § 9, D-539 et prompt corrigés ; écran Figma « Choix de la routine » mis à jour.
+- Précisé le 20/11/2026 : dans la modale du filtre, boutons de filtre et de tri alignés à droite, champ de recherche élargi.
+- Précisé le 20/11/2026 : modale du filtre sans halo blanc ni fond blanc de l’en-tête ; bouton « Filtrer N routines » à la position standard des boutons primaires (y = 802, 354 de large). Aucune règle modifiée.
+- Figma (20/11/2026) : écrans « Choix de la routine » et « Vue filtrée » replacés à droite de l'écran carrousel (les deux modales du Journal décalées d'autant) ; écrans « P-Suivi — Séances — Liste condensée » (`1992:8843`) et « Suivi — Séances — Vue déployée » (`1992:8996`) supprimés de la page Prototype MVP (historique présenté dans l'Agenda). Les copies de ces écrans des pages « Suivi » et « Conception — Hors MVP » sont conservées. Annotés : ch06, ch13, DSF Navigation ; les matrices et rapports datés (septembre-octobre 2026) restent inchangés (instantanés). Classe B.
+- Non vérifié : rendu visuel ; tests non applicables.
+- Livraison du 20/11/2026 : deux prompts à appliquer dans l'ordre (zone de contexte D-538, puis filtre par routine D-539) ; le premier réserve l'emplacement de l'icône du second. Documentation relue : DSF Agenda § 2 et § 9, ch07 (D-538, D-539), ch13 à jour.
+
+## Complément 20/11/2026 — déploiement de la zone de contexte (D-538) et décisions de Hermann
+- Décisions (classe B) : libellé du mois = mois comptant le plus de jours de la semaine affichée (règle ISO 8601 du jeudi appliquée au mois) ; balayage de la rangée des jours = changement de semaine, à valider à l'usage ; déploiement sur tous les écrans.
+- Figma : zone de contexte (Aujourd'hui, mois, flèches, sept jours, filtre, Planifier 34×34) copiée sur les quatre écrans Semaine (déployé, actions glissées, séance déployée, modale de suppression) ; liste remontée à y=111 ; Planifier 34×34 à (352,149) sur le Journal et ses deux modales de suppression. Aucune interaction de prototype perdue (aucune réaction dans les éléments remplacés). Vérification géométrique uniquement (positions identiques à l'écran de référence) ; aucun rendu vu.
+- Documents : DSF Agenda (À clarifier remplacé, original conservé entre crochets), D-538 du registre, prompt zone de contexte.
+- Non traité, à arbitrer : fonds périmés des deux anciennes modales (Jour) — non modifiées.
+- Tests : non applicables (documentation et maquettes).
+
+## Complément 20/11/2026 (suite) — jetons de texte des cartes du calendrier et de la planification
+- Décision de Hermann (classe B, rendu) : nom de la routine et lignes dessous prennent les tailles des cartes des catalogues (nom Inter Semi Bold 15, lignes Inter Regular 12), avec un jeton chacun : `KODJO / DSF / Card name` (créé) et `KODJO / DSF / Card metadata` (existant).
+- Figma : appliqués aux 68 cartes « Ligne d’agenda » et « Ligne — Routine » de la page Prototype MVP (68 noms, 272 lignes), modales de suppression et de sélection comprises ; plus aucun texte 16 Semi Bold ni 13 Regular dans ces cartes. Positions inchangées ; vérification géométrique uniquement, aucun rendu vu.
+- Icônes Agenda déplacées dans la planche DSF « Icônes — navigation et catégorie » ; fiche « Planifier et aujourd’hui » alignée sur les boutons 34×34.
+- Non traité : les noms des cartes de catalogue utilisent encore le style générique « Texte / Inter Semi Bold 15 » et non le nouveau jeton (aucun écart visuel).
+- Tests : non applicables.
+
+## Complément 20/11/2026 (suite 2) — comportement du filtre par routine (D-539, classe B)
+- Décision de Hermann : toucher l'icône bleue désactive le filtre sans ouvrir la modale ; la modale s'ouvre toujours vide ; bouton désactivé tant qu'aucune routine n'est cochée ; « Afficher toutes les routines » supprimé.
+- Documents : DSF Agenda § 9, D-539 (registre), prompt du filtre (formulations remplacées conservées entre crochets). Figma : aucun changement (la modale montre déjà l'état avec sélection ; l'état désactivé est celui du bouton primaire du DSF).
+- Tests : non applicables.
+
+## Complément 20/11/2026 (suite 3) [rendu de l’expiré remplacé : cadre rouge conservé et étiquette rouge « Expirée » à la place du bouton, décision de Hermann] — cycle de vie d'une routine (D-540, classe B)
+- Décisions de Hermann : créneau manqué rattrapable jusqu'au créneau suivant, sinon 10 jours ; ensuite « expiré » ; routine active/terminée calculée ; plus d'archivage de routine ; filtre « Terminées » ; durée sans réglage de profil. Retenus par Claude (classe C) : état expiré non modifié par la routine et supprimé avec elle, libellé du message de suppression.
+- Documents : registre (D-540, D-537 et D-539 annotés), DSF Journal § 2 et § 6, DSF Agenda § 10, prompt `PROMPT-CLAUDE-CODE-CYCLE-VIE-ROUTINE-2026-11-20.md`.
+- Figma : message de la modale de suppression avec historique remplacé (écran renommé « Supprimer une routine avec historique ») ; écran « P-Calendrier — Semaine — Créneau expiré (proposition) » créé (cadre gris clair, nom en gris secondaire, sans bouton). Aucune action glissée « Archiver » n'existe sur les écrans Journal. Vérification géométrique uniquement.
+- Non traité : prompt de suppression d'origine non réécrit (remplacé par le nouveau prompt).
+- Tests : non applicables.
+
+## Complément 20/11/2026 (suite 5) — Calendrier à deux onglets (D-542, classe B) : le troisième onglet est retiré de 13 écrans ; Journal et Agenda centrés ; vue Plan conservée comme analyse (3 écrans, 3 onglets) ; DSF Plan et prompt Plan marqués suspendus ; D-541 annoté. Vérification géométrique uniquement, tests non applicables.
+
+## Complément 20/11/2026 (suite 4) — troisième onglet « Plan » (D-541, classe B)
+- Décision de Hermann : le troisième onglet s'appelle « Plan » et présente une grille d'une semaine (routines en lignes, jours en colonnes) dans le centre de l'écran ; pas de vue mois ni quinze jours. Retenus par Claude (classe C) : routines affichées, filtre commun avec l'Agenda, toucher une case.
+- Figma : onglet renommé sur les 15 écrans du calendrier ; écrans « Grille du mois (proposition) » (à supprimer, non validé) et « Routines et jours (proposition) » dessinés. Vérification géométrique uniquement.
+- Documents : D-541, D-532 annoté, DSF Barre de titre, nouveau DSF Plan, prompt `PROMPT-CLAUDE-CODE-PLAN-2026-11-20.md`.
+- À clarifier : plusieurs créneaux d'une même routine le même jour.
+- Tests : non applicables.
+
+## Complément — Catalogue officiel (CPT-23), 20/11/2026
+
+- **Classe B** (décision explicite de Hermann : « le compte Kodjo »). Le catalogue de base des Mouvements est publié sur un compte KODJO comme Bibliothèque publique (CPT-22), téléchargé après la première connexion, non livré dans le paquet de l'application. Les 60 fiches actuelles sont un jeu de test.
+- **Source normative absente de cette branche** : le chapitre 07 de la section « Gestion de compte » n'existe que sur la PR #446 (`claude/blissful-meitner-iauzaf`). Pas de fusion. Patch préparé : `_bmad-output/compte/integration-documentaire-CPT-23.patch` (ajoute la ligne CPT-23 après CPT-22).
+- **Vérification** : `git apply --cached --check` sur un index temporaire de la branche de la PR #446 : applicable.
+- **Statut : préparé, non appliqué.** À appliquer sur la branche de la PR #446. Le plan du lot Compte (`_bmad-output/compte/plan-lot-compte.md`, même PR) doit aussi mentionner l'envoi du catalogue officiel comme suite de T6.
+- Aucun test applicable (documentation).
+
+## Complément 23/11/2026 — Programmes : période, routines, rattachement (D-560 à D-562, classe B)
+- Décisions explicites de Hermann (conversation du 23/11/2026). Figma : « PROG — 13 Créer ou configurer un programme » (période : ligne « N jours, soit S semaines » ; routines au format Journal ; halo sous Annuler), « P-Planifier une séance — Choix du programme (proposition) » (modale « Rattacher un programme », sans Valider, radios), halo rétabli dans « Modal — Planifier une séance — Sélectionner une séance ».
+- Documents : `docs/DSF-PROGRAMMES-2026-11-23.md` (nouveau) ; registre ch07 D-560, D-561, D-562 ; D-332 annoté ; ch04 « Ce qui reste à concevoir » annoté. Prompts : `docs/PROMPT-CLAUDE-CODE-PROGRAMME-{PERIODE,ROUTINES,SELECTION}-2026-11-23.md`.
+- Mode « pendant » de la période : spécifié, non dessiné dans Figma.
+- Le code ne contient pas encore l'objet Programme : les prompts demandent de ne pas l'inventer.
+- Tests : non applicables.
+
+## Complément 23/11/2026 (suite) — Nom des routines unique parmi les actives (D-563, classe B)
+- Décision explicite de Hermann : unicité du nom parmi les routines actives (suffixe « (2) » proposé à la création, modifiable ; routine terminée garde son nom ; contrôle à la réactivation par extension de période ou ajout de créneaux ; séances inchangées). Remplace le « non unique » de D-553 (branche `docs/agenda-seances-journal-filtre-20261121`) et rétablit RM-258 / RM-261 / D-522 pour les routines actives.
+- Appliqué sur cette branche : registre ch07 D-563 ; DSF Journal § 6 bis.
+- **Préparé, non appliqué** (source normative sur la branche Agenda, non fusionnée) : `_bmad-output/compte/integration-documentaire-D-563-branche-agenda.patch` — document Agenda (§ 1, § 2), registre (D-522, D-553, note RM), ch04, ch10 (RM-258, RM-261, complément 21/11), ch13 ; `git apply --cached --check` sur un index temporaire de la branche Agenda : applicable (5 fichiers).
+- Renumérotation antérieure : décisions Programmes D-560 à D-562 (collision avec D-543 à D-552 de main).
+- Tests : non applicables.
+- Prompt Claude Code : `docs/PROMPT-CLAUDE-CODE-NOM-ROUTINE-UNIQUE-2026-11-23.md`.

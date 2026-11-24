@@ -6,7 +6,7 @@ Référence Figma : « P-Catalogue des séances » (`4168:11149`, onglet Séance
 
 La navigation entre les trois vues d’un même domaine se fait par une barre de titre à onglets, et non plus par un contrôle segmenté sous le titre :
 - Catalogues : **Mouvements · Séances · Programmes** (onglet actif selon l’écran) ;
-- Calendrier : **Journal · Agenda · Vue d’ensemble** (D-532).
+- Calendrier : **Journal · Agenda · Vue d’ensemble** (D-532). [Remplacé le 20/11/2026 (D-542) : **Journal · Agenda** — troisième onglet « Vue d’ensemble » puis « Plan » retiré.] [Remplacé le 21/11/2026 (D-554) : **Journal · Agenda · Plan**.]
 
 Le comportement de navigation (changement de vue, vue conservée) est inchangé ; seul le contrôle change.
 
@@ -14,7 +14,7 @@ Le comportement de navigation (changement de vue, vue conservée) est inchangé 
 
 | Élément | Prescription |
 |---|---|
-| Libellés | Trois zones de 123 × 21, centrées, à x = 16 · 139 · 263, y = 60 ; Inter 17 ; interligne automatique. « Vue d’ensemble » a la largeur de son texte (127) et reste centrée sur son axe (x centre ≈ 324,5). |
+| Libellés | Trois zones de 123 × 21, centrées, à x = 16 · 139 · 263, y = 60 ; Inter 17 ; interligne automatique. « Vue d’ensemble » a la largeur de son texte (127) et reste centrée sur son axe (x centre ≈ 324,5). [Remplacé le 20/11/2026 (D-542) : Catalogues : trois zones de 123 × 21 inchangées ; Calendrier : deux libellés centrés sur x = 139,5 et 262,5, y = 60 ; « Plan » centré sur le même axe (x centre ≈ 324,5).] [Remplacé le 21/11/2026 (D-554) : Calendrier à trois libellés, **Journal · Agenda · Plan**, emplacements de 123 à x = 16, 139 et 262.] |
 | Onglet actif | Inter 17 **gras**, noir `#141414`, posé sur une forme arrondie 143 × 43 à y = 50, remplie `#EAEAFF`, centrée sur son libellé. |
 | Onglets inactifs | Inter 17 normal, gris `#595E66`, sans fond. |
 | En-tête fixe et barre d’état | Teinte `#F7F7FF`, sur 95 px de haut. |

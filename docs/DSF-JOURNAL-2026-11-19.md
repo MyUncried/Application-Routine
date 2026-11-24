@@ -10,7 +10,7 @@ Le Journal est la **liste des routines créées**, et non leur planification dan
 ## 2. Zone de contexte
 
 Bande de 402 × 115 (inchangée), onglet « Journal » actif (voir DSF Barre de titre à onglets).
-- Ligne 1 : « Actives N · Terminées N » (compteurs). [« Planifiées N · Terminées N » depuis la recette du 19/11/2026 au soir (j1-compteurs).] [Recette du 21/11/2026 (Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : chaque libellé filtre la liste sur ce statut, comme la bascule « Un exercice · Plusieurs » du Catalogue (libellé actif en bleu ; retoucher le retire) ; sans choix, la liste par défaut (routines actives, D-540).]
+- Ligne 1 : « Actives N · Terminées N » (compteurs). [« Planifiées N · Terminées N » depuis la recette du 19/11/2026 au soir (j1-compteurs).] [Recette du 21/11/2026 (Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : chaque libellé filtre la liste sur ce statut, comme la bascule « Un exercice · Plusieurs » du Catalogue (libellé actif en bleu ; retoucher le retire) ; sans choix, la liste par défaut (routines actives, D-540).] **D-540 (20/11/2026)** : une routine est active si elle a au moins un créneau à venir ou rattrapable, terminée sinon (état calculé). La liste n’affiche par défaut que les routines actives ; les terminées s’obtiennent avec le statut « Terminées » du filtre [remplace « Archivées »].
 - Ligne 2 : champ Rechercher, contrôle Filtre, contrôle Tri, bouton Planifier.
 - Aucune navigation par date.
 
@@ -31,10 +31,27 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - Filtres : spécialité, catégorie, format, zones corporelles, programme.
 - « Active » : la routine a au moins une occurrence en cours ou à venir ; « Terminée » : sa récurrence est arrivée à son terme (plus aucune occurrence à venir). Définition retenue par Claude (19/11/2026) ; une routine sans date de fin reste active.
 
-## 5. À clarifier
+## 5. Modifier la routine depuis le Journal (D-536)
+
+La modification porte toujours sur la routine entière, sans choix. Elle ne s’applique qu’aux occurrences **non commencées** ; les occurrences commencées (une séance lancée) restent inchangées, séquence et statut. Un changement global ne remplace que les réglages non modifiés à la main sur l’occurrence, par groupe : date et heure ; séances ; rappel. À la sauvegarde : « N créneaux non commencés seront modifiés. ». Les occurrences à venir déjà modifiées à la main (exceptions) restent comptées dans « X à venir ».
+
+## 6. Suppression d’une routine (D-537)
+
+Une occurrence commencée n’est jamais supprimée. Routine sans occurrence commencée : supprimée avec toutes ses occurrences (« La routine et ses N créneaux seront supprimés. »). Routine avec au moins une occurrence commencée : ses occurrences non commencées sont supprimées, la routine est archivée (filtre « Archivées »), son historique est conservé (« N créneaux non commencés seront modifiés ; La routine sera archivée. ») [remplacé le 20/11/2026 par D-540 : plus d’archivage ; la routine devient terminée (filtre « Terminées ») ; message « N créneaux non commencés seront supprimés. La routine sera terminée. » ; l’action glissée « Archiver » est supprimée, « Supprimer » reste]. Un seul dialogue : titre « Supprimer cette routine », message (selon la présence d’historique), « Confirmer », « Annuler » en haut à gauche. Écrans Figma : « P-Modal — Supprimer une routine — Journal » (sans historique), « P-Modal — Supprimer une routine avec historique — Journal » (avec historique ; [ancien nom « Supprimer et archiver une routine » remplacé le 20/11/2026]) : deux messages du même dialogue. Composant : `DSF / Overlays / Confirmation`, variantes « Titre seul » et « Titre et message ».
+
+## 6 bis. Nom des routines (D-563)
+
+- Le nom d'une routine est **unique parmi les routines actives**, sans distinguer majuscules, minuscules, accents ni espaces de bord. Un nom vide est refusé (« Nom obligatoire »).
+- À la création, le champ Nom est prérempli avec le nom par défaut (celui de la séance, ou les noms reliés par « + »). Si ce nom est déjà pris par une routine active, le champ propose le premier nom libre : « Tabata (2) ». L'utilisateur peut le modifier. Si l'utilisateur saisit lui-même un nom déjà pris : « Ce nom est déjà utilisé » sous le champ ; rien n'est enregistré.
+- Une routine **terminée** garde son nom et libère l'unicité ; elle se distingue par la date de création du cadre de gauche et par sa période.
+- Une modification qui **réactive** une routine terminée (période étendue, créneaux ajoutés) vérifie le nom : s'il est pris par une routine active, l'écran reste ouvert avec la proposition du premier nom libre.
+- L'unicité des noms de séances ne change pas.
+
+## 7. À clarifier
 
 - Écran de filtre du Journal (valeurs des cinq critères) : non dessiné.
 - « Spécialité » : propriété à définir (voir DSF Agenda).
+- Code couleur des cartes : proposé = bleu s’il reste des occurrences à venir, gris sinon (teinte de l’Agenda pour le futur) ; non arbitré, la teinte actuelle `#EAEAFF` est provisoire. [Tranché par la recette du 19/11/2026 au soir (constat E, § 3) : bleu pour une routine planifiée, gris sinon.] Compteurs : « Actives · Terminées » ne couvre pas une routine jamais planifiée.
 
 [Contre-recette du 20/11/2026 et missions D-536 / D-537 (classe B, registre ch07) :
 - carte, ligne 3 : précédée du symbole du calendrier (r21-j-carte) ;
@@ -52,7 +69,7 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 
 ## Évolution validée du 21/11/2026 — Journal / filtre
 
-La représentation du Journal reste **une carte par Routine**. Une Routine à plusieurs Séances (Parcours) est présentée sur **une seule ligne** avec le symbole Ⓟ et le nom de Routine ; la composition reste au déployé. Une Routine à Séance unique est présentée par son nom de Routine dans le Journal. Le filtre de l'Agenda reprend exactement cette représentation compacte, sans dérouler les Séances d'un Parcours en lignes distinctes. Les noms de Routines ne sont plus uniques et peuvent être générés ou personnalisés. **Les clauses antérieures incompatibles de ce DSF sont supersédées** par [la décision du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Figma ajusté le 21/11/2026, à valider : carte « Mobilité du matin » (`12736:25026`) de « Calendrier — Journal — MVP » (`1992:5510`), Ⓟ après le nom (règle du 20/11/2026) ; ligne `12798:26926` du filtre `12795:25088` ; vue filtrée `12799:24881`.
+La représentation du Journal reste **une carte par Routine**. Une Routine à plusieurs Séances (Parcours) est présentée sur **une seule ligne** avec le symbole Ⓟ et le nom de Routine ; la composition reste au déployé. Une Routine à Séance unique est présentée par son nom de Routine dans le Journal. Le filtre de l'Agenda reprend exactement cette représentation compacte, sans dérouler les Séances d'un Parcours en lignes distinctes. Les noms de Routines ne sont plus uniques et peuvent être générés ou personnalisés. [Unicité remplacée le 23/11/2026 (D-563, nom unique parmi les routines actives) : voir § 6 bis.] **Les clauses antérieures incompatibles de ce DSF sont supersédées** par [la décision du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Figma ajusté le 21/11/2026, à valider : carte « Mobilité du matin » (`12736:25026`) de « Calendrier — Journal — MVP » (`1992:5510`), Ⓟ après le nom (règle du 20/11/2026) ; ligne `12798:26926` du filtre `12795:25088` ; vue filtrée `12799:24881`.
 
 ## Bouton flottant — 22/11/2026 (D-558)
 
