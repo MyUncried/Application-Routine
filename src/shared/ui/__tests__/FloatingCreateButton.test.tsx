@@ -209,7 +209,10 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(veil()).toBe("rgba(5, 8, 229, 0.65)");
     expect(glyph()).toContain("#FFFFFF");
     expect(glyph()).not.toContain("#0508E5");
-    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.65);
+    // Bouton bleu : 70 %, sans liseré, ombre plus sombre (recette du 24/11).
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.7);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).borderWidth).toBe(0);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
     expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!)).toMatchObject({ side: "RIGHT", tone: "BLUE" });
     first.unmount();
     resetFloatingPositionForTests();
@@ -218,6 +221,9 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     fireEvent(screen.getByTestId("floating-create"), "longPress");
     expect(veil()).toBe("rgba(255, 255, 255, 0.65)");
     expect(glyph()).toContain("#0508E5");
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.65);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).borderWidth).toBe(1.2);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.14);
     expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!).tone).toBeUndefined();
     second.unmount();
   });

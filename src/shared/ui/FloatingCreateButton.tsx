@@ -55,8 +55,8 @@ export type FloatingCreateVariant = "plus" | "calendar" | "movement" | "session"
 export const FLOATING_CREATE_BLUE = colors.primary;
 const GLASS_VEIL = "rgba(255, 255, 255, 0.65)";
 /**
- * Recette du 24/11/2026 (appui long, « mêmes opacités ») : fond bleu `#0508E5` au même voile de 65 %, symbole blanc ;
- * liseré, ombre et transparence d'ensemble inchangés.
+ * Recette du 24/11/2026 (appui long, « mêmes opacités ») : fond bleu `#0508E5` au même voile de 65 %, symbole blanc.
+ * [Liseré, ombre et transparence d'ensemble inchangés — remplacé le même jour : sans liseré, 70 %, ombre plus sombre.]
  */
 const GLASS_VEIL_BLUE = "rgba(5, 8, 229, 0.65)";
 export const FLOATING_CREATE_WHITE = "#FFFFFF";
@@ -171,7 +171,7 @@ export function FloatingCreateFace({
 }) {
   const [glass] = useState(liquidGlassAvailable);
   return (
-    <View style={styles.shadow} pointerEvents="none" {...(testID !== undefined ? { testID } : {})}>
+    <View style={[styles.shadow, tone === "BLUE" ? styles.shadowBlue : null]} pointerEvents="none" {...(testID !== undefined ? { testID } : {})}>
       <View style={styles.clip}>
         {glass ? (
           <GlassView
@@ -201,6 +201,12 @@ const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 } as const;
 
 /** Recette du 24/11/2026 (Hermann, constats) : bouton à 65 % d'opacité (35 % de transparence). Inactif : `UNSELECTED_OPACITY`. */
 export const FLOATING_CREATE_OPACITY = 0.65;
+/**
+ * Recette du 24/11/2026 (Hermann : « Retirer le liseré blanc quand le bouton est bleu, passer à 70% d'opacité, assombrir un
+ * peu l'ombre ») : bouton bleu à 70 %, sans liseré, ombre à 22 % (au lieu de 14 %). Le bouton blanc est inchangé.
+ */
+export const FLOATING_CREATE_BLUE_OPACITY = 0.7;
+const BLUE_SHADOW_OPACITY = 0.22;
 
 /**
  * Recette du 24/11/2026 (fab-partout, KO) : la couche passe au-dessus de toute bande élevée de l'écran (zone de contexte :
@@ -326,7 +332,7 @@ export function FloatingCreateButton({
     <GestureHandlerRootView pointerEvents="box-none" style={styles.layer} onLayout={onLayout} testID={`${testID}-layer`}>
       {!hidden && rest !== null && bounds !== null ? (
         <DragDetector enabled={!disabled} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
-          <Reanimated.View style={[styles.button, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
+          <Reanimated.View style={[styles.button, tone === "BLUE" ? styles.buttonBlue : null, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
             <Pressable
               ref={pressableRef}
               onPress={onPress}
@@ -467,6 +473,13 @@ const styles = StyleSheet.create({
   },
   veilBlue: {
     backgroundColor: GLASS_VEIL_BLUE,
+    borderWidth: 0,
+  },
+  buttonBlue: {
+    opacity: FLOATING_CREATE_BLUE_OPACITY,
+  },
+  shadowBlue: {
+    shadowOpacity: BLUE_SHADOW_OPACITY,
   },
   content: {
     position: "absolute",
