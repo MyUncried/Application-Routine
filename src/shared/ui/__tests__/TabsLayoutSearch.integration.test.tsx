@@ -173,7 +173,7 @@ describe("Navigation basse — effet lentille (Hermann, 24/11/2026)", () => {
     expect(StyleSheet.flatten(lens.children.filter((c): c is typeof lens => typeof c !== "string")[1]!.props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.22)");
   });
 
-  it("with native glass: the sliding active frame is a lens tinted with its 10 % blue, same 66 × 50 frame", () => {
+  it("with native glass: the sliding active frame is a lens tinted 20 % blue (recette du 24/11 : plus contrasté), same 66 × 50 frame", () => {
     renderTabsLayout();
     fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
       nativeEvent: { layout: { x: 0, y: 0, width: 70.8, height: 60 } },
@@ -182,7 +182,7 @@ describe("Navigation basse — effet lentille (Hermann, 24/11/2026)", () => {
     expect(indicator).toMatchObject({ width: 66, height: 50, borderRadius: 28, backgroundColor: "transparent" });
     expect(screen.getByTestId("navigation-active-indicator-glass").props).toMatchObject({
       glassEffectStyle: "clear",
-      tintColor: NAVIGATION_ACTIVE_FRAME.color,
+      tintColor: "rgba(5, 8, 229, 0.2)",
     });
   });
 });

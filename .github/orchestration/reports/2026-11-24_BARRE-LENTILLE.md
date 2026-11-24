@@ -76,3 +76,39 @@
 ## État Git
 
 Le commit final et l'état Git figurent dans le message de livraison.
+
+## Complément du 24/11/2026 : retours de la recette
+
+- **Recette** (barre-lentille, KO) : « C'est ok pour le calendrier et le profil. C'est ko pour le catalogue, une zone colorée uniforme entoure la barre de navigation. Le cadre qui entoure les options doit être un peu plus coloré pour qu'on voit le contraste ».
+- **Départ** : `9c5e9bf9`.
+- **Cause du KO Catalogue** : la règle D-501 du 06/11 arrêtait la liste au-dessus de la barre. Un fondu de 40 pt puis un fond plein de la couleur du catalogue venaient avant la barre : sous le verre, il n'y avait qu'une couleur unie.
+- **Arbitrage** : choix posé à Hermann, réponse « Liste sous la barre ». Classe B ; D-501 est remplacée sur ce point.
+
+### Réalisé
+
+- **Liste sous la barre** :
+  - les quatre listes du Catalogue (Séances, Mouvements en grille et en liste, Programmes) défilent sous la barre ;
+  - chacune reçoit une réserve basse `bottomInset = navigationBarTotalHeight()`, pour que la dernière carte reste atteignable ;
+  - `NavigationFade` est retiré ;
+  - les états chargement, vide et erreur gardent la réserve du corps pour leur centrage.
+- **Contraste du cadre** : le cadre actif en lentille passe de 10 % à 20 % de bleu. Le cadre opaque, sans verre natif, reste à 10 %.
+- **Documents** :
+  - D-501 annotée « remplacée » (Catalogues-cartes-modales, § 3) ;
+  - D-595 complétée ;
+  - DSF Navigation et ch. 12.
+
+### Tests
+
+- `CatalogueScreen` : 27 tests réussis.
+  - Le test D-501 est mis à jour : plus de fondu.
+  - Nouveau test : la liste passe sous la barre, avec la réserve basse.
+- `TabsLayoutSearch` : 12 tests réussis (teinte à 20 %).
+- **Suites liées** (layout, Catalogue, listes) : 24 suites au premier passage, dont 2 en échec.
+  - `CatalogueScreen` : le test D-501, corrigé ci-dessus.
+  - `ExerciseEditingPaths.integration` : 13 échecs « Can't access .root on unmounted test renderer » sous la charge de l'exécution parallèle. Relancée seule avec les modifications, elle passe (21/21).
+- **Types et lint** : `tsc` est propre et le lint ne signale rien.
+
+### À vérifier sur iPhone
+
+- Catalogue (trois onglets) : les cartes défilent sous la barre en verre, et la dernière carte reste atteignable.
+- Contraste du cadre actif.
