@@ -44,3 +44,10 @@ Ouvrir les deux cahiers sur l'iPhone : lisibilité, filtre « Version », « À 
 
 ## Fichiers modifiés
 - `.github/orchestration/reports/2026-11-24_RECETTES-NOUVEAU-FORMAT.md` (ce rapport)
+
+## Complément du 24/11 — bandeaux de synthèse numérotés et masqués une fois vérifiés
+Demande : numéroter les grands bandeaux jaunes de synthèse et cacher ceux déjà couverts par les tests (précision de l'utilisateur : uniquement ces bandeaux, pas les badges de version des lignes).
+- Chaque bandeau porte le numéro de son lot (pastille « lot N · date », la même que le filtre « Version ») ; correspondance établie bandeau par bandeau d'après son contenu (PRE-10 : 34 bandeaux ; Planification : 3 sur 4, le bandeau « Installer l'application de recette » ne se rattache à aucun lot et reste toujours affiché, comme le bandeau du nouveau format).
+- Un bandeau est masqué quand toutes les versions courantes de son lot ont un verdict (OK, KO ou Sans objet) ; une version remplacée depuis par une version plus récente compte comme couverte. Le bouton « Afficher N bandeaux de lots déjà vérifiés » les réaffiche (choix mémorisé dans le navigateur).
+- Simulation sur les résultats enregistrés : Planification, 3 bandeaux masqués ; PRE-10, 31 masqués, 3 visibles (lot 53 : 41 points à vérifier ; lot 51 : 1 ; lot 50 : 10).
+- Publications : Planification version 38, PRE-10 version 148 (capacités inchangées). Syntaxe des scripts vérifiée. Aucun test applicatif applicable.
