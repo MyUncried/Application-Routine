@@ -74,6 +74,7 @@ Réponses de Hermann du 24/11/2026 :
 - **Ordre des tranches :** T1 à T6 confirmé (CPT-24).
 - **Maquettes :** liste des écrans nécessaires établie avant chaque tranche ; Hermann vérifie l'existant (CPT-24). Liste T1 ci-dessous.
 - **Contenu du résumé d'exécution dans le fil :** proposition acceptée sur le principe (titre, type, date, durée, nombre d'exercices exécutés, effort perçu ou ressenti, sans douleurs). **Fixé avant T5**, pas nécessaire maintenant.
+- **Annonce d'un changement de pseudo dans le fil des abonnés** (Hermann, 24/11/2026) : à rediscuter avant T5.
 
 **Encore ouvert : identité publique et recherche.** Hermann : la recherche doit aussi se faire par **prénom et nom** ; **pas de proposition automatique** de pseudo ; le pseudo pourrait être **facultatif** ; éviter les écrans supplémentaires. Un benchmark des réseaux sociaux et des applications concurrentes est en cours.
 
