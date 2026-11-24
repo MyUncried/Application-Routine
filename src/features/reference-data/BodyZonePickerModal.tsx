@@ -25,6 +25,7 @@ import {
 } from "@/features/reference-data/ReferentialServiceContext";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 import { strings } from "@/shared/i18n";
+import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -322,16 +323,8 @@ export function BodyZonePickerModal({
         {/* [Poignée dessinée — remplacée par la feuille native (06/11/2026).] */}
         <View style={[styles.card, isKeyboardShown ? styles.cardWithKeyboard : null]} accessibilityViewIsModal testID="body-zone-picker-sheet">
           <View style={styles.sheetHeader} testID="body-zone-picker-header">
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t.closeAccessibilityLabel}
-              hitSlop={5}
-              style={styles.sheetCancel}
-              testID="body-zone-picker-close"
-            >
-              <KodjoIcon name="wheel-action-cancel" />
-            </Pressable>
+            {/* D-593 (Hermann, 24/11/2026 : « Ces boutons doivent utiliser le même composant que les autres ») : cercle blanc standard. [Croix grise sur fond gris — remplacée.] */}
+            <CloseCircleAction onPress={onClose} accessibilityLabel={t.closeAccessibilityLabel} testID="body-zone-picker-close" />
             <Text style={styles.sheetTitle} accessibilityRole="header">
               {t.title}
             </Text>

@@ -74,7 +74,8 @@ export function NativeSheetTop({
     <SheetFixedTop
       top={
         <>
-          <View style={{ backgroundColor: headerBackground }}>
+          {/* Recette du 24/11/2026 (entete-cercle-blanc) : au-dessus de la zone de contexte, ombre du cercle non coupée. */}
+          <View style={{ backgroundColor: headerBackground, zIndex: 2 }}>
             <FixedHeader title={title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={closeAccessibilityLabel} {...(validate !== undefined ? { validate } : {})} />
           </View>
           <ContextBand

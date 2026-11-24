@@ -390,18 +390,8 @@ export const EDITOR_HEADER = {
     fontSize: 17,
     color: "#3A3A3F",
   },
-  /** Trait du ✕ de l'instance Figma (`#14141A`, l'export du maître étant `#141414`). */
-  closeIconTint: "#14141A",
-  backCircle: {
-    backgroundColor: "#FCFCFE",
-    borderWidth: 1,
-    borderColor: colors.background,
-    shadowColor: "#1A1A26",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 10,
-    elevation: 2,
-  },
+  // [Cercle blanc et ✕ `#14141A` propres à l'Éditeur (G-1, 19/10/2026) — devenus le rendu unique de l'en-tête partagé le
+  // 24/11/2026 (`FixedHeader`, `styles.backCircle`).]
 } as const;
 
 /**

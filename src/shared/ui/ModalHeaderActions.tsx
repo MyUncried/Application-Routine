@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
+import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -57,19 +58,9 @@ export type ModalCancelActionProps = {
   readonly style?: StyleProp<ViewStyle>;
 };
 
+// D-593 (Hermann, 24/11/2026 : « Ces boutons doivent utiliser le même composant que les autres ») : cercle blanc standard. [Croix grise sur fond gris — remplacée.]
 export function ModalCancelAction({ onPress, accessibilityLabel, testID, style }: ModalCancelActionProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      hitSlop={HIT_SLOP}
-      style={[styles.cancelCircle, style]}
-      testID={testID}
-    >
-      <KodjoIcon name="wheel-action-cancel" />
-    </Pressable>
-  );
+  return <CloseCircleAction onPress={onPress} accessibilityLabel={accessibilityLabel} testID={testID} {...(style !== undefined ? { style } : {})} />;
 }
 
 export type ModalHeaderProps = {
@@ -128,14 +119,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     flexShrink: 1,
     textAlign: "center",
-  },
-  cancelCircle: {
-    width: MODAL_HEADER_ACTION_SIZE,
-    height: MODAL_HEADER_ACTION_SIZE,
-    borderRadius: MODAL_HEADER_ACTION_SIZE / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wheelActionCancelBackground,
   },
   validateCircle: {
     width: MODAL_HEADER_ACTION_SIZE,
