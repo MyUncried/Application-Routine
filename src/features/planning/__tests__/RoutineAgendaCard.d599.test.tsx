@@ -41,7 +41,7 @@ const EXPECTED: Record<AgendaStatus, { frame: string; bar: string; band: string;
   STOPPED: { frame: "#F5E0E0", bar: "#CC8F8F", band: "rgba(245, 224, 224, 0.18)", label: "Arrêtée" },
   EXPIRED: { frame: "#F5E0E0", bar: "#CC8F8F", band: "rgba(245, 224, 224, 0.18)", label: "Expirée" },
   COMPLETED: { frame: "#E0F5E8", bar: "#8FCCA8", band: "rgba(224, 245, 232, 0.18)", label: "Complétée" },
-  PARTIAL: { frame: "#F5EBE0", bar: "#CCAD8F", band: "rgba(245, 235, 224, 0.18)", label: "Partielle" },
+  PARTIAL: { frame: "#FDE9D3", bar: "#F4B571", band: "rgba(253, 233, 211, 0.18)", label: "Partielle" },
   DELETED: { frame: "#F0F0F5", bar: "#B8BAC9", band: "rgba(240, 240, 245, 0.18)", label: "Supprimée" },
 };
 

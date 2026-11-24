@@ -121,3 +121,11 @@
   - le test D-599 vérifie l'emplacement de 44 et l'égalité des marges ;
   - 2 suites, 39 tests réussis ;
   - `tsc` est propre et le lint ne signale rien.
+
+## Complément 2 du 24/11/2026 : orange des cadres
+
+- **Recette** : les 9 lignes Agenda sont OK, VoiceOver est noté « sans objet », sauf `ag-icone-partielle`, KO. Hermann : « les couleurs orange des cadres ressemblent à du marron, mieux s'aligner avec le orange du symbole partielle ».
+- **Classe** : B. Le « même contraste » de D-599 ne vaut plus pour l'orange (registre annoté).
+- **Correction** : cadre `#FDE9D3` et trait `#F4B571`, dans la teinte du symbole `#F58C1A` (≈ 31°), nettement plus saturés. Ils remplacent les valeurs Figma `#F5EBE0` / `#CCAD8F`. La bande reste le cadre à 18 %.
+- **Documents** : jetons (`tokens.ts`, ch. 12) et registre.
+- **Tests** : `RoutineAgendaCard.d599` et `tokensSpecification`, 2 suites, 15 tests réussis.
