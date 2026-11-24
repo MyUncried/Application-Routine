@@ -1,5 +1,6 @@
 import { CYCLE_MAX, type ContentFrequency, type RoutineEntry } from "@/domain/planning/Routine";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { strings } from "@/shared/i18n";
 
 /**
  * Grille créneaux × rotation (D-519, RM-253 à RM-256, RM-260 à RM-263 ; CE-UI-12, 18/11/2026) — état local pur.
@@ -89,8 +90,8 @@ export function canRemovePoint(grid: PlanningGrid, row: number, column: number):
 /** RM-255 / RM-262 : mention calculée d'une ligne (« à chaque fois », « 2 fois sur 3 »). */
 export function rowMention(row: readonly boolean[]): string {
   const count = row.filter(Boolean).length;
-  if (count === row.length) return planningStrings.form.everyTime;
-  return planningStrings.form.frequency.replace("{x}", String(count)).replace("{n}", String(row.length));
+  if (count === row.length) return strings.planning.form.everyTime;
+  return fillTemplate(strings.planning.form.frequency, { x: String(count), n: String(row.length) });
 }
 
 /** Issues de la grille qui bloquent l'enregistrement : cycle à ramener à 7 (RM-263), colonne ou ligne vide (RM-254). */

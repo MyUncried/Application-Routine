@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text } from "reac
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { programStatus as statusOf, type ProgramStatus } from "@/domain/programs/Program";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { PROGRAM_RADIO_SIZE, ProgramCard, ProgramContext, useProgramSummaries } from "@/features/programs/ProgramCatalogue";
 import { cardCountsLine, cardStatusLine, programCounts, visiblePrograms } from "@/features/programs/programPresentation";
 import type { ProgramService } from "@/features/programs/ProgramService";
@@ -39,7 +39,7 @@ export function ProgramChoiceSheet({
   readonly onCancel: () => void;
   readonly onChoose: (programId: string | null) => void;
 }) {
-  const t = planningStrings.programChoice;
+  const t = strings.planning.programChoice;
   const insets = useSafeAreaInsets();
   const palette = catalogueColors("programs");
   const today = service.today();

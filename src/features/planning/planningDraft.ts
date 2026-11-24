@@ -14,7 +14,7 @@ import {
   type Weekday,
 } from "@/domain/planning/Routine";
 import { entriesWithGrid, gridFromEntries, type PlanningGrid } from "@/features/planning/planningGrid";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 
 /**
  * Brouillon du formulaire de planification (CE-UI-12, 18/11/2026) — état local pur, jamais persisté avant Enregistrer.
@@ -219,19 +219,19 @@ export function toggleWeekday(weekdays: readonly Weekday[], day: Weekday): Weekd
 
 /** D-223 : titre contextuel selon le nombre de contenus. */
 export function formTitle(count: number): string {
-  const t = planningStrings.form;
+  const t = strings.planning.form;
   if (count === 0) return t.titleEmpty;
   return count === 1 ? t.titleSession : t.titleRoute;
 }
 
 /** RM-257 : accord du libellé de répétition avec l'unité (« toutes les » semaines, « tous les » jours). */
 export function everyLabel(unit: RepetitionUnit): string {
-  return unit === "WEEK" ? planningStrings.form.everyFeminine : planningStrings.form.everyMasculine;
+  return unit === "WEEK" ? strings.planning.form.everyFeminine : strings.planning.form.everyMasculine;
 }
 
 /** Unité accordée au nombre (« semaine » / « semaines », « jour » / « jours »). */
 export function unitLabel(unit: RepetitionUnit, count: number): string {
-  const units = unit === "WEEK" ? planningStrings.weekUnit : planningStrings.dayUnit;
+  const units = unit === "WEEK" ? strings.planning.weekUnit : strings.planning.dayUnit;
   return count === 1 ? units.singular : units.plural;
 }
 

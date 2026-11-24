@@ -8,10 +8,10 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { CALENDAR_PALETTE } from "@/features/planning/CalendarViewTabs";
 import { creationDateParts, matchesJournalQuery, matchesRoutineSessionFilters, routineLastDate, routineTitle } from "@/features/planning/journal";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { strings } from "@/shared/i18n";
+import { appLocaleTag } from "@/shared/i18n/locale";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CONTEXT_SEARCH_WIDTH } from "@/shared/ui/catalogueContext";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
@@ -28,7 +28,7 @@ export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming
 /** « 15 novembre » : mois en toutes lettres, sans année (recette du 21/11/2026, f25-alignement). */
 function dayMonthLong(day: string): string {
   const date = parseLocalDate(day);
-  return `${date.getDate()} ${planningStrings.months[date.getMonth()]}`;
+  return fillTemplate(strings.planning.dates.dayMonth, { day: String(date.getDate()), month: strings.planning.months[date.getMonth()]! });
 }
 
 /**
@@ -37,7 +37,7 @@ function dayMonthLong(day: string): string {
  * 28/12/2026 », dernière date de la routine — remplacé.]
  */
 export function routineFilterSlotsLine(choice: RoutineFilterChoice): string {
-  const t = planningStrings.routineFilter;
+  const t = strings.planning.routineFilter;
   if (choice.upcoming === 0) return t.slotsNone;
   const date = dayMonthLong(choice.lastUpcoming ?? routineLastDate(choice.routine));
   if (choice.upcoming === 1) return fillTemplate(t.slotsOne, { date });
@@ -50,8 +50,8 @@ export function routineFilterSlotsLine(choice: RoutineFilterChoice): string {
  * formule appliquée telle quelle, à confirmer.]
  */
 export function routineFilterButtonLabel(count: number): string {
-  const t = planningStrings.routineFilter;
-  return count === 1 ? t.applyOne : t.applyMany.replace("{count}", String(count));
+  const t = strings.planning.routineFilter;
+  return count === 1 ? t.applyOne : fillTemplate(t.applyMany, { count: String(count) });
 }
 
 /**
@@ -99,11 +99,11 @@ export function RoutineFilterSheet({
   /** Même recette : « afficher le cadre avec le nom et l'année en gris » pour les cartes désignées ; absent : aucune. */
   readonly dimmed?: (choice: RoutineFilterChoice) => boolean;
 }) {
-  const t = planningStrings.routineFilter;
+  const t = strings.planning.routineFilter;
   const title = texts?.title ?? t.title;
   const slotsLine = texts?.slotsLine ?? routineFilterSlotsLine;
   const buttonLabel = texts?.buttonLabel ?? routineFilterButtonLabel;
-  const tJournal = planningStrings.journal;
+  const tJournal = strings.planning.journal;
   const tSessions = strings.screens.sessions;
   const router = useRouter();
   const [selected, setSelected] = useState<readonly string[]>([]);
@@ -123,7 +123,7 @@ export function RoutineFilterSheet({
           return matchesJournalQuery(choice.routine, routineSessions, query) && matchesRoutineSessionFilters(routineSessions, filters);
         })
         .map((choice) => ({ choice, title: routineTitle(choice.routine, sessionsOf(choice.routine)), active: choice.active !== false }))
-        .sort((a, b) => (a.active !== b.active ? (a.active ? -1 : 1) : a.title.localeCompare(b.title, "fr", { sensitivity: "base" })))
+        .sort((a, b) => (a.active !== b.active ? (a.active ? -1 : 1) : a.title.localeCompare(b.title, appLocaleTag, { sensitivity: "base" })))
         .map((item) => item.choice),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [choices, sessions, query, filters],

@@ -1,17 +1,23 @@
 import { normalizeSearchText } from "@/domain/activities/movementSuggestion";
 import { isRoutineActiveAt, periodOccurrences, type IsOccurrenceStarted } from "@/domain/planning/occurrences";
 import { endDateForCount, generatedRoutineName, routineDisplayName, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { duringLabel, formatRecurrence } from "@/features/planning/planningSummary";
-import { planningStrings } from "@/features/planning/planningStrings";
 import { matchesSessionFilters, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import { matchesSessionQuery } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { strings } from "@/shared/i18n";
 
 /**
  * Journal des routines (D-535, DSF Journal du 19/11/2026) — lecture seule des Routines existantes : aucune donnée
  * nouvelle dans le domaine ni dans la persistance.
  */
-const t = planningStrings;
+const t = strings.planning;
+
+/** « 26 nov. » (mois abrégé, sans année). */
+function shortDayMonth(date: Date): string {
+  return fillTemplate(t.dates.dayMonth, { day: String(date.getDate()), month: t.monthsShort[date.getMonth()]! });
+}
 
 /** Dernière date que la Routine peut produire (« jusqu'au », « pendant N semaines » ou « N jours », ou le jour unique). */
 export function routineLastDate(routine: Routine): LocalDate {
@@ -49,14 +55,14 @@ export function sortJournal(routines: readonly Routine[]): Routine[] {
 export function creationDateParts(createdAt: string): { readonly day: string; readonly year: string } | null {
   const date = new Date(createdAt);
   if (Number.isNaN(date.getTime())) return null;
-  return { day: `${date.getDate()} ${t.monthsShort[date.getMonth()]}`, year: String(date.getFullYear()) };
+  return { day: shortDayMonth(date), year: String(date.getFullYear()) };
 }
 
 /** « 28 déc. » ; l'année s'ajoute quand elle diffère de celle d'aujourd'hui. */
 function shortDate(day: LocalDate, today: LocalDate): string {
   const date = parseLocalDate(day);
-  const label = `${date.getDate()} ${t.monthsShort[date.getMonth()]}`;
-  return day.slice(0, 4) === today.slice(0, 4) ? label : `${label} ${date.getFullYear()}`;
+  if (day.slice(0, 4) === today.slice(0, 4)) return shortDayMonth(date);
+  return fillTemplate(t.dates.dayMonthYear, { day: String(date.getDate()), month: t.monthsShort[date.getMonth()]!, year: String(date.getFullYear()) });
 }
 
 /** Occurrences à venir (instant ≥ `now`) de la routine, retraits exclus. */
@@ -73,8 +79,7 @@ export function routineSlotCount(routine: Routine): number {
 
 /** « 26 nov. », sans année. */
 function dayMonth(day: LocalDate): string {
-  const date = parseLocalDate(day);
-  return `${date.getDate()} ${t.monthsShort[date.getMonth()]}`;
+  return shortDayMonth(parseLocalDate(day));
 }
 
 /**
@@ -94,11 +99,12 @@ export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date, 
           (occurrence) => !occurrence.started && occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime(),
         );
   if (upcoming.length === 0) return t.journal.slotsNone;
-  if (upcoming.length === 1) return t.journal.slotsOne.replace("{date}", dayMonth(upcoming[0]!.date));
-  return t.journal.slotsMany
-    .replace("{count}", String(upcoming.length))
-    .replace("{start}", dayMonth(upcoming[0]!.date))
-    .replace("{end}", dayMonth(upcoming[upcoming.length - 1]!.date));
+  if (upcoming.length === 1) return fillTemplate(t.journal.slotsOne, { date: dayMonth(upcoming[0]!.date) });
+  return fillTemplate(t.journal.slotsMany, {
+    count: String(upcoming.length),
+    start: dayMonth(upcoming[0]!.date),
+    end: dayMonth(upcoming[upcoming.length - 1]!.date),
+  });
 }
 
 /**
@@ -107,12 +113,12 @@ export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date, 
  */
 export function journalInfoLine(routine: Routine, today: LocalDate, now: Date): string {
   const count = upcomingOccurrenceCount(routine, today, now);
-  const upcoming = count === 0 ? t.journal.upcomingNone : count === 1 ? t.journal.upcomingOne : t.journal.upcomingMany.replace("{count}", String(count));
+  const upcoming = count === 0 ? t.journal.upcomingNone : count === 1 ? t.journal.upcomingOne : fillTemplate(t.journal.upcomingMany, { count: String(count) });
   const last = routineLastDate(routine);
   const dates =
     last === routine.startDate
-      ? t.journal.single.replace("{date}", shortDate(routine.startDate, today))
-      : t.journal.period.replace("{start}", shortDate(routine.startDate, today)).replace("{end}", shortDate(last, today));
+      ? fillTemplate(t.journal.single, { date: shortDate(routine.startDate, today) })
+      : fillTemplate(t.journal.period, { start: shortDate(routine.startDate, today), end: shortDate(last, today) });
   return `${upcoming} · ${dates}`;
 }
 

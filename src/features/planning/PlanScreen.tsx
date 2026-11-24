@@ -29,7 +29,7 @@ import {
   type PlanTint,
 } from "@/features/planning/planWeek";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { TodayIcon } from "@/features/planning/TodayIcon";
 import type { CatalogueCategoryRef, SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
@@ -56,7 +56,7 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * « Sans programme ». [Toutes les routines « Sans programme » tant que les programmes n'étaient pas sur cette branche — remplacé.]
  */
 
-const t = planningStrings;
+const t = strings.planning;
 /** Figma `12983:39` : colonnes de jour de 38 à partir de x = 128, cases 34 × 20, marge gauche 8. */
 const LEFT = 8;
 const NAMES_WIDTH = 120;
@@ -462,7 +462,7 @@ export function PlanScreen({
                     testID={`plan-week-${weekMonday}`}
                   >
                     <Text style={[styles.weekNumber, selected ? styles.weekTextSelected : null]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                      {`S${isoWeekNumber(weekMonday)}`}
+                      {fillTemplate(t.plan.weekNumber, { number: String(isoWeekNumber(weekMonday)) })}
                     </Text>
                     <Text style={[styles.weekDays, selected ? styles.weekTextSelected : null]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                       {weekDaysLabel(weekMonday)}
@@ -527,7 +527,7 @@ export function PlanScreen({
             <View style={[styles.band, group.programme !== null ? styles.bandProgramme : styles.bandNone]} testID={`plan-group-${group.key}-band`}>
               {todayIndex >= 0 ? <View style={[styles.todayColumn, { left: LEFT + NAMES_WIDTH + todayIndex * COLUMN, height: BAND_HEIGHT }]} pointerEvents="none" /> : null}
               <Text style={[styles.bandLabel, group.programme !== null ? styles.bandLabelProgramme : styles.bandLabelNone]} numberOfLines={1} testID={`plan-group-${group.key}-label`}>
-                {group.programme !== null ? fillTemplate(t.plan.programme, { name: group.programme.name }) : group.unplanned === true ? t.plan.unplanned : t.plan.noProgramme}
+                {group.programme !== null ? fillTemplate(t.plan.program, { name: group.programme.name }) : group.unplanned === true ? t.plan.unplanned : t.plan.noProgram}
               </Text>
               {group.unplanned === true ? null : (
               <Pressable

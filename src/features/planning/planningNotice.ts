@@ -1,5 +1,5 @@
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 
 /**
  * Message temporaire (snackbar `TransientNotification`) déposé par une feuille qui se ferme, affiché par l'écran qui reprend le
@@ -27,6 +27,6 @@ export function takePlanningNotice(now: number = Date.now()): string | null {
 
 /** D-566 « Supprimer » : « 1 créneau supprimé » / « N créneaux supprimés ». */
 export function removedSlotsNotice(count: number): string {
-  const t = planningStrings.removedSlots;
+  const t = strings.planning.removedSlots;
   return count === 1 ? t.one : fillTemplate(t.many, { count: String(count) });
 }

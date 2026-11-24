@@ -31,6 +31,7 @@ import {
 } from "@/domain/planning/occurrences";
 import { occurrenceExecutionKey, type AgendaExecution, type OccurrenceExecution, type OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
 import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
+import { appLocaleTag } from "@/shared/i18n/locale";
 
 /**
  * `PlanningService` (chapitre 12 §12.4) — gestion des Routines et calcul des occurrences (API-ROU-01 à 05, 09).
@@ -440,7 +441,7 @@ export class PlanningService {
         };
       })
       .sort((a, b) =>
-        a.active !== b.active ? (a.active ? -1 : 1) : displayName(a.routine).localeCompare(displayName(b.routine), "fr", { sensitivity: "base" }),
+        a.active !== b.active ? (a.active ? -1 : 1) : displayName(a.routine).localeCompare(displayName(b.routine), appLocaleTag, { sensitivity: "base" }),
       );
   }
 

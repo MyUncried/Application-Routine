@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -52,14 +52,14 @@ const DELETED_TEXT = "#8F949E";
 
 /** Étiquette de statut d'une occurrence exécutée. */
 const TAGS: Readonly<Partial<Record<AgendaStatus, { readonly label: string; readonly background: string; readonly text: string }>>> = {
-  COMPLETED: { label: planningStrings.calendar.status.completed, background: "#E5F5ED", text: "#1A995C" },
-  PARTIAL: { label: planningStrings.calendar.status.partial, background: "#FDECD9", text: "#B5620B" },
-  STOPPED: { label: planningStrings.calendar.status.stopped, background: "#EDEEF3", text: "#6B6E80" },
+  COMPLETED: { label: strings.planning.calendar.status.completed, background: "#E5F5ED", text: "#1A995C" },
+  PARTIAL: { label: strings.planning.calendar.status.partial, background: "#FDECD9", text: "#B5620B" },
+  STOPPED: { label: strings.planning.calendar.status.stopped, background: "#EDEEF3", text: "#6B6E80" },
   // D-540 (DSF Agenda § 10, Figma « P-Calendrier — Semaine — Créneau expiré (proposition) ») : étiquette 76 × 24, fond #FCE6E6,
   // texte #B33838, à la place de « Rattraper ».
-  EXPIRED: { label: planningStrings.calendar.status.expired, background: "#FCE6E6", text: "#B33838" },
+  EXPIRED: { label: strings.planning.calendar.status.expired, background: "#FCE6E6", text: "#B33838" },
   // D-568 (Figma `12906:133`) : pastille grise « Supprimée » à la place de l'action.
-  DELETED: { label: planningStrings.calendar.status.deleted, background: "#EDF0F2", text: "#737882" },
+  DELETED: { label: strings.planning.calendar.status.deleted, background: "#EDF0F2", text: "#737882" },
 };
 
 export const AGENDA_ROW_HEIGHT = 52;
@@ -134,7 +134,7 @@ export function RoutineAgendaCard({
       <Pressable
         onPress={onOpen}
         accessibilityRole="button"
-        accessibilityLabel={planningStrings.calendar.openRoutine}
+        accessibilityLabel={strings.planning.calendar.openRoutine}
         style={[styles.frame, inParcours ? styles.frameInParcours : null, { backgroundColor: colorsOf.frame }]}
         testID={`${testID}-frame`}
       >
@@ -165,7 +165,7 @@ export function RoutineAgendaCard({
         <Pressable
           onPress={onToggleExpanded}
           accessibilityRole="button"
-          accessibilityLabel={expanded ? planningStrings.calendar.collapseRoutine : planningStrings.calendar.expandRoutine}
+          accessibilityLabel={expanded ? strings.planning.calendar.collapseRoutine : strings.planning.calendar.expandRoutine}
           accessibilityState={{ expanded }}
           style={styles.center}
           testID={`${testID}-disclosure`}
@@ -213,13 +213,13 @@ export function RoutineAgendaCard({
           <Pressable
             onPress={onStart}
             accessibilityRole="button"
-            accessibilityLabel={status === "MISSED" ? planningStrings.calendar.catchUp : planningStrings.calendar.start}
+            accessibilityLabel={status === "MISSED" ? strings.planning.calendar.catchUp : strings.planning.calendar.start}
             style={styles.action}
             testID={`${testID}-start`}
           >
             <View style={styles.start}>
               <Text style={styles.startLabel} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1}>
-                {status === "MISSED" ? planningStrings.calendar.catchUp : planningStrings.calendar.start}
+                {status === "MISSED" ? strings.planning.calendar.catchUp : strings.planning.calendar.start}
               </Text>
             </View>
           </Pressable>

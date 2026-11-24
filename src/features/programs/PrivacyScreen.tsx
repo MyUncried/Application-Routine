@@ -2,8 +2,10 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { PROFILE_UNIFORM_PALETTE, profileTabs } from "@/features/preferences/profileTabs";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { strings } from "@/shared/i18n";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -11,7 +13,6 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 import { formatDayMonthYear, usedByLine } from "./programPresentation";
 import type { PainTrackingState } from "./ProgramService";
 import { useProgramService } from "./ProgramServiceContext";
-import { programStrings } from "./programStrings";
 
 /**
  * Profil › Confidentialité (CE-PRF-01 ; D-551, D-552 ; Figma « Profil — Confidentialité » `12839:4036`).
@@ -23,7 +24,7 @@ import { programStrings } from "./programStrings";
  * - Partage communautaire : section affichée grisée et inactive, mention « Disponible avec la gestion des comptes » ; valeurs
  *   du Figma (mission PROG-CAT-01 §5).
  */
-const t = programStrings.privacy;
+const t = strings.programs.privacy;
 /** Figma `12839:4036` : rangées sur fond blanc, cartes #F9FAFC au liseré blanc, rayon 12. */
 const DISABLED_OPACITY = 0.45;
 
@@ -89,7 +90,7 @@ export function PrivacyScreen() {
           <View style={styles.card} testID="privacy-pain-granted">
             <View style={[styles.row, styles.twoLines]}>
               <Text style={styles.rowLabel} testID="privacy-pain-granted-on">
-                {t.grantedOn.replace("{date}", formatDayMonthYear(state.grantedAt.slice(0, 10)))}
+                {fillTemplate(t.grantedOn, { date: formatDayMonthYear(state.grantedAt.slice(0, 10)) })}
               </Text>
               <Text style={styles.rowHint} testID="privacy-pain-used-by">
                 {usedByLine(state.activePrograms)}
@@ -170,7 +171,7 @@ export function PrivacyScreen() {
         <DecisionDialog
           title={t.withdrawConfirmTitle}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-          message={t.withdrawConfirmMessage.replace("{names}", state.programs.map((program) => program.name).join(", "))}
+          message={fillTemplate(t.withdrawConfirmMessage, { names: state.programs.map((program) => program.name).join(", ") })}
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
           cancelLabel={t.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}

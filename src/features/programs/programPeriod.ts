@@ -1,7 +1,8 @@
 import { addDays, daysBetween, type LocalDate } from "@/domain/planning/Routine";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { strings } from "@/shared/i18n";
 
-import { programStrings } from "./programStrings";
+import { dayOfMonthLabel } from "./programPresentation";
 
 /**
  * Période d'un programme (D-543, Hermann, 23/11/2026 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 1) — module pur.
@@ -86,26 +87,26 @@ export function boundedEnd(start: LocalDate, end: LocalDate): LocalDate {
 }
 
 function plural(count: number, one: string, many: string): string {
-  return count === 1 ? one : many.replace("{count}", String(count));
+  return count === 1 ? one : fillTemplate(many, { count: String(count) });
 }
 
 /** Libellé de l'unité accordé au nombre : « jour » / « jours », « semaine(s) », « mois ». */
 export function unitLabel(unit: DurationUnit, count: number): string {
-  const t = programStrings.period.units[unit];
+  const t = strings.programs.period.units[unit];
   return count === 1 ? t.one : t.many;
 }
 
 /** Mode dates : « 92 jours, soit 13 semaines et 1 jour » ; « 91 jours, soit 13 semaines » ; « 5 jours ». */
 export function datesInfoLine(start: LocalDate, end: LocalDate): string {
-  const t = programStrings.period;
+  const t = strings.programs.period;
   const days = periodDayCount(start, end);
   const total = plural(days, t.daysOne, t.daysMany);
   if (days < 7) return total;
   const weeks = Math.floor(days / 7);
   const rest = days % 7;
   const weeksLabel = plural(weeks, t.weeksOne, t.weeksMany);
-  const line = t.datesInfo.replace("{days}", total).replace("{weeks}", weeksLabel);
-  return rest === 0 ? line : t.datesInfoRest.replace("{line}", line).replace("{rest}", plural(rest, t.daysOne, t.daysMany));
+  const line = fillTemplate(t.datesInfo, { days: total, weeks: weeksLabel });
+  return rest === 0 ? line : fillTemplate(t.datesInfoRest, { line, rest: plural(rest, t.daysOne, t.daysMany) });
 }
 
 /**
@@ -115,11 +116,16 @@ export function datesInfoLine(start: LocalDate, end: LocalDate): string {
  * arrondi à l'unité inférieure). [« Se termine le … » pour toutes les unités — remplacé.]
  */
 export function durationInfoLine(start: LocalDate, end: LocalDate, unit: DurationUnit): string {
-  const t = programStrings.period;
+  const t = strings.programs.period;
   const [year, month, day] = end.split("-").map(Number) as [number, number, number];
-  const date = `${day === 1 ? "1er" : day} ${planningStrings.months[month - 1] ?? ""} ${year}`;
-  if (unit === "DAY") return t.endsOn.replace("{date}", date);
+  // J1.8 (24/11/2026) : noms de mois complets et ordre des mots du catalogue (« 14 décembre 2026 », « December 14, 2026 »).
+  const date = fillTemplate(strings.programs.dates.dayMonthYear, {
+    day: dayOfMonthLabel(day),
+    month: strings.programs.dates.months[month - 1] ?? "",
+    year: String(year),
+  });
+  if (unit === "DAY") return fillTemplate(t.endsOn, { date });
   const days = periodDayCount(start, end);
   const length = unit === "WEEK" ? plural(days, t.daysOne, t.daysMany) : plural(Math.floor(days / 7), t.weeksOne, t.weeksMany);
-  return t.endsOnAfter.replace("{length}", length).replace("{date}", date);
+  return fillTemplate(t.endsOnAfter, { length, date });
 }

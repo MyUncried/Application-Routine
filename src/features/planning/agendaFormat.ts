@@ -1,25 +1,26 @@
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { addDays, parseLocalDate, type LocalDate, type LocalTime } from "@/domain/planning/Routine";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { strings } from "@/shared/i18n";
+import { appLocaleTag } from "@/shared/i18n/locale";
 
 /**
  * Formats de l'Agenda (D-533, DSF Agenda — Planning du 19/11/2026, CE-UI-15).
  */
-const t = planningStrings;
+const t = strings.planning;
 
 /** DSF § 5 : heure « 8h00 », « 14h00 », sans zéro initial. */
 export function formatAgendaTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":");
-  return `${Number(hours)}h${minutes ?? "00"}`;
+  return fillTemplate(t.time.compact, { hours: String(Number(hours)), minutes: minutes ?? "00" });
 }
 
 /** DSF § 2, ligne 1 : « Novembre 2026 ». */
 export function formatAgendaMonth(day: LocalDate): string {
   const date = parseLocalDate(day);
   const month = t.months[date.getMonth()]!;
-  return `${month.charAt(0).toLocaleUpperCase("fr-FR")}${month.slice(1)} ${date.getFullYear()}`;
+  return fillTemplate(t.dates.monthYear, { month: `${month.charAt(0).toLocaleUpperCase(appLocaleTag)}${month.slice(1)}`, year: String(date.getFullYear()) });
 }
 
 /**
@@ -30,9 +31,9 @@ export function formatAgendaMonth(day: LocalDate): string {
 export function formatAgendaWeek(monday: LocalDate): string {
   const start = parseLocalDate(monday);
   const end = parseLocalDate(addDays(monday, 6));
-  const day = (date: Date) => (date.getDate() === 1 ? "1er" : String(date.getDate()));
-  if (start.getMonth() === end.getMonth()) return `du ${day(start)} au ${day(end)}`;
-  return `du ${day(start)} au ${day(end)} ${t.months[end.getMonth()]}`;
+  const day = (date: Date) => (date.getDate() === 1 ? t.firstOfMonth : String(date.getDate()));
+  if (start.getMonth() === end.getMonth()) return fillTemplate(t.calendar.weekDays, { start: day(start), end: day(end) });
+  return fillTemplate(t.calendar.weekDaysMonth, { start: day(start), end: day(end), month: t.months[end.getMonth()]! });
 }
 
 /**

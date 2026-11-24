@@ -36,11 +36,6 @@ const EXCLUDED: readonly { readonly path: string; readonly reason: string }[] = 
   { path: "src/features/sessions/sessionFormats.ts", reason: "libellés de référentiel KODJO (lot T7)" },
   { path: "src/features/reference-data/bodyZones.ts", reason: "référentiel KODJO des Zones (lot T7)" },
   { path: "src/features/activities/ActivityEditorForm.tsx", reason: "« Durée totale » de la phrase de synthèse (lot T6)" },
-  // Consolidation du 24/11/2026 (fusion Langues J1 dans la ligne d'intégration) : modules de textes regroupés par fonctionnalité,
-  // à migrer vers le catalogue et à traduire dans un lot dédié.
-  { path: "src/features/planning/planningStrings.ts", reason: "textes Programmes/Planification/Formats non encore migrés vers le catalogue — consolidation du 24/11/2026" },
-  { path: "src/features/programs/programStrings.ts", reason: "textes Programmes/Planification/Formats non encore migrés vers le catalogue — consolidation du 24/11/2026" },
-  { path: "src/features/programs/programPresentation.ts", reason: "textes Programmes/Planification/Formats non encore migrés vers le catalogue — consolidation du 24/11/2026 (noms de mois abrégés des dates)" },
 ];
 
 /** Littéraux techniques autorisés dans un fichier en portée : fichier, texte exact, motif. */

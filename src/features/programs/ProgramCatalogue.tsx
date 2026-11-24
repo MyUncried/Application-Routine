@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ProgramStatus } from "@/domain/programs/Program";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { strings } from "@/shared/i18n";
 import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR } from "@/shared/ui/catalogueContext";
 import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
@@ -12,7 +13,6 @@ import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/token
 
 import { cardCountsLine, cardStatusLine, deletionMessage, type ProgramCounts } from "./programPresentation";
 import type { ProgramDeletionMode, ProgramDeletionPlan, ProgramService, ProgramSummary } from "./ProgramService";
-import { programStrings } from "./programStrings";
 
 /**
  * Catalogue des programmes (CE-PROG-01, CE-PROG-03 ; D-544 à D-547 ; Figma « PROG — 7 » `12848:47040`, « PROG — 7b »
@@ -21,7 +21,7 @@ import { programStrings } from "./programStrings";
  * (`SwipeActionsRow`), confirmation `DecisionDialog` (variante « Titre, message et action secondaire »).
  */
 
-const t = programStrings.catalogue;
+const t = strings.programs.catalogue;
 /** Figma « PROG — 7 » : textes secondaires de la carte. */
 const CARD_MUTED = "#9499A8";
 /** Figma « PROG — 7 » : carte 370 × 90, rayon 8. */
@@ -318,16 +318,16 @@ export function ProgramCatalogueBody({
       {deleteCandidate !== null ? (
         <DecisionDialog
           stacked
-          title={programStrings.deletion.title}
+          title={strings.programs.deletion.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message={deletionMessage(deleteCandidate.plan)}
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
-          cancelLabel={programStrings.deletion.cancel}
+          cancelLabel={strings.programs.deletion.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
-          confirmLabel={programStrings.deletion.withRoutines}
+          confirmLabel={strings.programs.deletion.withRoutines}
           confirmLabelStyle={type.dialogDestructiveActionLabel}
           confirmBordered={false}
-          secondaryAction={deleteCandidate.plan.canKeepRoutines ? { label: programStrings.deletion.keepRoutines, onPress: () => remove("KEEP_ROUTINES") } : null}
+          secondaryAction={deleteCandidate.plan.canKeepRoutines ? { label: strings.programs.deletion.keepRoutines, onPress: () => remove("KEEP_ROUTINES") } : null}
           onCancel={() => setDeleteCandidate(null)}
           onConfirm={() => remove("WITH_ROUTINES")}
           testIDPrefix="program-delete"

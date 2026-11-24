@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { colors, dimensions, type } from "@/shared/ui/tokens";
 
 /**
@@ -17,7 +17,7 @@ export function OccurrenceDeleteDialog({
   readonly onAllUpcoming: () => void;
   readonly onCancel: () => void;
 }) {
-  const t = planningStrings.deleteOccurrences;
+  const t = strings.planning.deleteOccurrences;
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onCancel}>
       <View style={styles.backdrop} testID="occurrence-delete-backdrop">

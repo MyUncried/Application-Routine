@@ -55,7 +55,6 @@ import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { postPlanningNotice, removedSlotsNotice } from "@/features/planning/planningNotice";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
-import { planningStrings } from "@/features/planning/planningStrings";
 import { formatPlanningSynthesis } from "@/features/planning/planningSummary";
 import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
@@ -63,6 +62,7 @@ import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
+import { appLocaleTag } from "@/shared/i18n/locale";
 import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTable";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
@@ -98,10 +98,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  * nombre de semaines, « pendant », liste réordonnable et feuille « Fréquence » (CE-UI-11), récapitulatif protégé en bas.]
  */
 
-const t = planningStrings.form;
+const t = strings.planning.form;
 /** Recette du 22/11/2026 (c35-journal-nom — Hermann : « Il faut mettre une durée de 2s »). [Une seconde — remplacé.] */
 const RENAMED_NOTICE_MS = 2000;
-const tReminder = planningStrings.reminder;
+const tReminder = strings.planning.reminder;
 /** Roulette de l'heure : 00:00 à 23:59, à la minute. */
 const TIME_MAX_MINUTES = 23 * 60 + 59;
 const TIME_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
@@ -917,12 +917,12 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                             key={day}
                             onPress={() => update({ weekdays: toggleWeekday(form.weekdays, day) })}
                             accessibilityRole="checkbox"
-                            accessibilityLabel={planningStrings.weekdayNames[day - 1]}
+                            accessibilityLabel={strings.planning.weekdayNames[day - 1]}
                             accessibilityState={{ checked: selected }}
                             style={[styles.weekday, selected ? styles.weekdaySelected : null]}
                             testID={`planning-weekday-${day}`}
                           >
-                            <Text style={[styles.weekdayLabel, selected ? styles.weekdayLabelSelected : null]}>{planningStrings.weekdayLetters[day - 1]}</Text>
+                            <Text style={[styles.weekdayLabel, selected ? styles.weekdayLabelSelected : null]}>{strings.planning.weekdayLetters[day - 1]}</Text>
                           </Pressable>
                         );
                       })}
@@ -956,7 +956,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                   // confirmation de la modification, au lieu d'apparaître dès que le changement d'ordre est effectué. Il faut mettre
                   // une durée de 2s ») : routine modifiée au nom généré — message dès le déplacement, deux secondes.
                   // [Message d'une seconde sur le Journal après l'enregistrement — remplacé.]
-                  if (mode.kind === "edit" && !form.nameEdited && effectiveName(moved, nameOf) !== effectiveName(form, nameOf)) setNotice(planningStrings.journal.renamedNotice);
+                  if (mode.kind === "edit" && !form.nameEdited && effectiveName(moved, nameOf) !== effectiveName(form, nameOf)) setNotice(strings.planning.journal.renamedNotice);
                   setForm(moved);
                 }}
                 onDraggingChange={setReordering}
@@ -1008,7 +1008,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           onDelete={() => answerOutside(true)}
           onCancel={() => setOutsideCount(null)}
           // Lot 6 (y2) : modification depuis le Journal — titre « Modifier la routine », la question en texte.
-          title={planningStrings.modifyRoutine.outsideTitle}
+          title={strings.planning.modifyRoutine.outsideTitle}
           testIDPrefix="planning-outside"
         />
       ) : null}
@@ -1016,17 +1016,17 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         <DecisionDialog
           // Recette du 21/11/2026 (Journal, Hermann : « Dans le message de modification, mettre "Annuler" sur la même ligne que
           // "Confirmer", avec les mêmes dimensions ») : comme les fenêtres de suppression. [« Annuler » en haut — remplacé.]
-          title={planningStrings.modifyRoutine.title}
+          title={strings.planning.modifyRoutine.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message={
             modifyCount === 1
-              ? planningStrings.modifyRoutine.messageOne
-              : planningStrings.modifyRoutine.messageMany.replace("{count}", String(modifyCount))
+              ? strings.planning.modifyRoutine.messageOne
+              : fillTemplate(strings.planning.modifyRoutine.messageMany, { count: String(modifyCount) })
           }
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
-          cancelLabel={planningStrings.modifyRoutine.cancel}
+          cancelLabel={strings.planning.modifyRoutine.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
-          confirmLabel={planningStrings.modifyRoutine.confirm}
+          confirmLabel={strings.planning.modifyRoutine.confirm}
           confirmLabelStyle={type.dialogDestructiveActionLabel}
           confirmBordered={false}
           onCancel={() => setModifyCount(null)}
@@ -1382,7 +1382,7 @@ function SlotGrid({
 
 /** Date courte (« 18 nov. 2026 »), comme l'affichait le sélecteur compact. */
 export function formatShortDate(value: LocalDate): string {
-  return timeToDate(value, "12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+  return timeToDate(value, "12:00").toLocaleDateString(appLocaleTag, { day: "numeric", month: "short", year: "numeric" });
 }
 
 /** Minutes depuis minuit ↔ heure (« 08:00 »). */
