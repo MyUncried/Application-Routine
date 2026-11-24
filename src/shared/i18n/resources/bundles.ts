@@ -7,15 +7,19 @@ import { en as enBase } from "./en";
 import { execution as enExecution, voice as enVoice } from "./enExecution";
 import { executionParameters as enExecutionParameters } from "./enExecutionParameters";
 import { libraries as enLibraries } from "./enLibraries";
+import { planning as enPlanning } from "./enPlanning";
+import { programs as enPrograms } from "./enPrograms";
 import { fr } from "./fr";
 import { execution, voice } from "./frExecution";
 import { executionParameters } from "./frExecutionParameters";
 import { libraries } from "./frLibraries";
+import { planning } from "./frPlanning";
+import { programs } from "./frPrograms";
 import type { Widen } from "./types";
 
 export type { Widen } from "./types";
 
-export const frBundle = { ...fr, executionParameters, execution, voice, libraries };
+export const frBundle = { ...fr, executionParameters, execution, voice, libraries, programs, planning };
 
 export type StringBundle = Widen<typeof frBundle>;
 
@@ -34,4 +38,6 @@ export const enBundle: StringBundle = {
   execution: enExecution,
   voice: enVoice,
   libraries: enLibraries,
+  programs: enPrograms,
+  planning: enPlanning,
 };
