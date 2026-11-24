@@ -171,3 +171,11 @@ Branche `integration/consolidation-20261124`, sans push ; arbre propre après le
 ### Classe de synchronisation
 
 Fusions : aucune règle nouvelle côté code (classe D). Les règles décidées sont reportées dans la partie « Documentation » (classe B).
+
+## Fusion dans `main`
+
+- Autorisation : Hermann, 24/11/2026, « Fusionne ».
+- PR #451, tête vérifiée aeb8ccb8, fusionnée par commit de fusion (même méthode que les PR #443 et #447) le 24/11/2026 à 08:43 UTC.
+- Commit de fusion sur `main` : 36ddcd52.
+- Tests : la suite complète de la tête fusionnée est restée celle du rapport (474 suites, 6 716 tests réussis, 32 ignorés, 0 échec ; tsc propre). `main` n'avait pas avancé depuis l'ouverture de la PR (base fe7d71d6) : aucun nouveau test n'est nécessaire.
+- Restent ouverts : les points listés dans la partie « Code » (D-532, D-516 à D-518, traductions hors glossaire, build EAS des Langues, recette iPhone).
