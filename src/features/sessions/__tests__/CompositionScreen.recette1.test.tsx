@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Platform } from "react-native";
 
@@ -254,7 +254,9 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await act(async () => undefined);
+    // Diagnostic du 24/11/2026 : même fermeture animée (CARD_SHEET_MOTION_MS, minuteries réelles) que ci-dessus — attendue
+    // jusqu'à son terme ; sans cette attente, la feuille encore en descente était comptée au toucher de la photo (test instable).
+    await waitFor(() => expect(screen.queryByTestId("execution-sheet")).toBeNull(), { timeout: 3000 });
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
@@ -333,7 +335,7 @@ describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »",
     expect(probe.draft).toBe(before);
   });
 });
-
+
 /**
  * Bouton Guidage sonore de l'en-tête de Composition (documentation de main `ebe72f76`, ch12 « DSF — Actions », ch13 ;
  * demande de Hermann du 11/11/2026, cahier, constat d). [Remplacé le 11/11/2026 — élément Guidage au-dessus du Compte à
