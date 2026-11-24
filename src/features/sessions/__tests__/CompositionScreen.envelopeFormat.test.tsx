@@ -109,11 +109,15 @@ describe("Créer un circuit dans une séance qui porte un circuit formaté (rece
     const before = structureCircuits(probe.draft!.structure!).length;
     fireEvent.press(screen.getByTestId("composition-floating-create"));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-circuit"));
+    // Recette du 24/11/2026 (Hermann) : en mode circuit / cycle, le bouton flottant disparaît en fondu lent.
+    const fade = () => screen.getByTestId("composition-floating-create-fade", { includeHiddenElements: true }).props;
+    expect(fade()).toMatchObject({ pointerEvents: "none", accessibilityElementsHidden: true });
     const target = screen.getByTestId("composition-envelope-exercise-a-target");
     fireEvent.press(target);
     expect(screen.getByTestId("composition-envelope-exercise-a-target").props.accessibilityState).toEqual({ selected: true });
     fireEvent.press(screen.getByTestId("composition-envelope-bar-confirm"));
     await act(async () => undefined);
     expect(structureCircuits(probe.draft!.structure!).length).toBe(before + 1);
+    expect(fade()).toMatchObject({ pointerEvents: "auto", accessibilityElementsHidden: false });
   });
 });
