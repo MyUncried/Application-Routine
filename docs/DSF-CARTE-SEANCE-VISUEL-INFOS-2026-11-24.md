@@ -19,8 +19,9 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 | 4 | 2 × 2 |
 | 5 et plus | 2 × 2 ; la quatrième case est un compteur « +N », N = nombre d'images − 3 |
 
-- **Cadrage** : chaque image remplit sa case sans déformation. Le visuel d'un mouvement est son **cadrage de vignette** : un rectangle carré (position et taille) stocké avec l'image. La plupart des illustrations du catalogue sont composées de plusieurs vues côte à côte (environ 54 sur les 60 de `catalogue/illustrations/20261117`, branche `assets/illustrations-60-20261117`, gabarit 1206 × 987) ; le cadrage correspond alors à la **première vue** (position de départ). Sans cadrage (image simple, photo d'utilisateur), l'image est recadrée sans déformation autour de son centre.
-- **Production du cadrage** : à la publication du catalogue officiel, une étape de l'interface web de gestion des fiches détecte les bandes de séparation entre les vues et propose le rectangle de la première ; la personne qui publie vérifie et corrige. Aucune détection ni calcul dans l'application, qui applique le rectangle stocké. Un placement de points sur le personnage reste un correctif manuel possible, pas la méthode principale.
+- **Vue retenue** (règle de Hermann du 24/11/2026) : la plupart des illustrations du catalogue sont composées de plusieurs vues côte à côte (environ 54 sur les 60 de `catalogue/illustrations/20261117`, branche `assets/illustrations-60-20261117`, gabarit 1206 × 987). On retient la vue **la plus à droite** ; quand il y en a **trois**, la **plus large**. Une image simple est retenue entière.
+- **Recadrage dans la case** : la vue retenue est utilisée **entière** ; si la forme de la case ne le permet pas, ses bords sont réduits autour du **centre** (point focal au centre) : gauche et droite pour une case plus horizontale que la vue, haut et bas pour une case plus verticale. Aucune déformation. Les photos d'utilisateur suivent le même recadrage sur l'image entière.
+- **Production du rectangle de la vue** : à la publication du catalogue officiel, une étape de l'interface web de gestion des fiches détecte les bandes de séparation entre les vues, applique la règle de choix et propose le rectangle ; la personne qui publie vérifie et corrige. Le rectangle (x, y, largeur, hauteur, en pourcentage de l'image) est stocké avec l'image ; l'application ne détecte ni ne calcule rien à l'affichage.
 - **Aucune image** : on retombe sur la fin de l'ancienne cascade (vignette du format de la séance, sinon vignette du format Libre).
 - Toucher le visuel garde son comportement actuel (ouvre la composition en modification).
 - Variantes horizontales (2 images empilées ; une horizontale et deux carrés) dessinées sur la planche et **écartées**.
@@ -37,5 +38,5 @@ La carte repliée affiche ce que contient la séance, ses formats et sa durée.
 
 ## 3. Points techniques
 
-- Le cadrage de vignette est une donnée de l'image du catalogue (x, y, côté, en pourcentage de l'image). Aucun calcul au moment de l'affichage.
-- Détection des vues : essai sur les 60 illustrations du 17/11/2026 : séparations nettes détectées sur 44 images, bandes plus fines sur 8 autres (détection à assouplir, avec fausses séparations possibles), 6 images simples. La vérification par la personne qui publie est donc nécessaire.
+- Le rectangle de la vue retenue est une donnée de l'image du catalogue (x, y, largeur, hauteur, en pourcentage de l'image). Aucun calcul au moment de l'affichage.
+- Essai de détection sur les 60 illustrations du 17/11/2026 (planches de Hermann du 24/11/2026) : 43 images à deux vues, 6 à trois vues, 11 à une vue. Une fausse séparation a été observée (montants du portique de `FIT-CRO-010`) : la vérification par la personne qui publie reste nécessaire. Constat de Hermann : le résultat du recadrage centré est « très correct ». Dans les cases carrées, une vue verticale perd du haut et du bas (têtes ou jambes parfois coupées) ; accepté.

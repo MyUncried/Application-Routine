@@ -170,10 +170,10 @@
 - Prompt Claude Code : `docs/PROMPT-CLAUDE-CODE-NOM-ROUTINE-UNIQUE-2026-11-23.md`.
 
 ## Complément 24/11/2026 — Carte de séance du catalogue : mosaïque et informations (D-564, D-565, classe B)
-- Décisions explicites de Hermann (conversation du 24/11/2026) : mosaïque des images des mouvements (disposition fixée par le nombre d'images, 5 et plus en « 4 + compteur », cadrage de vignette stocké par image = première vue des illustrations composées, détecté à la publication puis vérifié, centre à défaut) ; informations de la carte repliée = nom, mouvements, formats, durée.
+- Décisions explicites de Hermann (conversation du 24/11/2026) : mosaïque des images des mouvements (disposition fixée par le nombre d'images, 5 et plus en « 4 + compteur », vue retenue = la plus à droite, ou la plus large s'il y en a trois ; rectangle stocké par image, détecté à la publication puis vérifié ; vue utilisée entière, sinon bords réduits autour du centre) ; informations de la carte repliée = nom, mouvements, formats, durée.
 - Figma : planche « Visuel de séance — essais de mosaïque (1 à 6 images) » et écran d'essai « P-Catalogue des séances — Visuel en mosaïque et informations (essai) » (cartes détachées, composant `DSF / Cards / Séance` non modifié).
 - Documents : `docs/DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md` (nouveau) ; registre ch07 D-564, D-565 ; note de révision en tête de `docs/KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md`. Prompt : `docs/PROMPT-CLAUDE-CODE-CARTE-SEANCE-MOSAIQUE-2026-11-24.md`.
 - Non traité : composition (points 3 à 6 de la liste de Hermann), composant Figma à mettre à jour, carte déployée inchangée.
 - Constat : sur les 60 illustrations du 17/11/2026 (branche `assets/illustrations-60-20261117`, 1206 × 987), environ 54 sont composées de plusieurs vues et 6 sont simples ; détection stricte des séparations sur 44, assouplie sur 8 autres avec fausses séparations possibles. Hypothèse non démontrée : la fiabilité d'une détection assouplie.
-- Vérification sur iPhone à faire : lisibilité des mosaïques à 64 pt. Essai de rendu des 60 vignettes détectées demandé par Hermann : à produire.
+- Vérification sur iPhone à faire : lisibilité des mosaïques à 64 pt. Essai de rendu des 60 illustrations livré à Hermann le 24/11/2026 (43 à deux vues, 6 à trois, 11 à une) et jugé « très correct » ; coupes de têtes ou de jambes possibles dans les cases carrées, acceptées. À confirmer sur iPhone avec les vraies cartes.
 - Tests : non applicables.
