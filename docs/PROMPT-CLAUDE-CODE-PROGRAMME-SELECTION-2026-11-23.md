@@ -1,6 +1,6 @@
 # Claude Code — rattacher un programme à la planification (23/11/2026)
 
-Mission : appliquer D-562 (registre, ch07 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 3), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. Écrans Figma : « P-Planifier une séance — Création » (ligne Programme) et « P-Planifier une séance — Choix du programme (proposition) ».
+Mission : appliquer D-579 [D-562 avant la renumérotation du 24/11/2026] (registre, ch07 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 3), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. Écrans Figma : « P-Planifier une séance — Création » (ligne Programme) et « P-Planifier une séance — Choix du programme (proposition) ».
 
 1. La ligne « Programme » ouvre la modale « Rattacher un programme » à la place du menu iOS.
 2. Feuille modale iOS native, sur le modèle de la modale « Sélectionner une séance » de la planification : ✕ Annuler en haut à gauche avec son halo (la bande de contexte passe sous le halo), titre centré « Rattacher un programme », **pas de bouton Valider**.

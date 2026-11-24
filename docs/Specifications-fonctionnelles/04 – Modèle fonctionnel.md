@@ -565,7 +565,7 @@ Le Programme apparaît pour la **première fois** dans l'interface, sur l'écran
 
 Une **ligne de valeur** — libellé « Programme » à gauche, valeur à droite — en **première position du formulaire**, au-dessus de « Début le ».
 
-Valeur par défaut : **« Aucun »**. Le rattachement est facultatif.
+Valeur par défaut : **« Aucun »**. Le rattachement est facultatif. [Précisé le 21/11/2026 — D-576 : ouverte depuis un programme (« + Planifier une séance »), la planification présélectionne ce programme, non modifiable à cet endroit ; « Début le » et « jusqu'au » sont bornés par la période ; la valeur maximale de « pendant N » est calculée pour que la fin ne dépasse jamais la fin du programme ; aucun message. D-574 : chaque exécution lancée depuis une occurrence d'une routine rattachée enregistre le programme du moment ; l'historique du programme ne dépend pas du lien routine → programme.]
 
 #### Pourquoi en première position
 
@@ -579,7 +579,7 @@ Référence : document de conception `Programme / Modèle de Programme` V1.2, §
 
 Trois écrans du parcours Programme n'existent pas encore et doivent être signalés comme tels :
 
-- la **création** d'un programme (nom, intention, période) ; [Conçue le 20/11/2026 — D-548, D-549 : modale « Créer ou configurer un programme » ; voir [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md#4-créer-ou-configurer-un-programme).] [23/11/2026 : écran « PROG — 13 Créer ou configurer un programme » conçu ; période D-560, routines D-561, voir `docs/DSF-PROGRAMMES-2026-11-23.md`.]
+- la **création** d'un programme (nom, intention, période) ; [Conçue le 20/11/2026 — D-548, D-549 : modale « Créer ou configurer un programme » ; voir [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md#4-créer-ou-configurer-un-programme).] [23/11/2026 : écran « PROG — 13 Créer ou configurer un programme » conçu ; période D-577, routines D-578, voir `docs/DSF-PROGRAMMES-2026-11-23.md`.]
 - la **proposition de rattachement** automatique des occurrences existantes tombant dans la période ;
 - l'**avertissement** lorsqu'une occurrence tombe hors de la période du programme choisi.
 
@@ -664,4 +664,4 @@ Un catalogue source par compte ; une fiche source dans plusieurs bibliothèques,
 
 ### Complément du 21/11/2026 — Routine, Parcours et Séance dans l'Agenda
 
-La Routine demeure l'objet de planification et garde une identité stable ; son nom par défaut dérive des Séances, peut être personnalisé et n'est plus unique. Une Routine à plusieurs Séances est présentée comme Parcours, sans Exécution ni statut global propres. L'Agenda présente chaque Séance individuellement ; le Journal présente chaque Routine individuellement. Voir [décisions du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md), qui supersèdent les seules descriptions antérieures incompatibles.
+La Routine demeure l'objet de planification et garde une identité stable ; son nom par défaut dérive des Séances, peut être personnalisé et n'est plus unique. Une Routine à plusieurs Séances est présentée comme Parcours, sans Exécution ni statut global propres. L'Agenda présente chaque Séance individuellement ; le Journal présente chaque Routine individuellement. Voir [décisions du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md), qui supersèdent les seules descriptions antérieures incompatibles. [Remplacé le 23/11/2026 (D-580) : nom unique parmi les Routines actives, suffixe proposé à la création ; une Routine terminée garde son nom.]

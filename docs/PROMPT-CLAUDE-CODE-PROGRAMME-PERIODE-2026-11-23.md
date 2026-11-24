@@ -1,6 +1,6 @@
 # Claude Code — période d'un programme (23/11/2026)
 
-Mission : appliquer D-560 (registre, ch07 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 1), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. Écran Figma : « PROG — 13 Créer ou configurer un programme », carte Période.
+Mission : appliquer D-577 [D-560 avant la renumérotation du 24/11/2026] (registre, ch07 ; `docs/DSF-PROGRAMMES-2026-11-23.md` § 1), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. Écran Figma : « PROG — 13 Créer ou configurer un programme », carte Période.
 
 1. Trois lignes : « Du [date] » ; « au [date] » ou « pendant [N] [jours / semaines / mois] » (le mot « au » / « pendant » est une valeur modifiable qui ouvre un menu pour changer de mode) ; une ligne d'information en gris, non modifiable.
 2. Ligne d'information : mode dates, « N jours, soit S semaines » (+ « et J jour(s) » si N n'est pas multiple de 7 ; moins d'une semaine : « N jours » seul) ; mode durée, « Se termine le 14 décembre 2026 ».

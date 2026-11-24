@@ -18,7 +18,11 @@
 | Catalogue des mouvements | Agenda |
 | Autre onglet | Dernier onglet utilisé du calendrier |
 
+[Complété le 23/11/2026, contre-recette 2 (constats f / g) — sens inverse, du calendrier vers le Catalogue : depuis le Plan, catalogue des programmes ; depuis l’Agenda, catalogue des séances ; depuis le Journal, aucun changement.]
+
 ## 3. Période d'un programme (D-563)
+
+[Remplacé le 23/11/2026 par D-581 (contre-recette 4 ; Hermann : « Pour le calendrier du programme utilisé exactement celui de la planification (format, dimensions). On oublie le marquage des périodes dans le calendrier. ») : le calendrier de la période est celui de Planifier, en popover, sans marquage de la période ; le calendrier natif `UICalendarView` est abandonné. Format de la carte Période : D-582. Texte d’origine conservé ci-dessous.]
 
 Dans la modale du programme, toucher « Du » ou « au » ouvre **un seul calendrier pour les deux dates**. C'est le calendrier natif d'iOS (`UICalendarView`), sans réimplémentation.
 
@@ -35,9 +39,9 @@ Dans la modale du programme, toucher « Du » ou « au » ouvre **un seul calend
 - Dans le Plan, une même routine figure sous la bande du programme pendant la période, et sous « Sans programme » en dehors.
 - « Supprimer avec ses routines » (D-547) ne supprime que les créneaux à venir compris dans la période du programme.
 - **Limite :** une routine appartient à un seul programme à la fois. Pour enchaîner deux programmes sur la même routine, on la duplique.
-- **Routine qui déborde (D-566).** Au rattachement d'une routine, ou à sa modification depuis le Journal, si des créneaux à venir tombent hors de la période, un message le signale : « N créneaux sont en dehors de la période du programme. »
-  - **Garder dans le calendrier** (par défaut) : la routine n'est pas coupée ; ces créneaux restent hors programme.
-  - **Supprimer** : les créneaux à venir hors période sont supprimés.
+- **Routine qui déborde (D-566).** Au rattachement d'une routine, ou à sa modification depuis le Journal, si des créneaux à venir tombent hors de la période, un message le signale : « N créneaux sont en dehors de la période du programme. » [Remplacé le 23/11/2026, contre-recette 3 (x9, x10) : titre sans point final, « … de ce programme » au rattachement, « … du programme » dans le Journal ; dans le Journal, remplacé par D-587 : fenêtre unique titrée « Modifier la routine », texte « N créneaux … », sans confirmation à la suite.]
+  - **Garder dans le calendrier** [« Les garder dans le calendrier » depuis le 23/11/2026] (par défaut) : la routine n'est pas coupée ; ces créneaux restent hors programme.
+  - **Supprimer** [« Les supprimer » depuis le 23/11/2026, arbitrage de Hermann, dans les deux contextes] : les créneaux à venir hors période sont supprimés.
   - **Annuler** : rien n'est enregistré.
 
   Sans créneau à venir hors période, aucune question. Les créneaux réalisés ne sont jamais touchés.
@@ -60,7 +64,7 @@ Dans la modale du programme, toucher « Du » ou « au » ouvre **un seul calend
 - **Rétablir** : glisser la carte propose « Rétablir » tant que la date n'est pas passée.
 - **Suivi** : ni manquée ni réalisée ; hors du taux de réalisation.
 - **Parcours** : trace par Séance ; si toutes ses Séances sont supprimées, tout le créneau apparaît supprimé.
-- **Plan** : pas de trace ; la case est vide et la toucher recrée un créneau. Le Total ne la compte pas.
+- **Plan** : pas de trace ; la case est vide et la toucher recrée un créneau. Le Total ne la compte pas. [Remplacé le 23/11/2026 par D-586 : la case reste, avec l’heure en gris sur gris, ne réagit pas au toucher et sort du Total.]
 
 **Sans trace** :
 - suppression de la routine depuis le Journal, réduction de sa période, suppression d'un programme avec ses routines, créneaux hors période supprimés (D-566) ;

@@ -147,7 +147,7 @@ Précise D-538 et D-539 :
 - Un astérisque collé à l'heure (« 17h05* ») signale une Séance hors de la répétition d'une routine : Exécution hors planification, ou créneau ajouté à la main hors répétition. Couleur de l'heure, plus petit qu'elle (11 pour 15) ; pas de légende.
 - La carte d'une Exécution hors planification porte la spécialité comme les autres ; le libellé « Hors planification » est retiré.
 - La lecture vocale annonce « hors planification » ou « ajouté hors répétition ».
-- Un créneau unique créé par le bouton flottant n'est pas marqué : il constitue toute sa routine.
+- Un créneau unique créé par le bouton flottant n'est pas marqué : il constitue toute sa routine. [Remplacé le 23/11/2026 (Hermann : « Oui. C'est le même concept ») : le créneau unique est marqué lui aussi ; toute routine sans répétition est marquée ; les cartes « — » d’un parcours, sans heure, n’ont pas d’astérisque (choix de Claude, à valider).]
 - Figma : « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » `12906:47`, carte Gainage.
 
 ## Occurrence supprimée — 23/11/2026 (D-568)
@@ -156,3 +156,12 @@ Précise D-538 et D-539 :
 - Glisser la carte propose « Rétablir » tant que la date n'est pas passée.
 - Figma : carte « Dos et mobilité » du mardi 17, écran `12906:47`.
 - Cas sans trace et règles : [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.
+
+## Recette du Programme — 23/11/2026 (D-585, D-588 ; report du 24/11/2026)
+
+- **Parcours à chaque créneau** (constat i) : une routine à plusieurs séances est présentée en parcours (ligne « Ⓟ nom ») à chaque créneau, même quand la rotation n’y place qu’une séance.
+- **Nom du parcours** (constat e — Hermann : « Agenda : mettre la couleur du nom des parcours en gris, et pas en gras ») : gris, graisse normale, taille inchangée. [Semi-gras noir — remplacé.]
+- **Séance déployée d’un parcours** : les deux traits de couleur de la carte se prolongent le long de la composition (constat k — Hermann : « agenda, séance déployée dans un parcours : étendre les deux traits verticaux de couleur de la séance à gauche et à droite » ; lecture retenue par Claude, l’autre lecture possible étant d’élargir les traits) ; pas d’espace avant la première ligne (constat f — « séance déployée dans un parcours : il y a trop d'espace avant la première ligne »).
+- **Séance seule déployée** (y7 — Hermann : « Ce doit être le même format pour les séances que pour les parcours ») : même format qu’une séance de parcours (traits prolongés, sans écart). [Format réservé aux séances de parcours (lot 4) — remplacé.]
+- **Programme d’une occurrence** (x18 — Hermann : « On ne doit pas pouvoir modifier le programme depuis l'agenda. Le champ doit être visible mais non éditable. ») : dans la modification d’une occurrence, la ligne Programme est affichée, non modifiable. [Menu « Programme » depuis l’Agenda (contre-recette 2, g2) — remplacé.]
+- **Occurrence supprimée** : dans le Plan, voir D-586 (case grise conservée).

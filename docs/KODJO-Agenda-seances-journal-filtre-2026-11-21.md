@@ -8,7 +8,7 @@
 ## 1. Identités et écrans
 
 - **Séance** : contenu exécutable, nom unique (règle existante conservée). Une Exécution correspond à une Séance et garde son instantané historique.
-- **Routine** : planification avec identité technique stable, un ou plusieurs contenus Séance ordonnés, créneaux et récurrence. Son nom n'a plus de contrainte d'unicité ; deux Routines peuvent porter le même nom.
+- **Routine** : planification avec identité technique stable, un ou plusieurs contenus Séance ordonnés, créneaux et récurrence. Son nom est unique parmi les Routines actives (D-580) ; [texte remplacé le 23/11/2026 : « Son nom n'a plus de contrainte d'unicité ; deux Routines peuvent porter le même nom. »]
 - **Parcours** : présentation et enchaînement d'une Routine comprenant plusieurs Séances, pas une Exécution autonome ni un statut d'exécution agrégé.
 - **Journal** : une carte compacte par Routine, active ou terminée ; son nom de Routine est visible, avec Ⓟ si Parcours ; déploiement pour voir les Séances. Pas de multiplication en lignes de Séances dans la carte repliée.
 - **Agenda** : une carte par Séance, planifiée ou exécutée, y compris les Exécutions sans planification. Le titre est toujours le nom de la Séance, jamais le nom personnalisé de la Routine. Un Parcours ajoute une seule ligne d'en-tête compacte « Ⓟ Nom du parcours » immédiatement au-dessus de la première carte, et un rail vertical sans numéros reliant ses cartes. Pas de cadre, compteur, durée ni autre symbole dans la ligne Parcours. Une Routine à une Séance n'a ni ligne Ⓟ ni rail.
@@ -21,7 +21,7 @@
 - Un renommage de Routine se voit dans le Journal, dans le filtre et dans la ligne « Ⓟ nom » d'un Parcours dans l'Agenda (écran validé : « Mobilité du matin »), mais pas dans le titre des cartes de l'Agenda (toujours la Séance).
 - Un nom vidé par l'utilisateur bloque l'enregistrement, avec « Nom obligatoire » sous le champ.
 - Modifier les Séances d'un seul créneau ne change pas le nom de la Routine ; la ligne Ⓟ garde ce nom, les cartes montrent les Séances réellement prévues.
-- Les doublons de noms de Routines sont autorisés. L'unicité des noms de Séances reste inchangée.
+- Le nom d'une Routine est unique parmi les Routines actives, avec proposition du premier nom libre à la création (D-580) ; une Routine terminée garde son nom. L'unicité des noms de Séances reste inchangée. [Remplace le 23/11/2026 : « Les doublons de noms de Routines sont autorisés. »]
 - **À préciser dans le modèle technique** : mécanisme explicite distinguant nom généré et nom personnalisé, y compris pour les Routines existantes ; ne pas inférer ce mode d'un simple test d'égalité textuelle.
 
 ## 3. Heures, dates, durées et statuts

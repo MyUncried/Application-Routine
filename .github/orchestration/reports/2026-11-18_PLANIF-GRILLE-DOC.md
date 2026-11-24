@@ -169,3 +169,7 @@
 - Renumérotation antérieure : décisions Programmes D-560 à D-562 (collision avec D-543 à D-552 de main).
 - Tests : non applicables.
 - Prompt Claude Code : `docs/PROMPT-CLAUDE-CODE-NOM-ROUTINE-UNIQUE-2026-11-23.md`.
+
+## Renumérotation du 24/11/2026 (consolidation)
+
+Historique de ce rapport non réécrit. Les décisions de cette branche citées ci-dessus sont renumérotées à la fusion dans la consolidation : D-560 → **D-577** (période d’un programme), D-561 → **D-578** (routines d’un programme), D-562 → **D-579** (rattachement d’un programme), D-563 → **D-580** (nom des routines unique parmi les actives). D-528 à D-542 sont inchangées. Table complète : registre, chapitre 07, « Renumérotation du 24/11/2026 (consolidation) » ; rapport `2026-11-24_CONSOLIDATION-2411.md`.

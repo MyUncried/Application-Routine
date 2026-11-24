@@ -1,6 +1,6 @@
 # Claude Code — nom des routines unique parmi les routines actives (23/11/2026)
 
-Mission : appliquer D-563 (registre, ch07 ; `docs/DSF-JOURNAL-2026-11-19.md` § 6 bis), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. D-563 remplace le « non unique » de D-553 (branche `docs/agenda-seances-journal-filtre-20261121`, non fusionnée : lis-la en lecture seule pour le contexte) et rétablit RM-258 / RM-261 / D-522 pour les routines actives.
+Mission : appliquer D-580 [D-563 avant la renumérotation du 24/11/2026] (registre, ch07 ; `docs/DSF-JOURNAL-2026-11-19.md` § 6 bis), branche `docs/planification-grille-creneaux`, à lire sans la fusionner. D-580 remplace le « non unique » de D-553 (branche `docs/agenda-seances-journal-filtre-20261121`, non fusionnée : lis-la en lecture seule pour le contexte) et rétablit RM-258 / RM-261 / D-522 pour les routines actives.
 
 1. Unicité : le nom d'une routine est unique parmi les routines **actives**, sans distinguer majuscules, minuscules, accents ni espaces de bord (réutilise la normalisation existante de RM-261). Une routine **terminée** garde son nom et n'entre pas dans le contrôle. L'unicité des noms de séances ne change pas.
 2. Création : le champ Nom est prérempli avec le nom par défaut (celui de la séance, ou les noms reliés par « + »). S'il est déjà pris par une routine active, propose le premier nom libre : « Tabata (2) », puis « Tabata (3) ». L'utilisateur peut modifier le champ.

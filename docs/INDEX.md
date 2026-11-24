@@ -181,3 +181,5 @@ Arbitrages clos : inventaire des 30 champs, identité et multi-appartenance, acc
 **Bouton flottant « Créer », 22/11/2026 (D-558, D-559, classe B)** : [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).
 
 **Programme — recette du 23/11/2026 (D-561 à D-565, RM-275, classe B)** : [compléments](KODJO-Programme-recette-2026-11-23.md) — bande du programme dans le Plan, arrivée dans le calendrier, période dans le calendrier natif, occurrences bornées par la période, actions glissées. Astérisque « hors routine » : D-560.
+
+**Consolidation du 24/11/2026** : renumérotation unique des décisions (PROG-CAT-01 → D-570 à D-576 ; Programmes de la branche Planification → D-577 à D-580) et report de la recette du Programme du 23/11/2026 (D-581 à D-592) — registre, chapitre 07, sections « Programme — précisions de mise en œuvre (21/11/2026, PROG-CAT-01) », « Programme et calendrier — recette du 23/11/2026 … » et « Renumérotation du 24/11/2026 (consolidation) » ; [DSF Programmes](DSF-PROGRAMMES-2026-11-23.md).
