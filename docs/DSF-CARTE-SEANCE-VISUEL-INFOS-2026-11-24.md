@@ -19,7 +19,8 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 | 4 | 2 × 2 |
 | 5 et plus | 2 × 2 ; la quatrième case est un compteur « +N », N = nombre d'images − 3 |
 
-- **Cadrage** : chaque image remplit sa case en la recadrant sans déformation. Le recadrage se centre sur le **point focal** de l'image (x, y en pourcentage) ; à défaut de point focal, sur le centre. Le point focal est calculé ou placé une seule fois, à la publication du catalogue officiel, et stocké avec l'image ; les photos d'un utilisateur n'en ont pas (centre).
+- **Cadrage** : chaque image remplit sa case sans déformation. Le visuel d'un mouvement est son **cadrage de vignette** : un rectangle carré (position et taille) stocké avec l'image. La plupart des illustrations du catalogue sont composées de plusieurs vues côte à côte (environ 54 sur les 60 de `catalogue/illustrations/20261117`, branche `assets/illustrations-60-20261117`, gabarit 1206 × 987) ; le cadrage correspond alors à la **première vue** (position de départ). Sans cadrage (image simple, photo d'utilisateur), l'image est recadrée sans déformation autour de son centre.
+- **Production du cadrage** : à la publication du catalogue officiel, une étape de l'interface web de gestion des fiches détecte les bandes de séparation entre les vues et propose le rectangle de la première ; la personne qui publie vérifie et corrige. Aucune détection ni calcul dans l'application, qui applique le rectangle stocké. Un placement de points sur le personnage reste un correctif manuel possible, pas la méthode principale.
 - **Aucune image** : on retombe sur la fin de l'ancienne cascade (vignette du format de la séance, sinon vignette du format Libre).
 - Toucher le visuel garde son comportement actuel (ouvre la composition en modification).
 - Variantes horizontales (2 images empilées ; une horizontale et deux carrés) dessinées sur la planche et **écartées**.
@@ -36,5 +37,5 @@ La carte repliée affiche ce que contient la séance, ses formats et sa durée.
 
 ## 3. Points techniques
 
-- Le point focal est une donnée de l'image du catalogue (deux valeurs de 0 à 100 %). Aucun calcul au moment de l'affichage.
-- Choix de l'outil de calcul ou de placement du point focal (détection automatique ou placement dans l'interface de gestion des fiches) : à la charge de l'outil de publication, sans effet sur la carte.
+- Le cadrage de vignette est une donnée de l'image du catalogue (x, y, côté, en pourcentage de l'image). Aucun calcul au moment de l'affichage.
+- Détection des vues : essai sur les 60 illustrations du 17/11/2026 : séparations nettes détectées sur 44 images, bandes plus fines sur 8 autres (détection à assouplir, avec fausses séparations possibles), 6 images simples. La vérification par la personne qui publie est donc nécessaire.
