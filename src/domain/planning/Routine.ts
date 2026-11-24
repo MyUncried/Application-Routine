@@ -102,10 +102,18 @@ export type RoutineEntry = {
 export type Routine = {
   readonly id: string;
   /**
-   * D-522 / RM-258 : nom libre, unique parmi les planifications de l'utilisateur (RM-261). Vide pour une planification
-   * enregistrée avant le 18/11/2026 : à compléter à la première modification (RM-264).
+   * D-553 (21/11/2026) : nom de la Routine, non unique — généré par défaut (`nameGenerated`), ou personnalisé.
+   * Nom généré : celui de la Séance, ou les noms des Séances dans l'ordre reliés par « + » (`generatedRoutineName`), enregistré
+   * à chaque écriture ; l'affichage le recalcule depuis la composition (`routineDisplayName`).
+   * [D-522 / RM-258 / RM-261 : nom libre, unique parmi les planifications ; vide pour une planification antérieure au 18/11/2026
+   * (RM-264) — remplacé.]
    */
   readonly name: string;
+  /**
+   * D-553 : mode du nom, stocké explicitement (jamais déduit d'une comparaison de textes) — vrai : nom généré, qui suit la
+   * composition ; faux ou absent : nom personnalisé, fixe (migration 036 : routines existantes nommées = personnalisées).
+   */
+  readonly nameGenerated?: boolean;
   /** Début le (date incluse). */
   readonly startDate: LocalDate;
   /** Une seule heure par créneau (chapitre 09). */
@@ -175,6 +183,24 @@ export type RoutineDraft = Omit<Routine, "id" | "createdAt" | "updatedAt" | "exc
   readonly exclusions?: readonly string[];
   readonly reminderMinutes?: number | null;
 };
+
+/**
+ * D-553 (21/11/2026) : nom par défaut d'une Routine — nom de la Séance s'il n'y en a qu'une ; sinon les noms des Séances dans
+ * l'ordre, séparés par « + ». Une Séance inconnue (supprimée) est omise.
+ */
+export function generatedRoutineName(sessionNames: readonly (string | undefined)[]): string {
+  return sessionNames.filter((name): name is string => name !== undefined && name.trim() !== "").join(" + ");
+}
+
+/**
+ * D-553 : nom affiché d'une Routine (Journal, filtre, ligne « Ⓟ » de l'Agenda) — nom généré recalculé depuis la composition
+ * actuelle, nom personnalisé tel quel. Repli sur le nom enregistré si aucune Séance n'est connue.
+ */
+export function routineDisplayName(routine: Pick<Routine, "name" | "nameGenerated" | "entries">, nameOf: (sessionId: string) => string | undefined): string {
+  if (routine.nameGenerated !== true) return routine.name;
+  const generated = generatedRoutineName(routine.entries.map((entry) => nameOf(entry.sessionId)));
+  return generated !== "" ? generated : routine.name;
+}
 
 export type RoutineValidationIssue =
   | "NO_CONTENT"

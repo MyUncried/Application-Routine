@@ -6,7 +6,7 @@ import { formatLocalDate, parseLocalDate, type Routine } from "@/domain/planning
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { CALENDAR_PALETTE } from "@/features/planning/CalendarViewTabs";
-import { creationDateParts, matchesJournalQuery, matchesRoutineSessionFilters, routineLastDate } from "@/features/planning/journal";
+import { creationDateParts, matchesJournalQuery, matchesRoutineSessionFilters, routineLastDate, routineTitle } from "@/features/planning/journal";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -19,7 +19,8 @@ import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
-export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming: number };
+/** `active` (D-553, arbitrage 3) : routines actives proposées avant les terminées ; absent : active. */
+export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming: number; readonly active?: boolean };
 
 /** « 28/12/2026 ». */
 function numericDate(day: string): string {
@@ -77,12 +78,18 @@ export function RoutineFilterSheet({
   const sessionsOf = (routine: Routine) =>
     routine.entries.map((entry) => sessions.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
   // Recherche et filtres du Journal ; les routines terminées restent proposées (D-540, point 6), le statut est ignoré ici.
+  // D-553 (21/11/2026, arbitrage 3) : une ligne par Routine — actives d'abord, puis terminées, chaque groupe par ordre alphabétique
+  // du nom affiché ; plusieurs lignes peuvent porter le même nom, la sélection porte sur l'identifiant.
   const visible = useMemo(
     () =>
-      choices.filter((choice) => {
-        const routineSessions = sessionsOf(choice.routine);
-        return matchesJournalQuery(choice.routine, routineSessions, query) && matchesRoutineSessionFilters(routineSessions, filters);
-      }),
+      choices
+        .filter((choice) => {
+          const routineSessions = sessionsOf(choice.routine);
+          return matchesJournalQuery(choice.routine, routineSessions, query) && matchesRoutineSessionFilters(routineSessions, filters);
+        })
+        .map((choice) => ({ choice, title: routineTitle(choice.routine, sessionsOf(choice.routine)), active: choice.active !== false }))
+        .sort((a, b) => (a.active !== b.active ? (a.active ? -1 : 1) : a.title.localeCompare(b.title, "fr", { sensitivity: "base" })))
+        .map((item) => item.choice),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [choices, sessions, query, filters],
   );
@@ -166,13 +173,15 @@ export function RoutineFilterSheet({
             {visible.map((choice) => {
               const created = creationDateParts(choice.routine.createdAt);
               const routineSessions = sessionsOf(choice.routine);
-              const name = choice.routine.name.trim() !== "" ? choice.routine.name : routineSessions.map((session) => session.name).join(", ");
+              const name = routineTitle(choice.routine, routineSessions);
               return (
                 <View key={choice.routine.id} style={styles.item}>
                   <JournalRoutineCard
                     date={created?.day ?? ""}
                     year={created?.year ?? ""}
                     name={name}
+                    // D-553 (21/11/2026, § 5) : même présentation que le Journal — Ⓟ après le nom de Routine d'un parcours.
+                    parcours={choice.routine.entries.length > 1}
                     detail=""
                     slots={routineFilterSlotsLine(choice)}
                     planned={choice.upcoming > 0 && routineLastDate(choice.routine) >= today}

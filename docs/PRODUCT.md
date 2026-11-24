@@ -642,3 +642,7 @@ Une collection unique de séances, une carte commune et deux vues désélectionn
 La cible conserve la fiche complète et ses classifications exploitables sur mobile ; les phases source sont transmises. Un catalogue par compte ; une fiche peut appartenir à plusieurs bibliothèques. La perte du dernier accès rend le mouvement indisponible et les séances à corriger ; une exécution en cours se termine. Partage direct/personnalisé et de séance prévus dans le lot futur ; médias personnalisés conservés chez le destinataire. L’accès utilisateur au glossaire relève du futur chantier des aides.
 
 [Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Orientation validée du 21/11/2026 — Agenda des Séances
+
+L'Agenda présente les Séances planifiées et réellement exécutées, y compris hors planification, en cartes uniformes ; les Parcours sont identifiés par une ligne Ⓟ compacte et un rail. Le Journal reste une liste de Routines. Les noms de Routines sont générés par défaut, personnalisables et non uniques. Le détail des règles et exceptions est dans [KODJO — Agenda / Journal / filtre, 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). L'Agenda est validé dans Figma (D-553) ; Journal et filtre ont été ajustés le 21/11/2026 et restent à valider.

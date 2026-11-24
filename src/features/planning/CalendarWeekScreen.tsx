@@ -6,16 +6,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 
-import { addDays, formatLocalDate, mondayOf, occurrenceInstant, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
-import { groupOccurrenceExecutions, occurrenceExecutionKey, occurrenceExecutionStatus, type OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
+import { addDays, formatLocalDate, mondayOf, parseLocalDate, weekdayOf, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import type { AgendaExecution, OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import type { Occurrence } from "@/domain/planning/occurrences";
+import { buildAgendaGroups, mergeAgendaExecutions, type AgendaCard, type AgendaGroup } from "@/features/planning/agendaCards";
+import { routineTitle } from "@/features/planning/journal";
+import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { firstDayOfShiftedMonth, formatAgendaMonth, formatAgendaTime, sessionsDurationLabel, zonesLine } from "@/features/planning/agendaFormat";
-import { AGENDA_ROW_HEIGHT, RoutineAgendaCard, type AgendaStatus } from "@/features/planning/RoutineAgendaCard";
+import { firstDayOfShiftedMonth, formatAgendaMonth, zonesLine } from "@/features/planning/agendaFormat";
+import { AGENDA_ROW_HEIGHT, RoutineAgendaCard } from "@/features/planning/RoutineAgendaCard";
 import { executionParams } from "@/features/execution/executionChain";
 import { useBodyZonesReferential } from "@/features/activities/useBodyZonesReferential";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
@@ -60,15 +63,11 @@ const MAX_DOTS = 3;
 /** DSF Agenda § 6 : actions glissées de 90 × 52. */
 const AGENDA_ACTION_WIDTH = 90;
 
-/** D-534 : une carte par occurrence de routine ; ses séances (contenus retenus, dans l'ordre de la liste) au déployé. */
-type CardItem = {
-  readonly key: string;
-  readonly occurrence: Occurrence;
-  readonly projections: readonly SessionCatalogueProjection[];
-  readonly routine: Routine | undefined;
-};
-
-type DeleteCandidate = { readonly routine: Routine; readonly occurrenceKey: string };
+/**
+ * Suppression depuis l'Agenda : créneau entier (Routine à une Séance, D-537) ou Séance seule d'un parcours (D-553, arbitrage 9 ;
+ * `sessionIndex` : rang dans la liste des séances de l'occurrence).
+ */
+type DeleteCandidate = { readonly routine: Routine; readonly occurrenceKey: string; readonly sessionIndex: number | null };
 
 function todayLocal(): LocalDate {
   return formatLocalDate(new Date());
@@ -135,6 +134,8 @@ export function CalendarWeekScreen({
   const [routines, setRoutines] = useState<readonly Routine[]>([]);
   const [occurrences, setOccurrences] = useState<readonly Occurrence[]>([]);
   const [executions, setExecutions] = useState<readonly OccurrenceExecution[]>([]);
+  // D-553 : toutes les Exécutions (Séances exécutées et « Hors planification »).
+  const [allExecutions, setAllExecutions] = useState<readonly AgendaExecution[]>([]);
   // Instant du dernier chargement : sépare les occurrences passées (rouge) des occurrences à venir (bleu).
   const [loadedAt, setLoadedAt] = useState(0);
   // Recette du 20/11/2026 (Hermann : « la liste apparaît avec un temps de décalage. Elle affiche d'abord "Aucune séance
@@ -178,11 +179,12 @@ export function CalendarWeekScreen({
     (window: AgendaRange) => {
       const id = ++requestId.current;
       planning.agendaData(window.start, addDays(window.start, window.weeks * 7 - 1)).then(
-        ({ routines: list, occurrences: weekItems, executions: linked }) => {
+        ({ routines: list, occurrences: weekItems, executions: linked, allExecutions: everything }) => {
           if (id !== requestId.current) return;
           setRoutines(list);
           setOccurrences(weekItems);
           setExecutions(linked);
+          setAllExecutions(everything);
           setLoadedAt(Date.now());
           setLoadedStart(window.start);
           setLoadFailed(false);
@@ -209,51 +211,40 @@ export function CalendarWeekScreen({
   );
 
   const routinesById = useMemo(() => new Map(routines.map((routine) => [routine.id, routine])), [routines]);
-  const executionsByOccurrence = useMemo(() => groupOccurrenceExecutions(executions), [executions]);
 
   /**
-   * Recette du 19/11/2026 au soir (constat D, s19-passees, s19-arret) : statut d'exécution de l'occurrence, sinon passée
-   * (rouge) ou à venir (bleu) selon son heure.
+   * D-553 (21/11/2026) : une carte par Séance (planifiée, exécutée ou hors planification), groupes de parcours sous le jour du
+   * créneau (`buildAgendaGroups`). Statut par Séance : exécutée (Complétée, Partielle, Arrêtée), sinon à venir (bleu), manquée
+   * (rouge) ou expirée (D-540). [Une carte par occurrence de routine (D-534) — remplacé.]
    */
-  const statusOf = (item: CardItem): AgendaStatus => {
-    const linked = executionsByOccurrence.get(occurrenceExecutionKey(item.occurrence.routineId, item.occurrence.key)) ?? [];
-    const status = occurrenceExecutionStatus(item.projections.length, linked);
-    if (status !== "NONE") return status;
-    if (occurrenceInstant(item.occurrence.date, item.occurrence.time).getTime() >= loadedAt) return "UPCOMING";
-    // D-540 : passé le délai de rattrapage (créneau suivant de la routine, ou 10 jours pour le dernier), « Expirée ».
-    return item.occurrence.expired ? "EXPIRED" : "MISSED";
-  };
+  const groupsByDay = useMemo(
+    () =>
+      buildAgendaGroups({
+        occurrences,
+        executions: mergeAgendaExecutions(allExecutions, executions),
+        projections,
+        isPlannable,
+        routineFilter,
+        now: loadedAt,
+      }),
+    [occurrences, allExecutions, executions, projections, isPlannable, routineFilter, loadedAt],
+  );
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(monday, index)), [monday]);
   /** Jours de la liste continue (constat C). */
   const listDays = useMemo(() => Array.from({ length: range.weeks * 7 }, (_, index) => addDays(range.start, index)), [range]);
 
-  const itemsByDay = useMemo(() => {
-    const map = new Map<LocalDate, CardItem[]>();
-    for (const occurrence of occurrences) {
-      // D-539 : seules les routines du filtre ; les points des cartes de jour suivent la même liste.
-      if (routineFilter !== null && !routineFilter.has(occurrence.routineId)) continue;
-      const shown = occurrence.contents
-        .filter((content) => isPlannable(content.sessionId))
-        .map((content) => projections.get(content.sessionId))
-        .filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
-      if (shown.length === 0) continue;
-      const list = map.get(occurrence.date) ?? [];
-      list.push({ key: `${occurrence.routineId}|${occurrence.key}`, occurrence, projections: shown, routine: routinesById.get(occurrence.routineId) });
-      map.set(occurrence.date, list);
-    }
-    return map;
-  }, [occurrences, isPlannable, projections, routinesById, routineFilter]);
-
   const bodyZones = useBodyZonesReferential();
   const zoneName = useMemo(() => new Map(bodyZones.map((zone) => [zone.id, zone.name])), [bodyZones]);
-  /** Titre : nom de la routine ; une routine sans nom (antérieure au 18/11/2026, RM-264) montre ses séances. */
-  const titleOf = (item: CardItem) => {
-    const name = item.routine?.name.trim() ?? "";
-    return name !== "" ? name : item.projections.map((projection) => projection.name).join(", ");
+  const detailOf = (card: AgendaCard) =>
+    zonesLine((card.projection?.bodyZoneIds ?? []).map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined));
+  /** Ligne « Ⓟ » : nom de la Routine (généré ou personnalisé), jamais celui des Séances. */
+  const parcoursNameOf = (group: AgendaGroup) => {
+    const routine = group.routineId === null ? undefined : routinesById.get(group.routineId);
+    if (routine === undefined) return "";
+    const sessions = routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
+    return routineTitle(routine, sessions);
   };
-  const detailOf = (item: CardItem) =>
-    zonesLine(item.projections.flatMap((projection) => projection.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)));
 
   const changeWeek = (next: LocalDate, day: LocalDate) => {
     const window = { start: next, weeks: AGENDA_WEEKS_INITIAL };
@@ -320,10 +311,13 @@ export function CalendarWeekScreen({
    * entière se modifie depuis le Journal. Une occurrence commencée n'est pas modifiable (point 1). [Ouverture de la
    * planification entière — remplacé.]
    */
-  const openOccurrence = (item: CardItem) => {
+  const openOccurrence = (card: AgendaCard) => {
     setRevealed(null);
-    if (item.occurrence.started) return;
-    router.push({ pathname: "/planning", params: { routineId: item.occurrence.routineId, occurrenceKey: item.occurrence.key } });
+    // D-553 (arbitrage 9) : le cadre gauche d'une Séance de parcours ouvre la modification de tout le créneau ; un créneau
+    // commencé ne se modifie pas (D-536) ; une Exécution hors planification n'a pas de créneau.
+    const occurrence = card.occurrence;
+    if (occurrence === undefined || occurrence.started) return;
+    router.push({ pathname: "/planning", params: { routineId: occurrence.routineId, occurrenceKey: occurrence.key } });
   };
 
   const duplicate = (routineId: string) => {
@@ -344,7 +338,7 @@ export function CalendarWeekScreen({
     );
   };
 
-  const dotColor = (projection: SessionCatalogueProjection) => projection.categories[0]?.color ?? colors.selection;
+  const dotColor = (projection: SessionCatalogueProjection | undefined) => projection?.categories[0]?.color ?? colors.selection;
   const changeMonth = (shift: -1 | 1) => {
     const first = firstDayOfShiftedMonth(selectedDay, shift);
     changeWeek(mondayOf(first), first);
@@ -353,24 +347,112 @@ export function CalendarWeekScreen({
   /**
    * « Démarrer » (D-534) : première séance de la liste ordonnée de l'occurrence (contrat PRE-10 `/execution?sessionId=`) ;
    * plusieurs séances : la chaîne et le rang accompagnent la route, les suivantes s'enchaînent à la fin de chacune.
+   * D-553 (arbitrage 8) : « Rattraper » sur une Séance non exécutée d'un créneau commencé lance cette Séance seule, rattachée à
+   * son rang dans l'occurrence.
    */
-  const start = (item: CardItem) => {
+  const start = (card: AgendaCard) => {
     setRevealed(null);
+    const occurrence = card.occurrence;
+    if (occurrence === undefined || card.sessionId === null) return;
+    const origin = { routineId: occurrence.routineId, occurrenceKey: occurrence.key };
+    if (card.action === "CATCH_UP_ONE") {
+      router.push({ pathname: "/execution", params: executionParams([card.sessionId], 1, { ...origin, rank: card.position ?? 1 }) });
+      return;
+    }
     // Recette du 19/11/2026 au soir : l'Exécution est rattachée à l'occurrence (routine, date/heure d'origine, rang).
-    router.push({
-      pathname: "/execution",
-      params: executionParams(
-        item.projections.map((projection) => projection.id),
-        1,
-        { routineId: item.occurrence.routineId, occurrenceKey: item.occurrence.key },
-      ),
-    });
+    const chain = occurrence.contents.map((content) => content.sessionId).filter((sessionId) => isPlannable(sessionId) && projections.has(sessionId));
+    if (chain.length === 0) return;
+    router.push({ pathname: "/execution", params: executionParams(chain, 1, origin) });
+  };
+
+  const renderCard = (card: AgendaCard, inParcours: boolean) => {
+    const isExpanded = expanded.has(card.key);
+    const occurrence = card.occurrence;
+    const routine = occurrence === undefined ? undefined : routinesById.get(occurrence.routineId);
+    const toggle = () =>
+      setExpanded((current) => {
+        const next = new Set(current);
+        if (next.has(card.key)) next.delete(card.key);
+        else next.add(card.key);
+        return next;
+      });
+    // D-537 : un créneau commencé n'est pas supprimé ; D-553 (arbitrage 9) : une Séance de parcours non exécutée se supprime
+    // seule, même dans un créneau commencé ; une Séance exécutée ne se supprime pas. Hors planification : aucune action glissée.
+    const deletable = occurrence !== undefined && routine !== undefined && !card.executed && (inParcours || !occurrence.started);
+    const actions: readonly SwipeAction[] =
+      occurrence === undefined
+        ? []
+        : [
+            { key: "duplicate", label: t.calendar.duplicate, backgroundColor: colors.movementLevelAction, onPress: () => duplicate(occurrence.routineId) },
+            ...(deletable
+              ? [
+                  {
+                    key: "delete",
+                    label: t.calendar.delete,
+                    backgroundColor: colors.danger,
+                    onPress: () => {
+                      setRevealed(null);
+                      setDeleteCandidate({ routine: routine!, occurrenceKey: occurrence.key, sessionIndex: inParcours ? (card.sessionIndex ?? null) : null });
+                    },
+                  },
+                ]
+              : []),
+          ];
+    const startable = card.action !== null;
+    return (
+      <View key={card.key} style={inParcours ? styles.parcoursItem : styles.item} testID={`calendar-item-${card.key}`}>
+        {/* DSF Agenda § 6 : la carte glisse de 180 et découvre Dupliquer (gris) et Supprimer (rouge), 90 × 52. */}
+        <SwipeActionsRow
+          actions={actions}
+          revealed={revealed === card.key}
+          onReveal={() => setRevealed(card.key)}
+          onHide={() => setRevealed((current) => (current === card.key ? null : current))}
+          onPress={() => openOccurrence(card)}
+          accessibilityLabel={[card.title, fillTemplate(t.calendar.timeAccessibility, { time: card.timeLabel }), card.duration].filter((part) => part !== "").join(", ")}
+          accessibilityHint={t.calendar.openRoutine}
+          accessibilityState={{ expanded: isExpanded }}
+          extraAccessibilityActions={[
+            { name: "toggle", label: isExpanded ? t.calendar.collapseRoutine : t.calendar.expandRoutine, onAction: toggle },
+            ...(startable ? [{ name: "start", label: card.status === "MISSED" ? t.calendar.catchUp : t.calendar.start, onAction: () => start(card) }] : []),
+          ]}
+          actionsHeight={AGENDA_ROW_HEIGHT}
+          actionWidth={AGENDA_ACTION_WIDTH}
+          // Recette du 19/11/2026 au soir (s19-glisse) : coins arrondis du bloc d'actions standard et marge de 16 avec le bord
+          // droit de l'écran.
+          actionsRightMargin={layout.screenGutter}
+          testID={`calendar-item-${card.key}-swipe`}
+        >
+          <RoutineAgendaCard
+            time={card.timeLabel}
+            duration={card.duration}
+            name={card.title}
+            inParcours={inParcours}
+            detailPrefix={card.planned ? "" : t.calendar.unplanned}
+            detail={detailOf(card)}
+            status={card.status}
+            startable={startable}
+            expanded={isExpanded}
+            onOpen={() => openOccurrence(card)}
+            onToggleExpanded={toggle}
+            onStart={() => start(card)}
+            testID={`calendar-item-${card.key}-card`}
+          />
+        </SwipeActionsRow>
+        {isExpanded && card.projection !== undefined ? (
+          // DSF Agenda § 6 : composition de la Séance sous la carte. D-553 : le nom de la Séance, titre de la carte, n'est pas
+          // répété. [Nom de chaque séance au-dessus de sa composition (r20-recap) — remplacé.]
+          <Pressable onPress={toggle} accessible={false} style={styles.expanded} testID={`calendar-item-${card.key}-expanded`}>
+            <SessionCompositionTree tree={card.projection.tree} testID={`calendar-item-${card.key}-composition`} />
+          </Pressable>
+        ) : null}
+      </View>
+    );
   };
 
   const bottomReserve = navigationBarTotalHeight() + insets.bottom + spacing[24];
   // Message « semaine vide » : première semaine de la liste sans occurrence ; les semaines suivantes s'affichent dessous.
-  const anyItem = listDays.slice(0, 7).some((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
-  const lastDay = [...listDays].reverse().find((day) => (itemsByDay.get(day)?.length ?? 0) > 0);
+  const anyItem = listDays.slice(0, 7).some((day) => (groupsByDay.get(day)?.length ?? 0) > 0);
+  const lastDay = [...listDays].reverse().find((day) => (groupsByDay.get(day)?.length ?? 0) > 0);
   const listPaddingBottom = Math.max(bottomReserve, listHeight - lastSectionHeight);
 
   return (
@@ -456,8 +538,7 @@ export function CalendarWeekScreen({
             </Pressable>
             <View style={styles.dayBar} accessibilityRole="tablist" testID="calendar-day-bar">
               {days.map((day, index) => {
-                const items = itemsByDay.get(day) ?? [];
-                const sessionsOfDay = items.flatMap((item) => item.projections.map((projection, rank) => ({ key: `${item.key}|${rank}`, projection })));
+                const sessionsOfDay = (groupsByDay.get(day) ?? []).flatMap((group) => group.cards.map((card) => ({ key: card.key, projection: card.projection })));
                 const selected = day === selectedDay;
                 return (
                   <Pressable
@@ -550,9 +631,9 @@ export function CalendarWeekScreen({
           </Text>
         ) : null}
         {listDays.map((day) => {
-          const items = itemsByDay.get(day) ?? [];
-          if (items.length === 0) return null;
-          const first = day === listDays.find((candidate) => (itemsByDay.get(candidate)?.length ?? 0) > 0);
+          const groups = groupsByDay.get(day) ?? [];
+          if (groups.length === 0) return null;
+          const first = day === listDays.find((candidate) => (groupsByDay.get(candidate)?.length ?? 0) > 0);
           return (
             <View
               key={day}
@@ -569,94 +650,24 @@ export function CalendarWeekScreen({
                   {formatDayTitle(day)}
                 </Text>
               </View>
-              {items.map((item) => {
-                const isExpanded = expanded.has(item.key);
-                const routine = item.routine;
-                const toggle = () =>
-                  setExpanded((current) => {
-                    const next = new Set(current);
-                    if (next.has(item.key)) next.delete(item.key);
-                    else next.add(item.key);
-                    return next;
-                  });
-                // D-537, point 1 : une occurrence commencée n'est jamais supprimée — pas d'action Supprimer.
-                const actions: readonly SwipeAction[] = [
-                  { key: "duplicate", label: t.calendar.duplicate, backgroundColor: colors.movementLevelAction, onPress: () => duplicate(item.occurrence.routineId) },
-                  ...(item.occurrence.started
-                    ? []
-                    : [
-                        {
-                          key: "delete",
-                          label: t.calendar.delete,
-                          backgroundColor: colors.danger,
-                          onPress: () => {
-                            setRevealed(null);
-                            if (routine !== undefined) setDeleteCandidate({ routine, occurrenceKey: item.occurrence.key });
-                          },
-                        },
-                      ]),
-                ];
-                const title = titleOf(item);
-                const duration = sessionsDurationLabel(item.projections);
-                const status = statusOf(item);
-                const startable = status === "UPCOMING" || status === "MISSED";
-                return (
-                  <View key={item.key} style={styles.item} testID={`calendar-item-${item.key}`}>
-                    {/* DSF Agenda § 6 : la carte glisse de 180 et découvre Dupliquer (gris) et Supprimer (rouge), 90 × 52. */}
-                    <SwipeActionsRow
-                      actions={actions}
-                      revealed={revealed === item.key}
-                      onReveal={() => setRevealed(item.key)}
-                      onHide={() => setRevealed((current) => (current === item.key ? null : current))}
-                      onPress={() => openOccurrence(item)}
-                      accessibilityLabel={[title, fillTemplate(t.calendar.timeAccessibility, { time: formatAgendaTime(item.occurrence.time) }), duration].filter((part) => part !== "").join(", ")}
-                      accessibilityHint={t.calendar.openRoutine}
-                      accessibilityState={{ expanded: isExpanded }}
-                      extraAccessibilityActions={[
-                        { name: "toggle", label: isExpanded ? t.calendar.collapseRoutine : t.calendar.expandRoutine, onAction: toggle },
-                        ...(startable ? [{ name: "start", label: t.calendar.start, onAction: () => start(item) }] : []),
-                      ]}
-                      actionsHeight={AGENDA_ROW_HEIGHT}
-                      actionWidth={AGENDA_ACTION_WIDTH}
-                      // Recette du 19/11/2026 au soir (s19-glisse) : coins arrondis du bloc d'actions standard et marge de 16
-                      // avec le bord droit de l'écran. [Coins droits (`actionsRadius={0}`), collé au bord — remplacé.]
-                      actionsRightMargin={layout.screenGutter}
-                      testID={`calendar-item-${item.key}-swipe`}
-                    >
-                      <RoutineAgendaCard
-                        time={formatAgendaTime(item.occurrence.time)}
-                        duration={duration}
-                        name={title}
-                        parcours={(item.routine?.entries.length ?? 0) > 1}
-                        detail={detailOf(item)}
-                        status={status}
-                        expanded={isExpanded}
-                        onOpen={() => openOccurrence(item)}
-                        onToggleExpanded={toggle}
-                        onStart={() => start(item)}
-                        testID={`calendar-item-${item.key}-card`}
-                      />
-                    </SwipeActionsRow>
-                    {isExpanded ? (
-                      // DSF Agenda § 6 : complément de composition du catalogue sous la carte (filet, puis séances).
-                      // Recette du 19/11/2026 au soir (constat A) : la ligne de récapitulation des jours planifiés passe au Journal.
-                      // Recette du 20/11/2026 (r20-recap — Hermann) : « retirer toute séparation verticale et l'espace vertical
-                      // associé, s'il n'y a pas de texte avant » ; « toujours mettre le nom de la séance, même lorsqu'il n'y en
-                      // n'a qu'une dans la routine ». [Filet en tête ; nom seulement pour un parcours — remplacé.]
-                      <Pressable onPress={toggle} accessible={false} style={styles.expanded} testID={`calendar-item-${item.key}-expanded`}>
-                        {item.projections.map((projection, rank) => (
-                          <View key={`${projection.id}-${rank}`} testID={`calendar-item-${item.key}-session-${rank}`}>
-                            <Text style={styles.expandedSession} testID={`calendar-item-${item.key}-session-${rank}-name`}>
-                              {projection.name}
-                            </Text>
-                            <SessionCompositionTree tree={projection.tree} testID={`calendar-item-${item.key}-composition-${rank}`} />
-                          </View>
-                        ))}
-                      </Pressable>
-                    ) : null}
+              {groups.map((group) =>
+                group.parcours ? (
+                  // D-553 (Figma `12906:71`) : ligne « Ⓟ nom de la Routine » au-dessus de la première carte, sans heure, statut ni
+                  // compteur ; cartes décalées ; lien noir fin du Ⓟ jusqu'au bas de la dernière carte, sur les traits verticaux.
+                  <View key={group.key} style={styles.parcours} testID={`calendar-parcours-${group.key}`}>
+                    <View style={styles.parcoursLink} testID={`calendar-parcours-${group.key}-link`} />
+                    <View style={styles.parcoursHeader}>
+                      <ParcoursBadge placement="alone" size={18} stroke={1.5} testID={`calendar-parcours-${group.key}-badge`} />
+                      <Text style={styles.parcoursName} numberOfLines={1} maxFontSizeMultiplier={1.6} testID={`calendar-parcours-${group.key}-name`}>
+                        {parcoursNameOf(group)}
+                      </Text>
+                    </View>
+                    {group.cards.map((card) => renderCard(card, true))}
                   </View>
-                );
-              })}
+                ) : (
+                  <View key={group.key}>{group.cards.map((card) => renderCard(card, false))}</View>
+                ),
+              )}
             </View>
           );
         })}
@@ -672,7 +683,7 @@ export function CalendarWeekScreen({
           // Recette du 20/11/2026 (Hermann : « Remettre le bouton Annuler à côté du bouton Confirmer, les deux au même format » —
           // suppression de routine et d'occurrence) : deux actions côte à côte du composant partagé. [« Annuler » en haut à gauche,
           // « Confirmer » pleine largeur (D-537) — remplacé.]
-          title={t.deleteOccurrence.title}
+          title={deleteCandidate.sessionIndex === null ? t.deleteOccurrence.title : t.deleteOccurrence.sessionTitle}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message=""
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
@@ -683,8 +694,10 @@ export function CalendarWeekScreen({
           confirmBordered={false}
           onCancel={() => setDeleteCandidate(null)}
           onConfirm={() => {
-            const { routine, occurrenceKey } = deleteCandidate;
-            runAction(() => planning.excludeOccurrence(routine.id, occurrenceKey));
+            const { routine, occurrenceKey, sessionIndex } = deleteCandidate;
+            runAction(() =>
+              sessionIndex === null ? planning.excludeOccurrence(routine.id, occurrenceKey) : planning.removeOccurrenceSession(routine.id, occurrenceKey, sessionIndex),
+            );
           }}
           testIDPrefix="planning-delete-occurrence"
         />
@@ -733,8 +746,14 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 13, color: colors.textSecondary },
   // DSF Agenda § 4 : 8 entre deux routines, aucun trait.
   item: { paddingBottom: spacing[8] },
+  // D-553 (Figma `12906:71`) : groupe d'un parcours — ligne « Ⓟ » (Ⓟ de 18 centré à x = 13 sur les traits des cartes, nom à
+  // x = 28), cartes espacées de 4, lien noir de 1 du bas du Ⓟ au bas de la dernière carte.
+  parcours: { paddingBottom: spacing[4] },
+  parcoursHeader: { flexDirection: "row", alignItems: "center", paddingLeft: 4, paddingTop: 10, paddingBottom: 4, gap: 6, paddingRight: layout.screenGutter },
+  parcoursName: { ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary, flexShrink: 1 },
+  parcoursLink: { position: "absolute", left: 12.5, width: 1, top: 28, bottom: spacing[8], backgroundColor: "#000000" },
+  parcoursItem: { paddingBottom: spacing[4] },
   expanded: { marginHorizontal: layout.screenGutter, marginTop: spacing[8], gap: spacing[8] },
-  expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
 });

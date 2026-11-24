@@ -225,7 +225,9 @@ describe("Planifier (CE-UI-12)", () => {
     expect(synthesis()).toMatch(/ toutes les 2 semaines, les lundis, à 8h, /);
   });
 
-  it("parcours : nom vide et obligatoire, puis déjà pris (RM-258, RM-261) ; enregistré avec le nom saisi", async () => {
+  // D-553 (21/11/2026) : nom généré « Bravo + Alpha » ; doublon autorisé ; nom vidé bloquant (« Nom obligatoire ») ; nom saisi
+  // = personnalisé. [RM-258 / RM-261 : nom vide et obligatoire à plusieurs séances, « Ce nom est déjà utilisé » — remplacés.]
+  it("parcours : nom généré, doublon autorisé, nom vidé bloquant, nom saisi personnalisé (D-553)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     const existing = await planning.createRoutine({ name: "Matin", startDate: START, time: "07:00", repetition: null, entries: [{ id: "x", sessionId: a.id, frequency: EVERY_TIME }] });
@@ -233,20 +235,32 @@ describe("Planifier (CE-UI-12)", () => {
     await renderPlanning({ date: START });
     await validateSelection([b.id, a.id]);
     expect(screen.getByText("Planifier un parcours")).toBeTruthy();
-    expect(screen.getByTestId("planning-name").props.value).toBe("");
+    expect(screen.getByTestId("planning-name").props.value).toBe("Bravo + Alpha");
+    expect(screen.queryByTestId("planning-name-error")).toBeNull();
+    expect(validateEnabled()).toBe(true);
+    fireEvent.changeText(screen.getByTestId("planning-name"), "");
     expect(screen.getByTestId("planning-name-error").props.children).toBe("Nom obligatoire");
     expect(validateEnabled()).toBe(false);
     fireEvent.changeText(screen.getByTestId("planning-name"), "  MATIN ");
-    expect(screen.getByTestId("planning-name-error").props.children).toBe("Ce nom est déjà utilisé");
-    expect(validateEnabled()).toBe(false);
-    fireEvent.changeText(screen.getByTestId("planning-name"), "Genou");
     expect(screen.queryByTestId("planning-name-error")).toBeNull();
+    expect(screen.queryByText("Ce nom est déjà utilisé")).toBeNull();
     expect(validateEnabled()).toBe(true);
     await save();
     const routines = await planning.listRoutines();
-    expect(routines[1]).toMatchObject({ name: "Genou" });
+    expect(routines[1]).toMatchObject({ name: "MATIN" });
+    expect(routines[1]?.nameGenerated).toBeUndefined();
     // D-519 : ordre des lignes = ordre de sélection.
     expect(routines[1]?.entries.map((entry) => entry.sessionId)).toEqual([b.id, a.id]);
+  });
+
+  it("nom généré enregistré comme tel ; à la modification il suit la composition (D-553)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    await renderPlanning({ date: START });
+    await validateSelection([a.id, b.id]);
+    await save();
+    const [created] = await planning.listRoutines();
+    expect(created).toMatchObject({ name: "Alpha + Bravo", nameGenerated: true });
   });
 
   it("une seule séance cochée dans la sélection : son nom est copié (RM-258)", async () => {
@@ -609,7 +623,8 @@ describe("Planifier (CE-UI-12)", () => {
     expect(request).toMatchObject({ initial: [a.id] });
     act(() => request!.onValidate([a.id, b.id]));
     expect(played(1, 1) && played(1, 2)).toBe(true);
-    expect(screen.getByTestId("planning-name").props.value).toBe("");
+    // D-553 : le nom généré suit la composition. [Nom vidé à plusieurs séances (RM-258) — remplacé.]
+    expect(screen.getByTestId("planning-name").props.value).toBe("Alpha + Bravo");
   });
 
   it("fermer la sélection initiale sans contenu ferme Planifier sans rien écrire", async () => {

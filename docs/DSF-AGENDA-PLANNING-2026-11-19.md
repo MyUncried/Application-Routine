@@ -30,7 +30,7 @@ Regroupée par jour. [Recette du 20/11/2026 (constat C) : la liste continue sur 
 - **Bande** : une bande horizontale de la couleur du cadre, à 18 % d’opacité, prolonge le cadre sur toute la largeur de la carte jusqu’au bord droit de l’écran, avec à droite le même trait vertical épais de 6 px qu’à gauche.
 - **Teinte du cadre et du trait** — rendu proposé : vert clair pour une séance faite, rouge clair pour une séance manquée, gris clair pour une séance prévue. [Remplacé le 19/11/2026 au soir (Hermann, constat D) : exécutée complète, passée ou future → vert ; exécutée partielle → orange ; abandonnée (arrêtée) → gris ; passée non exécutée → rouge ; future non exécutée → bleu.]
 - **Chevron** : un chevron de 16 px à gauche du nom, aligné sur lui, ouvre ou ferme le déployé ; il pointe vers la droite carte fermée, vers le bas carte déployée. Le nom est décalé de 18 px ; la ligne 2 reste alignée sur le bord gauche du chevron.
-- **Titre** : nom de la routine, 16 noir. **Ligne 2** : « Spécialité · zones corporelles », 13 gris, le point étant centré horizontalement et verticalement entre les deux (6 px de chaque côté) ; une ou deux zones, le signe « + » si les zones ne tiennent pas ; spécialité abrégée au besoin (« Kiné »).
+- **Titre** : [remplacé le 21/11/2026 (D-553) : nom de la Séance, jamais celui de la Routine] nom de la routine, 16 noir. **Ligne 2** : « Spécialité · zones corporelles », 13 gris, le point étant centré horizontalement et verticalement entre les deux (6 px de chaque côté) ; une ou deux zones, le signe « + » si les zones ne tiennent pas ; spécialité abrégée au besoin (« Kiné »).
 - **À droite** : étiquette « Terminée » pour une séance faite ; bouton « Démarrer » pour une séance prévue ou manquée. [Remplacé le 19/11/2026 au soir (s19-passees, constat G) : étiquette « Complétée », « Partielle » ou « Arrêtée » selon le statut d'exécution de la ou des séances ; « Démarrer » pour une occurrence non exécutée, passée ou future. Navigation (constat B) : le cadre de gauche ouvre la planification, le centre déploie, la droite porte l'action.] Le texte du bouton et celui de l’étiquette sont alignés en bas avec le texte de la ligne 2.
 
 ## À clarifier
@@ -55,6 +55,8 @@ La zone de contexte (§ 2), la rangée des jours (§ 3), la liste regroupée par
 Ces déclinaisons sont du rendu, sans règle métier nouvelle. Les écrans Jour et Mois ne sont pas modifiés par ce paragraphe.
 
 ## 7. Routine à plusieurs séances : une carte, un enchaînement (D-534, 19/11/2026)
+
+[Affichage remplacé le 21/11/2026 (D-553) : une carte par Séance, ligne Ⓟ et lien ; voir « Évolution validée du 21/11/2026 » en fin de document. L’enchaînement décrit ci-dessous reste en vigueur.]
 
 Une routine planifiée avec plusieurs séances et un nom produit **une seule carte par occurrence** : le nom de la routine en titre, l’heure et la durée totale ; les séances sont listées dans le déployé. Dupliquer et Supprimer s’appliquent à la routine.
 
@@ -82,3 +84,7 @@ Si l’utilisateur arrête une séance, la suite lui est proposée (« Passer à
 [Mise en œuvre du 20/11/2026 — D-540 (§ 10 de la branche `docs/planification-grille-creneaux`, commit 171f9ca3, non fusionnée) : créneau manqué rattrapable jusqu'au début du créneau suivant de la routine, le dernier 10 jours ; puis « Expirée » (cadre rouge, étiquette rouge, ni « Rattraper » ni « Démarrer ») ; état calculé. Classe A ; rapport `2026-11-20_CYCLE-VIE-ROUTINE.md`.]
 
 [Recette du 20/11/2026 (Hermann) : fenêtre « Supprimer ce créneau » — « Annuler » et « Confirmer » côte à côte, même format. [« Annuler » en haut à gauche, « Confirmer » pleine largeur — remplacé.]]
+
+## Évolution validée du 21/11/2026 — Agenda centré sur les Séances
+
+**Remplace**, pour l'Agenda seulement, la carte unique par occurrence de Routine (D-533/D-534) : une carte **par Séance**, y compris Exécution libre, et un en-tête compact « Ⓟ Nom du parcours » avec rail sans numéros au-dessus des Séances d'une Routine à plusieurs Séances. Une Routine à Séance unique n'a pas d'en-tête Parcours. Les cartes utilisent toutes le même format ; le déployé ne répète plus le nom de la Séance. L'heure d'une Séance exécutée est réelle et la carte est repositionnée ; pour les Séances non exécutées à partir de la deuxième d'un Parcours, la zone heure affiche « — ». Pas de statut d'Exécution agrégé du Parcours ; enchaînement actuel conservé. Les autres règles et états non contradictoires de ce DSF demeurent. Voir [spécification consolidée du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **L'affichage Agenda est validé dans Figma** (« P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) », `12906:47`) ; filtre et vue filtrée ajustés le 21/11/2026, à valider.

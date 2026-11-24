@@ -159,6 +159,8 @@ function SessionServiceInitializer({
     return new PlanningService({
       repository: routines,
       occurrenceExecutions: () => occurrenceExecutions.list(),
+      // D-553 : l'Agenda lit toutes les Exécutions (cartes « Hors planification »).
+      executions: () => new SqliteExecutionRepository(new ExpoDatabase(nativeDatabase)).listForAgenda(),
       reminders: {
         refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission(),
         permissionStatus: () => scheduler.permissionStatus(),

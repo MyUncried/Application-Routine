@@ -18,6 +18,11 @@ export type OccurrenceLink = {
 
 export type OccurrenceExecution = OccurrenceLink & {
   readonly executionId: string;
+  /**
+   * D-553 (21/11/2026) : Séance exécutée — rattache l'Exécution à sa carte de Séance dans l'Agenda, même si une Séance du
+   * créneau a été supprimée depuis (le rang seul se décalerait). Absent : données de test antérieures.
+   */
+  readonly sessionId?: string | null;
   readonly startedAt: string;
   /** `null` : Exécution non terminée. */
   readonly businessStatus: BusinessStatus | null;
@@ -51,6 +56,23 @@ export function occurrenceExecutionStatus(sessionCount: number, executions: read
   const complete = Array.from({ length: Math.max(1, sessionCount) }, (_, index) => latest.get(index + 1)?.businessStatus === "COMPLETED").every(Boolean);
   return complete ? "COMPLETED" : "PARTIAL";
 }
+
+/**
+ * D-553 (21/11/2026) : Exécution lue par l'Agenda, rattachée à un créneau ou non (« Hors planification »). L'Agenda lit toutes
+ * les Exécutions (spécification du 21/11/2026, § 4 : la migration 033 ne couvre pas les Exécutions libres). Nom de la Séance :
+ * celui de l'instantané (historique), indépendant d'un renommage, d'un archivage ou d'une suppression ultérieurs.
+ */
+export type AgendaExecution = {
+  readonly executionId: string;
+  readonly sessionId: string | null;
+  readonly sessionName: string;
+  readonly startedAt: string;
+  /** `null` : Exécution non terminée. */
+  readonly endedAt: string | null;
+  readonly businessStatus: BusinessStatus | null;
+  /** `null` : Exécution hors planification. */
+  readonly link: OccurrenceLink | null;
+};
 
 /** Clé d'une occurrence dans une routine, pour regrouper ses Exécutions. */
 export function occurrenceExecutionKey(routineId: string, occurrenceKey: string): string {

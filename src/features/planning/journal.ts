@@ -1,6 +1,6 @@
 import { normalizeSearchText } from "@/domain/activities/movementSuggestion";
 import { isRoutineActiveAt, periodOccurrences, type IsOccurrenceStarted } from "@/domain/planning/occurrences";
-import { endDateForCount, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { endDateForCount, generatedRoutineName, routineDisplayName, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import { duringLabel, formatRecurrence } from "@/features/planning/planningSummary";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { matchesSessionFilters, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -123,6 +123,17 @@ export function journalRecurrenceLine(routine: Routine, today: LocalDate): strin
       ? `${t.journal.until} ${shortDate(repetition.end.date, today)}`
       : duringLabel(repetition.unit, repetition.end.count);
   return `${formatRecurrence(routine)} · ${end}`;
+}
+
+/**
+ * D-553 (21/11/2026) : nom de Routine affiché (Journal, filtre de l'Agenda, ligne « Ⓟ » d'un parcours) — nom généré recalculé
+ * depuis les Séances (`sessions` : projections connues), nom personnalisé tel quel ; repli sur les noms reliés par « + ».
+ * [Routine sans nom : séances séparées par des virgules — remplacé.]
+ */
+export function routineTitle(routine: Routine, sessions: readonly SessionCatalogueProjection[]): string {
+  const byId = new Map(sessions.map((session) => [session.id, session.name]));
+  const name = routineDisplayName(routine, (sessionId) => byId.get(sessionId));
+  return name.trim() !== "" ? name : generatedRoutineName(sessions.map((session) => session.name));
 }
 
 /** Recherche : nom de la routine, ou nom d'une de ses séances ou de leurs exercices (même règle que le Catalogue). */

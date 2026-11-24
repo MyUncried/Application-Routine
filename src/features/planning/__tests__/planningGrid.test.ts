@@ -68,10 +68,14 @@ describe("répétition et nom (RM-257, RM-258)", () => {
     expect([unitLabel("WEEK", 1), unitLabel("WEEK", 2), unitLabel("DAY", 1), unitLabel("DAY", 3)]).toEqual(["semaine", "semaines", "jour", "jours"]);
   });
 
-  it("nom : copie de l'unique séance, vide à plusieurs, saisie prioritaire", () => {
+  // D-553 (21/11/2026) : nom généré — Séance seule, ou noms dans l'ordre reliés par « + » ; il suit la composition ; un nom
+  // saisi reste fixe. [RM-258 : « vide à plusieurs » — remplacé.]
+  it("nom : généré depuis les Séances (« + » à plusieurs), suit la composition ; saisie prioritaire (D-553)", () => {
     const nameOf = (sessionId: string) => ({ "s-a": "Alpha", "s-b": "Bravo" })[sessionId];
     expect(effectiveName({ name: "", nameEdited: false, entries: [entry("a")] }, nameOf)).toBe("Alpha");
-    expect(effectiveName({ name: "", nameEdited: false, entries: [entry("a"), entry("b")] }, nameOf)).toBe("");
+    expect(effectiveName({ name: "", nameEdited: false, entries: [entry("a"), entry("b")] }, nameOf)).toBe("Alpha + Bravo");
+    expect(effectiveName({ name: "", nameEdited: false, entries: [entry("b"), entry("a")] }, nameOf)).toBe("Bravo + Alpha");
+    expect(effectiveName({ name: "Genou", nameEdited: true, entries: [entry("a"), entry("b")] }, nameOf)).toBe("Genou");
     expect(effectiveName({ name: "Genou", nameEdited: true, entries: [entry("a")] }, nameOf)).toBe("Genou");
     expect(effectiveName({ name: "", nameEdited: true, entries: [entry("a")] }, nameOf)).toBe("");
   });
