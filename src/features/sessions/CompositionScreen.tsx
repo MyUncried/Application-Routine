@@ -5788,7 +5788,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             setIsAddActivityTreeOpen(true);
           }}
           bottom={actionZone.scrollReserve - finalActionContentPadding(Platform.OS, insets.bottom).top + FLOATING_BOTTOM_GAP}
-          disabled={isPlacementActive || isEnvelopeActive}
+          // Recette du 24/11/2026 (fab-point-arret) : en placement, le bouton disparaît en fondu lent ; en mode enveloppe, il
+          // reste atténué (non cité). [Atténué aussi en placement — remplacé.]
+          disabled={isEnvelopeActive}
+          faded={isPlacementActive}
           hidden={isAddActivityTreeOpen}
           onAnchorChange={setFloatingAnchor}
           focusRequest={addStopFocusRequest}

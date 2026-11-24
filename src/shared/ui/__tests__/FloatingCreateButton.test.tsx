@@ -9,7 +9,7 @@ import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import { en } from "@/shared/i18n/resources/en";
 import { fr } from "@/shared/i18n/resources/fr";
 import { CREATE_MENU_LAYER } from "@/features/sessions/CreateMenu";
-import { FLOATING_CREATE_LAYER, FLOATING_CREATE_OPACITY, FloatingCreateButton } from "@/shared/ui/FloatingCreateButton";
+import { FLOATING_CREATE_LAYER, FLOATING_CREATE_OPACITY, FLOATING_FADE_MS, FloatingCreateButton } from "@/shared/ui/FloatingCreateButton";
 import { FloatingCreateHost, FloatingCreateSlot } from "@/shared/ui/FloatingCreateHost";
 import {
   FLOATING_DRAG_THRESHOLD,
@@ -264,6 +264,25 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
     expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!).tone).toBeUndefined();
     second!.unmount();
+  });
+
+  it("recette du 24/11 : effacé (placement) — fondu lent de 600 ms, ni toucher ni VoiceOver ; réapparaît", () => {
+    const onPress = jest.fn();
+    const element = (faded: boolean) => (
+      <FloatingCreateButton variant="plus" accessibilityLabel="Ouvrir le menu Créer" onPress={onPress} bottom={BOTTOM} faded={faded} />
+    );
+    const view = render(element(true));
+    fireEvent(screen.getByTestId("floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: W, height: H } } });
+    expect(FLOATING_FADE_MS).toBe(600);
+    const fadeLayer = () => screen.getByTestId("floating-create-fade", { includeHiddenElements: true });
+    expect(fadeLayer().props).toMatchObject({ pointerEvents: "none", accessibilityElementsHidden: true, importantForAccessibility: "no-hide-descendants" });
+    expect(screen.queryByLabelText("Ouvrir le menu Créer")).toBeNull();
+    fireEvent.press(screen.getByTestId("floating-create", { includeHiddenElements: true }));
+    expect(onPress).not.toHaveBeenCalled();
+    view.rerender(element(false));
+    expect(fadeLayer().props).toMatchObject({ pointerEvents: "auto", accessibilityElementsHidden: false });
+    fireEvent.press(screen.getByLabelText("Ouvrir le menu Créer"));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it("chaque variante a son contenu (Figma 13039:49732)", () => {

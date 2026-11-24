@@ -5780,7 +5780,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     fireEvent.press(option);
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     expect(screen.getByTestId(BAR)).toBeTruthy();
-    expect(screen.getByTestId(FAB).props.accessibilityState).toEqual({ disabled: true });
+    // Recette du 24/11/2026 (fab-point-arret) : le bouton disparaît en fondu lent (caché à VoiceOver).
+    expect(screen.getByTestId(FAB, { includeHiddenElements: true }).props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByTestId(`${FAB}-fade`, { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
   });
 
   it("placement: « Continuer » is replaced by the bar, the rest is inactive (cards not attenuated, D6), the demarcation rule is hidden", () => {
@@ -5808,11 +5810,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     for (const id of ["A", "B", "C", "D"]) {
       expect(screen.queryByTestId(`composition-placement-slot-${id}-recovery`, anyNode)).toBeNull();
     }
-    // « + » atténué et inactif ; revue 5.3 (Figma `8328:29270`) : compteur / œil, bornes et cartes
-    // inactifs, non atténués (D6).
-    const add = screen.getByTestId("composition-floating-create");
+    // Bouton flottant effacé en fondu lent (recette du 24/11/2026, fab-point-arret) [atténué — remplacé] ; revue 5.3 (Figma
+    // `8328:29270`) : compteur / œil, bornes et cartes inactifs, non atténués (D6).
+    const add = screen.getByTestId("composition-floating-create", { includeHiddenElements: true });
     expect(add.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-floating-create-position").props.style).opacity).toBe(0.45);
+    expect(screen.getByTestId("composition-floating-create-fade", { includeHiddenElements: true }).props.pointerEvents).toBe("none");
     const header = screen.getByTestId("composition-circuit-header", anyNode);
     expect(header.props.pointerEvents ?? StyleSheet.flatten(header.props.style).pointerEvents).toBe("none");
     expect(StyleSheet.flatten(header.props.style).opacity).toBeUndefined();

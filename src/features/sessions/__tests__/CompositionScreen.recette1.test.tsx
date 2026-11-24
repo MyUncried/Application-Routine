@@ -320,12 +320,15 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
  * À CLARIFIER, rapport UI-FAB-01.]
  */
 describe("placement ouvert depuis le menu Créer (UI-FAB-01)", () => {
-  it("in placement the floating button is inactive; « Confirmer » applies the selection", async () => {
+  // Recette du 24/11/2026 (fab-point-arret) : en placement, le bouton disparaît en fondu lent (caché à VoiceOver, sans toucher).
+  it("in placement the floating button fades out (inactive, hidden from VoiceOver); « Confirmer » applies the selection and it comes back", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     const before = probe.draft!.structure?.stopPoints ?? []; // modèle unique des Circuits (10/11/2026)
     await startPlacement();
-    expect(screen.getByTestId(FAB).props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByTestId(FAB, { includeHiddenElements: true }).props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByTestId(`${FAB}-fade`, { includeHiddenElements: true }).props).toMatchObject({ pointerEvents: "none", accessibilityElementsHidden: true });
+    expect(screen.queryByTestId(FAB)).toBeNull();
     fireEvent.press(screen.getByLabelText(placementStrings.addStopPointAfterCircuitAccessibilityLabel));
     await act(async () => undefined);
     fireEvent.press(screen.getByTestId("composition-placement-bar-confirm"));
@@ -333,6 +336,7 @@ describe("placement ouvert depuis le menu Créer (UI-FAB-01)", () => {
     expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
     expect(probe.draft!.structure?.stopPoints ?? []).toHaveLength(before.length + 1);
     expect(screen.getByTestId(FAB).props.accessibilityState).toEqual({ disabled: false });
+    expect(screen.getByTestId(`${FAB}-fade`).props.pointerEvents).toBe("auto");
   });
 
   it("« Annuler » closes the selection without mutation", async () => {

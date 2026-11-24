@@ -11,7 +11,15 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
-import Reanimated, { cancelAnimation, ReduceMotion, runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Reanimated, {
+  cancelAnimation,
+  ReduceMotion,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 import {
@@ -64,8 +72,8 @@ export const FLOATING_CREATE_WHITE = "#FFFFFF";
 /** Couleur du symbole, portée par le rond (blanc sur fond bleu). */
 const GlyphColor = createContext<string>(FLOATING_CREATE_BLUE);
 /**
- * Essai « effet lentille » du 24/11/2026 (Hermann : « Oui » à la proposition d'alléger le voile pour laisser voir le verre
- * natif ; à valider sur iPhone). Avec le verre natif d'iOS 26 : verre « clear » (réfraction visible, comme le bouton de lecture
+ * Effet lentille du 24/11/2026 (Hermann : « Oui » à la proposition d'alléger le voile pour laisser voir le verre natif ;
+ * validé sur iPhone : « On garde l'effet lentille, c'est parfait »). Avec le verre natif d'iOS 26 : verre « clear » (réfraction visible, comme le bouton de lecture
  * de la fiche Mouvement), voile blanc léger à 22 % ; bouton bleu : verre teinté en bleu à 70 %, sans voile ni liseré.
  * Aucune opacité d'ensemble sur le bouton : iOS ne rend pas correctement un verre dont un parent est transparent ; la
  * transparence vient du verre lui-même. Sans verre natif : rendu précédent (voile à 65 %, bouton à 70 %).
@@ -227,6 +235,13 @@ export const FLOATING_CREATE_OPACITY = 0.7;
  */
 export const FLOATING_CREATE_LAYER = 9;
 
+/**
+ * Recette du 24/11/2026 (fab-point-arret, KO ; Hermann : « Faire disparaître le bouton (fondu lent) ») : pendant le placement
+ * d'un point d'arrêt, le bouton disparaît en fondu lent au lieu d'être atténué, puis réapparaît de même. Durée reprise de
+ * l'apparition lente du menu Créer (600 ms).
+ */
+export const FLOATING_FADE_MS = 600;
+
 export type FloatingCreateAnchor = { readonly centerX: number; readonly centerY: number; readonly side: FloatingPosition["side"] };
 
 /**
@@ -253,6 +268,7 @@ export function FloatingCreateButton({
   bottom,
   disabled = false,
   hidden = false,
+  faded = false,
   onAnchorChange,
   focusRequest = 0,
   testID = "floating-create",
@@ -265,6 +281,8 @@ export function FloatingCreateButton({
   readonly disabled?: boolean;
   /** Menu Créer ouvert : la croix du menu prend la place du bouton. */
   readonly hidden?: boolean;
+  /** Placement d'un point d'arrêt : bouton effacé en fondu lent, sans toucher ni VoiceOver ; réapparition en fondu. */
+  readonly faded?: boolean;
   /** Centre du bouton dans la couche (menu Créer). */
   readonly onAnchorChange?: (anchor: FloatingCreateAnchor) => void;
   /** Chaque nouvelle valeur place le focus VoiceOver sur le bouton. */
@@ -336,6 +354,16 @@ export function FloatingCreateButton({
   );
 
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }, { translateY: y.get() }] }));
+  // Fondu sur un calque intérieur : l'opacité d'ensemble (sans verre natif) et l'atténuation se multiplient avec lui ; au
+  // repos il vaut 1, le verre natif est donc rendu normalement.
+  const reduceMotion = useReduceMotion();
+  const fade = useSharedValue(faded ? 0 : 1);
+  useEffect(() => {
+    const target = faded ? 0 : 1;
+    fade.set(reduceMotion ? target : withTiming(target, { duration: FLOATING_FADE_MS }));
+  }, [faded, fade, reduceMotion]);
+  const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.get() }));
+  const inactive = disabled || faded;
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -345,22 +373,30 @@ export function FloatingCreateButton({
   return (
     <GestureHandlerRootView pointerEvents="box-none" style={styles.layer} onLayout={onLayout} testID={`${testID}-layer`}>
       {!hidden && rest !== null && bounds !== null ? (
-        <DragDetector enabled={!disabled} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
+        <DragDetector enabled={!inactive} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
           <Reanimated.View style={[styles.button, glass ? styles.lensButton : null, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
-            <Pressable
-              ref={pressableRef}
+            <Reanimated.View
+              style={[StyleSheet.absoluteFill, fadeStyle]}
+              pointerEvents={faded ? "none" : "auto"}
+              accessibilityElementsHidden={faded}
+              importantForAccessibility={faded ? "no-hide-descendants" : "auto"}
+              testID={`${testID}-fade`}
+            >
+              <Pressable
+                ref={pressableRef}
               onPress={onPress}
               // Recette du 24/11/2026 : l'appui long (500 ms, sans glissement) inverse les couleurs, sans déclencher l'action.
               onLongPress={() => saveFloatingTone(tone === "BLUE" ? "LIGHT" : "BLUE")}
-              disabled={disabled}
+              disabled={inactive}
               accessibilityRole="button"
               accessibilityLabel={accessibilityLabel}
-              accessibilityState={{ disabled }}
+              accessibilityState={{ disabled: inactive }}
               style={StyleSheet.absoluteFill}
               testID={testID}
             >
               <FloatingCreateFace variant={variant} tone={tone} testID={`${testID}-face`} />
-            </Pressable>
+              </Pressable>
+            </Reanimated.View>
           </Reanimated.View>
         </DragDetector>
       ) : null}
