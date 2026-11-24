@@ -207,6 +207,7 @@ Lot Compte du MVP. Création du compte et connexion obligatoires par Apple ou Go
 
 - Clé secrète Apple non régénérée : panne de la connexion Apple sur Android. Procédure et rappel nécessaires.
 - La révocation du jeton Apple suppose de conserver un jeton Apple (code d'autorisation natif ou jeton du fournisseur côté OAuth). Mécanisme exact **à vérifier en début d'étape 2**.
+- **Notifications serveur à serveur d'Apple** (Sign in with Apple : compte Apple supprimé, autorisation retirée, changement d'e-mail relais) : créer une fonction serveur réceptrice, puis renseigner son adresse dans le champ « Server-to-Server Notification Endpoint » de `com.ankusha.kodjo`, laissé vide le 24/11/2026.
 - Liens profonds de retour à vérifier pour chaque variante (`routine`, `routine-bmad`, `routine-catalogue`, Dev).
 - Durée de validité de session Supabase et comportement hors ligne prolongé : à mesurer.
 - Le compte obligatoire impose le réseau au premier lancement. Risque de refus App Store jugé modéré.
