@@ -796,23 +796,23 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     screen.unmount();
 
     // `FixedHeader` est partagé : sans la prop locale, le chevron Retour et la marge 24 sont inchangés ;
-    // PRE-5 3.2, arbitrage G-1 : sans les surcharges de l'Éditeur, ni retrait, ni cercle, ni titre ne changent.
+    // PRE-5 3.2, arbitrage G-1 : sans les surcharges de l'Éditeur, ni retrait ni titre ne changent. Décision de Hermann du
+    // 24/11/2026 (homogénéité) : le cercle et le trait de l'icône sont les mêmes sur tous les écrans. [Cercle #E5F0FF sans
+    // liseré ni ombre, icône non teintée hors de l'Éditeur — remplacé.]
     render(
       <TestSafeAreaProvider>
         <FixedHeader title="Composition" onBack={jest.fn()} backAccessibilityLabel="Retour" />
       </TestSafeAreaProvider>,
     );
     expect(screen.UNSAFE_getByType(KodjoIcon).props.name).toBe("control-back");
-    expect(screen.UNSAFE_getByType(KodjoIcon).props.tintColor).toBeUndefined();
+    expect(screen.UNSAFE_getByType(KodjoIcon).props.tintColor).toBe("#14141A");
     const defaultHeader = StyleSheet.flatten(screen.getByTestId("screen-header").props.style);
     // PRE-8, recette A/B (A01) : marge standard `layout.screenGutter` (16).
     expect(defaultHeader.paddingHorizontal).toBe(16);
     expect(defaultHeader.paddingLeft).toBeUndefined();
     expect(defaultHeader.gap).toBe(12);
     const defaultCircle = StyleSheet.flatten(screen.getByTestId("screen-header-back").props.style);
-    expect(defaultCircle.backgroundColor).toBe("#E5F0FF");
-    expect(defaultCircle.borderWidth).toBeUndefined();
-    expect(defaultCircle.shadowOpacity).toBeUndefined();
+    expect(defaultCircle).toMatchObject({ backgroundColor: "#FCFCFE", borderWidth: 1, shadowOpacity: 0.08 });
     // Recette PRE-8 A/B du 27/10 (r9-a02) : tous les titres d’écran en Inter Medium 17.
     expect(StyleSheet.flatten(screen.getByText("Composition").props.style)).toMatchObject({
       fontFamily: "Inter_500Medium",

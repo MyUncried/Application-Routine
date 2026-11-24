@@ -78,7 +78,8 @@ describe("PRE-8 B.7 — feuille des filtres des Mouvements", () => {
     expect(screen.queryByTestId("movement-filter-handle")).toBeNull();
     expect(screen.getByTestId("movement-filter-header-divider")).toBeTruthy();
     for (const [id, background] of [
-      ["movement-filter-close", colors.wheelActionCancelBackground],
+      // D-593 (24/11/2026, « Ces boutons doivent utiliser le même composant que les autres ») : ✕ = cercle blanc standard.
+      ["movement-filter-close", "#FCFCFE"],
       ["movement-filter-apply", colors.wheelActionValidateBackground],
     ] as const) {
       const circle = screen.getByTestId(id);
