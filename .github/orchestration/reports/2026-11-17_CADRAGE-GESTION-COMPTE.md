@@ -284,6 +284,34 @@ Ce qui reste :
 - la règle existante du §12.20 : aucune information sensible dans les journaux ;
 - les conditions RGPD de l'envoi de l'Historique, à définir au lot sauvegarde (§9).
 
+## 15. Benchmark identité publique et recherche (24/11/2026)
+
+**Demande de Hermann.** La recherche doit pouvoir se faire par prénom et nom ; pas de pseudo proposé automatiquement ; pseudo éventuellement facultatif ; éviter les écrans supplémentaires.
+
+**Limite de preuve.** Les pages d'aide officielles sont bloquées par le réseau de la session (`support.strava.com`, `help.hevyapp.com`, `ENOTFOUND`). Toutes les informations viennent d'extraits du moteur de recherche, limités aux domaines officiels, consultés le 24/11/2026. Relecture complète nécessaire avant de s'en servir comme preuve.
+
+**Patrons observés :**
+
+| Patron | Applications | Ce qui en ressort |
+|---|---|---|
+| Nom réel visible, sans pseudo | Strava, Google Health (Fitbit), Facebook, LinkedIn | Recherche immédiate par nom. Le nom n'est pas masquable chez Strava ; LinkedIn propose « Prénom + initiale » hors connexions. |
+| Pseudo obligatoire et unique, écran dédié à l'inscription | Peloton, Instagram, Discord | — |
+| Pseudo comme clé de recherche, nom réel facultatif | Hevy, Komoot, Nike Run Club | — |
+| Identité reprise du fournisseur, accord au premier usage | Google Health | Un seul écran d'accord |
+| Pseudo facultatif ajouté plus tard, recherche exacte | WhatsApp | — |
+| Contacts seulement | Apple Fitness | Pas de recherche publique |
+| Trouvabilité réglée à part de la visibilité du profil | Komoot, LinkedIn, Peloton | Réglage « apparaître dans la recherche » distinct |
+
+**Sign in with Apple** (developer.apple.com) :
+- le nom n'est transmis qu'à la première autorisation, et l'utilisateur peut le modifier avant de le partager ;
+- un fil de forum rapporte un refus App Store pour un nom redemandé après la connexion Apple : c'est un témoignage, pas une règle écrite.
+
+**Recommandations de Claude (non validées) :**
+- aucun écran d'identité à l'inscription ;
+- nom Apple ou Google enregistré à la première connexion ;
+- un seul écran « Comment les autres vous voient » au **premier usage communautaire** (T2), avec prénom et nom préremplis et modifiables, pseudo facultatif vide et réglage « apparaître dans la recherche » ;
+- recherche par prénom, nom ou pseudo.
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
