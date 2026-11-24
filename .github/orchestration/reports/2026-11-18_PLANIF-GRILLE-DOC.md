@@ -186,3 +186,4 @@
 - Vérification sur iPhone à faire : lisibilité des icônes de 28 pt et contraste des cadres.
 - Tests : non applicables.
 - Figma (24/11/2026, suite) : icônes et teintes d'état propagées à 15 écrans Agenda (57 lignes ; « Expirée » inchangée) ; carte d'essai du catalogue : bouton Démarrer en icône à relief, durée déplacée en ligne 3 (suivie des formats). Composant `DSF / Cards / Séance — catalogue` non modifié ; carte déployée non traitée. Documents : `docs/DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md` § 2. Tests : non applicables.
+- Prompt Claude Code : `docs/PROMPT-CLAUDE-CODE-AGENDA-ICONES-ETAT-2026-11-24.md` ; prompt de la carte de séance mis à jour (durée en ligne 3, bouton Démarrer en icône) ; DSF Agenda : « Rattrapable » et « Expiré » précisés. Prompts Agenda du 20/11 inchangés (règles d'état toujours valables, présentation remplacée par D-566).
