@@ -1,3 +1,4 @@
+import { GlassView } from "expo-glass-effect";
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -11,6 +12,7 @@ import {
 
 import { noteTabFocus } from "@/features/planning/calendarArrival";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { LENS_VEIL, liquidGlassAvailable } from "@/shared/ui/liquidGlass";
 import {
   NAVIGATION_ACTIVE_FRAME,
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
@@ -121,6 +123,8 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   // `useState` : instance `Animated.Value` stable, jamais lue via un ref pendant le rendu.
   const [indicatorX] = useState(() => new Animated.Value(0));
   const [isIndicatorReady, setIsIndicatorReady] = useState(false);
+  // Effet lentille (24/11/2026) : fond de la barre et cadre actif en verre natif clair ; sans verre natif, rendu d'origine.
+  const [glass] = useState(liquidGlassAvailable);
   const focusedName = state.routes[state.index]?.name;
   const activeName = focusedName === undefined ? undefined : (ROUTES_SHOWN_AS[focusedName] ?? focusedName);
   const activeRouteKey = state.routes.find((route) => route.name === activeName)?.key;
@@ -201,13 +205,29 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   return (
     <View style={styles.navigationRow} testID="navigation-row">
-      <View style={styles.tabsGroup} testID="navigation-tabs-group">
+      <View style={[styles.tabsGroup, glass ? styles.tabsGroupLens : null]} testID="navigation-tabs-group">
+        {glass ? (
+          <View pointerEvents="none" style={styles.barLens} testID="navigation-bar-lens">
+            <GlassView glassEffectStyle="clear" colorScheme="light" style={StyleSheet.absoluteFill} testID="navigation-bar-glass" />
+            <View style={styles.barLensVeil} />
+          </View>
+        ) : null}
         {isIndicatorReady ? (
           <Animated.View
             pointerEvents="none"
             testID="navigation-active-indicator"
-            style={[styles.activeIndicator, { transform: [{ translateX: indicatorX }] }]}
-          />
+            style={[styles.activeIndicator, glass ? styles.activeIndicatorLens : null, { transform: [{ translateX: indicatorX }] }]}
+          >
+            {glass ? (
+              <GlassView
+                glassEffectStyle="clear"
+                colorScheme="light"
+                tintColor={NAVIGATION_ACTIVE_FRAME.color}
+                style={styles.activeIndicatorGlass}
+                testID="navigation-active-indicator-glass"
+              />
+            ) : null}
+          </Animated.View>
         ) : null}
         {items}
       </View>
@@ -267,6 +287,28 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: NAVIGATION_BAR_SHADOW.offsetY },
     shadowOpacity: NAVIGATION_BAR_SHADOW.opacity,
     shadowRadius: NAVIGATION_BAR_SHADOW.radius,
+  },
+  // Effet lentille : la couleur passe au verre (voile blanc léger) ; forme, liseré blanc et ombre inchangés.
+  tabsGroupLens: {
+    backgroundColor: "transparent",
+  },
+  barLens: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: NAVIGATION_BAR_RADIUS - BAR_BORDER_WIDTH,
+    overflow: "hidden",
+  },
+  barLensVeil: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: LENS_VEIL,
+  },
+  // Cadre actif en lentille : verre clair teinté de son bleu d'origine (10 %), mêmes dimensions.
+  activeIndicatorLens: {
+    backgroundColor: "transparent",
+    overflow: "hidden",
+  },
+  activeIndicatorGlass: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: NAVIGATION_ACTIVE_FRAME.radius,
   },
   // Cadre actif, sous les destinations (premier enfant), centré verticalement dans la barre.
   activeIndicator: {
