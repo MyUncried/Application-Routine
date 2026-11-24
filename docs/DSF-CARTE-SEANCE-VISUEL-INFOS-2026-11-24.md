@@ -30,9 +30,11 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 
 La carte repliée affiche ce que contient la séance, ses formats et sa durée.
 
-- Ligne 1 : nom (chevron inchangé) et durée en haut à droite (règles de durée inchangées, y compris « ≥ »).
+- Ligne 1 : nom (chevron inchangé).
 - Ligne 2 : **noms des mouvements** distincts, dans l'ordre de la composition, séparés par des virgules ; ce qui ne tient pas est remplacé par « +N ».
-- Ligne 3 : **noms des formats** de la séance, séparés par des virgules ; la ligne n'existe pas s'il n'y a aucun format. Le pictogramme reste l'haltère (une carte sans format ne le montre pas).
+- Ligne 3 : **durée** (chronomètre puis durée, règles de durée inchangées, y compris « ≥ »), toujours présente ; suivie, s'il y a des formats, d'un point médian puis du pictogramme haltère et des **noms des formats** séparés par des virgules.
+- Bouton **Démarrer** : icône ronde de 28 pt à droite, centrée sur la hauteur de la carte (relief au repos, état appuyé : D-566) ; il remplace la pastille textuelle « Démarrer ».
+  [Remplacé le 24/11/2026 : durée en haut à droite et ligne 3 réservée aux formats.]
 - **Retirés de la carte repliée** : catégories, zones corporelles (déjà absentes), nombre d'exercices, nombre de circuits, volume d'une séance à un seul exercice. Ces informations restent visibles dans l'état déployé ; les filtres Catégories et Zones corporelles ne changent pas.
 - Hauteur de la carte : 72 pt, inchangée.
 

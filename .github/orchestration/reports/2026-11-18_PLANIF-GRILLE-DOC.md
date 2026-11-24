@@ -185,3 +185,4 @@
 - Non traité : propagation à l'écran Agenda de production, aux chapitres 09/10 et aux prompts Agenda ; anneau « Partielle » : décidé fixe (pas de progression réelle) ; légende Figma passée en triangle bleu pour Rattraper. Relief au repos et état appuyé réservés à Démarrer et Rattraper (colonne « Appuyé » ajoutée à la légende) ; icônes d'état à plat.
 - Vérification sur iPhone à faire : lisibilité des icônes de 28 pt et contraste des cadres.
 - Tests : non applicables.
+- Figma (24/11/2026, suite) : icônes et teintes d'état propagées à 15 écrans Agenda (57 lignes ; « Expirée » inchangée) ; carte d'essai du catalogue : bouton Démarrer en icône à relief, durée déplacée en ligne 3 (suivie des formats). Composant `DSF / Cards / Séance — catalogue` non modifié ; carte déployée non traitée. Documents : `docs/DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md` § 2. Tests : non applicables.
