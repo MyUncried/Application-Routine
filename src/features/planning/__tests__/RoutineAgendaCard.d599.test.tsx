@@ -95,12 +95,19 @@ describe("D-599 — une icône par état, libellé d'accessibilité, aucun libel
     const onStart = renderCard("UPCOMING");
     const start = screen.getByTestId("card-start");
     expect(start.props.accessibilityLabel).toBe("Démarrer");
-    expect(StyleSheet.flatten(start.props.style)).toMatchObject({ minWidth: AGENDA_ICON_TOUCH, minHeight: AGENDA_ICON_TOUCH });
+    // Même emplacement de 44 que les icônes d'état, même marge droite : bords droits alignés (recette du 24/11/2026).
+    expect(StyleSheet.flatten(screen.getByTestId("card-start-slot").props.style)).toMatchObject({ width: AGENDA_ICON_TOUCH, height: AGENDA_ICON_TOUCH });
+    const playZone = StyleSheet.flatten(start.props.style);
     expect(AGENDA_ICON_TOUCH).toBeGreaterThanOrEqual(44);
     const upcoming = styleOf();
     expect(screen.queryByText("Démarrer")).toBeNull();
     fireEvent.press(start);
     expect(onStart).toHaveBeenCalledTimes(1);
+    screen.unmount();
+    renderCard("COMPLETED");
+    const stateZone = StyleSheet.flatten(screen.getByTestId("card-action-zone").props.style);
+    expect(playZone.paddingRight).toBe(stateZone.paddingRight);
+    expect(playZone.paddingLeft).toBe(stateZone.paddingLeft);
     screen.unmount();
     renderCard("MISSED");
     expect(screen.getByTestId("card-start").props.accessibilityLabel).toBe("Rattraper");
