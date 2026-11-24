@@ -305,7 +305,7 @@ describe("CatalogueScreen — cadre commun", () => {
     const position = StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style);
     expect(position).toMatchObject({ width: 60, height: 60 });
     expect(screen.getByTestId("floating-create-glyph-session")).toBeTruthy();
-    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.65)");
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.22)"); // essai lentille du 24/11 (verre natif du simulacre)
   });
 
   it("places the empty-state text inside a dedicated frame (surface/border/radius), not floating alone in the body (CAT-R03, contre-recette iPhone 2026-09-03)", async () => {

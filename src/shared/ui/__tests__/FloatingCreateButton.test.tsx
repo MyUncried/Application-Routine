@@ -32,6 +32,21 @@ import {
  */
 const mockFiles = new Map<string, string>();
 const mockSpringConfigs: { reduceMotion?: unknown }[] = [];
+
+/** Sans verre natif (iOS antérieur à 26) : le simulacre jest-expo le déclare disponible par défaut. */
+let mockLiquidGlass = true;
+jest.mock("expo-glass-effect", () => ({
+  ...(jest.requireActual("expo-glass-effect") as object),
+  isLiquidGlassAvailable: () => mockLiquidGlass,
+}));
+function withoutNativeGlass(run: () => void) {
+  mockLiquidGlass = false;
+  try {
+    run();
+  } finally {
+    mockLiquidGlass = true;
+  }
+}
 jest.mock("expo-file-system", () => {
   class File {
     readonly key: string;
@@ -142,7 +157,8 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style)).toMatchObject({ position: "absolute", width: 60, height: 60 });
     expect(place()).toEqual({ left: RIGHT_LEFT, top: DEFAULT_TOP });
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style)).toMatchObject({
-      backgroundColor: "rgba(255, 255, 255, 0.65)",
+      // Essai lentille (verre natif) : voile léger ; sans verre natif, 65 % (test « sans verre natif »).
+      backgroundColor: "rgba(255, 255, 255, 0.22)",
       borderWidth: 1.2,
       borderColor: "rgba(255, 255, 255, 0.95)",
       borderRadius: 30,
@@ -169,8 +185,9 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(screen.queryByTestId("floating-create")).toBeNull();
   });
 
-  it("recette du 24/11 : bouton à 70 % d'opacité ; couche au-dessus de la zone de contexte (zIndex 1), sous le menu Créer", () => {
-    renderButton();
+  it("recette du 24/11 : sans verre natif, bouton à 70 % d'opacité ; couche au-dessus de la zone de contexte (zIndex 1), sous le menu Créer", () => {
+    withoutNativeGlass(() => renderButton());
+    expect(screen.queryByTestId("floating-create-face-glass")).toBeNull();
     expect(FLOATING_CREATE_OPACITY).toBe(0.7);
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.7);
     const layer = StyleSheet.flatten(screen.getByTestId("floating-create-layer").props.style);
@@ -198,9 +215,27 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(mockSpringConfigs.every((config) => config.reduceMotion === "never")).toBe(true);
   });
 
-  it("recette du 24/11 : appui long — fond bleu et symbole blanc (mêmes opacités), sans action ; conservé ; nouvel appui long : retour", () => {
+  it("essai lentille du 24/11 : verre natif « clear » visible, voile blanc léger, sans opacité d'ensemble ; bleu : verre teinté, sans voile ni liseré", () => {
+    renderButton();
+    const glass = () => screen.getByTestId("floating-create-face-glass").props;
+    const veil = () => StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style);
+    expect(glass()).toMatchObject({ glassEffectStyle: "clear", colorScheme: "light" });
+    expect(glass().tintColor).toBeUndefined();
+    expect(veil()).toMatchObject({ backgroundColor: "rgba(255, 255, 255, 0.22)", borderWidth: 1.2 });
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(1);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
+    fireEvent(screen.getByTestId("floating-create"), "longPress");
+    expect(glass().tintColor).toBe("rgba(5, 8, 229, 0.7)");
+    expect(veil()).toMatchObject({ backgroundColor: "transparent", borderWidth: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(1);
+  });
+
+  it("recette du 24/11 (sans verre natif) : appui long — fond bleu et symbole blanc, sans action ; conservé ; nouvel appui long : retour", () => {
     const onPress = jest.fn();
-    const first = renderButton(onPress);
+    let first: ReturnType<typeof renderButton> | undefined;
+    withoutNativeGlass(() => {
+      first = renderButton(onPress);
+    });
     const veil = () => StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor;
     const glyph = () => JSON.stringify(screen.getByTestId("floating-create-glyph-movement").children.map((child) => (typeof child === "string" ? child : child.props)));
     expect(veil()).toBe("rgba(255, 255, 255, 0.65)");
@@ -214,9 +249,12 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).borderWidth).toBe(0);
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
     expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!)).toMatchObject({ side: "RIGHT", tone: "BLUE" });
-    first.unmount();
+    first!.unmount();
     resetFloatingPositionForTests();
-    const second = renderButton(onPress);
+    let second: ReturnType<typeof renderButton> | undefined;
+    withoutNativeGlass(() => {
+      second = renderButton(onPress);
+    });
     expect(veil()).toBe("rgba(5, 8, 229, 0.65)");
     fireEvent(screen.getByTestId("floating-create"), "longPress");
     expect(veil()).toBe("rgba(255, 255, 255, 0.65)");
@@ -225,7 +263,7 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).borderWidth).toBe(1.2);
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
     expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!).tone).toBeUndefined();
-    second.unmount();
+    second!.unmount();
   });
 
   it("chaque variante a son contenu (Figma 13039:49732)", () => {

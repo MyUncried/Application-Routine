@@ -1052,7 +1052,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(within(addActivity).queryByText(strings.shared.floatingCreate.openCreateMenu)).toBeNull();
     expect(screen.getByTestId("floating-create-glyph-plus")).toBeTruthy();
     expect(StyleSheet.flatten(screen.getByTestId("composition-floating-create-face-veil").props.style)).toMatchObject({
-      backgroundColor: "rgba(255, 255, 255, 0.65)",
+      backgroundColor: "rgba(255, 255, 255, 0.22)", // essai lentille du 24/11 (verre natif du simulacre)
       borderWidth: 1.2,
     });
     expect(screen.queryByTestId("composition-context-actions")).toBeNull();

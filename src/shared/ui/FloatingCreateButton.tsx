@@ -63,6 +63,15 @@ const GLASS_VEIL_BLUE = "rgba(5, 8, 229, 0.65)";
 export const FLOATING_CREATE_WHITE = "#FFFFFF";
 /** Couleur du symbole, portée par le rond (blanc sur fond bleu). */
 const GlyphColor = createContext<string>(FLOATING_CREATE_BLUE);
+/**
+ * Essai « effet lentille » du 24/11/2026 (Hermann : « Oui » à la proposition d'alléger le voile pour laisser voir le verre
+ * natif ; à valider sur iPhone). Avec le verre natif d'iOS 26 : verre « clear » (réfraction visible, comme le bouton de lecture
+ * de la fiche Mouvement), voile blanc léger à 22 % ; bouton bleu : verre teinté en bleu à 70 %, sans voile ni liseré.
+ * Aucune opacité d'ensemble sur le bouton : iOS ne rend pas correctement un verre dont un parent est transparent ; la
+ * transparence vient du verre lui-même. Sans verre natif : rendu précédent (voile à 65 %, bouton à 70 %).
+ */
+const LENS_VEIL = "rgba(255, 255, 255, 0.22)";
+const LENS_TINT_BLUE = "rgba(5, 8, 229, 0.7)";
 const GLASS_BORDER = "rgba(255, 255, 255, 0.95)";
 const GLASS_BORDER_WIDTH = 1.2;
 // Ombre assombrie le 24/11/2026 (« assombrir un peu l'ombre », deux couleurs) : 22 %. [14 % du composant Figma — remplacé.]
@@ -177,15 +186,20 @@ export function FloatingCreateFace({
       <View style={styles.clip}>
         {glass ? (
           <GlassView
-            glassEffectStyle="regular"
+            glassEffectStyle="clear"
             colorScheme="light"
+            {...(tone === "BLUE" ? { tintColor: LENS_TINT_BLUE } : {})}
             pointerEvents="none"
-            style={StyleSheet.absoluteFill}
+            style={styles.glass}
             testID={testID === undefined ? undefined : `${testID}-glass`}
           />
         ) : null}
         <View
-          style={[styles.veil, tone === "BLUE" ? styles.veilBlue : null]}
+          style={[
+            styles.veil,
+            tone === "BLUE" ? styles.veilBlue : null,
+            glass ? (tone === "BLUE" ? styles.lensVeilBlue : styles.lensVeil) : null,
+          ]}
           testID={testID === undefined ? undefined : `${testID}-veil`}
         />
         {/* Figma place le contenu dans la boîte intérieure au liseré de 1,2. */}
@@ -269,6 +283,7 @@ export function FloatingCreateButton({
   );
   useEffect(() => subscribeFloatingPosition(setPosition), []);
   const [tone, setTone] = useState<FloatingTone>(restoreFloatingTone);
+  const [glass] = useState(liquidGlassAvailable);
   useEffect(() => subscribeFloatingTone(setTone), []);
   const pressableRef = useRef<View>(null);
   const lastFocusRequest = useRef(focusRequest);
@@ -331,7 +346,7 @@ export function FloatingCreateButton({
     <GestureHandlerRootView pointerEvents="box-none" style={styles.layer} onLayout={onLayout} testID={`${testID}-layer`}>
       {!hidden && rest !== null && bounds !== null ? (
         <DragDetector enabled={!disabled} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
-          <Reanimated.View style={[styles.button, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
+          <Reanimated.View style={[styles.button, glass ? styles.lensButton : null, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
             <Pressable
               ref={pressableRef}
               onPress={onPress}
@@ -473,6 +488,19 @@ const styles = StyleSheet.create({
   veilBlue: {
     backgroundColor: GLASS_VEIL_BLUE,
     borderWidth: 0,
+  },
+  glass: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: FLOATING_BUTTON_SIZE / 2,
+  },
+  lensVeil: {
+    backgroundColor: LENS_VEIL,
+  },
+  lensVeilBlue: {
+    backgroundColor: "transparent",
+  },
+  lensButton: {
+    opacity: 1,
   },
   content: {
     position: "absolute",
