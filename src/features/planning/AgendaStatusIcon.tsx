@@ -84,15 +84,22 @@ export function AgendaPlayButton({
   readonly testID: string;
 }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={[styles.touch, style]} testID={testID}>
-      {({ pressed }) => <AgendaPlayIcon pressed={pressed} testID={`${testID}-icon`} />}
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={style} testID={testID}>
+      {/* Recette du 24/11/2026 (Hermann : « le bouton démarrer n'est pas aligné à droite avec les autres boutons ») : même
+          emplacement de 44 que les icônes d'état, l'icône y est centrée. [Zone de 44 portée par le bouton, icône décalée
+          de 8 vers la droite — remplacé.] */}
+      {({ pressed }) => (
+        <View style={styles.touch} testID={`${testID}-slot`}>
+          <AgendaPlayIcon pressed={pressed} testID={`${testID}-icon`} />
+        </View>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   box: { width: AGENDA_ICON_SIZE, height: AGENDA_ICON_SIZE, alignItems: "center", justifyContent: "center" },
-  touch: { minWidth: AGENDA_ICON_TOUCH, minHeight: AGENDA_ICON_TOUCH, alignItems: "center", justifyContent: "center" },
+  touch: { width: AGENDA_ICON_TOUCH, height: AGENDA_ICON_TOUCH, alignItems: "center", justifyContent: "center" },
   disc: {
     width: AGENDA_ICON_SIZE,
     height: AGENDA_ICON_SIZE,

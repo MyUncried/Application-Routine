@@ -110,3 +110,14 @@
 - `docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md`
 - `docs/Specifications-fonctionnelles/12 – Architecture technique.md`
 - ce rapport
+
+## Complément du 24/11/2026 : alignement à droite de Démarrer / Rattraper
+
+- **Recette** de Hermann : « le bouton démarrer n'est pas aligné à droite avec les autres boutons ».
+- **Classe** : A (Figma : toutes les icônes ont leur bord droit à 20 de l'écran).
+- **Cause** : la zone de toucher de 44 était portée par le bouton lui-même, dont les marges intérieures entraient dans ces 44. L'icône de lecture se trouvait donc 8 plus à droite que les icônes d'état, centrées dans un emplacement de 44.
+- **Correction** : le bouton contient le même emplacement de 44 que les icônes d'état, avec l'icône centrée. Les marges sont identiques et les bords droits alignés.
+- **Tests** :
+  - le test D-599 vérifie l'emplacement de 44 et l'égalité des marges ;
+  - 2 suites, 39 tests réussis ;
+  - `tsc` est propre et le lint ne signale rien.
