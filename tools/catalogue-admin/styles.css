@@ -50,3 +50,6 @@ fieldset.section{border:1px solid var(--line);border-radius:10px;padding:14px;ma
 .diffusion{margin:0 clamp(16px,3.6vw,48px) 14px;border:1px solid #f1d58a;background:#fff8e1;color:#6b4e00;border-radius:10px;padding:10px 14px;font-size:13px}.diffusion p{margin:4px 0}.diffusion ul{margin:4px 0 0;padding-left:18px}
 
 .actor-local{display:grid;gap:6px}.actor-local .warning{margin:0;font-size:12px}
+/* Phases d'une fiche : numéro, libellé, durée et actions sur une même ligne. */
+.member.phase-row{grid-template-columns:1.6em minmax(0,1fr) minmax(120px,190px) auto}
+@media(max-width:810px){.member.phase-row{grid-template-columns:1.6em minmax(0,1fr)}.member.phase-row>:nth-child(3){grid-column:2}.member.phase-row>.media-actions{grid-column:2}}

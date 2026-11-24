@@ -651,7 +651,7 @@ function phasesSection(sheet) {
       render();
     };
     phases.forEach((phase, at) => {
-      const row = el("div", "member");
+      const row = el("div", "member phase-row");
       const label = textInput(() => phase.label, (x) => { phase.label = x; },
         { maxLength: PHASE_LIMITS.labelMaxLength, placeholder: "Libellé (" + PHASE_LIMITS.labelMaxLength + " caractères au plus)" });
       const duration = el("input", "input");
@@ -659,7 +659,8 @@ function phasesSection(sheet) {
       duration.min = String(PHASE_LIMITS.minSeconds);
       duration.max = String(PHASE_LIMITS.maxSeconds);
       duration.step = "1";
-      duration.placeholder = "Durée par défaut (s), facultative";
+      duration.placeholder = "Durée (s), facultative";
+      duration.setAttribute("aria-label", "Durée par défaut (s), facultative");
       duration.value = phase.durationSeconds === null ? "" : String(phase.durationSeconds);
       duration.addEventListener("input", () => {
         const value = duration.value.trim();
