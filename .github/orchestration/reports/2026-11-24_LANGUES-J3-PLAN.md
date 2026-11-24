@@ -58,3 +58,5 @@ Voir le commit qui contient ce rapport sur `feat/unite-charge-20261124`, envoyé
   - U6 : arrondi d'une valeur tapée hors grille ;
   - U7 : charges déjà enregistrées hors grille.
 - Aucun code ; aucun test applicable.
+
+- **Complément** : U3 « unité de la région du téléphone », U6 « Ok », U7 « Ok ». Le plan est tranché. U3 pour une base existante en région à livres : À CLARIFIER, sans effet sur l'iPhone de Hermann.

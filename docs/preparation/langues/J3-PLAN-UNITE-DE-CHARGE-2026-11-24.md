@@ -105,16 +105,18 @@ Comment je la lis :
 
 | # | Question | Proposition |
 |---|---|---|
-Réponses de Hermann du 24/11/2026 : U1 = grille de pas adaptatifs (§ 3.2) ; U2 « Ok » ; U4 « Ok » ; U5 « Ok ». U3 : sans réponse. U6 et U7 : nouvelles, nées de U1.
+Réponses de Hermann du 24/11/2026 : U1 = grille de pas adaptatifs (§ 3.2) ; U2 « Ok » ; U4 « Ok » ; U5 « Ok » ; puis U3 « unité de la région du téléphone », U6 « Ok », U7 « Ok ». Toutes les questions sont tranchées.
 
 | # | Question | Proposition | Décision |
 |---|---|---|---|
 | U1 | Pas de saisie en lb | 0,5 lb | Grille adaptative kg et lb (§ 3.2) |
 | U2 | Non-dérive lb → kg → lb | Option A : restauration des valeurs d'origine non modifiées | Ok |
-| U3 | Unité par défaut d'une installation neuve | Région du téléphone (États-Unis → lb, sinon kg) ; base existante → kg | En attente |
-| U6 | Valeur tapée hors grille (ex. 22 kg) | Arrondie au point supérieur de la grille (22,5 kg), comme l'arrondi actuel au 0,25 supérieur | En attente |
-| U7 | Charges déjà enregistrées hors grille (ex. 12,5 kg) | Conservées telles quelles jusqu'à leur prochaine modification ou conversion | En attente |
+| U3 | Unité par défaut d'une installation neuve | Région du téléphone (États-Unis → lb, sinon kg) ; base existante → kg | « unité de la région du téléphone » — voir À CLARIFIER ci-dessous |
+| U6 | Valeur tapée hors grille (ex. 22 kg) | Arrondie au point supérieur de la grille (22,5 kg), comme l'arrondi actuel au 0,25 supérieur | Ok |
+| U7 | Charges déjà enregistrées hors grille (ex. 12,5 kg) | Conservées telles quelles jusqu'à leur prochaine modification ou conversion | Ok |
 | U4 | Historique des exécutions | Affiché dans l'unité de l'exécution, sans conversion |
 | U5 | Changement d'unité | Immédiat, sans fenêtre de confirmation |
 
 Après validation : implémentation sur `feat/unite-charge-20261124`, mise à jour du registre (règle 7 complétée, classe B), du chapitre 12 (choix techniques) et du chapitre 13 (ligne Unité de charge), puis recette iPhone.
+
+**À CLARIFIER (U3, sans bloquer)** : la réponse vaut pour une installation neuve. Pour une base existante, dont toutes les charges sont en kg, sur un téléphone d'une région en livres : faut-il partir en kg (proposition initiale) ou passer en lb en convertissant les charges au premier lancement ? Sur l'iPhone de Hermann (région France), les deux lectures donnent kg.
