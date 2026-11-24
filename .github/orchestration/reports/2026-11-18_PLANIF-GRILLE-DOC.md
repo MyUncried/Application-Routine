@@ -168,3 +168,11 @@
 - Renumérotation antérieure : décisions Programmes D-560 à D-562 (collision avec D-543 à D-552 de main).
 - Tests : non applicables.
 - Prompt Claude Code : `docs/PROMPT-CLAUDE-CODE-NOM-ROUTINE-UNIQUE-2026-11-23.md`.
+
+## Complément 24/11/2026 — Carte de séance du catalogue : mosaïque et informations (D-564, D-565, classe B)
+- Décisions explicites de Hermann (conversation du 24/11/2026) : mosaïque des images des mouvements (disposition fixée par le nombre d'images, 5 et plus en « 4 + compteur », recadrage sur point focal stocké à la publication, centre à défaut) ; informations de la carte repliée = nom, mouvements, formats, durée.
+- Figma : planche « Visuel de séance — essais de mosaïque (1 à 6 images) » et écran d'essai « P-Catalogue des séances — Visuel en mosaïque et informations (essai) » (cartes détachées, composant `DSF / Cards / Séance` non modifié).
+- Documents : `docs/DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md` (nouveau) ; registre ch07 D-564, D-565 ; note de révision en tête de `docs/KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md`. Prompt : `docs/PROMPT-CLAUDE-CODE-CARTE-SEANCE-MOSAIQUE-2026-11-24.md`.
+- Non traité : composition (points 3 à 6 de la liste de Hermann), composant Figma à mettre à jour, carte déployée inchangée.
+- Vérification sur iPhone à faire : lisibilité des mosaïques à 64 pt.
+- Tests : non applicables.
