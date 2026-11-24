@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { CheckBox } from "@/shared/ui/CheckBox";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
@@ -100,7 +100,7 @@ export function JournalRoutineCard({
   readonly compact?: boolean;
   readonly testID: string;
 }) {
-  const t = planningStrings.journal;
+  const t = strings.planning.journal;
   if (compact) {
     const tintOf = planned ? TINTS.planned : TINTS.idle;
     return (

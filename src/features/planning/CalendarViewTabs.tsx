@@ -1,4 +1,4 @@
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import type { TabbedScreenPalette, TabbedScreenTabs } from "@/shared/ui/TabbedScreen";
 import { colors } from "@/shared/ui/tokens";
 
@@ -24,7 +24,7 @@ export const CALENDAR_PALETTE: TabbedScreenPalette = {
 };
 
 export function calendarTabs(value: CalendarView, onChange: (view: CalendarView) => void): TabbedScreenTabs<CalendarTab> {
-  const t = planningStrings.calendar;
+  const t = strings.planning.calendar;
   // Valeurs d'onglet conservées depuis D-532 (« day », « week ») : identifiants de test inchangés ; « plan » (D-554).
   const views = [
     { value: "day", view: "journal", label: t.views.day },

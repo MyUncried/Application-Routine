@@ -1,5 +1,6 @@
 import { parseLocalDate, type LocalDate, type LocalTime, type RoutineDraft, type Weekday } from "@/domain/planning/Routine";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { strings } from "@/shared/i18n";
 
 /**
  * Synthèse de la zone de contexte (D-521, RM-259 ; CE-UI-12, 18/11/2026) : phrase DÉRIVÉE des paramètres, jamais stockée.
@@ -10,33 +11,38 @@ import { planningStrings } from "@/features/planning/planningStrings";
  * Figma 1992:7716 / 1992:6838) — remplacé le 18/11/2026.]
  */
 
-const t = planningStrings;
+const t = strings.planning;
 
 export function formatLongDate(value: LocalDate): string {
   const date = parseLocalDate(value);
-  return `${date.getDate()} ${t.months[date.getMonth()]} ${date.getFullYear()}`;
+  return fillTemplate(t.dates.dayMonthYear, { day: String(date.getDate()), month: t.months[date.getMonth()]!, year: String(date.getFullYear()) });
 }
 
 /** « 8 h », « 8 h 30 » (heure de la phrase). */
 export function formatSpokenTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":").map(Number);
-  return minutes === 0 ? `${hours} h` : `${hours} h ${String(minutes).padStart(2, "0")}`;
+  return minutes === 0
+    ? fillTemplate(t.time.spokenHour, { hours: String(hours) })
+    : fillTemplate(t.time.spoken, { hours: String(hours), minutes: String(minutes).padStart(2, "0") });
 }
 
-function joinFrench(parts: readonly string[]): string {
+/** « a, b et c » (« a, b and c » en anglais). */
+function joinWords(parts: readonly string[]): string {
   if (parts.length <= 1) return parts.join("");
   return `${parts.slice(0, -1).join(", ")} ${t.and} ${parts[parts.length - 1]}`;
 }
 
 export function formatWeekdaysPhrase(weekdays: readonly Weekday[]): string {
   const sorted = [...weekdays].sort((a, b) => a - b);
-  return `${t.the} ${joinFrench(sorted.map((day) => t.weekdayPlurals[day - 1]))}`;
+  return `${t.the} ${joinWords(sorted.map((day) => t.weekdayPlurals[day - 1]))}`;
 }
 
 /** « 8h », « 8h30 » (heure de la synthèse, Figma `12650:27854`). */
 export function formatCompactTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":").map(Number);
-  return minutes === 0 ? `${hours}h` : `${hours}h${String(minutes).padStart(2, "0")}`;
+  return minutes === 0
+    ? fillTemplate(t.time.compactHour, { hours: String(hours) })
+    : fillTemplate(t.time.compact, { hours: String(hours), minutes: String(minutes).padStart(2, "0") });
 }
 
 export type SynthesisInput = Pick<RoutineDraft, "startDate" | "time" | "repetition">;
@@ -50,7 +56,7 @@ export function formatPlanningSynthesis(draft: SynthesisInput, duration: string,
   const repetition = draft.repetition;
   const parts: string[] = [];
   if (repetition === null) {
-    parts.push(t.synthesis.single.replace("{date}", formatLongDate(draft.startDate)).replace("{time}", time));
+    parts.push(fillTemplate(t.synthesis.single, { date: formatLongDate(draft.startDate), time }));
   } else {
     const every =
       repetition.unit === "DAY"
@@ -69,7 +75,7 @@ export function formatPlanningSynthesis(draft: SynthesisInput, duration: string,
       );
     }
     segments.push(`${t.summary.at} ${time}`);
-    if (repetition.end.kind === "UNTIL") segments.push(t.summary.until.replace("{date}", formatLongDate(repetition.end.date)));
+    if (repetition.end.kind === "UNTIL") segments.push(fillTemplate(t.summary.until, { date: formatLongDate(repetition.end.date) }));
     else segments.push(duringLabel(repetition.unit, repetition.end.count));
     parts.push(segments.join(", "));
   }
@@ -85,12 +91,12 @@ export function formatRecurrence(routine: Pick<RoutineDraft, "repetition">): str
   if (repetition === null) return "";
   // RM-257 : unité Jour — « Tous les jours », « Tous les 3 jours » (aucune rangée de jours).
   if (repetition.unit === "DAY") return repetition.every === 1 ? t.calendar.everyDay : t.calendar.everyDays.replace("{count}", String(repetition.every));
-  const days = joinFrench([...repetition.weekdays].sort((a, b) => a - b).map((day) => t.weekdayNames[day - 1]!.toLowerCase()));
+  const days = joinWords([...repetition.weekdays].sort((a, b) => a - b).map((day) => t.weekdayNamesInSentence[day - 1]!));
   return repetition.every === 1 ? `${t.calendar.everyWeekdayPrefix} ${days}` : `${t.summary.everyWeeks.replace("{count}", String(repetition.every))}, ${days}`;
 }
 
 /** Borne « pendant » : « pendant 6 semaines », « pendant 10 jours ». */
 export function duringLabel(unit: "WEEK" | "DAY", count: number): string {
   const units = unit === "DAY" ? t.dayUnit : t.weekUnit;
-  return t.summary.during.replace("{count}", String(count)).replace("{unit}", count === 1 ? units.singular : units.plural);
+  return fillTemplate(t.summary.during, { count: String(count), unit: count === 1 ? units.singular : units.plural });
 }

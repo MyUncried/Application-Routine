@@ -2,9 +2,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
+import { strings } from "@/shared/i18n";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
-
-import { programStrings } from "./programStrings";
 
 /**
  * Consentement au suivi de la douleur (D-551 ; Figma « PROG — 13b » `12848:47353`). Explique ce qui est demandé, précise que
@@ -19,7 +18,7 @@ import { programStrings } from "./programStrings";
  * (`dimensions.decisionDialog`). Contenu et couleurs de « PROG — 13b » inchangés. [Feuille native posée sur la modale du
  * programme (`app/pain-consent.tsx`) — remplacée ; `PainConsentSheet` reste exporté pour cette route, qui n'est plus ouverte.]
  */
-const t = programStrings.consent;
+const t = strings.programs.consent;
 
 function PainConsentContent({ onCancel, onAllow }: { readonly onCancel: () => void; readonly onAllow: () => void }) {
   return (

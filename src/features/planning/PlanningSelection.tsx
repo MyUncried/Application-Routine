@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
-import { planningStrings } from "@/features/planning/planningStrings";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { sessionCardAccessibilityLabel } from "@/features/sessions/SessionCatalogueList";
 import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/sessions/sessionCatalogueContext";
@@ -43,7 +42,7 @@ export function PlanningSelection({
   readonly onCancel: () => void;
   readonly onValidate: (selected: readonly string[]) => void;
 }) {
-  const t = planningStrings.selection;
+  const t = strings.planning.selection;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const palette = catalogueColors("sessions");

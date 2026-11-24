@@ -1,8 +1,10 @@
 import type { Routine } from "@/domain/planning/Routine";
 import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions";
 import { reminderHistoryFamily } from "@/domain/planning/reminderHistory";
-import { composeReminder } from "@/domain/planning/reminderMessages";
+import { composeReminder, REMINDER_BODY_MAX } from "@/domain/planning/reminderMessages";
 import { upcomingReminders } from "@/domain/planning/reminders";
+import { strings } from "@/shared/i18n";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 
 /**
  * Programmation des rappels de Routine (RM-051 à RM-054a, chapitre 12 « Notifications »).
@@ -113,10 +115,11 @@ export class ReminderScheduler {
     let previous: string | null = null;
     const scheduled = reminders.map((reminder) => {
       const routine = routinesById.get(reminder.routineId);
+      const name = reminderName(routine?.name ?? "", reminder.sessionIds.map((sessionId) => names.get(sessionId)!));
       const message = composeReminder(
         {
           plannedAt: reminder.occurrenceAt,
-          name: reminderName(routine?.name ?? "", reminder.sessionIds.map((sessionId) => names.get(sessionId)!)),
+          name,
           recurring: routine !== undefined && routine.repetition !== null,
           categoryIds: reminder.sessionIds.flatMap((sessionId) => categories.get(sessionId) ?? []),
           rank: reminder.rank,
@@ -125,8 +128,27 @@ export class ReminderScheduler {
         previous,
       );
       previous = message.templateId;
-      return { id: reminder.id, fireAt: reminder.fireAt, sessionId: reminder.sessionIds[0]!, title: message.title, body: message.body };
+      const text = localizedReminder(message.templateId, name);
+      return {
+        id: reminder.id,
+        fireAt: reminder.fireAt,
+        sessionId: reminder.sessionIds[0]!,
+        title: text?.title ?? message.title,
+        body: text?.body ?? message.body,
+      };
     });
     await this.deps.notifications.replaceReminders(scheduled);
   }
+}
+
+/**
+ * J1.8 « Gestion des langues » (24/11/2026) : texte du modèle choisi par le domaine, dans la langue de l'interface
+ * (catalogue `strings.planning.reminders`, identique au domaine en français). Même règle que `reminderBody` : le corps
+ * devient le nom seul s'il dépasse la longueur maximale. `null` : modèle absent du catalogue, texte du domaine.
+ */
+export function localizedReminder(templateId: string, name: string): { readonly title: string; readonly body: string } | null {
+  const text = (strings.planning.reminders as Readonly<Record<string, { readonly title: string; readonly body: string }>>)[templateId];
+  if (text === undefined) return null;
+  const body = fillTemplate(text.body, { name });
+  return { title: text.title, body: body.length > REMINDER_BODY_MAX ? name : body };
 }

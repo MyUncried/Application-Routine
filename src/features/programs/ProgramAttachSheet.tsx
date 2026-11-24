@@ -5,11 +5,11 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { RoutineFilterSheet, type RoutineFilterChoice } from "@/features/planning/RoutineFilterSheet";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
+import { strings } from "@/shared/i18n";
 
 import { OutsidePeriodDialog } from "./OutsidePeriodDialog";
 import type { AttachChoice, ProgramService } from "./ProgramService";
 import type { AttachedRoutine, ProgramSheetRequest } from "./programSheetRelay";
-import { programStrings } from "./programStrings";
 
 /**
  * « Rattacher des routines existantes » (D-549 ; recette du 23/11/2026, p4-rattacher — Hermann : « Il faut pouvoir rattacher
@@ -22,7 +22,7 @@ import { programStrings } from "./programStrings";
  * sélection ; « Annuler » laisse la feuille ouverte, rien n'est rattaché. La sélection est rendue à la modale du programme, qui
  * ne l'enregistre qu'à la coche (p4-croix). [Avant : une routine à la fois, rattachée aussitôt.]
  */
-const t = programStrings.attach;
+const t = strings.programs.attach;
 
 export function attachSlotsLine(choice: AttachChoice): string {
   const values = { inside: String(choice.period.inside), outside: String(choice.period.outside) };

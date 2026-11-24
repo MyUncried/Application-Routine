@@ -25,7 +25,6 @@ import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import type { RoutineDeletionPlan } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import { takePlanningNotice } from "@/features/planning/planningNotice";
-import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
@@ -55,7 +54,7 @@ import { TransientNotification } from "@/shared/ui/TransientNotification";
  * - Toucher la carte la déploie (filet, puis composition des séances, comme l'Agenda) ; le crayon ouvre la routine.
  */
 export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: CalendarView) => void }) {
-  const t = planningStrings.journal;
+  const t = strings.planning.journal;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const planning = usePlanningService();
@@ -191,7 +190,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : barre de titre à onglets du Calendrier et zone de contexte
     // standard des Catalogues — ligne 1 « Planifiées N · Terminées N », ligne 2 Rechercher, Filtre, Tri, Planifier.
     <TabbedScreen
-      title={planningStrings.calendar.title}
+      title={strings.planning.calendar.title}
       palette={CALENDAR_PALETTE}
       tabs={calendarTabs("journal", onChangeView)}
       context={{
@@ -286,7 +285,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
         ) : null}
         {actionFailed ? (
           <Text style={styles.error} accessibilityLiveRegion="polite" testID="journal-action-error">
-            {planningStrings.calendar.actionError}
+            {strings.planning.calendar.actionError}
           </Text>
         ) : null}
         {all.length > 0 && visible.length === 0 ? (
@@ -303,7 +302,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           const actions: readonly SwipeAction[] = [
             {
               key: "duplicate",
-              label: planningStrings.calendar.duplicate,
+              label: strings.planning.calendar.duplicate,
               backgroundColor: colors.movementLevelAction,
               onPress: () => {
                 setRevealed(null);
@@ -313,7 +312,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
             {
               key: "delete",
               // Recette du 22/11/2026 (r22-j-supprimer) : « Terminer ». [« Supprimer » — remplacé.]
-              label: planningStrings.journal.finish,
+              label: strings.planning.journal.finish,
               backgroundColor: colors.danger,
               onPress: () => {
                 setRevealed(null);
@@ -412,15 +411,15 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           // « Confirmer » pleine largeur (D-537) — remplacé.]
           title={
             deleteCandidate.plan.count === 0
-              ? planningStrings.deleteRoutine.titleNamed.replace("{name}", titleOf(deleteCandidate.routine, sessionsOf(deleteCandidate.routine)))
-              : planningStrings.deleteRoutine.title
+              ? fillTemplate(strings.planning.deleteRoutine.titleNamed, { name: titleOf(deleteCandidate.routine, sessionsOf(deleteCandidate.routine)) })
+              : strings.planning.deleteRoutine.title
           }
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message={deletionMessage(deleteCandidate.plan)}
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}
-          cancelLabel={planningStrings.deleteRoutine.cancel}
+          cancelLabel={strings.planning.deleteRoutine.cancel}
           cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
-          confirmLabel={planningStrings.deleteRoutine.confirm}
+          confirmLabel={strings.planning.deleteRoutine.confirm}
           confirmLabelStyle={type.dialogDestructiveActionLabel}
           confirmBordered={false}
           onCancel={() => setDeleteCandidate(null)}
@@ -434,10 +433,10 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
 
 /** Message du dialogue de suppression (D-537) : sans historique, « La routine et ses N créneaux… » ; avec, archivage. */
 export function deletionMessage(plan: RoutineDeletionPlan): string {
-  const tDelete = planningStrings.deleteRoutine;
+  const tDelete = strings.planning.deleteRoutine;
   if (plan.count === 0) return "";
-  if (plan.history) return plan.count === 1 ? tDelete.archiveOne : tDelete.archiveMany.replace("{count}", String(plan.count));
-  return plan.count === 1 ? tDelete.messageOne : tDelete.messageMany.replace("{count}", String(plan.count));
+  if (plan.history) return plan.count === 1 ? tDelete.archiveOne : fillTemplate(tDelete.archiveMany, { count: String(plan.count) });
+  return plan.count === 1 ? tDelete.messageOne : fillTemplate(tDelete.messageMany, { count: String(plan.count) });
 }
 
 /** Actions glissées de la taille de l'Agenda (DSF Agenda § 6 : 90 de large), de la hauteur de la carte. */

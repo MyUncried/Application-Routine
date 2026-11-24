@@ -12,12 +12,14 @@ import {
   type Program,
   type ProgramDraft,
 } from "@/domain/programs/Program";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
 import { DATE_PANEL_WIDTH, DateCalendar, Pill } from "@/features/planning/PlanningControls";
 import { PlanningPopover, PlanningWheelPopover, type PopoverAnchor } from "@/features/planning/PlanningWheelPopover";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
+import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
@@ -45,7 +47,6 @@ import { requestProgramSheet, type AttachedRoutine } from "./programSheetRelay";
 import { useProgramService } from "./ProgramServiceContext";
 import { postPlanningNotice, removedSlotsNotice } from "@/features/planning/planningNotice";
 import { PainConsentDialog } from "./PainConsentSheet";
-import { programStrings } from "./programStrings";
 
 /**
  * Créer ou configurer un programme (CE-PROG-02 ; D-548, D-549, D-551 ; Figma « PROG — 13 » `12848:47314`) — modale iOS
@@ -70,7 +71,7 @@ import { programStrings } from "./programStrings";
  * champs du programme — remplacées.] L'accord au suivi de la douleur, valable pour toute l'application, n'est pas annulé.
  */
 
-const t = programStrings.sheet;
+const t = strings.programs.sheet;
 /** Figma « PROG — 13 » : objectif Inter Medium 14 #666C7E ; ligne secondaire d'une routine #9499A8. */
 const OBJECTIVE_COLOR = "#666C7E";
 const MUTED = "#9499A8";
@@ -78,7 +79,7 @@ const ROW_ACTION_WIDTH = 90;
 const DURATION_COUNTS = Array.from({ length: DURATION_MAX - DURATION_MIN + 1 }, (_, index) => DURATION_MIN + index);
 /** [Interprétation] « pendant » choisi sans fin connue : 1 jour (borne basse de D-543). */
 const DEFAULT_DURATION: PeriodDuration = { unit: "DAY", count: DURATION_MIN };
-const tp = programStrings.period;
+const tp = strings.programs.period;
 
 /** D-543 : raccourcissement confirmé (« N créneaux seront supprimés »), appliqué à la coche. */
 type Shortening = { readonly count: number; readonly routineIds: readonly string[]; readonly previousEnd: LocalDate; readonly nextEnd: LocalDate };
@@ -515,7 +516,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                 <Pill
                   label={modeLabel}
                   onPress={() => chooseMode(periodMode === "DATES" ? "DURATION" : "DATES")}
-                  accessibilityLabel={tp.modeAccessibility.replace("{value}", modeLabel)}
+                  accessibilityLabel={fillTemplate(tp.modeAccessibility, { value: modeLabel })}
                   testID="program-period-mode"
                 />
                 {periodMode === "DATES" ? (
@@ -533,7 +534,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                       <Pill
                         label={String(duration.count)}
                         onPress={openCount}
-                        accessibilityLabel={tp.countAccessibility.replace("{value}", String(duration.count))}
+                        accessibilityLabel={fillTemplate(tp.countAccessibility, { value: String(duration.count) })}
                         testID="program-period-count"
                       />
                     </View>
@@ -548,7 +549,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                         const unit = nextUnit(duration.unit);
                         changeDuration(draft.startDate !== null && draft.endDate !== null ? durationCovering(draft.startDate, boundedEnd(draft.startDate, draft.endDate), unit) : { unit, count: duration.count });
                       }}
-                      accessibilityLabel={tp.unitAccessibility.replace("{value}", unitLabel(duration.unit, duration.count))}
+                      accessibilityLabel={fillTemplate(tp.unitAccessibility, { value: unitLabel(duration.unit, duration.count) })}
                       testID="program-period-unit"
                     />
                   </>
@@ -585,7 +586,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
                       onPress={() => edit(routine.id)}
                       accessibilityLabel={`${routine.name}, ${line}`}
                       accessibilityHint={t.routineEditAccessibility}
-                      extraAccessibilityActions={[{ name: "detach", label: t.detachAccessibility.replace("{name}", routine.name), onAction: () => detach(routine.id) }]}
+                      extraAccessibilityActions={[{ name: "detach", label: fillTemplate(t.detachAccessibility, { name: routine.name }), onAction: () => detach(routine.id) }]}
                       actionWidth={ROW_ACTION_WIDTH}
                       nativeGesture
                       testID={`program-routine-${routine.id}-swipe`}
@@ -675,7 +676,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
             values: DURATION_COUNTS,
             selected: duration.count,
             onChange: (count) => changeDuration({ unit: duration.unit, count }),
-            accessibilityLabel: tp.countAccessibility.replace("{value}", String(duration.count)),
+            accessibilityLabel: fillTemplate(tp.countAccessibility, { value: String(duration.count) }),
             testID: "program-period-count-wheel",
           },
         ]}
@@ -683,7 +684,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
         android={
           <NumberWheelPicker
             value={duration.count}
-            accessibilityLabel={tp.countAccessibility.replace("{value}", String(duration.count))}
+            accessibilityLabel={fillTemplate(tp.countAccessibility, { value: String(duration.count) })}
             onCancel={() => setCountAnchor(null)}
             onValidate={(count) => {
               setCountAnchor(null);
@@ -697,7 +698,7 @@ export function ProgramSheetScreen({ params }: { readonly params: Params }) {
       />
       {shortening !== null ? (
         <DecisionDialog
-          title={shortening.count === 1 ? tp.shortenedOne : tp.shortenedMany.replace("{count}", String(shortening.count))}
+          title={shortening.count === 1 ? tp.shortenedOne : fillTemplate(tp.shortenedMany, { count: String(shortening.count) })}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message=""
           messageStyle={{ ...type.dialogMessage, color: colors.dialogMessageText, textAlign: "center" }}

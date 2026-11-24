@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -37,7 +37,7 @@ export function ParcoursBadge({
         size !== PARCOURS_BADGE_SIZE ? { width: size, height: size, borderRadius: size / 2 } : null,
       ]}
       accessible
-      accessibilityLabel={planningStrings.parcours}
+      accessibilityLabel={strings.planning.track}
       testID={testID}
     >
       <Text style={[styles.letter, size !== PARCOURS_BADGE_SIZE ? styles.letterLarge : null]} allowFontScaling={false}>

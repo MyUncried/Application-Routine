@@ -17,7 +17,7 @@ import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
-import { planningStrings } from "@/features/planning/planningStrings";
+import { strings } from "@/shared/i18n";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { formatAgendaMonth, zonesLine } from "@/features/planning/agendaFormat";
 import { monthOfWeek } from "@/features/planning/planWeek";
@@ -35,7 +35,6 @@ import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { agendaRoutineFilter, setAgendaRoutineFilter } from "@/features/planning/agendaRoutineFilter";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
-import { strings } from "@/shared/i18n";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -61,7 +60,7 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  *   plus proposée.
  */
 
-const t = planningStrings;
+const t = strings.planning;
 /** D-538 : point de 4 par séance du jour. [5 — remplacé.] */
 const DOT_SIZE = 4;
 const MAX_DOTS = 3;
@@ -83,13 +82,14 @@ export function formatWeekRange(monday: LocalDate): string {
   const end = parseLocalDate(addDays(monday, 6));
   const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
   const sameYear = start.getFullYear() === end.getFullYear();
-  const left = sameMonth ? `${start.getDate()}` : `${start.getDate()} ${t.months[start.getMonth()]}${sameYear ? "" : ` ${start.getFullYear()}`}`;
-  return `${left} – ${end.getDate()} ${t.months[end.getMonth()]} ${end.getFullYear()}`;
+  const parts = (date: Date) => ({ day: String(date.getDate()), month: t.months[date.getMonth()]!, year: String(date.getFullYear()) });
+  const left = sameMonth ? String(start.getDate()) : fillTemplate(sameYear ? t.dates.dayMonth : t.dates.dayMonthYear, parts(start));
+  return fillTemplate(t.dates.range, { start: left, end: fillTemplate(t.dates.dayMonthYear, parts(end)) });
 }
 
 export function formatDayTitle(day: LocalDate): string {
   const date = parseLocalDate(day);
-  return `${t.weekdayNames[weekdayOf(day) - 1]} ${date.getDate()} ${t.months[date.getMonth()]}`;
+  return fillTemplate(t.dates.weekdayDayMonth, { weekday: t.weekdayNames[weekdayOf(day) - 1]!, day: String(date.getDate()), month: t.months[date.getMonth()]! });
 }
 
 export function plannedCountLabel(count: number): string {

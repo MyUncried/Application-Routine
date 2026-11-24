@@ -1,21 +1,46 @@
 /**
+ * J1.8 « Gestion des langues » (24/11/2026) : textes de la Planification (Journal, Agenda, Plan), déplacés à
+ * l'identique depuis `src/features/planning/planningStrings.ts` (supprimé). Exposés par `strings.planning`.
+ * J1.8 : gabarits de dates, d'heures et de semaines ajoutés pour la grammaire jusque-là assemblée dans le code (rendu
+ * français inchangé).
+ *
  * Planification et Calendrier Semaine — textes repris des écrans Figma (page « Prototype MVP » : `1992:5101`,
  * `1992:6389`, `1992:5962`, `1992:5365`, `1992:6102`, `1992:6838`, `1992:7716`, `7594:34531`, `7599:14197`) et des
  * contrats CE-UI-03/04/05. Regroupés dans la fonctionnalité (même patron que `executionStrings`) pour ne pas
  * modifier le catalogue partagé `fr.ts` pendant les chantiers parallèles.
  */
-export const planningStrings = {
+export const planning = {
   /** Repère « P » d'une routine à plusieurs séances (recette du 20/11/2026, constat A), lu par VoiceOver. */
-  parcours: "Parcours",
+  track: "Parcours",
   months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
   monthsShort: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
   /** Lundi = index 0. */
   weekdayNames: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
   weekdayShort: ["Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam.", "Dim."],
   weekdayLetters: ["L", "M", "M", "J", "V", "S", "D"],
+  /** J1.8 : noms des jours dans une phrase (« Chaque lundi et jeudi ») — sans majuscule en français. */
+  weekdayNamesInSentence: ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
   weekdayPlurals: ["lundis", "mardis", "mercredis", "jeudis", "vendredis", "samedis", "dimanches"],
   the: "les",
   and: "et",
+  /** J1.8 : premier jour du mois (« 1er novembre », « du 26 au 1er »). */
+  firstOfMonth: "1er",
+  /** J1.8 : dates assemblées (« 3 août 2026 », « 26 nov. », « Lundi 16 novembre »). */
+  dates: {
+    dayMonth: "{day} {month}",
+    dayMonthYear: "{day} {month} {year}",
+    weekdayDayMonth: "{weekday} {day} {month}",
+    monthYear: "{month} {year}",
+    /** Calendrier Semaine : « 26 octobre – 1 novembre 2026 ». */
+    range: "{start} – {end}",
+  },
+  /** J1.8 : heures (« 8h00 », « 8h », « 8 h 30 »). */
+  time: {
+    compact: "{hours}h{minutes}",
+    compactHour: "{hours}h",
+    spoken: "{hours} h {minutes}",
+    spokenHour: "{hours} h",
+  },
   weekUnit: { singular: "semaine", plural: "semaines" },
   dayUnit: { singular: "jour", plural: "jours" },
   /** RM-259 (18/11/2026) : synthèse de la zone de contexte, sans majuscule initiale ni point final. */
@@ -61,6 +86,9 @@ export const planningStrings = {
     dayAccessibility: "{day}, {count}",
     dayEmptyAccessibility: "{day}, aucune séance",
     timeAccessibility: "à {time}",
+    // J1.8 : semaine de l'Agenda (DSF § 2, ligne 2) : « du 16 au 22 », « du 26 au 1er novembre ».
+    weekDays: "du {start} au {end}",
+    weekDaysMonth: "du {start} au {end} {month}",
     // D-533 (19/11/2026) : Agenda — navigation par mois, carte de routine.
     previousMonth: "Mois précédent",
     nextMonth: "Mois suivant",
@@ -83,8 +111,10 @@ export const planningStrings = {
   // D-554 (21/11/2026) : Plan (DSF Plan, Figma « P-Calendrier — Plan » `12983:19`).
   plan: {
     weekdays: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
-    programme: "Programme · {name}",
-    noProgramme: "Sans programme",
+    program: "Programme · {name}",
+    noProgram: "Sans programme",
+    // J1.8 : numéro de semaine (« S47 »).
+    weekNumber: "S{number}",
     addRoutine: "+ Routine",
     total: "Total · {duration}",
     // Recette du 21/11/2026 : à venir en bleu, « Arrêtée » en gris ; groupe des Exécutions hors planification.
@@ -269,6 +299,8 @@ export const planningStrings = {
     datePicker: "Date de planification",
     timePicker: "Heure",
     endDatePicker: "Date de fin",
+    // J1.8 : fond de la roulette de date ou d'heure (toucher pour fermer), lu par VoiceOver.
+    popoverClose: "Fermer",
   },
   // Recette du 23/11/2026 (d3 — Hermann : « il faut un message snackbar après confirmation pour informer du nombre de créneaux
   // supprimés ») : D-566 « Supprimer ». [Libellé : formulation retenue par Claude.]
@@ -313,5 +345,65 @@ export const planningStrings = {
     /** Toucher la carte sélectionnée retire le rattachement (« Aucun », D-332). */
     selectedHint: "Toucher pour retirer le rattachement.",
     unselectedHint: "Toucher pour rattacher ce programme.",
+  },
+  // J1.8 « Gestion des langues » (24/11/2026) : textes des notifications de rappel, par modèle
+  // (`src/domain/planning/reminderMessages.ts`, qui choisit le modèle et reste en français pour l’administration).
+  // Identiques aux modèles du domaine ; `{name}` : nom de la séance ou de la routine.
+  reminders: {
+    "GEN-01": { title: "Un défi t’attend", body: "{name} : c’est maintenant !" },
+    "GEN-02": { title: "Chaque séance compte", body: "{name} t’attend." },
+    "GEN-03": { title: "À toi de jouer", body: "{name} : c’est parti !" },
+    "GEN-04": { title: "Allez, on s’y met", body: "{name} est prête." },
+    "FIRST-01": { title: "C’est parti pour une première", body: "{name} t’attend." },
+    "FIRST-02": { title: "Le premier pas compte", body: "{name} : c’est le moment !" },
+    "FIRST-03": { title: "À toi de jouer", body: "{name} : ta première séance !" },
+    "RESTART-01": { title: "On reprend le mouvement", body: "{name} t’attend." },
+    "RESTART-02": { title: "À ton rythme", body: "{name} : on s’y remet !" },
+    "RESTART-03": { title: "Un nouveau départ", body: "{name} t’attend." },
+    "SINGLE-01": { title: "Un défi t’attend", body: "{name} : c’est maintenant !" },
+    "SINGLE-02": { title: "Tout est prêt", body: "{name} t’attend." },
+    "SINGLE-03": { title: "Allez, on s’y met", body: "{name} est prête." },
+    "RECUR-01": { title: "On garde le rythme", body: "{name} t’attend." },
+    "RECUR-02": { title: "La régularité compte", body: "{name} : c’est le moment !" },
+    "RECUR-03": { title: "Une séance de plus", body: "{name} t’attend." },
+    "MON-01": { title: "On lance la semaine", body: "{name} t’attend." },
+    "MON-02": { title: "Une semaine qui bouge", body: "{name} : c’est parti !" },
+    "MIDWEEK-01": { title: "On garde l’élan", body: "{name} t’attend." },
+    "MIDWEEK-02": { title: "Un moment pour bouger", body: "{name} : c’est le moment !" },
+    "FRI-01": { title: "On finit en mouvement", body: "{name} t’attend." },
+    "FRI-02": { title: "On termine bien la semaine", body: "{name} : c’est parti !" },
+    "SAT-01": { title: "Le week-end, on bouge", body: "{name} t’attend." },
+    "SAT-02": { title: "À toi de jouer ce samedi", body: "{name} : c’est le moment !" },
+    "SUN-01": { title: "Un dimanche actif", body: "{name} t’attend." },
+    "SUN-02": { title: "Un moment pour toi", body: "{name} : c’est parti !" },
+    "MORNING-01": { title: "On démarre en mouvement", body: "{name} t’attend." },
+    "MORNING-02": { title: "Un bon départ", body: "{name} : c’est le moment !" },
+    "LUNCH-01": { title: "La pause qui fait du bien", body: "{name} t’attend." },
+    "LUNCH-02": { title: "Place au mouvement", body: "{name} : c’est parti !" },
+    "AFTERNOON-01": { title: "Un peu d’énergie", body: "{name} t’attend." },
+    "AFTERNOON-02": { title: "À toi de jouer", body: "{name} : c’est le moment !" },
+    "EVENING-01": { title: "On finit sur une bonne note", body: "{name} t’attend." },
+    "EVENING-02": { title: "Un moment rien qu’à toi", body: "{name} : c’est le moment !" },
+    "NIGHT-01": { title: "À ton rythme", body: "{name} t’attend." },
+    "CAT-RENFO-01": { title: "On gagne en force", body: "{name} t’attend." },
+    "CAT-RENFO-02": { title: "Prêt à te renforcer", body: "{name} : c’est parti !" },
+    "CAT-CARDIO-01": { title: "On fait monter le rythme", body: "{name} t’attend." },
+    "CAT-CARDIO-02": { title: "On active le cardio", body: "{name} : c’est parti !" },
+    "CAT-MOBILITE-01": { title: "On retrouve de l’aisance", body: "{name} t’attend." },
+    "CAT-MOBILITE-02": { title: "Bouger plus librement", body: "{name} : c’est le moment !" },
+    "CAT-ETIREMENTS-01": { title: "On gagne en souplesse", body: "{name} t’attend." },
+    "CAT-ETIREMENTS-02": { title: "Un moment pour s’étirer", body: "{name} : c’est le moment !" },
+    "CAT-EQUILIBRE-01": { title: "On travaille sa stabilité", body: "{name} t’attend." },
+    "CAT-EQUILIBRE-02": { title: "Trouve ton équilibre", body: "{name} : c’est parti !" },
+    "CAT-COORDINATION-01": { title: "Place à la coordination", body: "{name} t’attend." },
+    "CAT-COORDINATION-02": { title: "Concentration et mouvement", body: "{name} : c’est parti !" },
+    "CAT-RECUP-01": { title: "On prend soin de soi", body: "{name} t’attend." },
+    "CAT-RECUP-02": { title: "Le temps de récupérer", body: "{name} : c’est le moment !" },
+    "CAT-RESPIRATION-01": { title: "Un moment pour souffler", body: "{name} t’attend." },
+    "CAT-RESPIRATION-02": { title: "On retrouve son souffle", body: "{name} : c’est parti !" },
+    "CAT-MEDITATION-01": { title: "Une pause pour l’esprit", body: "{name} t’attend." },
+    "CAT-MEDITATION-02": { title: "Un moment de calme", body: "{name} : c’est le moment !" },
+    "CAT-AUTRE-01": { title: "À toi de jouer", body: "{name} t’attend." },
+    "CAT-AUTRE-02": { title: "Un moment pour toi", body: "{name} : c’est parti !" },
   },
 } as const;

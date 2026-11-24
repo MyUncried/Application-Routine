@@ -1943,6 +1943,33 @@ export const fr = {
   // V2-PRE-2 (plan §6.5, §4.10) : textes partagés par les trois modales de
   // référentiel (Catégorie, Zone, Étiquette) et le dialogue d'appui long.
   referenceData: {
+    // J1.8 « Gestion des langues » (24/11/2026, demande de Hermann) : noms des Catégories et Zones fournies par KODJO,
+    // affichés dans la langue de l’interface tant que l’utilisateur ne les a pas renommées (`referenceNames.ts`).
+    // Identiques aux noms enregistrés (`domain/categories/defaults.ts`, `features/reference-data/bodyZones.ts`).
+    predefinedCategories: {
+      renforcement: "Renforcement",
+      cardio: "Cardio",
+      mobilite: "Mobilité",
+      etirements: "Étirements",
+      equilibre: "Équilibre",
+      coordination: "Coordination",
+      recuperation: "Récupération",
+      respiration: "Respiration",
+      meditation: "Méditation",
+      autre: "Autre",
+    },
+    predefinedBodyZones: {
+      cou: "Cou",
+      epaules: "Épaules",
+      bras: "Bras",
+      "poignets-mains": "Poignets et mains",
+      dos: "Dos",
+      "hanches-bassin": "Hanches et bassin",
+      cuisses: "Cuisses",
+      genoux: "Genoux",
+      jambes: "Jambes",
+      "chevilles-pieds": "Chevilles et pieds",
+    },
     category: {
       title: "Catégorie",
       createAction: "Créer une catégorie",

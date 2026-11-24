@@ -1,8 +1,7 @@
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { strings } from "@/shared/i18n";
 import { colors, type } from "@/shared/ui/tokens";
-
-import { programStrings } from "./programStrings";
 
 /**
  * D-566 (23/11/2026, recette du Programme) — routine qui déborde de la période du programme, au rattachement ou à sa modification
@@ -13,7 +12,7 @@ import { programStrings } from "./programStrings";
  * Confirmation commune des programmes (`DecisionDialog` empilée, comme la suppression d'un programme) : action principale rouge
  * (Supprimer), action secondaire (Garder), Annuler. [Interprétation : ordre des actions imposé par la variante empilée.]
  */
-const t = programStrings.attach;
+const t = strings.programs.attach;
 
 /**
  * Contre-recette du 23/11/2026, lot 4 : `ATTACH` — rattachement d'une routine à un programme (« de ce programme », x9) ;

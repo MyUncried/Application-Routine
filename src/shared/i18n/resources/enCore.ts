@@ -329,6 +329,31 @@ export const enCore: Omit<FrResource, "screens"> & {
   // V2-PRE-2 (plan §6.5, §4.10) : textes partagés par les trois modales de
   // référentiel (Catégorie, Zone, Étiquette) et le dialogue d'appui long.
   referenceData: {
+    // J1.8 « Gestion des langues » (24/11/2026) : noms des Catégories et Zones fournies par KODJO.
+    predefinedCategories: {
+      renforcement: "Strength",
+      cardio: "Cardio",
+      mobilite: "Mobility",
+      etirements: "Stretching",
+      equilibre: "Balance",
+      coordination: "Coordination",
+      recuperation: "Recovery",
+      respiration: "Breathing",
+      meditation: "Meditation",
+      autre: "Other",
+    },
+    predefinedBodyZones: {
+      cou: "Neck",
+      epaules: "Shoulders",
+      bras: "Arms",
+      "poignets-mains": "Wrists and hands",
+      dos: "Back",
+      "hanches-bassin": "Hips and pelvis",
+      cuisses: "Thighs",
+      genoux: "Knees",
+      jambes: "Legs",
+      "chevilles-pieds": "Ankles and feet",
+    },
     category: {
       title: "Category",
       createAction: "Create a category",

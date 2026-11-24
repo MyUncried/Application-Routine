@@ -81,6 +81,7 @@ import {
   validateUpdateSessionInput,
 } from "@/domain/sessions/validation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
+import { bodyZoneDisplayName } from "@/features/reference-data/referenceNames";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
@@ -1657,7 +1658,7 @@ async function getBodyZoneNamesBySession(
   for (const [sessionId, ids] of idsBySession) {
     const names = BODY_ZONES.filter((zone) => ids.has(zone.id))
       .sort((a, b) => a.order - b.order)
-      .map((zone) => zone.name);
+      .map((zone) => bodyZoneDisplayName(zone.id, zone.name));
     namesBySession.set(sessionId, names);
   }
   return namesBySession;

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Modal, Platform, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { strings } from "@/shared/i18n";
 import { colors, layout, spacing } from "@/shared/ui/tokens";
 
 /**
@@ -85,7 +86,7 @@ export function PlanningPopover({
   const position = popoverPosition(anchor, { width: panelWidth, height: height ?? 0 }, { width: window.width, height: window.height, top: insets.top, bottom: insets.bottom });
   return (
     <Modal visible transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss} testID={testID}>
-      <Pressable style={styles.scrim} onPress={onDismiss} accessibilityRole="button" accessibilityLabel="Fermer" testID={`${testID}-scrim`} />
+      <Pressable style={styles.scrim} onPress={onDismiss} accessibilityRole="button" accessibilityLabel={strings.planning.form.popoverClose} testID={`${testID}-scrim`} />
       <View
         accessibilityViewIsModal
         onAccessibilityEscape={onDismiss}

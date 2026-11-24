@@ -9,6 +9,7 @@ import type {
 } from "@/domain/categories/CategoryRepository";
 import type { Database } from "@/infrastructure/database/Database";
 import type { CategoryRow } from "@/infrastructure/database/types/DatabaseRows";
+import { categoryDisplayName } from "@/features/reference-data/referenceNames";
 
 const SELECT_COLUMNS = "id, name, canonical_key, color, is_predefined, display_order, is_active, created_at";
 
@@ -168,7 +169,7 @@ export class SqliteCategoryRepository implements CategoryRepository {
 export function mapCategoryRow(row: CategoryRow): Category {
   return {
     id: row.id,
-    name: row.name,
+    name: categoryDisplayName(row.id, row.name),
     canonicalKey: row.canonical_key,
     color: row.color as CategoryColor,
     isPredefined: row.is_predefined === 1,

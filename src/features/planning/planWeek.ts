@@ -4,6 +4,7 @@ import type { Occurrence } from "@/domain/planning/occurrences";
 import { buildAgendaGroups, type AgendaCard } from "@/features/planning/agendaCards";
 import type { AgendaStatus } from "@/features/planning/RoutineAgendaCard";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { appLocaleTag } from "@/shared/i18n/locale";
 
 /**
  * Plan — grille d'une semaine (D-554, 21/11/2026 ; DSF Plan § 2 à § 6 ; Figma « P-Calendrier — Plan » `12983:19`). Calcul pur,
@@ -324,7 +325,7 @@ export function buildPlanWeek(input: PlanWeekInput): PlanWeek {
     if ((programme.start !== undefined && programme.start > days[6]!) || (programme.end !== undefined && programme.end < days[0]!)) continue;
     byProgramme.set(programme.id, { programme, routines: [] });
   }
-  const compare = (a: string, b: string) => a.localeCompare(b, "fr", { sensitivity: "base" });
+  const compare = (a: string, b: string) => a.localeCompare(b, appLocaleTag, { sensitivity: "base" });
   const byTime = (a: PlanCell, b: PlanCell) => (a.card.sortTime < b.card.sortTime ? -1 : a.card.sortTime > b.card.sortTime ? 1 : 0);
   const unplannedCell = (card: AgendaCard): PlanCell => ({ key: card.key, label: planTimeLabel(card.timeLabel), tint: planTint(card.status), card, unplanned: true });
   // Constat a (22/11/2026) : routines « Sans programme » et Séances exécutées hors planification, mêlées par ordre alphabétique.

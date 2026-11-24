@@ -1,10 +1,32 @@
 /**
+ * J1.8 « Gestion des langues » (24/11/2026) : textes des Programmes et de Profil › Confidentialité, déplacés à
+ * l'identique dans le catalogue. Exposés par `strings.programs`.
+ *
  * Libellés des programmes (PROG-CAT-01, 21/11/2026). Sources : spécification
  * `docs/KODJO-Programme-catalogue-creation-configuration-2026-11-20.md` et Figma `G6RY5Ebhgwb4AHIOYDwwvg` (PROG — 7, 7b, 7c, 8,
  * 13, 13b ; Profil — Confidentialité `12839:4036`). Les libellés qui ne figurent dans aucune source sont marqués
  * « [interprétation] » et sont listés dans le rapport de mission.
  */
-export const programStrings = {
+export const programs = {
+  /**
+   * J1.8 (24/11/2026) : dates des programmes, assemblées jusque-là dans `programPresentation.ts` et `programPeriod.ts`.
+   * Figma « PROG — 7 » : « 15 sept. », « 1er nov. » ; « PROG — 13 » : « 15 sept. 2026 » ; information de la période :
+   * « 14 décembre 2026 » (noms complets, comme la planification).
+   */
+  dates: {
+    monthsShort: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+    months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+    /** Quantième du premier jour du mois (« 1er nov. »). */
+    firstDay: "1er",
+    dayMonth: "{day} {month}",
+    dayMonthYear: "{day} {month} {year}",
+    /** Période de la carte : « 15 sept. – 15 déc. ». */
+    period: "{start} – {end}",
+    /** « 14 h », « 8 h 30 » (Figma « PROG — 13 » : « tous les jours, 14 h »). */
+    hour: "{hours} h",
+    hourMinutes: "{hours} h {minutes}",
+  },
+
   catalogue: {
     segment: "Programmes",
     /** D-545 : ligne « Actifs N · Terminés N », filtre. */
@@ -78,6 +100,10 @@ export const programStrings = {
     attach: "Rattacher une routine existante",
     detach: "Retirer",
     detachAccessibility: "Retirer {name} du programme",
+    /** [Interprétation : créneau unique → « le 18 nov., 14 h ».] */
+    onDate: "le {date}",
+    /** Répétition en tête de ligne, minuscule initiale (« tous les jours, 14 h »). */
+    recurrenceStart: (recurrence: string): string => recurrence.charAt(0).toLocaleLowerCase("fr") + recurrence.slice(1),
     contentsOne: "1 contenu",
     contentsMany: "{count} contenus",
     painTracking: "Suivi de la douleur",
