@@ -4,6 +4,7 @@ import { canonicalBodyZoneKey, type BodyZone, type CreateBodyZoneInput } from "@
 import type { BodyZoneMutationResult, BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Database } from "@/infrastructure/database/Database";
 import type { BodyZoneRow } from "@/infrastructure/database/types/DatabaseRows";
+import { bodyZoneDisplayName } from "@/features/reference-data/referenceNames";
 
 /**
  * Lecture et écriture du référentiel persistant des Zones corporelles
@@ -128,7 +129,7 @@ export class SqliteBodyZoneRepository implements BodyZoneRepository {
 export function mapBodyZoneRow(row: BodyZoneRow): BodyZone {
   return {
     id: row.id,
-    name: row.name,
+    name: bodyZoneDisplayName(row.id, row.name),
     canonicalKey: row.canonical_key,
     isActive: row.is_active === 1,
     createdAt: row.created_at,

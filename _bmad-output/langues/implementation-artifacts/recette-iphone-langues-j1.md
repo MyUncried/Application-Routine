@@ -6,7 +6,7 @@ Branche `claude/exciting-lovelace-iyn2wf` ; plan `docs/preparation/langues/J1-PL
 
 Notez pour chaque cas : **OK**, ou **KO** avec ce que vous voyez (une capture aide).
 
-**Restent en français même en anglais, c'est prévu (ne pas noter KO)** : la phrase de synthèse des exercices dans la Composition (étape 2), les Catégories, Zones, Formats et contenus KODJO (Mouvements, Bibliothèques) (étape 4), tout ce que vous avez saisi vous-même (noms de séances, d'exercices…). La ligne Langue du Profil n'est pas encore là (après la fusion des Programmes).
+**Restent en français même en anglais, c'est prévu (ne pas noter KO)** : la phrase de synthèse des exercices dans la Composition (étape 2), les Formats et contenus KODJO (Mouvements, Bibliothèques) (étape 4) ; les Catégories et Zones KODJO sont traduites depuis le 24/11, tout ce que vous avez saisi vous-même (noms de séances, d'exercices…). La ligne Langue est dans Profil › Préférences (D-569).
 
 ## A. iPhone en français — rien ne change
 
@@ -41,6 +41,16 @@ Notez pour chaque cas : **OK**, ou **KO** avec ce que vous voyez (une capture ai
 17. En anglais : Profil › Bibliothèques › depuis l'administration (PC) — si iOS demande l'accès au réseau local, le message est en anglais (seulement si l'accès n'a pas encore été accordé).
 18. En anglais : ajout d'une photo de profil — si iOS demande l'accès aux photos, le message est en anglais (même réserve).
 
+## F. Écrans ajoutés le 24/11 (lot J1.8, après la fusion)
+
+19. Profil › Préférences : section « Language and units » en tête, ligne « Language — English › » ; la toucher ouvre Réglages › Routine BMAD (et « Langue — Français › » en français).
+20. Catalogue des séances : noms des catégories KODJO en anglais (Strength, Mobility, Stretching…). Une catégorie que vous avez renommée garde votre nom.
+21. Programmes : « Active / Finished », « Search », cartes (dates, statut, « week 3 of 13 », nombre de schedules et de workouts).
+22. Modale de création / modification d'un programme : tous les textes, dates, période, suivi de la douleur.
+23. Journal, Agenda, Plan : titres, onglets, cartes, noms des mois et des jours, dialogues, rappels.
+24. Profil › Privacy : tout le contenu.
+25. Repassez en français : ces mêmes écrans sont strictement inchangés.
+
 ## Résultats
 
 | Cas | OK / KO | Constat |
@@ -50,3 +60,4 @@ Notez pour chaque cas : **OK**, ou **KO** avec ce que vous voyez (une capture ai
 | 7–12 |  |  |
 | 13–15 |  |  |
 | 16–18 |  |  |
+| 19–25 |  |  |
