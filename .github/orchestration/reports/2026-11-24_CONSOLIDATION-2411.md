@@ -1,6 +1,6 @@
 # CONSOLIDATION-2411 — intégration des branches de code et de documentation (24/11/2026)
 
-Branche : `integration/consolidation-20261124` (worktree `C:\Dev\KODJO-CONSOL`), issue de `origin/main`. Partie code : à compléter par la session principale.
+Branche : `integration/consolidation-20261124` (worktree `C:\Dev\KODJO-CONSOL`), issue de `origin/main`. Partie code : section « Code » ci-dessous.
 
 ## Documentation
 
@@ -113,3 +113,61 @@ Annotations datées sans nouveau numéro :
 ### État Git (partie documentaire)
 
 Branche `integration/consolidation-20261124`, sans push ; arbre propre après le commit de ce rapport.
+
+## Code
+
+### Identifiant, objectif, départ
+
+- **Mission :** CONSOLIDATION-2411. Demande de Hermann (24/11/2026) : « je veux fusionner et n'avoir qu'une seule solution avec code consolidé et documentation fusionnée aussi, avant de lancer la suite ».
+- **Arbitrages :**
+  - cible `main`, par PR (« main par PR ») ;
+  - périmètre : Planification + Programmes et leurs deux branches documentaires (d'office), Formats PRE-11, Langues J1 ;
+  - exclus : illustrations 60, documentation Compte/Communauté, diagnostic CPU, orchestration VNext.
+- **Départ :** `origin/main` `fe7d71d6`.
+
+### Fusions, dans l'ordre
+
+1. **`feat/plan-20261121`** (`4bc0330a`) : deux conflits de documentation (ch07, ch13), ajouts des deux côtés au même endroit, gardés tous les deux.
+2. **`docs/agenda-seances-journal-filtre-20261121`** (`eb73a339`) : sans conflit.
+3. **`recette/amrap-remarques-20261119`** (`e22a952a`, D-529 à D-532), seule branche Formats fusionnée, sur consigne de Hermann.
+   - La migration « Annonce des tours », développée comme 031, prenait un numéro déjà attribué à la ligne Programmes (031 à 038).
+   - Elle est **renumérotée 039**, sans effet si la colonne existe déjà ; `DATABASE_VERSION` passe à 39.
+   - Assertions de version des tests portées à 39.
+   - Suite complète : 467 suites, 6 731 tests, **1 échec**. Le test de la migration 036 attendait 38 ; c'est un effet de la renumérotation, corrigé dans `6c067e9d`.
+4. **`claude/exciting-lovelace-iyn2wf`** (Langues J1).
+   - **`app.json`** : `CFBundleDevelopmentRegion` fr, `CFBundleLocalizations` fr et en, localisations mixtes.
+   - **Conflits du catalogue des mouvements importés et de l'exécution** : code récent gardé (fiche Mouvement du 18/11, D-530, D-531, AMRAP, EMOM) et textes passés par le catalogue.
+   - **Nouvelles clés** traduites selon le glossaire.
+   - **Exclusions motivées** du test des textes en dur : `planningStrings.ts`, `programStrings.ts`, `programPresentation.ts` (environ 160 textes Planification/Programmes non encore migrés, lot à part). Signe des minutes « ’ » autorisé.
+   - **Paquet** : `expo-localization` 57.0.2 (et `rtl-detect`) absent des `node_modules` partagés (jonction vers `KODJO-FORMATS`), ajouté seul, sans réinstallation.
+5. **`docs/planification-grille-creneaux`** et renumérotation des décisions : section « Documentation » ci-dessus.
+
+### Correctifs médias et base (consigne de Hermann)
+
+`src/domain/catalogue/catalogueMedia.ts`, `src/infrastructure/media/CatalogueMediaWriter.ts`, `src/features/activities/photoThumbnails.ts` et `src/infrastructure/database/repairOrphanRows.ts` existent et sont identiques à `feat/plan-20261121`. `MovementCatalogueList.tsx` garde le préchargement `preloadPhotoThumbnails`. Les tests du catalogue et de la base passent.
+
+### Preuves et tests
+
+- `npx tsc --noEmit -p .` : propre.
+- **Suite Jest complète, finale** (`--maxWorkers=2`) : **474 suites, 6 716 tests réussis, 32 ignorés (déjà ignorés), 0 échec**.
+- Elle couvre `hardcodedUserText.test.ts`, `translationParity.test.ts`, la migration 039 et les tests du catalogue et de la base.
+
+### Hypothèses non démontrées, restes
+
+- **`expo-localization` est un module natif** : la version consolidée demande un nouveau build EAS. Quota gratuit iOS épuisé jusqu'au 01/12/2026.
+- **Recette en cours** : Metro (192.168.0.16:8084) sert une copie figée `C:\Dev\KODJO-CONSOL-RECETTE` (`6c067e9d`, sans les Langues), compatible avec le client de développement installé.
+- **Lignée de base divergente** : une base passée par la migration 031 de la branche Formats (version 31) ne recevrait pas les migrations 031 à 038 de la ligne Programmes. Cela ne concerne que les données de test d'une recette Formats.
+- **Traductions anglaises hors glossaire, à valider** : « Movement families », « Anatomical targets », « Clinical conditions », « R{n} », « Public username », écran d'enchaînement des parcours.
+- **Points ouverts :**
+  - à trancher par Hermann : collision D-532, D-516 à D-518 absents du registre ;
+  - commentaires de code citant les anciens numéros (table de renumérotation) ;
+  - migration des textes Planification/Programmes vers le catalogue.
+
+### Vérifications restant à faire sur iPhone
+
+- La recette de la version consolidée sans les Langues est en cours.
+- Les Langues (français et anglais) restent à vérifier, après le nouveau build.
+
+### Classe de synchronisation
+
+Fusions : aucune règle nouvelle côté code (classe D). Les règles décidées sont reportées dans la partie « Documentation » (classe B).
