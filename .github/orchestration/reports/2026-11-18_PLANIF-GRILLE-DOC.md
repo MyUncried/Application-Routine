@@ -177,3 +177,11 @@
 - Constat : sur les 60 illustrations du 17/11/2026 (branche `assets/illustrations-60-20261117`, 1206 × 987), environ 54 sont composées de plusieurs vues et 6 sont simples ; détection stricte des séparations sur 44, assouplie sur 8 autres avec fausses séparations possibles. Hypothèse non démontrée : la fiabilité d'une détection assouplie.
 - Vérification sur iPhone à faire : lisibilité des mosaïques à 64 pt. Essai de rendu des 60 illustrations livré à Hermann le 24/11/2026 (43 à deux vues, 10 à trois, 7 simples ; correction du 24/11 : `FIT-STR-003`, `FIT-PIL-006`, `REED-005`, `REED-007` sont des mises en page « deux en haut, une large en bas ») et jugé « très correct » ; coupes de têtes ou de jambes possibles dans les cases carrées, acceptées. À confirmer sur iPhone avec les vraies cartes.
 - Tests : non applicables.
+
+## Complément 24/11/2026 — Icônes et teintes des états de l'Agenda (D-566, classe B)
+- Décision explicite de Hermann (conversation du 24/11/2026) : icône ronde 28 pt par état (option 2), cadre bleu pour Démarrer, rouge pour en retard et arrêtée, vert complétée, orange partielle, gris supprimée ; Rattraper porte le même triangle bleu que Démarrer.
+- Figma : écran d'essai « P-Calendrier — Semaine — Icônes d'état (essai) » et légende des deux options ; composants et écrans de production non modifiés (la légende garde un triangle rouge pour Rattraper).
+- Documents : `docs/DSF-AGENDA-PLANNING-2026-11-19.md` (teinte du cadre, pastille d'action, annotées) ; registre ch07 D-566.
+- Non traité : propagation à l'écran Agenda de production, aux chapitres 09/10 et aux prompts Agenda ; anneau « Partielle » à progression réelle (à vérifier : avancement final conservé à l'arrêt, ch09 « État d'exécution – Avancement »).
+- Vérification sur iPhone à faire : lisibilité des icônes de 28 pt et contraste des cadres.
+- Tests : non applicables.
