@@ -42,7 +42,7 @@ import { colors } from "@/shared/ui/tokens";
  * Bouton flottant — Créer » `13039:49732`, six variantes).
  *
  * Rendu (DSF § 2, valeurs du composant Figma) : rond de 60 ; verre blanc dépoli à 65 % sur le flou natif de l'arrière-plan ;
- * ombre large et douce (`#1A1A26`, 14 %, décalage 4, flou 24) ; liseré blanc de 1,2 (blanc 95 %, valeur exportée par Figma) ;
+ * ombre large et douce (`#1A1A26`, 22 % depuis la recette du 24/11 [14 % de Figma], décalage 4, flou 24) ; liseré blanc de 1,2 (blanc 95 %, valeur exportée par Figma) ;
  * contenu bleu `#0508E5` (`colors.primary`).
  * Flou : effet de verre natif d'iOS (`expo-glass-effect`, `GlassView`, déjà dans la build et utilisé par le bouton de
  * lecture de la fiche Mouvement), sans imitation. Sans effet de verre (iOS antérieur à 26, module absent) : le voile
@@ -56,7 +56,8 @@ export const FLOATING_CREATE_BLUE = colors.primary;
 const GLASS_VEIL = "rgba(255, 255, 255, 0.65)";
 /**
  * Recette du 24/11/2026 (appui long, « mêmes opacités ») : fond bleu `#0508E5` au même voile de 65 %, symbole blanc.
- * [Liseré, ombre et transparence d'ensemble inchangés — remplacé le même jour : sans liseré, 70 %, ombre plus sombre.]
+ * Sans liseré. [Liseré, ombre et transparence d'ensemble inchangés — remplacé le même jour : sans liseré ; 70 % et ombre
+ * plus sombre, valables pour les deux couleurs.]
  */
 const GLASS_VEIL_BLUE = "rgba(5, 8, 229, 0.65)";
 export const FLOATING_CREATE_WHITE = "#FFFFFF";
@@ -64,7 +65,8 @@ export const FLOATING_CREATE_WHITE = "#FFFFFF";
 const GlyphColor = createContext<string>(FLOATING_CREATE_BLUE);
 const GLASS_BORDER = "rgba(255, 255, 255, 0.95)";
 const GLASS_BORDER_WIDTH = 1.2;
-const SHADOW = { color: "#1A1A26", opacity: 0.14, offsetY: 4, radius: 24 } as const;
+// Ombre assombrie le 24/11/2026 (« assombrir un peu l'ombre », deux couleurs) : 22 %. [14 % du composant Figma — remplacé.]
+const SHADOW = { color: "#1A1A26", opacity: 0.22, offsetY: 4, radius: 24 } as const;
 // [Appui maintenu de 400 ms avant le déplacement (`FLOATING_LONG_PRESS_MS`) — retiré le 24/11/2026 (D-594) : glissement dès 10 pt.]
 
 const CALENDAR_ICON = require("../../../assets/icons/fab-calendrier.svg");
@@ -171,7 +173,7 @@ export function FloatingCreateFace({
 }) {
   const [glass] = useState(liquidGlassAvailable);
   return (
-    <View style={[styles.shadow, tone === "BLUE" ? styles.shadowBlue : null]} pointerEvents="none" {...(testID !== undefined ? { testID } : {})}>
+    <View style={styles.shadow} pointerEvents="none" {...(testID !== undefined ? { testID } : {})}>
       <View style={styles.clip}>
         {glass ? (
           <GlassView
@@ -199,14 +201,11 @@ export function FloatingCreateFace({
 
 const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 } as const;
 
-/** Recette du 24/11/2026 (Hermann, constats) : bouton à 65 % d'opacité (35 % de transparence). Inactif : `UNSELECTED_OPACITY`. */
-export const FLOATING_CREATE_OPACITY = 0.65;
 /**
- * Recette du 24/11/2026 (Hermann : « Retirer le liseré blanc quand le bouton est bleu, passer à 70% d'opacité, assombrir un
- * peu l'ombre ») : bouton bleu à 70 %, sans liseré, ombre à 22 % (au lieu de 14 %). Le bouton blanc est inchangé.
+ * Recette du 24/11/2026 (Hermann) : bouton à 70 % d'opacité, dans les deux couleurs (« Les 70% et l'ombre sont valables pour
+ * les deux couleurs »). Inactif : `UNSELECTED_OPACITY`. [65 % (« à 65% d'opacité ») — remplacé le même jour.]
  */
-export const FLOATING_CREATE_BLUE_OPACITY = 0.7;
-const BLUE_SHADOW_OPACITY = 0.22;
+export const FLOATING_CREATE_OPACITY = 0.7;
 
 /**
  * Recette du 24/11/2026 (fab-partout, KO) : la couche passe au-dessus de toute bande élevée de l'écran (zone de contexte :
@@ -332,7 +331,7 @@ export function FloatingCreateButton({
     <GestureHandlerRootView pointerEvents="box-none" style={styles.layer} onLayout={onLayout} testID={`${testID}-layer`}>
       {!hidden && rest !== null && bounds !== null ? (
         <DragDetector enabled={!disabled} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
-          <Reanimated.View style={[styles.button, tone === "BLUE" ? styles.buttonBlue : null, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
+          <Reanimated.View style={[styles.button, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
             <Pressable
               ref={pressableRef}
               onPress={onPress}
@@ -474,12 +473,6 @@ const styles = StyleSheet.create({
   veilBlue: {
     backgroundColor: GLASS_VEIL_BLUE,
     borderWidth: 0,
-  },
-  buttonBlue: {
-    opacity: FLOATING_CREATE_BLUE_OPACITY,
-  },
-  shadowBlue: {
-    shadowOpacity: BLUE_SHADOW_OPACITY,
   },
   content: {
     position: "absolute",

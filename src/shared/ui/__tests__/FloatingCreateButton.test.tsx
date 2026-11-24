@@ -169,10 +169,10 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(screen.queryByTestId("floating-create")).toBeNull();
   });
 
-  it("recette du 24/11 : bouton à 65 % d'opacité ; couche au-dessus de la zone de contexte (zIndex 1), sous le menu Créer", () => {
+  it("recette du 24/11 : bouton à 70 % d'opacité ; couche au-dessus de la zone de contexte (zIndex 1), sous le menu Créer", () => {
     renderButton();
-    expect(FLOATING_CREATE_OPACITY).toBe(0.65);
-    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.65);
+    expect(FLOATING_CREATE_OPACITY).toBe(0.7);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.7);
     const layer = StyleSheet.flatten(screen.getByTestId("floating-create-layer").props.style);
     expect(layer).toMatchObject({ zIndex: FLOATING_CREATE_LAYER, elevation: FLOATING_CREATE_LAYER, position: "absolute" });
     expect(FLOATING_CREATE_LAYER).toBeGreaterThan(1);
@@ -209,7 +209,7 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(veil()).toBe("rgba(5, 8, 229, 0.65)");
     expect(glyph()).toContain("#FFFFFF");
     expect(glyph()).not.toContain("#0508E5");
-    // Bouton bleu : 70 %, sans liseré, ombre plus sombre (recette du 24/11).
+    // Bouton bleu : sans liseré ; 70 % et ombre à 22 % dans les deux couleurs (recette du 24/11).
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.7);
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).borderWidth).toBe(0);
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
@@ -221,9 +221,9 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     fireEvent(screen.getByTestId("floating-create"), "longPress");
     expect(veil()).toBe("rgba(255, 255, 255, 0.65)");
     expect(glyph()).toContain("#0508E5");
-    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.65);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.7);
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).borderWidth).toBe(1.2);
-    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.14);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face").props.style).shadowOpacity).toBe(0.22);
     expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!).tone).toBeUndefined();
     second.unmount();
   });
