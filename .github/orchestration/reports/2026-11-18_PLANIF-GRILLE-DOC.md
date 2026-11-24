@@ -180,8 +180,8 @@
 
 ## Complément 24/11/2026 — Icônes et teintes des états de l'Agenda (D-566, classe B)
 - Décision explicite de Hermann (conversation du 24/11/2026) : icône ronde 28 pt par état (option 2), cadre bleu pour Démarrer, rouge pour en retard et arrêtée, vert complétée, orange partielle, gris supprimée ; Rattraper porte le même triangle bleu que Démarrer.
-- Figma : écran d'essai « P-Calendrier — Semaine — Icônes d'état (essai) » et légende des deux options ; composants et écrans de production non modifiés (la légende garde un triangle rouge pour Rattraper).
+- Figma : écran d'essai « P-Calendrier — Semaine — Icônes d'état (essai) » et légende des deux options ; composants et écrans de production non modifiés (légende alignée : triangle bleu pour Rattraper).
 - Documents : `docs/DSF-AGENDA-PLANNING-2026-11-19.md` (teinte du cadre, pastille d'action, annotées) ; registre ch07 D-566.
-- Non traité : propagation à l'écran Agenda de production, aux chapitres 09/10 et aux prompts Agenda ; anneau « Partielle » à progression réelle (à vérifier : avancement final conservé à l'arrêt, ch09 « État d'exécution – Avancement »).
+- Non traité : propagation à l'écran Agenda de production, aux chapitres 09/10 et aux prompts Agenda ; anneau « Partielle » : décidé fixe (pas de progression réelle) ; légende Figma passée en triangle bleu pour Rattraper.
 - Vérification sur iPhone à faire : lisibilité des icônes de 28 pt et contraste des cadres.
 - Tests : non applicables.
