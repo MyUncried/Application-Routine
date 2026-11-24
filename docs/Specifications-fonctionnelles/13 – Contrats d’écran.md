@@ -5389,7 +5389,7 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 
-Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
+Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système. [Complément du 24/11/2026, D-595 : effet lentille sur la pilule et sur le cadre actif, avec le verre natif d'iOS 26 ; voir [DSF Navigation](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md), contrat commun.]
 
 #### 4.4 Conservation d’état Catalogue
 

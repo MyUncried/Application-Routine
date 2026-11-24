@@ -256,7 +256,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByLabelText(strings.screens.movement.catalogue.segment).props.accessibilityState).toMatchObject({ selected: true });
   });
 
-  it("D-501 : fond d'écran (barre d'état et en-tête compris), zone de contexte et fondu au-dessus de la navigation aux couleurs du Catalogue actif", async () => {
+  it("D-501 : fond d'écran (barre d'état et en-tête compris) et zone de contexte aux couleurs du Catalogue actif ; D-595 : plus de fondu au-dessus de la navigation", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -272,12 +272,8 @@ describe("CatalogueScreen — cadre commun", () => {
       // L'en-tête fixe ne peint pas de fond propre : il laisse voir celui de l'écran.
       expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style).backgroundColor).toBeUndefined();
       expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", HIDDEN).props.style).backgroundColor).toBe(context);
-      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-solid", HIDDEN).props.style).backgroundColor).toBe(background);
-      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-gradient", HIDDEN).props.style)).toMatchObject({
-        height: 40,
-        experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)`,
-      });
-      expect(screen.getByTestId("catalogue-navigation-fade", HIDDEN).props.pointerEvents).toBe("none");
+      // Recette du 24/11/2026 (D-595, choix « Liste sous la barre ») : fondu et fond protégé au-dessus de la barre retirés.
+      expect(screen.queryByTestId("catalogue-navigation-fade", HIDDEN)).toBeNull();
     };
     // D-501 révisée (Hermann, 08/11/2026) : fond = 40 % du contexte sur blanc.
     expectPalette("#EAEAFF", "#F7F7FF");
@@ -343,6 +339,20 @@ describe("CatalogueScreen — cadre commun", () => {
     const body = screen.getByTestId("catalogue-body");
     const flattened = StyleSheet.flatten(body.props.style);
     expect(flattened.paddingBottom).toBe(navigationBarTotalHeight());
+  });
+
+  it("D-595 (recette du 24/11/2026, « Liste sous la barre ») : la liste des Séances défile sous la barre, réserve en bas de liste", async () => {
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([aSummary("a"), aSummary("b")]);
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-body").props.style).paddingBottom).toBeUndefined();
+    const list = StyleSheet.flatten(screen.getByTestId("catalogue-session-list").props.contentContainerStyle);
+    expect(list.paddingBottom).toBe(24 + navigationBarTotalHeight());
   });
 
   // PROG-CAT-01 (CE-PROG-01, D-544) : l'onglet Programmes devient actif. [Avant : visible et indisponible — remplacé.]

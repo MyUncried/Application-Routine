@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { act, fireEvent, renderRouter, screen } from "expo-router/testing-library";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
 import {
@@ -21,6 +21,21 @@ import { strings } from "@/shared/i18n";
  * (`6513:20151`) — cinq destinations (Catalogues, Calendrier, Suivi,
  * Communauté désactivée, Profil), plus aucun bouton Recherche.
  */
+/** Verre natif d'iOS 26 : le simulacre jest-expo le déclare disponible ; « sans verre » simule un iOS antérieur. */
+let mockLiquidGlass = true;
+jest.mock("@/shared/ui/liquidGlass", () => ({
+  LENS_VEIL: "rgba(255, 255, 255, 0.22)",
+  liquidGlassAvailable: () => mockLiquidGlass,
+}));
+function withoutNativeGlass(run: () => void) {
+  mockLiquidGlass = false;
+  try {
+    run();
+  } finally {
+    mockLiquidGlass = true;
+  }
+}
+
 function IndexRoute() {
   return <Text>index-screen</Text>;
 }
@@ -146,9 +161,38 @@ describe("Navigation basse — cinq destinations (PRE-8 E01)", () => {
   });
 });
 
-describe("Navigation basse — barre Figma (PRE-8 E01)", () => {
-  it("uses the Figma bar surface: 62 high, radius 33, subtle surface, white border", () => {
+describe("Navigation basse — effet lentille (Hermann, 24/11/2026)", () => {
+  it("with native glass: clear glass under a light 22 % white veil; same shape, white border and shadow", () => {
     renderTabsLayout();
+    const bar = StyleSheet.flatten(screen.getByTestId("navigation-tabs-group").props.style);
+    expect(bar).toMatchObject({ height: 62, borderRadius: 33, borderWidth: 1, borderColor: colors.background, backgroundColor: "transparent" });
+    expect(bar.shadowOpacity).toBe(0.08);
+    expect(screen.getByTestId("navigation-bar-glass").props).toMatchObject({ glassEffectStyle: "clear", colorScheme: "light" });
+    const lens = screen.getByTestId("navigation-bar-lens");
+    expect(StyleSheet.flatten(lens.props.style)).toMatchObject({ borderRadius: 32, overflow: "hidden" });
+    expect(StyleSheet.flatten(lens.children.filter((c): c is typeof lens => typeof c !== "string")[1]!.props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.22)");
+  });
+
+  it("with native glass: the sliding active frame is a lens tinted 20 % blue (recette du 24/11 : plus contrasté), same 66 × 50 frame", () => {
+    renderTabsLayout();
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 70.8, height: 60 } },
+    });
+    const indicator = StyleSheet.flatten(screen.getByTestId("navigation-active-indicator").props.style);
+    expect(indicator).toMatchObject({ width: 66, height: 50, borderRadius: 28, backgroundColor: "transparent" });
+    expect(screen.getByTestId("navigation-active-indicator-glass").props).toMatchObject({
+      glassEffectStyle: "clear",
+      tintColor: "rgba(5, 8, 229, 0.2)",
+    });
+  });
+});
+
+describe("Navigation basse — barre Figma (PRE-8 E01)", () => {
+  it("uses the Figma bar surface: 62 high, radius 33, subtle surface, white border (without native glass)", () => {
+    withoutNativeGlass(() => {
+      renderTabsLayout();
+    });
+    expect(screen.queryByTestId("navigation-bar-lens")).toBeNull();
 
     const bar = StyleSheet.flatten(screen.getByTestId("navigation-tabs-group").props.style);
     expect(bar.height).toBe(62);
