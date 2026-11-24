@@ -30,6 +30,7 @@ import {
   type FloatingPosition,
 } from "@/shared/ui/floatingCreatePosition";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -170,6 +171,15 @@ export function FloatingCreateFace({ variant, testID }: { readonly variant: Floa
 
 const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 } as const;
 
+/** Recette du 24/11/2026 (Hermann, constats) : bouton à 65 % d'opacité (35 % de transparence). Inactif : `UNSELECTED_OPACITY`. */
+export const FLOATING_CREATE_OPACITY = 0.65;
+
+/**
+ * Recette du 24/11/2026 (fab-partout, KO) : la couche passe au-dessus de toute bande élevée de l'écran (zone de contexte :
+ * `zIndex` 1), sinon le bouton déplacé en haut passait dessous et ne répondait plus. Sous le menu Créer (`CREATE_MENU_LAYER` 10).
+ */
+export const FLOATING_CREATE_LAYER = 9;
+
 export type FloatingCreateAnchor = { readonly centerX: number; readonly centerY: number; readonly side: FloatingPosition["side"] };
 
 /**
@@ -182,7 +192,9 @@ export type FloatingCreateAnchor = { readonly centerX: number; readonly centerY:
  * - relâchement : élan, rangement contre le bord gauche ou droit vers lequel l'élan porte, hauteur libre bornée à l'écran
  *   (bouton entier visible), ressort de pose avec léger dépassement ;
  * - rattrapage en vol : l'animation s'arrête au toucher et le geste repart de la position affichée, sans saut ;
- * - « Réduire les animations » : pose directe (`ReduceMotion.System`).
+ * - « Réduire les animations » : pose directe, réglage suivi en direct (`useReduceMotion`).
+ *   [`ReduceMotion.System` — remplacé le 24/11/2026 (recette fab-reduire-animations, KO) : Reanimated ne lit le réglage
+ *   qu'au lancement de l'application.]
  * Position commune à tous les écrans, conservée sur l'appareil ; hauteur par défaut : `bottom` au-dessus du bas de la couche.
  * [Appui maintenu de 400 ms, bouton collé au doigt, rangement immédiat au bord le plus proche de la position, hauteur bornée
  * entre la position par défaut et le bas de la zone de contexte — remplacés le 24/11/2026 (D-594).]
@@ -281,7 +293,7 @@ export function FloatingCreateButton({
   };
 
   return (
-    <GestureHandlerRootView pointerEvents="box-none" style={StyleSheet.absoluteFill} onLayout={onLayout} testID={`${testID}-layer`}>
+    <GestureHandlerRootView pointerEvents="box-none" style={styles.layer} onLayout={onLayout} testID={`${testID}-layer`}>
       {!hidden && rest !== null && bounds !== null ? (
         <DragDetector enabled={!disabled} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
           <Reanimated.View style={[styles.button, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
@@ -339,8 +351,10 @@ function DragDetector({
     limits.set(bounds);
     home.set(rest);
   }, [bounds, rest, limits, home]);
-  const follow = { ...FLOATING_FOLLOW_SPRING, reduceMotion: ReduceMotion.System };
-  const settle = { ...FLOATING_SETTLE_SPRING, reduceMotion: ReduceMotion.System };
+  // « Réduire les animations » suivi en direct : pose directe, sans ressort.
+  const reduceMotion = useReduceMotion() ? ReduceMotion.Always : ReduceMotion.Never;
+  const follow = { ...FLOATING_FOLLOW_SPRING, reduceMotion };
+  const settle = { ...FLOATING_SETTLE_SPRING, reduceMotion };
   const pan = Gesture.Pan()
     .enabled(enabled)
     .withTestId(testID)
@@ -379,12 +393,18 @@ export function floatingBottomAboveNavigation(navigationBarHeight: number): numb
 }
 
 const styles = StyleSheet.create({
+  layer: {
+    ...StyleSheet.absoluteFill,
+    zIndex: FLOATING_CREATE_LAYER,
+    elevation: FLOATING_CREATE_LAYER,
+  },
   button: {
     position: "absolute",
     left: 0,
     top: 0,
     width: FLOATING_BUTTON_SIZE,
     height: FLOATING_BUTTON_SIZE,
+    opacity: FLOATING_CREATE_OPACITY,
   },
   disabled: {
     opacity: UNSELECTED_OPACITY,

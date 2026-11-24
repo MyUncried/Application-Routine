@@ -15,11 +15,12 @@ Les actions de création ne sont plus dans la zone de contexte. Un bouton rond f
 ## 2. Rendu
 
 - **Forme** : rond de 60 ; verre blanc dépoli à 65 % d'opacité, avec un flou de l'arrière-plan de 12.
+- **Transparence d'ensemble** (recette du 24/11/2026, Hermann : « rendre le bouton un peu plus transparent, à 65 % d'opacité (35 % de transparence) ») : le bouton entier (verre, liseré, contenu, ombre) est affiché à 65 % d'opacité ; inactif, il reste atténué à 45 %.
 - **Ombre** : large et douce (gris, 14 %, décalage 4, flou 24).
 - **Liseré** : blanc, fin (1,2), translucide et irrégulier sur le pourtour (plus brillant en haut à gauche et en bas à droite).
 - **Contenu** : bleu `#0508E5`.
 - **Position par défaut** : 16 du bord droit, 12 au-dessus de la barre de navigation, ou au-dessus du bouton « Continuer » en composition.
-- **Plan d'affichage** : le bouton passe sous les feuilles modales.
+- **Plan d'affichage** : le bouton passe sous les feuilles modales, et au-dessus de tout le reste de l'écran, zone de contexte comprise (recette du 24/11/2026, fab-partout).
 - **Mode sombre** : hors MVP. Aucune variante sombre n'est dessinée.
 
 ## 3. Contenu selon l'écran
@@ -61,7 +62,7 @@ Le Plan n'a pas de bouton flottant. On y crée en touchant une case ou par « + 
 - **Rattrapage** : il peut être rattrapé en mouvement et repart sans saut.
 - **Mémoire** : position conservée sur l'appareil, commune à tous les écrans, ramenée dans l'écran si besoin.
 - **Composition** : le menu Créer s'ouvre vers le haut s'il y a la place, sinon vers le bas.
-- **Réduire les animations** (réglage iOS) : pose directe.
+- **Réduire les animations** (réglage iOS) : pose directe, sans ressort ; le réglage est suivi en direct, sans relancer l'application (recette du 24/11/2026).
 
 [Règle du 22/11/2026, remplacée le 24/11/2026 par D-594, texte d'origine conservé ci-dessous.]
 

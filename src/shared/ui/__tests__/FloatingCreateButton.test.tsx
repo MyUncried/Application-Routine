@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text } from "react-native";
+import { AccessibilityInfo, ScrollView, StyleSheet, Text } from "react-native";
 import { State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 import { en } from "@/shared/i18n/resources/en";
 import { fr } from "@/shared/i18n/resources/fr";
-import { FloatingCreateButton } from "@/shared/ui/FloatingCreateButton";
+import { CREATE_MENU_LAYER } from "@/features/sessions/CreateMenu";
+import { FLOATING_CREATE_LAYER, FLOATING_CREATE_OPACITY, FloatingCreateButton } from "@/shared/ui/FloatingCreateButton";
 import { FloatingCreateHost, FloatingCreateSlot } from "@/shared/ui/FloatingCreateHost";
 import {
   FLOATING_DRAG_THRESHOLD,
@@ -30,6 +31,7 @@ import {
  * (retard, dépassement) se recette sur iPhone ; ses lois sont vérifiées ici comme fonctions pures.
  */
 const mockFiles = new Map<string, string>();
+const mockSpringConfigs: { reduceMotion?: unknown }[] = [];
 jest.mock("expo-file-system", () => {
   class File {
     readonly key: string;
@@ -60,6 +62,10 @@ jest.mock("react-native-reanimated", () => {
   const { useState: useStableState } = require("react") as typeof import("react");
   return {
     ...reanimated,
+    withSpring: (to: number, config: { reduceMotion?: unknown }) => {
+      mockSpringConfigs.push(config);
+      return to;
+    },
     useSharedValue: <T,>(init: T) => {
       const [shared] = useStableState(() => {
         const box = { value: init, get: () => box.value, set: (next: T) => void (box.value = next) };
@@ -161,6 +167,35 @@ describe("FloatingCreateButton — rendu et toucher", () => {
     expect(onPress).not.toHaveBeenCalled();
     view.rerender(<FloatingCreateButton variant="plus" accessibilityLabel="Ouvrir le menu Créer" onPress={onPress} bottom={BOTTOM} hidden />);
     expect(screen.queryByTestId("floating-create")).toBeNull();
+  });
+
+  it("recette du 24/11 : bouton à 65 % d'opacité ; couche au-dessus de la zone de contexte (zIndex 1), sous le menu Créer", () => {
+    renderButton();
+    expect(FLOATING_CREATE_OPACITY).toBe(0.65);
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.65);
+    const layer = StyleSheet.flatten(screen.getByTestId("floating-create-layer").props.style);
+    expect(layer).toMatchObject({ zIndex: FLOATING_CREATE_LAYER, elevation: FLOATING_CREATE_LAYER, position: "absolute" });
+    expect(FLOATING_CREATE_LAYER).toBeGreaterThan(1);
+    expect(FLOATING_CREATE_LAYER).toBeLessThan(CREATE_MENU_LAYER);
+  });
+
+  it("recette du 24/11 : « Réduire les animations » suivi en direct — ressorts sans animation quand il est activé", async () => {
+    const enabled = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    try {
+      const reduced = renderButton();
+      await act(async () => {});
+      mockSpringConfigs.length = 0;
+      fling(-200, -300);
+      expect(mockSpringConfigs.length).toBeGreaterThan(0);
+      expect(mockSpringConfigs.every((config) => config.reduceMotion === "always")).toBe(true);
+      reduced.unmount();
+    } finally {
+      enabled.mockRestore();
+    }
+    renderButton();
+    mockSpringConfigs.length = 0;
+    fling(-200, -300);
+    expect(mockSpringConfigs.every((config) => config.reduceMotion === "never")).toBe(true);
   });
 
   it("chaque variante a son contenu (Figma 13039:49732)", () => {
