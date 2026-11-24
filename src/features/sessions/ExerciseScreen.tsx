@@ -245,9 +245,7 @@ export function EditorHeader({
       // PRE-5 story 3.2, arbitrage G-1 de Hermann du 19/10 : en-tête de l'Éditeur selon Figma
       // `5544:4503` (✕ à 12 du bord, titre Inter Medium 17), sans changer les autres écrans.
       layoutStyle={{ paddingLeft: EDITOR_HEADER.paddingLeft, gap: EDITOR_HEADER.gap }}
-      backCircleStyle={EDITOR_HEADER.backCircle}
       titleStyle={EDITOR_HEADER.title}
-      backIconTintColor={EDITOR_HEADER.closeIconTint}
       trailing={trailing}
       {...(topInset !== undefined ? { topInset } : {})}
       {...(validate !== undefined ? { validate } : {})}
