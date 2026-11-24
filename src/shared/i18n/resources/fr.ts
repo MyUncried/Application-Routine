@@ -1655,6 +1655,15 @@ export const fr = {
         guidance: "Guidage",
         notifications: "Notifications",
       },
+      // J1 (D-569, règle 2 de « Gestion des langues ») : la ligne ouvre le réglage iOS de langue de l’application.
+      language: {
+        // Titre de la section en tête des Préférences (Figma `1992:684`).
+        sectionTitle: "Langue et unités",
+        label: "Langue",
+        hint: "Ouvre les réglages de l’application pour changer de langue",
+      },
+      /** Nom de chaque langue dans sa propre langue (usage iOS) : identique dans tous les catalogues. */
+      languageNames: { fr: "Français", en: "English" },
       settings: {
         sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
         exerciseCountdown: { label: "Compte à rebours d’un exercice", unit: "s" },

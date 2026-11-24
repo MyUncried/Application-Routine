@@ -83,3 +83,14 @@ Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
 - **Contradiction documentaire corrigée** : les règles 2, 6 et 7 de la section du 23/11 sont annotées « remplacé par D-569 », car Langue et Unité vont dans Profil › Préférences, et les alias sont invisibles et sans écran de saisie. C'est D-569 qui fait foi.
 - Prompt de la section « Langue et unités » (lien Figma `1992:684`) : `docs/preparation/langues/PROMPT-J1-LANGUE-ET-UNITES.md`.
 - Tests : `tsc` 0 erreur ; `src/shared/i18n` 74 tests verts.
+
+## Complément du 24/11/2026 — ligne Langue (élément 10, D-569)
+
+- Demande de Hermann : « oui fais le ».
+- Profil › Préférences : section « Langue et unités » en tête (Figma `1992:684`), avec la ligne « Langue » (valeur dans sa propre langue, chevron). Toucher la ligne appelle `Linking.openSettings()`. `GuidanceValueRow` est le nouveau composant de ligne à valeur.
+- Textes en français et en anglais ; noms de langue identiques dans tous les catalogues (exception explicite dans le test de parité).
+- Le titre de section est rangé dans `language.sectionTitle` plutôt que dans `groups`, pour ne pas modifier l'attente d'`index.test.ts`.
+- La ligne « Unité de charge » n'est pas faite (étape J3, plan d'abord).
+- Contrat d'écran ch. 13 complété (classe B, D-569).
+- Tests : un nouveau test dans `ProfileScreen.test` ; suite complète **474 suites, 6 718 tests verts** ; `tsc` et `eslint` : 0 erreur.
+- À vérifier sur iPhone : ligne visible et alignée comme la maquette ; toucher ouvre Réglages › Routine BMAD ; la valeur passe à « English » après changement de langue.

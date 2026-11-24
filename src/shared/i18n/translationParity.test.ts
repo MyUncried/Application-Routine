@@ -20,7 +20,8 @@ function compare(source: unknown, translated: unknown, path: string, issues: Iss
   if (typeof source === "string") {
     if (typeof translated !== "string") return void issues.push(`${path} : texte manquant`);
     if (placeholders(source) !== placeholders(translated)) issues.push(`${path} : variables ${placeholders(source)} ≠ ${placeholders(translated)}`);
-    if (FRENCH_ONLY.test(translated)) issues.push(`${path} : caractère français dans « ${translated} »`);
+    // Le nom d'une langue s'écrit dans sa propre langue (« Français ») dans tous les catalogues.
+    if (FRENCH_ONLY.test(translated) && !/\.languageNames\./.test(path)) issues.push(`${path} : caractère français dans « ${translated} »`);
     return;
   }
   if (typeof source === "function") {

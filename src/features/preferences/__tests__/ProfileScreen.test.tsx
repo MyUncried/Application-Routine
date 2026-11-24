@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { Linking } from "react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
@@ -92,6 +93,26 @@ describe("ProfileScreen", () => {
       "profile-preference-vibrationEnabled",
     ]) {
       expect(screen.queryByTestId(absent)).toBeNull();
+    }
+  });
+
+  // J1 « Gestion des langues » (D-569, Figma `1992:684`) : section « Langue et unités » en tête, ligne Langue qui affiche
+  // la langue en cours et ouvre le réglage iOS de langue de l'application.
+  it("D-569 — « Langue et unités » en tête des Préférences ; Langue — Français ouvre les réglages de l'application", async () => {
+    const openSettings = jest.spyOn(Linking, "openSettings").mockResolvedValue(undefined);
+    try {
+      await renderScreen();
+      const body = screen.getByTestId("profile-screen-body");
+      const sections = body.findAll((node) => typeof node.props.testID === "string" && /^profile-group-[a-z]+$/.test(node.props.testID) && typeof node.type === "string");
+      expect(sections[0]?.props.testID).toBe("profile-group-language");
+      expect(screen.getByText(t.language.sectionTitle)).toBeTruthy();
+      const row = screen.getByTestId("profile-language");
+      expect(row.props.accessibilityLabel).toBe(t.language.label);
+      expect(row.props.accessibilityValue).toEqual({ text: "Français" });
+      fireEvent.press(row);
+      expect(openSettings).toHaveBeenCalledTimes(1);
+    } finally {
+      openSettings.mockRestore();
     }
   });
 

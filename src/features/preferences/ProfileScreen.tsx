@@ -1,11 +1,11 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { Fragment, useCallback, useState, type ReactNode } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, View } from "react-native";
 
 import type { GuidanceEvent, VoiceAnnouncement } from "@/domain/preferences/guidanceSettings";
 import { profileDurationBounds, profileGuidance, type Profile, type ProfileDurationSetting } from "@/domain/preferences/Profile";
 import type { ProfilePreference } from "@/domain/preferences/ProfileRepository";
-import { GuidanceSection, GuidanceSettingsForm, GuidanceSwitchRow } from "@/features/preferences/GuidanceSettingsForm";
+import { GuidanceSection, GuidanceSettingsForm, GuidanceSwitchRow, GuidanceValueRow } from "@/features/preferences/GuidanceSettingsForm";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import {
   getNotificationPermissionStatus,
@@ -13,6 +13,7 @@ import {
   type NotificationPermissionStatus,
 } from "@/features/preferences/notificationPermission";
 import { strings } from "@/shared/i18n";
+import { appLanguage } from "@/shared/i18n/locale";
 import { PROFILE_UNIFORM_PALETTE, profileTabs } from "@/features/preferences/profileTabs";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileNumberField } from "@/shared/ui/ProfileNumberField";
@@ -150,6 +151,19 @@ export function ProfileScreen() {
           keyboardDismissMode="on-drag"
           testID="profile-screen-body"
         >
+          {/* J1 « Gestion des langues » (D-569, Figma « Profil — Préférences » `1992:684`) : section en tête, ligne Langue
+              qui ouvre le réglage iOS de langue de l'application (KODJO ne stocke aucune préférence de langue, règle 2).
+              La ligne « Unité de charge » (kg · lb) viendra avec l'étape J3. */}
+          <GuidanceSection title={t.language.sectionTitle} variant="screen" testID="profile-group-language">
+            <GuidanceValueRow
+              label={t.language.label}
+              value={t.languageNames[appLanguage]}
+              hint={t.language.hint}
+              onPress={() => void Linking.openSettings()}
+              variant="screen"
+              testID="profile-language"
+            />
+          </GuidanceSection>
           <GuidanceSection title={t.groups.notifications} variant="screen" testID="profile-group-notifications">
             <GuidanceSwitchRow
               label={t.notifications.label}

@@ -197,6 +197,50 @@ export function GuidanceSwitchRow({
 }
 
 /**
+ * J1 « Gestion des langues » (D-569, Figma « Profil — Préférences » `1992:684`) : ligne à valeur et chevron — libellé à
+ * gauche, valeur grise et chevron à droite (même valeur et même chevron que la colonne Son). Un seul élément accessible
+ * de rôle bouton.
+ */
+export function GuidanceValueRow({
+  label,
+  value,
+  hint,
+  onPress,
+  variant,
+  testID,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly hint?: string;
+  readonly onPress: () => void;
+  readonly variant: GuidanceFormVariant;
+  readonly testID: string;
+}) {
+  const v = variants[variant];
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: value }}
+      {...(hint === undefined ? {} : { accessibilityHint: hint })}
+      style={[styles.row, v.row]}
+      testID={testID}
+    >
+      <Text style={[styles.label, styles.labelBlock]} numberOfLines={1} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        {label}
+      </Text>
+      <View style={styles.valueBlock} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        <Text style={v.soundValue} numberOfLines={1}>
+          {value}
+        </Text>
+        <KodjoIcon name={variant === "sheet" ? "chevron-aller-modale" : "chevron-aller"} />
+      </View>
+    </Pressable>
+  );
+}
+
+/**
  * Valeur affichée dans la colonne Son : « Par défaut », « Aucun » ou le nom du son choisi.
  * [« Non » (Figma) — remplacé le 11/11/2026, retour de Hermann (y3) : « son nom doit être "Aucun" ».]
  */
@@ -347,6 +391,11 @@ const styles = StyleSheet.create({
     // « L’espace est trop réduit pour le coup » (Hermann) : 7 entre la valeur et le chevron. [4 — remplacé.]
     gap: 7,
     alignSelf: "stretch",
+  },
+  valueBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
   },
   soundValueText: {
     flex: 1,
