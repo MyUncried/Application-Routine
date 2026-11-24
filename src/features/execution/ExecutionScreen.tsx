@@ -62,8 +62,12 @@ import {
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 
 import { useExecution } from "./ExecutionServiceContext";
+import { strings } from "@/shared/i18n";
+
 import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
-import { executionStrings as t, formatClock } from "./executionStrings";
+import { formatClock } from "./executionStrings";
+
+const t = strings.execution;
 
 /** Délai avant de rendre la session audio en fin de séance : fanfare puis « Bravo, séance terminée ». */
 const RELEASE_AUDIO_AFTER_END_MS = 4000;

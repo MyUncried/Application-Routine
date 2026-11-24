@@ -253,7 +253,7 @@ Les principes suivants sont retenus :
 L’application suit une approche **local-first** : les données locales constituent la source opérationnelle du MVP.
 ### Internationalisation
 
-**Le MVP est livré uniquement en français et ne propose aucun sélecteur de langue à l'utilisateur.**
+**Le MVP est livré uniquement en français et ne propose aucun sélecteur de langue à l'utilisateur.** [Remplacé le 23/11/2026 par « Gestion des langues — décisions de Hermann du 23/11/2026 » (chapitre 07) : multilingue engagé (FR, EN, ES, IT, PT-BR, DE) ; langue résolue depuis les langues préférées du téléphone, repli anglais ; changement par le réglage iOS de l'application.]
 
 L'architecture est néanmoins préparée pour une évolution multilingue sans refonte :
 - les textes affichés dans l'interface ne sont pas codés en dur dans les composants ;
@@ -261,9 +261,11 @@ L'architecture est néanmoins préparée pour une évolution multilingue sans re
 - ce catalogue couvre également les pluriels, interpolations, messages d’erreur, notifications et libellés d’accessibilité ;
 - les dates, heures et nombres utilisent les formats de la locale sélectionnée ;
 - l'ajout d'une langue doit pouvoir être réalisé en ajoutant les traductions correspondantes sans modifier la logique métier ;
-- la langue de l'interface et la langue de synthèse vocale sont conçues comme deux paramètres pouvant être gérés lors d'une évolution future ;
-- aucun mécanisme de détection, de choix ou de changement de langue n'est exposé à l'utilisateur dans le MVP ;
-- aucune préférence utilisateur de langue n'est persistée dans le MVP.
+- la langue de l'interface et la langue de synthèse vocale sont conçues comme deux paramètres pouvant être gérés lors d'une évolution future ; [Remplacé le 23/11/2026 : voix liée à la langue de l'interface, passée explicitement à la synthèse vocale.]
+- aucun mécanisme de détection, de choix ou de changement de langue n'est exposé à l'utilisateur dans le MVP ; [Remplacé le 23/11/2026 : détection par les langues du téléphone, changement par le réglage iOS ouvert depuis Profil › Compte.]
+- aucune préférence utilisateur de langue n'est persistée dans le MVP. [Toujours valable le 23/11/2026 : la langue est portée par iOS, pas par KODJO.]
+
+[Complété le 23/11/2026 — mise en œuvre J1 (choix techniques, classe D) : `expo-localization` (plugin `supportedLocales` : fr, en ; `CFBundleAllowMixedLocalizations` et `locales/<langue>.json` pour les textes iOS) ; langue résolue une fois au démarrage (`src/shared/i18n/locale.ts`) ; un catalogue par langue (`src/shared/i18n/resources/`), le français comme forme de référence imposée par le typage, l'anglais complet comme repli clé par clé ; accords par règles écrites à la main (`plural.ts`, sans `Intl.PluralRules`, non documenté par Hermes) ; séparateur décimal et dates selon la balise régionale (`format.ts`) ; voix de la langue de l'interface (`ExecutionVoice`). Garde-fous : `hardcodedUserText.test.ts`, `translationParity.test.ts`.]
 
 ## 12.2 Architecture logique générale
 

@@ -15,6 +15,7 @@ import {
 } from "@/domain/sessions/formatModels";
 import { cellDurationSeconds, composeCellEntry, formatMmss, mmssDigitsOf, type CellEntryKind, type CellEntryState } from "@/features/activities/cellEntry";
 import { strings } from "@/shared/i18n";
+import { formatDecimal } from "@/shared/i18n/format";
 import { colors } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { valueFieldColors, valueFieldStyles } from "@/shared/ui/valueField";
@@ -232,7 +233,7 @@ export function formatSeconds(seconds: number): string {
 }
 
 export function formatLoad(kg: number): string {
-  return `${String(kg).replace(".", ",")} kg`;
+  return `${formatDecimal(kg)} kg`;
 }
 
 /** Durées des Formats au format M′SS″ / S″ (spécification de Hermann du 08/11/2026) — formateur du domaine, réexporté. */
@@ -249,7 +250,7 @@ const DURATION_BOUNDS = { min: 1, max: 99 * 60 + 59 };
 function entryOf(kind: CellEntryKind, value: number | null): string {
   if (value === null) return "";
   if (kind === "duration") return mmssDigitsOf(value);
-  return String(value).replace(".", ",");
+  return formatDecimal(value);
 }
 
 function valueOf(kind: CellEntryKind, text: string, durationMin = DURATION_BOUNDS.min): number | null {

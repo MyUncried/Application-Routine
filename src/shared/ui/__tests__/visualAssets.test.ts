@@ -2,6 +2,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "@jest/globals";
 
+import { strings } from "@/shared/i18n";
+
 type AssetEntry = {
   key: string;
   file: string;
@@ -98,7 +100,10 @@ describe("canonical T01 visual assets", () => {
     expect(splashSource).toContain("logo_icon_only_transparent_1024.png");
     expect(splashSource).toContain("KODJO");
     expect(splashSource).toContain("Keep On. Do Just One.");
-    expect(splashSource).toContain("Votre assistant du quotidien");
+    // J1 « Gestion des langues » (23/11/2026, accord de Hermann) : le sous-titre passe par le catalogue de textes.
+    // [Avant : « Votre assistant du quotidien » cherché dans la source de KodjoSplash — remplacé.]
+    expect(splashSource).toContain("strings.splash.subtitle");
+    expect(strings.splash.subtitle).toBe("Votre assistant du quotidien");
   });
 
   it("contains no legacy typography glyphs in the corrected T01 components", () => {

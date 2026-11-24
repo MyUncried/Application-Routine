@@ -1,3 +1,4 @@
+import { strings } from "@/shared/i18n";
 import type { TabbedScreenPalette, TabbedScreenTabs } from "@/shared/ui/TabbedScreen";
 import { colors } from "@/shared/ui/tokens";
 
@@ -8,11 +9,7 @@ import { colors } from "@/shared/ui/tokens";
  */
 export type ProfileTab = "account" | "preferences" | "privacy";
 
-export const PROFILE_TAB_LABELS: Readonly<Record<ProfileTab, string>> = {
-  account: "Compte",
-  preferences: "Préférences",
-  privacy: "Confidentialité",
-};
+export const PROFILE_TAB_LABELS: Readonly<Record<ProfileTab, string>> = strings.screens.profileEdit.profileTabs;
 
 const ROUTES: Readonly<Record<ProfileTab, "/profile-edit" | "/profile" | "/profile-privacy">> = {
   account: "/profile-edit",

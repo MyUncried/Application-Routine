@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { strings } from "@/shared/i18n";
 import { ModalCancelAction, ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
-import { executionStrings as t } from "./executionStrings";
+const t = strings.execution;
 
 /**
  * D-531 / RM-272 (Hermann, 19/11/2026) — AMRAP à un seul mouvement en Max : « à chaque échec, Suivant puis saisie de la série au clavier

@@ -391,7 +391,7 @@ export function ProfileEditScreen() {
 }
 
 /** PROG-CAT-01 (mission §5) : éléments du Compte qui dépendent de la gestion des comptes. */
-const ACCOUNT_ROWS = ["Pseudo public", "Accès au compte et connexion"] as const;
+const ACCOUNT_ROWS = [strings.screens.profileEdit.accountRows.publicName, strings.screens.profileEdit.accountRows.access] as const;
 
 const styles = StyleSheet.create({
   accountCard: {

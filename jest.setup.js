@@ -43,3 +43,10 @@ jest.mock("@/features/catalogue/importedMovements", () => ({
     throw new Error("Registre natif indisponible sous Jest : injecter un registre.");
   },
 }));
+
+// J1 « Gestion des langues » (23/11/2026) : la suite tourne en français, langue de référence des attentes.
+// Les tests de la résolution de langue appellent directement `resolveLanguage` / `resolveLocaleTag`.
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageTag: "fr-FR", languageCode: "fr", regionCode: "FR" }],
+  getCalendars: () => [{ calendar: "gregory", firstWeekday: 2, timeZone: "Europe/Paris", uses24hourClock: true }],
+}));

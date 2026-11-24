@@ -16,6 +16,10 @@ export const fr = {
       message: "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
     },
   },
+  // J1 « Gestion des langues » (23/11/2026, accord de Hermann) : sous-titre de l’écran de lancement, déplacé à l’identique de `KodjoSplash`.
+  splash: {
+    subtitle: "Votre assistant du quotidien",
+  },
   // PRE-4 (story 1.2, H24, AD-12, RM-092) : avis unique des Exercices
   // illisibles écartés par `migration010` (Q19). Le pluriel est l'exemple
   // de H24 ; le singulier n'a pas de source et sera validé par Hermann à la
@@ -1873,6 +1877,17 @@ export const fr = {
         preferences: "Préférences",
         community: "Communauté",
         communityUnavailableAccessibilityLabel: "Communauté — indisponible",
+      },
+      // Onglets du Profil (CE-PRF-01, D-552 ; PROG-CAT-01, 21/11/2026) : Compte · Préférences · Confidentialité (`profileTabs.ts`).
+      profileTabs: {
+        account: "Compte",
+        preferences: "Préférences",
+        privacy: "Confidentialité",
+      },
+      // PROG-CAT-01 (CE-PRF-01, mission §5) : éléments du Compte qui dépendent de la gestion des comptes, grisés.
+      accountRows: {
+        publicName: "Pseudo public",
+        access: "Accès au compte et connexion",
       },
       sectionLabel: "Profil",
       name: {

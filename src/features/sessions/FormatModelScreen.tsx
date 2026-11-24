@@ -111,6 +111,7 @@ import { exerciseOfMovement, inheritsCircuitSeriesCount, takeMovementsHandedToFo
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { KodjoIcon, preloadKodjoIcons, whenKodjoIconsReady, type KodjoIconName } from "@/shared/ui/KodjoIcon";
@@ -1449,7 +1450,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // Complément du 5 novembre 2026 (Hermann), §11 : « Répétitions par série » retirée (l'objectif dépend du mouvement) ; Circuit (3 tours), « Récupération
         // après le tour » (Récupération du dernier Exercice actuel ; absente : à renseigner, zéro conservé), Durée totale.
         return [
-          stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${value > 1 ? t().roundUnit.many : t().roundUnit.one}` }),
+          stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${pluralOf(value, { one: t().roundUnit.one, other: t().roundUnit.many })}` }),
           stepRow("recoveryBetweenSeconds", r.recoveryAfterPair, { fallback: movements[movements.length - 1]?.exercise.postActivityRecoverySeconds ?? undefined, placeholder: t().dash, missing: movements.length > 0 && supersetRecovery(answers, movements) === null }),
           ...loadSwitch,
           totalRow(true),

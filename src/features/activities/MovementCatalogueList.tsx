@@ -50,6 +50,7 @@ import {
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -120,6 +121,7 @@ import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, typ
 
 const t = strings.screens.movement.catalogue;
 const tVariant = strings.screens.activities.editor.movementSuggestion;
+const tLibraries = strings.libraries.movementList;
 
 type LoadState =
   | { readonly status: "loading" }
@@ -578,13 +580,13 @@ export function MovementCatalogueList({
           proceed();
           return;
         }
-        const names = titles.map((title) => `« ${title} »`).join(", ");
+        const names = titles.map((title) => fillTemplate(tLibraries.libraryName, { title })).join(", ");
         Alert.alert(
-          "Archiver ce mouvement ?",
-          `Il fait partie de ${titles.length > 1 ? "vos bibliothèques" : "votre bibliothèque"} ${names}. Archivé, il n'y apparaîtra plus.`,
+          tLibraries.archiveTitle,
+          fillTemplate(pluralOf(titles.length, { one: tLibraries.archiveMessageSingular, other: tLibraries.archiveMessagePlural }), { names }),
           [
-            { text: "Annuler", style: "cancel" },
-            { text: "Archiver", onPress: proceed },
+            { text: tLibraries.cancel, style: "cancel" },
+            { text: tLibraries.archive, onPress: proceed },
           ],
         );
       })();
@@ -621,13 +623,15 @@ export function MovementCatalogueList({
         setDeleteCandidate(movementId);
         return;
       }
-      const names = libraries.map((title) => `« ${title} »`).join(", ");
+      const names = libraries.map((title) => fillTemplate(tLibraries.libraryName, { title })).join(", ");
       const origin =
-        libraries.length === 0 ? "d'une bibliothèque" : `de ${libraries.length > 1 ? "vos bibliothèques" : "la bibliothèque"} ${names}`;
+        libraries.length === 0
+          ? tLibraries.originUnknown
+          : fillTemplate(pluralOf(libraries.length, { one: tLibraries.originSingular, other: tLibraries.originPlural }), { names });
       Alert.alert(
-        "Suppression impossible",
-        `Ce mouvement vient ${origin}. Il reste archivé ; seule la désinstallation de la bibliothèque le retirera de votre Catalogue.`,
-        [{ text: "OK" }],
+        tLibraries.deleteImpossibleTitle,
+        fillTemplate(tLibraries.deleteImpossibleMessage, { origin }),
+        [{ text: tLibraries.ok }],
       );
     })();
   };
