@@ -73,3 +73,28 @@ Aucun cercle bleu pâle ne doit rester.
 ## Commit final et état Git
 
 Commit qui contient ce rapport, sur `fix/en-tete-cercle-blanc-20261124`, envoyé sur GitHub. Arbre propre et verrou libéré.
+
+## Complément du 24/11/2026 : ombre du cercle coupée par la zone de contexte
+
+- **Recette** (entete-cercle-blanc, KO, avec photo) : « L'ombre légère s'arrête à la lisière du bord horizontal de la zone de contexte. Le reste de la courbure est remplie avec un fond blanc homogène ».
+- **Départ** : `3c812536`.
+- **Classe** : A. La règle D-593 prévoit un cercle blanc avec une ombre légère ; ici, le rendu ne la respectait pas.
+- **Cause** :
+  - la zone de contexte qui suit l'en-tête est rendue au-dessus de lui (`elevated`, zIndex 1, pour son fondu) ;
+  - elle recouvrait donc la partie basse de l'ombre du cercle ;
+  - son halo de la couleur de l'en-tête (la courbure, D-348) recouvrait le reste ;
+  - l'ombre, ajoutée par D-593, rendait ce recouvrement visible.
+- **Correction** :
+  - l'en-tête standard (`FixedHeader`) passe au-dessus de la zone de contexte (zIndex 2) ;
+  - de même pour l'en-tête des feuilles à zone fixe (`SheetFixedTop`) ;
+  - l'ombre se prolonge ainsi sur la courbure. Aucun autre rendu n'est modifié ; l'en-tête n'a pas de fond propre.
+- **Tests** :
+  - `jest --findRelatedTests ScreenShell.tsx SheetFixedTop.tsx` : 80 suites, 1 243 tests réussis, 0 échec ;
+  - `tsc` est propre et le lint ne signale rien.
+- **À vérifier sur iPhone** :
+  - écrans à courbure : bibliothèques personnelles, feuilles de filtres, Planifier ;
+  - l'ombre doit faire tout le tour du cercle.
+- **Fichiers modifiés** :
+  - `src/shared/ui/ScreenShell.tsx`
+  - `src/shared/ui/SheetFixedTop.tsx`
+  - ce rapport

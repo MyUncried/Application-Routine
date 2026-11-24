@@ -444,6 +444,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     // A01 (recette PRE-8 A/B) : marge standard partagée.
     paddingHorizontal: layout.screenGutter,
+    // Recette du 24/11/2026 (entete-cercle-blanc, Hermann : « L'ombre légère s'arrête à la lisière du bord horizontal de la
+    // zone de contexte ») : l'en-tête passe au-dessus de la zone de contexte suivante (`elevated`, zIndex 1), pour que
+    // l'ombre du cercle se prolonge sur la courbure (halo) au lieu d'être recouverte.
+    zIndex: 2,
   },
   // R4-02, révisé T02-S02 (D-142) : cercle visuel `38×38` — la cible
   // tactile `48×48` reste obtenue via `hitSlop` (voir `FixedHeader`),
