@@ -1242,7 +1242,7 @@ L’écran est accessible depuis l’onglet `Calendrier`.
 | Vue / état | Présentation et règle locale | Contrat |
 |---|---|---|
 | Jour : initial, appui long, après planification, créneau, jour suivant | Carte à x=80 ; séance 298 × 46, exercice 298 × 48 ; hauteur ajustable selon événement ; barre couleur de l’événement 4 ; nature 26 ; titre 13 gras ; heure/durée11 (`08 h · 13 min`) ; Lecture 26 ; aucun Déployer | CE-UI-02 |
-| Semaine : liste, mardi sélectionné, suppression et actions glissées | [Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354 × 95,5, sans barre ; nature 26 liste/tai-chi ; badge heure `08:00` ; classement catégorie puis étiquette (séance) ou zones (exercice) ; durée et sablier sur ligne des valeurs | CE-UI-03 |
+| Semaine : liste, mardi sélectionné, suppression et actions glissées | [Remplacé le 21/11/2026 (D-553) : une carte par Séance ; écran de référence « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » (`12906:47`) ; voir [spécification du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md).] [Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354 × 95,5, sans barre ; nature 26 liste/tai-chi ; badge heure `08:00` ; classement catégorie puis étiquette (séance) ou zones (exercice) ; durée et sablier sur ligne des valeurs | CE-UI-03 |
 | Semaine : séance déployée | Hauteur de référence 254,5 ; détail des exercices et ligne de récurrence avec calendrier ; badge heure et durée conservés | CE-UI-03 |
 | Choisir séance/exercice depuis Calendrier | Cartes de choix à cases à cocher, sans durée ni Déployer/Lecture ; état courant CE-UI-04 et matrice du 08/10 | CE-UI-04 |
 | Mois et état vide | Conserver leur structure fonctionnelle ; appliquer segmenté/navigation communs ; ne pas ajouter une carte Jour à une cellule Mois | CE-UI-03 |
@@ -3601,3 +3601,16 @@ La page Figma « Prototype MVP » `510:101` comporte des actions « Partager » 
 ### Composition séance — Guidage sonore
 
 Dans l’en-tête des écrans de Composition, sauf le récapitulatif Tabata, le bouton Guidage sonore ouvre une seule modale défilante. [Remplacé le 11/11/2026 — exception « sauf le récapitulatif Tabata » supprimée, retour de Hermann : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. » Le bouton Guidage sonore est celui de l’en-tête de la Composition ; aucune exception propre au Tabata.] [Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) en montrent respectivement le haut et le bas. L’en-tête fixe réunit Fermer, le titre et Valider. Le bouton affiche son symbole plein pendant l’ouverture de la modale et retrouve son symbole fin à la fermeture, y compris après validation de réglages propres à la séance.
+
+### Complément du 21/11/2026 — Calendrier à trois onglets (D-554)
+
+Le Calendrier a trois onglets, Journal · Agenda · Plan ; tous les écrans du calendrier portent les trois libellés. Écrans du Plan :
+- « P-Calendrier — Plan » `12983:19` (référence) ;
+- « P-Calendrier — Plan — Mois de cinq semaines » `13005:14750` ;
+- « P-Calendrier — Plan — Case vide touchée (proposition) » `13005:14584`.
+
+Rendu et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Remplace l'écran « P-Calendrier — Vue d’ensemble — Routines et jours (proposition) », supprimé.
+
+### Complément du 22/11/2026 — bouton flottant « Créer » (D-558)
+
+Les écrans des catalogues, du Journal, de l'Agenda et de la composition de séance portent le bouton flottant (composant `13039:49732`) ; leur bouton de création de la zone de contexte est retiré. Écran du menu : « Composition séance — Créer (menu) » `10705:20223`. Voir [DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md).

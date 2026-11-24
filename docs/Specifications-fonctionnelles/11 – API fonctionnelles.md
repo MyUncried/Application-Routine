@@ -430,7 +430,7 @@ Ces opérations conservent leurs identifiants, avec une entrée étendue à la l
 
 | ID | Opération | Entrées et résultat | Contraintes |
 |---|---|---|---|
-| API-ROU-01 | Créer | Paramètres du créneau, Programme facultatif, liste ordonnée avec type/référence/fréquence/motif, rappel → Routine | Validation globale ; aucune écriture au simple choix d’une carte |
+| API-ROU-01 | Créer | Paramètres du créneau, Programme facultatif, liste ordonnée avec type/référence/fréquence/motif, rappel → Routine | Validation globale ; aucune écriture au simple choix d’une carte [21/11/2026 (D-553) : nom généré par défaut, personnalisable, sans contrôle d’unicité] |
 | API-ROU-02 | Lire | IDRoutine → créneau et ses entrées ordonnées | Respecter le propriétaire et les références |
 | API-ROU-03 | Modifier | IDRoutine, brouillon complet → Routine actualisée | Préserver l’échu ; règles de conversion et de motif ouvertes |
 | API-ROU-04 | Supprimer | IDRoutine → arrêt du calcul futur | Ne supprime ni sources ni exécutions historiques |

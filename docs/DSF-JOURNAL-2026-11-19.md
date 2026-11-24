@@ -44,8 +44,16 @@ Famille de la carte d’agenda (DSF Agenda § 5), hauteur 72, teinte unique `#EA
 - supprimer : sans historique, « La routine et ses N créneaux seront supprimés. » ; avec historique, « N créneaux non commencés seront supprimés ; La routine sera archivée. » ; sans créneau à supprimer, titre « La routine <nom> sera supprimée » sans message ; « Annuler » en haut à gauche, « Confirmer » pleine largeur (D-537, `DSF / Overlays / Confirmation` « Titre seul » / « Titre et message ») ;
 - routine archivée : visible avec le filtre « Archivées » seulement.]
 
-[Recette du 20/11/2026 (Hermann) : repère « P » d'un parcours après le nom, cercle affiné, comme l'Agenda. Classe B ; rapport `2026-11-20_JOURNAL-REPERE-PARCOURS.md`.]
+[Recette du 20/11/2026 (Hermann) : repère « P » d'un parcours après le nom, cercle affiné, comme l'Agenda. Classe B ; rapport `2026-11-20_JOURNAL-REPERE-PARCOURS.md`.] [Conservé le 21/11/2026 (D-553) : Ⓟ après le nom de Routine ; Figma `12736:25026`.]
 
 [Mise en œuvre du 20/11/2026 — D-540 (§ 2 et § 6 de la branche `docs/planification-grille-creneaux`, commit 171f9ca3, non fusionnée) : routine active (créneau à venir ou rattrapable) ou terminée, état calculé ; liste par défaut = actives ; statut « Terminées » du filtre ; compteurs « Actives · Terminées » ; plus d'archivage : suppression avec historique = créneaux non commencés retirés, « N créneaux non commencés seront supprimés. La routine sera terminée. ». Classe A ; rapport `2026-11-20_CYCLE-VIE-ROUTINE.md`.]
 
 [Recette du 20/11/2026 (Hermann) : fenêtre « Supprimer cette routine » — « Annuler » et « Confirmer » côte à côte, même format. [« Annuler » en haut à gauche — remplacé.]]
+
+## Évolution validée du 21/11/2026 — Journal / filtre
+
+La représentation du Journal reste **une carte par Routine**. Une Routine à plusieurs Séances (Parcours) est présentée sur **une seule ligne** avec le symbole Ⓟ et le nom de Routine ; la composition reste au déployé. Une Routine à Séance unique est présentée par son nom de Routine dans le Journal. Le filtre de l'Agenda reprend exactement cette représentation compacte, sans dérouler les Séances d'un Parcours en lignes distinctes. Les noms de Routines ne sont plus uniques et peuvent être générés ou personnalisés. **Les clauses antérieures incompatibles de ce DSF sont supersédées** par [la décision du 21/11/2026](KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Figma ajusté le 21/11/2026, à valider : carte « Mobilité du matin » (`12736:25026`) de « Calendrier — Journal — MVP » (`1992:5510`), Ⓟ après le nom (règle du 20/11/2026) ; ligne `12798:26926` du filtre `12795:25088` ; vue filtrée `12799:24881`.
+
+## Bouton flottant — 22/11/2026 (D-558)
+
+« Planifier » quitte la zone de contexte. Le bouton flottant (calendrier « + ») crée une routine. Le champ « Rechercher » s'élargit, le filtre et le tri passent à droite. Voir [DSF Bouton flottant](DSF-BOUTON-FLOTTANT-2026-11-22.md).

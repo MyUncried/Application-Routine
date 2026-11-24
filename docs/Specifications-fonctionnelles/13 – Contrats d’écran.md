@@ -1875,9 +1875,9 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 **Nom de la Séance.** Le nom du Format peut être suggéré initialement ; le champ reste modifiable dès l’ouverture. Aucun Format n’impose le nom, et un nom personnalisé n’est jamais remplacé automatiquement. B.8 est déclarée développée et recettée par Hermann le 02/11 ; le parcours Formats actuel ne réintroduit pas cette option dans le menu à trois options.
 
-Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
+[Remplacé le 22/11/2026 (D-558) : le menu s’ouvre depuis le bouton flottant, vers le haut, et propose quatre options — Créer un exercice, Créer un circuit, Créer un cycle, **Ajouter un point d’arrêt** ; le + et le sablier quittent la zone de contexte ; voir [DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md) § 4.] Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
 
-À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+[Remplacé le 22/11/2026 (D-558) : c’est le bouton flottant qui devient une croix ; le bouton Pause / Ajouter un arrêt est dans le menu.] À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
@@ -2139,7 +2139,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Exercices | D-435 réintroduit uniquement la récupération contextuelle affichable sur la troisième ligne de la carte de Composition v2, sans afficher les Pauses propres aux Séries ; le trait de démarcation conserve les règles de D-303. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes ; cadre aligné à droite sur le cadre des cartes d’Exercice) ; valeur initiale 5 s. |
 | Résumé | Durée de ce Circuit seule, placée dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours` ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). La durée concerne exclusivement ce Circuit (D-382) et intègre les durées intrinsèques de ses Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est, sous la forme « — min » (D-390, D-399). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Le complément du 28/10 remplace ce rendu D-443 : durée à droite de l’en-tête, compteur à abscisse fixe et stepper révélé au toucher. |
-| Créer | Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
+| Créer | [Remplacé le 22/11/2026 (D-558) : quatre options, ouvertes depuis le bouton flottant ; voir le DSF Bouton flottant.] Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
 | Continuer | Désactivé lorsque le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123) ; valide et enregistre la Séance avec son Étiquette éventuelle. Bouton d’action principal standardisé, fixe en bas de l’écran dans sa zone protégée (D-444). |
 
 Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252). La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
@@ -4133,7 +4133,7 @@ Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; st
 
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
-[Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
+[Remplacé le 21/11/2026 (D-553) : carte par Séance, voir « Complément CE-UI-15 / Journal / filtre — 21/11/2026 ».] [Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
 
 *Texte identique à celui de la section [« CE-T03-15 — Suivi général — Exécution ACTIVITY »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-15--suivi-général--exécution-activity) ; il n’est pas recopié ici.*
 
@@ -4451,7 +4451,7 @@ Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
 
 #### 2. Contenu
 
-- Zone de contexte : nom (texte libre, unique, RM-258) puis synthèse 14 px (RM-259).
+- Zone de contexte : nom (texte libre, unique, RM-258) [nom généré par défaut, personnalisable, non unique depuis le 21/11/2026 (D-553)] puis synthèse 14 px (RM-259).
 - Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel.
 - Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit. [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : « jusqu’au » bascule vers « pendant » N semaines pour l’unité semaines.]
 - Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
@@ -4520,6 +4520,8 @@ Une information, un coin, dans tous les formats. Au plus quatre informations, un
 Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
 
 ### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
+
+[Carte et parcours remplacés le 21/11/2026 (D-553) : voir « Complément CE-UI-15 / Journal / filtre — 21/11/2026 ».]
 
 Écran « Agenda — Planning (proposition) » (`12580:27335`) : rendu et mises en page décrits dans le [DSF Agenda](../DSF-AGENDA-PLANNING-2026-11-19.md). Aucune règle métier nouvelle ; la propriété « spécialité » d’une routine reste À CLARIFIER (absente du modèle de données). [19/11/2026 — la zone de contexte, la rangée des jours, la liste et la carte de cet écran s’appliquent aux écrans Semaine du calendrier (déployé, actions glissées, après suppression, jour sélectionné, fonds des modales de suppression) : voir DSF Agenda § 6. Les écrans Jour et Mois ne sont pas concernés à ce stade.] [19/11/2026 — D-534 : une carte par occurrence de routine, enchaînement des séances et écran de transition : DSF Agenda § 7. L’écran Jour doit être remplacé (décision de Hermann).]
 
@@ -6370,3 +6372,28 @@ La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et point
 Retirer les champs et sections supprimés dans MOUV-ADM-20261117 ; masquer les données techniques courantes et proposer un diagnostic. Historiques en lecture seule. Licence : « Non renseignée » ou « Licence ou conditions connues ». Les filtres avancés et états de séance à corriger sont à détailler dans Figma ; accès glossaire reporté aux aides. Aucune conformité visuelle actuelle n’est déclarée.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Complément CE-UI-15 / Journal / filtre — 21/11/2026 (D-553)
+
+Les prescriptions précédentes « carte par occurrence de Routine » et « nom de Routine en titre de l'Agenda » sont **supersédées**. Agenda : une carte unique de Séance par contenu planifié ou Exécution libre, titre = nom de Séance, déployé = composition sans répétition du nom ; Parcours = une ligne Ⓟ compacte avant la première carte, avec rail sans numéros, sans cadre/compteur/durée dans la ligne ; pas de ligne Ⓟ pour une Routine à Séance unique. Heure prévue pour la première Séance d'un Parcours tant qu'elle n'est pas exécutée ; « — » pour toute Séance suivante non exécutée ; après Exécution, heure réelle et repositionnement chronologique. Journal : une carte par Routine ; Parcours sur une ligne Ⓟ. Filtre : une ligne par Routine à Séance unique ou Parcours, avec sélection multiple, libellé identique au Journal. Référence : [KODJO — Agenda / Journal / filtre, 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **Agenda Figma validé (`12906:47`) ; Journal et filtre ajustés le 21/11/2026, à valider.**
+
+### CE-UI-16 — Calendrier — Plan (D-554, 21/11/2026)
+
+Écran « P-Calendrier — Plan » (`12983:19`). Rendu, groupes, parcours, Total et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Contrat :
+- les cases suivent les états et les heures de l'Agenda (D-553) ;
+- toucher une case vide ouvre la modale du créneau, pré-remplie (date du jour, heure habituelle) ; pour un parcours, le créneau entier ;
+- toucher une case pleine ouvre la modification du créneau ; un créneau commencé ne s'ouvre pas ;
+- « + Routine » ouvre la planification avec le programme du groupe ;
+- pas de filtre ;
+- la ligne Total donne la durée estimée prévue par jour et pour la semaine.
+
+### Complément du 22/11/2026 — bouton flottant « Créer » (D-558, D-559)
+
+Sur les catalogues, le Journal, l'Agenda et la composition de séance, la création passe par le bouton flottant ([DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md)). Contrat :
+- le contenu du bouton dépend de l'écran ;
+- toucher le bouton déclenche l'action ;
+- glisser déplace le bouton, qui se range contre le bord le plus proche ; la position est conservée ;
+- le bouton passe sous les feuilles modales ;
+- en composition, le menu Créer s'ouvre vers le haut, avec quatre options.
+
+L'Agenda crée un créneau unique au jour sélectionné ; le Plan n'a pas de bouton flottant.
