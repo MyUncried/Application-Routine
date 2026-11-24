@@ -10,7 +10,7 @@ Branche : `claude/exciting-lovelace-iyn2wf`. J1 (sauf la section « Langue et un
 | T1 — Textes sortis du code | ✅ Développé (`d07e434`) ; recette reportée à J1 (option A) | Recette avec J1 | Hermann |
 | **J1 — KODJO en anglais** | 🟢 Développé, ligne Langue comprise (24/11) | 1) Revoir les choix de traduction à valider (rapport J1) ; 2) build EAS + recette `recette-iphone-langues-j1.md` ; 3) ✅ ligne Langue faite le 24/11 (Préférences, D-569) ; Unité de charge avec J3 | Hermann, puis Claude |
 | J2 — Phrase de synthèse simplifiée | ⏳ À faire | Proposer la phrase simplifiée | Claude |
-| J3 — Unité kg / lb | ⏳ À faire | Figma de la ligne Unité | Hermann |
+| J3 — Unité kg / lb | 🟡 Plan proposé (24/11, `J3-PLAN-UNITE-DE-CHARGE-2026-11-24.md`, branche `feat/unite-charge-20261124`) ; Figma de la ligne : `1992:684` (D-569) | Valider U1 à U5 du plan | Hermann |
 | J4 — Contenus KODJO traduits | ⏳ Bloqué | Répondre à A3 | Hermann |
 | J5 — ES, IT, PT-BR, DE | ⏳ À faire | Organiser la relecture native | Hermann |
 
