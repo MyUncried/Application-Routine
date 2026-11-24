@@ -2,9 +2,9 @@
 import type { programs as frPrograms } from "./frPrograms";
 import type { Widen } from "./types";
 
-/** 12-hour clock: « 8:00 AM », « 12:30 PM », « 12:00 AM » for midnight. */
-function clock12(hours: number, minutes: string): string {
-  return `${hours % 12 === 0 ? 12 : hours % 12}:${minutes} ${hours < 12 ? "AM" : "PM"}`;
+/** 24-hour clock: « 08:30 ». The 12-hour form (AM / PM) is chosen by `clockTime` from the iPhone setting. */
+function clock24(hours: number, minutes: string): string {
+  return `${String(hours).padStart(2, "0")}:${minutes}`;
 }
 
 export const programs: Widen<typeof frPrograms> = {
@@ -15,9 +15,9 @@ export const programs: Widen<typeof frPrograms> = {
     dayMonth: "{month} {day}",
     dayMonthYear: "{month} {day}, {year}",
     period: "{start} – {end}",
-    // 12-hour clock with AM / PM (Hermann, 24/11/2026).
-    hour: (hours: number) => clock12(hours, "00"),
-    hourMinutes: (hours: number, minutes: string) => clock12(hours, minutes),
+    // 24-hour clock here; 12-hour clock (AM / PM) when the iPhone is set to it (Hermann, 24/11/2026, option A).
+    hour: (hours: number) => clock24(hours, "00"),
+    hourMinutes: (hours: number, minutes: string) => clock24(hours, minutes),
   },
   catalogue: {
     segment: "Programs",

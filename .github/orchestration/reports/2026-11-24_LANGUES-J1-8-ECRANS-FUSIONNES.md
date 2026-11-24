@@ -71,3 +71,20 @@ Voir le commit qui contient ce rapport sur `claude/exciting-lovelace-iyn2wf`.
 - Les heures du catalogue sont désormais des fonctions (`time.*`, `dates.hour*`), et le français est inchangé. Nouveau test `clock.test.ts`.
 - Non traité : les roulettes de saisie de l'heure restent sur 24 heures (0 à 23).
 - Suite complète : **477 suites, 6 725 tests verts**.
+
+## Complément — horloge selon le réglage de l'iPhone (choix « A » de Hermann)
+
+- Question de Hermann : « quelle est la norme ? ». Sa réponse : « A », suivre la norme iOS.
+- Le réglage 12 / 24 heures de l'iPhone (`getCalendars()[0].uses24hourClock`) décide, quelle que soit la langue. À défaut du module natif, c'est le format horaire de la région (`Intl`) qui s'applique.
+- **Affichage** (`clockTime`) :
+  - sur 12 heures : « 8:30 AM » ;
+  - sur 24 heures : format de la langue, « 8h30 » en français et « 08:30 » en anglais.
+- **Roulette de l'heure** (Planification) :
+  - sur 12 heures : heures de 1 à 12, minutes, colonne AM / PM (`twelveHourColumns`) ;
+  - sur 24 heures : roulette inchangée, de 0 à 23.
+- **Français** : inchangé sur un iPhone réglé sur 24 heures.
+- **Hors périmètre** : la roulette Android (`DurationWheelPicker`) reste sur 24 heures.
+- **Tests** : `clock.test.ts` réécrit (deux horloges, roulette sur 12 heures).
+  - Suite complète : 476 suites sur 477 vertes. L'échec concerne `CompositionScreen.recette1.test.tsx` (« ancien modèle : carte à compléter »), un test intermittent qui ne touche pas la Planification.
+  - Historique : ce test échoue déjà 1 fois sur 4 sur `fe7d71d`, avant le chantier des langues (défaut **démontré** antérieur), et 3 fois sur 4 sur `6ce2d832`.
+  - Aggravation par le chantier : **plausible**, échantillon insuffisant pour conclure. Vérification proposée : 20 exécutions de chaque côté.

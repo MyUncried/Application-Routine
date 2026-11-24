@@ -35,7 +35,7 @@ export const planning = {
     range: "{start} – {end}",
   },
   /** J1.8 : heures (« 8h00 », « 8h », « 8 h 30 »). */
-  // Heures : fonctions, car l’anglais passe sur 12 heures avec AM / PM (Hermann, 24/11/2026). `minutes` : « 00 » à « 59 ».
+  // Heures : fonctions, l’horloge de 12 heures (AM / PM) étant choisie par `clockTime` selon le réglage de l’iPhone (Hermann, 24/11/2026). `minutes` : « 00 » à « 59 ».
   time: {
     compact: (hours: number, minutes: string) => `${hours}h${minutes}`,
     compactHour: (hours: number) => `${hours}h`,
@@ -318,6 +318,9 @@ export const planning = {
     customTitle: "Rappel personnalisé",
     hours: "heures",
     minutes: "minutes",
+    // J1.8 (24/11/2026, norme iOS) : colonne AM / PM de la roulette de l’heure, iPhone réglé sur 12 heures.
+    period: "AM / PM",
+    periodValues: ["AM", "PM"],
     cancel: "Annuler",
     validate: "Valider",
     // Recette du 19/11/2026 (k14, e3) : notifications refusées — message natif proposant de les réactiver ; le texte

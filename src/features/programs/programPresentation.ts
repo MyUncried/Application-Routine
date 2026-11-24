@@ -9,6 +9,7 @@ import { strings } from "@/shared/i18n";
 import { appLocaleTag } from "@/shared/i18n/locale";
 
 import type { ProgramDeletionPlan, ProgramSummary } from "./ProgramService";
+import { clockTime } from "@/shared/i18n/format";
 
 /** Présentation des programmes (PROG-CAT-01) — module pur. */
 
@@ -102,7 +103,8 @@ export function visiblePrograms(
 /** « 14 h », « 8 h 30 » (Figma « PROG — 13 » : « tous les jours, 14 h »). */
 export function formatHour(time: LocalTime): string {
   const [hours, minutes] = time.split(":").map(Number);
-  return minutes === 0 ? d.hour(hours!) : d.hourMinutes(hours!, String(minutes).padStart(2, "0"));
+  const mm = String(minutes).padStart(2, "0");
+  return minutes === 0 ? clockTime(hours!, mm, d.hour(hours!)) : clockTime(hours!, mm, d.hourMinutes(hours!, mm));
 }
 
 /**

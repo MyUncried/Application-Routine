@@ -62,7 +62,7 @@ import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { appLocaleTag } from "@/shared/i18n/locale";
+import { appLocaleTag, appUses24HourClock } from "@/shared/i18n/locale";
 import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTable";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
@@ -107,6 +107,9 @@ const TIME_MAX_MINUTES = 23 * 60 + 59;
 const TIME_UNITS = { major: tReminder.hours, minor: tReminder.minutes, majorWidth: 56, minorWidth: 64 } as const;
 const TIME_HOURS = Array.from({ length: 24 }, (_, index) => index);
 const TIME_MINUTES = Array.from({ length: 60 }, (_, index) => index);
+/** J1.8 (24/11/2026, norme iOS) : iPhone réglé sur 12 heures — heures 1 à 12 et colonne AM / PM. */
+const TIME_HOURS_12 = Array.from({ length: 12 }, (_, index) => index + 1);
+const TIME_PERIODS = [0, 1];
 const END_COUNTS = Array.from({ length: END_COUNT_MAX - END_COUNT_MIN + 1 }, (_, index) => END_COUNT_MIN + index);
 const twoDigits = (value: number) => String(value).padStart(2, "0");
 /** D-524 : délai présélectionné quand les notifications sont déjà autorisées (recette du 18/11/2026, k12 « Remettre 15' par défaut »). */
@@ -1126,7 +1129,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       {/* Heure (recette du 19/11/2026, k19) : roulette native heures / minutes en popover, sans titre ni bouton. */}
       <PlanningWheelPopover
         anchor={popover?.kind === "TIME" ? popover.anchor : null}
-        columns={[
+        columns={appUses24HourClock ? [
           {
             values: TIME_HOURS,
             selected: Math.floor(timeToDuration(form.time) / 60),
@@ -1145,7 +1148,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             accessibilityLabel: tReminder.minutes,
             testID: "planning-time-minutes",
           },
-        ]}
+        ] : twelveHourColumns(timeToDuration(form.time), (minutes) => update({ time: durationToTime(minutes) }))}
         onDismiss={() => setPopover(null)}
         android={
           <DurationWheelPicker
@@ -1459,3 +1462,39 @@ const styles = StyleSheet.create({
   reminderOption: { ...type.listCardTitle },
   error: { ...type.label, color: colors.danger },
 });
+
+/**
+ * J1.8 « Gestion des langues » (24/11/2026, choix « A » de Hermann : norme iOS) : roulette de l'heure d'un iPhone réglé sur
+ * 12 heures — heures 1 à 12, minutes, AM / PM. `total` : minutes depuis minuit ; `onChange` reçoit la nouvelle valeur.
+ */
+export function twelveHourColumns(total: number, onChange: (minutes: number) => void) {
+  const hour24 = Math.floor(total / 60);
+  const minute = total % 60;
+  const period = hour24 >= 12 ? 1 : 0;
+  return [
+    {
+      values: TIME_HOURS_12,
+      selected: hour24 % 12 === 0 ? 12 : hour24 % 12,
+      onChange: (hour12: number) => onChange(((hour12 % 12) + period * 12) * 60 + minute),
+      format: String,
+      accessibilityLabel: tReminder.hours,
+      testID: "planning-time-hours",
+    },
+    {
+      values: TIME_MINUTES,
+      selected: minute,
+      onChange: (value: number) => onChange(hour24 * 60 + value),
+      format: twoDigits,
+      accessibilityLabel: tReminder.minutes,
+      testID: "planning-time-minutes",
+    },
+    {
+      values: TIME_PERIODS,
+      selected: period,
+      onChange: (value: number) => onChange(((hour24 % 12) + value * 12) * 60 + minute),
+      format: (value: number) => tReminder.periodValues[value] ?? "",
+      accessibilityLabel: tReminder.period,
+      testID: "planning-time-period",
+    },
+  ];
+}
