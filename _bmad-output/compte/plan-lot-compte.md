@@ -84,7 +84,7 @@ Réponses de Hermann du 24/11/2026 :
 | 1 | Connexion, porte d'entrée (É1) | Aucune frame connue | Écran |
 | 2 | Connexion : variante installation existante, état sans réseau, erreur (É1) | Aucune frame connue | États |
 | 3 | Modifier le profil + section Compte (É2) | « Modifier le profil » `1992:778` (photo, nom d'affichage) ; section Compte absente | Écran existant à compléter |
-| 4 | Profil public minimal : pseudo, prénom et nom visibles, photo, rôle déclaré (CPT-18), réglage du Follow public | Aucune frame connue ; **contenu suspendu au benchmark** | Écran ou section |
+| 4 | ~~Profil public minimal~~ : **déplacé en T2** (CPT-25, écran « Comment les autres vous voient » à la première ouverture de l'onglet Communauté) | — | — |
 | 5 | Confirmation de suppression du compte (É3) | Alerte native, rien à dessiner | Alerte |
 | 6 | Refus d'un autre compte (É4) | Alerte native, rien à dessiner | Alerte |
 | 7 | Demande d'autorisation des notifications push (CPT-23) | Fenêtre système ; seul le moment de la demande est à décider | Système |
