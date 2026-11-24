@@ -1,5 +1,7 @@
 # Réglages externes nécessaires à T1 (Compte)
 
+**Avancement au 24/11/2026 :** §1 fait. Projet Supabase `kodjo-dev` (`https://qiruzadtbqcdewvsaizo.supabase.co`, Paris `eu-west-3`, Free), adresses de retour enregistrées, clé publique relevée.
+
 Guide à suivre par Hermann. **Aucun secret ne doit être collé dans une conversation ni committé dans le dépôt.** Les secrets vont dans les tableaux de bord concernés (Supabase, EAS).
 
 **Sources :**
@@ -37,7 +39,7 @@ Les libellés exacts des consoles Apple, Google et Supabase peuvent différer l�
 
    Elles iront dans EAS (§5).
 5. **Ne jamais mettre la clé de service** (*service_role* ou *secret*) dans l'app ni dans le dépôt. Elle ne sert qu'aux fonctions serveur.
-6. **Accord de sous-traitance RGPD (DPA)** : le demander ou le signer depuis l'espace légal de Supabase.
+6. **Accord de sous-traitance RGPD (DPA)** : page https://supabase.com/legal/dpa. Constat de Hermann le 24/11/2026 : rien à signer, aucune signature demandée. Le conserver comme référence.
 7. Dans Authentication → URL Configuration, ajouter les adresses de retour vers l'app :
    - `routine://auth/callback`
    - `routine-bmad://auth/callback`
