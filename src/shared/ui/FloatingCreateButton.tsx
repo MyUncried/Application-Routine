@@ -1,26 +1,32 @@
 import { Image } from "expo-image";
 import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-effect";
-import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import {
   AccessibilityInfo,
-  Animated,
   Platform,
   Pressable,
   StyleSheet,
   View,
+  useWindowDimensions,
   type LayoutChangeEvent,
 } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import Reanimated, { cancelAnimation, ReduceMotion, runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 import {
   FLOATING_BOTTOM_GAP,
   FLOATING_BUTTON_SIZE,
-  FLOATING_EDGE_INSET,
-  clampLift,
+  FLOATING_DRAG_THRESHOLD,
+  FLOATING_FOLLOW_SPRING,
+  FLOATING_SETTLE_SPRING,
+  clampTop,
+  releaseTarget,
   restoreFloatingPosition,
   saveFloatingPosition,
-  settleFloatingPosition,
+  sideLeft,
   subscribeFloatingPosition,
+  type FloatingBounds,
   type FloatingPosition,
 } from "@/shared/ui/floatingCreatePosition";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
@@ -46,8 +52,7 @@ const GLASS_VEIL = "rgba(255, 255, 255, 0.65)";
 const GLASS_BORDER = "rgba(255, 255, 255, 0.95)";
 const GLASS_BORDER_WIDTH = 1.2;
 const SHADOW = { color: "#1A1A26", opacity: 0.14, offsetY: 4, radius: 24 } as const;
-/** Appui maintenu avant le déplacement (DSF § 5 : « un appui maintenu puis un glissement »). Valeur de conception. */
-export const FLOATING_LONG_PRESS_MS = 400;
+// [Appui maintenu de 400 ms avant le déplacement (`FLOATING_LONG_PRESS_MS`) — retiré le 24/11/2026 (D-594) : glissement dès 10 pt.]
 
 const CALENDAR_ICON = require("../../../assets/icons/fab-calendrier.svg");
 const MOVEMENT_ICON = require("../../../assets/icons/fab-mouvement.svg");
@@ -163,22 +168,30 @@ export function FloatingCreateFace({ variant, testID }: { readonly variant: Floa
   );
 }
 
+const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 } as const;
+
 export type FloatingCreateAnchor = { readonly centerX: number; readonly centerY: number; readonly side: FloatingPosition["side"] };
 
 /**
- * Couche du bouton flottant : posée en absolu sur l'écran (au-dessus du contenu, sous les feuilles modales natives).
- * Position par défaut : 16 du bord droit, `bottom` au-dessus du bas de la couche (12 au-dessus de la barre de navigation
- * ou du bouton « Continuer »). Déplacement (DSF § 5) : appui maintenu puis glissement ; au relâchement, rangement contre
- * le bord gauche ou droit le plus proche, à la hauteur du relâchement, entre `topLimit` (bas de la zone de contexte) et la
- * position par défaut ; position commune à tous les écrans, conservée sur l'appareil (`floatingCreatePosition`).
- * Toucher simple : l'action. Le geste ne naît que sur le bouton : le défilement des listes n'est pas touché.
+ * Couche du bouton flottant : posée en absolu sur l'écran entier (au-dessus du contenu et, sur les écrans à onglets, de la
+ * barre de navigation — `FloatingCreateHost` ; sous les feuilles modales natives).
+ *
+ * Déplacement (D-594, DSF § 5, audit AUDIT-FAB-PHYSIQUE ; constantes de `floatingCreatePosition`) :
+ * - saisie dès 10 pt de glissement, sans appui long ; en deçà, un toucher déclenche l'action ;
+ * - suivi du doigt par un ressort (retard croissant avec la vitesse), sur le fil d'interface ;
+ * - relâchement : élan, rangement contre le bord gauche ou droit vers lequel l'élan porte, hauteur libre bornée à l'écran
+ *   (bouton entier visible), ressort de pose avec léger dépassement ;
+ * - rattrapage en vol : l'animation s'arrête au toucher et le geste repart de la position affichée, sans saut ;
+ * - « Réduire les animations » : pose directe (`ReduceMotion.System`).
+ * Position commune à tous les écrans, conservée sur l'appareil ; hauteur par défaut : `bottom` au-dessus du bas de la couche.
+ * [Appui maintenu de 400 ms, bouton collé au doigt, rangement immédiat au bord le plus proche de la position, hauteur bornée
+ * entre la position par défaut et le bas de la zone de contexte — remplacés le 24/11/2026 (D-594).]
  */
 export function FloatingCreateButton({
   variant,
   accessibilityLabel,
   onPress,
   bottom,
-  topLimit,
   disabled = false,
   hidden = false,
   onAnchorChange,
@@ -188,10 +201,8 @@ export function FloatingCreateButton({
   readonly variant: FloatingCreateVariant;
   readonly accessibilityLabel: string;
   readonly onPress: () => void;
-  /** Bas du bouton à la position par défaut, compté depuis le bas de la couche. */
+  /** Bas du bouton à la hauteur par défaut, compté depuis le bas de la couche. */
   readonly bottom: number;
-  /** Haut de la zone permise (bas de la zone de contexte), compté depuis le haut de la couche. */
-  readonly topLimit: number;
   readonly disabled?: boolean;
   /** Menu Créer ouvert : la croix du menu prend la place du bouton. */
   readonly hidden?: boolean;
@@ -201,10 +212,16 @@ export function FloatingCreateButton({
   readonly focusRequest?: number;
   readonly testID?: string;
 }) {
+  // Zone sûre (barre d'état, barre d'accueil) ; sans fournisseur (tests), aucune marge.
+  const insets = useContext(SafeAreaInsetsContext) ?? NO_INSETS;
   const [position, setPosition] = useState<FloatingPosition>(restoreFloatingPosition);
-  const [layer, setLayer] = useState<{ readonly width: number; readonly height: number } | null>(null);
-  // Décalage du doigt pendant le déplacement (remis à zéro au relâchement, une fois la position rangée enregistrée).
-  const [drag] = useState(() => new Animated.ValueXY({ x: 0, y: 0 }));
+  // Couche mesurée ; avant la mesure, la fenêtre (la couche couvre l'écran entier).
+  const window = useWindowDimensions();
+  const [measured, setLayer] = useState<{ readonly width: number; readonly height: number } | null>(null);
+  const layer = useMemo(
+    () => measured ?? (window.width > 0 && window.height > 0 ? { width: window.width, height: window.height } : null),
+    [measured, window.width, window.height],
+  );
   useEffect(() => subscribeFloatingPosition(setPosition), []);
   const pressableRef = useRef<View>(null);
   const lastFocusRequest = useRef(focusRequest);
@@ -214,33 +231,49 @@ export function FloatingCreateButton({
     if (pressableRef.current) AccessibilityInfo.sendAccessibilityEvent(pressableRef.current, "focus");
   }, [focusRequest]);
 
-  // Avant la première mesure de la couche : position par défaut à la hauteur enregistrée (bornée dès la mesure).
-  const maxLift = layer === null ? position.lift : Math.max(0, layer.height - bottom - FLOATING_BUTTON_SIZE - topLimit);
-  const lift = clampLift(position.lift, maxLift);
-  const buttonBottom = bottom + lift;
-  const horizontal = position.side === "LEFT" ? { left: FLOATING_EDGE_INSET } : { right: FLOATING_EDGE_INSET };
+  const bounds = useMemo<FloatingBounds | null>(
+    () => (layer === null ? null : { width: layer.width, minTop: insets.top, maxTop: layer.height - insets.bottom - FLOATING_BUTTON_SIZE }),
+    [layer, insets.top, insets.bottom],
+  );
+  // Place au repos : côté et hauteur enregistrés (par défaut : `bottom` au-dessus du bas), ramenés dans l'écran.
+  const rest = useMemo(
+    () =>
+      bounds === null || layer === null
+        ? null
+        : {
+            left: sideLeft(position.side, bounds.width),
+            top: clampTop(position.top ?? layer.height - bottom - FLOATING_BUTTON_SIZE, bounds),
+          },
+    [bounds, layer, position, bottom],
+  );
 
-  const anchorCenterX =
-    layer === null ? null : position.side === "LEFT" ? FLOATING_EDGE_INSET + FLOATING_BUTTON_SIZE / 2 : layer.width - FLOATING_EDGE_INSET - FLOATING_BUTTON_SIZE / 2;
-  const anchorCenterY = layer === null ? null : layer.height - buttonBottom - FLOATING_BUTTON_SIZE / 2;
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  // Dernière destination donnée aux valeurs animées : le retour de l'enregistrement ne coupe pas une pose en cours.
+  const destinationRef = useRef({ left: Number.NaN, top: Number.NaN });
   useEffect(() => {
-    if (onAnchorChange === undefined || anchorCenterX === null || anchorCenterY === null) return;
-    onAnchorChange({ centerX: anchorCenterX, centerY: anchorCenterY, side: position.side });
-  }, [anchorCenterX, anchorCenterY, onAnchorChange, position.side]);
+    if (rest === null) return;
+    const destination = destinationRef.current;
+    if (Math.abs(destination.left - rest.left) < 0.5 && Math.abs(destination.top - rest.top) < 0.5) return;
+    destinationRef.current = { left: rest.left, top: rest.top };
+    x.set(rest.left);
+    y.set(rest.top);
+  }, [rest, x, y]);
 
-  // Géométrie courante lue par le geste au relâchement (le geste natif peut garder les fonctions d'un rendu antérieur).
-  const geometryRef = useRef<{ readonly width: number; readonly centerX: number; readonly lift: number; readonly maxLift: number } | null>(null);
   useEffect(() => {
-    geometryRef.current = layer === null || anchorCenterX === null ? null : { width: layer.width, centerX: anchorCenterX, lift, maxLift };
-  }, [layer, anchorCenterX, lift, maxLift]);
+    if (onAnchorChange === undefined || rest === null) return;
+    onAnchorChange({ centerX: rest.left + FLOATING_BUTTON_SIZE / 2, centerY: rest.top + FLOATING_BUTTON_SIZE / 2, side: position.side });
+  }, [onAnchorChange, position.side, rest]);
 
-  /** Relâchement : rangement contre le bord le plus proche, hauteur bornée, enregistrement (DSF § 5). */
-  const settle = useCallback((translationX: number, translationY: number) => {
-    const current = geometryRef.current;
-    if (current === null) return;
-    saveFloatingPosition(settleFloatingPosition(current.centerX + translationX, current.width, current.lift - translationY, current.maxLift));
-  }, []);
+  const onRelease = useCallback(
+    (side: FloatingPosition["side"], left: number, top: number) => {
+      destinationRef.current = { left, top };
+      saveFloatingPosition({ side, top });
+    },
+    [],
+  );
 
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() }, { translateY: y.get() }] }));
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -249,16 +282,9 @@ export function FloatingCreateButton({
 
   return (
     <GestureHandlerRootView pointerEvents="box-none" style={StyleSheet.absoluteFill} onLayout={onLayout} testID={`${testID}-layer`}>
-      {!hidden ? (
-        <DragDetector enabled={!disabled} testID={`${testID}-pan`} drag={drag} onRelease={settle}>
-          <Animated.View
-            style={[
-              styles.button,
-              { ...horizontal, bottom: buttonBottom, transform: drag.getTranslateTransform() },
-              disabled ? styles.disabled : null,
-            ]}
-            testID={`${testID}-position`}
-          >
+      {!hidden && rest !== null && bounds !== null ? (
+        <DragDetector enabled={!disabled} testID={`${testID}-pan`} x={x} y={y} bounds={bounds} rest={rest} onRelease={onRelease}>
+          <Reanimated.View style={[styles.button, animatedStyle, disabled ? styles.disabled : null]} testID={`${testID}-position`}>
             <Pressable
               ref={pressableRef}
               onPress={onPress}
@@ -271,38 +297,79 @@ export function FloatingCreateButton({
             >
               <FloatingCreateFace variant={variant} testID={`${testID}-face`} />
             </Pressable>
-          </Animated.View>
+          </Reanimated.View>
         </DragDetector>
       ) : null}
     </GestureHandlerRootView>
   );
 }
 
+type Shared = ReturnType<typeof useSharedValue<number>>;
+
 /**
- * Glissement du bouton (DSF § 5) : actif après l'appui maintenu — iOS annule alors le toucher du bouton, sans action ; suit le
- * doigt ; au relâchement, `onRelease` range le bouton.
+ * Geste du bouton (D-594) : glissement dès 10 pt ; ressort de suivi ; relâchement vers la cible projetée par le ressort de
+ * pose, en partant de la vitesse du doigt ; rattrapage en vol ; toucher sans glissement pendant une pose : la pose reprend.
  */
 function DragDetector({
   enabled,
   testID,
-  drag,
+  x,
+  y,
+  bounds,
+  rest,
   onRelease,
   children,
 }: {
   readonly enabled: boolean;
   readonly testID: string;
-  readonly drag: Animated.ValueXY;
-  readonly onRelease: (translationX: number, translationY: number) => void;
+  readonly x: Shared;
+  readonly y: Shared;
+  readonly bounds: FloatingBounds;
+  readonly rest: { readonly left: number; readonly top: number };
+  readonly onRelease: (side: FloatingPosition["side"], left: number, top: number) => void;
   readonly children: ReactElement;
 }) {
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
+  const dragged = useSharedValue(false);
+  // Limites et place de repos courantes, lues par le geste au moment où il en a besoin (jamais celles d'un rendu antérieur).
+  const limits = useSharedValue<FloatingBounds>(bounds);
+  const home = useSharedValue(rest);
+  useEffect(() => {
+    limits.set(bounds);
+    home.set(rest);
+  }, [bounds, rest, limits, home]);
+  const follow = { ...FLOATING_FOLLOW_SPRING, reduceMotion: ReduceMotion.System };
+  const settle = { ...FLOATING_SETTLE_SPRING, reduceMotion: ReduceMotion.System };
   const pan = Gesture.Pan()
     .enabled(enabled)
     .withTestId(testID)
-    .runOnJS(true)
-    .activateAfterLongPress(FLOATING_LONG_PRESS_MS)
-    .onUpdate((event) => drag.setValue({ x: event.translationX, y: event.translationY }))
-    .onEnd((event) => onRelease(event.translationX, event.translationY))
-    .onFinalize(() => drag.setValue({ x: 0, y: 0 }));
+    .minDistance(FLOATING_DRAG_THRESHOLD)
+    .onBegin(() => {
+      cancelAnimation(x);
+      cancelAnimation(y);
+      dragged.set(false);
+    })
+    .onStart(() => {
+      dragged.set(true);
+      startX.set(x.get());
+      startY.set(y.get());
+    })
+    .onUpdate((event) => {
+      x.set(withSpring(startX.get() + event.translationX, follow));
+      y.set(withSpring(startY.get() + event.translationY, follow));
+    })
+    .onEnd((event) => {
+      const target = releaseTarget(x.get(), y.get(), event.velocityX, event.velocityY, limits.get());
+      x.set(withSpring(target.left, { ...settle, velocity: event.velocityX }));
+      y.set(withSpring(target.top, { ...settle, velocity: event.velocityY }));
+      runOnJS(onRelease)(target.side, target.left, target.top);
+    })
+    .onFinalize(() => {
+      if (dragged.get()) return;
+      x.set(withSpring(home.get().left, settle));
+      y.set(withSpring(home.get().top, settle));
+    });
   return <GestureDetector gesture={pan}>{children}</GestureDetector>;
 }
 
@@ -314,6 +381,8 @@ export function floatingBottomAboveNavigation(navigationBarHeight: number): numb
 const styles = StyleSheet.create({
   button: {
     position: "absolute",
+    left: 0,
+    top: 0,
     width: FLOATING_BUTTON_SIZE,
     height: FLOATING_BUTTON_SIZE,
   },

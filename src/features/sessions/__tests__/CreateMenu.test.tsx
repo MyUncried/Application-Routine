@@ -82,6 +82,17 @@ describe("CreateMenu — ouverture depuis le bouton flottant (UI-FAB-01)", () =>
     expect(screen.getByTestId("opt-stop").props.accessibilityHint).toBe("indice");
   });
 
+  it("D-594 : bouton en haut de l'écran, pas de place au-dessus : le menu s'ouvre vers le bas, même ordre, axe vers la dernière option", () => {
+    renderMenu({ centerX: 356, centerY: 120, side: "RIGHT" });
+    // Haut du bouton à 90 : pile de 4 × 32 + 3 × 10 = 158, impossible au-dessus. Sous le bouton : 150 + 14 = 164.
+    expect(style("opt-exercise").top).toBe(164);
+    expect(style("opt-circuit").top).toBe(206);
+    expect(style("opt-stop").top).toBe(290);
+    const axis = style("composition-add-activity-tree-axis");
+    expect(axis.top).toBe(120);
+    expect(axis.top + axis.height).toBe(290 + 16);
+  });
+
   it("sans ancre mesurée : position par défaut du bouton (16 du bord droit, bas de l'écran)", () => {
     renderMenu(null);
     expect(style("opt-cancel").width).toBe(60);

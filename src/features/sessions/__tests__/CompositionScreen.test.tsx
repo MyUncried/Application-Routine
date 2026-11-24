@@ -502,9 +502,11 @@ describe("CompositionScreen — état initial", () => {
     // Couche du bouton : 402 × 874 ; bouton par défaut 12 au-dessus de « Continuer ».
     fireEvent(screen.getByTestId("composition-floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 874 } } });
     const fab = StyleSheet.flatten(screen.getByTestId("composition-floating-create-position").props.style);
-    expect(fab).toMatchObject({ right: 16, width: 60, height: 60 });
+    expect(fab).toMatchObject({ width: 60, height: 60 });
+    // D-594 : place portée par les valeurs animées (déplacement) ; menu ouvert depuis le centre du bouton, à sa place de repos.
     fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
-    const fabTop = 874 - (fab.bottom as number) - 60;
+    const cross = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cancel").props.style);
+    const fabTop = cross.top as number;
     const lastRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-stop").props.style);
     expect((lastRow.top as number) + 32).toBe(fabTop - 14);
     const firstRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-new").props.style);

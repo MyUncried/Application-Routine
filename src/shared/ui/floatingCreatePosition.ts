@@ -1,19 +1,26 @@
 /**
- * UI-FAB-01 (D-558, DSF Bouton flottant § 5) — position du bouton flottant « Créer », commune à tous les écrans et
- * conservée sur l'appareil.
+ * UI-FAB-01 (D-558, D-594 ; DSF Bouton flottant § 5) — position et physique du bouton flottant « Créer », communes à tous les
+ * écrans et conservées sur l'appareil.
  *
- * - `side` : bord contre lequel le bouton est rangé (à 16 du bord).
- * - `lift` : hauteur choisie, comptée au-dessus de la position par défaut (12 au-dessus de la barre de navigation, ou
- *   du bouton « Continuer » en composition). 0 = position par défaut. Chaque écran la borne à sa propre zone (entre le
- *   bas de la zone de contexte et la position par défaut).
+ * Physique (audit AUDIT-FAB-PHYSIQUE du 24/11/2026, référence : bouton d'outils d'Expo, `expo-dev-menu` 57.0.15,
+ * `ios/FAB/DevMenuFABView.swift`, vidéo de Hermann) : deux ressorts successifs.
+ * - Pendant le glissement, le bouton est relié au doigt par un ressort raide (réponse 0,25 s, amortissement 0,85) : il suit
+ *   avec un retard d'environ 0,068 s × la vitesse du doigt.
+ * - Au relâchement, la cible est projetée vers l'avant (0,175 s × la vitesse) ; horizontalement, elle est rangée contre le
+ *   bord vers lequel l'élan porte le bouton (décision de Hermann du 24/11/2026 : « le bouton se range tout le temps soit à
+ *   droite, soit à gauche ») ; verticalement, elle est seulement bornée à l'écran (« Oui, partout »). Un ressort plus souple
+ *   (réponse 0,6 s, amortissement 0,7) y conduit le bouton en partant de la vitesse du relâchement : léger dépassement, pose.
+ * Conversion des ressorts d'iOS (réponse T, amortissement ζ, masse 1) : raideur = (2π / T)², amortissement = 4πζ / T.
  *
- * Choix technique (classe D) : un petit fichier JSON dans le dossier privé de l'application, comme l'appairage
- * (`pairingStore`), pour ne pas créer de migration ; aucune donnée d'entraînement n'y figure.
+ * Stockage (classe D) : petit fichier JSON du dossier privé de l'application, comme l'appairage ; aucune migration.
+ * [Hauteur comptée au-dessus de la position par défaut (`lift`), bornée au bas de la zone de contexte — remplacée le 24/11/2026
+ * par la hauteur absolue (`top`).]
  */
 export type FloatingSide = "LEFT" | "RIGHT";
-export type FloatingPosition = { readonly side: FloatingSide; readonly lift: number };
+/** `top` : haut du bouton dans l'écran ; `null` : hauteur par défaut de l'écran (au-dessus de la barre ou de « Continuer »). */
+export type FloatingPosition = { readonly side: FloatingSide; readonly top: number | null };
 
-export const DEFAULT_FLOATING_POSITION: FloatingPosition = { side: "RIGHT", lift: 0 };
+export const DEFAULT_FLOATING_POSITION: FloatingPosition = { side: "RIGHT", top: null };
 
 /** Rond de 60 (DSF § 2). */
 export const FLOATING_BUTTON_SIZE = 60;
@@ -21,6 +28,50 @@ export const FLOATING_BUTTON_SIZE = 60;
 export const FLOATING_EDGE_INSET = 16;
 /** 12 au-dessus de la barre de navigation ou du bouton « Continuer » (DSF § 2). */
 export const FLOATING_BOTTOM_GAP = 12;
+/** Glissement reconnu au-delà de 10 pt ; en deçà, un toucher (référence : `dragThreshold`). */
+export const FLOATING_DRAG_THRESHOLD = 10;
+/** Élan au relâchement : décalage de la cible = vitesse (pt/s) × 0,175 s (référence : 0,35 × projection d'iOS ≈ 0,5 s). */
+export const FLOATING_MOMENTUM_SECONDS = 0.175;
+/** Ressort de suivi du doigt (réponse 0,25 s, amortissement 0,85). */
+export const FLOATING_FOLLOW_SPRING = { mass: 1, stiffness: 632, damping: 42.7 } as const;
+/** Ressort de pose (réponse 0,6 s, amortissement 0,7). */
+export const FLOATING_SETTLE_SPRING = { mass: 1, stiffness: 110, damping: 14.7 } as const;
+
+/** Limites du haut du bouton dans l'écran (bouton entier visible). */
+export type FloatingBounds = { readonly width: number; readonly minTop: number; readonly maxTop: number };
+
+export function clampTop(top: number, bounds: FloatingBounds): number {
+  "worklet";
+  return Math.min(Math.max(top, bounds.minTop), Math.max(bounds.minTop, bounds.maxTop));
+}
+
+/** Abscisse du bord gauche du bouton rangé de ce côté. */
+export function sideLeft(side: FloatingSide, width: number): number {
+  "worklet";
+  return side === "LEFT" ? FLOATING_EDGE_INSET : width - FLOATING_EDGE_INSET - FLOATING_BUTTON_SIZE;
+}
+
+/**
+ * Cible du relâchement : côté vers lequel l'élan porte le centre du bouton (bord le plus proche sans élan), hauteur
+ * prolongée par l'élan puis bornée.
+ */
+export function releaseTarget(
+  left: number,
+  top: number,
+  velocityX: number,
+  velocityY: number,
+  bounds: FloatingBounds,
+): { readonly side: FloatingSide; readonly left: number; readonly top: number } {
+  "worklet";
+  const centerX = left + FLOATING_BUTTON_SIZE / 2 + velocityX * FLOATING_MOMENTUM_SECONDS;
+  const side: FloatingSide = centerX < bounds.width / 2 ? "LEFT" : "RIGHT";
+  return { side, left: sideLeft(side, bounds.width), top: clampTop(top + velocityY * FLOATING_MOMENTUM_SECONDS, bounds) };
+}
+
+/** Retard du bouton sur un doigt à vitesse constante (régime établi du ressort de suivi) : vitesse × amortissement / raideur. */
+export function followLag(speed: number): number {
+  return (speed * FLOATING_FOLLOW_SPRING.damping) / FLOATING_FOLLOW_SPRING.stiffness;
+}
 
 const FILE_NAME = "kodjo-floating-create.json";
 
@@ -33,29 +84,16 @@ function positionFile() {
   return new File(Paths.document, FILE_NAME);
 }
 
-/** Lecture tolérante : toute valeur illisible revient à la position par défaut. */
+/** Lecture tolérante : valeur illisible → position par défaut ; ancien format (`lift`) → hauteur par défaut, côté conservé. */
 export function parseFloatingPosition(raw: string): FloatingPosition {
   try {
-    const value = JSON.parse(raw) as Partial<FloatingPosition>;
+    const value = JSON.parse(raw) as { side?: unknown; top?: unknown };
     const side = value.side === "LEFT" || value.side === "RIGHT" ? value.side : DEFAULT_FLOATING_POSITION.side;
-    const lift = typeof value.lift === "number" && Number.isFinite(value.lift) && value.lift > 0 ? value.lift : 0;
-    return { side, lift };
+    const top = typeof value.top === "number" && Number.isFinite(value.top) ? value.top : null;
+    return { side, top };
   } catch {
     return DEFAULT_FLOATING_POSITION;
   }
-}
-
-/**
- * Rangement au relâchement (DSF § 5) : bord gauche ou droit le plus proche du centre du bouton ; hauteur conservée,
- * bornée à la zone de l'écran (`maxLift` : écart entre la position par défaut et le bas de la zone de contexte).
- */
-export function settleFloatingPosition(centerX: number, containerWidth: number, lift: number, maxLift: number): FloatingPosition {
-  const side: FloatingSide = centerX < containerWidth / 2 ? "LEFT" : "RIGHT";
-  return { side, lift: clampLift(lift, maxLift) };
-}
-
-export function clampLift(lift: number, maxLift: number): number {
-  return Math.min(Math.max(0, lift), Math.max(0, maxLift));
 }
 
 let current: FloatingPosition = DEFAULT_FLOATING_POSITION;

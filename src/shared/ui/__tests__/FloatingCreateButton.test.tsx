@@ -1,24 +1,33 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 import { en } from "@/shared/i18n/resources/en";
 import { fr } from "@/shared/i18n/resources/fr";
-import { FloatingCreateButton, FLOATING_LONG_PRESS_MS } from "@/shared/ui/FloatingCreateButton";
+import { FloatingCreateButton } from "@/shared/ui/FloatingCreateButton";
+import { FloatingCreateHost, FloatingCreateSlot } from "@/shared/ui/FloatingCreateHost";
 import {
+  FLOATING_DRAG_THRESHOLD,
+  FLOATING_FOLLOW_SPRING,
+  FLOATING_MOMENTUM_SECONDS,
+  FLOATING_SETTLE_SPRING,
   currentFloatingPosition,
+  followLag,
   parseFloatingPosition,
+  releaseTarget,
   resetFloatingPositionForTests,
   restoreFloatingPosition,
-  settleFloatingPosition,
 } from "@/shared/ui/floatingCreatePosition";
 
 /**
- * UI-FAB-01 (D-558 ; DSF Bouton flottant § 2 et § 5) — bouton flottant « Créer » : rendu, toucher simple, déplacement (appui
- * maintenu puis glissement, rangement contre le bord le plus proche, hauteur bornée), position conservée sur l'appareil.
- * Jest n'exerce ni le flou natif, ni l'arbitrage des gestes d'iOS : recette sur iPhone nécessaire.
+ * UI-FAB-01 (D-558, D-594 ; DSF Bouton flottant § 2 et § 5 ; audit AUDIT-FAB-PHYSIQUE du 24/11/2026) — bouton flottant
+ * « Créer » : rendu, toucher, glissement dès 10 pt, élan, rangement contre le bord gauche ou droit, hauteur libre bornée à
+ * l'écran, position conservée, hôte des onglets. Le simulacre de Reanimated pose les ressorts instantanément : la sensation
+ * (retard, dépassement) se recette sur iPhone ; ses lois sont vérifiées ici comme fonctions pures.
  */
 const mockFiles = new Map<string, string>();
 jest.mock("expo-file-system", () => {
@@ -43,28 +52,72 @@ jest.mock("expo-file-system", () => {
   return { File, Paths: { document: "doc" } };
 });
 
-const LAYER = { width: 402, height: 874 };
-/** Bas du bouton à la position par défaut (barre de navigation 78 + 12) ; haut de la zone permise (bas de la zone de contexte). */
+// Valeurs animées persistantes d'un rendu à l'autre (le simulacre livré en recrée une à chaque rendu).
+jest.mock("react-native-reanimated", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const reanimated = require("react-native-reanimated/mock") as Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useState: useStableState } = require("react") as typeof import("react");
+  return {
+    ...reanimated,
+    useSharedValue: <T,>(init: T) => {
+      const [shared] = useStableState(() => {
+        const box = { value: init, get: () => box.value, set: (next: T) => void (box.value = next) };
+        return box;
+      });
+      return shared;
+    },
+  };
+});
+
+// Hôte : le focus d'un écran est simulé par son montage.
+jest.mock("expo-router", () => ({
+  useFocusEffect: (effect: () => void | (() => void)) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useEffect: useMountEffect } = require("react") as typeof import("react");
+    useMountEffect(effect, [effect]);
+  },
+}));
+
+const W = 402;
+const H = 874;
+const INSETS = { top: 62, bottom: 34, left: 0, right: 0 };
+/** Bas par défaut : barre de navigation (78) + 12. */
 const BOTTOM = 90;
-const TOP_LIMIT = 207;
+const RIGHT_LEFT = W - 16 - 60;
+const DEFAULT_TOP = H - BOTTOM - 60;
+const MAX_TOP = H - INSETS.bottom - 60;
+
+/** Le simulacre de Reanimated calcule le style animé au rendu : un rendu de plus reflète les valeurs posées par les effets. */
+let refresh: () => void = () => undefined;
 
 function renderButton(onPress = jest.fn()) {
-  const view = render(
-    <FloatingCreateButton variant="movement" accessibilityLabel="Créer un mouvement" onPress={onPress} bottom={BOTTOM} topLimit={TOP_LIMIT} />,
+  // Élément neuf à chaque rendu (un élément identique ne serait pas rendu de nouveau).
+  const element = () => (
+    <SafeAreaInsetsContext.Provider value={INSETS}>
+      <FloatingCreateButton variant="movement" accessibilityLabel="Créer un mouvement" onPress={onPress} bottom={BOTTOM} />
+    </SafeAreaInsetsContext.Provider>
   );
-  fireEvent(screen.getByTestId("floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, ...LAYER } } });
+  const view = render(element());
+  fireEvent(screen.getByTestId("floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: W, height: H } } });
+  refresh = () => view.rerender(element());
+  refresh();
   return { onPress, ...view };
 }
 
-const position = () => StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style);
+const place = () => {
+  refresh();
+  const transform = StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).transform as { translateX?: number; translateY?: number }[];
+  return { left: transform[0]!.translateX!, top: transform[1]!.translateY! };
+};
 
-function drag(translationX: number, translationY: number) {
+function fling(translationX: number, translationY: number, velocityX = 0, velocityY = 0) {
   act(() => {
     fireGestureHandler(getByGestureTestId("floating-create-pan"), [
       { state: State.BEGAN, translationX: 0, translationY: 0 },
       { state: State.ACTIVE, translationX: translationX / 2, translationY: translationY / 2 },
-      { state: State.ACTIVE, translationX, translationY },
-      { state: State.END, translationX, translationY },
+      { state: State.ACTIVE, translationX, translationY, velocityX, velocityY },
+      { state: State.END, translationX, translationY, velocityX, velocityY },
     ]);
   });
 }
@@ -80,7 +133,8 @@ afterEach(() => {
 describe("FloatingCreateButton — rendu et toucher", () => {
   it("rond de 60 en bas à droite : 16 du bord, 12 au-dessus de la barre ; verre blanc à 65 %, liseré blanc 1,2 ; contenu bleu", () => {
     renderButton();
-    expect(position()).toMatchObject({ position: "absolute", width: 60, height: 60, right: 16, bottom: BOTTOM });
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style)).toMatchObject({ position: "absolute", width: 60, height: 60 });
+    expect(place()).toEqual({ left: RIGHT_LEFT, top: DEFAULT_TOP });
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style)).toMatchObject({
       backgroundColor: "rgba(255, 255, 255, 0.65)",
       borderWidth: 1.2,
@@ -100,63 +154,68 @@ describe("FloatingCreateButton — rendu et toucher", () => {
 
   it("inactif : atténué, sans action ; masqué (menu ouvert) : absent", () => {
     const onPress = jest.fn();
-    const view = render(
-      <FloatingCreateButton variant="plus" accessibilityLabel="Ouvrir le menu Créer" onPress={onPress} bottom={BOTTOM} topLimit={TOP_LIMIT} disabled />,
-    );
-    expect(position().opacity).toBe(0.45);
+    const view = render(<FloatingCreateButton variant="plus" accessibilityLabel="Ouvrir le menu Créer" onPress={onPress} bottom={BOTTOM} disabled />);
+    fireEvent(screen.getByTestId("floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: W, height: H } } });
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).opacity).toBe(0.45);
     fireEvent.press(screen.getByLabelText("Ouvrir le menu Créer"));
     expect(onPress).not.toHaveBeenCalled();
-    view.rerender(<FloatingCreateButton variant="plus" accessibilityLabel="Ouvrir le menu Créer" onPress={onPress} bottom={BOTTOM} topLimit={TOP_LIMIT} hidden />);
+    view.rerender(<FloatingCreateButton variant="plus" accessibilityLabel="Ouvrir le menu Créer" onPress={onPress} bottom={BOTTOM} hidden />);
     expect(screen.queryByTestId("floating-create")).toBeNull();
   });
 
   it("chaque variante a son contenu (Figma 13039:49732)", () => {
     for (const variant of ["plus", "calendar", "movement", "session", "program", "close"] as const) {
-      const view = render(<FloatingCreateButton variant={variant} accessibilityLabel="x" onPress={jest.fn()} bottom={BOTTOM} topLimit={TOP_LIMIT} />);
+      const view = render(<FloatingCreateButton variant={variant} accessibilityLabel="x" onPress={jest.fn()} bottom={BOTTOM} />);
+      fireEvent(screen.getByTestId("floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: W, height: H } } });
       expect(screen.getByTestId(`floating-create-glyph-${variant}`)).toBeTruthy();
       view.unmount();
     }
   });
 });
 
-describe("FloatingCreateButton — déplacement (DSF § 5)", () => {
-  it("le glissement ne démarre qu'après un appui maintenu", () => {
+describe("FloatingCreateButton — glissement et relâchement (D-594)", () => {
+  it("glissement reconnu dès 10 pt, sans appui long", () => {
     renderButton();
-    const pan = getByGestureTestId("floating-create-pan") as unknown as { config: { activateAfterLongPress?: number } };
-    expect(pan.config.activateAfterLongPress).toBe(FLOATING_LONG_PRESS_MS);
+    const pan = getByGestureTestId("floating-create-pan") as unknown as { config: { minDist?: number; activateAfterLongPress?: number } };
+    expect(pan.config.minDist).toBe(FLOATING_DRAG_THRESHOLD);
+    expect(pan.config.activateAfterLongPress).toBeUndefined();
   });
 
-  it("au relâchement, rangé contre le bord le plus proche, à la hauteur du relâchement", () => {
+  it("lâché au centre sans élan : rangé contre le bord le plus proche, à la hauteur du relâchement", () => {
     renderButton();
-    // Centre de départ x = 402 − 16 − 30 = 356 ; glissé de −250 : x = 106, à gauche du milieu (201).
-    drag(-250, -200);
-    expect(position()).toMatchObject({ left: 16, bottom: BOTTOM + 200 });
-    expect(currentFloatingPosition()).toEqual({ side: "LEFT", lift: 200 });
-    // Glissé à droite du milieu : retour contre le bord droit, hauteur conservée.
-    drag(250, 0);
-    expect(position()).toMatchObject({ right: 16, bottom: BOTTOM + 200 });
+    // Centre de départ x = 356 ; glissé de −200 : x = 156, moitié gauche.
+    fling(-200, -300);
+    expect(place()).toEqual({ left: 16, top: DEFAULT_TOP - 300 });
+    expect(currentFloatingPosition()).toEqual({ side: "LEFT", top: DEFAULT_TOP - 300 });
   });
 
-  it("hauteur bornée : jamais sous la position par défaut, jamais au-dessus du bas de la zone de contexte", () => {
+  it("l'élan choisit le bord : lancé vers la droite depuis la moitié gauche, il va à droite ; la hauteur garde l'élan", () => {
     renderButton();
-    drag(0, 300);
-    expect(position().bottom).toBe(BOTTOM);
-    drag(0, -2000);
-    // Haut du bouton au bas de la zone de contexte : 874 − 207 − 60 = 607 au-dessus du bas de la couche.
-    expect(position().bottom).toBe(874 - TOP_LIMIT - 60);
+    fling(-200, 0);
+    // Centre à x = 46, lancé à 1 200 pt/s vers la droite : 46 + 1 200 × 0,175 = 256 > 201 → droite.
+    fling(30, -40, 1200, -400);
+    expect(place()).toEqual({ left: RIGHT_LEFT, top: DEFAULT_TOP - 40 - 400 * FLOATING_MOMENTUM_SECONDS });
+  });
+
+  it("hauteur libre sur tout l'écran (en-tête, zone de contexte, barre de navigation) mais bouton entier visible", () => {
+    renderButton();
+    fling(0, -2000, 0, -3000);
+    expect(place().top).toBe(INSETS.top);
+    fling(0, 2000, 0, 3000);
+    expect(place().top).toBe(MAX_TOP);
+    expect(MAX_TOP).toBeGreaterThan(DEFAULT_TOP);
   });
 
   it("position conservée sur l'appareil et commune à tous les écrans : relue après redémarrage", () => {
     const first = renderButton();
-    drag(-250, -120);
+    fling(-250, -120);
     first.unmount();
-    expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!)).toEqual({ side: "LEFT", lift: 120 });
-    // Redémarrage : mémoire vidée, fichier conservé.
+    expect(JSON.parse(mockFiles.get("kodjo-floating-create.json")!)).toEqual({ side: "LEFT", top: DEFAULT_TOP - 120 });
     resetFloatingPositionForTests();
-    expect(restoreFloatingPosition()).toEqual({ side: "LEFT", lift: 120 });
+    expect(restoreFloatingPosition()).toEqual({ side: "LEFT", top: DEFAULT_TOP - 120 });
     resetFloatingPositionForTests();
     renderButton();
-    expect(position()).toMatchObject({ left: 16, bottom: BOTTOM + 120 });
+    expect(place()).toEqual({ left: 16, top: DEFAULT_TOP - 120 });
   });
 
   it("le défilement d'une liste n'est pas gêné : le geste ne naît que sur le bouton, la couche laisse passer les touchers", () => {
@@ -165,7 +224,7 @@ describe("FloatingCreateButton — déplacement (DSF § 5)", () => {
         <ScrollView testID="list">
           <Text>contenu</Text>
         </ScrollView>
-        <FloatingCreateButton variant="session" accessibilityLabel="Créer une séance" onPress={jest.fn()} bottom={BOTTOM} topLimit={TOP_LIMIT} />
+        <FloatingCreateButton variant="session" accessibilityLabel="Créer une séance" onPress={jest.fn()} bottom={BOTTOM} />
       </>,
     );
     expect(screen.getByTestId("floating-create-layer").props.pointerEvents).toBe("box-none");
@@ -173,17 +232,69 @@ describe("FloatingCreateButton — déplacement (DSF § 5)", () => {
   });
 });
 
-describe("floatingCreatePosition — règles pures", () => {
-  it("bord le plus proche du centre ; hauteur bornée", () => {
-    expect(settleFloatingPosition(150, 402, 50, 400)).toEqual({ side: "LEFT", lift: 50 });
-    expect(settleFloatingPosition(250, 402, -10, 400)).toEqual({ side: "RIGHT", lift: 0 });
-    expect(settleFloatingPosition(250, 402, 900, 400)).toEqual({ side: "RIGHT", lift: 400 });
+describe("floatingCreatePosition — lois physiques (audit AUDIT-FAB-PHYSIQUE)", () => {
+  const bounds = { width: W, minTop: INSETS.top, maxTop: MAX_TOP };
+
+  it("ressorts de la référence : suivi (réponse 0,25 s, amortissement 0,85), pose (réponse 0,6 s, amortissement 0,7)", () => {
+    const spring = (response: number, ratio: number) => ({ stiffness: (2 * Math.PI / response) ** 2, damping: (4 * Math.PI * ratio) / response });
+    expect(FLOATING_FOLLOW_SPRING.stiffness).toBeCloseTo(spring(0.25, 0.85).stiffness, -1);
+    expect(FLOATING_FOLLOW_SPRING.damping).toBeCloseTo(spring(0.25, 0.85).damping, 0);
+    expect(FLOATING_SETTLE_SPRING.stiffness).toBeCloseTo(spring(0.6, 0.7).stiffness, -1);
+    expect(FLOATING_SETTLE_SPRING.damping).toBeCloseTo(spring(0.6, 0.7).damping, 0);
   });
 
-  it("lecture tolérante : valeur illisible → position par défaut", () => {
-    expect(parseFloatingPosition("{")).toEqual({ side: "RIGHT", lift: 0 });
-    expect(parseFloatingPosition(JSON.stringify({ side: "UP", lift: -3 }))).toEqual({ side: "RIGHT", lift: 0 });
-    expect(parseFloatingPosition(JSON.stringify({ side: "LEFT", lift: 42 }))).toEqual({ side: "LEFT", lift: 42 });
+  it("retard sur le doigt croissant avec la vitesse : ≈ 20 pt à 300 pt/s, 68 pt à 1 000 pt/s, 135 pt à 2 000 pt/s", () => {
+    expect(followLag(300)).toBeCloseTo(20, 0);
+    expect(followLag(1000)).toBeCloseTo(68, 0);
+    expect(followLag(2000)).toBeCloseTo(135, 0);
+  });
+
+  it("relâchement : toujours contre un bord, jamais au centre ; élan projeté, hauteur bornée", () => {
+    expect(releaseTarget(171, 400, 0, 0, bounds)).toEqual({ side: "RIGHT", left: RIGHT_LEFT, top: 400 });
+    expect(releaseTarget(170, 400, 0, 0, bounds)).toEqual({ side: "LEFT", left: 16, top: 400 });
+    expect(releaseTarget(300, 400, -1000, 0, bounds).side).toBe("LEFT");
+    expect(releaseTarget(16, 400, 0, 1000, bounds).top).toBe(400 + 175);
+    expect(releaseTarget(16, 400, 0, -10000, bounds).top).toBe(INSETS.top);
+  });
+
+  it("lecture tolérante : illisible → défaut ; ancien format (côté et lift) → côté conservé, hauteur par défaut", () => {
+    expect(parseFloatingPosition("{")).toEqual({ side: "RIGHT", top: null });
+    expect(parseFloatingPosition(JSON.stringify({ side: "LEFT", lift: 42 }))).toEqual({ side: "LEFT", top: null });
+    expect(parseFloatingPosition(JSON.stringify({ side: "LEFT", top: 300 }))).toEqual({ side: "LEFT", top: 300 });
+  });
+});
+
+describe("FloatingCreateHost — devant la barre de navigation (D-594)", () => {
+  function Screen({ label }: { readonly label: string }) {
+    return <FloatingCreateSlot config={{ variant: "session", label, onPress: jest.fn() }} />;
+  }
+
+  it("l'écran affiché confie son bouton à l'hôte, rendu après le contenu (donc devant la barre) ; retiré quand l'écran part", () => {
+    function Harness() {
+      const [shown, setShown] = useState(true);
+      useEffect(() => {
+        harness.hide = () => setShown(false);
+      });
+      return (
+        <FloatingCreateHost>
+          <Text testID="tabs-content">onglets et barre</Text>
+          {shown ? <Screen label="Créer une séance" /> : null}
+        </FloatingCreateHost>
+      );
+    }
+    const harness: { hide: () => void } = { hide: () => undefined };
+    const view = render(<Harness />);
+    const root = view.toJSON() as unknown as { type: string; props: { testID?: string } }[];
+    expect(root.map((node) => node.props.testID)).toEqual(["tabs-content", "floating-create-layer"]);
+    fireEvent(screen.getByTestId("floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: W, height: H } } });
+    expect(screen.getByLabelText("Créer une séance")).toBeTruthy();
+    act(() => harness.hide());
+    expect(screen.queryByTestId("floating-create")).toBeNull();
+  });
+
+  it("sans hôte (écran hors onglets), l'écran rend lui-même son bouton", () => {
+    render(<Screen label="Créer une séance" />);
+    expect(screen.getByTestId("floating-create-layer")).toBeTruthy();
   });
 });
 

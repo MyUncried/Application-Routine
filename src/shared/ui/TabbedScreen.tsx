@@ -1,12 +1,12 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { CatalogueNavigation, type CatalogueNavigationOption } from "@/features/sessions/CatalogueNavigation";
 import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR, CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
-import { FloatingCreateButton, floatingBottomAboveNavigation, type FloatingCreateVariant } from "@/shared/ui/FloatingCreateButton";
-import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
+import type { FloatingCreateVariant } from "@/shared/ui/FloatingCreateButton";
+import { FloatingCreateSlot } from "@/shared/ui/FloatingCreateHost";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 
 /**
@@ -102,8 +102,6 @@ export function TabbedScreen<T extends string>({
   readonly children?: ReactNode;
 }) {
   const centered = context?.kind === "custom" && context.layout === "centered";
-  // Bas de la zone de contexte (ou de la bande des onglets) : limite haute du déplacement du bouton flottant.
-  const [contextBottom, setContextBottom] = useState(0);
   return (
     <ScreenShell {...(palette.background !== undefined ? { backgroundColor: palette.background } : {})}>
       <FixedHeader
@@ -151,18 +149,9 @@ export function TabbedScreen<T extends string>({
           )}
         </ContextBand>
       )}
-      {/* Repère sans hauteur : son ordonnée est le bas de la zone de contexte (aucun effet sur la mise en page). */}
-      <View pointerEvents="none" style={styles.contextBottomMarker} onLayout={(event) => setContextBottom(event.nativeEvent.layout.y)} />
       {children}
-      {floatingCreate !== undefined ? (
-        <FloatingCreateButton
-          variant={floatingCreate.variant}
-          accessibilityLabel={floatingCreate.label}
-          onPress={floatingCreate.onPress}
-          bottom={floatingBottomAboveNavigation(navigationBarTotalHeight())}
-          topLimit={contextBottom}
-        />
-      ) : null}
+      {/* D-594 : bouton confié à l'hôte des onglets (devant la barre de navigation) ; sans hôte, rendu sur place. */}
+      {floatingCreate !== undefined ? <FloatingCreateSlot config={floatingCreate} /> : null}
     </ScreenShell>
   );
 }
@@ -246,7 +235,6 @@ function TabBand({ color, background }: { readonly color: string; readonly backg
 }
 
 const styles = StyleSheet.create({
-  contextBottomMarker: { height: 0 },
   // D-502 : la navigation occupe toute la largeur et toute la hauteur de l'en-tête ; les onglets reposent sur son bord bas.
   headerNavigation: {
     flex: 1,

@@ -52,6 +52,19 @@ Le Plan n'a pas de bouton flottant. On y crée en touchant une case ou par « + 
 
 ## 5. Déplacement
 
+**Règle en vigueur depuis le 24/11/2026 (D-594)** — vidéo de Hermann et audit `.github/orchestration/reports/2026-11-24_AUDIT-FAB-PHYSIQUE.md` (référence : bouton d'outils d'Expo) :
+- **Toucher** : un toucher sans glissement de plus de 10 pt déclenche l'action.
+- **Saisie** : dès 10 pt de glissement, sans appui long.
+- **Suivi** : le bouton suit le doigt avec un retard qui grandit avec la vitesse du doigt (un ressort le relie au doigt), et le rattrape quand le doigt ralentit ou s'arrête.
+- **Relâchement** : le bouton garde son élan. Il se range toujours contre le bord gauche ou droit — celui vers lequel l'élan le porte, sinon le plus proche — à 16 du bord, en le dépassant légèrement avant de s'y poser ; il ne reste jamais au centre. Verticalement, il garde son élan puis s'arrête librement.
+- **Zone permise** : tout l'écran — en-tête, zone de contexte, contenu et barre de navigation (l'onglet caché sous le bouton est accepté) ; le bouton reste entièrement visible et, lancé contre le haut ou le bas, il est ramené en douceur.
+- **Rattrapage** : il peut être rattrapé en mouvement et repart sans saut.
+- **Mémoire** : position conservée sur l'appareil, commune à tous les écrans, ramenée dans l'écran si besoin.
+- **Composition** : le menu Créer s'ouvre vers le haut s'il y a la place, sinon vers le bas.
+- **Réduire les animations** (réglage iOS) : pose directe.
+
+[Règle du 22/11/2026, remplacée le 24/11/2026 par D-594, texte d'origine conservé ci-dessous.]
+
 Le bouton est flottant : l'utilisateur peut le déplacer.
 - **Geste** : un appui maintenu puis un glissement déplacent le bouton.
 - **Rangement** : au relâchement, le bouton se range contre le bord gauche ou droit le plus proche, à 16 du bord.

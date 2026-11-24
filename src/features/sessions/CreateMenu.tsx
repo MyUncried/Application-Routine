@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
+import { useContext } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type ViewStyle } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 import { strings } from "@/shared/i18n";
 import { FloatingCreateFace, type FloatingCreateAnchor } from "@/shared/ui/FloatingCreateButton";
@@ -211,6 +213,8 @@ export function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
  * grise de 34) — remplacée le 24/11/2026.]
  */
 const FLOATING_PILL_WIDTH = 263;
+/** Marge minimale entre la barre d'état et la première rangée d'un menu ouvert vers le haut. Valeur de conception. */
+const MENU_TOP_MARGIN = 8;
 const LAST_ROW_TO_BUTTON = 14;
 
 export function CreateMenu({
@@ -229,14 +233,23 @@ export function CreateMenu({
   readonly cancelTestID: string;
 }) {
   const { width, height } = useWindowDimensions();
+  const insets = useContext(SafeAreaInsetsContext) ?? { top: 0 };
   const centerX = anchor?.centerX ?? width - FLOATING_EDGE_INSET - FLOATING_BUTTON_SIZE / 2;
   const centerY = anchor?.centerY ?? height - FLOATING_BUTTON_SIZE;
   const mirrored = anchor?.side === "LEFT";
   const iconLeft = centerX - ICON_SIZE / 2;
   const rowLeft = mirrored ? iconLeft : iconLeft - PILL_TO_ICON - FLOATING_PILL_WIDTH;
-  const lastRowTop = centerY - FLOATING_BUTTON_SIZE / 2 - LAST_ROW_TO_BUTTON - ROW_HEIGHT;
-  const rowTop = (index: number) => lastRowTop - (options.length - 1 - index) * (ROW_HEIGHT + ROW_GAP);
-  const firstRowCenter = rowTop(0) + ROW_HEIGHT / 2;
+  // D-594 (Hermann, 24/11/2026 : « Oui ») : vers le haut s'il y a la place sous la barre d'état, sinon vers le bas ; même
+  // ordre de haut en bas, même écart (14) entre le bouton et la rangée la plus proche.
+  const stack = options.length * ROW_HEIGHT + (options.length - 1) * ROW_GAP;
+  const upwardTop = centerY - FLOATING_BUTTON_SIZE / 2 - LAST_ROW_TO_BUTTON - stack;
+  const downward = upwardTop < insets.top + MENU_TOP_MARGIN;
+  const firstTop = downward ? centerY + FLOATING_BUTTON_SIZE / 2 + LAST_ROW_TO_BUTTON : upwardTop;
+  const rowTop = (index: number) => firstTop + index * (ROW_HEIGHT + ROW_GAP);
+  // Axe : du centre du bouton à la rangée la plus éloignée.
+  const farRowCenter = (downward ? rowTop(options.length - 1) : rowTop(0)) + ROW_HEIGHT / 2;
+  const axisTop = Math.min(centerY, farRowCenter);
+  const axisHeight = Math.abs(centerY - farRowCenter);
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
 
   return (
@@ -249,7 +262,7 @@ export function CreateMenu({
       <Pressable onPress={onCancel} accessible={false} testID="composition-add-activity-tree-backdrop" style={[StyleSheet.absoluteFill, styles.scrim]} />
       <View
         pointerEvents="none"
-        style={[styles.axis, { left: centerX - 1, top: firstRowCenter, height: Math.max(0, centerY - firstRowCenter) }]}
+        style={[styles.axis, { left: centerX - 1, top: axisTop, height: axisHeight }]}
         testID="composition-add-activity-tree-axis"
       />
       {options.map((option, index) => {

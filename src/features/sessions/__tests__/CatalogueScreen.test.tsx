@@ -303,7 +303,7 @@ describe("CatalogueScreen — cadre commun", () => {
 
     expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
     const position = StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style);
-    expect(position).toMatchObject({ width: 60, height: 60, right: 16 });
+    expect(position).toMatchObject({ width: 60, height: 60 });
     expect(screen.getByTestId("floating-create-glyph-session")).toBeTruthy();
     expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.65)");
   });

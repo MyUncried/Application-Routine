@@ -1065,16 +1065,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * fois la structure générale écrite.
    */
   const [circuitReveal, setCircuitReveal] = useState<{ readonly knownMembers: ReadonlySet<string> } | null>(null);
-  // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
-  // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
-  // de l'en-tête fixe et de la bande Context, jamais seulement
-  // `contextBand.height` (qui plaçait l'arbre ~100 pt trop haut, chevauchant
-  // l'en-tête). Recette 3 (D-353) : plus de séparateur entre les deux.
-  const addActivityTreeTop =
-    insets.top +
-    dimensions.header.contentHeight +
-    dimensions.contextBand.height +
-    spacing[8];
+  // [Ordonnée de la première rangée du menu Créer, sous la zone de contexte (`addActivityTreeTop`, VISUAL_CORRECTION 5753653735) —
+  // sans objet depuis le 24/11/2026 : le menu s'ouvre depuis le bouton flottant (D-558, D-594).]
   // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
@@ -5796,7 +5788,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             setIsAddActivityTreeOpen(true);
           }}
           bottom={actionZone.scrollReserve - finalActionContentPadding(Platform.OS, insets.bottom).top + FLOATING_BOTTOM_GAP}
-          topLimit={addActivityTreeTop - spacing[8]}
           disabled={isPlacementActive || isEnvelopeActive}
           hidden={isAddActivityTreeOpen}
           onAnchorChange={setFloatingAnchor}
