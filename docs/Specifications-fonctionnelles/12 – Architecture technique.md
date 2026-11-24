@@ -1103,7 +1103,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | --- | --- | --- |
 | `color.primary` | `#0508E5` | Actions principales, navigation active, texte ou contour d’action secondaire |
 | `color.selection` | `#5F60EE` | Fond d’un contrôle de sélection actif portant un texte blanc ; contraste texte/fond de `4,78:1` |
-| `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné [06/11/2026 : ne plus l’utiliser pour la zone de contexte des catalogues (`ScreenShell.ContextBand`) ; écart du code à corriger — D-509.] |
+| `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné [06/11/2026 : ne plus l’utiliser pour la zone de contexte des catalogues (`ScreenShell.ContextBand`) ; écart du code à corriger — D-509.] [24/11/2026 : ne plus l’utiliser non plus pour le cercle Retour / Annuler de l’en-tête (`FixedHeader`) : cercle blanc `#FCFCFE`, liseré blanc 1, ombre `#1A1A26` 8 %, icône `#14141A`, unique pour tous les écrans ; surcharges locales `backCircleStyle` / `backIconTintColor` supprimées — D-593.] |
 | `color.background` | `#FFFFFF` | Fond principal |
 | `color.catalogue.mouvements.context` | `#E5F0FF` | Zone de contexte et onglet sélectionné du catalogue Mouvements — D-501 (06/11/2026) ; Figma `color/catalogue/mouvements/context` [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #DDEBFF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogue.mouvements.background` | `#F7FAFF` | Fond d’écran, barre d’état, en-tête et fondu du catalogue Mouvements — D-501 [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F1F7FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
