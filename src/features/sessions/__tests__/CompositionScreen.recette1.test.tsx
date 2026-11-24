@@ -254,8 +254,8 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    // Diagnostic du 24/11/2026 : même fermeture animée (CARD_SHEET_MOTION_MS, minuteries réelles) que ci-dessus — attendue
-    // jusqu'à son terme ; sans cette attente, la feuille encore en descente était comptée au toucher de la photo (test instable).
+    // Diagnostic du 24/11/2026 : même fermeture animée que ci-dessus, attendue jusqu'à son terme. Sous Jest, sa fin dépend d'une
+    // minuterie réelle du module natif simulé (16 ms) ; un seul tour d'`act` ne la laissait pas toujours passer (test instable).
     await waitFor(() => expect(screen.queryByTestId("execution-sheet")).toBeNull(), { timeout: 3000 });
     fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);
