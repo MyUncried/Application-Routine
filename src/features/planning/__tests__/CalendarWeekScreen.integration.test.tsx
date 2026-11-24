@@ -191,7 +191,9 @@ describe("Calendrier Semaine", () => {
     await flush();
     const id = card(routine.id, monday, "00:01");
     expect(screen.getByTestId(`${id}-status-EXPIRED`)).toBeTruthy();
-    expect(within(screen.getByTestId(`${id}-status-tag`)).getByText("Expirée")).toBeTruthy();
+    // D-599 (24/11/2026) : icône horloge (libellé d'accessibilité « Expirée ») à la place de l'étiquette.
+    expect(screen.getByTestId(`${id}-status-icon`).props.accessibilityLabel).toBe("Expirée");
+    expect(screen.queryByTestId(`${id}-status-tag`)).toBeNull();
     expect(screen.queryByTestId(`${id}-start`)).toBeNull();
   });
 
@@ -291,7 +293,7 @@ describe("Calendrier Semaine", () => {
     });
     await flush();
     expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-COMPLETED`)).toBeTruthy();
-    expect(within(screen.getByTestId(`${card(routine.id, MONDAY)}-status-tag`)).getByText("Complétée")).toBeTruthy();
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-icon`).props.accessibilityLabel).toBe("Complétée"); // D-599
     expect(screen.queryByTestId(`${card(routine.id, MONDAY)}-start`)).toBeNull();
     // Occurrence commencée : ni modification (D-536, point 1) ni suppression (D-537, point 1) ; la zone de la pastille ne
     // fait rien (recette du 20/11/2026 : trois zones tactiles).
@@ -307,7 +309,7 @@ describe("Calendrier Semaine", () => {
       focusEffectHarness.effect?.();
     });
     await flush();
-    expect(within(screen.getByTestId(`${card(routine.id, MONDAY)}-status-tag`)).getByText("Arrêtée")).toBeTruthy();
+    expect(screen.getByTestId(`${card(routine.id, MONDAY)}-status-icon`).props.accessibilityLabel).toBe("Arrêtée"); // D-599
   });
 
 
@@ -456,8 +458,8 @@ describe("Calendrier Semaine", () => {
     fireEvent.press(screen.getByTestId(`calendar-item-${full}|2-card-disclosure`));
     const left = StyleSheet.flatten(screen.getByTestId(`calendar-item-${full}|2-expanded-bar-left`).props.style);
     const right = StyleSheet.flatten(screen.getByTestId(`calendar-item-${full}|2-expanded-bar-right`).props.style);
-    expect(left).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: 10, width: 6, backgroundColor: "#8EAAE8" });
-    expect(right).toMatchObject({ position: "absolute", top: 0, bottom: 0, right: 0, width: 6, backgroundColor: "#8EAAE8" });
+    expect(left).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: 10, width: 6, backgroundColor: "#8F9BCC" }); // D-599 [#8EAAE8 — remplacé]
+    expect(right).toMatchObject({ position: "absolute", top: 0, bottom: 0, right: 0, width: 6, backgroundColor: "#8F9BCC" });
     expect(screen.getByTestId(`calendar-item-${full}|2-composition`)).toBeTruthy();
     // Contre-recette du 23/11/2026, lot 4 (constat f — « trop d'espace avant la première ligne ») : aucun écart propre entre la carte
     // et la composition ; les traits prolongés partent toujours du bas de la carte. [Écart de 8 — remplacé.]
@@ -515,7 +517,8 @@ describe("Calendrier Semaine", () => {
     expect(screen.getByTestId(`calendar-item-${group}|1-card-duration`).props.children).toBe("6′10″");
     expect(screen.getByTestId(`calendar-item-${group}|1-card-status-COMPLETED`)).toBeTruthy();
     expect(screen.getByTestId(`calendar-item-${group}|2-card-time`).props.children).toBe("—");
-    expect(within(screen.getByTestId(`calendar-item-${group}|2-card-start`)).getByText("Rattraper")).toBeTruthy();
+    // D-599 : icône de lecture, libellé d'accessibilité « Rattraper ».
+    expect(screen.getByTestId(`calendar-item-${group}|2-card-start`).props.accessibilityLabel).toBe("Rattraper");
     fireEvent.press(screen.getByTestId(`calendar-item-${group}|2-card-start`));
     expect(mockPush).toHaveBeenLastCalledWith({
       pathname: "/execution",
@@ -707,10 +710,10 @@ describe("Calendrier Semaine", () => {
     await flush();
     expect(screen.getByTestId(`${id}-status-DELETED`)).toBeTruthy();
     expect(screen.getByTestId(`${id}-time`).props.children).toBe("18h30");
-    expect(within(screen.getByTestId(`${id}-status-tag`)).getByText("Supprimée")).toBeTruthy();
+    expect(screen.getByTestId(`${id}-status-icon`).props.accessibilityLabel).toBe("Supprimée"); // D-599
     expect(screen.queryByTestId(`${id}-start`)).toBeNull();
     // Cadre, traits et texte gris (Figma `12906:124`).
-    expect(StyleSheet.flatten(screen.getByTestId(`${id}-frame`).props.style)).toMatchObject({ backgroundColor: "#F6F6F9" });
+    expect(StyleSheet.flatten(screen.getByTestId(`${id}-frame`).props.style)).toMatchObject({ backgroundColor: "#F0F0F5" }); // D-599 [#F6F6F9 — remplacé]
     expect(StyleSheet.flatten(screen.getByTestId(`${id}-name`).props.style)).toMatchObject({ color: "#8F949E" });
     expect(StyleSheet.flatten(screen.getByTestId(`${id}-time`).props.style)).toMatchObject({ color: "#8F949E" });
     // Figma `12906:184` : une Séance supprimée n'a pas de point dans la rangée des jours.
