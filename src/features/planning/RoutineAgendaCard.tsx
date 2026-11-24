@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { AGENDA_ICON_TOUCH, AgendaPlayButton, AgendaStateIcon } from "@/features/planning/AgendaStatusIcon";
 import { ParcoursBadge } from "@/features/planning/ParcoursBadge";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { strings } from "@/shared/i18n";
@@ -15,6 +16,8 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  * - chevron 16 (droite fermé, bas déployé) devant le nom de la routine (16, semi-gras) ; ligne 2 alignée sur le chevron
  *   (13, gris) : zones corporelles ;
  * - à droite, « Démarrer » (pilule 76 × 24) ou l'étiquette de statut, alignés en bas avec la ligne 2.
+ *   [Remplacé le 24/11/2026 (D-599) : icône ronde de 28, sans libellé visible, centrée dans la hauteur de la ligne
+ *   (`AgendaStatusIcon`) ; teintes du cadre, de la bande et du trait selon l'état, en jetons `colors.agenda*`.]
  *
  * Recette du 19/11/2026 au soir (Hermann) :
  * - navigation (constat B) : le cadre de gauche ouvre la planification, le centre déploie, la droite porte l'action ;
@@ -34,32 +37,45 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 /** D-568 / RM-276 : `DELETED` — occurrence (ou Séance de parcours) supprimée depuis l'Agenda, gardée comme trace. */
 export type AgendaStatus = "UPCOMING" | "MISSED" | "EXPIRED" | "COMPLETED" | "PARTIAL" | "STOPPED" | "DELETED";
 
-/** Cadre, trait et bande (bande = cadre à 18 %). Gris, vert et rouge : Figma ; bleu et orange : même construction. */
+/**
+ * Cadre, trait et bande (bande = cadre à 18 %). D-599 (24/11/2026, Figma `13149:26608`) : teinte de l'état, même contraste
+ * (luminosité et saturation du cadre vert), seule la teinte change — bleu : à démarrer ; rouge : en retard (Rattraper),
+ * arrêtée, expirée ; vert : complétée ; orange : partielle ; gris : supprimée.
+ * [Teintes du 19/11 au 23/11 : bleu #E3ECFF / #8EAAE8, rouge #FCE5E5 / #E58F8F, orange #FDECD9 / #EDB16E, arrêtée grise
+ * #F0F0F5 / #B8BAC9, supprimée #F6F6F9 / #D9DBE3 — remplacées.]
+ */
+const BAND_OPACITY = 0.18;
+function tint(frame: string, bar: string) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(frame.slice(i, i + 2), 16));
+  return { frame, bar, band: `rgba(${r}, ${g}, ${b}, ${BAND_OPACITY})` } as const;
+}
+const BLUE = tint(colors.agendaStartFrame, colors.agendaStartBar);
+const RED = tint(colors.agendaLateFrame, colors.agendaLateBar);
 const TINTS: Readonly<Record<AgendaStatus, { readonly frame: string; readonly bar: string; readonly band: string }>> = {
-  UPCOMING: { frame: "#E3ECFF", bar: "#8EAAE8", band: "rgba(227, 236, 255, 0.18)" },
-  MISSED: { frame: "#FCE5E5", bar: "#E58F8F", band: "rgba(252, 229, 229, 0.18)" },
-  // D-540 (DSF Agenda § 10) : le créneau expiré garde le cadre, la bande et les traits rouges de la séance manquée.
-  EXPIRED: { frame: "#FCE5E5", bar: "#E58F8F", band: "rgba(252, 229, 229, 0.18)" },
-  COMPLETED: { frame: "#E0F5E8", bar: "#8FCCA8", band: "rgba(224, 245, 232, 0.18)" },
-  PARTIAL: { frame: "#FDECD9", bar: "#EDB16E", band: "rgba(253, 236, 217, 0.18)" },
-  STOPPED: { frame: "#F0F0F5", bar: "#B8BAC9", band: "rgba(240, 240, 245, 0.18)" },
-  // D-568 (Figma `12906:124`, « Dos et mobilité (occurrence supprimée) ») : cadre, traits et bande gris.
-  DELETED: { frame: "#F6F6F9", bar: "#D9DBE3", band: "rgba(246, 246, 249, 0.18)" },
+  UPCOMING: BLUE,
+  MISSED: RED,
+  // D-540 / D-599 : le créneau expiré garde le cadre rouge de la séance manquée.
+  EXPIRED: RED,
+  COMPLETED: tint(colors.agendaDoneFrame, colors.agendaDoneBar),
+  PARTIAL: tint(colors.agendaPartialFrame, colors.agendaPartialBar),
+  // D-599 : arrêtée en rouge [gris — remplacé].
+  STOPPED: RED,
+  DELETED: tint(colors.agendaDeletedFrame, colors.agendaDeletedBar),
 };
 
 /** D-568 (Figma `12906:124`) : texte de la carte supprimée en gris (heure, durée, nom, ligne 2). */
 const DELETED_TEXT = "#8F949E";
 
-/** Étiquette de statut d'une occurrence exécutée. */
-const TAGS: Readonly<Partial<Record<AgendaStatus, { readonly label: string; readonly background: string; readonly text: string }>>> = {
-  COMPLETED: { label: strings.planning.calendar.status.completed, background: "#E5F5ED", text: "#1A995C" },
-  PARTIAL: { label: strings.planning.calendar.status.partial, background: "#FDECD9", text: "#B5620B" },
-  STOPPED: { label: strings.planning.calendar.status.stopped, background: "#EDEEF3", text: "#6B6E80" },
-  // D-540 (DSF Agenda § 10, Figma « P-Calendrier — Semaine — Créneau expiré (proposition) ») : étiquette 76 × 24, fond #FCE6E6,
-  // texte #B33838, à la place de « Rattraper ».
-  EXPIRED: { label: strings.planning.calendar.status.expired, background: "#FCE6E6", text: "#B33838" },
-  // D-568 (Figma `12906:133`) : pastille grise « Supprimée » à la place de l'action.
-  DELETED: { label: strings.planning.calendar.status.deleted, background: "#EDF0F2", text: "#737882" },
+/**
+ * Icône d'état d'une occurrence exécutée, expirée ou supprimée (D-599), avec son libellé d'accessibilité.
+ * [Étiquettes textuelles « Complétée », « Partielle », « Arrêtée », « Expirée » (D-540), « Supprimée » (D-568) — remplacées.]
+ */
+const STATE_ICONS: Readonly<Partial<Record<AgendaStatus, { readonly kind: "COMPLETED" | "PARTIAL" | "STOPPED" | "EXPIRED" | "DELETED"; readonly label: string }>>> = {
+  COMPLETED: { kind: "COMPLETED", label: strings.planning.calendar.status.completed },
+  PARTIAL: { kind: "PARTIAL", label: strings.planning.calendar.status.partial },
+  STOPPED: { kind: "STOPPED", label: strings.planning.calendar.status.stopped },
+  EXPIRED: { kind: "EXPIRED", label: strings.planning.calendar.status.expired },
+  DELETED: { kind: "DELETED", label: strings.planning.calendar.status.deleted },
 };
 
 export const AGENDA_ROW_HEIGHT = 52;
@@ -125,7 +141,7 @@ export function RoutineAgendaCard({
   readonly testID: string;
 }) {
   const colorsOf = TINTS[status];
-  const tag = TAGS[status];
+  const stateIcon = STATE_ICONS[status];
   const muted = status === "DELETED" ? styles.deletedText : null;
   return (
     <View style={styles.row} testID={testID}>
@@ -197,12 +213,10 @@ export function RoutineAgendaCard({
             carte) : gauche (carte), centre (zone du nom et de la ligne du dessous), droit (zone de la pastille) » ; « lorsque
             la pastille à droite n'est pas "Démarrer", appuyer sur cette zone ne doit pas ouvrir un écran mais elle ne doit
             rien faire ». [Pastille seule tactile, le reste de la droite ouvrait la planification — remplacé.] */}
-        {tag !== undefined ? (
+        {stateIcon !== undefined ? (
           <Pressable onPress={() => undefined} accessible={false} style={styles.action} testID={`${testID}-action-zone`}>
-            <View style={[styles.tag, { backgroundColor: tag.background }]} accessible accessibilityLabel={tag.label} testID={`${testID}-status-tag`}>
-              <Text style={[styles.tagLabel, { color: tag.text }]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1}>
-                {tag.label}
-              </Text>
+            <View style={styles.iconSlot}>
+              <AgendaStateIcon kind={stateIcon.kind} accessibilityLabel={stateIcon.label} testID={`${testID}-status-icon`} />
             </View>
           </Pressable>
         ) : !startable ? (
@@ -210,26 +224,22 @@ export function RoutineAgendaCard({
           <Pressable onPress={() => undefined} accessible={false} style={styles.action} testID={`${testID}-action-zone`} />
         ) : (
           // D-536, point 5 (20/11/2026) : « Rattraper » sur une occurrence passée non commencée, « Démarrer » sinon.
-          <Pressable
+          // D-599 : icône de lecture identique pour Démarrer et Rattraper ; le cadre (bleu / rouge) les distingue, le libellé
+          // d'accessibilité aussi. Toute la zone droite reste tactile (recette du 20/11/2026).
+          <AgendaPlayButton
             onPress={onStart}
-            accessibilityRole="button"
             accessibilityLabel={status === "MISSED" ? strings.planning.calendar.catchUp : strings.planning.calendar.start}
             style={styles.action}
             testID={`${testID}-start`}
-          >
-            <View style={styles.start}>
-              <Text style={styles.startLabel} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1}>
-                {status === "MISSED" ? strings.planning.calendar.catchUp : strings.planning.calendar.start}
-              </Text>
-            </View>
-          </Pressable>
+          />
         )}
       </View>
     </View>
   );
 }
 
-const pill = { minWidth: 76, minHeight: 24, borderRadius: 12, paddingHorizontal: spacing[10], alignItems: "center", justifyContent: "center" } as const;
+/** Bord droit de l'icône à 20 de l'écran : emplacement de 44 centré, donc 20 − (44 − 28) / 2 = 12. */
+const ICON_SLOT_RIGHT = 12;
 
 const styles = StyleSheet.create({
   // Rangée pleine largeur d'écran : le cadre et la bande touchent les bords (DSF § 5).
@@ -271,20 +281,9 @@ const styles = StyleSheet.create({
   name: { flexShrink: 1, ...type.listCardTitle, lineHeight: undefined, color: colors.textPrimary },
   detailLine: { flexDirection: "row", alignItems: "center", gap: 4 },
   detail: {},
-  // Action alignée en bas avec la ligne 2.
-  action: { justifyContent: "flex-end", paddingVertical: spacing[4], paddingLeft: spacing[8], paddingRight: layout.screenGutter },
-  // Pilule « Démarrer » (D-504) : 76 × 24, fond #F7F7FF, ombre des actions contextuelles.
-  start: {
-    ...pill,
-    backgroundColor: colors.catalogueSessionsBackground,
-    shadowColor: "#000000",
-    shadowOpacity: 0.14,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  startLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, color: colors.primary },
-  tag: pill,
-  tagLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12 },
+  // D-599 (Figma `13149:26608`) : icône de 28 centrée dans la hauteur de la ligne, bord droit à 20 de l'écran ; emplacement de
+  // 44 (zone de toucher minimale de Démarrer / Rattraper). [Action alignée en bas avec la ligne 2 — remplacé.]
+  action: { justifyContent: "center", alignItems: "center", paddingLeft: spacing[4], paddingRight: ICON_SLOT_RIGHT },
+  iconSlot: { width: AGENDA_ICON_TOUCH, height: AGENDA_ICON_TOUCH, alignItems: "center", justifyContent: "center" },
   deletedText: { color: DELETED_TEXT },
 });
