@@ -102,10 +102,18 @@ export type RoutineEntry = {
 export type Routine = {
   readonly id: string;
   /**
-   * D-522 / RM-258 : nom libre, unique parmi les planifications de l'utilisateur (RM-261). Vide pour une planification
-   * enregistrée avant le 18/11/2026 : à compléter à la première modification (RM-264).
+   * D-553 (21/11/2026) : nom de la Routine, non unique — généré par défaut (`nameGenerated`), ou personnalisé.
+   * Nom généré : celui de la Séance, ou les noms des Séances dans l'ordre reliés par « + » (`generatedRoutineName`), enregistré
+   * à chaque écriture ; l'affichage le recalcule depuis la composition (`routineDisplayName`).
+   * [D-522 / RM-258 / RM-261 : nom libre, unique parmi les planifications ; vide pour une planification antérieure au 18/11/2026
+   * (RM-264) — remplacé.]
    */
   readonly name: string;
+  /**
+   * D-553 : mode du nom, stocké explicitement (jamais déduit d'une comparaison de textes) — vrai : nom généré, qui suit la
+   * composition ; faux ou absent : nom personnalisé, fixe (migration 036 : routines existantes nommées = personnalisées).
+   */
+  readonly nameGenerated?: boolean;
   /** Début le (date incluse). */
   readonly startDate: LocalDate;
   /** Une seule heure par créneau (chapitre 09). */
@@ -130,6 +138,11 @@ export type Routine = {
    * (migration 034), jamais écrite ni lue par les règles.]
    */
   readonly archivedAt?: string | null;
+  /**
+   * PROG-CAT-01 (21/11/2026, D-549 ; migration 035) : programme auquel la routine est rattachée. Absent ou `null` : aucun
+   * (rattachement facultatif). La fenêtre du programme borne les dates de la routine (ch04, « Le Programme »).
+   */
+  readonly programId?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -145,6 +158,12 @@ export type OccurrenceSession = {
   readonly entryId: string | null;
   readonly origin: "ROUTINE" | "ADDED";
   readonly active: boolean;
+  /**
+   * D-568 / RM-276 (23/11/2026) : séance supprimée depuis l'Agenda avec trace (« Supprimée ») — toujours inactive ; l'occurrence
+   * garde sa date et son heure prévues et peut être rétablie tant que sa date n'est pas passée. Absent : pas de trace (séance
+   * active, désactivée à la main, ou retirée avant le 23/11/2026 — aucune reprise rétroactive).
+   */
+  readonly deleted?: true;
 };
 
 /**
@@ -168,6 +187,12 @@ export type OccurrenceOverride = {
   readonly reminderMinutes: number | null;
   /** Non `null` : occurrence commencée (lancement de sa première séance), figée — D-536, point 1. */
   readonly startedAt: string | null;
+  /**
+   * D-554 / RM-273 (21/11/2026) : créneau ajouté à la main hors de la répétition (Plan). Il appartient à la routine sans modifier
+   * sa répétition ; sa date et son heure sont toujours enregistrées (groupe « date et heure » modifié à la main). Absent : issue de
+   * la répétition.
+   */
+  readonly added?: boolean;
 };
 
 /** Brouillon du formulaire de planification (CE-UI-05) : la Routine sans identité ni horodatage. */
@@ -175,6 +200,24 @@ export type RoutineDraft = Omit<Routine, "id" | "createdAt" | "updatedAt" | "exc
   readonly exclusions?: readonly string[];
   readonly reminderMinutes?: number | null;
 };
+
+/**
+ * D-553 (21/11/2026) : nom par défaut d'une Routine — nom de la Séance s'il n'y en a qu'une ; sinon les noms des Séances dans
+ * l'ordre, séparés par « + ». Une Séance inconnue (supprimée) est omise.
+ */
+export function generatedRoutineName(sessionNames: readonly (string | undefined)[]): string {
+  return sessionNames.filter((name): name is string => name !== undefined && name.trim() !== "").join(" + ");
+}
+
+/**
+ * D-553 : nom affiché d'une Routine (Journal, filtre, ligne « Ⓟ » de l'Agenda) — nom généré recalculé depuis la composition
+ * actuelle, nom personnalisé tel quel. Repli sur le nom enregistré si aucune Séance n'est connue.
+ */
+export function routineDisplayName(routine: Pick<Routine, "name" | "nameGenerated" | "entries">, nameOf: (sessionId: string) => string | undefined): string {
+  if (routine.nameGenerated !== true) return routine.name;
+  const generated = generatedRoutineName(routine.entries.map((entry) => nameOf(entry.sessionId)));
+  return generated !== "" ? generated : routine.name;
+}
 
 export type RoutineValidationIssue =
   | "NO_CONTENT"

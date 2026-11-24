@@ -189,8 +189,19 @@ export default function RootLayout() {
                   écran — remplacées.] */}
               <Stack.Screen name="planning" options={NATIVE_SHEET_OPTIONS} />
               <Stack.Screen name="planning-selection" options={NATIVE_SHEET_OPTIONS} />
+              {/* D-545 (23/11/2026) : modale « Rattacher un programme » ouverte par la ligne Programme, feuille native. */}
+              <Stack.Screen name="planning-program" options={NATIVE_SHEET_OPTIONS} />
               {/* D-539 (20/11/2026) : modale « Filtrer par routine » de l'Agenda, feuille native. */}
               <Stack.Screen name="agenda-routine-filter" options={NATIVE_SHEET_OPTIONS} />
+              {/* PROG-CAT-01 (CE-PROG-02, D-548) : « Créer ou configurer un programme », feuille native avec poignée au-dessus du
+                  catalogue ; « Rattacher une routine existante » posée dessus ; consentement au suivi de la douleur (« PROG —
+                  13b », D-551), feuille ajustée à son contenu, fermée par le geste comme par « Annuler ». */}
+              <Stack.Screen name="program-sheet" options={{ ...NATIVE_SHEET_OPTIONS, sheetGrabberVisible: true }} />
+              <Stack.Screen name="program-attach" options={NATIVE_SHEET_OPTIONS} />
+              <Stack.Screen
+                name="pain-consent"
+                options={{ presentation: "formSheet", sheetGrabberVisible: true, sheetAllowedDetents: "fitToContents", contentStyle: { backgroundColor: "#FFFFFF" } }}
+              />
               {/* [Feuille native « Fréquence » (CE-UI-11) — retirée le 18/11/2026 (D-523) : la fréquence se règle dans la grille
                   du formulaire (D-519). « Rappel personnalisé » en feuille (Figma 1992:7187) — remplacé le 17/11/2026.] */}
             </Stack>

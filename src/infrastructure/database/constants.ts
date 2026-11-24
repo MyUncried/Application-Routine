@@ -178,7 +178,21 @@ export const DATABASE_NAME = "kodjo.db";
  * **Occurrences enregistrées et archivage (version 34, `migration034`)** : table additive `routine_occurrences` (occurrence
  * modifiée à la main ou commencée, D-536) et colonne `routines.archived_at` (D-537). 001..033 inchangées.
  */
-export const DATABASE_VERSION = 34;
+/**
+ * **Mode du nom des routines (version 36, `migration036`)** : colonne additive `routines.name_generated` (D-553). La version
+ * 35 est réservée à la migration des Programmes (PROG-CAT-01), développée en parallèle. 001..034 inchangées.
+ */
+/**
+ * **Créneau ajouté (version 37, `migration037`)** : colonne additive `routine_occurrences.added` (D-554, RM-273). 001..036
+ * inchangées.
+ */
+/**
+ * **Programmes (version 38, `migration038`)** : table additive `programs`, colonnes `routines.program_id`,
+ * `executions.program_id` et table additive `user_privacy` (accord au suivi de la douleur) (PROG-CAT-01, D-543 à D-552).
+ * Développée comme version 35 ; renumérotée 38 à l’intégration du 23/11/2026 (INTEG-PROG-2311), la version 35 restant un
+ * passage sans effet. 001..037 inchangées.
+ */
+export const DATABASE_VERSION = 38;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

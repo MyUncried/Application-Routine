@@ -36,6 +36,9 @@ import { applyMigration031, MIGRATION_031_ROUTINES } from "./migrations/migratio
 import { applyMigration032 } from "./migrations/migration032";
 import { applyMigration033 } from "./migrations/migration033";
 import { applyMigration034 } from "./migrations/migration034";
+import { applyMigration036 } from "./migrations/migration036";
+import { applyMigration037 } from "./migrations/migration037";
+import { applyMigration038 } from "./migrations/migration038";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -362,6 +365,31 @@ export async function migrateDatabase(
     if (pending(33)) {
       await applyMigration034(transaction);
       version = 34;
+    }
+
+    // Version 35 : réservée à la migration 035 des Programmes (mission parallèle PROG-CAT-01), absente de cette branche. Elle
+    // s'insère ici à l'intégration ; une base passée en 36 par cette branche seule doit alors recevoir 035, idempotente.
+    if (pending(34)) {
+      version = 35;
+    }
+
+    // Planification : mode du nom des routines (21/11/2026, D-553). Un échec laisse `user_version` à 35.
+    if (pending(35)) {
+      await applyMigration036(transaction);
+      version = 36;
+    }
+
+    // Planification : créneau ajouté hors de la répétition (21/11/2026, D-554, RM-273). Un échec laisse `user_version` à 36.
+    if (pending(36)) {
+      await applyMigration037(transaction);
+      version = 37;
+    }
+
+    // Programmes : table `programs`, rattachement des routines, programme figé sur l'exécution, accord au suivi de la
+    // douleur (21/11/2026, PROG-CAT-01, D-543 à D-552). Un échec laisse `user_version` à 37.
+    if (pending(37)) {
+      await applyMigration038(transaction);
+      version = 38;
     }
 
     if (version !== targetVersion) {

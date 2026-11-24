@@ -39,10 +39,13 @@ export const TRANSIENT_NOTIFICATION_MIN_HEIGHT =
 export type TransientNotificationProps = {
   /** Message affiché. `null` = aucune notification (le composant ne rend rien). */
   message: string | null;
-  /** Libellé de l'action de correction — `Annuler` dans les usages actuels (RM-010, D-136). */
-  actionLabel: string;
+  /**
+   * Libellé de l'action de correction — `Annuler` dans les usages actuels (RM-010, D-136). Absent (recette du 22/11/2026,
+   * constat d de la planification) : message d'information seul, sans action.
+   */
+  actionLabel?: string;
   /** Action de correction : annule l'effet qui a motivé le message, puis referme. */
-  onAction: () => void;
+  onAction?: () => void;
   /** Effacement — automatique après `TRANSIENT_NOTIFICATION_DURATION_MS`, ou immédiat après `onAction`. */
   onDismiss: () => void;
   /**
@@ -128,6 +131,7 @@ export function TransientNotification({
         >
           {message}
         </Text>
+        {actionLabel !== undefined && onAction !== undefined ? (
         <Pressable
           onPress={onAction}
           accessibilityRole="button"
@@ -140,6 +144,7 @@ export function TransientNotification({
             {actionLabel}
           </Text>
         </Pressable>
+        ) : null}
       </View>
     </View>
   );

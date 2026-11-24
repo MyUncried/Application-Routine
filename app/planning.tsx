@@ -11,7 +11,7 @@ import { useTitleCappedSheetDetent } from "@/shared/ui/nativeSheet";
  * feuille native iOS, comme la fiche d'un mouvement. [Modale plein écran — remplacée.]
  */
 export default function PlanningRoute() {
-  const params = useLocalSearchParams<{ routineId?: string; duplicateOf?: string; sessionId?: string; date?: string; occurrenceKey?: string }>();
+  const params = useLocalSearchParams<{ routineId?: string; duplicateOf?: string; sessionId?: string; date?: string; occurrenceKey?: string; addTo?: string; programId?: string }>();
   const detent = useTitleCappedSheetDetent(null);
   const pick = (value: unknown) => (typeof value === "string" && value.length > 0 ? value : undefined);
   const routineId = pick(params.routineId);
@@ -19,6 +19,10 @@ export default function PlanningRoute() {
   const sessionId = pick(params.sessionId);
   const date = pick(params.date);
   const occurrenceKey = pick(params.occurrenceKey);
+  // D-554 : ajout d'un créneau à la routine `addTo` depuis le Plan (avec `date`).
+  const addTo = pick(params.addTo);
+  // PROG-CAT-01 (D-549) : « + Planifier une séance » depuis un programme.
+  const programId = pick(params.programId);
   return (
     <>
       <Stack.Screen options={{ sheetAllowedDetents: [detent] }} />
@@ -29,6 +33,8 @@ export default function PlanningRoute() {
           ...(sessionId !== undefined ? { sessionId } : {}),
           ...(date !== undefined ? { date } : {}),
           ...(occurrenceKey !== undefined ? { occurrenceKey } : {}),
+          ...(addTo !== undefined ? { addTo } : {}),
+          ...(programId !== undefined ? { programId } : {}),
         }}
       />
     </>

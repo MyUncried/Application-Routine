@@ -43,7 +43,12 @@ describe("Filtrer par routine (D-539)", () => {
   it("libellés : « Filtrer N routines », « Filtrer 1 routine » ; ligne 3", () => {
     expect(routineFilterButtonLabel(2)).toBe("Filtrer 2 routines");
     expect(routineFilterButtonLabel(1)).toBe("Filtrer 1 routine");
-    expect(routineFilterSlotsLine(choices[0]!)).toBe("6 à venir, jusqu’au 28/12/2030");
+    // Recette du 21/11/2026 (f23-modale, f25-alignement) : mois en toutes lettres, sans année ; « jusqu’au » = dernier créneau à
+    // venir ; aucun créneau : « Aucun créneau à venir ».
+    expect(routineFilterSlotsLine(choices[0]!)).toBe("6 créneaux à venir jusqu’au 28 décembre");
+    expect(routineFilterSlotsLine({ ...choices[0]!, lastUpcoming: "2030-12-15" })).toBe("6 créneaux à venir jusqu’au 15 décembre");
+    expect(routineFilterSlotsLine({ ...choices[0]!, upcoming: 1, lastUpcoming: "2030-11-15" })).toBe("1 créneau à venir le 15 novembre");
+    expect(routineFilterSlotsLine(choices[1]!)).toBe("Aucun créneau à venir");
   });
 
   it("cartes réduites (nom, ligne 3, case), terminée comprise ; sélection multiple ; ✕ ferme sans valider", () => {
@@ -66,6 +71,37 @@ describe("Filtrer par routine (D-539)", () => {
     expect(onValidate).toHaveBeenCalledWith(["r1", "r2"]);
     fireEvent.press(screen.getByLabelText("Fermer"));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  // D-553 (21/11/2026, § 5 et arbitrage 3) : une ligne par Routine (parcours : nom de Routine et Ⓟ, jamais une ligne par
+  // Séance) ; actives puis terminées ; doublons de noms possibles, sélection liée à l'identifiant.
+  it("une ligne par Routine, parcours compris ; actives puis terminées ; noms identiques sélectionnés par identifiant (D-553)", () => {
+    const parcours: Routine = {
+      ...routine("p", "Mobilité du matin", "2030-12-28"),
+      entries: [
+        { id: "e-p1", sessionId: "s-a", frequency: EVERY_TIME },
+        { id: "e-p2", sessionId: "s-b", frequency: EVERY_TIME },
+      ],
+    };
+    const list: RoutineFilterChoice[] = [
+      { routine: routine("t", "Abdos", "2030-08-05"), upcoming: 0, active: false },
+      { routine: routine("d1", "Genou", "2030-12-28"), upcoming: 3, active: true },
+      { routine: routine("d2", "Genou", "2030-12-28"), upcoming: 2, active: true },
+      { routine: parcours, upcoming: 4, active: true },
+    ];
+    const onValidate = jest.fn();
+    render(
+      <TestSafeAreaProvider>
+        <RoutineFilterSheet choices={list} loading={false} sessions={new Map()} onClose={jest.fn()} onValidate={onValidate} />
+      </TestSafeAreaProvider>,
+    );
+    const order = screen.queryAllByTestId(/^routine-filter-card-[a-z0-9]+$/).map((node) => node.props.testID as string);
+    expect(order).toEqual(["routine-filter-card-d1", "routine-filter-card-d2", "routine-filter-card-p", "routine-filter-card-t"]);
+    expect(screen.getByTestId("routine-filter-card-p-name").props.children).toBe("Mobilité du matin");
+    expect(screen.getByTestId("routine-filter-card-p-parcours")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("routine-filter-card-d2"));
+    fireEvent.press(screen.getByTestId("routine-filter-apply"));
+    expect(onValidate).toHaveBeenCalledWith(["d2"]);
   });
 
   it("ouverture : aucune routine cochée (sans mémoire du filtre précédent) ; recherche ; filtre du Catalogue des séances", () => {

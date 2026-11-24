@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { IsOccurrenceStarted } from "@/domain/planning/occurrences";
 import { formatLocalDate, type Routine } from "@/domain/planning/Routine";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
@@ -15,14 +16,15 @@ import {
   journalSlotsLine,
   isJournalRoutineVisible,
   matchesJournalQuery,
+  routineTitle,
   sortJournal,
 } from "@/features/planning/journal";
 import { JOURNAL_ROW_HEIGHT, JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
-import { formatRecurrence } from "@/features/planning/planningSummary";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import type { RoutineDeletionPlan } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -34,7 +36,8 @@ import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { SwipeScrollLockContext } from "@/shared/ui/swipeScrollLock";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { TransientNotification } from "@/shared/ui/TransientNotification";
 
 /**
  * Calendrier — Journal des routines (D-535, DSF Journal du 19/11/2026 ; Figma « Calendrier — Journal — MVP »
@@ -59,14 +62,20 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const { state: catalogue, reload: reloadCatalogue, cancelPending } = useSessionCatalogue();
   const [routines, setRoutines] = useState<readonly Routine[] | null>(null);
   const [activeRoutines, setActiveRoutines] = useState<ReadonlyMap<string, boolean>>(new Map());
+  // Recette du 22/11/2026 (constat c) : créneaux déjà exécutés, exclus des créneaux à venir de la ligne 3.
+  const [isStarted, setIsStarted] = useState<IsOccurrenceStarted | undefined>(undefined);
   const [loadFailed, setLoadFailed] = useState(false);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
+  // Recette du 21/11/2026 (Hermann : « Cliquer sur Actives ou Terminées doit filtrer la liste ») : statut choisi par les
+  // compteurs, bascule des Catalogues ; `null` : statut du filtre (par défaut, routines actives, D-540).
+  const [counterStatus, setCounterStatus] = useState<"ACTIVE" | "ARCHIVED" | null>(null);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<{ readonly routine: Routine; readonly plan: RoutineDeletionPlan } | null>(null);
   const [actionFailed, setActionFailed] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const requestId = useRef(0);
   // Recette du 20/11/2026 (constat A — Hermann : « Quand on fait glisser gauche dans le journal ou l'agenda, la liste doit
   // rester figée. ») : verrou partagé des cartes à actions glissées (`SwipeScrollLockContext`), comme les Catalogues.
@@ -84,11 +93,12 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
   const load = useCallback(() => {
     const id = ++requestId.current;
     // D-540 : état actif / terminé calculé par le service (créneaux commencés, rattrapables, expirés).
-    Promise.all([planning.listRoutines(), planning.routineActivity()]).then(
-      ([list, activity]) => {
+    Promise.all([planning.listRoutines(), planning.routineActivity(), planning.occurrenceStartedTest()]).then(
+      ([list, activity, started]) => {
         if (id !== requestId.current) return;
         setRoutines(list);
         setActiveRoutines(activity);
+        setIsStarted(() => started);
         setLoadFailed(false);
       },
       (error: unknown) => {
@@ -103,6 +113,9 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     useCallback(() => {
       reloadCatalogue();
       load();
+      // Recette du 23/11/2026 (d3) : message laissé par la feuille « Planifier » qui vient de se fermer.
+      const pendingNotice = takePlanningNotice();
+      if (pendingNotice !== null) setNotice(pendingNotice);
       return () => {
         cancelPending();
         setRevealed(null);
@@ -126,7 +139,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
     routine.entries.map((entry) => projections.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
   const visible = all.filter((routine) => {
     const sessions = sessionsOf(routine);
-    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(isActive(routine), sessions, filters);
+    const effective = counterStatus === null ? filters : { ...filters, statuses: new Set([counterStatus] as const) };
+    return matchesJournalQuery(routine, sessions, query) && isJournalRoutineVisible(isActive(routine), sessions, effective);
   });
 
   const tSessions = strings.screens.sessions;
@@ -145,8 +159,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
       return next;
     });
 
-  const titleOf = (routine: Routine, sessions: readonly SessionCatalogueProjection[]) =>
-    routine.name.trim() !== "" ? routine.name : sessions.map((session) => session.name).join(", ");
+  // D-553 : nom généré ou personnalisé (`routineTitle`).
+  const titleOf = (routine: Routine, sessions: readonly SessionCatalogueProjection[]) => routineTitle(routine, sessions);
 
   const openRoutine = (routineId: string) => {
     setRevealed(null);
@@ -178,8 +192,20 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
         // Compteurs au format des Catalogues (`ContextCounters`). [Avant : ligne de texte avec espaces tapées — remplacée.]
         summary: {
           counters: [
-            { label: t.active, value: routines === null ? "" : String(counts.active), testID: "journal-count-active" },
-            { label: t.finished, value: routines === null ? "" : String(counts.finished), testID: "journal-count-finished" },
+            {
+              label: t.active,
+              value: routines === null ? "" : String(counts.active),
+              testID: "journal-count-active",
+              selected: counterStatus === "ACTIVE",
+              onPress: () => setCounterStatus((current) => (current === "ACTIVE" ? null : "ACTIVE")),
+            },
+            {
+              label: t.finished,
+              value: routines === null ? "" : String(counts.finished),
+              testID: "journal-count-finished",
+              selected: counterStatus === "ARCHIVED",
+              onPress: () => setCounterStatus((current) => (current === "ARCHIVED" ? null : "ARCHIVED")),
+            },
           ],
         },
         results: null,
@@ -207,6 +233,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                 onApply: (next, labels) => {
                   setFilters(next);
                   setFilterLabels(labels);
+                  // Un statut choisi dans la feuille remplace celui des compteurs.
+                  if (next.statuses.size > 0) setCounterStatus(null);
                 },
               });
               router.push("/catalogue-filters");
@@ -276,7 +304,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
             },
             {
               key: "delete",
-              label: planningStrings.calendar.delete,
+              // Recette du 22/11/2026 (r22-j-supprimer) : « Terminer ». [« Supprimer » — remplacé.]
+              label: planningStrings.journal.finish,
               backgroundColor: colors.danger,
               onPress: () => {
                 setRevealed(null);
@@ -311,7 +340,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                   name={name}
                   parcours={routine.entries.length > 1}
                   detail={zonesLine(sessions.flatMap((session) => session.bodyZoneIds.map((id) => zoneName.get(id)).filter((value): value is string => value !== undefined)))}
-                  slots={journalSlotsLine(routine, today, new Date())}
+                  slots={journalSlotsLine(routine, today, new Date(), isStarted)}
                   planned={isActive(routine)}
                   expanded={isExpanded}
                   onOpen={() => openRoutine(routine.id)}
@@ -331,12 +360,10 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                 // les cas dans la zone déployée ». [Ligne de récurrence vide conservée ; nom réservé aux parcours — remplacé.]
                 // [« Pas de planification » = pas de répétition (récurrence vide) ; filet retiré sous la première séance :
                 // interprétations techniques.]
+                // Recette du 21/11/2026 (a31-journal — Hermann : « supprimer la première ligne avec les jours de la semaine
+                // affichés (informations visible en regardant la planification) ») : plus de récurrence en tête. [« Chaque
+                // lundi… » en tête du déployé (r20-j-deploye) — remplacé.]
                 <View style={styles.expanded} testID={`journal-item-${routine.id}-expanded`}>
-                  {formatRecurrence(routine) === "" ? null : (
-                    <Text style={styles.recurrence} testID={`journal-item-${routine.id}-summary`}>
-                      {formatRecurrence(routine)}
-                    </Text>
-                  )}
                   <View style={styles.expandedSessions}>
                     {sessions.map((session, rank) => (
                       <View key={`${session.id}-${rank}`} testID={`journal-item-${routine.id}-session-${rank}`}>
@@ -345,7 +372,7 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                         </Text>
                         <SessionCompositionTree
                           tree={session.tree}
-                          divider={!(rank === 0 && formatRecurrence(routine) === "")}
+                          divider={rank > 0}
                           testID={`journal-item-${routine.id}-composition-${rank}`}
                         />
                       </View>
@@ -358,6 +385,11 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
         })}
       </ScrollView>
       </SwipeScrollLockContext.Provider>
+
+      {/* Recette du 23/11/2026 (d3) : nombre de créneaux supprimés par D-566 « Supprimer », message déposé par « Planifier ». */}
+      <View pointerEvents="box-none" style={[styles.noticeAnchor, { bottom: navigationBarTotalHeight() + insets.bottom + spacing[16] }]}>
+        <TransientNotification message={notice} onDismiss={() => setNotice(null)} testID="journal-notice" />
+      </View>
 
       {deleteCandidate !== null ? (
         // Recette du 20/11/2026 (constat D — « Dans le Journal on supprime toutes les occurrences ») : la routine et tous ses
@@ -415,5 +447,6 @@ const styles = StyleSheet.create({
   expandedSession: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, color: colors.textPrimary },
   message: { ...type.body, color: colors.textSecondary, textAlign: "center", paddingVertical: spacing[24] },
   error: { ...type.supporting, color: colors.danger, marginTop: spacing[8], paddingHorizontal: layout.screenGutter },
-  recurrence: { ...type.supporting, color: colors.textSecondary },
+  // Message temporaire : ancrage des Catalogues (`SessionCatalogueList`), au-dessus de la barre de navigation.
+  noticeAnchor: { position: "absolute", left: layout.screenGutter, right: layout.screenGutter, height: minTouchTarget },
 });

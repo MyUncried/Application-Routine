@@ -7,6 +7,8 @@ import type { Database } from "../Database";
 type RoutineRow = {
   id: string;
   name: string;
+  /** Migration 036 (D-553) : 1 = nom généré. */
+  name_generated: number;
   start_date: string;
   start_time: string;
   repeat_unit: string | null;
@@ -17,6 +19,7 @@ type RoutineRow = {
   end_count: number | null;
   reminder_minutes: number | null;
   archived_at: string | null;
+  program_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -38,6 +41,8 @@ type OccurrenceRow = {
   routine_id: string;
   occurrence_key: string;
   occurrence_index: number;
+  /** Migration 037 (D-554) : 1 = créneau ajouté hors de la répétition. */
+  added: number;
   occurrence_date: string | null;
   occurrence_time: string | null;
   sessions_json: string | null;
@@ -47,7 +52,7 @@ type OccurrenceRow = {
 };
 
 const ROUTINE_COLUMNS =
-  "id, name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, created_at, updated_at";
+  "id, name, name_generated, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, program_id, created_at, updated_at";
 
 function parseSessions(value: string | null): OccurrenceSession[] | null {
   if (value === null) return null;
@@ -63,6 +68,8 @@ function parseSessions(value: string | null): OccurrenceSession[] | null {
         entryId: typeof record.entryId === "string" ? record.entryId : null,
         origin: record.origin === "ADDED" ? ("ADDED" as const) : ("ROUTINE" as const),
         active: record.active !== false,
+        // D-568 : trace d'une séance supprimée depuis l'Agenda (champ du JSON `sessions_json`, sans changement de schéma).
+        ...(record.deleted === true ? { deleted: true as const } : {}),
       },
     ];
   });
@@ -78,6 +85,8 @@ function toOverride(row: OccurrenceRow): OccurrenceOverride {
     reminderOverridden: row.reminder_overridden === 1,
     reminderMinutes: row.reminder_minutes,
     startedAt: row.started_at,
+    // D-554 / RM-273 : présent seulement pour un créneau ajouté (forme antérieure inchangée).
+    ...(row.added === 1 ? { added: true } : {}),
   };
 }
 
@@ -166,6 +175,8 @@ export class SqliteRoutineRepository implements RoutineRepository {
     return {
       id: row.id,
       name: row.name,
+      // D-553 : présent seulement pour un nom généré (forme antérieure inchangée pour un nom personnalisé).
+      ...(row.name_generated === 1 ? { nameGenerated: true } : {}),
       startDate: row.start_date,
       time: row.start_time,
       repetition: toRepetition(row),
@@ -181,9 +192,14 @@ export class SqliteRoutineRepository implements RoutineRepository {
     };
   }
 
-  private extras(row: RoutineRow, occurrences: readonly OccurrenceRow[]): Pick<Routine, "overrides" | "archivedAt"> {
+  private extras(row: RoutineRow, occurrences: readonly OccurrenceRow[]): Pick<Routine, "overrides" | "archivedAt" | "programId"> {
     const own = occurrences.filter((occurrence) => occurrence.routine_id === row.id).map(toOverride);
-    return { ...(own.length > 0 ? { overrides: own } : {}), ...(row.archived_at !== null ? { archivedAt: row.archived_at } : {}) };
+    return {
+      ...(own.length > 0 ? { overrides: own } : {}),
+      ...(row.archived_at !== null ? { archivedAt: row.archived_at } : {}),
+      // PROG-CAT-01 (migration 035) : présent seulement pour une routine rattachée.
+      ...(row.program_id !== null ? { programId: row.program_id } : {}),
+    };
   }
 
   async save(routine: Routine): Promise<void> {
@@ -192,6 +208,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
       const repetition = routine.repetition;
       const parameters = [
         routine.name,
+        routine.nameGenerated === true ? 1 : 0,
         routine.startDate,
         routine.time,
         repetition === null ? null : repetition.unit,
@@ -202,19 +219,20 @@ export class SqliteRoutineRepository implements RoutineRepository {
         repetition !== null && repetition.end.kind === "FOR" ? repetition.end.count : null,
         routine.reminderMinutes,
         routine.archivedAt ?? null,
+        routine.programId ?? null,
         routine.updatedAt,
       ];
       const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM routines WHERE id = ? AND owner_id = ?", [routine.id, owner]);
       if (existing === null) {
         await transaction.runAsync(
-          `INSERT INTO routines (name, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, updated_at, id, owner_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO routines (name, name_generated, start_date, start_time, repeat_unit, repeat_every, repeat_weekdays, end_kind, end_date, end_count, reminder_minutes, archived_at, program_id, updated_at, id, owner_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [...parameters, routine.id, owner, routine.createdAt],
         );
       } else {
         await transaction.runAsync(
-          `UPDATE routines SET name = ?, start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
-           end_date = ?, end_count = ?, reminder_minutes = ?, archived_at = ?, updated_at = ? WHERE id = ?`,
+          `UPDATE routines SET name = ?, name_generated = ?, start_date = ?, start_time = ?, repeat_unit = ?, repeat_every = ?, repeat_weekdays = ?, end_kind = ?,
+           end_date = ?, end_count = ?, reminder_minutes = ?, archived_at = ?, program_id = ?, updated_at = ? WHERE id = ?`,
           [...parameters, routine.id],
         );
         await transaction.runAsync("DELETE FROM routine_entries WHERE routine_id = ?", [routine.id]);
@@ -238,7 +256,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
       for (const saved of routine.overrides ?? []) {
         await transaction.runAsync(
           `INSERT INTO routine_occurrences (routine_id, occurrence_key, occurrence_index, occurrence_date, occurrence_time, sessions_json, reminder_overridden,
-           reminder_minutes, started_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           reminder_minutes, started_at, added) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             routine.id,
             saved.key,
@@ -249,6 +267,7 @@ export class SqliteRoutineRepository implements RoutineRepository {
             saved.reminderOverridden ? 1 : 0,
             saved.reminderMinutes,
             saved.startedAt,
+            saved.added === true ? 1 : 0,
           ],
         );
       }

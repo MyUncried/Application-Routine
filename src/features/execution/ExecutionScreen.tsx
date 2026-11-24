@@ -2,6 +2,7 @@ import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useReducer,
@@ -22,6 +23,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { formatLocalDate } from "@/domain/planning/Routine";
 import type { Frame } from "@/domain/execution/kernel";
 import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
 import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/deathBy";
@@ -54,6 +56,8 @@ import {
   type ActiveExecution,
   type PreparedExecution,
 } from "./ExecutionService";
+import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
+
 import { useExecution } from "./ExecutionServiceContext";
 import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
 import { executionStrings as t, formatClock } from "./executionStrings";
@@ -96,6 +100,8 @@ export function ExecutionScreen({
   readonly origin?: ExecutionOrigin | null;
 }) {
   const { service, signals, screenAwake } = useExecution();
+  // D-553 (21/11/2026) : rattachement automatique d'une séance lancée hors Agenda (planification facultative : absente en test).
+  const planning = useContext(PlanningServiceContext);
   const profileService = useProfileService();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -397,13 +403,21 @@ export function ExecutionScreen({
     if (prepared?.status !== "ready" || starting.current) return;
     starting.current = true;
     try {
-      await service.start(prepared, origin === null ? undefined : { ...origin, rank: chain?.rank ?? 1 });
+      // D-553 (21/11/2026, spécification § 4) : une séance lancée hors Agenda (ni occurrence ni chaîne) est rattachée au créneau
+      // autonome éligible du jour ; sinon elle reste « Hors planification ». Le moteur est inchangé : seul le lien change.
+      const link =
+        origin !== null
+          ? { routineId: origin.routineId, occurrenceKey: origin.occurrenceKey, rank: chain?.rank ?? origin.rank ?? 1 }
+          : chain === null && planning !== null
+            ? await planning.autoAttachment(prepared.snapshot.sessionId, new Date(service.now())).catch(() => null)
+            : null;
+      await service.start(prepared, link ?? undefined);
     } catch (error) {
       if (error instanceof ExecutionBlockedError) setBlocked(true);
     } finally {
       starting.current = false;
     }
-  }, [prepared, service, origin, chain]);
+  }, [prepared, service, origin, chain, planning]);
 
   /**
    * D-534 : une séance d'une routine terminée normalement ouvre la suivante (même route, rang + 1, sans empiler) ;
@@ -414,12 +428,20 @@ export function ExecutionScreen({
    */
   const close = useCallback(() => {
     const finishedNormally = service.current()?.state.finish?.reason === "COMPLETED";
+    const startedAtMs = service.current()?.state.startedAtMs ?? null;
     const next = chain !== null && finishedNormally ? nextInChain(chain, origin) : null;
     service.release();
     if (next !== null) router.replace({ pathname: "/execution", params: next });
-    else if (router.canGoBack()) router.back();
+    // Recette du 21/11/2026 (Hermann : « Après l'exécution d'une séance lancée depuis le catalogue, l'application ouvre
+    // l'Agenda à la date de l'exécution ») : séance lancée hors Agenda (ni chaîne ni occurrence) et commencée ; une reprise après
+    // interruption (route sans séance) garde le retour habituel.
+    // Diagnostic du 22/11/2026 (DIAG-CPU-MEMOIRE-2211) : `dismissTo` referme l'Exécution et rouvre les onglets déjà présents
+    // sous elle. [`navigate` — remplacé : il poussait un second jeu d'onglets au-dessus de l'Exécution, qui restait montée.]
+    else if (sessionId !== null && chain === null && origin === null && startedAtMs !== null) {
+      router.dismissTo({ pathname: "/calendar", params: { day: formatLocalDate(new Date(startedAtMs)), at: String(Date.now()) } });
+    } else if (router.canGoBack()) router.back();
     else router.replace("/");
-  }, [chain, origin, router, service]);
+  }, [chain, origin, router, service, sessionId]);
 
   /**
    * Recette du 19/11/2026 au soir (s19-voile, constat F) — enchaînement d'un parcours :

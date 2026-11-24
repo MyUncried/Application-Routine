@@ -13,7 +13,7 @@ import {
   type NotificationPermissionStatus,
 } from "@/features/preferences/notificationPermission";
 import { strings } from "@/shared/i18n";
-import { catalogueColors } from "@/shared/ui/catalogueContext";
+import { PROFILE_UNIFORM_PALETTE, profileTabs } from "@/features/preferences/profileTabs";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileNumberField } from "@/shared/ui/ProfileNumberField";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
@@ -52,7 +52,6 @@ const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePrefer
   sides: "announceSidesEnabled",
 };
 
-type ProfileTab = "profile" | "preferences" | "community";
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -60,7 +59,6 @@ export function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>("undetermined");
   const t = strings.screens.profile;
-  const palette = catalogueColors("sessions");
 
   const reload = useCallback(() => {
     profileService.getProfile().then(setProfile, (error: unknown) => {
@@ -128,10 +126,6 @@ export function ProfileScreen() {
     );
   }
 
-  const changeTab = (tab: ProfileTab) => {
-    // Section Profil non développée (Hermann, 11/11/2026) : l'onglet ouvre l'écran existant Modifier le profil.
-    if (tab === "profile") router.push("/profile-edit");
-  };
 
   return (
     // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : onglets Profil · Préférences · Communauté et, sans zone de
@@ -139,17 +133,11 @@ export function ProfileScreen() {
     // `#F7F7FF`).
     <TabbedScreen
       title={t.title}
-      palette={{ context: palette.context, background: palette.background }}
-      tabs={{
-        options: [
-          { value: "profile", label: t.tabs.profile },
-          { value: "preferences", label: t.tabs.preferences },
-          { value: "community", label: t.tabs.community, disabled: true, accessibilityLabel: t.tabs.communityUnavailable },
-        ],
-        value: "preferences" as ProfileTab,
-        onChange: changeTab,
-        testID: "profile-tabs",
-      }}
+      // PROG-CAT-01 (CE-PRF-01, D-552) : onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme
+      // de l'onglet (#EAEAFF), sans dégradé ni trait. Contenu des Préférences inchangé.
+      // [Avant : Profil · Préférences · Communauté (désactivée), bande #EAEAFF fondue vers #F7F7FF — remplacé.]
+      palette={PROFILE_UNIFORM_PALETTE}
+      tabs={profileTabs("preferences", router)}
     >
       {profile ? (
         <ScrollView

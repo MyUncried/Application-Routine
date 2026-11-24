@@ -40,7 +40,8 @@ export const planningStrings = {
     title: "Calendrier",
     // D-532 (19/11/2026) ; D-542 (20/11/2026) : onglets Journal · Agenda. [Avant : Jour, Semaine, Mois ; puis troisième
     // onglet « Vue d’ensemble », indisponible — retiré.]
-    views: { day: "Journal", week: "Agenda" },
+    // D-554 (21/11/2026) : troisième onglet « Plan ».
+    views: { day: "Journal", week: "Agenda", plan: "Plan" },
     today: "Aujourd’hui",
     plan: "Planifier",
     previousWeek: "Semaine précédente",
@@ -51,6 +52,8 @@ export const planningStrings = {
     actionError: "L’action n’a pas pu être effectuée.",
     duplicate: "Dupliquer",
     delete: "Supprimer",
+    // D-568 / RM-276 (23/11/2026) : glisser une occurrence supprimée avec trace, tant que sa date n'est pas passée.
+    restore: "Rétablir",
     everyWeekdayPrefix: "Chaque",
     everyDay: "Tous les jours",
     everyDays: "Tous les {count} jours",
@@ -69,7 +72,24 @@ export const planningStrings = {
     done: "Terminée",
     // Recette du 19/11/2026 au soir (s19-passees) : statut d'une occurrence exécutée.
     // D-540 (20/11/2026) : « Expirée » — créneau manqué dont le délai de rattrapage est passé.
-    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée" },
+    // D-553 (21/11/2026) : ligne 2 d’une Exécution lancée hors Agenda sans créneau éligible.
+    unplanned: "Hors planification",
+    // D-568 / RM-276 (23/11/2026) : « Supprimée » — occurrence supprimée depuis l'Agenda avec trace.
+    status: { completed: "Complétée", partial: "Partielle", stopped: "Arrêtée", expired: "Expirée", deleted: "Supprimée" },
+  },
+  // D-554 (21/11/2026) : Plan (DSF Plan, Figma « P-Calendrier — Plan » `12983:19`).
+  plan: {
+    weekdays: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    programme: "Programme · {name}",
+    noProgramme: "Sans programme",
+    addRoutine: "+ Routine",
+    total: "Total · {duration}",
+    // Recette du 21/11/2026 : à venir en bleu, « Arrêtée » en gris ; groupe des Exécutions hors planification.
+    legend: { COMPLETED: "Complétée", PARTIAL: "Partielle", MISSED: "Manquée", UPCOMING: "À venir", STOPPED: "Arrêtée" },
+    unplanned: "Hors planification",
+    // Accessibilité [libellés techniques].
+    weekAccessibility: "Semaine {number}, du {days}",
+    addAccessibility: "Ajouter un créneau de {routine}, {day}",
   },
   // D-535 (19/11/2026) : Journal des routines (DSF Journal, Figma « Calendrier — Journal — MVP »).
   journal: {
@@ -84,6 +104,12 @@ export const planningStrings = {
     on: "le",
     until: "jusqu’au",
     edit: "Modifier la planification",
+    // Recette du 22/11/2026 (r22-j-supprimer — Hermann : « Journal : Changer le Nom de l'option glisser gauche, de Supprimer à
+    // Terminer ») : action glissée du Journal. [« Supprimer » (`calendar.delete`) — remplacé dans le Journal.]
+    finish: "Terminer",
+    // Recette du 22/11/2026 (constat d — Hermann : « Un message de type snackbar pour informer "Le nom du parcours a été changé
+    // pour refléter l'ordre des séances", pendant 1 seconde »).
+    renamedNotice: "Le nom du parcours a été changé pour refléter l’ordre des séances",
     empty: "Aucune routine planifiée.",
     noResult: "Aucune routine ne correspond.",
     loadError: "Le journal n’a pas pu être chargé.",
@@ -119,11 +145,15 @@ export const planningStrings = {
     // Recette du 20/11/2026 (r21-supprimer — Hermann : « remplacer le texte par "Supprimer ce créneau" »). [« Supprimer cette
     // occurrence » — remplacé.]
     title: "Supprimer ce créneau",
+    // D-553 (21/11/2026, arbitrage 9) : Séance seule d’un parcours. [Libellé : choix technique, à valider par Hermann.]
+    sessionTitle: "Supprimer cette séance",
     cancel: "Annuler",
     confirm: "Confirmer",
   },
   deleteRoutine: {
-    title: "Supprimer cette routine",
+    // Recette du 22/11/2026 (r22-j-supprimer — Hermann : « Modifier le titre de la fenêtre de dialogue avec "Terminer cette
+    // routine" »). [« Supprimer cette routine » — remplacé.]
+    title: "Terminer cette routine",
     messageOne: "La routine et son créneau seront supprimés.",
     messageMany: "La routine et ses {count} créneaux seront supprimés.",
     // Constat E (Hermann, 20/11/2026) : « Suppression avec historique : « N créneaux non commencés seront supprimés ; La
@@ -149,7 +179,12 @@ export const planningStrings = {
     // D-539 mis à jour le 20/11/2026 (Hermann) : un toucher sur l'icône bleue désactive le filtre. [« Afficher toutes les
     // routines », bouton sans sélection — retiré.]
     disable: "Désactiver le filtre par routine",
-    slots: "{count} à venir, jusqu’au {date}",
+    // Recette du 21/11/2026 (f23-modale, f25-alignement), Hermann : « 10 créneaux à venir jusqu’au 15 novembre », mois en toutes
+    // lettres, sans année ; « Aucun créneau à venir » s’il n’y en a pas. [« {count} à venir, jusqu’au jj/mm/aaaa » — remplacé.]
+    // [Un seul créneau : « 1 créneau à venir le 15 novembre » — formulation de Claude, à valider.]
+    slots: "{count} créneaux à venir jusqu’au {date}",
+    slotsOne: "1 créneau à venir le {date}",
+    slotsNone: "Aucun créneau à venir",
     empty: "Aucune routine planifiée.",
     noResult: "Aucune routine ne correspond.",
   },
@@ -180,10 +215,12 @@ export const planningStrings = {
     start: "Début",
     program: "Programme",
     programNone: "Aucun",
+    // Recette du 23/11/2026 (h, g2 — Hermann : « je dois pouvoir attacher / détacher un programme ») : ligne Programme, en
+    // modification d'une routine — ouvre la modale « Rattacher un programme » (D-545). [Menu natif — remplacé.]
+    programMenuAccessibility: "Programme : {value}. Toucher pour choisir un programme.",
     nameAccessibility: "Nom de la planification",
     namePlaceholder: "Nom de la planification",
     nameRequired: "Nom obligatoire",
-    nameTaken: "Ce nom est déjà utilisé",
     everyFeminine: "toutes les",
     everyMasculine: "tous les",
     none: "aucune",
@@ -224,6 +261,12 @@ export const planningStrings = {
     timePicker: "Heure",
     endDatePicker: "Date de fin",
   },
+  // Recette du 23/11/2026 (d3 — Hermann : « il faut un message snackbar après confirmation pour informer du nombre de créneaux
+  // supprimés ») : D-566 « Supprimer ». [Libellé : formulation retenue par Claude.]
+  removedSlots: {
+    one: "1 créneau supprimé",
+    many: "{count} créneaux supprimés",
+  },
   reminder: {
     title: "Rappel",
     toggle: "Rappel",
@@ -250,5 +293,16 @@ export const planningStrings = {
     loadError: "Les séances n’ont pas pu être chargées.",
     checked: "sélectionnée",
     unchecked: "non sélectionnée",
+  },
+  /** D-545 (Hermann, 23/11/2026) : modale « Rattacher un programme » ouverte par la ligne Programme. */
+  programChoice: {
+    title: "Rattacher un programme",
+    cancel: "Fermer sans changer de programme",
+    loadError: "Les programmes n’ont pas pu être chargés.",
+    selected: "sélectionné",
+    unselected: "non sélectionné",
+    /** Toucher la carte sélectionnée retire le rattachement (« Aucun », D-332). */
+    selectedHint: "Toucher pour retirer le rattachement.",
+    unselectedHint: "Toucher pour rattacher ce programme.",
   },
 } as const;

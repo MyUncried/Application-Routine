@@ -18,6 +18,9 @@ import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/
 import { SqliteOccurrenceExecutionRepository } from "@/infrastructure/database/repositories/SqliteOccurrenceExecutionRepository";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
+import { ProgramService } from "@/features/programs/ProgramService";
+import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
+import { SqliteProgramRepository } from "@/infrastructure/database/repositories/SqliteProgramRepository";
 import { ReminderScheduler } from "@/features/planning/ReminderScheduler";
 import { expoLocalNotifications } from "@/infrastructure/notifications/ExpoLocalNotifications";
 import { deviceScreenAwake } from "@/infrastructure/device/ScreenAwake";
@@ -112,6 +115,8 @@ type SessionServiceInitializerProps = {
   onExecutionReady: (value: ExecutionContextValue) => void;
   /** Planification : remonte `PlanningService` (Routines, occurrences), même connexion SQLite. */
   onPlanningServiceReady: (service: PlanningService) => void;
+  /** Programmes (PROG-CAT-01) : remonte `ProgramService`, même connexion SQLite. */
+  onProgramServiceReady: (service: ProgramService) => void;
 };
 
 /**
@@ -131,6 +136,7 @@ function SessionServiceInitializer({
   onMigrationNoticeRepositoryReady,
   onExecutionReady,
   onPlanningServiceReady,
+  onProgramServiceReady,
 }: SessionServiceInitializerProps) {
   const nativeDatabase = useSQLiteContext();
 
@@ -159,6 +165,10 @@ function SessionServiceInitializer({
     return new PlanningService({
       repository: routines,
       occurrenceExecutions: () => occurrenceExecutions.list(),
+      // D-553 : l'Agenda lit toutes les Exécutions (cartes « Hors planification »).
+      executions: () => new SqliteExecutionRepository(new ExpoDatabase(nativeDatabase)).listForAgenda(),
+      // Recette du 22/11/2026 (constat b) : la Séance telle qu'exécutée.
+      executionSnapshots: (ids) => new SqliteExecutionRepository(new ExpoDatabase(nativeDatabase)).snapshotsFor(ids),
       reminders: {
         refresh: () => scheduler.refresh(), ensurePermission: () => scheduler.ensurePermission(),
         permissionStatus: () => scheduler.permissionStatus(),
@@ -171,9 +181,17 @@ function SessionServiceInitializer({
 
   useEffect(() => {
     onPlanningServiceReady(planningService);
+    onProgramServiceReady(
+      new ProgramService({
+        repository: new SqliteProgramRepository(new ExpoDatabase(nativeDatabase)),
+        planning: planningService,
+        newId: () => Crypto.randomUUID(),
+        now: () => new Date(),
+      }),
+    );
     // Réapprovisionnement de la fenêtre des rappels à l'ouverture de l'application.
     void planningService.refreshReminders();
-  }, [planningService, onPlanningServiceReady]);
+  }, [planningService, onPlanningServiceReady, onProgramServiceReady, nativeDatabase]);
 
   // Correction (device check Hermann, commentaire 5948936550 ; revue
   // indépendante 5950755410) : CategoryRepository, BodyZoneRepository et
@@ -292,6 +310,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
   const [execution, setExecution] = useState<ExecutionContextValue | null>(null);
   const [planningService, setPlanningService] = useState<PlanningService | null>(null);
+  const [programService, setProgramService] = useState<ProgramService | null>(null);
 
   const handleServiceReady = useCallback((service: SessionService) => {
     setSessionService(service);
@@ -344,6 +363,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
           onMigrationNoticeRepositoryReady={handleMigrationNoticeRepositoryReady}
           onExecutionReady={setExecution}
           onPlanningServiceReady={setPlanningService}
+          onProgramServiceReady={setProgramService}
         />
       </SQLiteProvider>
       <SessionServiceContext.Provider value={sessionService}>
@@ -352,7 +372,9 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
             <ReferentialServiceContext.Provider value={referentialService}>
               <MigrationNoticeRepositoryContext.Provider value={migrationNoticeRepository}>
                 <ExecutionServiceContext.Provider value={execution}>
-                  <PlanningServiceContext.Provider value={planningService}>{children}</PlanningServiceContext.Provider>
+                  <PlanningServiceContext.Provider value={planningService}>
+                    <ProgramServiceContext.Provider value={programService}>{children}</ProgramServiceContext.Provider>
+                  </PlanningServiceContext.Provider>
                 </ExecutionServiceContext.Provider>
               </MigrationNoticeRepositoryContext.Provider>
             </ReferentialServiceContext.Provider>

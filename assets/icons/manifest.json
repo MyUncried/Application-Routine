@@ -1560,7 +1560,7 @@
       "usage": [
         "Agenda — filtre par routine, sans filtre (D-539)"
       ],
-      "note": "Tracé de l’export Figma (18 × 16,5) recentré dans la boîte de 24 du composant ; contour #333333, trait 1,5."
+      "note": "Tracé de l’export Figma (18 × 16,5) recentré dans la boîte de 24 du composant ; contour #0508E5 (D-555, 21/11/2026 : « Avec les traits bleus » ; #333333 jusqu’au 20/11/2026), trait 1,5."
     },
     {
       "key": "icon.routineFilterActive",

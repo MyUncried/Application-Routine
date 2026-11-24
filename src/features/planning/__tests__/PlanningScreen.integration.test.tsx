@@ -8,9 +8,13 @@ import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { PlanningScreen } from "@/features/planning/PlanningScreen";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
-import { pendingPlanningSheet } from "@/features/planning/planningSheetRelay";
+import { pendingPlanningSheet, releasePlanningSheet } from "@/features/planning/planningSheetRelay";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
+import { ProgramService } from "@/features/programs/ProgramService";
+import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
+import { SqliteProgramRepository } from "@/infrastructure/database/repositories/SqliteProgramRepository";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
@@ -225,7 +229,9 @@ describe("Planifier (CE-UI-12)", () => {
     expect(synthesis()).toMatch(/ toutes les 2 semaines, les lundis, à 8h, /);
   });
 
-  it("parcours : nom vide et obligatoire, puis déjà pris (RM-258, RM-261) ; enregistré avec le nom saisi", async () => {
+  // D-553 (21/11/2026) : nom généré « Bravo + Alpha » ; doublon autorisé ; nom vidé bloquant (« Nom obligatoire ») ; nom saisi
+  // = personnalisé. [RM-258 / RM-261 : nom vide et obligatoire à plusieurs séances, « Ce nom est déjà utilisé » — remplacés.]
+  it("parcours : nom généré, doublon autorisé, nom vidé bloquant, nom saisi personnalisé (D-553)", async () => {
     const a = await sessions.createStructured(input("Alpha"));
     const b = await sessions.createStructured(input("Bravo"));
     const existing = await planning.createRoutine({ name: "Matin", startDate: START, time: "07:00", repetition: null, entries: [{ id: "x", sessionId: a.id, frequency: EVERY_TIME }] });
@@ -233,20 +239,32 @@ describe("Planifier (CE-UI-12)", () => {
     await renderPlanning({ date: START });
     await validateSelection([b.id, a.id]);
     expect(screen.getByText("Planifier un parcours")).toBeTruthy();
-    expect(screen.getByTestId("planning-name").props.value).toBe("");
+    expect(screen.getByTestId("planning-name").props.value).toBe("Bravo + Alpha");
+    expect(screen.queryByTestId("planning-name-error")).toBeNull();
+    expect(validateEnabled()).toBe(true);
+    fireEvent.changeText(screen.getByTestId("planning-name"), "");
     expect(screen.getByTestId("planning-name-error").props.children).toBe("Nom obligatoire");
     expect(validateEnabled()).toBe(false);
     fireEvent.changeText(screen.getByTestId("planning-name"), "  MATIN ");
-    expect(screen.getByTestId("planning-name-error").props.children).toBe("Ce nom est déjà utilisé");
-    expect(validateEnabled()).toBe(false);
-    fireEvent.changeText(screen.getByTestId("planning-name"), "Genou");
     expect(screen.queryByTestId("planning-name-error")).toBeNull();
+    expect(screen.queryByText("Ce nom est déjà utilisé")).toBeNull();
     expect(validateEnabled()).toBe(true);
     await save();
     const routines = await planning.listRoutines();
-    expect(routines[1]).toMatchObject({ name: "Genou" });
+    expect(routines[1]).toMatchObject({ name: "MATIN" });
+    expect(routines[1]?.nameGenerated).toBeUndefined();
     // D-519 : ordre des lignes = ordre de sélection.
     expect(routines[1]?.entries.map((entry) => entry.sessionId)).toEqual([b.id, a.id]);
+  });
+
+  it("nom généré enregistré comme tel ; à la modification il suit la composition (D-553)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    await renderPlanning({ date: START });
+    await validateSelection([a.id, b.id]);
+    await save();
+    const [created] = await planning.listRoutines();
+    expect(created).toMatchObject({ name: "Alpha + Bravo", nameGenerated: true });
   });
 
   it("une seule séance cochée dans la sélection : son nom est copié (RM-258)", async () => {
@@ -344,7 +362,8 @@ describe("Planifier (CE-UI-12)", () => {
     expect(screen.getByTestId("planning-column-1-muted")).toBeTruthy();
     expect(screen.queryByTestId("planning-column-2-muted")).toBeNull();
     expect(screen.getByTestId("planning-point-0-1").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.queryByTestId("planning-row-0-handle")).toBeNull();
+    // Recette du 21/11/2026 (c22-6) : les lignes se réordonnent aussi pour un créneau seul.
+    expect(screen.getByTestId("planning-row-0-handle")).toBeTruthy();
     // Activer Alpha dans ce créneau, puis désactiver Bravo.
     fireEvent.press(screen.getByTestId("planning-point-0-2"));
     fireEvent.press(screen.getByTestId("planning-point-1-2"));
@@ -356,6 +375,98 @@ describe("Planifier (CE-UI-12)", () => {
     expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([[a.id, b.id], [a.id], [a.id, b.id], [b.id]]);
     // La routine elle-même est inchangée.
     expect((await planning.getRoutine(created.routine.id))?.entries.map((entry) => entry.frequency.positions)).toEqual([[1], [1]]);
+  });
+
+  // D-554 / RM-273 (DSF Plan § 7) : case vide du Plan — modale du créneau avec la date touchée et l'heure habituelle de la
+  // routine ; parcours entier (rotation non appliquée) ; Enregistrer ajoute un créneau sans modifier la répétition.
+  it("créneau ajouté depuis le Plan : date et heure pré-remplies, parcours entier, répétition inchangée (D-554)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [
+        { id: "ea", sessionId: a.id, frequency: { x: 1, n: 2, positions: [1] } },
+        { id: "eb", sessionId: b.id, frequency: EVERY_TIME },
+      ],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    await renderPlanning({ addTo: created.routine.id, date: "2030-08-07" });
+    expect(screen.getByTestId("planning-start-date").props.accessibilityLabel).toContain("7");
+    expect(screen.getByTestId("planning-start-time").props.accessibilityLabel).toContain("08:00");
+    expect(screen.queryByTestId("planning-repetition")).toBeNull();
+    expect(screen.getByTestId("planning-name").props.editable).toBe(false);
+    expect([played(0, 1), played(1, 1)]).toEqual([true, true]);
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    const routine = await planning.getRoutine(created.routine.id);
+    expect(routine?.repetition).toEqual({ unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } });
+    expect(routine?.overrides).toMatchObject([{ key: "2030-08-07T08:00+A1", date: "2030-08-07", time: "08:00", sessions: null, added: true }]);
+    const occurrences = await planning.rangeOccurrences("2030-08-07", "2030-08-07", () => true);
+    expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([[a.id, b.id]]);
+  });
+
+  // Recette du 21/11/2026 (c22-5, c22-6) : désactiver dans un créneau seul la seule pastille d'une séance reste enregistrable ;
+  // l'ordre choisi est conservé pour ce créneau seulement, et relu à la réouverture.
+  it("créneau seul : séance sans autre pastille désactivable, ordre conservé pour ce créneau (recette du 21/11/2026)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const b = await sessions.createStructured(input("Bravo"));
+    const c = await sessions.createStructured(input("Charlie"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [
+        { id: "ea", sessionId: a.id, frequency: { x: 1, n: 2, positions: [1] } },
+        { id: "eb", sessionId: b.id, frequency: EVERY_TIME },
+        { id: "ec", sessionId: c.id, frequency: EVERY_TIME },
+      ],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    // 5 août : colonne #1, Alpha n'a de pastille que là.
+    await renderPlanning({ routineId: created.routine.id, occurrenceKey: "2030-08-05T08:00" });
+    fireEvent.press(screen.getByTestId("planning-point-0-1"));
+    expect(played(0, 1)).toBe(false);
+    expect(validateEnabled()).toBe(true);
+    // Charlie remonte en tête (deux montées).
+    fireEvent(screen.getByTestId("planning-row-2-handle"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    fireEvent(screen.getByTestId("planning-row-1-handle"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    await save();
+    const occurrences = await planning.rangeOccurrences("2030-08-05", "2030-08-12", () => true);
+    expect(occurrences.map((occurrence) => occurrence.contents.map((content) => content.sessionId))).toEqual([
+      [c.id, b.id],
+      [b.id, c.id],
+    ]);
+    // La routine est inchangée.
+    expect((await planning.getRoutine(created.routine.id))?.entries.map((entry) => entry.id)).toEqual(["ea", "eb", "ec"]);
+    // Réouverture : l'ordre du créneau est relu.
+    screen.unmount();
+    await renderPlanning({ routineId: created.routine.id, occurrenceKey: "2030-08-05T08:00" });
+    expect(screen.getByTestId("planning-row-0-handle").props.accessibilityLabel).toContain("Charlie");
+  });
+
+  it("modification depuis le Journal sans changement : ni confirmation ni enregistrement (recette du 21/11/2026)", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const created = await planning.createRoutine({
+      name: "Genou",
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-08-26" } },
+      entries: [{ id: "ea", sessionId: a.id, frequency: EVERY_TIME }],
+      reminderMinutes: null,
+    });
+    if (created.status !== "SAVED") throw new Error(created.status);
+    const before = (await planning.getRoutine(created.routine.id))?.updatedAt;
+    await renderPlanning({ routineId: created.routine.id });
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
+    expect((await planning.getRoutine(created.routine.id))?.updatedAt).toBe(before);
   });
 
   it("modification depuis le Journal : confirmation « N créneaux à venir seront modifiés. » (constat E du 20/11/2026)", async () => {
@@ -370,6 +481,8 @@ describe("Planifier (CE-UI-12)", () => {
     });
     if (created.status !== "SAVED") throw new Error(created.status);
     await renderPlanning({ routineId: created.routine.id });
+    // Recette du 21/11/2026 : la confirmation suit une modification réelle.
+    fireEvent.changeText(screen.getByTestId("planning-name"), "Genou droit");
     fireEvent.press(screen.getByTestId("screen-header-validate"));
     await flush();
     expect(screen.getByText("4 créneaux à venir seront modifiés.")).toBeTruthy();
@@ -387,7 +500,9 @@ describe("Planifier (CE-UI-12)", () => {
        SELECT 'legacy', id, '', '${START}', '08:00', 'WEEK', 1, '1', 'FOR', NULL, 6, NULL, '${now}', '${now}' FROM users`,
     );
     await database.runAsync(`INSERT INTO routine_entries VALUES ('l1', 'legacy', 0, '${a.id}', 2, 2, '1,2'), ('l2', 'legacy', 1, '${b.id}', 2, 3, '1,3')`);
-    await planning.excludeOccurrence("legacy", "2030-08-12T08:00");
+    // Retrait existant (données antérieures, sans trace — D-568 : aucune reprise rétroactive). [Retrait par `excludeOccurrence` —
+    // remplacé le 23/11/2026 : depuis D-568, une suppression depuis l'Agenda d'un créneau de la répétition laisse une trace.]
+    await database.runAsync("INSERT INTO routine_exclusions (routine_id, occurrence_key, created_at) VALUES ('legacy', '2030-08-12T08:00', ?)", [now]);
     await renderPlanning({ routineId: "legacy" });
     expect(screen.getByTestId("planning-name").props.value).toBe("");
     expect(validateEnabled()).toBe(false);
@@ -609,7 +724,8 @@ describe("Planifier (CE-UI-12)", () => {
     expect(request).toMatchObject({ initial: [a.id] });
     act(() => request!.onValidate([a.id, b.id]));
     expect(played(1, 1) && played(1, 2)).toBe(true);
-    expect(screen.getByTestId("planning-name").props.value).toBe("");
+    // D-553 : le nom généré suit la composition. [Nom vidé à plusieurs séances (RM-258) — remplacé.]
+    expect(screen.getByTestId("planning-name").props.value).toBe("Alpha + Bravo");
   });
 
   it("fermer la sélection initiale sans contenu ferme Planifier sans rien écrire", async () => {
@@ -618,5 +734,253 @@ describe("Planifier (CE-UI-12)", () => {
     fireEvent.press(screen.getByTestId("screen-header-back"));
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(await planning.listRoutines()).toEqual([]);
+  });
+});
+
+/**
+ * PROG-CAT-01 (D-549 ; Hermann, 21/11/2026, points 1 et 5) : « + Planifier une séance » depuis un programme — programme
+ * présélectionné et non modifiable, dates bornées par la période, « pendant N » plafonné ; la routine enregistrée est rattachée.
+ */
+describe("Planifier depuis un programme (PROG-CAT-01)", () => {
+  it("programme présélectionné, début ramené dans la période, fin bornée ; routine rattachée", async () => {
+    const programs = new ProgramService({ repository: new SqliteProgramRepository(database), planning, newId: () => "prog-1", now: () => new Date(2030, 0, 1) });
+    const saved = await programs.createProgram({ name: "Genou", objective: "", startDate: "2030-08-10", endDate: "2030-08-31", painTracking: false });
+    if (saved.status !== "SAVED") throw new Error(saved.status);
+    const created = await sessions.createStructured(input("Gainage"));
+    const referentials = { listCategories: jest.fn(async () => []) } as unknown as ReferentialService;
+    render(
+      <TestSafeAreaProvider>
+        <SessionServiceContext.Provider value={new SessionService(sessions)}>
+          <ReferentialServiceContext.Provider value={referentials}>
+            <PlanningServiceContext.Provider value={planning}>
+              <ProgramServiceContext.Provider value={programs}>
+                <PlanningScreen params={{ sessionId: created.id, date: START, programId: "prog-1" }} />
+              </ProgramServiceContext.Provider>
+            </PlanningServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </SessionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await flush();
+    expect(within(screen.getByTestId("planning-program")).getByText("Genou")).toBeTruthy();
+    // La pastille Programme n'est pas une commande (non modifiable ici).
+    expect(screen.getByTestId("planning-program").props.accessibilityRole).toBeUndefined();
+    expect(synthesis()).toMatch(/ le 10 août 2030, à 8h$/);
+    fireEvent.press(screen.getByTestId("planning-repetition-kind"));
+    await flush();
+    // Défaut « jusqu'au + 4 semaines » ramené à la fin du programme.
+    expect(synthesis()).toMatch(/jusqu’au 31 août 2030$/);
+    fireEvent.press(screen.getByTestId("planning-end-kind"));
+    await flush();
+    expect(synthesis()).toMatch(/pendant 3 semaines$/);
+    await save();
+    const [routine] = await planning.listRoutines();
+    expect(routine).toMatchObject({ programId: "prog-1", startDate: "2030-08-10" });
+  });
+});
+
+/**
+ * Recette du 23/11/2026 (RECETTE-PROG-2311, retours d, h, g2 de Hermann) : modale Planifier en modification — dates non bornées
+ * par le programme (d4, D-566), « Supprimer » qui raccourcit la routine (d6) avec snackbar (d3), compte de la confirmation sur
+ * le brouillon (d7). Lot 4 (x17, D-545) : la ligne Programme ouvre la modale « Rattacher un programme » (route
+ * `planning-program`, relais `program`) ; x18 : non modifiable depuis l'Agenda ; x9 / x10 : textes du dialogue hors période.
+ * [Ligne Programme en menu natif (h, g2) — remplacée.] Jest n'exerce pas la feuille native réelle : vérification sur iPhone.
+ */
+describe("Recette du 23/11/2026 — programme d'une routine en modification", () => {
+  let programs: ProgramService;
+  let programIds = 0;
+
+  beforeEach(() => {
+    programIds = 0;
+    programs = new ProgramService({ repository: new SqliteProgramRepository(database), planning, newId: () => `prog-${++programIds}`, now: () => new Date(2030, 0, 1) });
+  });
+
+  async function renderWithPrograms(params: Parameters<typeof PlanningScreen>[0]["params"]) {
+    const referentials = { listCategories: jest.fn(async () => []) } as unknown as ReferentialService;
+    render(
+      <TestSafeAreaProvider>
+        <SessionServiceContext.Provider value={new SessionService(sessions)}>
+          <ReferentialServiceContext.Provider value={referentials}>
+            <PlanningServiceContext.Provider value={planning}>
+              <ProgramServiceContext.Provider value={programs}>
+                <PlanningScreen params={params} />
+              </ProgramServiceContext.Provider>
+            </PlanningServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </SessionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await flush();
+  }
+
+  async function program(name: string, startDate: string, endDate: string) {
+    const saved = await programs.createProgram({ name, objective: "", startDate, endDate, painTracking: false });
+    if (saved.status !== "SAVED") throw new Error(saved.status);
+    return saved.program;
+  }
+
+  /** Lundis du 5 août au 30 septembre 2030 (9 créneaux), à venir (aujourd'hui : 1er janvier 2030). */
+  async function mondays() {
+    const created = await sessions.createStructured(input("Gainage"));
+    const saved = await planning.createRoutine({
+      name: "Gainage",
+      nameGenerated: true,
+      startDate: START,
+      time: "08:00",
+      repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "UNTIL", date: "2030-09-30" } },
+      entries: [{ id: "e1", sessionId: created.id, frequency: EVERY_TIME }],
+      reminderMinutes: null,
+    });
+    if (saved.status !== "SAVED") throw new Error("setup");
+    return saved.routine.id;
+  }
+
+  function chooseEndDate(date: Date) {
+    fireEvent.press(screen.getByTestId("planning-end-date"));
+    const calendar = screen.getByTestId("planning-date-panel").findAll((node) => typeof node.props.onDateChange === "function")[0]!;
+    act(() => calendar.props.onDateChange(date));
+    const range = calendar.props.range as { start?: Date; end?: Date };
+    fireEvent.press(screen.getByTestId("planning-date-popover-scrim", { includeHiddenElements: true }));
+    return range;
+  }
+
+  /** D-545 : toucher la ligne Programme ouvre la modale ; le relais porte le programme actuel et rend le choix. */
+  function openProgramChoice() {
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId("planning-program"));
+    expect(mockPush).toHaveBeenCalledWith("/planning-program");
+    const request = pendingPlanningSheet("program");
+    if (request === null) throw new Error("modale non demandée");
+    return request;
+  }
+  function chooseProgram(id: string | null) {
+    const request = openProgramChoice();
+    act(() => request.onChoose(id));
+  }
+  const dates = async (routineId: string) =>
+    (await planning.rangeOccurrences("2030-08-01", "2030-12-31", () => true)).filter((item) => item.routineId === routineId).map((item) => item.date);
+
+  it("d4, d3, d6, d7, h : fin non bornée par le programme, « Supprimer » raccourcit la routine (snackbar), puis retirée et étendue, ses créneaux sont recréés", async () => {
+    const genou = await program("Genou", "2030-08-01", "2030-08-31");
+    const routineId = await mondays();
+    await programs.attachRoutine(routineId, genou.id);
+    await renderWithPrograms({ routineId });
+    expect(within(screen.getByTestId("planning-program")).getByText("Genou")).toBeTruthy();
+    // d4 (D-566 : la routine n'est pas coupée) : la date de fin n'est plus bornée par la fin du programme.
+    const range = chooseEndDate(new Date(2030, 9, 7, 12, 0));
+    expect(range.end).toBeUndefined();
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    // Créneaux à venir après le 31 août : 2, 9, 16, 23, 30 septembre et 7 octobre. x10 : titre sans point final, « du
+    // programme » (modification depuis le Journal) ; « Les supprimer », « Les garder dans le calendrier ».
+    expect(screen.getByText("6 créneaux sont en dehors de la période du programme")).toBeTruthy();
+    expect(screen.getByText("Les supprimer")).toBeTruthy();
+    expect(screen.getByText("Les garder dans le calendrier")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-outside-confirm"));
+    await flush();
+    fireEvent.press(screen.getByTestId("planning-modify-confirm"));
+    await flush();
+    expect(mockBack).toHaveBeenCalled();
+    // d4 / d6 : la routine est raccourcie à la fin du programme (le Journal n'affiche plus la fin d'origine).
+    expect((await planning.getRoutine(routineId))?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-31" });
+    expect(await dates(routineId)).toEqual(["2030-08-05", "2030-08-12", "2030-08-19", "2030-08-26"]);
+    // d3 : snackbar du nombre de créneaux supprimés, lue par l'écran qui reprend le focus (Journal).
+    expect(takePlanningNotice()).toBe("6 créneaux supprimés");
+
+    // h : la routine est retirée du programme depuis la modale, et sa fin étendue au 16 septembre.
+    screen.unmount();
+    mockBack.mockClear();
+    await renderWithPrograms({ routineId });
+    // D-545 : à l'ouverture, le programme actuel est sélectionné ; toucher sa carte rend « Aucun » (D-332).
+    const request = openProgramChoice();
+    expect(request.selectedId).toBe(genou.id);
+    act(() => request.onChoose(null));
+    expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
+    expect(chooseEndDate(new Date(2030, 8, 16, 12, 0)).end).toBeUndefined();
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    // Plus de programme : aucune question D-566. d7 : le compte inclut les créneaux créés (4 actuels + 3 nouveaux).
+    expect(screen.queryByTestId("planning-outside-confirm")).toBeNull();
+    expect(screen.getByText("7 créneaux à venir seront modifiés.")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-modify-confirm"));
+    await flush();
+    expect((await planning.getRoutine(routineId))?.programId).toBeUndefined();
+    // d6 / d7 : les créneaux d'après l'ancienne fin sont recréés dès le premier enregistrement.
+    expect(await dates(routineId)).toEqual(["2030-08-05", "2030-08-12", "2030-08-19", "2030-08-26", "2030-09-02", "2030-09-09", "2030-09-16"]);
+    expect(takePlanningNotice()).toBeNull();
+  });
+
+  it("x17 / h : seul le programme change — rattachement par la modale, sans confirmation de modification ; « Garder » ne supprime rien", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await renderWithPrograms({ routineId });
+    expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
+    // D-545 : la ligne est une commande qui ouvre la modale (plus de menu) ; aucun programme sélectionné à l'ouverture.
+    expect(screen.getByTestId("planning-program").props.accessibilityRole).toBe("button");
+    expect(openProgramChoice().selectedId).toBeNull();
+    chooseProgram(dos.id);
+    expect(within(screen.getByTestId("planning-program")).getByText("Dos")).toBeTruthy();
+    // Rouverte, la modale présélectionne le programme choisi.
+    expect(openProgramChoice().selectedId).toBe(dos.id);
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    // Créneaux à venir après le 20 août : 26 août, 2, 9, 16, 23, 30 septembre. x9 : rattachement — « de ce programme », sans
+    // point final ; « Les supprimer » (arbitrage de Hermann), « Les garder dans le calendrier ».
+    expect(screen.getByText("6 créneaux sont en dehors de la période de ce programme")).toBeTruthy();
+    expect(screen.getByText("Les supprimer")).toBeTruthy();
+    expect(screen.getByText("Les garder dans le calendrier")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-outside-secondary"));
+    await flush();
+    expect(screen.queryByTestId("planning-modify-confirm")).toBeNull();
+    expect(mockBack).toHaveBeenCalled();
+    const routine = await planning.getRoutine(routineId);
+    expect(routine?.programId).toBe(dos.id);
+    expect(routine?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-09-30" });
+    expect(await dates(routineId)).toHaveLength(9);
+    expect(takePlanningNotice()).toBeNull();
+  });
+
+  it("r11 : rattachement d'une routine qui déborde — « Annuler » : rien n'est rattaché, le formulaire reste ouvert", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await renderWithPrograms({ routineId });
+    chooseProgram(dos.id);
+    fireEvent.press(screen.getByTestId("screen-header-validate"));
+    await flush();
+    expect(screen.getByText("6 créneaux sont en dehors de la période de ce programme")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("planning-outside-cancel"));
+    await flush();
+    expect(screen.queryByTestId("planning-outside-confirm")).toBeNull();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect((await planning.getRoutine(routineId))?.programId).toBeUndefined();
+    expect(await dates(routineId)).toHaveLength(9);
+  });
+
+  it("x18 : depuis une occurrence de l'Agenda, le programme est visible mais non modifiable", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await programs.attachRoutine(routineId, dos.id);
+    releasePlanningSheet();
+    await renderWithPrograms({ routineId, occurrenceKey: "2030-08-12T08:00" });
+    const line = screen.getByTestId("planning-program");
+    expect(within(line).getByText("Dos")).toBeTruthy();
+    expect(line.props.accessibilityRole).toBeUndefined();
+    expect(line.props.onPress).toBeUndefined();
+    mockPush.mockClear();
+    fireEvent.press(line);
+    expect(mockPush).not.toHaveBeenCalledWith("/planning-program");
+    expect(pendingPlanningSheet("program")).toBeNull();
+  });
+
+  it("x10 (D-564) : une occurrence de l'Agenda hors de la période du programme affiche « Aucun »", async () => {
+    const dos = await program("Dos", "2030-08-01", "2030-08-20");
+    const routineId = await mondays();
+    await programs.attachRoutine(routineId, dos.id);
+    releasePlanningSheet();
+    // 26 août : hors de la période (1er au 20 août) — la routine reste rattachée, l'occurrence n'appartient pas au programme.
+    await renderWithPrograms({ routineId, occurrenceKey: "2030-08-26T08:00" });
+    expect(within(screen.getByTestId("planning-program")).getByText("Aucun")).toBeTruthy();
+    expect(within(screen.getByTestId("planning-program")).queryByText("Dos")).toBeNull();
+    expect((await planning.getRoutine(routineId))?.programId).toBe(dos.id);
   });
 });

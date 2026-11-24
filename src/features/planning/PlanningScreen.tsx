@@ -25,7 +25,6 @@ import {
   type Weekday,
 } from "@/domain/planning/Routine";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { normalizeRoutineName } from "@/features/planning/PlanningService";
 import { usePlanningService } from "@/features/planning/PlanningServiceContext";
 import {
   applySelection,
@@ -52,6 +51,7 @@ import {
 import { gridIssues, rowMention, togglePoint, withCycle, type PlanningGrid } from "@/features/planning/planningGrid";
 import { occurrenceForm, occurrenceSessions, toggleOccurrencePoint, withOccurrenceSelection, type OccurrenceEditing } from "@/features/planning/occurrenceDraft";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { postPlanningNotice, removedSlotsNotice } from "@/features/planning/planningNotice";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { PlanningSelection } from "@/features/planning/PlanningSelection";
 import { planningStrings } from "@/features/planning/planningStrings";
@@ -66,7 +66,14 @@ import { DRAG_HANDLE_SIZE, DragHandleDots } from "@/features/activities/sheetTab
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
 import { NativeSheetTop } from "@/shared/ui/SheetFixedTop";
-import { colors, layout, spacing, type } from "@/shared/ui/tokens";
+import type { Program } from "@/domain/programs/Program";
+import { maxEndCount, windowStartMinimum, withinWindow, type ProgramWindow } from "@/features/planning/programWindow";
+import { OutsidePeriodDialog } from "@/features/programs/OutsidePeriodDialog";
+import { withinProgramPeriod } from "@/domain/programs/programMembership";
+import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
+import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { TransientNotification } from "@/shared/ui/TransientNotification";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Planifier un parcours / une séance (CE-UI-12, D-519 à D-526, RM-253 à RM-264 ; 18/11/2026). Figma « Prototype MVP » :
@@ -91,6 +98,8 @@ import { colors, layout, spacing, type } from "@/shared/ui/tokens";
  */
 
 const t = planningStrings.form;
+/** Recette du 22/11/2026 (c35-journal-nom — Hermann : « Il faut mettre une durée de 2s »). [Une seconde — remplacé.] */
+const RENAMED_NOTICE_MS = 2000;
 const tReminder = planningStrings.reminder;
 /** Calendrier natif de « Début le » et de « jusqu'au » (recette du 18/11/2026, k8). */
 const CALENDAR_MODIFIERS = [datePickerStyle("graphical"), tint(colors.primary)];
@@ -111,7 +120,17 @@ const REMINDER_MINUTES_STEP = Array.from({ length: 12 }, (_, index) => index * 5
 const POINT_SIZE = 18;
 const COLUMN_WIDTH = 26;
 
-type Params = { readonly routineId?: string; readonly duplicateOf?: string; readonly sessionId?: string; readonly date?: string; readonly occurrenceKey?: string };
+/** `addTo` + `date` (D-554, DSF Plan § 7) : ajouter à la routine `addTo` un créneau ce jour-là, hors de sa répétition. */
+/** `programId` (PROG-CAT-01, D-549) : « + Planifier une séance » depuis un programme — programme présélectionné, non modifiable. */
+type Params = {
+  readonly routineId?: string;
+  readonly duplicateOf?: string;
+  readonly sessionId?: string;
+  readonly date?: string;
+  readonly occurrenceKey?: string;
+  readonly addTo?: string;
+  readonly programId?: string;
+};
 
 /** `occurrence` : modification d'une occurrence seule depuis l'Agenda (D-536, point 4, 20/11/2026). */
 type Mode = { readonly kind: "create" } | { readonly kind: "edit"; readonly routineId: string } | { readonly kind: "occurrence"; readonly editing: OccurrenceEditing };
@@ -157,7 +176,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const planning = usePlanningService();
   const { state: catalogue, reload } = useSessionCatalogue();
   // Nouvelle planification : brouillon immédiat ; modification et duplication : brouillon lu ci-dessous.
-  const fresh = params.routineId === undefined && params.duplicateOf === undefined;
+  const fresh = params.routineId === undefined && params.duplicateOf === undefined && params.addTo === undefined;
   const [initialEntries] = useState(() =>
     fresh && params.sessionId !== undefined ? applySelection([], [params.sessionId], () => Crypto.randomUUID()) : [],
   );
@@ -170,14 +189,23 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const [popover, setPopover] = useState<Popover | null>(null);
   // Une ligne du tableau est portée (réordonnancement) : le formulaire fige son défilement.
   const [reordering, setReordering] = useState(false);
+  // Recette du 22/11/2026 (constat d) : message « nom du parcours changé ».
+  const [notice, setNotice] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   // Constat E (Hermann, 20/11/2026) : « Modification dans le Journal : « N créneaux à venir seront modifiés. » ».
   const [modifyCount, setModifyCount] = useState<number | null>(null);
-  const [otherNames, setOtherNames] = useState<readonly { readonly id: string; readonly key: string }[]>([]);
+  // D-566 (23/11/2026) : routine d'un programme modifiée depuis le Journal — créneaux à venir hors de la période ; « Supprimer »
+  // retire ces créneaux après l'enregistrement.
+  const [outsideCount, setOutsideCount] = useState<number | null>(null);
+  const removeOutsideRef = useRef(false);
   // RM-259 : la synthèse dont les jours ne tenaient pas, mémorisée pour passer à « X jours par semaine ».
   const [overflowing, setOverflowing] = useState<string | null>(null);
   const savingRef = useRef(false);
+  // Recette du 21/11/2026 (Journal, Hermann : « Si la routine n'a pas été modifiée, valider n'affiche pas le message de
+  // confirmation de modification ») : brouillon lu à l'ouverture d'une modification depuis le Journal.
+  const loadedForm = useRef<FormDraft | null>(null);
   const reminderTouched = useRef(false);
   // Délai choisi pendant que les notifications étaient refusées : appliqué au retour de Réglages s'il est autorisé.
   const pendingReminder = useRef<(() => void) | null>(null);
@@ -196,20 +224,6 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   useEffect(() => {
     reload();
   }, [reload]);
-
-  // RM-261 : noms des autres planifications, pour signaler un nom déjà pris sous le champ.
-  useEffect(() => {
-    let cancelled = false;
-    planning.listRoutines().then(
-      (routines) => {
-        if (!cancelled) setOtherNames(routines.map((routine) => ({ id: routine.id, key: normalizeRoutineName(routine.name) })));
-      },
-      () => undefined,
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [planning]);
 
   // D-524 : nouvelle planification — 15 min présélectionnées si les notifications sont déjà autorisées ; sinon « Sans »,
   // l'autorisation n'étant demandée qu'au premier choix d'un délai (RM-052).
@@ -267,7 +281,20 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   // Chargement du brouillon d'une modification ou d'une duplication.
   useEffect(() => {
     let cancelled = false;
-    if (params.routineId !== undefined && params.occurrenceKey !== undefined) {
+    if (params.addTo !== undefined && params.date !== undefined) {
+      // D-554 (DSF Plan § 7, point 1) : modale du créneau pré-remplie avec la date touchée et l'heure habituelle de la routine ;
+      // pour un parcours, le créneau entier.
+      planning.prepareAddedOccurrence(params.addTo, params.date).then((found) => {
+        if (cancelled) return;
+        if (found === null) {
+          routerRef.current.back();
+          return;
+        }
+        const built = occurrenceForm(found.routine, found.occurrence, () => Crypto.randomUUID());
+        setMode({ kind: "occurrence", editing: { ...built.editing, adding: true } });
+        setForm(built.form);
+      }, () => routerRef.current.back());
+    } else if (params.routineId !== undefined && params.occurrenceKey !== undefined) {
       planning.getOccurrence(params.routineId, params.occurrenceKey).then((found) => {
         if (cancelled) return;
         // D-536, point 1 : une occurrence commencée n'est pas modifiable.
@@ -288,7 +315,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           return;
         }
         setMode({ kind: "edit", routineId });
-        setForm(draftFromRoutine(routine));
+        const loaded = draftFromRoutine(routine);
+        loadedForm.current = loaded;
+        setForm(loaded);
       }, () => routerRef.current.back());
     } else if (params.duplicateOf !== undefined) {
       planning.prepareDuplicate(params.duplicateOf).then((draft) => {
@@ -304,7 +333,72 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     return () => {
       cancelled = true;
     };
-  }, [params.routineId, params.duplicateOf, params.occurrenceKey, planning]);
+  }, [params.routineId, params.duplicateOf, params.occurrenceKey, params.addTo, params.date, planning]);
+
+  // PROG-CAT-01 (Hermann, 21/11/2026, point 5) : programme présélectionné (création depuis un programme) ou programme de la
+  // routine modifiée ; ses dates bornent « Début le », « jusqu'au » et « pendant ». Sans service (tests isolés) : aucun.
+  const programs = useOptionalProgramService();
+  const [program, setProgram] = useState<Program | null>(null);
+  const [routineProgramId, setRoutineProgramId] = useState<string | null>(null);
+  useEffect(() => {
+    if (params.routineId === undefined || params.programId !== undefined) return undefined;
+    let cancelled = false;
+    planning.getRoutine(params.routineId).then(
+      (routine) => {
+        if (!cancelled) setRoutineProgramId(routine?.programId ?? null);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [params.routineId, params.programId, planning]);
+  const programId = params.programId ?? routineProgramId;
+  // Recette du 23/11/2026 (h, g2 — Hermann : « Journal : je dois pouvoir attacher / détacher un programme d'une routine » ;
+  // « Agenda : je dois pouvoir attacher / détacher un programme de l'occurrence d'une routine ») : programme choisi dans le menu
+  // de la ligne Programme — `undefined` : inchangé ; `null` : aucun. Appliqué à l'enregistrement. Programmes proposés : ceux qui
+  // ne sont pas terminés (D-545).
+  const [chosenProgramId, setChosenProgramId] = useState<string | null | undefined>(undefined);
+  const [programList, setProgramList] = useState<readonly Program[]>([]);
+  const programChoosable = programs !== null && params.routineId !== undefined && params.programId === undefined;
+  useEffect(() => {
+    if (!programChoosable || programs === null) return undefined;
+    let cancelled = false;
+    programs.listPrograms().then(
+      (list) => {
+        if (!cancelled) setProgramList(list);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [programChoosable, programs]);
+  const programChanged = chosenProgramId !== undefined && chosenProgramId !== routineProgramId;
+  useEffect(() => {
+    if (programs === null || programId === null) return undefined;
+    let cancelled = false;
+    programs.getProgram(programId).then(
+      (found) => {
+        if (!cancelled) setProgram(found);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [programs, programId]);
+  const programWindow: ProgramWindow | null = program === null ? null : { start: program.startDate, end: program.endDate };
+  // Programme affiché et appliqué à l'enregistrement : le choix du menu, sinon celui de la routine (ou de la création).
+  const selectedProgram: Program | null =
+    chosenProgramId === undefined ? program : chosenProgramId === null ? null : (programList.find((item) => item.id === chosenProgramId) ?? null);
+  // Nouvelle routine d'un programme : le brouillon reste dans la fenêtre (une routine existante n'est jamais réécrite d'office).
+  const boundCreation = params.programId !== undefined && mode?.kind === "create";
+  // Ajustement pendant le rendu (état dérivé du programme lu) : `withinWindow` rend le même objet une fois dans la fenêtre.
+  if (boundCreation && programWindow !== null && form !== null) {
+    const next = withinWindow(form, programWindow, todayLocal());
+    if (next !== form) setForm(next);
+  }
 
   const projections = useMemo(() => {
     const map = new Map<string, SessionCatalogueProjection>();
@@ -347,32 +441,102 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
   const removed = form.entries.length - rows.length;
   const name = effectiveName(shown, nameOf);
   const draft = toRoutineDraft(shown, name);
-  const nameKey = normalizeRoutineName(name);
   // Occurrence seule : le nom reste celui de la routine (ni saisie ni contrôle) ; au moins une séance active dans le créneau.
   const editing = mode.kind === "occurrence" ? mode.editing : null;
-  const nameTaken =
-    editing === null && nameKey !== "" && otherNames.some((other) => other.key === nameKey && (mode.kind !== "edit" || other.id !== mode.routineId));
   const nameMissing = editing === null && name.trim() === "";
   const blocking =
     editing === null
       ? [...validateRoutineDraft(draft), ...gridIssues(shown.grid)]
       : [
-          ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED"),
+          // Recette du 21/11/2026 (c22-5 — Hermann : « La règle "chaque séance doit avoir au moins une pastille" a du sens dans le
+          // Journal, où l'on modifie la grille de la routine entière. Elle ne doit pas s'appliquer à la modification d'un seul
+          // créneau ») : la fréquence d'une ligne sans pastille n'est pas contrôlée ici.
+          ...validateRoutineDraft(draft).filter((issue) => issue !== "NAME_REQUIRED" && issue !== "INVALID_FREQUENCY"),
           ...(shown.grid.points.some((row) => row[editing.column] === true) ? [] : ["EMPTY_SLOT" as const]),
         ];
-  const canSave = blocking.length === 0 && !nameTaken && !saving && catalogue.status === "ready";
+  const canSave = blocking.length === 0 && !saving && catalogue.status === "ready";
+  // Recette du 23/11/2026 (d4) : en modification depuis le Journal, les dates ne sont plus bornées par la période du programme —
+  // D-566 : la routine n'est pas coupée, des créneaux peuvent rester hors programme (question posée à l'enregistrement).
+  // [Bornes du programme en modification (PROG-CAT-01, point 5) — remplacé ; conservées pour la création depuis un programme et
+  // pour une occurrence seule.]
+  // D-564 / D-567 (lot 4, x10 — Hermann : « les créneaux en dehors de la période du programme sont toujours affectés au programme
+  // dans l'agenda : il faut que la valeur soit "Aucun" et qu'ils ne soient plus affectés au programme ») : une occurrence de
+  // l'Agenda datée hors de la période n'appartient pas au programme — valeur « Aucun », dates non bornées par le programme.
+  const occurrenceOutside = mode.kind === "occurrence" && selectedProgram !== null && !withinProgramPeriod(selectedProgram, form.startDate);
+  const shownProgram = occurrenceOutside ? null : selectedProgram;
+  const boundWindow = mode.kind === "edit" || occurrenceOutside ? null : programWindow;
+  // Routine modifiée (au-delà du seul programme) : recette du 21/11/2026, sans changement rien n'est enregistré.
+  const routineChanged = () => {
+    const before = loadedForm.current;
+    return before === null || JSON.stringify(toRoutineDraft(before, before.name)) !== JSON.stringify(toRoutineDraft(form, form.name));
+  };
+  const routineIdOf = (current: Mode) =>
+    current.kind === "edit" ? current.routineId : current.kind === "occurrence" && current.editing.adding !== true ? current.editing.routineId : null;
+
+  /** D-536, point 2 : confirmation du nombre de créneaux concernés, seulement si la routine elle-même change. */
+  const askModify = (routineId: string) => {
+    if (!routineChanged()) {
+      commit();
+      return;
+    }
+    planning.pendingSlotCount(routineId, draft).then(
+      (count) => (count > 0 ? setModifyCount(count) : commit()),
+      () => commit(),
+    );
+  };
 
   const save = () => {
     if (!canSave || savingRef.current) return;
+    removeOutsideRef.current = false;
     // D-536, point 2 : modification de la routine depuis le Journal — confirmation du nombre de créneaux concernés.
     if (mode.kind === "edit" && modifyCount === null) {
-      planning.pendingSlotCount(mode.routineId).then(
-        (count) => (count > 0 ? setModifyCount(count) : commit()),
-        () => commit(),
-      );
+      if (!routineChanged() && !programChanged) {
+        // Rien n'a changé : pas de confirmation, rien n'est enregistré (la routine ne remonte pas dans le Journal).
+        router.back();
+        return;
+      }
+      const routineId = mode.routineId;
+      // D-566 : routine d'un programme (actuel ou choisi) — créneaux à venir hors de sa période, brouillon compris.
+      if (selectedProgram !== null) {
+        planning.outsidePeriodSlotCount(routineId, selectedProgram.startDate, selectedProgram.endDate, draft).then(
+          (count) => (count > 0 ? setOutsideCount(count) : askModify(routineId)),
+          () => askModify(routineId),
+        );
+        return;
+      }
+      askModify(routineId);
       return;
     }
+    // [Recette du 23/11/2026 (g2) : programme choisi depuis une occurrence de l'Agenda, question D-566 au rattachement — retiré
+    // le 23/11/2026 (x18) : le programme n'est plus modifiable depuis l'Agenda.]
     commit();
+  };
+
+  /** D-566 : réponse à la question des créneaux hors période, puis confirmation habituelle (D-536). */
+  const answerOutside = (removeOutside: boolean) => {
+    setOutsideCount(null);
+    removeOutsideRef.current = removeOutside;
+    if (mode.kind === "edit") askModify(mode.routineId);
+    else commit();
+  };
+
+  /**
+   * Après l'enregistrement : programme choisi (h, g2), puis D-566 « Supprimer » — snackbar du nombre de créneaux supprimés (d3),
+   * affichée par l'écran qui reprend le focus (`planningNotice`).
+   */
+  const afterSave = async <T extends { readonly status: string }>(result: T): Promise<T> => {
+    const routineId = routineIdOf(mode);
+    if (result.status !== "SAVED" || routineId === null) return result;
+    if (programChanged && programs !== null) {
+      if (chosenProgramId === null || chosenProgramId === undefined) await programs.detachRoutine(routineId);
+      else await programs.attachRoutine(routineId, chosenProgramId);
+    }
+    const periodProgram = selectedProgram;
+    if (removeOutsideRef.current && periodProgram !== null) {
+      const removedCount = await planning.removeOutsidePeriod(routineId, periodProgram.startDate, periodProgram.endDate);
+      if (removedCount > 0) postPlanningNotice(removedSlotsNotice(removedCount));
+    }
+    return result;
   };
 
   const commit = () => {
@@ -381,17 +545,26 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
     savingRef.current = true;
     setSaving(true);
     setSaveFailed(false);
-    const request: Promise<{ readonly status: string }> =
+    const write: Promise<{ readonly status: string }> =
       mode.kind === "occurrence"
-        ? planning.updateOccurrence(mode.editing.routineId, mode.editing.key, {
-            date: form.startDate,
-            time: form.time,
-            sessions: occurrenceSessions(shown, mode.editing),
-            reminderMinutes: form.reminderMinutes,
-          })
+        ? (mode.editing.adding === true ? planning.addOccurrence(mode.editing.routineId, {
+              date: form.startDate,
+              time: form.time,
+              sessions: occurrenceSessions(shown, mode.editing),
+              reminderMinutes: form.reminderMinutes,
+            }) : planning.updateOccurrence(mode.editing.routineId, mode.editing.key, {
+              date: form.startDate,
+              time: form.time,
+              sessions: occurrenceSessions(shown, mode.editing),
+              reminderMinutes: form.reminderMinutes,
+            }))
         : mode.kind === "edit"
-          ? planning.updateRoutine(mode.routineId, draft)
-          : planning.createRoutine(draft);
+          ? // Seul le programme change (h) : la routine n'est pas réécrite.
+            routineChanged()
+            ? planning.updateRoutine(mode.routineId, draft)
+            : Promise.resolve({ status: "SAVED" })
+          : planning.createRoutine(params.programId !== undefined ? { ...draft, programId: params.programId } : draft);
+    const request = mode.kind === "create" ? write : write.then(afterSave);
     request.then(
       (result) => {
         savingRef.current = false;
@@ -418,7 +591,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         if (editing !== null) {
           // Occurrence seule : les séances de la routine restent (désactivables) ; ajout ou retrait des séances ajoutées.
           const next = withOccurrenceSelection(form, editing, selected, () => Crypto.randomUUID());
-          setMode({ kind: "occurrence", editing: next.editing });
+          setMode({ kind: "occurrence", editing: { ...next.editing, ...(editing.adding === true ? { adding: true } : {}) } });
           setForm(next.form);
           return;
         }
@@ -426,6 +599,13 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
       },
     });
     router.push("/planning-selection");
+  };
+
+  // D-545 : modale « Rattacher un programme » — le programme affiché y est sélectionné ; le choix (ou « Aucun ») est appliqué à
+  // l'enregistrement, avec la question D-566 si des créneaux à venir tombent hors de la période du programme choisi.
+  const openProgramChoice = () => {
+    requestPlanningSheet({ kind: "program", selectedId: selectedProgram?.id ?? null, onChoose: setChosenProgramId });
+    router.push("/planning-program");
   };
 
   /**
@@ -505,7 +685,8 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         headerBackground={colors.background}
         band={
           <View style={styles.contextBand}>
-            {/* D-522 / RM-258 : nom libre, unique ; copié de la séance quand une seule est planifiée. */}
+            {/* D-553 (21/11/2026) : nom généré (Séance, ou noms reliés par « + ») tant qu'il n'est pas modifié ; personnalisé
+                ensuite. [D-522 / RM-258 : nom libre, unique ; copié de la séance quand une seule est planifiée — remplacé.] */}
             <TextInput
               value={name}
               onChangeText={(value) => update({ name: value, nameEdited: true })}
@@ -518,9 +699,11 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
               returnKeyType="done"
               testID="planning-name"
             />
-            {nameMissing || nameTaken ? (
+            {/* D-553 (21/11/2026) : nom vidé → « Nom obligatoire » ; doublons autorisés. [« Ce nom est déjà utilisé » (RM-261) —
+                retiré.] */}
+            {nameMissing ? (
               <Text style={styles.nameError} accessibilityLiveRegion="polite" testID="planning-name-error">
-                {nameTaken ? t.nameTaken : t.nameRequired}
+                {t.nameRequired}
               </Text>
             ) : null}
             {/* RM-259 : synthèse en 14 ; « X jours par semaine » quand les jours ne tiennent pas. */}
@@ -556,9 +739,23 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
             <View style={styles.card} testID="planning-slot">
               <View style={styles.line}>
                 <Text style={styles.label}>{t.program}</Text>
-                <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${t.programNone}`} testID="planning-program">
-                  <Text style={styles.pillText}>{t.programNone}</Text>
-                </View>
+                {/* D-545 (Hermann, 23/11/2026) : en modification depuis le Journal, la ligne ouvre la modale « Rattacher un
+                    programme » (feuille native). [Menu SwiftUI natif (recette du 23/11/2026, h) — remplacé ; sa largeur, mesurée
+                    une fois par `Host matchContents`, tronquait le nom après un changement de répétition (constat b).]
+                    x18 (Hermann : « On ne doit pas pouvoir modifier le programme depuis l'agenda. Le champ doit être visible mais
+                    non éditable. ») : occurrence de l'Agenda — valeur fixe. [Menu depuis l'Agenda (g2) — remplacé.] */}
+                {programChoosable && mode.kind === "edit" ? (
+                  <Pill
+                    label={selectedProgram?.name ?? t.programNone}
+                    onPress={openProgramChoice}
+                    accessibilityLabel={fillTemplate(t.programMenuAccessibility, { value: selectedProgram?.name ?? t.programNone })}
+                    testID="planning-program"
+                  />
+                ) : (
+                  <View style={styles.pill} accessible accessibilityLabel={`${t.program} : ${shownProgram?.name ?? t.programNone}`} testID="planning-program">
+                    <Text style={styles.pillText}>{shownProgram?.name ?? t.programNone}</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.line}>
                 <Text style={styles.label}>{t.start}</Text>
@@ -678,11 +875,15 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
                 }}
                 onCycle={(cycle) => update({ grid: withCycle(form.grid, cycle) })}
                 onChangeSessions={openSelection}
-                onMove={(from, to) =>
-                  setForm((current) =>
-                    current === null ? current : moveRow(current, current.entries.indexOf(shown.entries[from]!), current.entries.indexOf(shown.entries[to]!)),
-                  )
-                }
+                onMove={(from, to) => {
+                  const moved = moveRow(form, form.entries.indexOf(shown.entries[from]!), form.entries.indexOf(shown.entries[to]!));
+                  // Recette du 22/11/2026 (constat d, c35-journal-nom — Hermann : « le snackbar apparaît après le message de
+                  // confirmation de la modification, au lieu d'apparaître dès que le changement d'ordre est effectué. Il faut mettre
+                  // une durée de 2s ») : routine modifiée au nom généré — message dès le déplacement, deux secondes.
+                  // [Message d'une seconde sur le Journal après l'enregistrement — remplacé.]
+                  if (mode.kind === "edit" && !form.nameEdited && effectiveName(moved, nameOf) !== effectiveName(form, nameOf)) setNotice(planningStrings.journal.renamedNotice);
+                  setForm(moved);
+                }}
                 onDraggingChange={setReordering}
               />
               {shown.grid.cycle > CYCLE_MAX ? (
@@ -722,9 +923,22 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         )}
       />
 
+      {outsideCount !== null ? (
+        <OutsidePeriodDialog
+          count={outsideCount}
+          // Lot 4 (x9, x10) : programme choisi dans la modale = rattachement (« de ce programme ») ; sinon modification depuis
+          // le Journal (« du programme »).
+          context={programChanged ? "ATTACH" : "JOURNAL"}
+          onKeep={() => answerOutside(false)}
+          onDelete={() => answerOutside(true)}
+          onCancel={() => setOutsideCount(null)}
+          testIDPrefix="planning-outside"
+        />
+      ) : null}
       {modifyCount !== null ? (
         <DecisionDialog
-          cancelOnTop
+          // Recette du 21/11/2026 (Journal, Hermann : « Dans le message de modification, mettre "Annuler" sur la même ligne que
+          // "Confirmer", avec les mêmes dimensions ») : comme les fenêtres de suppression. [« Annuler » en haut — remplacé.]
           title={planningStrings.modifyRoutine.title}
           titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
           message={
@@ -768,7 +982,7 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         anchor={popover?.kind === "END_COUNT" ? popover.anchor : null}
         columns={[
           {
-            values: END_COUNTS,
+            values: boundWindow === null ? END_COUNTS : END_COUNTS.filter((count) => count <= maxEndCount(form.unit, form.startDate, boundWindow.end)),
             selected: form.endCount,
             onChange: (count) => setForm((current) => (current === null ? current : withEndCount(current, count))),
             accessibilityLabel: t.during,
@@ -884,7 +1098,10 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
         {popover?.kind === "START" || popover?.kind === "END" ? (
           <DateCalendar
             value={popover.kind === "START" ? form.startDate : form.endDate}
-            minimum={popover.kind === "START" ? todayLocal() : form.startDate}
+            minimum={
+              popover.kind === "START" ? (boundWindow === null ? todayLocal() : windowStartMinimum(boundWindow, todayLocal())) : form.startDate
+            }
+            {...(boundWindow !== null ? { maximum: boundWindow.end } : {})}
             onChange={(value) => {
               if (popover.kind === "START") changeStartDate(value);
               else setForm((current) => (current === null ? current : withEndDate(current, value)));
@@ -892,6 +1109,9 @@ export function PlanningScreen({ params }: { readonly params: Params }) {
           />
         ) : null}
       </PlanningPopover>
+      <View pointerEvents="none" style={[styles.noticeAnchor, { bottom: insets.bottom + spacing[16] }]}>
+        <TransientNotification message={notice} onDismiss={() => setNotice(null)} durationMs={RENAMED_NOTICE_MS} testID="planning-renamed-notice" />
+      </View>
     </ScreenShell>
   );
 }
@@ -988,7 +1208,7 @@ function SlotGrid({
   readonly names: readonly string[];
   /**
    * Occurrence seule (D-536, point 4) : « Seul le créneau de l'occurrence ouverte est coloré (en-tête et pastille), les autres
-   * sont grisés » ; seule cette colonne se modifie, sans réordonnancement ni changement de cycle.
+   * sont grisés » ; seule cette colonne se modifie, sans changement de cycle ; les lignes se réordonnent (recette du 21/11/2026, c22-6).
    */
   readonly focusColumn?: number;
   readonly onChange: (grid: PlanningGrid) => void;
@@ -1003,7 +1223,9 @@ function SlotGrid({
   const [rowHeight, setRowHeight] = useState(40);
   const { drag, gesture, offset } = useRowDrag(names.length, rowHeight, onMove, onDraggingChange);
   const focused = focusColumn !== undefined;
-  const reorderable = names.length > 1 && !focused;
+  // Recette du 21/11/2026 (c22-6 — Hermann : « L'ordre choisi est conservé pour ce créneau seulement ») : les lignes se
+  // réordonnent aussi pour un créneau seul. [Sans réordonnancement pour un créneau seul (D-536, point 4) — remplacé.]
+  const reorderable = names.length > 1;
   return (
     <GestureHandlerRootView testID="planning-slot-grid">
       <View style={styles.gridHeader}>
@@ -1105,7 +1327,18 @@ function SlotGrid({
  * panneau est blanc, et en mode sombre le calendrier écrivait en blanc sur blanc (recette du 19/11/2026, k19 : « on ne
  * voit rien … aucun texte, sauf la date du jour »).
  */
-function DateCalendar({ value, minimum, onChange }: { readonly value: LocalDate; readonly minimum: LocalDate; readonly onChange: (value: LocalDate) => void }) {
+function DateCalendar({
+  value,
+  minimum,
+  maximum,
+  onChange,
+}: {
+  readonly value: LocalDate;
+  readonly minimum: LocalDate;
+  /** PROG-CAT-01 : fin du programme ; absent : aucune borne haute. */
+  readonly maximum?: LocalDate;
+  readonly onChange: (value: LocalDate) => void;
+}) {
   if (Platform.OS !== "ios") return null;
   return (
     <View style={styles.calendar} testID="planning-date-panel">
@@ -1113,7 +1346,7 @@ function DateCalendar({ value, minimum, onChange }: { readonly value: LocalDate;
         <DatePicker
           selection={timeToDate(value, "12:00")}
           displayedComponents={["date"]}
-          range={{ start: timeToDate(minimum, "00:00") }}
+          range={maximum === undefined ? { start: timeToDate(minimum, "00:00") } : { start: timeToDate(minimum, "00:00"), end: timeToDate(maximum, "23:59") }}
           onDateChange={(date) => onChange(formatLocalDate(date))}
           modifiers={CALENDAR_MODIFIERS}
         />
@@ -1140,6 +1373,8 @@ export function timeToDuration(time: LocalTime): number {
 
 
 const styles = StyleSheet.create({
+  // Message temporaire (constat d) : ancrage des Catalogues, en bas de l'écran.
+  noticeAnchor: { position: "absolute", left: layout.screenGutter, right: layout.screenGutter, height: minTouchTarget },
   contextBand: { paddingHorizontal: layout.screenGutter, gap: spacing[8] },
   name: { ...type.screenTitle, color: colors.textPrimary, padding: 0 },
   nameError: { ...type.supporting, color: colors.danger },

@@ -270,3 +270,66 @@ describe("D-539 — routines proposées par le filtre de l'Agenda", () => {
     expect(choices.map((choice) => choice.upcoming)).toEqual([6, 0]);
   });
 });
+
+/**
+ * Recette du 23/11/2026 (RECETTE-PROG-2311, d3, d4, d6, d7) — D-566 « Supprimer » : une routine « jusqu'au » est raccourcie au lieu
+ * d'accumuler des retraits définitifs ; étendre sa fin recrée ses créneaux. Compte de la confirmation sur le brouillon.
+ */
+describe("D-566 « Supprimer » et extension depuis le Journal (recette du 23/11/2026)", () => {
+  const dates = async () => (await all()).map((occurrence) => occurrence.date);
+
+  it("d6 / d7 : créneaux d'après la période supprimés en raccourcissant la routine ; étendue ensuite, ils sont recréés", async () => {
+    // Maintenant : 10 août 2030 à midi. Après le 20 août : 22, 26 et 29 août.
+    expect(await planning.removeOutsidePeriod("r1", "2030-08-01", "2030-08-20")).toBe(3);
+    const cut = await planning.getRoutine("r1");
+    expect(cut?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-20" });
+    expect(cut?.exclusions).toEqual([]);
+    expect(await dates()).toEqual(["2030-08-05", "2030-08-08", "2030-08-12", "2030-08-15", "2030-08-19"]);
+    const extended = draft({ repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: "2030-09-05" } } });
+    // d7 : « N créneaux à venir seront modifiés » compte aussi les créneaux que la modification crée (8 → 19 août : 4 ; + 5).
+    expect(await planning.pendingSlotCount("r1")).toBe(4);
+    expect(await planning.pendingSlotCount("r1", extended)).toBe(9);
+    await planning.updateRoutine("r1", extended);
+    expect(await dates()).toEqual([
+      "2030-08-05", "2030-08-08", "2030-08-12", "2030-08-15", "2030-08-19", "2030-08-22", "2030-08-26", "2030-08-29", "2030-09-02", "2030-09-05",
+    ]);
+  });
+
+  it("un créneau commencé après la période est conservé ; les créneaux non commencés qui le précèdent sont retirés un à un", async () => {
+    linked = [link("2030-08-26T08:00", 1, "PARTIAL")];
+    expect(await planning.removeOutsidePeriod("r1", "2030-08-01", "2030-08-20")).toBe(2);
+    const routine = await planning.getRoutine("r1");
+    expect(routine?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-26" });
+    expect(routine?.exclusions).toEqual(["2030-08-22T08:00"]);
+    expect(await dates()).toEqual(["2030-08-05", "2030-08-08", "2030-08-12", "2030-08-15", "2030-08-19", "2030-08-26"]);
+  });
+
+  // Lot 4 (D-567, 23/11/2026) : début ramené à celui du programme sans séance réalisée avant ; « pendant N » ramené à la fin du
+  // programme. [Lot 3 : créneaux d'avant la période retirés un à un, début inchangé ; « pendant N » inchangé, créneaux d'après la
+  // période retirés un à un — remplacé.]
+  it("créneaux à venir d'avant la période, séance réalisée avant : retirés un à un, début et fin inchangés ; les séances réalisées ne sont jamais touchées", async () => {
+    linked = [link("2030-08-05T08:00", 1, "COMPLETED")];
+    expect(await planning.removeOutsidePeriod("r1", "2030-08-14", "2030-08-31")).toBe(1);
+    const routine = await planning.getRoutine("r1");
+    expect(routine?.startDate).toBe("2030-08-05");
+    expect(routine?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-29" });
+    expect(routine?.exclusions).toEqual(["2030-08-12T08:00"]);
+    expect((await dates()).slice(0, 3)).toEqual(["2030-08-05", "2030-08-08", "2030-08-15"]);
+  });
+
+  it("D-567 : sans séance réalisée avant, le début est ramené à celui du programme ; « pendant N » devient « jusqu'au » la fin du programme", async () => {
+    expect(await planning.removeOutsidePeriod("r1", "2030-08-14", "2030-08-31")).toBe(1);
+    const routine = await planning.getRoutine("r1");
+    expect(routine?.startDate).toBe("2030-08-14");
+    expect(routine?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-29" });
+    expect(routine?.exclusions).toEqual([]);
+    expect((await dates())[0]).toBe("2030-08-15");
+
+    const weeks = await planning.createRoutine(draft({ name: "Dos", entries: [{ ...A, id: "e-a5" }], repetition: { unit: "WEEK", every: 1, weekdays: [1], end: { kind: "FOR", count: 4 } } }));
+    if (weeks.status !== "SAVED") throw new Error(weeks.status);
+    expect(await planning.removeOutsidePeriod(weeks.routine.id, "2030-08-01", "2030-08-20")).toBe(1);
+    const kept = await planning.getRoutine(weeks.routine.id);
+    expect(kept?.repetition?.end).toEqual({ kind: "UNTIL", date: "2030-08-20" });
+    expect(kept?.exclusions).toEqual([]);
+  });
+});

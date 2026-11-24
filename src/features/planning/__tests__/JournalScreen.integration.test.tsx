@@ -8,6 +8,7 @@ import type { OccurrenceExecution } from "@/domain/planning/occurrenceExecutions
 import * as filterSheetRelay from "@/features/activities/filterSheetRelay";
 import type { StructuredSessionInput } from "@/domain/sessions/structuredInput";
 import { JournalScreen } from "@/features/planning/JournalScreen";
+import { postPlanningNotice, removedSlotsNotice, takePlanningNotice } from "@/features/planning/planningNotice";
 import { PlanningService } from "@/features/planning/PlanningService";
 import { PlanningServiceContext } from "@/features/planning/PlanningServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -227,9 +228,9 @@ describe("Journal des routines (D-535)", () => {
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     await flush();
     // Constat D (20/11/2026) : le Journal supprime la routine et tous ses créneaux.
-    expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByText("Terminer cette routine")).toBeTruthy();
     // Recette du 20/11/2026 : « Annuler » à côté de « Confirmer », même format.
-    expect(screen.queryByTestId("journal-delete-cancel")).toBeNull();
+    expect(within(screen.getByTestId("journal-delete-actions")).getByTestId("journal-delete-cancel")).toBeTruthy();
     expect(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Annuler")).toBeTruthy();
     expect(screen.getByText("La routine et son créneau seront supprimés.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
@@ -249,7 +250,7 @@ describe("Journal des routines (D-535)", () => {
     await renderJournal();
     fireEvent(screen.getByTestId(`journal-item-${routine.id}-swipe-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     await flush();
-    expect(screen.getByText("Supprimer cette routine")).toBeTruthy();
+    expect(screen.getByText("Terminer cette routine")).toBeTruthy();
     // D-540 : « … La routine sera terminée. » (plus d'archivage).
     expect(screen.getByText("3 créneaux non commencés seront supprimés. La routine sera terminée.")).toBeTruthy();
     fireEvent.press(within(screen.getByTestId("journal-delete-actions")).getByLabelText("Confirmer"));
@@ -314,5 +315,14 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.queryByTestId("calendar-view-row-month")).toBeNull();
     fireEvent.press(screen.getByTestId("calendar-view-row-week"));
     expect(onChangeView).toHaveBeenCalledWith("agenda");
+  });
+
+  it("d3 (recette du 23/11/2026) : au retour de « Planifier », le nombre de créneaux supprimés s'affiche en snackbar", async () => {
+    postPlanningNotice(removedSlotsNotice(3));
+    await renderJournal();
+    expect(screen.getByText("3 créneaux supprimés")).toBeTruthy();
+    // Lu une seule fois : un nouveau focus ne le réaffiche pas.
+    expect(takePlanningNotice()).toBeNull();
+    expect(removedSlotsNotice(1)).toBe("1 créneau supprimé");
   });
 });

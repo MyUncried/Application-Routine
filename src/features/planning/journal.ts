@@ -1,6 +1,6 @@
 import { normalizeSearchText } from "@/domain/activities/movementSuggestion";
 import { isRoutineActiveAt, periodOccurrences, type IsOccurrenceStarted } from "@/domain/planning/occurrences";
-import { endDateForCount, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
+import { endDateForCount, generatedRoutineName, routineDisplayName, occurrenceInstant, parseLocalDate, type LocalDate, type Routine } from "@/domain/planning/Routine";
 import { duringLabel, formatRecurrence } from "@/features/planning/planningSummary";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { matchesSessionFilters, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -83,10 +83,16 @@ function dayMonth(day: LocalDate): string {
  * en n'a pas ») : créneaux à venir, du premier au dernier. [Interprétation technique : « du … au … » borne les créneaux à
  * venir ; un seul créneau : « 1 créneau, le 26 nov. ».]
  */
-export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date): string {
+export function journalSlotsLine(routine: Routine, today: LocalDate, now: Date, isStarted?: IsOccurrenceStarted): string {
   const last = routineLastDate(routine);
+  // Recette du 22/11/2026 (constat c — Hermann : « cela doit faire mention des occurrences planifiées ») : un créneau à venir déjà
+  // exécuté (séance faite en avance) n'est pas compté.
   const upcoming =
-    last < today ? [] : periodOccurrences([routine], today, last).filter((occurrence) => occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime());
+    last < today
+      ? []
+      : periodOccurrences([routine], today, last, isStarted).filter(
+          (occurrence) => !occurrence.started && occurrenceInstant(occurrence.date, occurrence.time).getTime() >= now.getTime(),
+        );
   if (upcoming.length === 0) return t.journal.slotsNone;
   if (upcoming.length === 1) return t.journal.slotsOne.replace("{date}", dayMonth(upcoming[0]!.date));
   return t.journal.slotsMany
@@ -123,6 +129,17 @@ export function journalRecurrenceLine(routine: Routine, today: LocalDate): strin
       ? `${t.journal.until} ${shortDate(repetition.end.date, today)}`
       : duringLabel(repetition.unit, repetition.end.count);
   return `${formatRecurrence(routine)} · ${end}`;
+}
+
+/**
+ * D-553 (21/11/2026) : nom de Routine affiché (Journal, filtre de l'Agenda, ligne « Ⓟ » d'un parcours) — nom généré recalculé
+ * depuis les Séances (`sessions` : projections connues), nom personnalisé tel quel ; repli sur les noms reliés par « + ».
+ * [Routine sans nom : séances séparées par des virgules — remplacé.]
+ */
+export function routineTitle(routine: Routine, sessions: readonly SessionCatalogueProjection[]): string {
+  const byId = new Map(sessions.map((session) => [session.id, session.name]));
+  const name = routineDisplayName(routine, (sessionId) => byId.get(sessionId));
+  return name.trim() !== "" ? name : generatedRoutineName(sessions.map((session) => session.name));
 }
 
 /** Recherche : nom de la routine, ou nom d'une de ses séances ou de leurs exercices (même règle que le Catalogue). */

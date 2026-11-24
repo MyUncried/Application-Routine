@@ -39,6 +39,8 @@ const TINTS = {
 } as const;
 /** D-539 : hauteur du cadre de la carte réduite (Figma : 52). */
 export const JOURNAL_SELECTION_ROW_HEIGHT = 52;
+/** D-544 : hauteur d'une routine dans la carte Planifications du programme (Figma « PROG — 13 » : 44). */
+const COMPACT_ROW_HEIGHT = 44;
 const CHEVRON = require("../../../assets/icons/icon-suivant.svg");
 const MAX_SCALE = 1.6;
 
@@ -54,6 +56,7 @@ export function JournalRoutineCard({
   onOpen,
   onToggleExpanded,
   selection,
+  compact = false,
   testID,
 }: {
   readonly date: string;
@@ -74,12 +77,74 @@ export function JournalRoutineCard({
    * D-539 (20/11/2026, DSF Agenda § 9) : carte de la modale « Filtrer par routine » — ligne 1 (nom) et ligne 3 seulement,
    * cadre de gauche, case à cocher à droite à la place du chevron et de la ligne 2 ; toucher la carte coche ou décoche.
    */
-  readonly selection?: { readonly checked: boolean; readonly onToggle: () => void; readonly accessibilityHint?: string };
+  readonly selection?: {
+    readonly checked: boolean;
+    readonly onToggle: () => void;
+    readonly accessibilityHint?: string;
+    /**
+     * Contre-recette du 23/11/2026 (c, Hermann, modale de rattachement d'un programme) : « appuyer sur la date de chaque carte
+     * doit permettre d'ouvrir la modale planification en modification » — le cadre de gauche devient un bouton, comme dans le
+     * Journal. Absent : toucher le cadre coche ou décoche, comme le reste de la carte.
+     */
+    readonly onOpen?: () => void;
+    /** Même recette : « afficher le cadre avec le nom et l'année en gris » — teinte grise du Journal sur le cadre. Absent : lilas. */
+    readonly dimmed?: boolean;
+  };
+  /**
+   * D-544 (23/11/2026, DSF Programmes § 2 ; Figma « PROG — 13 » `12862:250`, carte Planifications) : ligne d'une routine dans
+   * la modale du programme — cadre 80 × 44 (date de création, année), traits d'état gauche et droite, bande de prolongement ;
+   * nom (`listCardTitle`) et seconde ligne (`slots`, `supporting`), à 14 du cadre ; ni chevron, ni zones, ni bouton : le
+   * toucher et le glissé sont portés par l'appelant (`SwipeActionsRow`). `detail`, `expanded`, `onOpen` et
+   * `onToggleExpanded` sont ignorés.
+   */
+  readonly compact?: boolean;
   readonly testID: string;
 }) {
   const t = planningStrings.journal;
+  if (compact) {
+    const tintOf = planned ? TINTS.planned : TINTS.idle;
+    return (
+      <View style={[styles.row, styles.compactRow]} testID={testID}>
+        <View style={[styles.band, { backgroundColor: tintOf.band }]} />
+        <View style={[styles.bar, styles.barRight, { backgroundColor: tintOf.bar }]} />
+        <View style={[styles.frame, styles.compactFrame, styles.selectionColumn, { backgroundColor: tintOf.frame }]} testID={`${testID}-frame`}>
+          <View style={[styles.bar, { backgroundColor: tintOf.bar }]} testID={`${testID}-${planned ? "planned" : "idle"}`} />
+          <Text style={[styles.date, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-date`}>
+            {date}
+          </Text>
+          <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-year`}>
+            {year}
+          </Text>
+        </View>
+        <View style={[styles.body, styles.compactBody, styles.selectionColumn]}>
+          <View style={styles.titleLine}>
+            <Text style={[styles.name, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
+              {name}
+            </Text>
+            {parcours ? <ParcoursBadge placement="after" stroke={1} testID={`${testID}-parcours`} /> : null}
+          </View>
+          <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
+            {slots}
+          </Text>
+        </View>
+      </View>
+    );
+  }
   if (selection !== undefined) {
     const tintOf = TINTS.selection;
+    const frameTint = selection.dimmed === true ? TINTS.idle : tintOf;
+    const frameContent = (
+      <>
+        <View style={[styles.bar, { backgroundColor: frameTint.bar }]} testID={selection.dimmed === true ? `${testID}-dimmed` : undefined} />
+        <Text style={[styles.date, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-date`}>
+          {date}
+        </Text>
+        <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-year`}>
+          {year}
+        </Text>
+      </>
+    );
+    const frameStyle = [styles.frame, styles.selectionColumn, { backgroundColor: frameTint.frame }];
     return (
       <Pressable
         onPress={selection.onToggle}
@@ -95,19 +160,23 @@ export function JournalRoutineCard({
             aligner verticalement le nom de la routine avec la date ; aligner verticalement la ligne du nombre de créneaux avec
             l'année » → mêmes hauteurs de ligne et même écart dans les deux colonnes. [Écart 4 au cadre, 2 au texte, hauteurs
             libres — remplacé.] */}
-        <View style={[styles.frame, styles.selectionColumn, { backgroundColor: tintOf.frame }]} testID={`${testID}-frame`}>
-          <View style={[styles.bar, { backgroundColor: tintOf.bar }]} />
-          <Text style={[styles.date, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} adjustsFontSizeToFit testID={`${testID}-date`}>
-            {date}
-          </Text>
-          <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-year`}>
-            {year}
-          </Text>
-        </View>
+        {selection.onOpen === undefined ? (
+          <View style={frameStyle} testID={`${testID}-frame`}>
+            {frameContent}
+          </View>
+        ) : (
+          <Pressable onPress={selection.onOpen} accessibilityRole="button" accessibilityLabel={`${t.edit}, ${name}`} style={frameStyle} testID={`${testID}-frame`}>
+            {frameContent}
+          </Pressable>
+        )}
         <View style={[styles.body, styles.selectionBody, styles.selectionColumn]}>
-          <Text style={[styles.name, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
-            {name}
-          </Text>
+          {/* D-553 (21/11/2026, § 5 ; Figma `12798:26926`) : ligne du filtre présentée comme le Journal — Ⓟ après le nom d'un parcours. */}
+          <View style={styles.titleLine}>
+            <Text style={[styles.name, styles.selectionLine1]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-name`}>
+              {name}
+            </Text>
+            {parcours ? <ParcoursBadge placement="after" stroke={1} testID={`${testID}-parcours`} /> : null}
+          </View>
           <Text style={[styles.secondary, styles.selectionLine2]} maxFontSizeMultiplier={MAX_SCALE} numberOfLines={1} testID={`${testID}-slots`}>
             {slots}
           </Text>
@@ -214,4 +283,8 @@ const styles = StyleSheet.create({
   selectionLine1: { lineHeight: 18 },
   selectionLine2: { lineHeight: 15 },
   selectionCheck: { justifyContent: "center", paddingRight: layout.screenGutter + 10 },
+  // D-544 (Figma `12862:250`) : ligne de 44 dans la carte du programme ; date à 12 du bord du cadre ; texte à 14 du cadre.
+  compactRow: { minHeight: COMPACT_ROW_HEIGHT },
+  compactFrame: { paddingLeft: spacing[12] },
+  compactBody: { paddingLeft: 14, paddingRight: BAR_WIDTH + spacing[8] },
 });

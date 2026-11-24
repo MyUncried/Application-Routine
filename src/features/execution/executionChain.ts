@@ -22,25 +22,34 @@ export type ExecutionRouteParams = {
   /** Occurrence de routine d'où la séance est lancée (statut de l'occurrence, recette du 19/11/2026 au soir). */
   readonly routineId?: string;
   readonly occurrence?: string;
+  /** D-553 : rang de la Séance dans l'occurrence, pour « Rattraper » une Séance seule d'un parcours commencé. */
+  readonly occurrenceRank?: string;
 };
 
-/** Occurrence d'origine : routine et date/heure d'origine. */
-export type ExecutionOrigin = { readonly routineId: string; readonly occurrenceKey: string };
+/**
+ * Occurrence d'origine : routine et date/heure d'origine. `rank` (D-553, 21/11/2026, arbitrage 8) : Séance seule d'un parcours
+ * commencée hors chaîne (« Rattraper » sur sa carte) ; absent : rang de la chaîne, ou 1.
+ */
+export type ExecutionOrigin = { readonly routineId: string; readonly occurrenceKey: string; readonly rank?: number };
 
 const SEPARATOR = ",";
 
 /** Paramètres de route d'une séance de la chaîne ; une seule séance : paramètres d'une séance isolée (inchangés). */
 export function executionParams(sessionIds: readonly string[], rank = 1, origin?: ExecutionOrigin): ExecutionRouteParams {
   const sessionId = sessionIds[rank - 1]!;
-  const from = origin === undefined ? {} : { routineId: origin.routineId, occurrence: origin.occurrenceKey };
+  const from =
+    origin === undefined
+      ? {}
+      : { routineId: origin.routineId, occurrence: origin.occurrenceKey, ...(origin.rank !== undefined ? { occurrenceRank: String(origin.rank) } : {}) };
   if (sessionIds.length < 2) return { sessionId, ...from };
   return { sessionId, chain: sessionIds.join(SEPARATOR), rank: String(rank), ...from };
 }
 
 /** Occurrence d'origine lue dans les paramètres de route ; absente ou incomplète : `null`. */
-export function parseOrigin(routineId: unknown, occurrence: unknown): ExecutionOrigin | null {
+export function parseOrigin(routineId: unknown, occurrence: unknown, occurrenceRank?: unknown): ExecutionOrigin | null {
   if (typeof routineId !== "string" || routineId === "" || typeof occurrence !== "string" || occurrence === "") return null;
-  return { routineId, occurrenceKey: occurrence };
+  const rank = typeof occurrenceRank === "string" ? Number(occurrenceRank) : Number.NaN;
+  return Number.isInteger(rank) && rank >= 1 ? { routineId, occurrenceKey: occurrence, rank } : { routineId, occurrenceKey: occurrence };
 }
 
 /** Chaîne lue dans les paramètres ; absente, incohérente ou d'une seule séance : `null` (séance isolée). */

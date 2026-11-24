@@ -6,7 +6,7 @@ import { formatLocalDate, parseLocalDate, type Routine } from "@/domain/planning
 import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { CALENDAR_PALETTE } from "@/features/planning/CalendarViewTabs";
-import { creationDateParts, matchesJournalQuery, matchesRoutineSessionFilters, routineLastDate } from "@/features/planning/journal";
+import { creationDateParts, matchesJournalQuery, matchesRoutineSessionFilters, routineLastDate, routineTitle } from "@/features/planning/journal";
 import { JournalRoutineCard } from "@/features/planning/JournalRoutineCard";
 import { planningStrings } from "@/features/planning/planningStrings";
 import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
@@ -14,22 +14,34 @@ import type { SessionCatalogueProjection } from "@/features/sessions/sessionCata
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CONTEXT_SEARCH_WIDTH } from "@/shared/ui/catalogueContext";
-import { PrimaryActionButton, PrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { SheetFixedTop } from "@/shared/ui/SheetFixedTop";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
-export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming: number };
+/**
+ * `active` (D-553, arbitrage 3) : routines actives proposées avant les terminées ; absent : active.
+ * `lastUpcoming` : date du dernier créneau à venir (`null` : aucun).
+ */
+export type RoutineFilterChoice = { readonly routine: Routine; readonly upcoming: number; readonly lastUpcoming?: string | null; readonly active?: boolean };
 
-/** « 28/12/2026 ». */
-function numericDate(day: string): string {
+/** « 15 novembre » : mois en toutes lettres, sans année (recette du 21/11/2026, f25-alignement). */
+function dayMonthLong(day: string): string {
   const date = parseLocalDate(day);
-  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+  return `${date.getDate()} ${planningStrings.months[date.getMonth()]}`;
 }
 
-/** Ligne 3 de la carte réduite (D-539) : « 6 à venir, jusqu'au 28/12/2026 ». [« jusqu'au » = dernière date de la routine : interprétation technique.] */
+/**
+ * Ligne 3 de la carte réduite (recette du 21/11/2026, f23-modale, Hermann) : « 10 créneaux à venir jusqu'au 15 novembre » ;
+ * « Aucun créneau à venir » s'il n'y en a pas. « jusqu'au » : dernier créneau à venir. [D-539 : « 6 à venir, jusqu'au
+ * 28/12/2026 », dernière date de la routine — remplacé.]
+ */
 export function routineFilterSlotsLine(choice: RoutineFilterChoice): string {
-  return fillTemplate(planningStrings.routineFilter.slots, { count: String(choice.upcoming), date: numericDate(routineLastDate(choice.routine)) });
+  const t = planningStrings.routineFilter;
+  if (choice.upcoming === 0) return t.slotsNone;
+  const date = dayMonthLong(choice.lastUpcoming ?? routineLastDate(choice.routine));
+  if (choice.upcoming === 1) return fillTemplate(t.slotsOne, { date });
+  return fillTemplate(t.slots, { count: String(choice.upcoming), date });
 }
 
 /**
@@ -59,14 +71,38 @@ export function RoutineFilterSheet({
   sessions,
   onClose,
   onValidate,
+  texts,
+  onPressDate,
+  dimmed,
 }: {
   readonly choices: readonly RoutineFilterChoice[];
   readonly loading: boolean;
   readonly sessions: ReadonlyMap<string, SessionCatalogueProjection>;
   readonly onClose: () => void;
   readonly onValidate: (selected: readonly string[]) => void;
+  /**
+   * Recette du 23/11/2026 (p4-rattacher, Hermann : « la modale de sélection des routines doit être identique à celle du filtre des
+   * routines ») : même modale pour « Rattacher des routines existantes » d'un programme — titre, ligne des créneaux de chaque
+   * carte et libellé du bouton propres à l'appelant ; absent : filtre de l'Agenda.
+   */
+  readonly texts?: {
+    readonly title: string;
+    readonly empty: string;
+    readonly slotsLine: (choice: RoutineFilterChoice) => string;
+    readonly buttonLabel: (count: number) => string;
+  };
+  /**
+   * Contre-recette du 23/11/2026 (c, Hermann, modale de rattachement d'un programme) : « appuyer sur la date de chaque carte doit
+   * permettre d'ouvrir la modale planification en modification » ; absent : toucher la date coche ou décoche (filtre de l'Agenda).
+   */
+  readonly onPressDate?: (choice: RoutineFilterChoice) => void;
+  /** Même recette : « afficher le cadre avec le nom et l'année en gris » pour les cartes désignées ; absent : aucune. */
+  readonly dimmed?: (choice: RoutineFilterChoice) => boolean;
 }) {
   const t = planningStrings.routineFilter;
+  const title = texts?.title ?? t.title;
+  const slotsLine = texts?.slotsLine ?? routineFilterSlotsLine;
+  const buttonLabel = texts?.buttonLabel ?? routineFilterButtonLabel;
   const tJournal = planningStrings.journal;
   const tSessions = strings.screens.sessions;
   const router = useRouter();
@@ -77,12 +113,18 @@ export function RoutineFilterSheet({
   const sessionsOf = (routine: Routine) =>
     routine.entries.map((entry) => sessions.get(entry.sessionId)).filter((projection): projection is SessionCatalogueProjection => projection !== undefined);
   // Recherche et filtres du Journal ; les routines terminées restent proposées (D-540, point 6), le statut est ignoré ici.
+  // D-553 (21/11/2026, arbitrage 3) : une ligne par Routine — actives d'abord, puis terminées, chaque groupe par ordre alphabétique
+  // du nom affiché ; plusieurs lignes peuvent porter le même nom, la sélection porte sur l'identifiant.
   const visible = useMemo(
     () =>
-      choices.filter((choice) => {
-        const routineSessions = sessionsOf(choice.routine);
-        return matchesJournalQuery(choice.routine, routineSessions, query) && matchesRoutineSessionFilters(routineSessions, filters);
-      }),
+      choices
+        .filter((choice) => {
+          const routineSessions = sessionsOf(choice.routine);
+          return matchesJournalQuery(choice.routine, routineSessions, query) && matchesRoutineSessionFilters(routineSessions, filters);
+        })
+        .map((choice) => ({ choice, title: routineTitle(choice.routine, sessionsOf(choice.routine)), active: choice.active !== false }))
+        .sort((a, b) => (a.active !== b.active ? (a.active ? -1 : 1) : a.title.localeCompare(b.title, "fr", { sensitivity: "base" })))
+        .map((item) => item.choice),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [choices, sessions, query, filters],
   );
@@ -95,6 +137,8 @@ export function RoutineFilterSheet({
         ? filterLabels[0]!
         : fillTemplate(tSessions.catalogueFilters.activeSummary, { count: String(filterLabels.length) });
   const today = formatLocalDate(new Date());
+  // Recette du 21/11/2026 (a31-filtre-lignes) : la liste réserve la hauteur du bouton du bas ; la dernière carte reste atteignable.
+  const actionZone = usePrimaryActionZone();
 
   return (
     <ScreenShell backgroundColor={colors.background}>
@@ -103,7 +147,7 @@ export function RoutineFilterSheet({
           <ContextBand fadeToTransparent color={CALENDAR_PALETTE.context} backHalo={CALENDAR_PALETTE.context} padding={{ top: 0, bottom: 15 }}>
             {/* En-tête posé sur la zone de contexte (Figma : bande de 115 depuis le haut de la modale, rangée à y = 66). */}
             <View style={styles.header}>
-              <FixedHeader title={t.title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={t.close} />
+              <FixedHeader title={title} closeIcon topInset={0} onBack={onClose} backAccessibilityLabel={t.close} />
             </View>
             <View style={styles.commands} testID="routine-filter-commands">
               <CatalogueSearchField
@@ -147,7 +191,8 @@ export function RoutineFilterSheet({
         renderScroll={(topHeight) => (
           <ScrollView
             style={styles.scroll}
-            contentContainerStyle={[styles.list, { paddingTop: topHeight + spacing[8] }]}
+            contentContainerStyle={[styles.list, { paddingTop: topHeight + spacing[8], paddingBottom: actionZone.scrollReserve + spacing[8] }]}
+            scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
             contentInsetAdjustmentBehavior="never"
             automaticallyAdjustContentInsets={false}
             testID="routine-filter-list"
@@ -155,7 +200,7 @@ export function RoutineFilterSheet({
             {loading ? <ActivityIndicator color={colors.primary} /> : null}
             {!loading && choices.length === 0 ? (
               <Text style={styles.message} testID="routine-filter-empty">
-                {t.empty}
+                {texts?.empty ?? t.empty}
               </Text>
             ) : null}
             {!loading && choices.length > 0 && visible.length === 0 ? (
@@ -166,20 +211,30 @@ export function RoutineFilterSheet({
             {visible.map((choice) => {
               const created = creationDateParts(choice.routine.createdAt);
               const routineSessions = sessionsOf(choice.routine);
-              const name = choice.routine.name.trim() !== "" ? choice.routine.name : routineSessions.map((session) => session.name).join(", ");
+              const name = routineTitle(choice.routine, routineSessions);
+              // Contre-recette du 23/11/2026 (c) : options du cadre transmises seulement quand l'appelant les fournit (rendu du
+              // filtre de l'Agenda inchangé).
+              const selection = {
+                checked: selected.includes(choice.routine.id),
+                onToggle: () => toggle(choice.routine.id),
+                ...(onPressDate !== undefined ? { onOpen: () => onPressDate(choice) } : {}),
+                ...(dimmed?.(choice) === true ? { dimmed: true } : {}),
+              };
               return (
                 <View key={choice.routine.id} style={styles.item}>
                   <JournalRoutineCard
                     date={created?.day ?? ""}
                     year={created?.year ?? ""}
                     name={name}
+                    // D-553 (21/11/2026, § 5) : même présentation que le Journal — Ⓟ après le nom de Routine d'un parcours.
+                    parcours={choice.routine.entries.length > 1}
                     detail=""
-                    slots={routineFilterSlotsLine(choice)}
+                    slots={slotsLine(choice)}
                     planned={choice.upcoming > 0 && routineLastDate(choice.routine) >= today}
                     expanded={false}
                     onOpen={() => undefined}
                     onToggleExpanded={() => undefined}
-                    selection={{ checked: selected.includes(choice.routine.id), onToggle: () => toggle(choice.routine.id) }}
+                    selection={selection}
                     testID={`routine-filter-card-${choice.routine.id}`}
                   />
                 </View>
@@ -189,9 +244,9 @@ export function RoutineFilterSheet({
         )}
       />
       {/* Bouton primaire en bas, sans trait de séparation (DSF Agenda § 9). */}
-      <PrimaryActionZone testID="routine-filter-action-zone">
+      <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="routine-filter-action-zone">
         <PrimaryActionButton
-          label={routineFilterButtonLabel(kept.length)}
+          label={buttonLabel(kept.length)}
           disabled={kept.length === 0}
           onPress={() => {
             if (kept.length > 0) onValidate(kept);

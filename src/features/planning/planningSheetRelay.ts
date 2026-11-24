@@ -7,7 +7,12 @@
 export type PlanningSheetRequest =
   | { readonly kind: "selection"; readonly initial: readonly string[]; readonly onValidate: (selected: readonly string[]) => void }
   /** D-539 (mis à jour le 20/11/2026) : modale « Filtrer par routine » de l'Agenda, toujours ouverte sans routine cochée. */
-  | { readonly kind: "routineFilter"; readonly onValidate: (selected: readonly string[]) => void };
+  | { readonly kind: "routineFilter"; readonly onValidate: (selected: readonly string[]) => void }
+  /**
+   * D-545 (23/11/2026) : modale « Rattacher un programme » ouverte par la ligne Programme — `selectedId` : programme actuel
+   * (`null` : Aucun) ; `onChoose` reçoit le programme touché, ou `null` quand la carte déjà sélectionnée est touchée.
+   */
+  | { readonly kind: "program"; readonly selectedId: string | null; readonly onChoose: (programId: string | null) => void };
 
 let pending: PlanningSheetRequest | null = null;
 

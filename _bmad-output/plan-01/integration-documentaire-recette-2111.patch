@@ -1,0 +1,49 @@
+diff --git a/docs/DSF-PLAN-2026-11-21.md b/docs/DSF-PLAN-2026-11-21.md
+index fe6a552..e430117 100644
+--- a/docs/DSF-PLAN-2026-11-21.md
++++ b/docs/DSF-PLAN-2026-11-21.md
+@@ -44,7 +44,7 @@ Le Plan n'a **pas de filtre** : il montre déjà toutes les routines de la semai
+ 
+ La largeur des cadres est la même dans les deux cas.
+ 
+-**Navigation.** On change de semaine par les flèches ou en touchant un cadre. Les doubles flèches changent de mois.
++**Navigation.** On change de semaine par les flèches ou en touchant un cadre. Les doubles flèches changent de mois. [Recette du 21/11/2026 (constat a — Hermann : « Glisser horizontalement sur le tableau change de semaine : vers la gauche pour la semaine suivante, vers la droite pour la précédente »).]
+ 
+ ## 3. Grille
+ 
+@@ -57,7 +57,7 @@ La largeur des cadres est la même dans les deux cas.
+ 
+ **Lignes de routine.**
+ - Hauteur 32.
+-- Nom de la séance en Inter Regular 10, sur deux lignes au plus.
++- Nom de la séance en Inter Regular 10, sur deux lignes au plus. [Recette du 21/11/2026 (constats b, c — Hermann : « Afficher la durée de la séance sous son nom » ; « Si le nom de la séance est trop long, l'afficher sur deux lignes ») : durée estimée sous le nom ; la ligne s'agrandit pour le nom sur deux lignes et la durée.]
+ - Un filet horizontal de 0,5 sépare chaque ligne.
+ 
+ **Traits verticaux.** Des traits de 0,5, gris très clair, séparent les jours et la colonne des noms du lundi. Ils passent derrière les cases et les bandes, et s'interrompent sur la ligne de titre d'un parcours.
+@@ -68,7 +68,7 @@ La largeur des cadres est la même dans les deux cas.
+   - vert : complétée ;
+   - orange : partielle ;
+   - rouge : manquée ou expirée ;
+-  - gris : à venir ou arrêtée.
++  - gris : à venir ou arrêtée. [Remplacé le 21/11/2026 (recette, p32-cases — Hermann : « À venir doit être en couleur bleue, voir l’agenda ») : bleu, à venir (fond et trait de l'Agenda) ; gris, arrêtée.]
+ - Heure en Inter Regular 9, de la couleur de l'état.
+ - Une heure pleine s'écrit sans minutes : « 8h », « 14h ». Les autres en entier : « 18h30 ».
+ 
+@@ -76,7 +76,7 @@ La largeur des cadres est la même dans les deux cas.
+ 
+ **Ordre des routines.** Elles sont regroupées par programme ; dans un groupe, par ordre alphabétique. Le Plan montre les routines qui ont au moins un créneau dans la semaine.
+ 
+-**Exécutions hors planification.** Elles n'apparaissent pas dans le Plan : elles sont visibles dans l'Agenda.
++**Exécutions hors planification.** Elles n'apparaissent pas dans le Plan : elles sont visibles dans l'Agenda. [Remplacé le 21/11/2026 (recette, p32-hors-plan — Hermann : « Un séance lancée depuis le catalogue doit être visible dans le plan ») : groupe « Hors planification » après les programmes, une ligne par Séance, une case par Exécution à son heure réelle. Groupe, ordre alphabétique, cases vides inactives et exclusion du Total : choix de Claude, à valider.]
+ 
+ ## 4. Groupes par programme
+ 
+@@ -119,7 +119,7 @@ Même principe que l'Agenda (D-553).
+   - Un jour sans créneau affiche « — ».
+ - **Calcul.** La durée estimée de tout ce qui est prévu, y compris les jours passés : le réalisé relève de l'onglet Suivi. Un parcours compte la somme de ses séances.
+ 
+-**Légende** des quatre états sous le tableau.
++**Légende** des quatre états sous le tableau. [Cinq depuis le 21/11/2026 : « Arrêtée » (gris) s'ajoute.]
+ 
+ ## 7. Gestes
+ 
