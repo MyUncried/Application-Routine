@@ -98,3 +98,53 @@ Commit qui contient ce rapport, sur `fix/en-tete-cercle-blanc-20261124`, envoyé
   - `src/shared/ui/ScreenShell.tsx`
   - `src/shared/ui/SheetFixedTop.tsx`
   - ce rapport
+
+## Complément 2 du 24/11/2026 : les croix grises utilisent le même composant
+
+- **Demande** de Hermann, au sujet de la croix grise des fenêtres « Fermer et valider » : « Ces boutons doivent utiliser le même composant que les autres ».
+- **Départ** : `5cb145b7`.
+- **Classe** : B ; D-593 étendue (registre annoté).
+
+### Réalisé
+
+- **Nouveau module partagé `src/shared/ui/HeaderCircleAction.tsx`** :
+  - cercle blanc `#FCFCFE` de 38, liseré blanc, ombre légère, icône ✕ `#14141A` ;
+  - cible tactile de 48 ;
+  - composant `CloseCircleAction`, déplacé depuis `ScreenShell` et réexporté pour les imports existants (fenêtre Formats).
+- **Utilisateurs du même composant** :
+  - **en-tête d'écran** (`FixedHeader`), dont le style vient de ce module ;
+  - **en-tête de modale** `ModalHeader` / `ModalCancelAction` : Paramètres d'exécution, modèle de Format, saisie du maximum, répétitions partielles ;
+  - **feuilles de filtres** (`FilterSheetPrimitives`) ;
+  - **feuilles de choix** : catégorie, zones du corps, étiquettes ;
+  - **dialogue** de valeur de référentiel (`ReferenceValueDialog`).
+- **Inchangés** :
+  - la coche de validation, déjà commune ;
+  - le disque de retrait d'une ligne de tableau (`sheetTable`), qui est une autre commande.
+
+### Tests
+
+- **Suites liées** : 115 au total (`findRelatedTests`). Le passage parallèle a été arrêté par le système, faute de mémoire, après 62 suites :
+  - 61 suites réussies ;
+  - 1 échec, `MovementFilterSheet.b7`, qui attendait l'ancien fond gris : le test est mis à jour (6/6).
+- Ensuite, 9 suites directement concernées, exécutées une par une, sont réussies (57 tests) : `ModalHeaderActions`, `ScreenShell`, `FormatsWindow.c2`, `formatsWindowRoute`, `PersonalLibraryScreens`, `RoutineFilterSheet`, `ProgramChoiceSheet`, `ProgramAttachSheet`, `ExerciseSheet`.
+- **Non exécutées** : les 32 autres suites liées.
+- **Types et lint** : `tsc` est propre et le lint ne signale rien.
+
+### À vérifier sur iPhone
+
+- Paramètres d'exécution, modèle de Format, saisies d'exécution ;
+- filtres des Mouvements et des Séances ;
+- choix de catégorie, de zones et d'étiquettes.
+- Sur chacun, la croix doit être le cercle blanc de l'en-tête.
+
+### Fichiers modifiés
+
+- `src/shared/ui/HeaderCircleAction.tsx` (nouveau)
+- `src/shared/ui/ScreenShell.tsx`
+- `src/shared/ui/ModalHeaderActions.tsx`
+- `src/features/activities/FilterSheetPrimitives.tsx`
+- les trois feuilles de choix de `src/features/reference-data/`
+- `src/features/reference-data/ReferenceValueDialog.tsx`
+- le test `MovementFilterSheet.b7`
+- le registre
+- ce rapport

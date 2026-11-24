@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type StylePr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { CloseCircleAction, HEADER_CIRCLE, HEADER_ICON_TINT } from "@/shared/ui/HeaderCircleAction";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -20,10 +21,9 @@ import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/sha
  * Foundation. Toute divergence future entre écrans passe par les props de
  * ces composants, jamais par une redéfinition locale équivalente.
  */
-/** Cercle Retour / Annuler de l'en-tête, unique pour tous les écrans (Figma, valeurs sans jeton). */
-const BACK_CIRCLE = { surface: "#FCFCFE", shadow: "#1A1A26" } as const;
-/** Trait du ✕ et du chevron (instance Figma `#14141A`). */
-const BACK_ICON_TINT = "#14141A";
+/** Cercle Retour / Annuler et trait de l'icône : composant partagé `HeaderCircleAction` (D-593). */
+const BACK_ICON_TINT = HEADER_ICON_TINT;
+export { CloseCircleAction };
 
 export function ScreenShell({
   children,
@@ -249,26 +249,7 @@ export function FixedHeader({
   );
 }
 
-/**
- * Action circulaire « Fermer » standard (D-142 : cercle visible 38, icône 24, cible 48), la même que le ✕
- * de `FixedHeader` — PRE-9, recette iPhone n° 3 du 02/11/2026 (f3-fenetre, Hermann : « Le bouton Annuler
- * n'est pas au format standard de ce bouton, il existe un composant ») : pour les fenêtres sans en-tête
- * d'écran (fenêtre Formats).
- */
-export function CloseCircleAction({ onPress, accessibilityLabel, style, testID }: { onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>; testID: string }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
-      style={[styles.backCircle, style]}
-      testID={testID}
-    >
-      <KodjoIcon name="control-close" size={dimensions.backAction.icon} testID={`${testID}-icon`} />
-    </Pressable>
-  );
-}
+// [`CloseCircleAction` déplacé dans `HeaderCircleAction.tsx` le 24/11/2026 (D-593), réexporté ci-dessus.]
 
 /** Séparateur horizontal sous le Header — un seul token (`colors.divider`) pour tous les écrans consommateurs. */
 export function HeaderSeparator() {
@@ -459,10 +440,10 @@ const styles = StyleSheet.create({
     width: dimensions.backAction.visualCircle,
     height: dimensions.backAction.visualCircle,
     borderRadius: dimensions.backAction.visualCircle / 2,
-    backgroundColor: BACK_CIRCLE.surface,
+    backgroundColor: HEADER_CIRCLE.surface,
     borderWidth: 1,
     borderColor: colors.background,
-    shadowColor: BACK_CIRCLE.shadow,
+    shadowColor: HEADER_CIRCLE.shadow,
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 10,
