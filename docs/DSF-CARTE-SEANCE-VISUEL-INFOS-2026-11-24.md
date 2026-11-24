@@ -1,8 +1,8 @@
 # DSF — Carte de séance du catalogue : visuel en mosaïque et informations (24/11/2026)
 
-Décisions de Hermann du 24/11/2026 (D-564, D-565). Elles remplacent, pour la carte **repliée** du catalogue des séances, la cascade du visuel et la ligne de synthèse de [KODJO-Spec-Carte-et-catalogue-seances-2026-10-27](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) (révisée le 06/11/2026, D-504 à D-507). La carte déployée, les filtres, le glissé et Démarrer ne changent pas.
+Décisions de Hermann du 24/11/2026 et du 25/11/2026 (D-564, D-565, D-567). Elles remplacent, pour la carte **repliée** du catalogue des séances, la cascade du visuel et la ligne de synthèse de [KODJO-Spec-Carte-et-catalogue-seances-2026-10-27](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) (révisée le 06/11/2026, D-504 à D-507). Les filtres et le glissé ne changent pas ; la carte déployée est conservée comme variante du composant mais n'est plus ouverte depuis le catalogue (§ 4).
 
-Figma : planche « Visuel de séance — essais de mosaïque (1 à 6 images) » et écran « P-Catalogue des séances — Visuel en mosaïque et informations (essai) » (cartes détachées, essai non intégré au composant).
+Figma : composant `DSF / Cards / Séance — catalogue` (variantes Repliée, Sélection et Déployée) et composant `DSF / Cards / Séance — mosaïque` (1, 2, 3, 4 et « 5 et plus » images) ; cartes déployées dans les écrans « Catalogue des séances » du prototype et dans la modale « Planifier une séance — Sélectionner une séance ».
 
 ## 1. Visuel (D-564)
 
@@ -26,19 +26,33 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 - Toucher le visuel garde son comportement actuel (ouvre la composition en modification).
 - Variantes horizontales (2 images empilées ; une horizontale et deux carrés) dessinées sur la planche et **écartées**.
 
-## 2. Informations (D-565)
+## 2. Informations (D-565, D-567)
 
-La carte repliée affiche ce que contient la séance, ses formats et sa durée.
+La carte repliée fait **72 pt de haut et trois lignes** ; elle n'a plus de chevron.
 
-- Ligne 1 : nom (chevron inchangé).
-- Ligne 2 : **noms des mouvements** distincts, dans l'ordre de la composition, séparés par des virgules ; ce qui ne tient pas est remplacé par « +N ».
-- Ligne 3 : **durée** (chronomètre puis durée, règles de durée inchangées, y compris « ≥ »), toujours présente ; suivie, s'il y a des formats, d'un point médian puis du pictogramme haltère et des **noms des formats** séparés par des virgules.
-- Bouton **Démarrer** : icône ronde de 28 pt à droite, centrée sur la hauteur de la carte (relief au repos, état appuyé : D-566) ; il remplace la pastille textuelle « Démarrer ».
-  [Remplacé le 24/11/2026 : durée en haut à droite et ligne 3 réservée aux formats.]
-- **Retirés de la carte repliée** : catégories, zones corporelles (déjà absentes), nombre d'exercices, nombre de circuits, volume d'une séance à un seul exercice. Ces informations restent visibles dans l'état déployé ; les filtres Catégories et Zones corporelles ne changent pas.
-- Hauteur de la carte : 72 pt, inchangée.
+- Ligne 1 : **nom** de la séance.
+- Ligne 2 : chronomètre, **durée** (règles de durée inchangées, y compris « ≥ »), point médian, **noms des formats** séparés par des virgules, en semi-gras. Sans format, le texte « Libre » est affiché.
+- Ligne 3 : pictogramme haltère puis **noms des mouvements** distincts, dans l'ordre de la composition, séparés par des virgules, sur une seule ligne ; ce qui ne tient pas est remplacé par « +N ».
+- Bouton **Démarrer** : icône ronde de 28 pt à droite, centrée sur la hauteur de la carte, relief au repos et état appuyé (D-566) ; l'ombre est de la couleur du fond de la zone de contexte de la composition (`color/catalogue/seances/context`). Il remplace la pastille textuelle « Démarrer ».
+- **Retirés de la carte repliée** : catégories, zones corporelles, nombre d'exercices, nombre de circuits, volume d'une séance à un seul exercice, chevron.
+- **Mosaïque à 5 images et plus** : trois images et une quatrième case « +N », N = nombre d'images − 3 (les cases à 5 et 6 images seraient trop petites à 64 pt).
+
+## 2 bis. Variante « Sélection »
+
+Dans les modales de choix d'une séance (par exemple « Planifier une séance — Sélectionner une séance »), la carte est la variante `État=Sélection` du même composant : mêmes trois lignes et même mosaïque, **sans bouton Démarrer** ; la pastille de sélection de la modale occupe la place de droite.
 
 ## 3. Points techniques
 
 - Le rectangle de la vue retenue est une donnée de l'image du catalogue (x, y, largeur, hauteur, en pourcentage de l'image). Aucun calcul au moment de l'affichage.
 - Essai de détection sur les 60 illustrations du 17/11/2026 (planches de Hermann du 24/11/2026) : 43 images à deux vues, 10 à trois vues (dont 4 en « deux en haut, une en bas »), 7 images simples ; détection d'une séparation horizontale seulement si la bande est blanche sur toute la largeur. Une fausse séparation a été observée (montants du portique de `FIT-CRO-010`) : la vérification par la personne qui publie reste nécessaire. Constat de Hermann : le résultat du recadrage centré est « très correct ». Dans les cases carrées, une vue verticale perd du haut et du bas (têtes ou jambes parfois coupées) ; accepté.
+
+## 4. Toucher la carte : composition en modale (D-567)
+
+Il n'y a plus de synthèse dépliée dans la liste : **toucher la carte ouvre la composition de la séance** (écran « Composition séance en modification ») **présentée en modale iOS**. Le visuel garde le même comportement.
+
+- En-tête de la modale : croix à gauche, titre « Composer une séance ».
+- Pied de la modale : à gauche, **Démarrer** (icône ronde à relief, 44 pt) ; à droite, **« Valider les modifications »**.
+- **Valider les modifications** enregistre le brouillon de composition et ferme la modale. **Démarrer** enregistre, ferme la modale et lance la séance.
+- La durée totale (« ≥ 21’ ») est alignée à droite de la zone de contexte, entre l'étiquette et le carré d'illustration.
+- La variante `État=Déployée` du composant est conservée (usage futur possible) ; aucun écran du catalogue ne l'ouvre.
+- Écran de référence : « P-Catalogue des séances — Composition en modale (essai) ».

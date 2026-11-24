@@ -2,6 +2,7 @@
 
 > **Révision du 06/11/2026 :** nouveau format de carte (72 pt, chevron à gauche, durée en haut à droite, ligne « N circuits · N exercices », Démarrer en pilule) et carte dépliée (« N passages », « séries groupées | alternées », « N tours ») — [KODJO-Catalogues-cartes-modales-2026-11-06](KODJO-Catalogues-cartes-modales-2026-11-06.md) §5–§6 (D-504 à D-507).
 > **Révision du 24/11/2026 (D-564, D-565) :** sur la carte repliée du catalogue, la cascade du visuel est remplacée par une mosaïque des images des mouvements et la ligne de synthèse (« N circuits · N exercices ») par les noms des mouvements et des formats — [DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24](DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md). [Texte d'origine conservé ci-dessous.]
+> **Révision du 25/11/2026 (D-567) :** la carte repliée du catalogue passe à trois lignes sans chevron ; toucher la carte ouvre la composition en modale (plus de carte dépliée dans la liste) ; variante « Sélection » sans Démarrer pour les modales de choix — [DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24](DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md) §§ 2, 4. [Texte d'origine conservé ci-dessous.]
 
 
 Lot à verser à la documentation. Il remplace et complète `KODJO-Spec-Carte-seance-deployee-2026-10-27.md`, qui ne couvrait que l'état déployé.
