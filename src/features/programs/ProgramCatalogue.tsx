@@ -84,7 +84,8 @@ export function ProgramStatusToggle({
 }
 
 /**
- * Zone de contexte du segment Programmes : ligne 1 statut, ligne 2 Rechercher, Filtre, Tri, Créer.
+ * Zone de contexte du segment Programmes : ligne 1 statut, ligne 2 Rechercher, Filtre, Tri. [Créer — retiré le 24/11/2026
+ * (UI-FAB-01, D-558) : bouton flottant « Créer » du catalogue.]
  * [À CLARIFIER : aucun critère de filtre ni de tri n'est défini pour les programmes — Filtre et Tri sont affichés inactifs.]
  */
 export function ProgramContext({
@@ -93,15 +94,15 @@ export function ProgramContext({
   counts,
   query,
   onChangeQuery,
-  onCreate,
+  widenSearch = false,
 }: {
   readonly status: ProgramStatus;
   readonly onChangeStatus: (status: ProgramStatus) => void;
   readonly counts: ProgramCounts | null;
   readonly query: string;
   readonly onChangeQuery: (query: string) => void;
-  /** Absent : pas de bouton Créer (D-545, modale « Rattacher un programme »). */
-  readonly onCreate?: () => void;
+  /** UI-FAB-01 : champ Rechercher élargi (catalogue des programmes) ; absent : inchangé (D-545, « Rattacher un programme »). */
+  readonly widenSearch?: boolean;
 }) {
   return (
     <CatalogueContextZone
@@ -117,7 +118,7 @@ export function ProgramContext({
       }}
       filter={<CommandCircle label={t.filter} icon="filter" disabled testID="program-filter-action" />}
       sortLabel={t.sort}
-      {...(onCreate !== undefined ? { createLabel: t.create, onCreate } : {})}
+      widenSearch={widenSearch}
     />
   );
 }

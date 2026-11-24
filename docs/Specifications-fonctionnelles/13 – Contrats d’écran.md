@@ -6433,8 +6433,8 @@ Les prescriptions précédentes « carte par occurrence de Routine » et « nom 
 Sur les catalogues, le Journal, l'Agenda et la composition de séance, la création passe par le bouton flottant ([DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md)). Contrat :
 - le contenu du bouton dépend de l'écran ;
 - toucher le bouton déclenche l'action ;
-- glisser déplace le bouton, qui se range contre le bord le plus proche ; la position est conservée ;
+- [glisser déplace le bouton, qui se range contre le bord le plus proche ; la position est conservée — remplacé le 24/11/2026 par D-594 :] dès 10 pt de glissement, le bouton suit le doigt avec un retard ; relâché, il garde son élan et se range contre le bord gauche ou droit vers lequel l'élan le porte, à la hauteur où il s'arrête, sur tout l'écran (barre de navigation comprise) ; la position est conservée ;
 - le bouton passe sous les feuilles modales ;
-- en composition, le menu Créer s'ouvre vers le haut, avec quatre options.
+- en composition, le menu Créer s'ouvre vers le haut, avec quatre options [complété le 24/11/2026, D-594 : vers le bas quand il n'y a pas la place au-dessus].
 
 L'Agenda crée un créneau unique au jour sélectionné ; le Plan n'a pas de bouton flottant.

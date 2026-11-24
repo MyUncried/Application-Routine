@@ -27,6 +27,7 @@ import {
 } from "@/shared/ui/navigationLayout";
 import { colors, minTouchTarget, type } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
+import { FloatingCreateHost } from "@/shared/ui/FloatingCreateHost";
 
 /**
  * Navigation principale (docs/Specifications-fonctionnelles/06 – Écrans et
@@ -48,6 +49,8 @@ import { strings } from "@/shared/i18n";
 export default function TabsLayout() {
   return (
     <View style={styles.root}>
+      {/* D-594 (24/11/2026) : le bouton flottant « Créer » de l'écran affiché est rendu ici, devant la barre de navigation. */}
+      <FloatingCreateHost>
       <Tabs
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{ headerShown: false }}
@@ -99,6 +102,7 @@ export default function TabsLayout() {
         {/* PROG-CAT-01 (CE-PRF-01) : Profil › Confidentialité, écran de l'onglet Profil. */}
         <Tabs.Screen name="profile-privacy" options={{ href: null }} />
       </Tabs>
+      </FloatingCreateHost>
     </View>
   );
 }

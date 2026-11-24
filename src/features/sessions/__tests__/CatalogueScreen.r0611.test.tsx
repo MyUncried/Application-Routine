@@ -162,7 +162,8 @@ describe("D-510 (06/11/2026) : badge « New » d'une fiche créée", () => {
     await movements().create(movement("autre", "Abdos"));
     await focus();
     expect(badges()).toEqual([]);
-    await press("catalogue-create-action");
+    // UI-FAB-01 (D-558) : bouton flottant « Créer un mouvement ».
+    await press("floating-create");
     expect(mockPush).toHaveBeenLastCalledWith("/movement");
     await createWithService("fentes", "Fentes avant");
     expect(badges()).toEqual(["fentes"]);

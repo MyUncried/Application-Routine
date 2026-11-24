@@ -6,6 +6,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CREATE_MENU_FADE_IN_MS } from "@/features/sessions/CreateMenu";
+import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -131,16 +132,8 @@ export function FilterSheetFrame({
   };
   const headerRow = (
       <View style={styles.header} testID={`${testIDPrefix}-header`}>
-        <Pressable
-          onPress={close}
-          accessibilityRole="button"
-          accessibilityLabel={closeLabel}
-          hitSlop={HEADER_ACTION_HIT_SLOP}
-          style={styles.cancelCircle}
-          testID={`${testIDPrefix}-close`}
-        >
-          <KodjoIcon name="wheel-action-cancel" />
-        </Pressable>
+        {/* D-593 (Hermann, 24/11/2026 : « Ces boutons doivent utiliser le même composant que les autres ») : cercle blanc standard. [Croix grise sur fond gris — remplacée.] */}
+        <CloseCircleAction onPress={close} accessibilityLabel={closeLabel} testID={`${testIDPrefix}-close`} />
         <Text style={styles.title} accessibilityRole="header">
           {title}
         </Text>
@@ -375,14 +368,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     minHeight: 56,
     paddingHorizontal: spacing[12] + 5,
-  },
-  cancelCircle: {
-    width: HEADER_ACTION_SIZE,
-    height: HEADER_ACTION_SIZE,
-    borderRadius: HEADER_ACTION_SIZE / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wheelActionCancelBackground,
   },
   validateCircle: {
     width: HEADER_ACTION_SIZE,

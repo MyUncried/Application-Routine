@@ -26,6 +26,7 @@ import { NATIVE_PICKER_MODAL, nativePickerKeyboardOffset } from "@/features/refe
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
 import { ENTRY_MENU_ACTION } from "@/shared/ui/entryMenuAction";
+import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -330,16 +331,8 @@ export function CategoryPickerModal({
           testID="category-picker-sheet"
         >
           <View style={styles.sheetHeader} testID="category-picker-header">
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t.closeAccessibilityLabel}
-              hitSlop={5}
-              style={styles.sheetCancel}
-              testID="category-picker-close"
-            >
-              <KodjoIcon name="wheel-action-cancel" />
-            </Pressable>
+            {/* D-593 (Hermann, 24/11/2026 : « Ces boutons doivent utiliser le même composant que les autres ») : cercle blanc standard. [Croix grise sur fond gris — remplacée.] */}
+            <CloseCircleAction onPress={onClose} accessibilityLabel={t.closeAccessibilityLabel} testID="category-picker-close" />
             <Text style={styles.sheetTitle} accessibilityRole="header">
               {strings.executionParameters.referenceSheets.categoryTitle}
             </Text>

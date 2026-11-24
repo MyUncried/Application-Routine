@@ -400,6 +400,19 @@ export function CatalogueScreen() {
     <TabbedScreen
       title={title}
       palette={{ context: palette.context, background: palette.background }}
+      // UI-FAB-01 (D-558, DSF Bouton flottant § 3) : bouton flottant « Créer » selon le segment — silhouette « + » (créer un
+      // mouvement), liste « + » (créer une séance), carnet « + » (créer un programme) ; même action que l'ancien bouton
+      // Créer de la zone de contexte (`handleCreatePress`).
+      floatingCreate={{
+        variant: activeSegment === "movements" ? "movement" : activeSegment === "programs" ? "program" : "session",
+        label:
+          activeSegment === "movements"
+            ? strings.shared.floatingCreate.createMovement
+            : activeSegment === "programs"
+              ? strings.shared.floatingCreate.createProgram
+              : strings.shared.floatingCreate.createSession,
+        onPress: handleCreatePress,
+      }}
       tabs={{
         options: [
           { value: "movements", label: strings.screens.movement.catalogue.segment },
@@ -448,7 +461,6 @@ export function CatalogueScreen() {
                 />
               ),
               sortLabel: t.sortAction,
-              action: { label: t.createAction, icon: "create", onPress: handleCreatePress },
               summaryAccessory: (
                 <ListGridToggle
                   value={movementView ?? "LIST"}
@@ -479,7 +491,7 @@ export function CatalogueScreen() {
                       setSessionFilters(EMPTY_SESSION_FILTERS);
                       setSessionFilterLabels([]);
                     }}
-                    onCreate={handleCreatePress}
+                    widenSearch
                   />
                 ) : activeSegment === "programs" ? (
                   <ProgramContext
@@ -488,7 +500,7 @@ export function CatalogueScreen() {
                     counts={programCountsValue}
                     query={programQuery}
                     onChangeQuery={setProgramQuery}
-                    onCreate={handleCreatePress}
+                    widenSearch
                   />
                 ) : null,
             }

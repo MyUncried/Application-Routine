@@ -1,162 +1,140 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { CREATE_MENU_LAYER, CreateMenu } from "@/features/sessions/CreateMenu";
+import type { FloatingCreateAnchor } from "@/shared/ui/FloatingCreateButton";
 
 /**
- * PRE-9, recette iPhone du 29/10 — menu Créer de la Composition (Figma `10705:20223`) :
- * cre-figma (axe bleu), obs-4 (options inactives sans opacité, « Annuler » en bleu Kodjo), f (fondu
- * d'apparition). Jest ne prouve pas le rendu sur iPhone.
- * Ordre de Hermann du 01/11/2026 (ch13 CE-T03-08 « Menu Créer — état cible ») : plus de rangée
- * « Annuler » ; le « + » devient Annuler (croix de 34 sur fond gris) ; l'axe s'arrête à la dernière
- * option.
+ * Menu Créer de la Composition (Figma `10705:20223`). Recettes du 29/10 (cre-figma : axe bleu ; obs-4 : options inactives
+ * sans opacité ; f : fondu d'apparition) et du 01/11 (le bouton devient la croix ; menu au-dessus de la zone de contexte).
+ * UI-FAB-01 (D-558, DSF Bouton flottant § 4, 24/11/2026) : ouverture vers le haut depuis le bouton flottant ; la croix est le
+ * bouton transformé (même rond de verre, même place) ; options empilées au-dessus, icônes sur l'axe du bouton.
+ * [Ouverture vers le bas depuis le « + » de la zone de contexte (mesure du « + », croix grise de 34) — remplacée.]
+ * Jest ne prouve pas le rendu sur iPhone.
  */
-type Measure = (callback: (x: number, y: number, width: number, height: number) => void) => void;
+const RIGHT: FloatingCreateAnchor = { centerX: 356, centerY: 748, side: "RIGHT" };
 
-function renderMenu(plusAnchorRef?: { current: View | null }) {
+function renderMenu(anchor: FloatingCreateAnchor | null = RIGHT, onCancel = jest.fn()) {
   render(
     <CreateMenu
-      top={200}
-      plusAnchorRef={plusAnchorRef}
+      anchor={anchor}
       options={[
-        { key: "exercise", label: "Créer un exercice", icon: "movement", onPress: jest.fn(), testID: "opt-exercise" },
-        { key: "cycle", label: "Ajouter un cycle", icon: "cycle", testID: "opt-cycle" },
+        { key: "exercise", label: "Créer un exercice", icon: "exercise", onPress: jest.fn(), testID: "opt-exercise" },
+        { key: "circuit", label: "Créer un circuit", icon: "circuit", testID: "opt-circuit" },
+        { key: "cycle", label: "Créer un cycle", icon: "cycle", onPress: jest.fn(), testID: "opt-cycle" },
+        { key: "stop", label: "Ajouter un point d’arrêt", icon: "stopPoint", onPress: jest.fn(), accessibilityHint: "indice", testID: "opt-stop" },
       ]}
-      onCancel={jest.fn()}
-      cancelLabel="Annuler"
+      onCancel={onCancel}
+      cancelLabel="Fermer le menu Créer"
       cancelTestID="opt-cancel"
     />,
   );
+  return onCancel;
 }
 
 const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, { includeHiddenElements: true }).props.style);
 
-describe("CreateMenu — recette du 29/10", () => {
-  it("the vertical axis is Kodjo-menu blue, starts at Annuler and stops at the last option (01/11)", () => {
+describe("CreateMenu — ouverture depuis le bouton flottant (UI-FAB-01)", () => {
+  it("quatre options empilées au-dessus du bouton, la dernière à 14 de son haut, écart 10 (Figma 10705:20223)", () => {
+    renderMenu();
+    // Bouton : centre (356, 748), haut à 718. Dernière rangée (32) : 718 − 14 − 32 = 672 ; puis 630, 588, 546.
+    expect(style("opt-stop").top).toBe(672);
+    expect(style("opt-cycle").top).toBe(630);
+    expect(style("opt-circuit").top).toBe(588);
+    expect(style("opt-exercise").top).toBe(546);
+  });
+
+  it("icônes rondes sur l'axe du bouton ; pilules de 263 à 10 à leur gauche", () => {
+    renderMenu();
+    // Icône de 32 centrée sur x = 356 : gauche à 340 ; pilule de 263 à 10 de l'icône : rangée à 340 − 10 − 263 = 67.
+    expect(style("opt-exercise").left).toBe(67);
+    expect(style("opt-exercise-pill").width).toBe(263);
+  });
+
+  it("bouton rangé à gauche : même pile en miroir, pilules à droite des icônes", () => {
+    renderMenu({ centerX: 46, centerY: 748, side: "LEFT" });
+    expect(style("opt-exercise")).toMatchObject({ left: 46 - 16, flexDirection: "row-reverse" });
+  });
+
+  it("l'axe bleu relie la croix (centre du bouton) à la première icône", () => {
     renderMenu();
     const axis = style("composition-add-activity-tree-axis");
     expect(axis.backgroundColor).toBe("#1414F5");
-    // Deux rangées d'options, plus de rangée Annuler : centre de la dernière à 200 + 42 + 16.
-    expect(axis.top + axis.height).toBe(200 + 42 + 16);
-    // Sans mesure : part du centre d'Annuler (Figma : 47 au-dessus de la première rangée).
-    expect(axis.top).toBe(200 - 47);
+    expect(axis.left).toBe(356 - 1);
+    expect(axis.top).toBe(546 + 16);
+    expect(axis.top + axis.height).toBe(748);
   });
 
+  it("la croix est le bouton flottant transformé : rond de verre de 60 à sa place, variante Fermer ; elle et le voile ferment sans action", () => {
+    const onCancel = renderMenu();
+    expect(style("opt-cancel")).toMatchObject({ left: 326, top: 718, width: 60, height: 60 });
+    expect(screen.getByTestId("opt-cancel").props.accessibilityLabel).toBe("Fermer le menu Créer");
+    expect(screen.getByTestId("floating-create-glyph-close", { includeHiddenElements: true })).toBeTruthy();
+    fireEvent.press(screen.getByTestId("opt-cancel"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-backdrop", { includeHiddenElements: true }));
+    expect(onCancel).toHaveBeenCalledTimes(2);
+  });
+
+  it("« Ajouter un point d'arrêt » : icône du sablier sur fond bleu, indication VoiceOver reprise", () => {
+    renderMenu();
+    expect(screen.getByTestId("create-menu-icon-stop-point", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByTestId("opt-stop").props.accessibilityHint).toBe("indice");
+  });
+
+  it("D-594 : bouton en haut de l'écran, pas de place au-dessus : le menu s'ouvre vers le bas, même ordre, axe vers la dernière option", () => {
+    renderMenu({ centerX: 356, centerY: 120, side: "RIGHT" });
+    // Haut du bouton à 90 : pile de 4 × 32 + 3 × 10 = 158, impossible au-dessus. Sous le bouton : 150 + 14 = 164.
+    expect(style("opt-exercise").top).toBe(164);
+    expect(style("opt-circuit").top).toBe(206);
+    expect(style("opt-stop").top).toBe(290);
+    const axis = style("composition-add-activity-tree-axis");
+    expect(axis.top).toBe(120);
+    expect(axis.top + axis.height).toBe(290 + 16);
+  });
+
+  it("sans ancre mesurée : position par défaut du bouton (16 du bord droit, bas de l'écran)", () => {
+    renderMenu(null);
+    expect(style("opt-cancel").width).toBe(60);
+  });
+});
+
+describe("CreateMenu — recettes du 29/10 et du 01/11", () => {
   it("an unavailable option: no opacity on the row; opaque grey pill, darker grey label, veiled icon", () => {
     renderMenu();
-    expect(style("opt-cycle").opacity).toBeUndefined();
-    expect(style("opt-cycle-pill")).toMatchObject({ backgroundColor: "#E5E8F0", borderColor: "#BABFCC" });
-    expect(style("opt-cycle-label").color).toBe("#5C6170");
-    expect(screen.getByTestId("opt-cycle-icon-veil", { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.getByTestId("opt-cycle").props.accessibilityState).toEqual({ disabled: true });
-    // L'option disponible garde son dessin bleu, sans voile.
+    expect(style("opt-circuit").opacity).toBeUndefined();
+    expect(style("opt-circuit-pill")).toMatchObject({ backgroundColor: "#E5E8F0", borderColor: "#BABFCC" });
+    expect(style("opt-circuit-label").color).toBe("#5C6170");
+    expect(screen.getByTestId("opt-circuit-icon-veil", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByTestId("opt-circuit").props.accessibilityState).toEqual({ disabled: true });
     expect(style("opt-exercise-label").color).toBe("#1414F5");
     expect(screen.queryByTestId("opt-exercise-icon-veil", { includeHiddenElements: true })).toBeNull();
   });
 
-  it("01/11 — Annuler is the transformed « + »: a 34 standard cross on grey, no pill nor label; the scrim and the menu fade in", () => {
-    renderMenu();
-    expect(screen.queryByTestId("opt-cancel-label", { includeHiddenElements: true })).toBeNull();
-    expect(screen.getByTestId("opt-cancel").props.accessibilityLabel).toBe("Annuler");
-    expect(style("opt-cancel-circle")).toMatchObject({ width: 34, height: 34, borderRadius: 17, backgroundColor: "#E5E8F0", borderColor: "#BABFCC" });
-    expect(style("opt-cancel-icon")).toMatchObject({ width: 24, height: 24 });
-    expect(screen.queryByTestId("composition-add-activity-tree-plus", { includeHiddenElements: true })).toBeNull();
-    expect(screen.getByTestId("composition-add-activity-tree", { includeHiddenElements: true }).props.entering).toBeTruthy();
-  });
-
   it("contre-recette du 30/10 — an unavailable option label is not bold (Inter Regular)", () => {
     renderMenu();
-    expect(style("opt-cycle-label")).toMatchObject({ fontFamily: "Inter_400Regular", fontWeight: "400" });
+    expect(style("opt-circuit-label")).toMatchObject({ fontFamily: "Inter_400Regular", fontWeight: "400" });
     expect(style("opt-exercise-label").fontWeight).toBe("600");
   });
 
-  it("contre-recette du 30/10 — Annuler covers the original « + » exactly (measured), the round buttons stay on its axis", () => {
-    // Le simulacre de `View` ne rappelle pas : repère du menu à (0, 20), « + » d'origine à (322, 151).
-    const prototype = View.prototype as unknown as { measureInWindow: Measure };
-    const spy = jest
-      .spyOn(prototype, "measureInWindow")
-      .mockImplementation(function (this: { props?: { testID?: string } }, callback) {
-        if (this.props?.testID === "composition-add-activity-tree-frame") callback(0, 20, 402, 854);
-      });
-    const original = { measureInWindow: ((callback) => callback(322, 151, 44, 44)) as Measure } as unknown as View;
-    try {
-      renderMenu({ current: original });
-    } finally {
-      spy.mockRestore();
-    }
-    // Centre du « + » d'origine dans le repère du menu : (344, 153).
-    expect(style("opt-cancel")).toMatchObject({ left: 322, top: 131, width: 44, height: 44 });
-    expect(screen.getAllByTestId("opt-cancel", { includeHiddenElements: true })).toHaveLength(1);
-    expect(style("composition-add-activity-tree-axis")).toMatchObject({ left: 344 - 1, top: 153 });
-    // Boutons ronds (32) centrés sur l'axe ; pilules à 10 à leur gauche.
-    expect(style("opt-exercise").left).toBe(344 - 16 - 10 - 243);
-    expect(style("opt-cycle").left).toBe(344 - 16 - 10 - 243);
-  });
-
-  it("without a measurement, the Figma geometry is kept", () => {
-    renderMenu();
-    // Figma `11059:18868` : centre d'Annuler 47 au-dessus de la première rangée, à 41 du bord droit.
-    expect(style("opt-cancel").top).toBe(200 - 47 - 22);
-  });
-});
-
-/**
- * Recette iPhone du 01/11/2026 (m11-annuler KO : « Le Bouton + ne devient pas X, et appuyer dessus n'a
- * aucun effet » ; m11-menu : « la zone de contexte doit être sous le voile grisé »).
- */
-describe("CreateMenu — recette du 01/11", () => {
-  it("the menu is a layer above any sibling with a zIndex (the context band has zIndex 1): iOS zIndex and Android elevation", () => {
+  it("the menu is a layer above any sibling with a zIndex (the context band has zIndex 1): iOS zIndex and Android elevation; it fades in", () => {
     renderMenu();
     const root = style("composition-add-activity-tree");
     expect(root.zIndex).toBe(CREATE_MENU_LAYER);
     expect(root.elevation).toBe(CREATE_MENU_LAYER);
     expect(CREATE_MENU_LAYER).toBeGreaterThan(1);
+    expect(screen.getByTestId("composition-add-activity-tree", { includeHiddenElements: true }).props.entering).toBeTruthy();
   });
 
-  it("no measurement at mount (native layout not done yet): Annuler is re-anchored on the « + » at the frame layout, with an offset frame", () => {
-    let ready = false;
-    const prototype = View.prototype as unknown as { measureInWindow: Measure };
-    const spy = jest
-      .spyOn(prototype, "measureInWindow")
-      .mockImplementation(function (this: { props?: { testID?: string } }, callback) {
-        if (this.props?.testID === "composition-add-activity-tree-frame") callback(0, 47, 402, 827);
-      });
-    // Première mesure du « + » : vide (0 × 0) ; ensuite sa boîte réelle.
-    const original = { measureInWindow: ((callback) => (ready ? callback(322, 178, 44, 44) : callback(0, 0, 0, 0))) as Measure } as unknown as View;
-    try {
-      renderMenu({ current: original });
-      // Repli de Figma tant qu'aucune mesure n'est valable.
-      expect(style("opt-cancel").top).toBe(200 - 47 - 22);
-      ready = true;
-      fireEvent(screen.getByTestId("composition-add-activity-tree-frame", { includeHiddenElements: true }), "layout", {
-        nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 827 } },
-      });
-    } finally {
-      spy.mockRestore();
-    }
-    // Repère du menu à 47 du haut de la fenêtre : « + » à (322, 131) dans ce repère.
-    expect(style("opt-cancel")).toMatchObject({ left: 322, top: 131, width: 44, height: 44 });
-    expect(style("composition-add-activity-tree-axis")).toMatchObject({ left: 343, top: 153 });
-  });
-
-  it("Annuler is the last child of the menu (painted and touched above the scrim, the axis and the options)", () => {
+  it("the cross is the last child of the menu (painted and touched above the scrim, the axis and the options)", () => {
     renderMenu();
     const root = screen.getByTestId("composition-add-activity-tree", { includeHiddenElements: true });
     const children = root.children.filter((child): child is typeof root => typeof child !== "string");
     expect(children[children.length - 1]!.props.testID).toBe("opt-cancel");
   });
 
-  it("« Utiliser un mouvement existant » takes the former dumbbell icon (« Haltère (ancienne) »)", () => {
-    render(
-      <CreateMenu
-        top={200}
-        options={[{ key: "existing", label: "Utiliser un mouvement existant", icon: "exercise", onPress: jest.fn(), testID: "opt-existing" }]}
-        onCancel={jest.fn()}
-        cancelLabel="Annuler"
-        cancelTestID="opt-cancel"
-      />,
-    );
+  it("« Créer un exercice » keeps the dumbbell icon", () => {
+    renderMenu();
     expect(screen.getByTestId("create-menu-icon-exercise", { includeHiddenElements: true })).toBeTruthy();
   });
 });

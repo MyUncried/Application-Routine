@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type StylePr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { CloseCircleAction, HEADER_CIRCLE, HEADER_ICON_TINT } from "@/shared/ui/HeaderCircleAction";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -20,6 +21,10 @@ import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/sha
  * Foundation. Toute divergence future entre écrans passe par les props de
  * ces composants, jamais par une redéfinition locale équivalente.
  */
+/** Cercle Retour / Annuler et trait de l'icône : composant partagé `HeaderCircleAction` (D-593). */
+const BACK_ICON_TINT = HEADER_ICON_TINT;
+export { CloseCircleAction };
+
 export function ScreenShell({
   children,
   backgroundColor,
@@ -59,15 +64,14 @@ export type FixedHeaderProps = {
   horizontalPadding?: number;
   /**
    * PRE-5 story 3.2 (arbitrage G-1 de Hermann du 19/10) : surcharges LOCALES de l'en-tête
-   * de l'Éditeur d'Exercice — retrait gauche et écart cercle → titre (`layoutStyle`), style
-   * du cercle (`backCircleStyle`) et du titre (`titleStyle`). Absentes : rendu inchangé
-   * pour tous les autres écrans.
+   * de l'Éditeur d'Exercice — retrait gauche et écart cercle → titre (`layoutStyle`) et style du titre
+   * (`titleStyle`). Absentes : rendu inchangé pour tous les autres écrans.
+   * [Surcharges du cercle (`backCircleStyle`) et de la teinte de son icône (`backIconTintColor`) — retirées le 24/11/2026
+   * (Hermann : « On doit assurer l'homogénéité de présentation des écrans, on ne peut pas avoir un même bouton de différentes
+   * couleurs en fonction des écrans » ; « fais le ») : un seul cercle pour tous les écrans, voir `styles.backCircle`.]
    */
   layoutStyle?: StyleProp<ViewStyle>;
-  backCircleStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;
-  /** PRE-5 story 3.2 (G-1) : teinte locale du trait de l'icône du cercle (absente : export inchangé). */
-  backIconTintColor?: string;
   /**
    * PRE-7 story A2.2 (D-438, Figma `9891:39982`) : action placée à droite du titre — crayon
    * « Modifier le geste » de l'Éditeur en création sur geste repris. Absente : rendu inchangé.
@@ -105,10 +109,10 @@ export type FixedHeaderProps = {
 };
 
 /**
- * `Header / Fixed`. Le bouton Retour (`CMP-01`) est présenté dans un cercle
- * de fond pâle (`colors.selectionSurface`, même token que les bandes
+ * `Header / Fixed`. Le bouton Retour (`CMP-01`) est présenté dans un cercle — blanc depuis le 24/11/2026, le même sur
+ * tous les écrans (voir `styles.backCircle`) ; [avant : cercle de fond pâle (`colors.selectionSurface`, même token que les bandes
  * Context [jusqu'à D-509 du 06/11/2026 : les bandes prennent désormais `colors.contextBand` ou la
- * couleur du Catalogue ; ce cercle, hors périmètre de D-509, est inchangé]) — auparavant un chevron
+ * couleur du Catalogue ; ce cercle, hors périmètre de D-509, était inchangé]) — remplacé] — auparavant un chevron
  * nu sans conteneur.
  *
  * Correction **R4-02** (`Action / Back`, `2624:3105`, `[ChatGPT] REWORK04
@@ -134,9 +138,7 @@ export function FixedHeader({
   closeIcon = false,
   horizontalPadding,
   layoutStyle,
-  backCircleStyle,
   titleStyle,
-  backIconTintColor,
   trailing,
   content,
   topInset,
@@ -175,7 +177,7 @@ export function FixedHeader({
           accessibilityRole="button"
           accessibilityLabel={backAccessibilityLabel}
           hitSlop={backHitSlop}
-          style={[styles.backCircle, backCircleStyle]}
+          style={styles.backCircle}
           testID="screen-header-back"
           {...(centered
             ? { onLayout: (event: LayoutChangeEvent) => setLeftEdge(event.nativeEvent.layout.x + event.nativeEvent.layout.width + backHitSlop) }
@@ -184,7 +186,7 @@ export function FixedHeader({
           <KodjoIcon
             name={!backIcon && (closeIcon || validate !== undefined) ? "control-close" : "control-back"}
             size={dimensions.backAction.icon}
-            tintColor={backIconTintColor}
+            tintColor={BACK_ICON_TINT}
             testID="screen-header-back-icon"
           />
         </Pressable>
@@ -247,26 +249,7 @@ export function FixedHeader({
   );
 }
 
-/**
- * Action circulaire « Fermer » standard (D-142 : cercle visible 38, icône 24, cible 48), la même que le ✕
- * de `FixedHeader` — PRE-9, recette iPhone n° 3 du 02/11/2026 (f3-fenetre, Hermann : « Le bouton Annuler
- * n'est pas au format standard de ce bouton, il existe un composant ») : pour les fenêtres sans en-tête
- * d'écran (fenêtre Formats).
- */
-export function CloseCircleAction({ onPress, accessibilityLabel, style, testID }: { onPress: () => void; accessibilityLabel: string; style?: StyleProp<ViewStyle>; testID: string }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      hitSlop={(minTouchTarget - dimensions.backAction.visualCircle) / 2}
-      style={[styles.backCircle, style]}
-      testID={testID}
-    >
-      <KodjoIcon name="control-close" size={dimensions.backAction.icon} testID={`${testID}-icon`} />
-    </Pressable>
-  );
-}
+// [`CloseCircleAction` déplacé dans `HeaderCircleAction.tsx` le 24/11/2026 (D-593), réexporté ci-dessus.]
 
 /** Séparateur horizontal sous le Header — un seul token (`colors.divider`) pour tous les écrans consommateurs. */
 export function HeaderSeparator() {
@@ -442,15 +425,29 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     // A01 (recette PRE-8 A/B) : marge standard partagée.
     paddingHorizontal: layout.screenGutter,
+    // Recette du 24/11/2026 (entete-cercle-blanc, Hermann : « L'ombre légère s'arrête à la lisière du bord horizontal de la
+    // zone de contexte ») : l'en-tête passe au-dessus de la zone de contexte suivante (`elevated`, zIndex 1), pour que
+    // l'ombre du cercle se prolonge sur la courbure (halo) au lieu d'être recouverte.
+    zIndex: 2,
   },
   // R4-02, révisé T02-S02 (D-142) : cercle visuel `38×38` — la cible
   // tactile `48×48` reste obtenue via `hitSlop` (voir `FixedHeader`),
   // jamais en agrandissant ce cercle.
+  // Décision de Hermann du 24/11/2026 (homogénéité, « fais le ») : cercle blanc de Figma pour Retour et Annuler sur tous les
+  // écrans — fond `#FCFCFE`, liseré blanc de 1, ombre `#1A1A26` à 8 % (décalage 2, flou 10) ; c'était le rendu de l'Éditeur
+  // d'Exercice et de la fiche Mouvement (G-1, 19/10/2026). [Fond bleu pâle `selectionSurface` (#E5F0FF) — remplacé.]
   backCircle: {
     width: dimensions.backAction.visualCircle,
     height: dimensions.backAction.visualCircle,
     borderRadius: dimensions.backAction.visualCircle / 2,
-    backgroundColor: colors.selectionSurface,
+    backgroundColor: HEADER_CIRCLE.surface,
+    borderWidth: 1,
+    borderColor: colors.background,
+    shadowColor: HEADER_CIRCLE.shadow,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 10,
+    elevation: 2,
     alignItems: "center",
     justifyContent: "center",
   },

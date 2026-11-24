@@ -38,7 +38,7 @@ export const programs = {
     searchClear: "Effacer la recherche",
     filter: "Filtrer",
     sort: "Trier",
-    create: "Créer un programme",
+    // [create : « Créer un programme » (bouton de la zone de contexte) — retiré le 24/11/2026, UI-FAB-01 : bouton flottant.]
     /** Figma « PROG — 8 » (`12862:208`). */
     empty: "Vous verrez ici vos programmes dès que vous en aurez créé un. Un programme réunit des planifications sur une période et en suit l’exécution.",
     /** [interprétation] Aucun programme du statut choisi, ou aucun résultat de recherche. */

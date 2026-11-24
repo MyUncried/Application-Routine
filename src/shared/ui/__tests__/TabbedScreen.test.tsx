@@ -41,8 +41,8 @@ describe("TabbedScreen", () => {
             search,
             filter: <Text>filtre</Text>,
             sortLabel: "Trier",
-            action: { label: "Planifier", icon: "plan", onPress: onPlan, testID: "plan" },
           }}
+          floatingCreate={{ variant: "calendar", label: "Créer une routine", onPress: onPlan }}
         >
           <Text>corps</Text>
         </TabbedScreen>
@@ -55,26 +55,30 @@ describe("TabbedScreen", () => {
     expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style).backgroundColor).toBe(colors.catalogueSessionsBackground);
     expect(screen.getByTestId("catalogue-context-zone")).toBeTruthy();
     expect(screen.getByTestId("catalogue-sort-action").props.accessibilityState).toMatchObject({ disabled: true });
-    // Planifier : le cercle de commande standard (même cercle que Créer), icône `icon-planifier`.
-    expect(screen.getByTestId("plan-icon")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("plan"));
+    // UI-FAB-01 (D-558, D-559) : plus de Planifier dans la zone ; champ Rechercher élargi ; bouton flottant calendrier « + ».
+    // [Planifier : cercle de commande standard, icône `icon-planifier` — remplacé le 24/11/2026.]
+    expect(screen.queryByTestId("context-plan-action")).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0 });
+    expect(screen.getByTestId("floating-create-glyph-calendar")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText("Créer une routine"));
     expect(onPlan).toHaveBeenCalled();
     expect(screen.getByTestId("tabs")).toBeTruthy();
     expect(screen.getByText("corps")).toBeTruthy();
   });
 
-  it("Créer garde l'identifiant des Catalogues ; zone libre « centered » : contenu centré, sans marges verticales", () => {
+  it("sans bouton flottant : aucun bouton Créer ; zone libre « centered » : contenu centré, sans marges verticales", () => {
     const { rerender } = render(
       <TestSafeAreaProvider>
         <TabbedScreen
           title="Catalogue"
           tabs={tabs}
           palette={{ context: colors.catalogueMovementsContext, background: colors.catalogueMovementsBackground }}
-          context={{ kind: "catalogue", summary: null, results: null, search, filter: null, sortLabel: "Trier", action: { label: "Créer", icon: "create", onPress: jest.fn() } }}
+          context={{ kind: "catalogue", summary: null, results: null, search, filter: null, sortLabel: "Trier" }}
         />
       </TestSafeAreaProvider>,
     );
-    expect(screen.getByTestId("catalogue-create-action")).toBeTruthy();
+    expect(screen.queryByTestId("catalogue-create-action")).toBeNull();
+    expect(screen.queryByTestId("floating-create")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("screen-shell").props.style).backgroundColor).toBe(colors.catalogueMovementsBackground);
     rerender(
       <TestSafeAreaProvider>
