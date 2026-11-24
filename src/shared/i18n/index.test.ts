@@ -142,8 +142,18 @@ describe("strings", () => {
     });
   });
 
-  it("exposes the Catalogue create action label", () => {
-    expect(strings.screens.sessions.createAction.length).toBeGreaterThan(0);
+  // UI-FAB-01 (D-558, 24/11/2026) : le bouton Créer de la zone de contexte cède la place au bouton flottant, nommé selon l'écran.
+  it("exposes the floating Create button labels", () => {
+    expect(strings.shared.floatingCreate).toEqual({
+      createRoutine: "Créer une routine",
+      createSlot: "Créer un créneau unique",
+      createMovement: "Créer un mouvement",
+      createSession: "Créer une séance",
+      createProgram: "Créer un programme",
+      openCreateMenu: "Ouvrir le menu Créer",
+      closeCreateMenu: "Fermer le menu Créer",
+    });
+    expect(strings.screens.activities.addToSession.addStopPoint).toBe("Ajouter un point d’arrêt");
   });
 
   it("exposes the exact Catalogue loading accessibility label", () => {
@@ -258,7 +268,6 @@ describe("strings", () => {
       cancelAccessibilityLabel: "Annuler",
       validateAccessibilityLabel: "Valider",
     });
-    expect(strings.screens.composition.addActivity).toBe("Ajouter un exercice");
     // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance ; PRE-6 story 2.1
     // (CE-T03-08, D-388) : son libellé est « Continuer ».
     expect(strings.screens.composition.saveAction).toBe("Continuer");
@@ -267,7 +276,6 @@ describe("strings", () => {
 
   it("exposes the placement mode texts (PRE-6 story 4.1, `8328:28622`, `8328:29270`, `8328:28733`)", () => {
     expect(strings.screens.composition.placement).toEqual({
-      addStopAccessibilityLabel: "Ajouter un arrêt",
       recovery: "Récupération",
       stopPoint: "Point d’arrêt",
       addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",

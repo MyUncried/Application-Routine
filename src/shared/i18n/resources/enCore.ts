@@ -100,6 +100,16 @@ export const enCore: Omit<FrResource, "screens"> & {
     // d'une durée affichée hors du domaine — `estimated` (≈) et `lowerBound`
     // (≥), suivis d'une espace simple (rendu PRE-3 inchangé).
     // La Phrase et les formateurs du domaine en sont exemptés (AD-11).
+    // UI-FAB-01 (D-558, D-559, 24/11/2026) : nom VoiceOver du bouton flottant « Créer », propre à chaque écran.
+    floatingCreate: {
+      createRoutine: "Create a routine",
+      createSlot: "Create a one-off slot",
+      createMovement: "Create a movement",
+      createSession: "Create a workout",
+      createProgram: "Create a program",
+      openCreateMenu: "Open the Create menu",
+      closeCreateMenu: "Close the Create menu",
+    },
     durationNature: {
       estimatedPrefix: "≈ ",
       lowerBoundPrefix: "≥ ",
@@ -184,7 +194,7 @@ export const enCore: Omit<FrResource, "screens"> & {
         scheduled: "Scheduled",
         archived: "Archived",
       },
-      createAction: "Create",
+      // [Créer (bouton de la zone de contexte) — retiré le 24/11/2026, UI-FAB-01 : bouton flottant]
       loading: {
         accessibilityLabel: "Loading workouts",
       },

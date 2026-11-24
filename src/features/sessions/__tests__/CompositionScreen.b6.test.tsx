@@ -227,7 +227,8 @@ describe("PRE-9 B.6 — Points d'arrêt rendus sur toute la structure (D-441, AR
 
 describe("PRE-9 B.6 — mode Placement sur une disposition générale (ch08, CE-T03-08)", () => {
   async function enterPlacement() {
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
     await settle();
   }
 

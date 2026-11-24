@@ -214,7 +214,10 @@ describe("Pauses de bout en bout : Récupération par les paramètres, points pa
       await setRecoveryInSheet("ex-b", 0, 45);
       // Placement : points seulement — après A, après B, « après le Circuit » ; aucune zone de récupération.
       await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        fireEvent.press(screen.getByTestId("composition-floating-create"));
+      });
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
       });
       expect(screen.queryAllByTestId(/^composition-placement-slot-.*-recovery$/u)).toHaveLength(0);
       expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
@@ -306,7 +309,10 @@ describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 
       const confirm = () => screen.getByTestId("composition-placement-bar-confirm");
 
       await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        fireEvent.press(screen.getByTestId("composition-floating-create"));
+      });
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
       });
       expect(existing("A").props.accessibilityState).toMatchObject({ selected: true });
       expect(existing("B").props.accessibilityState).toMatchObject({ selected: true });
@@ -332,7 +338,10 @@ describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       expect(displayedPauses().stopPoints).toEqual([placement.existingStopPointAccessibilityLabel.replace("{exercise}", "B")]);
       await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        fireEvent.press(screen.getByTestId("composition-floating-create"));
+      });
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
       });
       expect(existing("B").props.accessibilityState).toMatchObject({ selected: true });
       expect(screen.queryByLabelText(placement.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeNull();
@@ -391,7 +400,10 @@ describe("Récupération ramenée à 0″ dans les paramètres → Continuer →
       });
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       await act(async () => {
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        fireEvent.press(screen.getByTestId("composition-floating-create"));
+      });
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
       });
       expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
       expect(screen.queryAllByTestId(/^composition-placement-slot-.*-recovery$/u)).toHaveLength(0);

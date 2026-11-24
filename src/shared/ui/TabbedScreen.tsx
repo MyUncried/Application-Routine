@@ -1,11 +1,12 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { CatalogueNavigation, type CatalogueNavigationOption } from "@/features/sessions/CatalogueNavigation";
 import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR, CONTEXT_SEPARATOR_GAP, CONTEXT_TEXT_COLOR, CONTEXT_ZONE_GEOMETRY } from "@/shared/ui/catalogueContext";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
-import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
+import { FloatingCreateButton, floatingBottomAboveNavigation, type FloatingCreateVariant } from "@/shared/ui/FloatingCreateButton";
+import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 
 /**
@@ -45,13 +46,16 @@ export type TabbedScreenTabs<T extends string> = {
   readonly slotFraction?: number;
 };
 
-/** Bouton d'action de la ligne 2 : Créer (catalogues) ou Planifier (calendrier), cercle standard. */
-export type TabbedScreenAction = {
+/**
+ * UI-FAB-01 (D-558, D-559) : bouton flottant « Créer » de l'écran, en bas à droite au-dessus de la barre de navigation.
+ * [Bouton d'action de la ligne 2 (`TabbedScreenAction` : Créer des catalogues, Planifier du calendrier, cercle standard) —
+ * remplacé le 24/11/2026 : la création quitte la zone de contexte.]
+ */
+export type TabbedScreenFloatingCreate = {
+  readonly variant: FloatingCreateVariant;
+  /** Nom VoiceOver propre à l'écran (« Créer un mouvement »…). */
   readonly label: string;
-  readonly icon: "create" | "plan";
   readonly onPress: () => void;
-  /** Planifier uniquement (Créer garde l'identifiant du Catalogue, `catalogue-create-action`). */
-  readonly testID?: string;
 };
 
 export type TabbedScreenContext =
@@ -66,7 +70,6 @@ export type TabbedScreenContext =
       readonly search: Parameters<typeof CatalogueContextZone>[0]["search"];
       readonly filter: ReactNode;
       readonly sortLabel: string;
-      readonly action?: TabbedScreenAction;
       readonly summaryAccessory?: ReactNode;
       readonly onCommandRowLayout?: (event: LayoutChangeEvent) => void;
     }
@@ -85,6 +88,7 @@ export function TabbedScreen<T extends string>({
   tabs,
   palette,
   context,
+  floatingCreate,
   children,
 }: {
   readonly title: string;
@@ -92,10 +96,14 @@ export function TabbedScreen<T extends string>({
   readonly palette: TabbedScreenPalette;
   /** Absent : pas de zone de contexte, bande courte sous les onglets (Préférences). */
   readonly context?: TabbedScreenContext;
+  /** Absent : pas de bouton flottant (Plan, Profil). */
+  readonly floatingCreate?: TabbedScreenFloatingCreate;
   /** Corps de l'écran, sous la zone de contexte. */
   readonly children?: ReactNode;
 }) {
   const centered = context?.kind === "custom" && context.layout === "centered";
+  // Bas de la zone de contexte (ou de la bande des onglets) : limite haute du déplacement du bouton flottant.
+  const [contextBottom, setContextBottom] = useState(0);
   return (
     <ScreenShell {...(palette.background !== undefined ? { backgroundColor: palette.background } : {})}>
       <FixedHeader
@@ -129,14 +137,8 @@ export function TabbedScreen<T extends string>({
               search={context.search}
               filter={context.filter}
               sortLabel={context.sortLabel}
-              {...(context.action?.icon === "create" ? { createLabel: context.action.label, onCreate: context.action.onPress } : {})}
-              {...(context.action?.icon === "plan"
-                ? {
-                    trailingCommand: (
-                      <CommandCircle label={context.action.label} icon="plan" onPress={context.action.onPress} testID={context.action.testID ?? "context-plan-action"} />
-                    ),
-                  }
-                : {})}
+              // UI-FAB-01 : sans bouton Créer ni Planifier, le champ Rechercher s'élargit (Catalogue des Mouvements, Journal).
+              widenSearch
               {...(context.summaryAccessory !== undefined ? { summaryAccessory: context.summaryAccessory } : {})}
               {...(context.onCommandRowLayout !== undefined ? { onCommandRowLayout: context.onCommandRowLayout } : {})}
             />
@@ -149,7 +151,18 @@ export function TabbedScreen<T extends string>({
           )}
         </ContextBand>
       )}
+      {/* Repère sans hauteur : son ordonnée est le bas de la zone de contexte (aucun effet sur la mise en page). */}
+      <View pointerEvents="none" style={styles.contextBottomMarker} onLayout={(event) => setContextBottom(event.nativeEvent.layout.y)} />
       {children}
+      {floatingCreate !== undefined ? (
+        <FloatingCreateButton
+          variant={floatingCreate.variant}
+          accessibilityLabel={floatingCreate.label}
+          onPress={floatingCreate.onPress}
+          bottom={floatingBottomAboveNavigation(navigationBarTotalHeight())}
+          topLimit={contextBottom}
+        />
+      ) : null}
     </ScreenShell>
   );
 }
@@ -233,6 +246,7 @@ function TabBand({ color, background }: { readonly color: string; readonly backg
 }
 
 const styles = StyleSheet.create({
+  contextBottomMarker: { height: 0 },
   // D-502 : la navigation occupe toute la largeur et toute la hauteur de l'en-tête ; les onglets reposent sur son bord bas.
   headerNavigation: {
     flex: 1,

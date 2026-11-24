@@ -146,7 +146,7 @@ describe("CatalogueScreen — cadre commun", () => {
     // PRE-8 (E.4, E.8-a) : trois segments, plus de segment Exercices. PROG-CAT-01 (CE-PROG-01) : Programmes actif.
     expect(screen.queryByLabelText(types.activities)).toBeNull();
     expect(screen.getByLabelText(strings.screens.sessions.programsSegment)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
 
     await act(async () => {
       pending.resolve([]);
@@ -157,7 +157,7 @@ describe("CatalogueScreen — cadre commun", () => {
     // Empty now, frame still present.
     expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
   });
 
   it("PRE-9 CAT.1 — recomposes the Shell: fixed Header carrying the Catalogue navigation in place of the hidden title, no separator, and a Context band (distinct background) holding the two context lines (CE-CAT-CTX-01)", async () => {
@@ -182,12 +182,13 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.queryByTestId("screen-header-separator")).toBeNull();
 
     // Bande Context : fond distinct du fond général ; première ligne (bascule) et deuxième ligne
-    // (Rechercher, Filtre, Tri, Créer).
+    // (Rechercher, Filtre, Tri ; UI-FAB-01 : Créer est le bouton flottant, hors de la bande).
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
     expect(within(contextBand).getByTestId("catalogue-context-line1")).toBeTruthy();
     expect(within(contextBand).getByTestId("session-catalogue-search")).toBeTruthy();
-    expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+    expect(within(contextBand).queryByLabelText(strings.shared.floatingCreate.createSession)).toBeNull();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
     expect(within(contextBand).queryByTestId("catalogue-content-type-row")).toBeNull();
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
@@ -287,7 +288,9 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(colors.catalogueProgramsBackground).toBe("#F9F6FF");
   });
 
-  it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {
+  // UI-FAB-01 (D-558) : Créer est le bouton flottant de verre (rond de 60, contenu bleu). [Cercle blanc de 34 de la zone de
+  // contexte (CAT-R02, D01) — remplacé le 24/11/2026.]
+  it("Créer : bouton flottant de verre, rond de 60, liste « + » sur le segment Séances (UI-FAB-01, D-558)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -298,14 +301,11 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
-    const flattened = StyleSheet.flatten(createAction.props.style);
-    expect(flattened.backgroundColor).toBe(colors.background);
-    expect(flattened.borderColor).toBe(colors.primary);
-    // Recette PRE-8 A/B (D01, ch13 §4.5) : cercle 34, rayon 17 — remplace le 108 × 32 de D-184.
-    expect(flattened.width).toBe(34);
-    expect(flattened.height).toBe(34);
-    expect(flattened.borderRadius).toBe(17);
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
+    const position = StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style);
+    expect(position).toMatchObject({ width: 60, height: 60, right: 16 });
+    expect(screen.getByTestId("floating-create-glyph-session")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.65)");
   });
 
   it("places the empty-state text inside a dedicated frame (surface/border/radius), not floating alone in the body (CAT-R03, contre-recette iPhone 2026-09-03)", async () => {
@@ -474,7 +474,8 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
+    // UI-FAB-01 (D-558) : le bouton flottant « Créer une séance » garde l'action de l'ancien Créer.
+    const createAction = screen.getByLabelText(strings.shared.floatingCreate.createSession);
     expect(createAction.props.accessibilityState?.disabled).toBeFalsy();
     fireEvent.press(createAction);
     fireEvent.press(createAction);
@@ -487,7 +488,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(mockPush).toHaveBeenCalledWith("/formats-window");
   });
 
-  it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
+  it("renders Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -498,7 +499,8 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    for (const testID of ["catalogue-create-action", "catalogue-filter-action", "catalogue-sort-action"]) {
+    // UI-FAB-01 : Créer quitte la zone (bouton flottant). [Créer, Filtrer, Trier — remplacé.]
+    for (const testID of ["catalogue-filter-action", "catalogue-sort-action"]) {
       const action = screen.getByTestId(testID);
       const flattened = StyleSheet.flatten(action.props.style);
       expect(flattened.width).toBe(34);
@@ -538,11 +540,11 @@ describe("CatalogueScreen — cadre commun", () => {
     const testIDsOf = (node: { children: (unknown)[] }) =>
       node.children.map((child) => (typeof child === "string" ? child : (child as { props: { testID?: string } }).props.testID));
     expect(testIDsOf(row)).toEqual(["movement-catalogue-search", "catalogue-context-commands"]);
-    expect(testIDsOf(screen.getByTestId("catalogue-context-commands"))).toEqual([
-      "catalogue-filter-action",
-      "catalogue-sort-action",
-      "catalogue-create-action",
-    ]);
+    // UI-FAB-01 (D-558) : Créer quitte la zone ; le champ Rechercher s'élargit jusqu'au Filtre.
+    expect(testIDsOf(screen.getByTestId("catalogue-context-commands"))).toEqual(["catalogue-filter-action", "catalogue-sort-action"]);
+    expect(StyleSheet.flatten(screen.getByTestId("movement-catalogue-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0 });
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createMovement)).toBeTruthy();
+    expect(screen.getByTestId("floating-create-glyph-movement")).toBeTruthy();
     expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
     fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");
@@ -574,7 +576,7 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const testIDs = ["catalogue-create-action", "catalogue-filter-action", "catalogue-sort-action"];
+    const testIDs = ["catalogue-filter-action", "catalogue-sort-action"];
     for (const testID of testIDs) {
       const action = screen.getByTestId(testID);
       const hitSlop = action.props.hitSlop;
@@ -611,7 +613,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("renders the Créer, Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {
+  it("renders the Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -622,7 +624,6 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByTestId("catalogue-create-action-icon")).toBeTruthy();
     expect(screen.getByTestId("catalogue-filter-action-icon")).toBeTruthy();
     const sortIcon = screen.getByTestId("catalogue-sort-action-icon");
     expect(within(screen.getByTestId("catalogue-sort-action")).queryByText("↕")).toBeNull();
@@ -873,7 +874,7 @@ describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de co
       const order = (band.props.children as { props?: { testID?: string } }[]).flat().map((child) => child?.props?.testID).filter(Boolean);
       expect(order[0]).toBe("screen-context-band-fill");
       expect(screen.getByTestId("catalogue-content-type-row")).toBeTruthy();
-      expect(screen.getByTestId("catalogue-create-action")).toBeTruthy();
+      expect(screen.getByTestId("catalogue-sort-action")).toBeTruthy();
     }
   });
 });

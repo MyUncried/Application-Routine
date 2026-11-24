@@ -104,7 +104,7 @@ const hidden = { includeHiddenElements: true } as const;
 const t = strings.screens.composition.envelope;
 
 function enter(container: "CIRCUIT" | "CYCLE") {
-  fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+  fireEvent.press(screen.getByTestId("composition-floating-create"));
   fireEvent.press(screen.getByTestId(container === "CIRCUIT" ? "composition-add-activity-tree-circuit" : "composition-add-activity-tree-cycle"));
 }
 

@@ -104,7 +104,7 @@ const t = strings.screens.composition.envelope;
 const menu = strings.screens.activities.addToSession;
 
 function openMenu() {
-  fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+  fireEvent.press(screen.getByTestId("composition-floating-create"));
   return screen.getByTestId("composition-add-activity-tree");
 }
 
@@ -143,22 +143,35 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
   // Complément du 5 novembre 2026 (Hermann, §3, CE-T03-08, Figma `10705:20223`) : trois options, dans cet ordre — Créer un
   // exercice, Créer un circuit, Créer un cycle ; l'axe s'arrête à « Créer un cycle ». [Référence du 02/11 : cinq options —
   // remplacée.]
-  it("complément du 05/11 : trois options, dans l'ordre, chacune avec son icône ronde ; Annuler n'est pas une option ; l'axe s'arrête à « Créer un cycle »", async () => {
+  // UI-FAB-01 (D-558, 24/11/2026 ; DSF Bouton flottant § 4) : quatre options — Créer un exercice, Créer un circuit, Créer un
+  // cycle, Ajouter un point d'arrêt ; la croix (le bouton flottant transformé) n'est pas une option ; l'axe relie la croix à
+  // la première icône. [Trois options, axe jusqu'à « Créer un cycle » (complément du 05/11) — remplacé.]
+  it("UI-FAB-01 : quatre options, dans l'ordre, chacune avec son icône ronde ; la croix n'est pas une option", async () => {
     await renderComposition(flatDraft());
     const tree = openMenu();
     const labels = within(tree)
       .getAllByRole("button")
       .map((node) => node.props.accessibilityLabel);
-    expect(labels).toEqual([menu.newActivity, menu.addCircuit, menu.addCycle, menu.cancel]);
-    expect(labels.slice(0, 3)).toEqual(["Créer un exercice", "Créer un circuit", "Créer un cycle"]);
+    expect(labels).toEqual([menu.newActivity, menu.addCircuit, menu.addCycle, menu.addStopPoint, strings.shared.floatingCreate.closeCreateMenu]);
+    expect(labels.slice(0, 4)).toEqual(["Créer un exercice", "Créer un circuit", "Créer un cycle", "Ajouter un point d’arrêt"]);
     expect(within(tree).queryByText(/existant|format d’entraînement/i)).toBeNull();
     expect(within(screen.getByTestId("composition-add-activity-tree-new-icon", hidden)).getByTestId("create-menu-icon-exercise", hidden)).toBeTruthy();
-    const axis = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-axis", hidden).props.style);
-    const cycleRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cycle").props.style);
-    expect(axis.top + axis.height).toBe(cycleRow.top + 16);
-    for (const key of ["new", "circuit", "cycle"]) expect(screen.getByTestId(`composition-add-activity-tree-${key}-icon`, hidden)).toBeTruthy();
-    expect(screen.queryByTestId("composition-add-activity-tree-cancel-label", hidden)).toBeNull();
+    expect(within(screen.getByTestId("composition-add-activity-tree-stop-icon", hidden)).getByTestId("create-menu-icon-stop-point", hidden)).toBeTruthy();
+    // Pile vers le haut : « Créer un exercice » en haut, « Ajouter un point d'arrêt » au plus près du bouton.
+    const rowTop = (key: string) => StyleSheet.flatten(screen.getByTestId(`composition-add-activity-tree-${key}`).props.style).top as number;
+    expect(rowTop("new")).toBeLessThan(rowTop("circuit"));
+    expect(rowTop("cycle")).toBeLessThan(rowTop("stop"));
+    for (const key of ["new", "circuit", "cycle", "stop"]) expect(screen.getByTestId(`composition-add-activity-tree-${key}-icon`, hidden)).toBeTruthy();
     expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: false });
+  });
+
+  it("UI-FAB-01 : « Ajouter un point d'arrêt » ouvre le placement existant et ferme le menu", async () => {
+    await renderComposition(flatDraft());
+    openMenu();
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
+    await act(async () => undefined);
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+    expect(screen.getByTestId("composition-placement-bar")).toBeTruthy();
   });
 
   /*
@@ -168,7 +181,7 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
    * zone de contexte (`zIndex: 1`) passait au-dessus du menu, son frère sans `zIndex`. Jest ne peint
    * ni ne teste le toucher par `zIndex` : l'empilement est vérifié sur les styles des frères.
    */
-  it("recette du 01/11 : le menu est au-dessus de la zone de contexte (frères de l'écran, zIndex supérieur) ; le « + » d'origine s'efface sous Annuler", async () => {
+  it("recette du 01/11 : le menu est au-dessus de la zone de contexte (frères de l'écran, zIndex supérieur) ; le bouton flottant cède la place à la croix", async () => {
     await renderComposition(flatDraft());
     openMenu();
     const band = screen.getByTestId("screen-context-band", hidden);
@@ -194,14 +207,10 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
         }, 0);
     expect(zOf(band)).toBe(1);
     expect(zOf(tree)).toBeGreaterThan(zOf(band));
-    expect(zOf(screen.getByTestId("composition-add-activity-tree-cancel"))).toBeGreaterThan(zOf(screen.getByTestId("composition-add-stop-action", hidden)));
-    // Le « + » d'origine (sous le voile) ne se montre plus ni ne s'annonce : Annuler est à sa place.
-    const plus = screen.getByTestId("composition-add-activity-action", hidden);
-    expect(StyleSheet.flatten(plus.props.style).opacity).toBe(0);
-    expect(plus.props.accessibilityElementsHidden).toBe(true);
+    // UI-FAB-01 : le bouton flottant laisse la place à la croix du menu (une seule commande visible), puis revient.
+    expect(screen.queryByTestId("composition-floating-create", hidden)).toBeNull();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
-    const restored = screen.getByTestId("composition-add-activity-action");
-    expect(StyleSheet.flatten(restored.props.style).opacity).toBeUndefined();
+    expect(screen.getByTestId("composition-floating-create")).toBeTruthy();
   });
 
   it("complément du 05/11 : « Créer un exercice » ouvre la modale de création commune et ferme le menu", async () => {
@@ -212,23 +221,19 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
   });
 
-  it("le « + » devient Annuler à l'ouverture (croix 34 sur fond gris, au-dessus du voile), ferme sans mutation ni navigation, puis redevient « + »", async () => {
+  // UI-FAB-01 (D-558) : le bouton flottant devient une croix (variante Fermer du même rond de verre, à sa place). [« + » de la
+  // zone de contexte devenu Annuler, croix 34 sur fond gris — remplacé.]
+  it("le bouton flottant devient la croix à l'ouverture (rond de verre de 60, au-dessus du voile), ferme sans mutation ni navigation, puis redevient « + »", async () => {
     const initial = flatDraft();
     await renderComposition(initial);
-    const plus = screen.getByTestId("composition-add-activity-action");
-    expect(plus.props.accessibilityLabel).toBe(strings.screens.composition.addActivity);
+    const plus = screen.getByTestId("composition-floating-create");
+    expect(plus.props.accessibilityLabel).toBe(strings.shared.floatingCreate.openCreateMenu);
+    expect(screen.getByTestId("floating-create-glyph-plus")).toBeTruthy();
     openMenu();
     const cancel = screen.getByTestId("composition-add-activity-tree-cancel");
-    expect(cancel.props.accessibilityLabel).toBe(menu.cancel);
-    expect(StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-cancel-circle", hidden).props.style)).toMatchObject({
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      backgroundColor: "#E5E8F0",
-    });
-    expect(screen.getByTestId("composition-add-activity-tree-cancel-icon", hidden)).toBeTruthy();
-    // Plus de « + » reposé au premier plan : seul celui de la zone de contexte, sous le voile.
-    expect(screen.queryByTestId("composition-add-activity-tree-plus", hidden)).toBeNull();
+    expect(cancel.props.accessibilityLabel).toBe(strings.shared.floatingCreate.closeCreateMenu);
+    expect(StyleSheet.flatten(cancel.props.style)).toMatchObject({ width: 60, height: 60 });
+    expect(screen.getByTestId("floating-create-glyph-close", hidden)).toBeTruthy();
     const draftBefore = probe.draft;
     fireEvent.press(cancel);
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
@@ -237,7 +242,7 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(probe.draft).toBe(draftBefore);
     expect(probe.draft).toEqual(initial);
     // Le « + » reprend son action d'ouverture.
-    expect(screen.getByTestId("composition-add-activity-action").props.accessibilityLabel).toBe(strings.screens.composition.addActivity);
+    expect(screen.getByTestId("composition-floating-create").props.accessibilityLabel).toBe(strings.shared.floatingCreate.openCreateMenu);
     openMenu();
     expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
   });

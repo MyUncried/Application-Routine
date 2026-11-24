@@ -442,7 +442,7 @@ describe("CompositionScreen — état initial", () => {
   it("enables '+ Ajouter une activité' while no Exercise exists yet, and opens the add-activity tree on press (V2-CAT-01)", () => {
     renderScreen();
 
-    const addActivity = screen.getByLabelText(composition.addActivity);
+    const addActivity = screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu);
     // PRE-6 story 2.1 : aucun état `disabled` constant sur le « + » ; il reste utilisable.
     expect(addActivity.props.accessibilityState?.disabled).not.toBe(true);
 
@@ -455,7 +455,7 @@ describe("CompositionScreen — état initial", () => {
   it("navigates to the creation modal when 'Créer un exercice' is selected from the add-activity tree", () => {
     renderScreen();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
 
     expect(mockPush).toHaveBeenCalledWith("/formats-window");
@@ -472,7 +472,7 @@ describe("CompositionScreen — état initial", () => {
   it("the add-activity tree no longer offers 'Utiliser des mouvements existants' nor 'Utiliser un format d'entraînement'", () => {
     renderScreen();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
 
     expect(screen.queryByTestId("composition-add-activity-tree-existing")).toBeNull();
     expect(screen.queryByTestId("composition-add-activity-tree-format")).toBeNull();
@@ -481,7 +481,7 @@ describe("CompositionScreen — état initial", () => {
   it("closes the add-activity tree without any navigation on Annuler", () => {
     renderScreen();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
 
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
@@ -495,18 +495,20 @@ describe("CompositionScreen — état initial", () => {
    * `contextBand.height`, qui chevauchait l'en-tête. Le voile porte un fond
    * VISIBLE, jamais transparent.
    */
-  it("positions the add-activity tree below the fixed header and context band, with a visible scrim", () => {
+  // UI-FAB-01 (D-558, DSF Bouton flottant § 4) : le menu s'ouvre vers le haut depuis le bouton flottant, la dernière option à
+  // 14 au-dessus du bouton. [Première rangée à 8 sous la zone de contexte (PRE-9 B.2) — remplacé le 24/11/2026.]
+  it("opens the Create menu upwards from the floating button, with a visible scrim", () => {
     renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-
-    // PRE-9 B.2 (Figma `10705:20223`) : la première rangée du menu Créer est à 8 sous la zone de contexte.
-    const firstRow = screen.getByTestId("composition-add-activity-tree-new");
-    const flattenedTop = StyleSheet.flatten(firstRow.props.style).top as number;
-    // Insets de test (`TestSafeAreaProvider`) : `top: 47`.
-    // Recette 3 (D-353) : plus de séparateur de 1 entre l’en-tête et la bande (auparavant « + 1 »).
-    const expectedTop = 47 + dimensions.header.contentHeight + dimensions.contextBand.height + spacing[8];
-    expect(flattenedTop).toBe(expectedTop);
+    // Couche du bouton : 402 × 874 ; bouton par défaut 12 au-dessus de « Continuer ».
+    fireEvent(screen.getByTestId("composition-floating-create-layer"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 874 } } });
+    const fab = StyleSheet.flatten(screen.getByTestId("composition-floating-create-position").props.style);
+    expect(fab).toMatchObject({ right: 16, width: 60, height: 60 });
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
+    const fabTop = 874 - (fab.bottom as number) - 60;
+    const lastRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-stop").props.style);
+    expect((lastRow.top as number) + 32).toBe(fabTop - 14);
+    const firstRow = StyleSheet.flatten(screen.getByTestId("composition-add-activity-tree-new").props.style);
+    expect(firstRow.top).toBe(fabTop - 14 - 4 * 32 - 3 * 10);
 
     const scrim = screen.getByTestId("composition-add-activity-tree-backdrop");
     // PRE-9 B.2 : voile modal de Figma `10705:20311`.
@@ -747,9 +749,9 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   it("keeps '+ Ajouter une activité' visible AND shows the Exercise row once an Activity is set (COMP-03 — never hidden any more)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
     // PRE-6 story 2.1 : le « + » ne porte plus d'état `disabled` constant ; il reste utilisable.
-    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState?.disabled).not.toBe(true);
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu).props.accessibilityState?.disabled).not.toBe(true);
     // PRE-6 (story 2.2, CE-T03-08 §18) : type, nom, position dans la zone et durée d'occurrence.
     expect(screen.getByLabelText("Exercice, Gainage, 1 sur 1, 1 min")).toBeTruthy();
     expect(screen.getByText("Gainage")).toBeTruthy();
@@ -911,7 +913,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     });
 
     // PRE-6 story 2.1 : le « + » ne porte plus d'état `disabled` constant ; il reste utilisable.
-    expect(screen.getByLabelText(composition.addActivity).props.accessibilityState?.disabled).not.toBe(true);
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu).props.accessibilityState?.disabled).not.toBe(true);
   });
 });
 
@@ -919,17 +921,11 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
   it("initial order (no Activity yet): + Ajouter une activité ABOVE Compte à rebours initial, then the Circuit, then Fin de séance (UI-COMP-002)", () => {
     renderScreenWithDraft([]);
 
-    const order = testIdOrder(screen.toJSON(), [
-      "composition-add-activity-icon",
-      "composition-boundary-countdown",
-      "composition-boundary-final-phase",
-    ]);
+    // UI-FAB-01 (D-558) : le « + » n'est plus dans la zone de contexte (bouton flottant). [« + » au-dessus du Compte à rebours — remplacé.]
+    const order = testIdOrder(screen.toJSON(), ["composition-boundary-countdown", "composition-boundary-final-phase"]);
 
-    expect(order).toEqual([
-      "composition-add-activity-icon",
-      "composition-boundary-countdown",
-      "composition-boundary-final-phase",
-    ]);
+    expect(order).toEqual(["composition-boundary-countdown", "composition-boundary-final-phase"]);
+    expect(screen.queryByTestId("composition-add-activity-icon")).toBeNull();
     // Tour n'a pas de testID propre : sa position entre les deux est prouvée
     // par labels de texte, dans le même ordre visuel.
     const labelOrder = textOrder(screen.toJSON(), [
@@ -1024,9 +1020,10 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
-    // La bande Context contient bien le nom ET Ajouter.
+    // La bande Context contient le nom ; UI-FAB-01 (D-558) : Ajouter est le bouton flottant, hors de la bande.
     expect(within(contextBand).getByLabelText(composition.name)).toBeTruthy();
-    expect(within(contextBand).getByLabelText(composition.addActivity)).toBeTruthy();
+    expect(within(contextBand).queryByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeNull();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
   });
 
   it("REWORK09, révisé recette 3 (T-49, D-352) — le champ Nom est transparent, SANS contour blanc (supprimé à la demande de Hermann), la couleur de la bande Context reste visible", () => {
@@ -1044,25 +1041,19 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   // PRE-6 story 2.1 (Figma `8328:28630`) : le bouton texte « + Ajouter un exercice » est
   // remplacé par un bouton rond « + » de 34 (fond blanc, bordure et croix primaires, cible 44),
   // nom accessible « Ajouter un exercice », qui ouvre l'arbre d'ajout existant.
-  it("PRE6-2.1 — bouton rond « + » 34 (fond blanc, bordure primaire, cible 44), sans libellé visible, ouvrant l'arbre d'ajout", () => {
+  // UI-FAB-01 (D-558) : [« + » rond de 34 de la zone de contexte (PRE6-2.1) — remplacé le 24/11/2026 par le bouton flottant.]
+  it("UI-FAB-01 — bouton flottant « + » (rond de verre de 60, contenu bleu), sans libellé visible, ouvrant le menu Créer", () => {
     renderScreen();
 
-    const addActivity = screen.getByLabelText(composition.addActivity);
-    // Revue 5.1b : cible réelle — le `Pressable` est la boîte de 44, le cercle de 34 y est centré.
-    expect(StyleSheet.flatten(addActivity.props.style)).toMatchObject({ width: 44, height: 44 });
-    expect(addActivity.props.hitSlop).toBeUndefined();
-    const flattened = StyleSheet.flatten(screen.getByTestId("composition-add-activity-action-circle").props.style);
-    expect(flattened.width).toBe(34);
-    expect(flattened.height).toBe(34);
-    expect(flattened.borderRadius).toBe(17);
-    expect(flattened.borderColor).toBe(colors.primary);
-    expect(flattened.backgroundColor).toBe(colors.background);
-    expect(within(addActivity).queryByText(composition.addActivity)).toBeNull();
-    const bars = within(addActivity).getAllByTestId("composition-add-activity-icon-bar");
-    expect(bars).toHaveLength(2);
-    for (const bar of bars) {
-      expect(StyleSheet.flatten(bar.props.style).backgroundColor).toBe(colors.primary);
-    }
+    const addActivity = screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-floating-create-position").props.style)).toMatchObject({ width: 60, height: 60 });
+    expect(within(addActivity).queryByText(strings.shared.floatingCreate.openCreateMenu)).toBeNull();
+    expect(screen.getByTestId("floating-create-glyph-plus")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-floating-create-face-veil").props.style)).toMatchObject({
+      backgroundColor: "rgba(255, 255, 255, 0.65)",
+      borderWidth: 1.2,
+    });
+    expect(screen.queryByTestId("composition-context-actions")).toBeNull();
 
     fireEvent.press(addActivity);
     expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
@@ -1096,13 +1087,13 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
   // Revue 5.1b : écran étroit — la durée de séance s'abrège (ellipse) et le groupe d'informations
   // cède sa place ; rien ne passe sous les commandes contextuelles, qui ne rétrécissent pas.
-  it("story 5.1b — narrow screens: the session duration and the information group may shrink, the contextual commands never do", () => {
+  // UI-FAB-01 : plus de commandes dans la zone de contexte. [« …, the contextual commands never do » — sans objet.]
+  it("story 5.1b — narrow screens: the session duration and the information group may shrink", () => {
     renderScreen();
     const duration = screen.getByTestId("composition-session-duration");
     expect(duration.props.numberOfLines).toBe(1);
     expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(StyleSheet.flatten(screen.getByTestId("composition-info-group").props.style)).toMatchObject({ flex: 1, minWidth: 0 });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-context-actions").props.style).flexShrink).toBe(0);
   });
 
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary; the counter on the right (story 7.8 : no Circuit duration)", () => {
@@ -1940,7 +1931,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
       renderWithEditStatus("creating", {}, "session-42");
 
       expect(screen.queryByLabelText(composition.name)).toBeNull();
-      expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
+      expect(screen.queryByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeNull();
       expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
       // Valeurs par défaut EXACTES du parcours de création — aucune ne doit
       // apparaître ne serait-ce qu'un rendu.
@@ -4364,7 +4355,8 @@ describe("CompositionScreen — repli du Circuit (PRE-9 B.1a, ARB-12)", () => {
   it("collapsed: entering placement (« Ajouter un arrêt ») expands the Circuit", () => {
     renderWithProbe(exercises);
     fireEvent.press(screen.getByTestId(COLLAPSE));
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
     expect(screen.getByTestId(COLLAPSE, hidden).props.accessibilityState).toMatchObject({ expanded: true });
     expect(screen.getByTestId("composition-zone-in-tour", hidden)).toBeTruthy();
   });
@@ -4546,7 +4538,8 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
     // PRE-6 story 2.1 : nom, Étiquette, durée et « + » forment le bloc `CompositionContextHeader`.
     expect(order.indexOf("composition-context-header")).toBeGreaterThan(0);
     expect(within(band).getByLabelText(composition.name)).toBeTruthy();
-    expect(within(band).getByLabelText(composition.addActivity)).toBeTruthy();
+    // UI-FAB-01 (D-558) : le « + » est le bouton flottant, hors de la bande.
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
     expect(screen.getByTestId("composition-session-color-trigger")).toBeTruthy();
     // D-353 (retour de Hermann) : aucun trait gris au-dessus de la zone de contexte.
     expect(screen.queryByTestId("screen-header-separator")).toBeNull();
@@ -5672,7 +5665,7 @@ describe("CompositionScreen — œil et « Volumes du circuit » retirés (compl
     renderScreen();
     expect(screen.queryByTestId("composition-volumes-action")).toBeNull();
     expect(screen.queryByTestId("composition-circuit-volumes")).toBeNull();
-    expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
   });
 });
 
@@ -5749,34 +5742,43 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     anActivity("C", "IN_TOUR", { name: "C", ...overrides.C }),
     anActivity("D", "AFTER_TOUR", { name: "D", ...overrides.D }),
   ];
-  const ADD_STOP = "composition-add-stop-action";
+  // UI-FAB-01 (D-558, 24/11/2026) : « Ajouter un point d'arrêt » est la 4e option du menu Créer, ouvert par le bouton flottant.
+  // [Sablier « Ajouter un arrêt » de la zone de contexte (`composition-add-stop-action`) — remplacé.]
+  const FAB = "composition-floating-create";
+  const ADD_STOP = "composition-add-activity-tree-stop";
+  const MENU_CANCEL = "composition-add-activity-tree-cancel";
   const BAR = "composition-placement-bar";
   const confirm = () => screen.getByTestId(`${BAR}-confirm`);
-  const enter = () => fireEvent.press(screen.getByTestId(ADD_STOP));
+  const openCreateMenu = () => fireEvent.press(screen.getByTestId(FAB));
+  /** Entre en placement par le menu ; option indisponible : le menu se referme, sans placement. */
+  const enter = () => {
+    openCreateMenu();
+    fireEvent.press(screen.getByTestId(ADD_STOP));
+    if (screen.queryByTestId(MENU_CANCEL) !== null) fireEvent.press(screen.getByTestId(MENU_CANCEL));
+  };
+  /** Option « Ajouter un point d'arrêt » lue menu ouvert, puis menu refermé. */
+  const stopOption = () => {
+    openCreateMenu();
+    const { accessibilityState, accessibilityHint } = screen.getByTestId(ADD_STOP).props;
+    fireEvent.press(screen.getByTestId(MENU_CANCEL));
+    return { props: { accessibilityState, accessibilityHint } };
+  };
   const recoveryLabel = (name: string) => p.addRecoveryAccessibilityLabel.replace("{exercise}", name);
   const stopLabel = (name: string) => p.addStopPointAccessibilityLabel.replace("{exercise}", name);
 
-  it("the header action « Ajouter un arrêt » (round 34, target 44) sits left of « + » and enters placement, filled while active", () => {
+  // UI-FAB-01 (D-558) : [« Ajouter un arrêt » (cercle 34, cible 44) à gauche du « + » dans la zone de contexte, plein bleu
+  // lavande en placement — remplacé le 24/11/2026.]
+  it("« Ajouter un point d'arrêt » is the 4th option of the Create menu and enters placement; meanwhile the floating button is inactive", () => {
     renderPlacement(matrix());
-    const action = screen.getByLabelText(p.addStopAccessibilityLabel);
-    expect(action.props.testID).toBe(ADD_STOP);
-    // Revue 5.1b : boîte tactile réelle de 44 (plus de hitSlop), cercle de 34 centré.
-    expect(StyleSheet.flatten(action.props.style)).toMatchObject({ width: 44, height: 44 });
-    expect(action.props.hitSlop).toBeUndefined();
-    expect(StyleSheet.flatten(screen.getByTestId(`${ADD_STOP}-circle`).props.style)).toMatchObject({ width: 34, height: 34, borderRadius: 17 });
-    expect(action.props.accessibilityState).toMatchObject({ selected: false });
-    expect(screen.getByTestId("composition-add-stop-icon")).toBeTruthy();
-    const order = screen
-      .getByTestId("composition-info-row")
-      .findAll((node) => typeof node.props.testID === "string")
-      .map((node) => node.props.testID as string);
-    expect(order.indexOf(ADD_STOP)).toBeGreaterThanOrEqual(0);
-    expect(order.indexOf(ADD_STOP)).toBeLessThan(order.indexOf("composition-add-activity-action"));
-
-    enter();
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ selected: true });
-    expect(screen.getByTestId("composition-add-stop-icon-active")).toBeTruthy();
-    expect(StyleSheet.flatten(screen.getByTestId(`${ADD_STOP}-circle`).props.style).backgroundColor).toBe("#F1F1FF");
+    expect(screen.queryByTestId("composition-add-stop-action")).toBeNull();
+    openCreateMenu();
+    const option = screen.getByTestId(ADD_STOP);
+    expect(option.props.accessibilityLabel).toBe(strings.screens.activities.addToSession.addStopPoint);
+    expect(option.props.accessibilityState).toEqual({ disabled: false });
+    fireEvent.press(option);
+    expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
+    expect(screen.getByTestId(BAR)).toBeTruthy();
+    expect(screen.getByTestId(FAB).props.accessibilityState).toEqual({ disabled: true });
   });
 
   it("placement: « Continuer » is replaced by the bar, the rest is inactive (cards not attenuated, D6), the demarcation rule is hidden", () => {
@@ -5806,9 +5808,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     }
     // « + » atténué et inactif ; revue 5.3 (Figma `8328:29270`) : compteur / œil, bornes et cartes
     // inactifs, non atténués (D6).
-    const add = screen.getByTestId("composition-add-activity-action");
+    const add = screen.getByTestId("composition-floating-create");
     expect(add.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(StyleSheet.flatten(add.props.style).opacity).toBe(0.45);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-floating-create-position").props.style).opacity).toBe(0.45);
     const header = screen.getByTestId("composition-circuit-header", anyNode);
     expect(header.props.pointerEvents ?? StyleSheet.flatten(header.props.style).pointerEvents).toBe("none");
     expect(StyleSheet.flatten(header.props.style).opacity).toBeUndefined();
@@ -5856,7 +5858,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   // n'est pas proposé.]
   it("a single exercise (PRE-9): no stop point, no recovery zone — « Ajouter un arrêt » is unavailable", () => {
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" })]);
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(stopOption().props.accessibilityState).toMatchObject({ disabled: true });
     enter();
     expect(screen.queryByTestId(BAR)).toBeNull();
     expect(screen.queryByLabelText(recoveryLabel("A"), anyNode)).toBeNull();
@@ -5934,7 +5936,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(probe.draft!.stopPoints).toHaveLength(2);
     expect(screen.queryByTestId(BAR)).toBeNull();
     expect(screen.getByTestId("composition-save-action")).toBeTruthy();
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ selected: false });
+    expect(screen.getByTestId(FAB).props.accessibilityState).toEqual({ disabled: false });
   });
 
   it("PRE-9 (01/11/2026) — placement shows no recovery zone; A's 20″ recovery stays on its card; adding a point and Confirmer leaves every recovery unchanged", () => {
@@ -6005,8 +6007,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   // [PRE-9, 01/11/2026 — ordre de Hermann, point 2 ; ch07 « Récupération de l'Exercice et défauts du Profil » : test de la récupération en placement (story 7.8 / B.1a, « the session and Circuit durations are recalculated live during placement ») retiré — seule une récupération modifiait les durées en placement ; un Point d'arrêt ne les change pas ; la récupération se règle dans Paramètres d'exécution.]
   it("entering placement closes every open surface (add tree, revealed Circuit stepper); the Circuit header is inactive", () => {
     renderPlacement(matrix());
-    fireEvent.press(screen.getByTestId("composition-add-activity-action"));
-    expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
+    // UI-FAB-01 : le placement s'ouvre depuis le menu Créer, qui se referme.
     openCircuitStepper();
     expect(screen.getByTestId("composition-circuit-header-counter-stepper-increment", anyNode)).toBeTruthy();
     enter();
@@ -6023,20 +6024,20 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   // `addStopChangesOnlyHint`.]
   it("« Ajouter un arrêt » is unavailable when no slot offers anything (empty Composition); PRE-9: an Exercise with only a recovery leaves it unavailable", () => {
     const view = renderPlacement([]);
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    expect(stopOption().props.accessibilityState).toMatchObject({ disabled: true });
     enter();
     expect(screen.queryByTestId(BAR)).toBeNull();
     view.unmount();
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 })]);
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).not.toBe(p.addStopChangesOnlyHint);
+    expect(stopOption().props.accessibilityState).toMatchObject({ disabled: true });
+    expect(stopOption().props.accessibilityHint).not.toBe(p.addStopChangesOnlyHint);
     enter();
     expect(screen.queryByTestId(BAR)).toBeNull();
     expect(probe.draft!.exercises[0].postActivityRecoverySeconds).toBe(20);
     screen.unmount();
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" }), anActivity("B", "BEFORE_TOUR", { name: "B" })]);
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBeUndefined();
+    expect(stopOption().props.accessibilityState).toMatchObject({ disabled: false });
+    expect(stopOption().props.accessibilityHint).toBeUndefined();
   });
 
   it("the header X during placement cancels the placement first (no mutation, no navigation)", () => {
@@ -6135,12 +6136,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(targets()).toEqual([`${BAR}-confirm`]);
       focus.mockClear();
       fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-      expect(targets()).toEqual([ADD_STOP]);
+      expect(targets()).toEqual([FAB]);
       enter();
       fireEvent.press(screen.getByLabelText(stopLabel("A")));
       focus.mockClear();
       fireEvent.press(confirm());
-      expect(targets()).toEqual([ADD_STOP]);
+      expect(targets()).toEqual([FAB]);
     } finally {
       focus.mockRestore();
     }
@@ -6731,7 +6732,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         ],
         { overrides: { stopPoints: [P_AFTER_A] } },
       );
-      expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
+      expect(stopOption().props.accessibilityState).toMatchObject({ disabled: false });
       enter();
       fireEvent.press(screen.getByLabelText(existingLabel("A")));
       fireEvent.press(confirm());
@@ -6942,16 +6943,16 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
           overrides: { stopPoints: [{ id: "H", scope: "BEFORE_TOUR", position: 1 }] },
         });
         // Seul un retrait est possible (point avant la Fin, non proposé) : indice dédié.
-        expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBe(p.addStopRemovalOnlyHint);
+        expect(stopOption().props.accessibilityHint).toBe(p.addStopRemovalOnlyHint);
         enter();
         fireEvent.press(screen.getByTestId("composition-placement-slot-A-stop-point-existing"));
         focus.mockClear();
         fireEvent.press(confirm());
         expect(probe.draft?.stopPoints).toEqual([]);
-        expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
+        expect(stopOption().props.accessibilityState).toMatchObject({ disabled: true });
         const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
         await waitFor(() => expect(targets()).toContain("composition-exercise-row-A"));
-        expect(targets()).not.toContain(ADD_STOP);
+        expect(targets()).not.toContain(FAB);
       } finally {
         focus.mockRestore();
       }
@@ -6963,7 +6964,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", type: "RECOVERY", postActivityRecoverySeconds: 20 })], {
         overrides: { stopPoints: [{ scope: "BEFORE_TOUR", position: 1 } as unknown as StopPoint] },
       });
-      expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
+      expect(stopOption().props.accessibilityState).toMatchObject({ disabled: true });
     });
   });
   /**
@@ -7362,7 +7363,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
  */
 describe("CompositionScreen — plus d'avertissement d'enchaînement sans pause (PRE-6 story 7.2, D-442 retire D-301)", () => {
   const D301_TEXT = "Attention, les exercices vont s’enchaîner sans pause.";
-  const ADD_STOP = "composition-add-stop-action";
+  // UI-FAB-01 : placement ouvert par le menu Créer du bouton flottant.
+  const enterPlacement = () => {
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
+  };
 
   it("A puis B sans pause ni récupération : aucun message, aucune annonce, « Continuer » inchangé", () => {
     const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
@@ -7373,7 +7378,7 @@ describe("CompositionScreen — plus d'avertissement d'enchaînement sans pause 
       expect(announce).not.toHaveBeenCalledWith(D301_TEXT);
       expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
       // En placement non plus.
-      fireEvent.press(screen.getByTestId(ADD_STOP));
+      enterPlacement();
       expect(screen.queryByText(D301_TEXT)).toBeNull();
       expect(announce).not.toHaveBeenCalledWith(D301_TEXT);
     } finally {
@@ -9447,7 +9452,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         fireEvent(container("A"), "responderTerminate", {});
         frames(3);
         expect(rowShift("A")).toBeGreaterThan(0);
-        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        fireEvent.press(screen.getByTestId("composition-floating-create"));
+        fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
         expect(rowShift("A")).toBe(0);
         expect(rowShift("B")).toBe(0);
         expectBackInChain("A");
@@ -9872,7 +9878,8 @@ describe("CompositionScreen — photo ou affiche vidéo dans le gabarit (PRE-6 s
     const content = () => within(screen.getByTestId("composition-exercise-row-a", hidden)).getByTestId("composition-exercise-card-content", hidden);
     expect(media()).toBeTruthy();
     expect(StyleSheet.flatten(content().props.style).opacity).toBeUndefined();
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
     expect(StyleSheet.flatten(content().props.style).opacity).toBe(0.45);
     expect(imageOf("a")).not.toBeNull();
     mockPush.mockClear();

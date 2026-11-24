@@ -34,7 +34,6 @@ import { TodayIcon } from "@/features/planning/TodayIcon";
 import type { CatalogueCategoryRef, SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
-import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
@@ -448,7 +447,7 @@ export function PlanScreen({
             <Pressable onPress={() => changeWeek(addDays(monday, -7))} accessibilityRole="button" accessibilityLabel={t.calendar.previousWeek} hitSlop={6} style={styles.previousWeek} testID="plan-previous-week">
               <Image source={require("../../../assets/icons/icon-precedent.svg")} style={styles.chevron} accessible={false} />
             </Pressable>
-            <View style={[styles.weeks, { left: 160 - blockWidth / 2, width: blockWidth }]} accessibilityRole="tablist" testID="plan-weeks">
+            <View style={[styles.weeks, { left: 185 - blockWidth / 2, width: blockWidth }]} accessibilityRole="tablist" testID="plan-weeks">
               {weeks.map((weekMonday) => {
                 const selected = weekMonday === monday;
                 return (
@@ -474,9 +473,7 @@ export function PlanScreen({
             <Pressable onPress={() => changeWeek(addDays(monday, 7))} accessibilityRole="button" accessibilityLabel={t.calendar.nextWeek} hitSlop={6} style={styles.nextWeek} testID="plan-next-week">
               <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
             </Pressable>
-            <View style={styles.planSlot}>
-              <CommandCircle label={t.calendar.plan} icon="plan" onPress={() => router.push({ pathname: "/planning", params: { date: planFrom() } })} testID="plan-plan" />
-            </View>
+            {/* [Planifier (cercle de commande) — retiré le 24/11/2026 (D-559) : on crée en touchant une case ou par « + Routine ».] */}
           </View>
         ),
       }}
@@ -585,13 +582,14 @@ const styles = StyleSheet.create({
   // Zone de contexte : mêmes positions que l'Agenda (D-538, D-555) ; contenu relatif à la marge de 16 de la bande.
   context: { height: 115 },
   todayButton: { position: "absolute", left: -5, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
-  // Mois centré sur le bloc des semaines (x = 176 de l'écran, 160 du contenu).
-  monthNavigation: { position: "absolute", left: 0, width: 320, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  // D-559 : mois centré sur l'écran (x = 201), comme l'Agenda. [Centré sur le bloc des semaines, x = 176 — remplacé.]
+  monthNavigation: { position: "absolute", left: 0, width: 370, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
   monthLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
   chevron: { width: 24, height: 24 },
-  previousWeek: { position: "absolute", left: -5.75, top: 62 },
-  nextWeek: { position: "absolute", left: 302, top: 62 },
-  planSlot: { position: "absolute", left: 336, top: 57 },
+  // D-559 : flèche, semaines, flèche centrées sur l'écran ; flèches aux places de l'Agenda (Figma `12906:209`, `12906:210`).
+  // [Flèches à x = 10,25 et 318, semaines centrées sur x = 176, Planifier à x = 352 — remplacés.]
+  previousWeek: { position: "absolute", left: 19.75, top: 62 },
+  nextWeek: { position: "absolute", left: 327.5, top: 62 },
   weeks: { position: "absolute", top: 51, height: 46, flexDirection: "row", gap: WEEK_GAP },
   weekCell: { width: WEEK_WIDTH, height: 46, borderRadius: 10, backgroundColor: "rgba(255, 255, 255, 0.3)", alignItems: "center", overflow: "hidden" },
   weekCellSelected: { backgroundColor: colors.selection },

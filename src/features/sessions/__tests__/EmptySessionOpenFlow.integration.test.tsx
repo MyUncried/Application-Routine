@@ -225,7 +225,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
       // Story 7.8 (D-443) : séance vide → « 0 s » dans la zone de contexte ; plus de durée de Circuit.
       expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0″");
-      expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
+      expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
 
       // Action finale « Continuer » (Q54 ; libellé PRE-6 story 2.1) : règle existante — sans Exercice, le
       // bouton est désactivé ; l'appui ne navigue pas, n'écrit rien et ne lève pas.

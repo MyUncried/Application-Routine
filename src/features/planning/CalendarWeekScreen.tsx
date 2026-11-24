@@ -30,12 +30,12 @@ import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { CALENDAR_PALETTE, calendarTabs, type CalendarView } from "@/features/planning/CalendarViewTabs";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
-import { CommandCircle } from "@/shared/ui/CatalogueCommands";
 import { TodayIcon } from "@/features/planning/TodayIcon";
 import { requestPlanningSheet } from "@/features/planning/planningSheetRelay";
 import { agendaRoutineFilter, setAgendaRoutineFilter } from "@/features/planning/agendaRoutineFilter";
 import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
 import { TabbedScreen } from "@/shared/ui/TabbedScreen";
+import { strings } from "@/shared/i18n";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -663,6 +663,14 @@ export function CalendarWeekScreen({
       title={t.calendar.title}
       palette={CALENDAR_PALETTE}
       tabs={calendarTabs("agenda", onChangeView)}
+      // UI-FAB-01 (D-559) : bouton flottant calendrier « + » — créer un créneau unique au jour sélectionné (planification
+      // pré-remplie, sans répétition : répétition « Aucune » par défaut de la planification). Même action que l'ancien
+      // bouton Planifier de la zone de contexte, retiré ; le créneau porte l'astérisque « hors routine » (D-560, inchangé).
+      floatingCreate={{
+        variant: "calendar",
+        label: strings.shared.floatingCreate.createSlot,
+        onPress: () => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } }),
+      }}
       context={{
         kind: "custom",
         layout: "centered",
@@ -727,7 +735,7 @@ export function CalendarWeekScreen({
                 testID={`calendar-routine-filter-${routineFilter === null ? "inactive" : "active"}`}
               />
             </Pressable>
-            {/* Ligne 2 : flèche de semaine, sept cartes de jour, flèche de semaine, Planifier. */}
+            {/* Ligne 2 : flèche de semaine, sept cartes de jour, flèche de semaine, centrées sur l’écran (D-559). */}
             <Pressable
               onPress={() => changeWeek(addDays(monday, -7), addDays(monday, -7))}
               accessibilityRole="button"
@@ -788,15 +796,7 @@ export function CalendarWeekScreen({
             >
               <Image source={require("../../../assets/icons/icon-suivant.svg")} style={styles.chevron} accessible={false} />
             </Pressable>
-            {/* Planifier : cercle de commande standard des zones de contexte (`CommandCircle`), x = 352, y = 149. */}
-            <View style={styles.planSlot}>
-              <CommandCircle
-                label={t.calendar.plan}
-                icon="plan"
-                onPress={() => router.push({ pathname: "/planning", params: { date: selectedDay < todayLocal() ? todayLocal() : selectedDay } })}
-                testID="calendar-plan"
-              />
-            </View>
+            {/* [Planifier (cercle de commande, x = 352) — retiré le 24/11/2026 (D-559) : bouton flottant « Créer ».] */}
           </View>
         ),
       }}
@@ -881,24 +881,26 @@ const styles = StyleSheet.create({
   // D-538 : bande de 115, centres des lignes à y = 23 (ligne 1) et y = 74 (ligne 2) dans la bande ; x relatifs au contenu (16).
   context: { height: 115 },
   todayButton: { position: "absolute", left: -5, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
-  // D-555 (21/11/2026) : mois et doubles flèches centrés sur la rangée des jours (centre x = 176 de l'écran, 160 du contenu).
-  // [Centrés sur l'écran — remplacé.]
-  monthNavigation: { position: "absolute", left: 0, width: 320, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  // D-559 (22/11/2026, Figma `12906:47`) : mois et doubles flèches centrés sur l'écran (x = 201). [D-555 : centrés sur la
+  // rangée des jours, x = 176 — remplacé.]
+  monthNavigation: { position: "absolute", left: 0, width: 370, top: 11, height: 24, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
   doubleChevron: { width: 30, height: 24 },
   chevron: { width: 24, height: 24 },
   chevronFirst: { position: "absolute", left: 0, top: 0 },
   chevronSecond: { position: "absolute", left: 7, top: 0 },
   // Mois : Inter 18 semi-gras.
   periodLabel: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, color: colors.textPrimary, textAlign: "center", flexShrink: 1 },
-  // D-555 : entonnoir centré au-dessus de la flèche de semaine suivante (x = 330 de l'écran), centré verticalement sur la ligne
-  // du mois. [À droite de la bande, x = 361 — remplacé.]
-  filterSlot: { position: "absolute", left: 297, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
+  // D-559 : entonnoir en miroir de « Aujourd'hui » (x = 357 de l'écran, Figma `12906:220`), centré verticalement sur la ligne
+  // du mois ; contour bleu sans filtre, plein bleu filtre actif (D-555, inchangé). [Au-dessus de la flèche de semaine
+  // suivante, x = 313 (D-555) — remplacé.]
+  filterSlot: { position: "absolute", left: 341, top: 6, width: 34, height: 34, alignItems: "center", justifyContent: "center" },
   filterIcon: { width: 24, height: 24 },
-  previousWeek: { position: "absolute", left: -5.75, top: 62 },
-  nextWeek: { position: "absolute", left: 302, top: 62 },
-  planSlot: { position: "absolute", left: 336, top: 57 },
-  // Rangée des jours : sept cartes 36 × 46, rayon 10, écart 3 (270), à x = 41 de l'écran.
-  dayBar: { position: "absolute", left: 25, top: 51, width: 270, height: 46, flexDirection: "row", gap: 3 },
+  // D-559 (Figma `12906:209`, `12906:210`, `12906:177`) : flèche, sept jours, flèche, centrés sur l'écran.
+  // [Flèches à x = 10,25 et 318, jours à x = 41, Planifier à x = 352 — remplacés.]
+  previousWeek: { position: "absolute", left: 19.75, top: 62 },
+  nextWeek: { position: "absolute", left: 327.5, top: 62 },
+  // Rangée des jours : sept cartes 36 × 46, rayon 10, écart 3 (270), à x = 66,5 de l'écran (D-559, centrée). [x = 41 — remplacé.]
+  dayBar: { position: "absolute", left: 50.5, top: 51, width: 270, height: 46, flexDirection: "row", gap: 3 },
   dayCell: { width: 36, height: 46, borderRadius: 10, backgroundColor: "rgba(255, 255, 255, 0.3)", alignItems: "center", overflow: "hidden" },
   dayCellSelected: { backgroundColor: colors.selection },
   dayShort: { position: "absolute", top: 3, left: 0, right: 0, fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 11, lineHeight: 14, color: colors.textLabel, textAlign: "center" },

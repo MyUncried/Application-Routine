@@ -51,9 +51,14 @@ export function commandRowLayout(input: {
   readonly circle: number;
   /** Écart entre deux commandes, et minimum entre la bascule et les commandes. */
   readonly gap: number;
+  /**
+   * Boutons ronds après le Filtre : Tri et Créer (2, défaut). UI-FAB-01 (D-558, 24/11/2026) : 1 (Tri seul) dans le Catalogue
+   * des séances, dont le bouton Créer passe au bouton flottant.
+   */
+  readonly roundCommands?: number;
 }): CommandRowLayout {
-  const { available, toggle, filterActive, extendedFilter, circle, gap } = input;
+  const { available, toggle, filterActive, extendedFilter, circle, gap, roundCommands = 2 } = input;
   if (!filterActive) return { filter: "ROUND", label: "SUMMARY" };
-  const fits = toggle + gap + extendedFilter + 2 * (gap + circle) <= available;
+  const fits = toggle + gap + extendedFilter + roundCommands * (gap + circle) <= available;
   return { filter: "EXTENDED", label: fits ? "SUMMARY" : "COUNT" };
 }

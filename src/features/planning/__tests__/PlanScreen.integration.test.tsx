@@ -157,10 +157,18 @@ describe("Calendrier — Plan (D-554)", () => {
     expect(within(screen.getByTestId("plan-week-2030-08-05")).getByText("S32")).toBeTruthy();
     expect(within(screen.getByTestId("plan-week-2030-08-05")).getByText("5–11")).toBeTruthy();
     expect(screen.getByTestId("plan-week-2030-08-05").props.accessibilityState).toMatchObject({ selected: true });
-    // Même largeur de cadre à 4 et 5 semaines ; bloc centré sous le mois (x = 160 du contenu).
+    // Même largeur de cadre à 4 et 5 semaines. D-559 (UI-FAB-01) : bloc et mois centrés sur l'écran (x = 185 du contenu) ;
+    // plus de Planifier ni de bouton flottant. [Centré sous le mois à x = 160 — remplacé.]
     const block = StyleSheet.flatten(screen.getByTestId("plan-weeks").props.style);
     expect(block.width).toBe(5 * 51 + 4 * 3);
-    expect(block.left + block.width / 2).toBe(160);
+    expect(block.left + block.width / 2).toBe(185);
+    const month = StyleSheet.flatten(screen.getByTestId("plan-month-navigation").props.style);
+    expect(month.left + month.width / 2).toBe(185);
+    const previous = StyleSheet.flatten(screen.getByTestId("plan-previous-week").props.style);
+    const next = StyleSheet.flatten(screen.getByTestId("plan-next-week").props.style);
+    expect((previous.left + 12 + next.left + 12) / 2).toBeCloseTo(185.625, 3);
+    expect(screen.queryByTestId("plan-plan")).toBeNull();
+    expect(screen.queryByTestId("floating-create")).toBeNull();
     fireEvent.press(screen.getByTestId("plan-next-month"));
     await flush();
     expect(screen.getByTestId("plan-month-label").props.children).toBe("Septembre 2030");

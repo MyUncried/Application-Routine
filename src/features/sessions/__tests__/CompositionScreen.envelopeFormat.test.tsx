@@ -107,7 +107,7 @@ describe("Créer un circuit dans une séance qui porte un circuit formaté (rece
     );
     await act(async () => undefined);
     const before = structureCircuits(probe.draft!.structure!).length;
-    fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-circuit"));
     const target = screen.getByTestId("composition-envelope-exercise-a-target");
     fireEvent.press(target);

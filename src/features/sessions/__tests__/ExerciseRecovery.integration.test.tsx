@@ -132,7 +132,7 @@ async function settle(ms = 0) {
 
 /** Reprendre un Mouvement existant par « Créer un exercice » (saisie du nom, toucher de sa carte). */
 async function useExistingMovement(name: string, id: string) {
-  fireEvent.press(screen.getByLabelText(composition.addActivity));
+  fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
   fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(addToSession.newActivity));
   await settle(300);
   // Complément du 5 novembre 2026 (§1, §3) : modale de création, puis « Exercice libre ».
@@ -247,7 +247,8 @@ describe("Récupération de l'Exercice : aucune valeur par défaut (14/11/2026)"
       await closeSheet("execution-sheet-validate");
     }
 
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
     await settle();
     expect(screen.getByTestId("composition-placement-bar")).toBeTruthy();
     expect(screen.queryAllByTestId(/^composition-placement-slot-.*-recovery$/, hidden)).toHaveLength(0);
