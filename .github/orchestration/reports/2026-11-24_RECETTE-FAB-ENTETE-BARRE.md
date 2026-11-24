@@ -35,3 +35,15 @@
 
 - **Commits de fusion** : `ed769045` (en-tête) et `c40b3fe4` (barre).
 - Le commit de ce rapport et l'état Git figurent dans le message de livraison.
+
+## Mise à jour du 24/11/2026 : corrections de la recette
+
+- **Fusions** :
+  - `origin/fix/en-tete-cercle-blanc-20261124` (`5cb145b7`, ombre du cercle) ;
+  - `origin/feat/barre-lentille-20261124` (`e1659ea3`, listes du Catalogue sous la barre, cadre à 20 %).
+- **Conflits** :
+  - **Registre** : D-595 complétée, D-593 et D-594 conservées.
+  - **`CatalogueScreen.test.tsx`** : conflit sur tout le fichier, venu des fins de ligne. J'ai gardé la version de recette (bouton flottant) et réappliqué le diff de la branche barre (`git apply --ignore-whitespace`).
+- **Tests** :
+  - `tsc` est propre ;
+  - 6 suites, 100 tests réussis : Catalogue, barre, en-tête, bouton flottant, menu Créer, Composition `recette1`.
