@@ -5,7 +5,9 @@ import { AppState } from "react-native";
 import { ExecutionDialog } from "./ExecutionDialog";
 import type { RecoveryCandidate } from "./ExecutionService";
 import { useOptionalExecution } from "./ExecutionServiceContext";
-import { executionStrings as t } from "./executionStrings";
+import { strings } from "@/shared/i18n";
+
+const t = strings.execution;
 
 /**
  * PRE-10.2 — reprise après interruption technique (ch12 §12.33, ch09 « Cycle de vie d'une Exécution »,

@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import {
@@ -23,6 +20,7 @@ import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { pilotCatalogueV3 } from "@/domain/catalogue/testing/pilotCatalogueV3";
 
 /**
  * CA-3 — chargement réel sur deux bases SQLite (`node:sqlite`) : base principale migrée et
@@ -31,9 +29,8 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  */
 
 const NOW = "2026-11-10T09:00:00.000Z";
-const pilot = JSON.parse(
-  readFileSync(join(__dirname, "../../../../catalogue/catalogues/kodjo-pilote-60.catalogue.json"), "utf8"),
-) as MovementCatalogueFile;
+// Format 3.0.0 : pilote déjà au format courant, sans reprise de la position de départ (voir `pilotCatalogueV3`).
+const pilot: MovementCatalogueFile = pilotCatalogueV3();
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 let main: NodeSqliteDatabase;
@@ -95,7 +92,7 @@ function editedFile(change: (sheet: CatalogueSheet & Record<string, never>) => v
   const file = clone(pilot) as MovementCatalogueFile & { sheets: CatalogueSheet[] };
   const revised = file.sheets[0] as unknown as Record<string, any>;  
   revised.content.steps = [...revised.content.steps, "Revenir lentement"];
-  revised.sources.documentary.section = "Section révisée";
+  revised.content.equipment = "Élastique (révisé)";
   change(revised as never);
   revised.revision = "2";
   revised.history = [...revised.history, { revision: "2", date: "2026-11-11", author: null, summary: "Étape ajoutée" }];
@@ -130,7 +127,8 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
       .toBe(CATALOGUE_REGISTRY_SCHEMA_VERSION);
     expect(Object.keys(await dump(registryDb))).toEqual([
       // v3 (12/11/2026) : tables additives des Bibliothèques personnelles.
-      "installed_libraries", "installed_sheets", "library_decisions", "library_operations", "local_author", "pending_operations",
+      // v4 (18/11/2026) : référentiels de classification (filtres). Aucune sauvegarde sur une base neuve.
+      "installed_libraries", "installed_references", "installed_sheets", "library_decisions", "library_operations", "local_author", "pending_operations",
       "personal_libraries", "personal_library_members", "saved_local_values", "sheet_decisions",
     ]);
     expect(await dump()).toEqual(before);
@@ -175,7 +173,7 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
     const created = prepared.plan.items[60]!;
     expect(revision).toMatchObject({ state: "NEW_REVISION", installedRevision: "1", revision: "2" });
     expect(revision.summary).toMatchObject({ movementFields: ["content.steps"], conflicts: [], editorialOnly: false });
-    expect(revision.summary.bySection.sources).toBe(1);
+    expect(revision.summary.bySection.content).toBe(2);
     expect(created).toMatchObject({ state: "NEW", blockers: [] });
 
     // Fiche créée dans le fichier : installée sous un nouvel identifiant local.
@@ -348,7 +346,8 @@ describe("CA-3 — chargement d'un catalogue sur SQLite réelle (base principale
     const before = [await dump(), await dump(registryDb)];
     const invalid = { ...clone(pilot), catalogue: { ...pilot.catalogue, publicationAllowed: true } };
     const prepared = await service.prepare(invalid);
-    expect(prepared).toMatchObject({ ok: false, issues: [{ path: "catalogue.publicationAllowed", code: "INCONSISTENT" }] });
+    // Format 3.0.0 : la case de publication du catalogue n'existe plus (synthèse calculée) ; elle est refusée.
+    expect(prepared).toMatchObject({ ok: false, issues: [{ path: "catalogue.publicationAllowed", code: "UNRECOGNIZED" }] });
     expect([await dump(), await dump(registryDb)]).toEqual(before);
   });
 

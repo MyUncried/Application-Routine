@@ -204,7 +204,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Comment gérer les versions lorsqu’une Séance partagée évolue ?
 - Quelles statistiques et quels filtres apporteront une valeur réelle ?
 - Quelles intégrations calendrier, santé ou sport seront prioritaires ?
-- Quelles langues seront proposées après le français ?
+- Quelles langues seront proposées après le français ? [Répondu le 23/11/2026 : anglais, espagnol, italien, portugais du Brésil, allemand.]
 
 ## 8. Besoins validés pour les évolutions
 

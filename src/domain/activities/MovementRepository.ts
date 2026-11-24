@@ -90,6 +90,12 @@ export interface MovementRepository {
    * (celle du brouillon en cours, dont l'éditeur compte lui-même les occurrences).
    */
   countOccurrences(id: string, excludingSessionId?: string): Promise<number>;
+  /**
+   * Occurrences de Séance de tous les Mouvements en une lecture (recette iPhone du 19/11/2026 : chargement du
+   * Catalogue des Mouvements, une requête par Mouvement auparavant). Mouvement absent de la table : 0.
+   * Facultatif : sans lui, `countOccurrences` est appelé pour chaque Mouvement.
+   */
+  countAllOccurrences?(): Promise<ReadonlyMap<string, number>>;
   /** Suppression explicite, refusée si une occurrence de Séance le référence (MFN-03, R-3). */
   delete(id: string): Promise<DeleteMovementOutcome>;
   /**

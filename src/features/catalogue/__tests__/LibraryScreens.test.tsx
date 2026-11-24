@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import type { ReactElement } from "react";
@@ -34,6 +31,7 @@ import { SqliteCategoryRepository } from "@/infrastructure/database/repositories
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { pilotCatalogueV3 } from "@/domain/catalogue/testing/pilotCatalogueV3";
 
 /**
  * A1 — écrans Profil → Bibliothèques (Figma page 510:101) sur vraies bases SQLite (principale +
@@ -44,9 +42,8 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 const NOW = "2026-11-11T09:00:00.000Z";
 const PILOT = "kodjo.pilote-60";
-const pilot = JSON.parse(
-  readFileSync(join(__dirname, "../../../../catalogue/catalogues/kodjo-pilote-60.catalogue.json"), "utf8"),
-) as MovementCatalogueFile;
+// Format 3.0.0 : pilote déjà au format courant, sans reprise de la position de départ (voir `pilotCatalogueV3`).
+const pilot: MovementCatalogueFile = pilotCatalogueV3();
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 let main: NodeSqliteDatabase;

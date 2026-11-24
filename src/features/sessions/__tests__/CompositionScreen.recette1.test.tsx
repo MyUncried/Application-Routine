@@ -355,7 +355,7 @@ describe("bouton Guidage sonore de l'en-tête de Composition", () => {
   });
 
   it("une Séance à réglages propres garde le symbole fin tant que la modale est fermée", async () => {
-    await renderComposition({ ...flatDraft(), guidance: { announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false }, events: DEFAULT_GUIDANCE_EVENTS } });
+    await renderComposition({ ...flatDraft(), guidance: { announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false, rounds: true }, events: DEFAULT_GUIDANCE_EVENTS } });
     expect(screen.getByTestId("composition-guidance-icon-light")).toBeTruthy();
     expect(screen.queryByTestId("composition-guidance-icon-fill")).toBeNull();
   });

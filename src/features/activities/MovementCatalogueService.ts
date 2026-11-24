@@ -125,6 +125,8 @@ export class MovementCatalogueService {
   async listEntries(): Promise<readonly MovementCatalogueEntry[]> {
     const all = await this.movements.search("");
     const archivedIds = await this.movements.listArchivedIds();
+    // Recette iPhone du 19/11/2026 : Exercices liés comptés en une lecture (une requête par Mouvement auparavant).
+    const occurrences = this.movements.countAllOccurrences ? await this.movements.countAllOccurrences() : null;
     const groups = new Map<string, readonly Movement[]>();
     const entries: MovementCatalogueEntry[] = [];
     for (const movement of all) {
@@ -149,7 +151,7 @@ export class MovementCatalogueService {
         movement,
         level,
         familyPosition,
-        exerciseCount: await this.countLinkedExercises(movement.id),
+        exerciseCount: occurrences ? occurrences.get(movement.id) ?? 0 : await this.countLinkedExercises(movement.id),
         archived,
       });
     }

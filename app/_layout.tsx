@@ -15,6 +15,7 @@ import { Animated, StyleSheet, View } from "react-native";
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
 import { ExecutionRecoveryGate } from "@/features/execution/ExecutionRecoveryGate";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
+import { ReminderOpenGate } from "@/features/planning/ReminderOpenGate";
 import { CreationDraftProviders } from "@/features/sessions/CreationDraftProviders";
 import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvider";
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
@@ -183,12 +184,34 @@ export default function RootLayout() {
               <Stack.Screen name="library-mine" options={{ presentation: "fullScreenModal" }} />
               {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
               <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
+              {/* Planification (CE-UI-04/05) — recette du 17/11/2026 (f/g) : feuilles natives iOS, sans geste de fermeture
+                  (abandon par ✕) ; « Catalogue des séances » posé dessus. [Modale plein écran, sélection dans le même
+                  écran — remplacées.] */}
+              <Stack.Screen name="planning" options={NATIVE_SHEET_OPTIONS} />
+              <Stack.Screen name="planning-selection" options={NATIVE_SHEET_OPTIONS} />
+              {/* D-545 (23/11/2026) : modale « Rattacher un programme » ouverte par la ligne Programme, feuille native. */}
+              <Stack.Screen name="planning-program" options={NATIVE_SHEET_OPTIONS} />
+              {/* D-539 (20/11/2026) : modale « Filtrer par routine » de l'Agenda, feuille native. */}
+              <Stack.Screen name="agenda-routine-filter" options={NATIVE_SHEET_OPTIONS} />
+              {/* PROG-CAT-01 (CE-PROG-02, D-548) : « Créer ou configurer un programme », feuille native avec poignée au-dessus du
+                  catalogue ; « Rattacher une routine existante » posée dessus ; consentement au suivi de la douleur (« PROG —
+                  13b », D-551), feuille ajustée à son contenu, fermée par le geste comme par « Annuler ». */}
+              <Stack.Screen name="program-sheet" options={{ ...NATIVE_SHEET_OPTIONS, sheetGrabberVisible: true }} />
+              <Stack.Screen name="program-attach" options={NATIVE_SHEET_OPTIONS} />
+              <Stack.Screen
+                name="pain-consent"
+                options={{ presentation: "formSheet", sheetGrabberVisible: true, sheetAllowedDetents: "fitToContents", contentStyle: { backgroundColor: "#FFFFFF" } }}
+              />
+              {/* [Feuille native « Fréquence » (CE-UI-11) — retirée le 18/11/2026 (D-523) : la fréquence se règle dans la grille
+                  du formulaire (D-519). « Rappel personnalisé » en feuille (Figma 1992:7187) — remplacé le 17/11/2026.] */}
             </Stack>
             </CreationDraftProviders>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
           {/* PRE-10.2 (ch12 §12.33) : Exécution interrompue détectée au démarrage → Reprendre / Arrêter la séance. */}
           {fontsSettled && databaseReady && !showAppSplash ? <ExecutionRecoveryGate /> : null}
+          {/* RM-054b : toucher un rappel ouvre l'écran d'Exécution de la première Séance de son occurrence. */}
+          {fontsSettled && databaseReady && !showAppSplash ? <ReminderOpenGate /> : null}
           {showAppSplash ? (
             <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}

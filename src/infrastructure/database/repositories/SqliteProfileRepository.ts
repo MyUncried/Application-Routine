@@ -3,6 +3,7 @@ import {
   DEFAULT_ANNOUNCE_OBJECTIVE_ENABLED,
   DEFAULT_ANNOUNCE_PAUSES_ENABLED,
   DEFAULT_ANNOUNCE_PHASES_ENABLED,
+  DEFAULT_ANNOUNCE_ROUNDS_ENABLED,
   DEFAULT_ANNOUNCE_SESSION_ENABLED,
   DEFAULT_ANNOUNCE_SIDES_ENABLED,
   type Profile,
@@ -28,6 +29,7 @@ const SELECT_COLUMNS = `
   COALESCE(g.announce_session_enabled, ${DEFAULT_ANNOUNCE_SESSION_ENABLED ? 1 : 0}) AS announce_session_enabled,
   COALESCE(g.announce_sides_enabled, ${DEFAULT_ANNOUNCE_SIDES_ENABLED ? 1 : 0}) AS announce_sides_enabled,
   COALESCE(g.announce_phases_enabled, ${DEFAULT_ANNOUNCE_PHASES_ENABLED ? 1 : 0}) AS announce_phases_enabled,
+  COALESCE(g.announce_rounds_enabled, ${DEFAULT_ANNOUNCE_ROUNDS_ENABLED ? 1 : 0}) AS announce_rounds_enabled,
   g.events_json AS guidance_events_json,
   p.display_name, p.photo_uri, p.silhouette, p.updated_at
 `;
@@ -65,13 +67,15 @@ function isCataloguePreference(preference: ProfilePreference): preference is Cat
 }
 
 /** Préférences rangées dans `guidance_preferences` (suite PRE-10 son et voix, `migration025`). */
-type GuidancePreference = "announceObjectiveEnabled" | "announcePausesEnabled" | "announceSessionEnabled" | "announceSidesEnabled" | "announcePhasesEnabled";
+type GuidancePreference = "announceObjectiveEnabled" | "announcePausesEnabled" | "announceSessionEnabled" | "announceSidesEnabled" | "announcePhasesEnabled" | "announceRoundsEnabled";
 const GUIDANCE_COLUMNS: Readonly<Record<GuidancePreference, string>> = {
   announceObjectiveEnabled: "announce_objective_enabled",
   announcePausesEnabled: "announce_pauses_enabled",
   announceSessionEnabled: "announce_session_enabled",
   announceSidesEnabled: "announce_sides_enabled",
   announcePhasesEnabled: "announce_phases_enabled",
+  // D-530 (`migration031`).
+  announceRoundsEnabled: "announce_rounds_enabled",
 };
 
 function isGuidancePreference(preference: ProfilePreference): preference is GuidancePreference {
@@ -182,6 +186,7 @@ export function mapProfileRow(row: ProfileRow): Profile {
     announceSessionEnabled: row.announce_session_enabled === 1,
     announceSidesEnabled: row.announce_sides_enabled === 1,
     announcePhasesEnabled: row.announce_phases_enabled === 1,
+    announceRoundsEnabled: row.announce_rounds_enabled === 1,
     movementCatalogueGridEnabled: row.movement_catalogue_grid === 1,
     guidanceEvents: parseGuidanceEvents(row.guidance_events_json),
     displayName: row.display_name,

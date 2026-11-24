@@ -10,9 +10,10 @@ import {
   type AccessibilityState,
   type GestureResponderEvent,
 } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
-import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe } from "@/features/sessions/compositionGesture";
+import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe, TOUCH_SLOP } from "@/features/sessions/compositionGesture";
 import { useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { colors, fixedRadii, type } from "@/shared/ui/tokens";
@@ -99,7 +100,9 @@ export function SwipeActionsRow({
   actionsInsets,
   actionWidth = SWIPE_ACTION_WIDTH,
   actionsRadius,
+  actionsRightMargin = 0,
   slideActions = false,
+  nativeGesture = false,
   children,
   testID,
 }: {
@@ -129,17 +132,31 @@ export function SwipeActionsRow({
   readonly actionWidth?: number;
   /** Recette du 04/11 (CE-FMT-05) : rayon des extrémités du bloc d'actions (12 par défaut). */
   readonly actionsRadius?: number;
+  /** Marge entre le bloc d'actions et le bord droit de la rangée (Agenda, recette du 19/11/2026 au soir) ; la carte glisse d'autant plus. */
+  readonly actionsRightMargin?: number;
   /**
    * Recette du 05/11/2026 (e-replie-glisse, Hermann : « il faut que le cadre des options apparaisse par glissement de droite à
    * gauche aussi en même temps que le circuit, et qu'il disparaisse de la même manière de gauche à droite par glissement ») :
    * le bloc d'actions suit la translation de la rangée au lieu d'être découvert sur place.
    */
   readonly slideActions?: boolean;
+  /**
+   * Contre-recette du 23/11/2026 (r3, Hermann, modale du programme : « Il y a une perte de suivi du glisser gauche suivi d'un
+   * rebond qui ferme l'option lorsque le geste part un peu à l'horizontale ou à la verticale, même chose à la fermeture ») :
+   * rangée posée dans une feuille native iOS (`formSheet`). Le geste de la feuille, extérieur à la vue React Native, annule les
+   * touchers de React Native (`RCTSurfaceTouchHandler.canBePreventedByGestureRecognizer`) dès qu'il démarre — le glissement
+   * perdait le doigt puis revenait à sa position (`onTouchCancel`). Le glissement est alors suivi par le `Pan` natif de
+   * react-native-gesture-handler (actif dès 8 de déplacement horizontal, avant 8 de déplacement vertical ; ensuite il suit le
+   * doigt quelle que soit sa direction), qui empêche celui de la feuille — même correctif que le questionnaire des Formats et la
+   * feuille Planifier (ch12). L'appelant fournit la `GestureHandlerRootView` de la feuille. Absent : système de touchers de React
+   * Native (rendu et comportement inchangés pour les autres écrans).
+   */
+  readonly nativeGesture?: boolean;
   readonly children: ReactNode;
   readonly testID: string;
 }) {
   const groupWidth = enabled && !passive ? actions.length * actionWidth : 0;
-  const offset = groupWidth > 0 ? groupWidth + SWIPE_ACTIONS_GAP : 0;
+  const offset = groupWidth > 0 ? groupWidth + SWIPE_ACTIONS_GAP + actionsRightMargin : 0;
   const reduceMotion = useReduceMotion();
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = useRef(false);
@@ -218,6 +235,15 @@ export function SwipeActionsRow({
     else if (!open && revealed) onHide();
   };
 
+  // r3 (23/11/2026) : en feuille native, le geste natif porte seul le glissement ; les touchers de React Native ne servent plus
+  // qu'à l'appui (annulés à l'activation du geste natif, sans effet sur la position).
+  const native = nativeGesture && offset > 0;
+  // Lot 4 du 23/11/2026 (x4, Hermann : « le glisser gauche provoque l'ouverture systématique de l'écran de planification d'une
+  // séance ») : en feuille native, les touchers de React Native ne sont pas annulés à l'activation du Pan — la fin du glissé
+  // arrivait au `Pressable` comme un appui, après `onFinalize` (qui remet `isSwipingRef` à faux) et avant que `revealed` ne
+  // change. Un toucher dont le Pan s'est activé n'est donc jamais un appui ; le marqueur est remis à zéro au toucher suivant.
+  const pannedRef = useRef(false);
+
   const showActions = translateX < 0 || isSettling;
   const actionsSlide = useMemo(
     () =>
@@ -225,27 +251,34 @@ export function SwipeActionsRow({
     [offset, swipeX],
   );
 
-  return (
+  const row = (
     <View
       onTouchStart={(event) => {
+        if (native) {
+          pannedRef.current = false;
+          return;
+        }
         originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
         isSwipingRef.current = false;
         baseRef.current = revealed ? -offset : 0;
       }}
       onTouchMove={(event) => {
+        if (native) return;
         // Reçu même quand une action révélée détient le responder (balayage droit de fermeture).
         const { dx, dy } = delta(event);
         if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return;
         follow(dx);
       }}
-      onTouchEnd={end}
+      onTouchEnd={native ? undefined : end}
       onTouchCancel={() => {
+        if (native) return;
         originRef.current = null;
         isSwipingRef.current = false;
         scrollLock.release();
         moveTo(revealed ? -offset : 0);
       }}
       onMoveShouldSetResponderCapture={(event) => {
+        if (native) return false;
         const { dx, dy } = delta(event);
         if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return false;
         follow(dx);
@@ -269,6 +302,7 @@ export function SwipeActionsRow({
             styles.actions,
             { width: groupWidth },
             actionsHeight !== undefined ? { bottom: undefined, height: actionsHeight } : null,
+            actionsRightMargin > 0 ? { right: actionsRightMargin } : null,
             actionsInsets === undefined
               ? null
               : { top: -(actionsInsets.top ?? 0), bottom: -(actionsInsets.bottom ?? 0), right: -(actionsInsets.right ?? 0) },
@@ -325,13 +359,13 @@ export function SwipeActionsRow({
         accessible={!passive}
         onPress={() => {
           // Carte ouverte : appui neutre (seul un balayage droit la referme).
-          if (!passive && !revealed && !isSwipingRef.current) onPress();
+          if (!passive && !revealed && !isSwipingRef.current && !pannedRef.current) onPress();
         }}
         onLongPress={
           onLongPress === undefined
             ? undefined
             : () => {
-                if (!revealed && !isSwipingRef.current) onLongPress();
+                if (!revealed && !isSwipingRef.current && !pannedRef.current) onLongPress();
               }
         }
         accessibilityRole={passive ? undefined : "button"}
@@ -362,6 +396,50 @@ export function SwipeActionsRow({
       </AnimatedPressable>
     </View>
   );
+  return nativeGesture ? (
+    <NativeSwipe
+      enabled={native}
+      testID={`${testID}-pan`}
+      onStart={() => {
+        pannedRef.current = true;
+        baseRef.current = revealed ? -offset : 0;
+      }}
+      onUpdate={follow}
+      onFinalize={end}
+    >
+      {row}
+    </NativeSwipe>
+  ) : (
+    row
+  );
+}
+
+/** r3 : `Pan` natif du glissement en feuille native (actif dès `TOUCH_SLOP` à l'horizontale, avant `TOUCH_SLOP` à la verticale). */
+function NativeSwipe({
+  enabled,
+  testID,
+  onStart,
+  onUpdate,
+  onFinalize,
+  children,
+}: {
+  readonly enabled: boolean;
+  readonly testID: string;
+  readonly onStart: () => void;
+  readonly onUpdate: (translationX: number) => void;
+  readonly onFinalize: () => void;
+  readonly children: ReactNode;
+}) {
+  const pan = Gesture.Pan()
+    .enabled(enabled)
+    .withTestId(testID)
+    .runOnJS(true)
+    .activeOffsetX([-TOUCH_SLOP, TOUCH_SLOP])
+    .failOffsetY([-TOUCH_SLOP, TOUCH_SLOP])
+    .onStart(() => onStart())
+    .onUpdate((event) => onUpdate(event.translationX))
+    .onFinalize(() => onFinalize());
+  return <GestureDetector gesture={pan}>{children}</GestureDetector>;
 }
 
 const JOIN_EASIER = require("../../../assets/icons/catalogue-raccord-plus-facile.svg");

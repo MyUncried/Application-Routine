@@ -2,6 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 
 import {
   hasUnknownOwner,
+  movementLicenseProblem,
   validateMovementEditorialProvenance,
   type MovementEditorialProvenance,
 } from "../MovementEditorialProvenance";
@@ -14,18 +15,14 @@ function original(
 ): MovementEditorialProvenance {
   return {
     sheetId: "sheet-local-1",
-    gestureId: "squat",
     localMovementId: "mov-1",
     origin: "LOCAL_CREATED",
     upstream: null,
     owner: local,
     author: local,
-    publisher: null,
     rightsHolder: null,
     license: null,
     revision: "1",
-    reviewStatus: "DRAFT",
-    visibility: "PRIVATE",
     ...overrides,
   };
 }
@@ -44,7 +41,7 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
           upstream: { catalogueId: "coach-martin", sheetId: "sheet-squat", revision: "2.1" },
           author: coach,
           owner: local,
-          publisher: coach,
+          rightsHolder: coach,
         }),
       ),
     ).toEqual([]);
@@ -68,10 +65,9 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
   });
 
   it("conserve des identités éditoriales distinctes pour un même concept", () => {
-    const a = original({ sheetId: "coach-a", gestureId: "squat", owner: coach });
+    const a = original({ sheetId: "coach-a", owner: coach });
     const b = original({
       sheetId: "coach-b",
-      gestureId: "squat",
       owner: { kind: "PERSON", id: "coach-sophie" },
     });
     expect(a.sheetId).not.toBe(b.sheetId);
@@ -100,19 +96,16 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
   it("ne suppose pas un auteur ni un ayant droit pour une fiche d'origine inconnue", () => {
     expect(
       validateMovementEditorialProvenance(
-        original({ author: null, rightsHolder: null, publisher: null }),
+        original({ author: null, rightsHolder: null }),
       ),
     ).toEqual([]);
   });
 
-  it("propriétaire inconnu déclaré (null) : admis en privé, sans identité fictive, refusé à la diffusion", () => {
+  it("propriétaire inconnu déclaré (null) : admis, sans identité fictive, champ obligatoirement déclaré", () => {
     const unknown = original({ owner: null, origin: "EXTERNAL_IMPORTED", upstream: { catalogueId: "xlsx:pilote", sheetId: "REED-001", revision: "2026-10-27" } });
     expect(validateMovementEditorialProvenance(unknown)).toEqual([]);
     expect(hasUnknownOwner(unknown)).toBe(true);
     expect(hasUnknownOwner(original())).toBe(false);
-    for (const visibility of ["UNLISTED", "PUBLIC"] as const) {
-      expect(validateMovementEditorialProvenance({ ...unknown, visibility })).toEqual([{ field: "owner", code: "INCONSISTENT" }]);
-    }
     const omitted = { ...unknown, owner: undefined } as unknown as MovementEditorialProvenance;
     expect(validateMovementEditorialProvenance(omitted)).toEqual([{ field: "owner", code: "REQUIRED" }]);
   });
@@ -121,16 +114,23 @@ describe("MovementEditorialProvenance (catalogue indépendant du moteur)", () =>
     const bad = original({
       sheetId: " ",
       owner: { kind: "PERSON", id: "" },
-      reviewStatus: "WRONG" as MovementEditorialProvenance["reviewStatus"],
-      visibility: "WRONG" as MovementEditorialProvenance["visibility"],
+      license: "CC BY" as unknown as MovementEditorialProvenance["license"],
     });
     expect(validateMovementEditorialProvenance(bad)).toEqual(
       expect.arrayContaining([
         { field: "sheetId", code: "REQUIRED" },
         { field: "owner.id", code: "REQUIRED" },
-        { field: "reviewStatus", code: "UNRECOGNIZED" },
-        { field: "visibility", code: "UNRECOGNIZED" },
+        { field: "license", code: "REQUIRED" },
       ]),
     );
+  });
+
+  it("MOUV-ADM n° 14 et 15 : ayant droit = propriétaire refusé en double ; licence nom (et lien) ou texte", () => {
+    expect(validateMovementEditorialProvenance(original({ owner: coach, rightsHolder: coach }))).toEqual([{ field: "rightsHolder", code: "INCONSISTENT" }]);
+    expect(movementLicenseProblem(null)).toBeNull();
+    expect(movementLicenseProblem({ name: "CC BY-SA", url: "http://x.org", text: null })).toBeNull();
+    expect(movementLicenseProblem({ name: null, url: null, text: "Conditions" })).toBeNull();
+    expect(movementLicenseProblem({ name: null, url: null, text: null })).toBe("INCONSISTENT");
+    expect(movementLicenseProblem({ name: "A", url: null, text: null, list: "x" })).toBe("UNRECOGNIZED");
   });
 });

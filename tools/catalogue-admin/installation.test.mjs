@@ -136,7 +136,8 @@ describe("Identité « Utilisateur local » de l'installation PC", () => {
     const provenance = opened.body.file.sheets[0].provenance;
     assert.deepEqual(provenance.owner, { kind: "LOCAL_USER", id: "hermann Adjou Moumouni" });
     assert.deepEqual(provenance.author, { kind: "PERSON", id: "hermann" });
-    assert.deepEqual(provenance.publisher, { kind: "PLATFORM", id: "kodjo" });
-    assert.equal(opened.body.file.catalogue.manager?.kind, "ORGANIZATION");
+    // Format 3.0.0 (MOUV-ADM n° 13 et 25) : diffuseur et gestionnaire retirés à la lecture du fichier 2.0.0.
+    assert.equal("publisher" in provenance, false);
+    assert.equal("manager" in opened.body.file.catalogue, false);
   });
 });

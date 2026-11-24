@@ -28,13 +28,18 @@ import { StyleSheet, View } from "react-native";
 
 import type { InstalledLibraryRecord } from "@/domain/catalogue/libraryPlan";
 import type { PersonalLibrary } from "@/domain/catalogue/personalLibrary";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { LibraryProgress } from "@/features/catalogue/LibraryService";
 import { refreshInstalledStatusSilently } from "@/features/catalogue/adminLibraryRefresh";
 import { librarySession } from "@/features/catalogue/librarySession";
 import { plural } from "@/features/catalogue/libraryPresentation";
 import { Card, Divider, Pill, Row, Section } from "@/features/catalogue/libraryUi";
 import { useLibraryServices } from "@/features/catalogue/useLibraryServices";
+import { strings } from "@/shared/i18n";
 import { spacing } from "@/shared/ui/tokens";
+
+const L = strings.libraries.profileSection;
+const C = strings.libraries.common;
 
 export function ProfileLibrariesSection() {
   const router = useRouter();
@@ -69,11 +74,11 @@ export function ProfileLibrariesSection() {
 
   return (
     <View style={styles.sections} testID="profile-libraries">
-      <Section label="Mes bibliothèques" testID="profile-libraries-mine">
+      <Section label={L.mine} testID="profile-libraries-mine">
         <Card>
           <Row
             icon="library-add"
-            title="Créer une bibliothèque"
+            title={L.create}
             onPress={() => router.push("/library-edit")}
             testID="profile-libraries-create"
           />
@@ -83,7 +88,7 @@ export function ProfileLibrariesSection() {
               <Row
                 icon="library-book-profile"
                 title={library.title}
-                subtitle={plural(library.movementIds.length, "mouvement", "mouvements")}
+                subtitle={plural(library.movementIds.length, C.movementSingular, C.movementPlural)}
                 onPress={() => router.push({ pathname: "/library-mine", params: { libraryId: library.libraryId } })}
                 testID={`profile-libraries-mine-${library.libraryId}`}
               />
@@ -91,12 +96,12 @@ export function ProfileLibrariesSection() {
           ))}
         </Card>
       </Section>
-      <Section label="Bibliothèques installées" testID="profile-libraries-installed">
+      <Section label={L.installed} testID="profile-libraries-installed">
         <Card>
           <Row
             icon="library-add"
-            title="Ajouter une bibliothèque"
-            subtitle="Depuis un fichier ou l'administration (PC)"
+            title={L.add}
+            subtitle={L.addSubtitle}
             onPress={() => router.push("/library-add")}
             testID="profile-libraries-add"
           />
@@ -106,8 +111,8 @@ export function ProfileLibrariesSection() {
               <Row
                 icon="library-book-profile"
                 title={operation.title}
-                subtitle={`${operation.kind === "UPDATE" ? "Mise à jour" : "Installation"} interrompue · ${operation.applied} sur ${operation.total}`}
-                pill={<Pill label="Reprendre" tone="warning" />}
+                subtitle={fillTemplate(operation.kind === "UPDATE" ? L.interruptedUpdate : L.interruptedInstall, { applied: String(operation.applied), total: String(operation.total) })}
+                pill={<Pill label={L.resume} tone="warning" />}
                 onPress={() => router.push({ pathname: "/library-resume", params: { catalogueId: operation.catalogueId, libraryId: operation.libraryId } })}
                 testID={`profile-libraries-resume-${operation.libraryId}`}
               />
@@ -116,15 +121,15 @@ export function ProfileLibrariesSection() {
           {installed.map((library) => {
             const preview = librarySession.preview(library.catalogueId, library.libraryId);
             const update = preview?.status === "UPDATE_AVAILABLE";
-            const count = plural(library.library.members.length, "mouvement", "mouvements");
+            const count = plural(library.library.members.length, C.movementSingular, C.movementPlural);
             return (
               <View key={library.catalogueId + "/" + library.libraryId}>
                 <Divider />
                 <Row
                   icon="library-book-profile"
                   title={library.library.title}
-                  subtitle={update ? count : `${count} · à jour`}
-                  pill={update ? <Pill label="Mettre à jour" tone="action" testID={`profile-libraries-update-${library.libraryId}`} /> : undefined}
+                  subtitle={update ? count : fillTemplate(L.upToDate, { count })}
+                  pill={update ? <Pill label={L.update} tone="action" testID={`profile-libraries-update-${library.libraryId}`} /> : undefined}
                   onPress={() => router.push({ pathname: "/library-installed", params: { catalogueId: library.catalogueId, libraryId: library.libraryId } })}
                   testID={`profile-libraries-installed-${library.libraryId}`}
                 />

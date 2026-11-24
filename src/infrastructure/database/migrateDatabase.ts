@@ -31,7 +31,16 @@ import { applyMigration026 } from "./migrations/migration026";
 import { applyMigration027 } from "./migrations/migration027";
 import { applyMigration028 } from "./migrations/migration028";
 import { applyMigration029 } from "./migrations/migration029";
-import { applyMigration030 } from "./migrations/migration030";
+import { applyMigration030, MIGRATION_030_CATALOGUE_PREFERENCES } from "./migrations/migration030";
+import { applyMigration031, MIGRATION_031_ROUTINES } from "./migrations/migration031";
+import { applyMigration032 } from "./migrations/migration032";
+import { applyMigration033 } from "./migrations/migration033";
+import { applyMigration034 } from "./migrations/migration034";
+import { applyMigration036 } from "./migrations/migration036";
+import { applyMigration037 } from "./migrations/migration037";
+import { applyMigration038 } from "./migrations/migration038";
+import { applyMigration039 } from "./migrations/migration039";
+import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -84,7 +93,12 @@ export async function migrateDatabase(
     );
   }
 
+  // Recette iPhone du 20/11/2026 : tables additives 030 et 031 absentes d'une base qui les annonce, recréées
+  // avant toute migration suivante (032 et 034 modifient la table des Routines).
+  await repairMissingTables(database, currentVersion);
+
   if (currentVersion >= targetVersion) {
+    if (targetVersion === DATABASE_VERSION) await repairOrphanRows(database, SESSION_TREE_TABLES);
     return;
   }
 
@@ -330,6 +344,62 @@ export async function migrateDatabase(
       version = 30;
     }
 
+    // Planification : Routines, entrées et retraits d’occurrence (13/11/2026). Un échec laisse `user_version` à 30.
+    if (pending(30)) {
+      await applyMigration031(transaction);
+      version = 31;
+    }
+
+    // Planification : nom des planifications (18/11/2026, D-522). Un échec laisse `user_version` à 31.
+    if (pending(31)) {
+      await applyMigration032(transaction);
+      version = 32;
+    }
+
+    // Planification : lien occurrence ↔ Exécution (19/11/2026, statuts des occurrences). Un échec laisse `user_version` à 32.
+    if (pending(32)) {
+      await applyMigration033(transaction);
+      version = 33;
+    }
+
+    // Planification : occurrences enregistrées et archivage des routines (20/11/2026, D-536, D-537). Un échec laisse `user_version` à 33.
+    if (pending(33)) {
+      await applyMigration034(transaction);
+      version = 34;
+    }
+
+    // Version 35 : réservée à la migration 035 des Programmes (mission parallèle PROG-CAT-01), absente de cette branche. Elle
+    // s'insère ici à l'intégration ; une base passée en 36 par cette branche seule doit alors recevoir 035, idempotente.
+    if (pending(34)) {
+      version = 35;
+    }
+
+    // Planification : mode du nom des routines (21/11/2026, D-553). Un échec laisse `user_version` à 35.
+    if (pending(35)) {
+      await applyMigration036(transaction);
+      version = 36;
+    }
+
+    // Planification : créneau ajouté hors de la répétition (21/11/2026, D-554, RM-273). Un échec laisse `user_version` à 36.
+    if (pending(36)) {
+      await applyMigration037(transaction);
+      version = 37;
+    }
+
+    // Programmes : table `programs`, rattachement des routines, programme figé sur l'exécution, accord au suivi de la
+    // douleur (21/11/2026, PROG-CAT-01, D-543 à D-552). Un échec laisse `user_version` à 37.
+    if (pending(37)) {
+      await applyMigration038(transaction);
+      version = 38;
+    }
+
+    // D-530 (18/11/2026) : interrupteur « Annonce des tours » (développé comme version 31 sur la branche Formats, renuméroté 39
+    // à la consolidation du 24/11/2026). Un échec laisse `user_version` à 38.
+    if (pending(38)) {
+      await applyMigration039(transaction);
+      version = 39;
+    }
+
     if (version !== targetVersion) {
       throw new Error(`Database migration stopped at version ${version} instead of ${targetVersion}.`);
     }
@@ -345,4 +415,40 @@ export async function migrateDatabase(
 
     await transaction.execAsync(`PRAGMA user_version = ${targetVersion}`);
   });
+
+  // Recette iPhone du 20/11/2026 : Exercices, Circuits, Cycles et Points d'arrêt restés après la suppression de leur
+  // Séance quand les clés étrangères étaient inactives dans les transactions de l'appareil (`repairOrphanRows`). Base courante seulement : les preuves des migrations
+  // historiques (`targetVersion` antérieure) lisent la base telle quelle.
+  if (targetVersion === DATABASE_VERSION) await repairOrphanRows(database, SESSION_TREE_TABLES);
 }
+
+/**
+ * Recette iPhone du 20/11/2026 (Routine BMAD : « no such table: routines » avec une base déclarée en version 31).
+ * Une base peut annoncer une version sans contenir les tables additives de cette version : elle a été migrée par un
+ * code dont la numérotation différait (branches de travail successives, migration des routines numérotée 030 puis 031).
+ * Pour les migrations purement additives 030 (version 30 ou plus) et 031 (version 31 exactement), une table absente
+ * est créée telle que la migration la crée, avant les migrations suivantes ; rien n'est modifié ni supprimé, `user_version` est inchangé. Cause exacte de l'état observé : indéterminée.
+ */
+async function repairMissingTables(database: Database, version: number): Promise<void> {
+  const tables = new Set(
+    (await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'")).map((row) => row.name),
+  );
+  const statements: string[] = [];
+  const missing = (name: string) => !tables.has(name);
+  if (version >= 30 && missing("catalogue_preferences")) statements.push(MIGRATION_030_CATALOGUE_PREFERENCES);
+  // Version 31 seulement : à partir de 32, les Routines ont reçu d'autres colonnes (032, 034) ; une table absente
+  // à ce stade n'est pas recréée ici (la forme 031 ne suffirait pas).
+  if (version === 31) {
+    for (const statement of MIGRATION_031_ROUTINES) {
+      const table = /^CREATE TABLE (\w+)/.exec(statement)?.[1];
+      const index = /^CREATE INDEX (\w+) ON (\w+)/.exec(statement);
+      if (table !== undefined && missing(table)) statements.push(statement);
+      else if (index && missing(index[2] as string)) statements.push(statement.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS"));
+    }
+  }
+  if (statements.length === 0) return;
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    for (const statement of statements) await transaction.execAsync(statement);
+  });
+}
+

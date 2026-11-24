@@ -1,3 +1,4 @@
+import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
 import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import { hasMissingPhaseDuration, numberTarget } from "@/domain/activities/ExecutionParameters";
@@ -247,5 +248,26 @@ describe("PRE7-R3 — occurrence sans copie de contenu (SqliteSessionRepository,
     expect(await movements().countOccurrences("mov-squat", a.id)).toBe(1);
     expect(await movements().countOccurrences("mov-squat", b.id)).toBe(2);
     expect(await movements().countOccurrences("mov-squat", "inconnue")).toBe(3);
+  });
+
+  it("recette iPhone du 19/11 : countAllOccurrences donne, en une lecture, les mêmes nombres que countOccurrences", async () => {
+    await movements().create(movement());
+    await movements().create({ ...movement(), id: "mov-libre", name: "Mouvement sans occurrence" });
+    const occurrence = (id: string) => ({
+      id,
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
+      executionParameters: durationParameters(30),
+      postActivityRecoverySeconds: 0,
+      sourceMovementId: "mov-squat",
+    });
+    await sessions().create(session([occurrence("occ-a1"), occurrence("occ-a2")]));
+    await sessions().create({ ...session([occurrence("occ-b1")]), name: "Jambes B" });
+    const all = await movements().countAllOccurrences();
+    expect(all.get("mov-squat")).toBe(await movements().countOccurrences("mov-squat"));
+    expect(all.get("mov-squat")).toBe(3);
+    expect(all.get("mov-libre") ?? 0).toBe(await movements().countOccurrences("mov-libre"));
+    const entries = await new MovementCatalogueService(movements()).listEntries();
+    expect(Object.fromEntries(entries.map((entry) => [entry.movement.id, entry.exerciseCount]))).toEqual({ "mov-squat": 3, "mov-libre": 0 });
   });
 });

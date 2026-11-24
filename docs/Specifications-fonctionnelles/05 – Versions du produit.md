@@ -161,7 +161,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 
 #### Internationalisation
 
-Le MVP est monolingue en français. L’architecture est néanmoins préparée dès le MVP pour permettre une évolution multilingue simple.
+Le MVP est monolingue en français. L’architecture est néanmoins préparée dès le MVP pour permettre une évolution multilingue simple. [Remplacé le 23/11/2026 par « Gestion des langues — décisions de Hermann du 23/11/2026 » (chapitre 07) : le multilingue devient un chantier engagé immédiatement, il n’est plus reporté.]
 
 Les évolutions ultérieures pourront ajouter :
 - plusieurs langues d’interface à partir d’un catalogue de textes externalisés ;
@@ -169,7 +169,7 @@ Les évolutions ultérieures pourront ajouter :
 - la sélection de la langue utilisée pour les annonces vocales ;
 - des contenus traduisibles sans refonte des écrans ni de la logique métier.
 
-Aucun sélecteur de langue n’est affiché dans le MVP.
+Aucun sélecteur de langue n’est affiché dans le MVP. [Remplacé le 23/11/2026 : ligne Langue dans Profil › Compte, ouvrant le réglage iOS.]
 #### Composition avancée des séances
 
 La structure d'une séance pourra être étendue afin de permettre :

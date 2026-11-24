@@ -12,12 +12,11 @@ import {
   isNotificationPermissionDenied,
   type NotificationPermissionStatus,
 } from "@/features/preferences/notificationPermission";
-import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { strings } from "@/shared/i18n";
-import { catalogueColors } from "@/shared/ui/catalogueContext";
+import { PROFILE_UNIFORM_PALETTE, profileTabs } from "@/features/preferences/profileTabs";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileNumberField } from "@/shared/ui/ProfileNumberField";
-import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { layout, spacing } from "@/shared/ui/tokens";
 
 /**
@@ -43,7 +42,7 @@ import { layout, spacing } from "@/shared/ui/tokens";
  */
 const SESSION_SETTINGS: readonly ProfileDurationSetting[] = ["sessionInitialCountdownSecondsDefault", "sessionFinalPhaseSecondsDefault"];
 
-/** Les six annonces vocales reprennent les bascules déjà enregistrées du Profil. */
+/** Les sept annonces vocales reprennent les bascules enregistrées du Profil (« Annonce des tours » : D-530, 18/11/2026). */
 const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePreference>> = {
   session: "announceSessionEnabled",
   names: "voiceAnnouncementsEnabled",
@@ -51,13 +50,9 @@ const ANNOUNCEMENT_PREFERENCES: Readonly<Record<VoiceAnnouncement, ProfilePrefer
   objective: "announceObjectiveEnabled",
   pauses: "announcePausesEnabled",
   sides: "announceSidesEnabled",
+  rounds: "announceRoundsEnabled",
 };
 
-type ProfileTab = "profile" | "preferences" | "community";
-
-/** Figma « Bande — Onglets » : 14 de haut, `#EAEAFF` sur 80 % puis fondu vers `#F7F7FF`. */
-const TAB_BAND = { height: 14, solid: 11 } as const;
-const TAB_BAND_FADE = [0.25, 0.5, 0.75] as const;
 
 export function ProfileScreen() {
   const router = useRouter();
@@ -65,7 +60,6 @@ export function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>("undetermined");
   const t = strings.screens.profile;
-  const palette = catalogueColors("sessions");
 
   const reload = useCallback(() => {
     profileService.getProfile().then(setProfile, (error: unknown) => {
@@ -133,36 +127,19 @@ export function ProfileScreen() {
     );
   }
 
-  const changeTab = (tab: ProfileTab) => {
-    // Section Profil non développée (Hermann, 11/11/2026) : l'onglet ouvre l'écran existant Modifier le profil.
-    if (tab === "profile") router.push("/profile-edit");
-  };
 
   return (
-    <ScreenShell backgroundColor={palette.background}>
-      <FixedHeader
-        title={t.title}
-        content={
-          <View style={styles.headerNavigation}>
-            <CatalogueNavigation<ProfileTab>
-              options={[
-                { value: "profile", label: t.tabs.profile },
-                { value: "preferences", label: t.tabs.preferences },
-                { value: "community", label: t.tabs.community, disabled: true, accessibilityLabel: t.tabs.communityUnavailable },
-              ]}
-              value="preferences"
-              onChange={changeTab}
-              selectedColor={palette.context}
-              testID="profile-tabs"
-            />
-          </View>
-        }
-      />
-      <View style={[styles.tabBand, { backgroundColor: palette.context }]} pointerEvents="none" accessible={false} testID="profile-tab-band">
-        {TAB_BAND_FADE.map((opacity, index) => (
-          <View key={opacity} style={[styles.tabBandFade, { top: TAB_BAND.solid + index, backgroundColor: palette.background, opacity }]} />
-        ))}
-      </View>
+    // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026) : onglets Profil · Préférences · Communauté et, sans zone de
+    // contexte, la bande courte sous les onglets (Figma « Bande — Onglets » : 14 de haut, `#EAEAFF` sur 80 % puis fondu vers
+    // `#F7F7FF`).
+    <TabbedScreen
+      title={t.title}
+      // PROG-CAT-01 (CE-PRF-01, D-552) : onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme
+      // de l'onglet (#EAEAFF), sans dégradé ni trait. Contenu des Préférences inchangé.
+      // [Avant : Profil · Préférences · Communauté (désactivée), bande #EAEAFF fondue vers #F7F7FF — remplacé.]
+      palette={PROFILE_UNIFORM_PALETTE}
+      tabs={profileTabs("preferences", router)}
+    >
       {profile ? (
         <ScrollView
           style={styles.body}
@@ -197,7 +174,7 @@ export function ProfileScreen() {
           />
         </ScrollView>
       ) : null}
-    </ScreenShell>
+    </TabbedScreen>
   );
 }
 
@@ -212,20 +189,6 @@ function withSeparators(groupTestID: string, rows: readonly ReactNode[]): ReactN
 }
 
 const styles = StyleSheet.create({
-  headerNavigation: {
-    flex: 1,
-    alignSelf: "stretch",
-  },
-  tabBand: {
-    height: TAB_BAND.height,
-    overflow: "hidden",
-  },
-  tabBandFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: 1,
-  },
   body: {
     flex: 1,
   },

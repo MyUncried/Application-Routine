@@ -706,7 +706,7 @@ La frame historique `3561:7802` illustrait l’état À l’échec : ordre `Sér
 | Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; chaque Série porte sa Pause, y compris la dernière, selon les successions de [Calcul, pauses et périmètres](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calcul-pauses-et-périmètres), Pause terminale comprise. |
 | Changement de côté | Réglage propre Avec / Sans (RM-242, D-406) ; `UNILATERAL` correspond à Sans, les valeurs historiques `RIGHT_LEFT` et `LEFT_RIGHT` sont lues Avec (RM-244). Aucun réglage de côté n’est exposé au niveau Circuit. |
 | Pause entre les côtés | Durée intrinsèque facultative `sideRecoverySeconds`, uniquement en bilatéral. Elle intervient selon l’Ordre des côtés. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. |
-| Charge | Paramètre facultatif et informatif en kilogrammes, Avec / Sans, commun aux séries identiques ou propre à chaque série variable : RM-235 à RM-241 (D-403 à D-405). |
+| Charge | Paramètre facultatif et informatif en kilogrammes [complété le 23/11/2026 : dans l'unité du profil, kg ou lb, voir « Gestion des langues » (chapitre 07)], Avec / Sans, commun aux séries identiques ou propre à chaque série variable : RM-235 à RM-241 (D-403 à D-405). |
 | Durée totale calculée | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |
 | Durée totale pilotée | Voir RM-130 (calcul inverse en Durée uniforme) et [Durées, affichage et inversion](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#durées-affichage-et-inversion). |
 | Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée (les lignes Mode, Type de série et Changement de côté sont des contrôles segmentés, les popovers de D-377 étant remplacés par D-413 ; rendu à vérifier dans Figma). Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Durée de l’exercice (D-409) ; sinon aucun message. |
@@ -732,7 +732,7 @@ Décisions D-403 à D-421 du [registre](07%20%E2%80%93%20Registre%20des%20d%C3%A
 
 #### RM-235 — Charge : nature
 
-La charge est une valeur numérique facultative en kilogrammes, informative. Elle représente exactement la valeur saisie : aucune convention liée au matériel, aucun doublement par côté ou par nombre d’haltères. Kodjo n’en déduit ni durée, ni performance, ni instruction de sécurité. Elle ne modifie ni minuteurs, ni répétitions cibles, ni cadence, ni pauses, ni ordre d’exécution, ni condition d’arrêt, ni calcul de durée, ni phases, ni formats de séance ; elle ne crée aucune combinaison interdite avec le mode, la condition d’arrêt ou le changement de côté. Aucune valeur distincte par côté. Hors périmètre : résistance d’élastique ou niveau de machine, autres unités, convention par haltère ou poids total, tonnage, estimation de force ou de calories, recommandations de charge, saisie d’une charge réalisée distincte de la charge prévue, nouveaux rapports de suivi (D-403).
+La charge est une valeur numérique facultative en kilogrammes, informative. [Complété le 23/11/2026 : la charge est exprimée dans l'unité unique du profil (kg ou lb) ; conversion des valeurs seulement au changement d'unité — « Gestion des langues » (chapitre 07).] Elle représente exactement la valeur saisie : aucune convention liée au matériel, aucun doublement par côté ou par nombre d’haltères. Kodjo n’en déduit ni durée, ni performance, ni instruction de sécurité. Elle ne modifie ni minuteurs, ni répétitions cibles, ni cadence, ni pauses, ni ordre d’exécution, ni condition d’arrêt, ni calcul de durée, ni phases, ni formats de séance ; elle ne crée aucune combinaison interdite avec le mode, la condition d’arrêt ou le changement de côté. Aucune valeur distincte par côté. Hors périmètre : résistance d’élastique ou niveau de machine, autres unités, convention par haltère ou poids total, tonnage, estimation de force ou de calories, recommandations de charge, saisie d’une charge réalisée distincte de la charge prévue, nouveaux rapports de suivi (D-403).
 
 #### RM-236 — Charge : activation et conservation
 
@@ -1992,8 +1992,9 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | RM-045 | Les vues Jour, Semaine et Mois du Calendrier font partie du MVP ; la vue Jour est la vue initiale. |
 | RM-046 | En vue Semaine, la liste et le sélecteur de jour sont synchronisés : le jour en tête de liste devient le jour sélectionné, et sélectionner un jour positionne sa section en tête. |
 | RM-047 | Pour l’unité Semaine, la semaine contenant le début est l’ancrage ; fréquence N semaines, jours sélectionnés, bornes inclusives. Ne définit pas les règles Jour/Mois. |
+| RM-047a | Les deux bornes de fin se convertissent l’une en l’autre : « pendant N semaines » couvre les N semaines civiles comptées depuis celle du début (RM-047) ; la date « jusqu’au » équivalente est le dimanche de la N-ième semaine, et une date de fin donne le nombre de semaines civiles qui la contiennent. Basculer de l’une à l’autre affiche la valeur convertie. (Demande de Hermann, recette du 17/11/2026 : « Convertir la date de fin en nombre de semaines, et le nombre de semaines en date de fin ».) |
 | RM-048 | Une occurrence future peut être exécutée en avance depuis l’action contextuelle disponible sur sa carte. Elle n’est ensuite pas reproposée à son horaire initial. |
-| RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. |
+| RM-049 | Une occurrence passée sans Exécution disparaît de l’interface et n’est pas ajoutée au Suivi du MVP. [Remplacé le 18/11/2026, D-525 : une occurrence passée sans Exécution ne disparaît pas et peut être rejouée ; son ajout au Suivi du MVP reste exclu.] |
 | RM-050 | Supprimer une Routine demande une confirmation et ne supprime ni sa source planifiée ni les Exécutions historiques. |
 | RM-123 | Dupliquer une Routine prépare un brouillon avec la liste ordonnée des contenus, leurs motifs et les paramètres ; aucune persistance avant Enregistrer. |
 | RM-206 | Un Exercice persistant actif peut être planifié directement. Son archivage met fin aux occurrences futures de ses Routines selon la même règle de conservation historique que pour une Séance : les occurrences historisées, Exécutions et Instantanés restent conservés. Sa restauration ne recrée pas automatiquement les anciennes Routines. |
@@ -2005,9 +2006,12 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 | --- | --- |
 | RM-051 | Les notifications ne sont pas autorisées ni activées par défaut par l’application. |
 | RM-052 | La demande d’autorisation système est déclenchée dans le contexte de la première activation d’un rappel pendant une planification. |
-| RM-053 | En cas de refus ou d’indisponibilité de l’autorisation, le rappel reste désactivé ; la planification peut néanmoins être enregistrée. |
+| RM-053 | En cas de refus ou d’indisponibilité de l’autorisation, le rappel reste désactivé ; la planification peut néanmoins être enregistrée. [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (k14, e3) : le rappel reste sur « Sans », sans texte d’information ; choisir de nouveau un délai ouvre un message natif proposant d’autoriser les notifications (iOS ne repose pas sa demande après un refus : « Autoriser » ouvre la page des notifications de l’application dans Réglages).] |
 | RM-054 | Les notifications locales sont planifiées selon la stratégie technique définie au chapitre 12. |
-| RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. |
+| RM-054d | Textes des notifications de rappel : accroche du catalogue en titre (30 caractères au plus), corps commençant toujours par le nom réel et complet ; au-delà de 40 caractères, le corps est le nom complet seul, jamais tronqué ; familles éligibles en rotation, sans répéter un même modèle sur deux notifications consécutives ; ni sous-titre ni photo. Détail : [spécification des notifications de rappel](../KODJO-Specification-notifications-rappels-seance-2026-11-18.md). [Ajouté le 19/11/2026, recette iPhone du 19/11/2026 (t6) : Hermann fournit la spécification (« Voici la spécification concernant les notifications. »). Remplace le titre « nom de la séance » et le corps « Séance prévue à 8 h. ».] |
+| RM-054a | Rappel par interrupteur ; activé :5 min/15 min/30 min/1 h/Autre, options de même largeur. Aucun n’est plus une option. [Remplacé le 18/11/2026, D-520 et D-524 : plus d’interrupteur ; options Sans / 15 min / 30 min / 1 h / Autre, « Sans » désactive le rappel ; « 5 min » retirée.] |
+| RM-054b | Toucher un rappel ouvre l’écran d’Exécution (CE-EXEC-SESSION-01) de la première Séance prévue à cette occurrence, dans l’ordre de la liste et compte tenu des motifs « x fois sur n ». L’écran s’ouvre sans rien exécuter : seul « Démarrer » lance la séance. Une Exécution déjà ouverte n’est pas quittée. (Décision de Hermann du 18/11/2026.) |
+| RM-054c | [Remplacé en partie le 18/11/2026, D-520 et D-524 : plus d’activation ; « Sans » désactive le rappel ; « Autre » ouvre une roulette native en popover près du champ, sans titre, bouton ni unité.] Activer le rappel présélectionne 15 min. Un appui sur « Autre » ouvre la roulette native heures / minutes (pas de 5 min, 24 h au plus) dans le voile des sélecteurs ; la valeur validée remplace le libellé « Autre » ; choisir ensuite un délai standard rend le libellé « Autre ». Tant que le rappel est activé sans délai, la planification ne peut pas être enregistrée (coche inactive). (Demandes de Hermann, recette du 18/11/2026 : k12 « Remettre 15' par défaut. » ; k13 « Appuyer sur Autre doit ouvrir la modale, la valeur choisi doit remplacer Autre, sélectionner un rappel standard fait repasser la valeur à Autre ».) [17/11/2026 : « Activer le rappel ne présélectionne aucun délai » ; « Autre » réglé par les roues d’heure du `DatePicker` dans la ligne « Rappel personnalisé » — remplacés le 18/11/2026. Avant le 17/11 : 15 min présélectionnées ; « Autre » dans une feuille « Rappel personnalisé ».] |
 
 ### Planification multi-contenus
 
@@ -2035,7 +2039,34 @@ Chaque Routine possède sa propre règle de créneau et une liste ordonnée de r
 
 La suppression d'une Routine n'a aucun effet sur sa source. La modification de la source est prise en compte par les occurrences futures ; au démarrage d’une Exécution, un Instantané immuable de la source est créé.
 
+### Planification — grille de créneaux et rotation (D-519 à D-522)
+
+| ID | Règle |
+| --- | --- |
+| RM-253 | La Répétition génère les créneaux. Le cycle de rotation compte 1 à 7 créneaux (#1 à #7) ; au départ seul #1 est actif. Sa longueur se règle en touchant un numéro de colonne (D-519). |
+| RM-254 | [Précisé le 22/11/2026 (D-556) : « aucune séance sans point » vaut pour la grille de la routine, pas pour la modification d’un seul créneau ; « aucun créneau vide » vaut partout.] Chaque séance du parcours occupe une ligne ; un point dans une colonne signifie qu’elle est jouée dans ce créneau du cycle. Au moins un point par colonne et par ligne (aucune séance sans point, aucun créneau vide). |
+| RM-255 | La mention de fréquence d’une séance (« à chaque fois » ou « x fois sur n ») est calculée en direct à partir de ses points ; elle n’est pas saisie. |
+| RM-256 | Plusieurs séances dans un même créneau forment un seul lancement, à l’heure de début, dans l’ordre des lignes ; l’ordre des lignes est celui de la sélection. |
+| RM-257 | Répétition : valeur « toutes les » / « tous les » (accord avec l’unité) / « aucune », nombre, unité, « jusqu’au » date. Unités : jours et semaines (« mois » retiré, D-526). « aucune » = planification unique. La rangée des jours n’existe que pour l’unité semaines (D-520). [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : pour l’unité semaines, « jusqu’au » date bascule vers « pendant » N semaines (D-331), conversion dans les deux sens ; l’unité jours garde « jusqu’au » seulement — remplacé ci-après.] [Modifié le 19/11/2026 au soir, recette iPhone (Hermann : « avec l'option "jour", l'option "pendant" n'est pas disponible, c'est à corriger ») : pour l’unité jours aussi, « jusqu’au » date bascule vers « pendant » N jours, comptés depuis « Début le » compris, conversion dans les deux sens. Changer d’unité garde la forme de la borne et sa date de fin ; le nombre est recompté dans la nouvelle unité.] |
+| RM-258 | [Remplacé le 21/11/2026 (D-553) : nom généré par défaut, personnalisable, non unique ; voir complément du 21/11/2026 ci-dessous.] Nom de la planification : texte libre, unique, non hérité. Copie automatique du nom de la séance quand la planification vient de son action « Planifier » ou quand une seule séance est sélectionnée ; sinon vide et obligatoire (D-522). [Remplacé le 23/11/2026 (D-580) : nom unique parmi les Routines actives, suffixe proposé à la création ; une Routine terminée garde son nom.] |
+| RM-259 | Synthèse : durée en premier, sans point final ni majuscule initiale, sans « Prochain créneau » ; « X jours par semaine » quand les jours ne tiennent pas sur la ligne (D-521). |
+| RM-260 | Longueur du cycle. Raccourcir : les colonnes retirées disparaissent avec leurs points ; une séance restée sans point est jouée dans toutes les colonnes restantes. Allonger : chaque nouvelle colonne reçoit un point pour toutes les séances (« à chaque fois »). Au départ, #1 seul, tous les points posés. Aucun cas n’efface le reste de la grille. |
+| RM-261 | [Remplacé le 21/11/2026 (D-553) : plus d’unicité du nom de Routine ; un nom vide bloque toujours l’enregistrement (« Nom obligatoire »).] Unicité du nom : parmi les planifications de l’utilisateur, sans distinguer majuscules/minuscules ni espaces de bord ; la planification en cours de modification n’est pas comparée à elle-même. Un nom vide ou déjà pris bloque l’enregistrement, avec le message « Ce nom est déjà utilisé » ou « Nom obligatoire » sous le champ. [Remplacé le 23/11/2026 (D-580) : nom unique parmi les Routines actives, suffixe proposé à la création ; une Routine terminée garde son nom.] |
+| RM-262 | Avec une seule colonne active, la mention de chaque séance est « à chaque fois » ; le point ne peut pas être retiré (au moins un point par colonne). |
+| RM-263 | Planifications existantes : celles réglées par séance en « x fois sur n » (n ≤ 7) s’affichent dans la grille avec les positions retenues ; si n > 7, le cycle reste calculé comme enregistré et l’ouverture en modification demande de le ramener à 7 au plus. Aucune occurrence passée ou future déjà produite n’est réécrite. |
+| RM-264 | Planifications existantes en unité mois : elles continuent de produire leurs occurrences jusqu’à leur fin ; la modification impose de choisir jours ou semaines. Les planifications sans nom reçoivent un nom vide à compléter à la première modification. [Remplacé le 21/11/2026 (D-553) : nom généré par défaut ; nom vidé bloquant ; mécanisme pour les Routines existantes : spécification du 21/11/2026, § 2.] |
+| RM-265 | EMOM en durée : l’anneau unique suit les 60 secondes du tour ; l’appui au centre suspend et reprend seulement le compteur d’effort cumulé. Le temps de pause intra-série n’est pas ajouté à l’effort et ne décale pas la minute suivante. |
+| RM-266 | L’effort cumulé est borné par l’objectif. À l’objectif atteint, l’écran passe seul en Repos pour les secondes restantes de la minute ; l’appui au centre est alors sans effet. |
+| RM-267 | Fin de minute avec effort inférieur à l’objectif : la minute se ferme, la suivante démarre, et le tour est enregistré en effort partiel (cumul réalisé sur objectif). |
+| RM-268 | Guidage sonore EMOM en durée : bips selon l’anneau de la minute (trois dernières secondes) ; signal au passage en Repos. |
+| RM-269 | Annonce des tours : voir D-530. Interrupteur « Annonce des tours » du Profil activé par défaut ; annonce ou bip à chaque début de tour, jamais les deux ; objectif de répétitions du tour qui démarre. |
+| RM-270 | « Max » : mouvement sans objectif de répétitions, fait jusqu’à l’échec ; le résultat est un nombre de répétitions (D-531). |
+| RM-271 | « Max » est autorisé pour le buy-in de l’AMRAP, pour l’AMRAP à un seul mouvement et pour la cellule « à l’échec » de la Progression ; il est interdit, grisé avec un message court, pour un mouvement d’une boucle de plusieurs mouvements en AMRAP ou en For time, où le tour n’aurait plus de longueur définie. Pas de buy-out en Max. |
+| RM-272 | Exécution d’un mouvement en Max : le chronomètre du bloc continue ; Suivant à l’échec. Buy-in : enchaînement avec le bloc, répétitions saisies à la clôture. AMRAP à un seul mouvement : saisie de chaque série au clavier, score cumulé en direct (coin bas droite), ni « +Tour » ni annonce de tour. Progression : saisie des répétitions puis repos ou fin de l’exercice. |
+
 ### Planification des créneaux et de leurs contenus — La fréquence d'un contenu : « x fois sur n »
+
+> [Remplacé le 18/11/2026, D-519 : le réglage « x fois sur n » par contenu est remplacé par la grille créneaux × rotation (RM-253 à RM-256). Texte d’origine conservé ci-dessous ; l’invariant « le créneau produit les occurrences, le contenu ne fait que les filtrer » reste valide.]
 
 #### La forme retenue
 
@@ -2089,6 +2120,8 @@ Le x du premier stepper et le nombre de pastilles sélectionnées expriment la m
 ---
 
 ### Planification des créneaux et de leurs contenus — La répétition du créneau
+
+> [Précisé le 18/11/2026, D-520 : ligne Répétition à valeur modifiable sans interrupteur, jours de la semaine pour l’unité semaines seulement, roulettes natives en popover ; voir RM-257.]
 
 #### Un interrupteur, puis une unité
 
@@ -2271,7 +2304,7 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | --- | --- |
 | RM-085 | Les Préférences MVP sont Annonces vocales, sons et vibrations par événement, Compte à rebours initial, Fin de séance et Notifications, ainsi que les valeurs par défaut Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice et Récupération après exercice (D-240). |
 | RM-086 | Les Préférences sont sauvegardées immédiatement. |
-| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours. |
+| RM-087 | Le Profil propose six interrupteurs d’annonce et, pour neuf événements, un choix de son et un interrupteur de vibration. Chaque réglage est indépendant. La liste de chaque son inclut « Aucun », qui désactive uniquement ce son. La validation depuis la Composition porte uniquement sur la séance en cours.  [Complété le 18/11/2026, D-530 : sept interrupteurs d’annonce avec « Annonce des tours ».] |
 | RM-088 | La voix utilisée est celle du système et son volume dépend du téléphone. |
 | RM-089 | La valeur initiale des vibrations par événement est activée. |
 | RM-090 | Le feedback haptique léger émis à chaque changement effectif de valeur d’une roulette est systématique dans le MVP et indépendant des vibrations par événement. |
@@ -2288,8 +2321,8 @@ La couleur affichée dans le Suivi est celle enregistrée dans l’instantané d
 | Vibration                | Active ou désactive la vibration de chaque événement. Ce réglage n'affecte pas le feedback haptique des roulettes numériques.     |
 | Compte à rebours initial | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure. |
 | Fin de séance            | Définit la durée proposée par défaut lors de la création d'une nouvelle séance. Une valeur de 0 s rend la phase instantanée sans la supprimer de la structure.            |
-| Langue du MVP            | Le MVP est disponible uniquement en français. Tous les textes utilisateur, pluriels, variables, formats locaux, notifications et libellés d’accessibilité utilisent des clés de traduction centralisées afin de permettre l’ajout d’autres langues sans modifier les composants. |
-| Voix                     | La voix utilisée est toujours celle du système d'exploitation. Aucun choix de voix n'est proposé dans le MVP. La langue de synthèse vocale pourra être sélectionnable lors d'une évolution multilingue. |
+| Langue du MVP            | Le MVP est disponible uniquement en français. [Remplacé le 23/11/2026 : multilingue engagé — « Gestion des langues » (chapitre 07).] Tous les textes utilisateur, pluriels, variables, formats locaux, notifications et libellés d’accessibilité utilisent des clés de traduction centralisées afin de permettre l’ajout d’autres langues sans modifier les composants. |
+| Voix                     | La voix utilisée est toujours celle du système d'exploitation. Aucun choix de voix n'est proposé dans le MVP. La langue de synthèse vocale pourra être sélectionnable lors d'une évolution multilingue. [Remplacé le 23/11/2026 par « Gestion des langues — décisions de Hermann du 23/11/2026 » (chapitre 07) : la langue de la voix est celle de l'interface, sans réglage séparé.] |
 | Volume                   | Le volume des annonces dépend exclusivement du réglage du téléphone.                                                                     |
 | Notifications            | Active ou désactive les rappels locaux des Séances planifiées, sous réserve de l’autorisation accordée par le système d’exploitation. |
 | Profil                   | Les informations personnelles n'ont aucune incidence sur les séances existantes.                                                         |
@@ -2579,7 +2612,7 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 
 | ID | Règle |
 | --- | --- |
-| RM-091 | Le MVP est affiché uniquement en français et ne présente aucun sélecteur de langue. |
+| RM-091 | Le MVP est affiché uniquement en français et ne présente aucun sélecteur de langue. [Remplacé le 23/11/2026 par « Gestion des langues — décisions de Hermann du 23/11/2026 » (chapitre 07) : langue du téléphone si prise en charge, sinon anglais ; changement par le réglage iOS depuis Profil › Compte.] |
 | RM-092 | Tous les textes applicatifs sont centralisés dans un lexique fondé sur des clés de traduction ; un changement de terme ou l’ajout d’une langue ne doit pas exiger la modification de chaque écran. |
 | RM-093 | Les termes `Séance`, `Exercice`, `Circuit`, `Récupération`, `Série`, `Tour`, `Routine` et `Exécution` sont utilisés conformément au glossaire et de manière uniforme. |
 | RM-094 | Les écrans respectent les Safe Areas du système, y compris l’inset inférieur sous la navigation fixe. |
@@ -2780,3 +2813,27 @@ La règle « présent dans les deux natures » et la grille des volumes (S1…Sn
 La suppression ou révocation prime sur les usages : dernière voie d’accès perdue → mouvement indisponible et séances à corriger ; exécution en cours terminée, nouvelles exécutions bloquées. Références et historique préservés. Médias personnalisés conservés chez le destinataire. Un partage public ne rend pas publiques les autres bibliothèques ou les compléments privés.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Complément du 21/11/2026 — RM-258 / RM-261 et Exécutions de l'Agenda
+
+Les lignes historiques RM-258 et RM-261 ci-dessus sont **supersédées pour les Routines** : le nom est généré par défaut à partir des noms des Séances (séparés par « + » pour plusieurs), peut être personnalisé, et n'est plus soumis à unicité. L'unicité des noms de Séances reste inchangée. Une Exécution directe d'une Séance hors Parcours se rattache à un créneau autonome de la même Séance, du même jour, non commencé et non expiré (plus proche en heure, puis plus ancien à égalité) ; sinon Hors planification. Une Séance appartenant à un Parcours et lancée hors Agenda est Hors planification, sans déclencher ni modifier le Parcours. Le statut est individuel par Séance ; heure réelle et historique conservés. Voir [spécification normative du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Les cas non arbitrés y sont marqués À CLARIFIER. [Remplacé le 23/11/2026 (D-580) : nom unique parmi les Routines actives, suffixe proposé à la création ; une Routine terminée garde son nom.]
+
+### Complément du 21/11/2026 — Créneau ajouté hors de la répétition (D-554)
+
+| Règle | Énoncé |
+|---|---|
+| RM-273 | Un créneau ajouté à la main (depuis le Plan) appartient à sa routine et ne modifie pas sa répétition. Il suit les règles des autres créneaux : statut, rattrapage et expiration (D-540), suppression (D-537, D-553), figé une fois commencé (D-536). Sa date et son heure sont protégées d’un changement global de la routine (groupe « date et heure », D-536). Supprimer la routine supprime ses créneaux ajoutés non commencés. Voir [DSF Plan](../DSF-PLAN-2026-11-21.md) § 8. |
+
+### Complément du 22/11/2026 — Modification d'un créneau de parcours depuis l'Agenda (D-556, D-557)
+
+| Règle | Énoncé |
+|---|---|
+| RM-274 | Dans la modification d'un seul créneau de parcours (Agenda) : toute séance peut être désactivée, même sans pastille sur les autres créneaux, tant qu'au moins une séance reste active ; l'ordre des séances peut être modifié et il est conservé pour ce créneau seulement, l'enchaînement suivant cet ordre. Ces choix appartiennent au groupe « séances » du créneau, protégé d'un changement global de la routine (D-536). La routine et ses autres créneaux ne changent pas. |
+
+### RM-275 — Occurrences d'une routine et période de son programme (D-564, 23/11/2026)
+
+Une occurrence appartient au programme de sa routine seulement si sa date est comprise dans la période du programme ; sinon elle est sans programme. La suppression d'un programme avec ses routines ne supprime que les créneaux à venir compris dans sa période. Une routine appartient à un seul programme à la fois. Les dates de la routine suivent D-567 (fin et début ramenés à la période en cas de suppression ; extension = occurrences hors programme). Au rattachement ou à la modification d'une routine qui a des créneaux à venir hors de la période, l'utilisateur choisit de les garder (par défaut, hors programme) ou de les supprimer (D-566) ; les créneaux réalisés ne sont jamais touchés. Voir [compléments du 23/11/2026](../KODJO-Programme-recette-2026-11-23.md) § 4.
+
+### RM-276 — Trace d'une occurrence supprimée (D-568, 23/11/2026)
+
+Une occurrence prévue par la répétition d'une routine et supprimée depuis l'Agenda reste enregistrée à l'état « Supprimée » : affichée en gris dans l'Agenda, rétablissable tant que sa date n'est pas passée, exclue du taux de réalisation. Une suppression qui porte sur la routine ou le programme ne laisse aucune trace ; un créneau ajouté à la main ou un créneau unique supprimé disparaît. Les séances réalisées sont toujours conservées. Voir [compléments du 23/11/2026](../KODJO-Programme-recette-2026-11-23.md) § 6.

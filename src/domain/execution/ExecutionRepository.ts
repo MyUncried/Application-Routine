@@ -9,6 +9,7 @@
 
 import type { EngineState, ResultChange } from "./kernel";
 import type { BusinessStatus } from "./results";
+import type { OccurrenceLink } from "@/domain/planning/occurrenceExecutions";
 
 export type ExecutionRecord = {
   readonly id: string;
@@ -26,6 +27,8 @@ export type ExecutionRecord = {
   readonly endedAt: string | null;
   /** Heure murale de la dernière évaluation sauvegardée (contrôle de continuité, Q6). */
   readonly clockWallMs: number;
+  /** Séance lancée depuis une occurrence de routine (recette du 19/11/2026 au soir) ; absent : hors routine. */
+  readonly occurrence?: OccurrenceLink;
 };
 
 export type StoredResult = ResultChange;

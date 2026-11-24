@@ -9,6 +9,8 @@ import {
 import type { ResultChange } from "@/domain/execution/kernel";
 import type { BusinessStatus } from "@/domain/execution/results";
 
+import type { AgendaExecution } from "@/domain/planning/occurrenceExecutions";
+
 import type { Database } from "../Database";
 
 /**
@@ -66,6 +68,21 @@ async function upsertResults(transaction: Database, executionId: string, results
   }
 }
 
+/** D-553 : Exécution lue par l'Agenda. */
+type AgendaExecutionRow = {
+  id: string;
+  session_id: string | null;
+  session_name: string | null;
+  started_at: string;
+  ended_at: string | null;
+  business_status: string | null;
+  routine_id: string | null;
+  occurrence_key: string | null;
+  session_rank: number | null;
+};
+
+const AGENDA_STATUSES: readonly BusinessStatus[] = ["COMPLETED", "PARTIAL", "INTERRUPTED"];
+
 export class SqliteExecutionRepository implements ExecutionRepository {
   constructor(private readonly database: Database) {}
 
@@ -91,6 +108,26 @@ export class SqliteExecutionRepository implements ExecutionRepository {
         ],
       );
       await upsertResults(transaction, record.id, results, 1);
+      if (record.occurrence !== undefined) {
+        await transaction.runAsync(
+          "INSERT INTO occurrence_executions (execution_id, routine_id, occurrence_key, session_rank) VALUES (?, ?, ?, ?)",
+          [record.id, record.occurrence.routineId, record.occurrence.occurrenceKey, record.occurrence.rank],
+        );
+        // PROG-CAT-01 (Hermann, 21/11/2026, point 3 ; migration 035) : programme du moment, figé sur l'exécution. Détacher ou
+        // supprimer la routine ensuite ne retire jamais cette exécution de l'historique du programme.
+        // D-564 / RM-275 (23/11/2026, lot 4) : seulement si la date de l'occurrence (déplacée à la main, sinon sa date d'origine) est
+        // comprise dans la période du programme ; sinon l'exécution est hors programme (suivi de la douleur compris). [Programme de
+        // la routine quelle que soit la date — remplacé.]
+        await transaction.runAsync(
+          `UPDATE executions SET program_id = (
+             SELECT programs.id FROM routines JOIN programs ON programs.id = routines.program_id
+             WHERE routines.id = ?
+               AND COALESCE((SELECT occurrence_date FROM routine_occurrences WHERE routine_id = ? AND occurrence_key = ?), substr(?, 1, 10))
+                 BETWEEN programs.start_date AND programs.end_date
+           ) WHERE id = ?`,
+          [record.occurrence.routineId, record.occurrence.routineId, record.occurrence.occurrenceKey, record.occurrence.occurrenceKey, record.id],
+        );
+      }
     });
   }
 
@@ -123,5 +160,47 @@ export class SqliteExecutionRepository implements ExecutionRepository {
   async listResults(executionId: string): Promise<readonly StoredResult[]> {
     const rows = await this.database.getAllAsync<ResultRow>("SELECT result_key, kind, payload_json FROM execution_results WHERE execution_id = ? ORDER BY rowid", [executionId]);
     return rows.map((row): StoredResult => (row.kind === "STEP" ? { type: "STEP", key: row.result_key, result: JSON.parse(row.payload_json) } : { type: "SCOPE", key: row.result_key, result: JSON.parse(row.payload_json) }));
+  }
+  /**
+   * D-553 (21/11/2026) : toutes les Exécutions, liées à un créneau ou non (cartes « Hors planification » de l'Agenda). Nom de la
+   * Séance lu dans l'instantané (`$.name`), en lecture seule, sans relire tout l'instantané ; seul ce dépôt lit l'instantané (PRE-4 1.3, AC9).
+   */
+  /**
+   * Recette du 22/11/2026 (constat b — Hermann : « Modifier une séance dans le catalogue modifie […] aussi les occurrences
+   * exécutées (KO) ») : instantanés JSON des Exécutions demandées, pour afficher la Séance telle qu'elle a été exécutée. Lecture
+   * seule, par paquets (limite des paramètres SQLite).
+   */
+  async snapshotsFor(executionIds: readonly string[]): Promise<ReadonlyMap<string, string>> {
+    const result = new Map<string, string>();
+    for (let start = 0; start < executionIds.length; start += 400) {
+      const ids = executionIds.slice(start, start + 400);
+      const rows = await this.database.getAllAsync<{ id: string; snapshot_json: string }>(
+        `SELECT id, snapshot_json FROM executions WHERE id IN (${ids.map(() => "?").join(", ")})`,
+        ids,
+      );
+      for (const row of rows) result.set(row.id, row.snapshot_json);
+    }
+    return result;
+  }
+
+  async listForAgenda(): Promise<readonly AgendaExecution[]> {
+    const rows = await this.database.getAllAsync<AgendaExecutionRow>(
+      `SELECT execution.id, execution.session_id, json_extract(execution.snapshot_json, '$.name') AS session_name, execution.started_at,
+              execution.ended_at, execution.business_status, link.routine_id, link.occurrence_key, link.session_rank
+         FROM executions execution LEFT JOIN occurrence_executions link ON link.execution_id = execution.id
+        ORDER BY execution.started_at`,
+    );
+    return rows.map((row) => ({
+      executionId: row.id,
+      sessionId: row.session_id,
+      sessionName: row.session_name ?? "",
+      startedAt: row.started_at,
+      endedAt: row.ended_at,
+      businessStatus: AGENDA_STATUSES.find((status) => status === row.business_status) ?? null,
+      link:
+        row.routine_id !== null && row.occurrence_key !== null && row.session_rank !== null
+          ? { routineId: row.routine_id, occurrenceKey: row.occurrence_key, rank: row.session_rank }
+          : null,
+    }));
   }
 }

@@ -29,7 +29,7 @@ import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from "r
 
 import {
   DuplicateLibraryTitleError,
-  duplicateLibraryTitleMessage,
+  normalizeLibraryTitle,
   personalLibraryIssue,
   type PersonalLibrary,
 } from "@/domain/catalogue/personalLibrary";
@@ -56,7 +56,10 @@ import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
-const NAME_PLACEHOLDER = "Nommer la bibliothèque";
+const L = strings.libraries.personal;
+const NAME_PLACEHOLDER = L.namePlaceholder;
+/** Message « Nom déjà utilisé » : nom normalisé comme le domaine (`duplicateLibraryTitleMessage`). */
+const duplicateTitleMessage = (title: string) => fillTemplate(L.duplicateMessage, { title: normalizeLibraryTitle(title) });
 /** Hauteur propre du nom (texte 20, jambages compris), centrée sur la ligne 1 de 17 de la zone de contexte. */
 const NAME_BOX_HEIGHT = 28;
 /** Figma 12206:26333 : zone de contexte #EAEAFF (même lilas que le Profil et le Catalogue des Séances). */
@@ -167,7 +170,7 @@ export function ScreenMenuButton({ items, testID }: { readonly items: readonly S
     return (
       <View
         accessibilityRole="button"
-        accessibilityLabel="Menu"
+        accessibilityLabel={L.menu}
         accessibilityState={{ disabled: true }}
         style={styles.menuButton}
         testID={testID}
@@ -185,7 +188,7 @@ export function ScreenMenuButton({ items, testID }: { readonly items: readonly S
               <View pointerEvents="none">{icon}</View>
             </RNHostView>
           }
-          modifiers={[swiftUIAccessibilityLabel("Menu")]}
+          modifiers={[swiftUIAccessibilityLabel(L.menu)]}
         >
           {/* 12215:26136 : séparateur avant l'action destructive — deux sections du menu natif. */}
           {[items.filter((item) => !item.destructive), items.filter((item) => item.destructive)]
@@ -241,7 +244,7 @@ function LibraryName({
         {...(onEndEditing ? { onEndEditing } : {})}
         placeholder={NAME_PLACEHOLDER}
         placeholderTextColor={LIBRARY_COLORS.muted}
-        accessibilityLabel="Nom de la bibliothèque"
+        accessibilityLabel={L.nameAccessibilityLabel}
         returnKeyType="done"
         maxLength={80}
         style={styles.nameInput}
@@ -312,7 +315,7 @@ function SelectAllRow({
         testID="personal-library-select-all"
       >
         <Text style={[styles.selectAll, enabled ? null : styles.selectAllInactive]}>
-          {allSelected ? "Tout désélectionner" : "Tout sélectionner"}
+          {allSelected ? L.deselectAll : L.selectAll}
         </Text>
       </Pressable>
     </View>
@@ -374,7 +377,7 @@ export function PersonalLibraryEditorScreen() {
   async function save() {
     if (savingRef.current || blocked || services === null || catalogue === null) return;
     if (issue === "DUPLICATE_TITLE") {
-      Alert.alert("Nom déjà utilisé", duplicateLibraryTitleMessage(title));
+      Alert.alert(L.duplicateTitle, duplicateTitleMessage(title));
       return;
     }
     savingRef.current = true;
@@ -394,21 +397,21 @@ export function PersonalLibraryEditorScreen() {
     } catch (error) {
       savingRef.current = false;
       setSaving(false);
-      if (error instanceof DuplicateLibraryTitleError) Alert.alert("Nom déjà utilisé", error.message);
-      else Alert.alert("Enregistrement impossible", "La bibliothèque n'a pas pu être enregistrée.");
+      if (error instanceof DuplicateLibraryTitleError) Alert.alert(L.duplicateTitle, duplicateTitleMessage(error.title));
+      else Alert.alert(L.saveFailedTitle, L.saveFailedMessage);
     }
   }
 
   const count = selected.size;
-  const primaryLabel = editingId ? "Valider" : count > 0 ? `Créer (${count})` : "Créer";
+  const primaryLabel = editingId ? L.validate : count > 0 ? fillTemplate(L.createCount, { count: String(count) }) : L.create;
   const menuItems = editingId && editing ? libraryMenuItems(router, editing, services?.personal ?? null) : [];
 
   return (
     <ScreenShell backgroundColor={LIBRARY_COLORS.screen}>
       <FixedHeader
-        title={editingId ? "Modifier" : "Créer une bibliothèque"}
+        title={editingId ? L.editTitle : L.createTitle}
         onBack={() => router.back()}
-        backAccessibilityLabel={editingId ? "Retour" : "Fermer"}
+        backAccessibilityLabel={editingId ? L.back : L.close}
         closeIcon={editingId === null}
         centeredTitle={false}
         trailing={<ScreenMenuButton items={menuItems} testID="personal-library-menu" />}
@@ -432,7 +435,7 @@ export function PersonalLibraryEditorScreen() {
           filter={catalogueQuery.filter("personal-library-filter", !(adding || count > 0))}
           trailingCommand={
             <CommandCircle
-              label="Ajouter des mouvements"
+              label={L.addMovements}
               icon={adding ? "list-plus-selected" : "list-plus"}
               selected={adding}
               onPress={() => setAdding((current) => !current)}
@@ -493,13 +496,13 @@ function libraryMenuItems(
 ): readonly ScreenMenuItem[] {
   return [
     {
-      label: "Partager la bibliothèque",
+      label: L.menuShare,
       onPress: () => router.push({ pathname: "/library-share", params: { libraryId: library.libraryId } }),
       testID: "personal-library-menu-share",
     },
     {
       // Export d'un fichier de catalogue : livré avec le partage vers le PC (deuxième temps).
-      label: "Exporter un fichier",
+      label: L.menuExport,
       onPress: () => undefined,
       disabled: true,
       testID: "personal-library-menu-export",
@@ -507,7 +510,7 @@ function libraryMenuItems(
     {
       // Arbitrage du 15/11/2026 (bp-menu : « "Supprimer la bibliothèque" doit être sur une ligne » ; menu natif d’iOS, largeur
       // fixée par le système) : « Supprimer ». [Avant : « Supprimer la bibliothèque » (12213:26248) — remplacé.]
-      label: "Supprimer",
+      label: L.menuDelete,
       destructive: true,
       onPress: () => confirmDelete(router, library, personal),
       testID: "personal-library-menu-delete",
@@ -522,18 +525,18 @@ export function confirmDelete(
   personal: { readonly delete: (libraryId: string) => Promise<void> } | null,
 ) {
   Alert.alert(
-    `Supprimer « ${library.title} » ?`,
-    "Les mouvements de cette bibliothèque restent dans votre Catalogue.",
+    fillTemplate(L.deleteTitle, { title: library.title }),
+    L.deleteMessage,
     [
-      { text: "Annuler", style: "cancel" },
+      { text: L.cancel, style: "cancel" },
       {
-        text: "Supprimer",
+        text: L.delete,
         style: "destructive",
         onPress: () => {
           if (personal === null) return;
           void personal.delete(library.libraryId).then(
             () => router.dismissTo("/profile-edit"),
-            () => Alert.alert("Suppression impossible", "La bibliothèque n'a pas pu être supprimée."),
+            () => Alert.alert(L.deleteFailedTitle, L.deleteFailedMessage),
           );
         },
       },
@@ -593,8 +596,8 @@ export function PersonalLibraryScreen() {
         setSaved(await services.personal.save({ libraryId: next.libraryId, title: next.title, movementIds: ordered }));
       } catch (error) {
         setSaved(null);
-        if (error instanceof DuplicateLibraryTitleError) Alert.alert("Nom déjà utilisé", error.message);
-        else Alert.alert("Enregistrement impossible", "La bibliothèque n'a pas pu être enregistrée.");
+        if (error instanceof DuplicateLibraryTitleError) Alert.alert(L.duplicateTitle, duplicateTitleMessage(error.title));
+        else Alert.alert(L.saveFailedTitle, L.saveFailedMessage);
       }
     });
   };
@@ -609,11 +612,11 @@ export function PersonalLibraryScreen() {
         ? null
         : personalLibraryIssue({ title: next, movementCount: library.movementIds.length, authorId, existing: libraries, libraryId: library.libraryId });
     if (issue === "EMPTY_TITLE") {
-      Alert.alert("Nom obligatoire", "La bibliothèque garde son nom actuel.");
+      Alert.alert(L.emptyNameTitle, L.emptyNameMessage);
       return;
     }
     if (issue === "DUPLICATE_TITLE") {
-      Alert.alert("Nom déjà utilisé", duplicateLibraryTitleMessage(next));
+      Alert.alert(L.duplicateTitle, duplicateTitleMessage(next));
       return;
     }
     persist({ ...library, title: next.trim() });
@@ -623,7 +626,7 @@ export function PersonalLibraryScreen() {
     if (library === null) return;
     const has = memberIds.has(movementId);
     if (has && library.movementIds.length === 1) {
-      Alert.alert("Dernier mouvement", "Une bibliothèque contient au moins un mouvement.");
+      Alert.alert(L.lastMovementTitle, L.lastMovementMessage);
       return;
     }
     persist({
@@ -635,7 +638,7 @@ export function PersonalLibraryScreen() {
   const setMembers = (movementIds: readonly string[]) => {
     if (library === null) return;
     if (movementIds.length === 0) {
-      Alert.alert("Dernier mouvement", "Une bibliothèque contient au moins un mouvement.");
+      Alert.alert(L.lastMovementTitle, L.lastMovementMessage);
       return;
     }
     persist({ ...library, movementIds });
@@ -646,9 +649,9 @@ export function PersonalLibraryScreen() {
   return (
     <ScreenShell backgroundColor={LIBRARY_COLORS.screen}>
       <FixedHeader
-        title="Ma bibliothèque"
+        title={L.mineTitle}
         onBack={() => router.back()}
-        backAccessibilityLabel="Fermer"
+        backAccessibilityLabel={L.close}
         closeIcon
         centeredTitle={false}
         trailing={<ScreenMenuButton items={menuItems} testID="personal-library-menu" />}
@@ -675,7 +678,7 @@ export function PersonalLibraryScreen() {
           filter={catalogueQuery.filter("personal-library-filter")}
           trailingCommand={
             <CommandCircle
-              label="Ajouter des mouvements"
+              label={L.addMovements}
               icon={adding ? "list-plus-selected" : "list-plus"}
               selected={adding}
               disabled={library === null}
@@ -725,14 +728,14 @@ export function PersonalLibraryScreen() {
 /** Route `library-share` (12217:26236). « Vers mon PC » : envoi livré dans le deuxième temps. */
 export function PersonalLibraryShareScreen() {
   return (
-    <LibraryScreen title="Partager" testID="library-share">
+    <LibraryScreen title={L.share.title} testID="library-share">
       <View style={styles.shareCards}>
-        <ShareCard icon="library-computer" title="Vers mon PC" subtitle="L’envoyer à l’administration KODJO de votre PC, sur le même Wi-Fi." disabled testID="library-share-pc" />
-        <ShareCard icon="library-share-users" title="Vers un ou des utilisateurs" subtitle="Disponible avec un compte KODJO." disabled dimmed testID="library-share-users" />
-        <ShareCard icon="library-share-spaces" title="Vers un ou des espaces" subtitle="Disponible avec un compte KODJO." disabled dimmed testID="library-share-spaces" />
-        <ShareCard icon="library-share-public" title="Publique" subtitle="Disponible avec un compte KODJO." disabled dimmed testID="library-share-public" />
+        <ShareCard icon="library-computer" title={L.share.pcTitle} subtitle={L.share.pcSubtitle} disabled testID="library-share-pc" />
+        <ShareCard icon="library-share-users" title={L.share.usersTitle} subtitle={L.share.accountRequired} disabled dimmed testID="library-share-users" />
+        <ShareCard icon="library-share-spaces" title={L.share.spacesTitle} subtitle={L.share.accountRequired} disabled dimmed testID="library-share-spaces" />
+        <ShareCard icon="library-share-public" title={L.share.publicTitle} subtitle={L.share.accountRequired} disabled dimmed testID="library-share-public" />
       </View>
-      <Paragraph tone="note">L’envoi vers votre PC arrive dans la prochaine livraison.</Paragraph>
+      <Paragraph tone="note">{L.share.note}</Paragraph>
     </LibraryScreen>
   );
 }

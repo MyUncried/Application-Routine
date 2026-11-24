@@ -32,8 +32,10 @@ import { ExecutionServiceContext } from "../ExecutionServiceContext";
  */
 
 const mockBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockDismissTo = jest.fn();
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn() }),
+  useRouter: () => ({ back: mockBack, canGoBack: () => true, replace: jest.fn(), push: jest.fn(), navigate: mockNavigate, dismissTo: mockDismissTo }),
   // Écran toujours au premier plan dans ces tests.
   useFocusEffect: (effect: () => void | (() => void)) => jest.requireActual<typeof import("react")>("react").useEffect(effect, [effect]),
 }));
@@ -239,7 +241,9 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     expect(stored).toEqual({ status: "FINISHED", business_status: "PARTIAL" });
     expect(service.occurrences().map((occurrence) => occurrence.status)).toEqual(["COMPLETED", "COMPLETED", "COMPLETED", "PARTIAL"]);
     await press("execution-close");
-    expect(mockBack).toHaveBeenCalled();
+    // Recette du 21/11/2026 : séance lancée hors Agenda — l'Agenda s'ouvre à la date de l'exécution.
+    expect(mockDismissTo).toHaveBeenCalledWith(expect.objectContaining({ pathname: "/calendar" }));
+    expect(mockNavigate).not.toHaveBeenCalled();
     view.unmount();
   });
 
@@ -271,7 +275,7 @@ describe("fin de PRE-10 — guidage de la Séance", () => {
   // aucune annonce réglés → interrupteurs Sons et Voix inactifs au démarrage.
   it("aucun son ni aucune annonce réglés pour la Séance : interrupteurs off au démarrage, modifiables pendant la séance", async () => {
     const silent = Object.fromEntries(GUIDANCE_EVENTS.map((event) => [event, { sound: "NONE", vibration: true }])) as unknown as GuidanceEvents;
-    const { view } = await setup({ announcements: { session: false, names: false, phases: false, objective: false, pauses: false, sides: false }, events: silent });
+    const { view } = await setup({ announcements: { session: false, names: false, phases: false, objective: false, pauses: false, sides: false, rounds: false }, events: silent });
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     expect(label("execution-sound")).toEqual({ checked: false });
     expect(label("execution-voice")).toEqual({ checked: false });

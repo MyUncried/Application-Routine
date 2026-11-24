@@ -4,8 +4,13 @@ import { StyleSheet, Text, View } from "react-native";
 import { MODAL_HEADER_ACTION_SIZE, ModalCancelAction, ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
-import { executionStrings as t, formatClock } from "./executionStrings";
+import { strings } from "@/shared/i18n";
+
+import { formatClock } from "./executionStrings";
+
 import { REPETITIONS_WHEEL_ITEM, RepetitionsWheel } from "./RepetitionsWheel";
+
+const t = strings.execution;
 
 /**
  * PRE-11, corrections 3 et 4 de Hermann du 14/11/2026 — modale « Répétitions partielles » du For time, ouverte par l'arrêt
@@ -55,6 +60,7 @@ export function ExecutionPartialRepetitionsSheet({
   onConfirm,
   onCancel,
   testID = "execution-partial",
+  title = t.forTimeStopTitle,
 }: {
   readonly exerciseName: string | null;
   /** [Cible − 1 comme valeur la plus haute — remplacé le 15/11/2026, recette k5 : « Mettre la Valeur limite à 99 ».] */
@@ -74,6 +80,8 @@ export function ExecutionPartialRepetitionsSheet({
   readonly onCancel?: () => void;
   /** Préfixe des identifiants (feuille de l'Arrêt, ou Clôture de la Durée maximum). */
   readonly testID?: string;
+  /** PRE-11 (T2) : titre de la feuille — « Arrêt de l'EMOM », « Fin de l'EMOM » ; « Arrêt du For Time » par défaut. */
+  readonly title?: string;
 }) {
   const [value, setValue] = useState(0);
   const held = heldDurationMs ?? null;
@@ -94,7 +102,7 @@ export function ExecutionPartialRepetitionsSheet({
             <View style={styles.headerSpacer} />
           )}
           <Text style={styles.title} accessibilityRole="header" testID={`${testID}-title`}>
-            {t.forTimeStopTitle}
+            {title}
           </Text>
           <ModalValidateAction onPress={confirm} enabled accessibilityLabel={t.validate} testID={`${testID}-validate`} />
         </View>

@@ -1,8 +1,9 @@
 import { hasNativeModule, startExecutionAudio } from "@/infrastructure/audio/ExecutionSounds";
+import { appLocaleTag } from "@/shared/i18n/locale";
 
 /**
  * Lot PRE-10 son et voix (décision de Hermann du 09/11/2026, recette PRE-10 n° 2, `q-son` ; ch08 « Guidage
- * sonore » ; ch12 §12.11) : annonces vocales en français par `expo-speech`, dans la session audio de
+ * sonore » ; ch12 §12.11) : annonces vocales dans la langue de l'interface (en français jusqu'au 23/11/2026) par `expo-speech`, dans la session audio de
  * l'application (lecture en mode silencieux). Une nouvelle annonce remplace celle en cours, sans file
  * d'attente qui la retarderait. Un échec natif est ignoré : il n'interrompt jamais l'Exécution ; module
  * natif absent : aucune annonce, sans charger `expo-speech` (voir `ExecutionSounds`).
@@ -24,19 +25,35 @@ export type VoicePort = {
   readonly interrupt?: () => string | null;
 };
 
-export const EXECUTION_VOICE_LANGUAGE = "fr-FR";
+/**
+ * J1 « Gestion des langues » (23/11/2026, règle 4) : la voix parle la langue de l'interface, avec la région du
+ * téléphone quand elle l'accompagne (`fr-FR`, `en-GB`…). [« fr-FR » fixe — remplacé.]
+ */
+export const EXECUTION_VOICE_LANGUAGE = appLocaleTag;
 
 /** Attente entre l'activation de la session audio et le début de la parole. */
 export const VOICE_START_DELAY_MS = 180;
 
 type VoiceInfo = { readonly identifier: string; readonly language: string; readonly quality: string };
 
+const normalized = (language: string) => language.replace("_", "-").toLowerCase();
+const rank = (voice: VoiceInfo) => (/premium/i.test(voice.quality) || /premium/i.test(voice.identifier) ? 2 : /enhanced/i.test(voice.quality) ? 1 : 0);
+const best = (voices: readonly VoiceInfo[]) => [...voices].sort((a, b) => rank(b) - rank(a))[0]?.identifier ?? null;
+
 /** Voix française préférée : qualité Premium, puis Améliorée, puis toute voix fr-FR ; `null` sinon. */
 export function bestFrenchVoice(voices: readonly VoiceInfo[]): string | null {
-  const french = voices.filter((voice) => voice.language.replace("_", "-").toLowerCase() === "fr-fr");
-  const rank = (voice: VoiceInfo) => (/premium/i.test(voice.quality) || /premium/i.test(voice.identifier) ? 2 : /enhanced/i.test(voice.quality) ? 1 : 0);
-  const best = [...french].sort((a, b) => rank(b) - rank(a))[0];
-  return best?.identifier ?? null;
+  return best(voices.filter((voice) => normalized(voice.language) === "fr-fr"));
+}
+
+/**
+ * J1 (règle 4) : meilleure voix de la langue de l'interface — d'abord celles de la région exacte (`en-GB`), sinon
+ * celles de la même langue (`en-US`) ; même classement que `bestFrenchVoice`. `null` : voix par défaut du système.
+ */
+export function bestVoiceFor(voices: readonly VoiceInfo[], tag: string = EXECUTION_VOICE_LANGUAGE): string | null {
+  const exact = voices.filter((voice) => normalized(voice.language) === tag.toLowerCase());
+  if (exact.length > 0) return best(exact);
+  const language = tag.toLowerCase().split("-")[0];
+  return best(voices.filter((voice) => normalized(voice.language).split("-")[0] === language));
 }
 
 export class ExecutionVoice implements VoicePort {
@@ -58,7 +75,7 @@ export class ExecutionVoice implements VoicePort {
 
   private voice(): Promise<string | null> {
     if (this.voiceId === null) {
-      this.voiceId = import("expo-speech").then(async (Speech) => bestFrenchVoice(await Speech.getAvailableVoicesAsync()));
+      this.voiceId = import("expo-speech").then(async (Speech) => bestVoiceFor(await Speech.getAvailableVoicesAsync()));
     }
     return this.voiceId;
   }

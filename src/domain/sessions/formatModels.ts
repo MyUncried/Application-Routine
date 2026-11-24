@@ -468,6 +468,17 @@ export function withMovementMode(values: MovementValues, mode: ExecutionMode): M
 }
 
 /**
+ * D-531 / RM-271 (Hermann, 19/11/2026) : « Max » (À l'échec) est interdit pour un mouvement d'une boucle de plusieurs mouvements, en AMRAP
+ * et en For time (« le tour n'aurait plus de longueur définie ») ; il reste autorisé pour le buy-in de l'AMRAP et pour l'AMRAP à un seul
+ * mouvement. L'option est grisée avec un message court, comme la Durée refusée (`lastRepetitionsLocked`).
+ */
+export function maxLocked(key: FormatModelKey, movements: readonly ModelMovement[], index: number): boolean {
+  const current = movements[index];
+  if (current === undefined || (key !== "AMRAP" && key !== "FOR_TIME") || movementRole(current) !== "TOUR") return false;
+  return movements.filter((movement) => movementRole(movement) === "TOUR").length > 1;
+}
+
+/**
  * Seul Exercice restant en Répétitions dont la Durée est refusée (For time ; AMRAP, boucle seulement) — recette du 05/11/2026
  * (n-charge-colonne, Hermann : « Au moins un exercice de la boucle en Répétitions, comme pour le For time, pour la même raison :
  * sinon le nombre de tours se calcule d'avance. Pour le seul exercice restant en Répétitions, l'option Durée est désactivée,

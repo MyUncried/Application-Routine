@@ -177,6 +177,11 @@ export type EngineCommand =
     }
   /** Validation d'une Clôture (interaction bloquante, D3). */
   | { readonly type: "SUBMIT"; readonly payload: unknown }
+  /**
+   * PRE-11 (T2, EMOM, Q1) : déclaration non bloquante d'une portée (répétitions faites d'une fenêtre non terminée, saisies dans le
+   * bandeau de la fenêtre suivante), sans changer d'étape ; transmise au pilote le plus interne qui l'accepte (`onDeclare`).
+   */
+  | { readonly type: "DECLARE"; readonly payload: unknown }
   | { readonly type: "TICK" };
 
 export type EngineEvent = EngineCommand & {
@@ -249,6 +254,8 @@ export interface Pilot {
    * `STOP_RUNNING` (Arrêt sans Pause préalable : « le chrono continue derrière la modale »).
    */
   enables?(local: unknown, command: "HOLD" | "RELEASE" | "STOP_RUNNING", leaf: LeafSpec | null): boolean;
+  /** Déclaration non bloquante (`DECLARE`, EMOM Q1) : nouvel état local et résultats, ou `null` si elle ne concerne pas la portée. */
+  onDeclare?(local: unknown, payload: unknown, ctx: PilotContext): { readonly local: unknown; readonly results: readonly ResultChange[] } | null;
 }
 
 export type EngineEnv = {
@@ -785,6 +792,21 @@ function applyCommand(draft: Draft, event: EngineEvent, atMs: Ms): RejectionReas
       if (leaf === null || leaf.spec.end !== "INTERACTION") return "NOT_ALLOWED";
       closeLeaf(draft, "COMPLETED", atMs, true, event.payload);
       return null;
+    }
+    case "DECLARE": {
+      if (state.status !== "RUNNING") return "NOT_RUNNING";
+      for (let index = state.frames.length - 1; index >= 0; index -= 1) {
+        const frame = draft.state.frames[index]!;
+        const handled = pilotOf(draft.env, frame.spec).onDeclare?.(frame.local, event.payload, ctxFor(draft, index, atMs)) ?? null;
+        if (handled === null) continue;
+        const frames = [...draft.state.frames];
+        frames[index] = { ...frame, local: handled.local };
+        set(draft, { frames });
+        draft.results.push(...handled.results);
+        bump(draft);
+        return null;
+      }
+      return "NOT_ALLOWED";
     }
     default: {
       const unreachable: never = event;

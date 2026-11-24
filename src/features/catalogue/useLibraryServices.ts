@@ -8,6 +8,7 @@ import { PersonalLibraryService } from "@/features/catalogue/PersonalLibraryServ
 import { sharedCatalogueRegistry } from "@/features/catalogue/importedMovements";
 import { freshLocalMovementReader } from "@/features/catalogue/readLocalMovements";
 import type { SqliteCatalogueRegistry } from "@/infrastructure/catalogue/SqliteCatalogueRegistry";
+import { getCatalogueMediaWriter } from "@/infrastructure/media/CatalogueMediaWriter";
 
 export type LibraryServices = {
   readonly libraries: LibraryService;
@@ -52,6 +53,7 @@ export function useLibraryServices(): { readonly services: LibraryServices | nul
       }),
       newMovementId: Crypto.randomUUID,
       families: movements,
+      catalogueMedia: getCatalogueMediaWriter(),
     });
     return {
       load,

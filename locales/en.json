@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSLocalNetworkUsageDescription": "Routine connects to the KODJO admin on your computer, on the same Wi-Fi, to receive your movement libraries and send your movements to it.",
+    "NSPhotoLibraryUsageDescription": "Routine accesses your photos and videos so you can choose your profile photo and add media to your exercises."
+  }
+}

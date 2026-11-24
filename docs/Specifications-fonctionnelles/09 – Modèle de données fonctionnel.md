@@ -995,7 +995,7 @@ Le créneau produit d’abord sa suite d’occurrences. Chaque contenu retient e
 
 Sans répétition : une date/heure. Avec répétition : Jour/Semaine/Mois. Pour Semaine, conserver l’ancrage sur la semaine contenant le début, le multiplicateur 1..12 et les dates inclusives du calcul existant. Ne pas utiliser ce calcul comme définition du mode Mois ou de la conversion pendant/jusqu’au.
 
-Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la largeur. Aucun n’est plus une option ; Autre ouvre le réglage personnalisé. Les règles de permission et le plafond personnalisé 24 h existants restent conservés.
+Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la largeur. Aucun n’est plus une option ; Autre ouvre le réglage personnalisé. [Remplacé le 18/11/2026, D-524 : options Sans / 15 min / 30 min / 1 h / Autre, plus d’interrupteur ; « Sans » désactive le rappel.] Les règles de permission et le plafond personnalisé 24 h existants restent conservés.
 
 La modification agit sur le futur ; suppression de Routine conserve sources et histoire. L’agrégation des états de plusieurs contenus, les exclusions d’occurrence et l’archivage d’un contenu de liste nécessitent les compléments explicitement ouverts dans la spécification. Ne pas créer d’Exécution fictive pour un contenu non réalisé.
 
@@ -1042,6 +1042,7 @@ Une Occurrence planifiée à contenu unique possède directement :
 - Une occurrence `Exécutée` référence l'Exécution correspondante.
 - Une occurrence `Non exécutée` ne possède aucune Exécution associée.
 - Une occurrence historisée est conservée même si la Routine d'origine est ensuite modifiée ou supprimée.
+- Une occurrence passée `Non exécutée` reste visible et peut être rejouée sans limite de temps. Rejouée, elle devient `Exécutée`, liée à la nouvelle Exécution, et conserve sa date et son heure prévues d’origine. [Ajouté le 19/11/2026, D-525.]
 
 ## Suivi et synthèse
 
@@ -1590,3 +1591,15 @@ Le tableau représente la prescription effective des séries. L’EMOM n’a auc
 Appliquer l’inventaire MOUV-ADM-20261117 aux données de fiche, bibliothèque et catalogue. Position de départ transférée au début des étapes sans doublon ; champs retirés exclus de la cible. Conserver amont, origine, famille, phases et droits. Compte–catalogue unique ; accès déduit des partages, sans visibilité saisie de fiche. Métadonnées de publication de bibliothèque/catalogue : synthèses, pas autorisations indépendantes.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+### Complément du 21/11/2026 — données Routine / Exécution
+
+La contrainte d'unicité du nom de Routine est supprimée ; celle du nom de Séance demeure. La gestion du nom de Routine doit distinguer un libellé généré et un nom personnalisé, sans mécanisme technique imposé à ce stade. L'Exécution d'une Séance peut être liée à une occurrence ou Hors planification ; ses horodatages réels et son instantané restent historiques. Le Parcours n'est pas une Exécution ni un statut agrégé. Règles de rattachement, exceptions et cas À CLARIFIER : [spécification du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). Toute formulation antérieure incompatible est supersédée.
+
+### Complément du 21/11/2026 — créneau ajouté (D-554)
+
+Une occurrence peut être **ajoutée** à une routine en dehors de sa répétition. Elle est enregistrée avec sa date et son heure, distinguée des occurrences issues de la répétition, et son groupe « date et heure » est marqué comme modifié à la main (D-536). Mécanisme technique non imposé. Règle : RM-273 ; rendu : [DSF Plan](../DSF-PLAN-2026-11-21.md).
+
+### Complément du 22/11/2026 — ordre des séances d'un créneau (D-557)
+
+Une occurrence modifiée à la main enregistre, dans son groupe « séances », les séances actives **et leur ordre**. Cet ordre prime sur celui de la routine pour cette occurrence. Règle : RM-274.

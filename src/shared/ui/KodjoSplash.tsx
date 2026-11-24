@@ -1,6 +1,8 @@
 import { Image } from "expo-image";
 import { Animated, StyleSheet, Text, View } from "react-native";
 
+import { strings } from "@/shared/i18n";
+
 export type KodjoSplashProps = {
   opacity: Animated.Value;
   onLayout: () => void;
@@ -22,7 +24,7 @@ export function KodjoSplash({ opacity, onLayout }: KodjoSplashProps) {
         <Text style={styles.name}>KODJO</Text>
         <Text style={styles.tagline}>Keep On. Do Just One.</Text>
       </View>
-      <Text style={styles.subtitle}>Votre assistant du quotidien</Text>
+      <Text style={styles.subtitle}>{strings.splash.subtitle}</Text>
     </Animated.View>
   );
 }

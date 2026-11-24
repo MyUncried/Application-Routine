@@ -45,7 +45,8 @@ export function CommandCircle({
    * `list-plus` / `list-plus-selected` : « Ajouter des mouvements » des Bibliothèques personnelles (Figma 12214:26122
    * normal, 12230:26277 sélectionné — export SVG `Icône — list-plus`).
    */
-  readonly icon: "create" | "sort" | "filter" | "list-plus" | "list-plus-selected";
+  /** `plan` : « Planifier » du Journal et de l'Agenda (19/11/2026), même cercle que Créer. */
+  readonly icon: "create" | "sort" | "filter" | "list-plus" | "list-plus-selected" | "plan";
   readonly disabled?: boolean;
   readonly onPress?: () => void;
   readonly testID: string;
@@ -68,6 +69,7 @@ export function CommandCircle({
       {icon === "sort" ? <SortGlyph testID={`${testID}-icon`} /> : null}
       {icon === "list-plus" ? <KodjoIcon name="library-list-plus" testID={`${testID}-icon`} /> : null}
       {icon === "list-plus-selected" ? <KodjoIcon name="library-list-plus-selected" testID={`${testID}-icon`} /> : null}
+      {icon === "plan" ? <KodjoIcon name="calendar-plan" testID={`${testID}-icon`} /> : null}
     </Pressable>
   );
 }

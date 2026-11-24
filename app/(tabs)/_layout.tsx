@@ -9,6 +9,7 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
+import { noteTabFocus } from "@/features/planning/calendarArrival";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
   NAVIGATION_ACTIVE_FRAME,
@@ -48,6 +49,8 @@ export default function TabsLayout() {
       <Tabs
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{ headerShown: false }}
+        // D-562 (23/11/2026) : onglet quitté, pour l'onglet ouvert à l'arrivée dans le calendrier.
+        screenListeners={({ route }) => ({ focus: () => noteTabFocus(route.name) })}
       >
         <Tabs.Screen
           name="index"
@@ -91,6 +94,8 @@ export default function TabsLayout() {
         {/* « Modifier le profil » : écran de l'onglet Profil, sans destination propre dans la barre (demande de Hermann
             du 14/11/2026 : « Ajoute la barre de navigation Kodjo à la page d'accueil du Profil »). */}
         <Tabs.Screen name="profile-edit" options={{ href: null }} />
+        {/* PROG-CAT-01 (CE-PRF-01) : Profil › Confidentialité, écran de l'onglet Profil. */}
+        <Tabs.Screen name="profile-privacy" options={{ href: null }} />
       </Tabs>
     </View>
   );
@@ -103,7 +108,7 @@ const COMMUNITY_BEFORE_ROUTE = "profile";
  * Écrans d'onglet sans destination propre dans la barre, et la destination qui reste active pendant qu'ils sont
  * affichés (14/11/2026 : « Modifier le profil » garde Profil actif).
  */
-const ROUTES_SHOWN_AS: Readonly<Record<string, string>> = { "profile-edit": "profile" };
+const ROUTES_SHOWN_AS: Readonly<Record<string, string>> = { "profile-edit": "profile", "profile-privacy": "profile" };
 
 /**
  * Cadre actif de navigation (V2-CAT-01) : un unique `Animated.View`, centré
@@ -128,7 +133,10 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     if (!layout) {
       return;
     }
-    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: false }).start();
+    // Recette du 20/11/2026 (Hermann : « La barre de navigation est saccadée (déplacement du cadre) ») : translation animée par
+    // le pilote natif, indépendante du fil JavaScript occupé par l'écran qui s'ouvre. [`left` animé sans pilote natif —
+    // remplacé.] Même trajet, même durée.
+    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: true }).start();
   }, [activeRouteKey, isIndicatorReady, indicatorX]);
 
   function handleItemLayout(routeKey: string, event: LayoutChangeEvent) {
@@ -198,7 +206,7 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           <Animated.View
             pointerEvents="none"
             testID="navigation-active-indicator"
-            style={[styles.activeIndicator, { left: indicatorX }]}
+            style={[styles.activeIndicator, { transform: [{ translateX: indicatorX }] }]}
           />
         ) : null}
         {items}
@@ -263,6 +271,7 @@ const styles = StyleSheet.create({
   // Cadre actif, sous les destinations (premier enfant), centré verticalement dans la barre.
   activeIndicator: {
     position: "absolute",
+    left: 0,
     top: (BAR_INNER_HEIGHT - NAVIGATION_ACTIVE_FRAME.height) / 2,
     width: NAVIGATION_ACTIVE_FRAME.width,
     height: NAVIGATION_ACTIVE_FRAME.height,

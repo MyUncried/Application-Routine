@@ -1,6 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { ImportedMovementInfo } from "@/features/catalogue/importedMovements";
+import { strings } from "@/shared/i18n";
+import { formatShortDate } from "@/shared/i18n/format";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -14,14 +17,15 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * (12119:25409). Ouvert : fond bleu KODJO, icône blanche, comme le crayon actif.
  */
 const FRAME = { width: 40, height: 32, radius: 10, background: "#F3F4F9" } as const;
+const L = strings.libraries.importedBadge;
 
 export function ImportedMovementAction({ open, onPress }: { readonly open: boolean; readonly onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Mouvement importé d'une bibliothèque, lecture seule"
-      accessibilityHint={open ? "Ferme les informations de la fiche" : "Affiche les informations de la fiche"}
+      accessibilityLabel={L.accessibilityLabel}
+      accessibilityHint={open ? L.closeHint : L.openHint}
       accessibilityState={{ expanded: open }}
       hitSlop={{
         top: (minTouchTarget - FRAME.height) / 2,
@@ -37,34 +41,54 @@ export function ImportedMovementAction({ open, onPress }: { readonly open: boole
   );
 }
 
-const ORIGIN_LABELS: Record<string, string> = {
-  LOCAL_CREATED: "Créée localement",
-  CATALOGUE_INSTALLED: "Installée depuis un catalogue",
-  SHARED_IMPORTED: "Importée d'un partage",
-  EXTERNAL_IMPORTED: "Importée d'une source externe",
-};
+const ORIGIN_LABELS: Record<string, string> = L.origins;
 
 function day(iso: string): string {
   const value = new Date(iso);
-  return Number.isNaN(value.getTime()) ? iso : value.toLocaleDateString("fr-FR");
+  return Number.isNaN(value.getTime()) ? iso : formatShortDate(value);
 }
 
-/** Lignes de la fenêtre d'information (exportées pour les tests). */
+/** Licence lisible : « Non renseignée », nom (et lien) ou texte des conditions (MOUV-ADM n° 15). */
+export function licenseText(license: ImportedMovementInfo["license"]): string {
+  if (license === null) return L.licenseUnset;
+  if (license.name !== null) return license.url === null ? license.name : `${license.name} — ${license.url}`;
+  return license.text ?? L.licenseUnset;
+}
+
+const CLASSIFICATION_ROWS: readonly (readonly [keyof ImportedMovementInfo["classification"], string])[] = [
+  ["specialties", L.rows.specialties],
+  ["gesturalFamilies", L.rows.gesturalFamilies],
+  ["anatomicalTargets", L.rows.anatomicalTargets],
+  ["clinicalProblems", L.rows.clinicalProblems],
+];
+
+/**
+ * Lignes de la fenêtre d'information (exportées pour les tests). Format 3.0.0 (18/11/2026, mission de mise en
+ * conformité de la fiche Mouvement) : informations utilisateur accessibles — matériel, consignes de sécurité et
+ * classifications conservées, ajoutés quand ils sont renseignés ; ayant droit = propriétaire par défaut ; licence à
+ * deux choix ; aucune note interne. [Ligne « Éditeur » (diffuseur, éditeurs de Bibliothèque) — remplacée : champs
+ * supprimés par MOUV-ADM n° 13 et 21.]
+ */
 export function importedInfoRows(info: ImportedMovementInfo): readonly (readonly [string, string])[] {
-  const unknown = "Inconnu";
+  const unknown = L.unknown;
+  const filled = (value: string | null) => value !== null && value.trim() !== "";
   return [
-    ["Bibliothèque", info.libraries.join(", ") || "—"],
-    ["Catalogue", info.catalogueId],
-    ["Source", info.upstream
+    [L.rows.library, info.libraries.join(", ") || "—"],
+    [L.rows.catalogue, info.catalogueId],
+    [L.rows.source, info.upstream
       ? `${info.upstream.catalogueId.replace(/^xlsx:/, "")} · ${info.upstream.sheetId} · ${info.upstream.revision}`
       : ORIGIN_LABELS[info.origin] ?? info.origin],
-    ["Propriétaire", info.owner ?? unknown],
-    ["Auteur", info.author ?? unknown],
-    ["Éditeur", info.editors.join(", ") || info.publisher || unknown],
-    ["Ayant droit", info.rightsHolder ?? unknown],
-    ["Licence", info.license ?? unknown],
-    ["Version", `Révision ${info.revision} · installée le ${day(info.installedAt)}` +
-      (info.updatedAt !== info.installedAt ? ` · mise à jour le ${day(info.updatedAt)}` : "")],
+    [L.rows.owner, info.owner ?? unknown],
+    [L.rows.author, info.author ?? unknown],
+    [L.rows.rightsHolder, info.rightsHolder ?? info.owner ?? unknown],
+    [L.rows.license, licenseText(info.license)],
+    ...(filled(info.equipment) ? [[L.rows.equipment, info.equipment as string] as const] : []),
+    ...(filled(info.safetyNotes) ? [[L.rows.safetyNotes, info.safetyNotes as string] as const] : []),
+    ...CLASSIFICATION_ROWS.flatMap(([axis, label]) => info.classification[axis].length === 0
+      ? []
+      : [[label, info.classification[axis].map((value) => value.label).join(", ")] as const]),
+    [L.rows.version, fillTemplate(L.version, { revision: info.revision, installed: day(info.installedAt) }) +
+      (info.updatedAt !== info.installedAt ? fillTemplate(L.versionUpdated, { updated: day(info.updatedAt) }) : "")],
   ];
 }
 
@@ -74,7 +98,7 @@ export function ImportedMovementInfoPanel({ info, onClose }: { readonly info: Im
     <Pressable
       onPress={onClose}
       accessibilityRole="button"
-      accessibilityLabel="Fermer les informations de la fiche"
+      accessibilityLabel={L.panelAccessibilityLabel}
       style={styles.panel}
       testID="movement-imported-info"
     >

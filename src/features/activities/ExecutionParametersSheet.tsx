@@ -927,6 +927,9 @@ export function ExecutionParametersSheet({
   const durationRefused = format?.durationRefused === true && draft.mode !== "DURATION";
   // Recette du 17/11/2026 (Hermann, captures de « For time a changer » : « le problème de vérification du mode d'exécution n'est pas réglé. C'est au niveau de la composition de séance que le problème se pose ») : boucle déjà sans Répétitions (séance antérieure) — erreur en rouge, ✓ refusé tant que Répétitions n'est pas choisi.
   const loopWithoutRepetitions = format?.durationRefused === true && draft.mode === "DURATION";
+  // D-531 / RM-271 (Hermann, 19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements, message
+  // court sous le cadre Exécution ; une valeur déjà à l'échec (séance antérieure) n'est pas changée d'office.
+  const failureRefused = format?.failureRefused === true;
   // Règles de Hermann du 14/11/2026 (For time, FT-3, FT-4) : buy-in et buy-out, nombre de séries libre, identiques ou variables —
   // la ligne Séries revient. [Recette du 07/11/2026 (y-format-cadres) : ligne Séries retirée pour le buy-in et le buy-out — remplacé
   // le 14/11/2026 ; la ligne Pause reste retirée.]
@@ -1628,7 +1631,9 @@ export function ExecutionParametersSheet({
   // valeur conservée) : Avec y reprend son libellé.
   // Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : […] Pause de changement de côté ») : en For time, la
   // ligne Pause entre les côtés est absente sous Avec ; `sideRecoverySeconds` reste dans le Brouillon.
-  const sideSettingsShown = bilateral && !forTimeSheet;
+  // Recette du 18/11/2026 (emom-9, Hermann : « Le récapitulatif de l'EMOM en répétitions n'affiche plus la ligne « Pause entre les
+  // côtés ». La valeur éventuellement saisie reste conservée dans le brouillon, sans effet ») : même principe ; EMOM en Durée inchangé.
+  const sideSettingsShown = bilateral && !forTimeSheet && !(emomSheet && draft.mode === "REPETITIONS");
   const sideOrderShown = !single;
   // AC3 : tant que la saisie de la Cadence est ouverte (Autre touché), l'option affichée est Autre.
   // Décision du 06/11/2026 : la valeur se saisit au clavier, dans le champ révélé sous la ligne.
@@ -1709,7 +1714,9 @@ export function ExecutionParametersSheet({
       case "formatInterval":
         return { kind: "duration", bounds: { min: 5, max: 3600 } };
       case "formatDuration":
-        return { kind: "duration", bounds: { min: 60, max: 180 * 60 } };
+        // Recette du 18/11/2026 (Hermann, amrap-1 : « Durée de l'exercice : la solution refuse une durée inférieure à 1 minute ») : aucune
+        // règle n'impose 1 min (FMT-26, registre des Formats : minimum 1 s) — durée strictement positive. [Minimum 60 s — remplacé.]
+        return { kind: "duration", bounds: { min: 1, max: 180 * 60 } };
       case "formatTimeCap":
         return { kind: "duration", bounds: { min: 60, max: 180 * 60 } };
       case "phaseCount":
@@ -2149,7 +2156,7 @@ export function ExecutionParametersSheet({
       options={
         format?.rows.includes("stopImposed")
           ? stopConditionOptions.map((option) => (option.value === "TARGET" ? { ...option, disabled: true } : option))
-          : format?.rows.includes("stopTarget")
+          : format?.rows.includes("stopTarget") || failureRefused
             ? stopConditionOptions.map((option) => (option.value === "FAILURE" ? { ...option, disabled: true } : option))
             : stopConditionOptions
       }
@@ -2852,6 +2859,11 @@ export function ExecutionParametersSheet({
                 ) : loopWithoutRepetitions ? (
                   <Text style={styles.emomOverflowAlert} accessibilityRole="alert" testID="execution-sheet-loop-without-repetitions">
                     {strings.screens.formatModel.loopWithoutRepetitions}
+                  </Text>
+                ) : null}
+                {failureRefused ? (
+                  <Text style={styles.durationRefusedNote} accessibilityRole="alert" testID="execution-sheet-max-refused">
+                    {strings.screens.formatModel.maxLocked}
                   </Text>
                 ) : null}
 

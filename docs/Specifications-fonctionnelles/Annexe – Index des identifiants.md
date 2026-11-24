@@ -732,6 +732,7 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [RM-045](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
 | [RM-046](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
 | [RM-047](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
+| [RM-047a](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
 | [RM-048](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
 | [RM-049](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
 | [RM-050](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#planification-et-calendrier) | 10 | Planification et Calendrier |
@@ -740,6 +741,8 @@ Document non normatif, généré. Il indique où chaque identifiant est défini.
 | [RM-053](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
 | [RM-054](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
 | [RM-054a](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
+| [RM-054b](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
+| [RM-054c](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#notifications-et-rappels) | 10 | Notifications et rappels |
 | [RM-055](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance) | 10 | Exécution d’une Séance |
 | [RM-056](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance) | 10 | Exécution d’une Séance |
 | [RM-057](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#exécution-dune-séance) | 10 | Exécution d’une Séance |

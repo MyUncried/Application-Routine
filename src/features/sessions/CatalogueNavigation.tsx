@@ -45,6 +45,7 @@ export function CatalogueNavigation<T extends string>({
   value,
   onChange,
   selectedColor,
+  slotFraction,
   testID,
 }: {
   readonly options: readonly CatalogueNavigationOption<T>[];
@@ -52,15 +53,22 @@ export function CatalogueNavigation<T extends string>({
   readonly onChange: (value: T) => void;
   /** D-502 : couleur `context` du Catalogue actif, portée par l'onglet sélectionné. */
   readonly selectedColor: string;
+  /**
+   * D-542 (20/11/2026) : largeur de chaque emplacement en part de la largeur utile, emplacements centrés — Calendrier à deux
+   * onglets, emplacements d'un tiers comme les Catalogues (centres à x = 139,5 et 262,5). Absent : emplacements égaux sur
+   * toute la largeur (Catalogues, rendu inchangé).
+   */
+  readonly slotFraction?: number;
   readonly testID: string;
 }) {
+  const fixed = slotFraction !== undefined ? { flex: 0, flexBasis: `${slotFraction * 100}%` as const } : null;
   return (
-    <View style={styles.row} accessibilityRole="tablist" testID={testID}>
+    <View style={[styles.row, fixed !== null ? styles.rowCentered : null]} accessibilityRole="tablist" testID={testID}>
       {options.map((option) => {
         const selected = option.value === value;
         const disabled = Boolean(option.disabled);
         return (
-          <View key={option.value} style={styles.slot} testID={`${testID}-${option.value}-slot`}>
+          <View key={option.value} style={[styles.slot, fixed]} testID={`${testID}-${option.value}-slot`}>
             {selected ? <SelectedTabShape color={selectedColor} testID={`${testID}-${option.value}-shape`} /> : null}
             <Pressable
               onPress={() => {
@@ -116,6 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
   },
+  rowCentered: { justifyContent: "center" },
   slot: {
     flex: 1,
     flexBasis: 0,

@@ -1,13 +1,17 @@
 import { colors } from "@/shared/ui/tokens";
+import { pluralCategory } from "@/shared/i18n/plural";
 
 /**
  * PRE-9 CAT.1 (spécification « Zones de contexte des Catalogues » du 30/10/2026, CE-CAT-CTX-01) —
  * règles de présentation communes aux deux Catalogues. Module pur.
  */
 
-/** Accord : singulier pour 0 et 1 (« 0 résultat », « 1 résultat »), pluriel au-delà (« 2 résultats »). */
+/**
+ * Accord : singulier pour 0 et 1 en français (« 0 résultat », « 1 résultat »), pluriel au-delà (« 2 résultats ») ;
+ * règle de la langue de l'interface depuis J1 (« 0 results » en anglais).
+ */
 export function pluralFormOf(count: number): "ONE" | "MANY" {
-  return count <= 1 ? "ONE" : "MANY";
+  return pluralCategory(count) === "one" ? "ONE" : "MANY";
 }
 
 /** Texte accordé : `{count}` remplacé dans le modèle singulier ou pluriel. */

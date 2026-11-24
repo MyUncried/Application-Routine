@@ -47,9 +47,9 @@ const SECTION_LABELS: Readonly<Record<EditorialSection, string>> = {
   provenance: "provenance",
   content: "contenu",
   classification: "classification",
-  sources: "sources",
   validation: "validation",
   media: "médias",
+  phases: "phases",
   levelGroup: "famille de niveaux",
 };
 
@@ -60,31 +60,24 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   "levelGroup.sortKey": "Position dans la famille",
   "content.aliases": "Alias",
   "content.steps": "Étapes",
-  "content.startingPosition": "Position de départ",
   "content.equipment": "Matériel",
-  "content.safetyNotes": "Sécurité",
-  "content.notes": "Notes",
+  "content.safetyNotes": "Consignes de sécurité",
+  phases: "Phases",
   "classification.categoryId": "Catégorie",
   "classification.bodyZoneIds": "Zones",
   "classification.specialtyIds": "Spécialités",
   "classification.gesturalFamilyIds": "Familles gestuelles",
   "classification.clinicalProblemIds": "Problèmes cliniques",
   "classification.anatomicalTargetIds": "Cibles anatomiques",
-  "classification.basis": "Fondement de la classification",
   "provenance.origin": "Origine",
   "provenance.upstream": "Source d'import",
   "provenance.owner": "Propriétaire",
-  "provenance.authors": "Auteurs",
-  "provenance.publisher": "Diffuseur",
+  "provenance.author": "Auteur",
   "provenance.rightsHolder": "Ayant droit",
   "provenance.license": "Licence",
-  "provenance.reviewStatus": "Statut éditorial",
-  "provenance.visibility": "Visibilité",
-  "provenance.gestureId": "Geste",
-  "sources.documentary.sourceId": "Référence documentaire",
-  "sources.documentary.section": "Section documentaire",
-  "sources.documentary.url": "Lien documentaire",
-  "sources.documentary.usageStatement": "Conditions d'usage",
+  "provenance.license.name": "Licence",
+  "provenance.license.url": "Lien de la licence",
+  "provenance.license.text": "Conditions d'utilisation",
   "validation.publicationAllowed": "Publication autorisée",
   media: "Médias",
 };
@@ -114,6 +107,8 @@ const REFERENCE_PATHS = new Set([
 /** Valeur lisible ; `undefined` = absente, `null` = non renseignée. */
 export function formatValue(path: string, value: unknown, labels: ReadonlyMap<string, string>): string {
   if (value === undefined) return "—";
+  // Ayant droit non renseigné = le propriétaire (MOUV-ADM n° 14).
+  if (path === "provenance.rightsHolder" && value === null) return "Propriétaire";
   if (value === null || value === "") return "Non renseigné";
   if (typeof value === "boolean") return value ? "Oui" : "Non";
   if (REFERENCE_PATHS.has(path)) {
@@ -124,6 +119,10 @@ export function formatValue(path: string, value: unknown, labels: ReadonlyMap<st
     return value.length === 0 ? "Aucune" : value.map((step, index) => `${index + 1}. ${String(step)}`).join("\n");
   }
   if (path === "media" && Array.isArray(value)) return `${value.length} média(s)`;
+  if (path === "phases" && Array.isArray(value)) {
+    return value.length === 0 ? "Aucune" : (value as { label: string; durationSeconds: number | null }[])
+      .map((phase, index) => `${index + 1}. ${phase.label}${phase.durationSeconds === null ? "" : ` (${phase.durationSeconds} s)`}`).join("\n");
+  }
   if (Array.isArray(value)) {
     if (value.length === 0) return "Aucun";
     return value.map((item) => (typeof item === "string" ? item : actorOrJson(item))).join(", ");
