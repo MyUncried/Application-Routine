@@ -48,3 +48,13 @@ Aucun code modifié. Les règles proposées passeront dans le registre (classe B
 ## Commit final et état Git
 
 Voir le commit qui contient ce rapport sur `feat/unite-charge-20261124`, envoyé sur GitHub ; arbre propre.
+
+## Mise à jour du 24/11/2026 — réponses de Hermann
+
+- **U1** : grille de pas adaptatifs pour les champs de charge et les conversions, en kg et en lb (recopiée au § 3.2 du plan). Elle remplace le pas unique de 0,25 kg.
+- **U2, U4, U5** : « Ok ».
+- **Sans réponse** : U3.
+- **Nouvelles questions nées de U1** :
+  - U6 : arrondi d'une valeur tapée hors grille ;
+  - U7 : charges déjà enregistrées hors grille.
+- Aucun code ; aucun test applicable.

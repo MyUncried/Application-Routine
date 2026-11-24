@@ -47,19 +47,33 @@ Aucune préférence d'unité n'existe aujourd'hui.
 
 ### 3.2 Pas de saisie
 
-- En kg : 0,25 (inchangé).
-- En lb : **0,5** proposé. Les disques en livres vont par 2,5 et 1,25 lb, et ce pas garde des valeurs lisibles.
-- Ce pas sert à la validation (`isValidLoadKg` devient dépendant de l'unité), à `roundLoadUp` et à la saisie.
+[Proposition du 24/11/2026 — 0,25 kg inchangé, 0,5 lb — remplacée par la décision U1 ci-dessous.]
+
+Décision de Hermann du 24/11/2026 (U1), recopiée telle quelle : « Grille de pas adaptifs à appliquer sur les champs de charges et pour les conversions ».
+
+| Tranche kg | Pas kg | Tranche lb | Pas lb |
+|---|---|---|---|
+| 0 à 1 kg | 0,25 kg | 0 à 2 lb | 0,5 lb |
+| 1 à 5 kg | 0,5 kg | 2 à 10 lb | 1 lb |
+| 5 à 20 kg | 1 kg | 10 à 45 lb | 2,5 lb |
+| 20 kg et plus | 2,5 kg | 45 lb et plus | 5 lb |
+
+Comment je la lis :
+- La grille donne les valeurs admises : en kg, 0,25 · 0,5 · 0,75 · 1 · 1,5 … 5 · 6 … 20 · 22,5 · 25 … ; en lb, 0,5 · 1 … 2 · 3 … 10 · 12,5 … 45 · 50 · 55 …
+- Chaque borne (1, 5, 20 kg ; 2, 10, 45 lb) appartient aux deux tranches voisines. Une valeur est donc valide sans ambiguïté si elle tombe sur la grille.
+- La grille **s'applique aussi au kg**. Elle remplace le pas unique de 0,25 kg (AD-19) : par exemple, 12,5 kg et 22 kg ne sont plus des valeurs admises.
+- La validation (`isValidLoadKg`), l'arrondi de saisie (`roundLoadUp`) et la conversion utilisent cette grille, dans l'unité du profil.
+
+À trancher (U6, U7, section 4) : l'arrondi d'une valeur tapée hors grille et le sort des charges déjà enregistrées hors grille.
 
 ### 3.3 Conversion au changement d'unité, arrondi et non-dérive
 
 - Facteur : 1 lb = 0,45359237 kg, valeur exacte.
 - Changer l'unité convertit **toutes** les charges stockées (Catalogue, séances, Formats) en une seule transaction. Chaque valeur est arrondie au plus proche multiple du pas de la nouvelle unité. Un échec annule tout et laisse l'unité inchangée.
-- Une charge non nulle ne devient jamais 0 : elle prend au minimum un pas.
-- **Aller-retour kg → lb → kg** : sans dérive avec l'arrondi au plus proche. L'écart d'un arrondi en lb vaut au plus 0,25 lb, soit 0,113 kg, ce qui reste sous la moitié du pas kg (0,125). Exemple : 20 kg → 44 lb → 20 kg.
-- **Aller-retour lb → kg → lb** : une dérive de 0,5 lb reste possible, car l'écart en kg peut atteindre 0,125 kg, soit 0,276 lb.
-- **Proposition contre la dérive (option A)** : à chaque conversion, conserver la valeur d'origine de chaque charge. Si l'utilisateur revient à l'unité précédente sans avoir modifié cette charge entre-temps, la valeur d'origine est restaurée exactement. Exemple : 45,5 lb → 20,75 kg → 45,5 lb, et non 45,5 → 20,75 → 45,75 lb.
-- **Option B, plus simple** : arrondi seul, en acceptant une dérive de ±0,5 lb dans quelques cas d'aller-retour.
+- Avec la grille U1, chaque valeur convertie est arrondie **au point le plus proche de la grille** de la nouvelle unité. Exemples : 20 kg → 44,09 lb → 45 lb ; 12 kg → 26,46 lb → 27,5 lb ; 100 lb → 45,36 kg → 45 kg.
+- Une charge non nulle ne devient jamais 0 : elle prend au minimum le premier point de la grille (0,25 kg ou 0,5 lb).
+- [Analyse de dérive au pas unique 0,25 kg / 0,5 lb — devenue sans objet avec la grille U1.] Avec la grille, les allers-retours calculés reviennent à leur valeur (45 lb → 20 kg → 45 lb ; 6 kg → 12,5 lb → 6 kg ; 22,5 kg → 50 lb → 22,5 kg), mais l'arrondi seul ne le garantit pas pour toutes les valeurs. La règle U2 ci-dessous le garantit.
+- **Décision de Hermann du 24/11/2026 (U2 : « Ok »)** : à chaque conversion, la valeur d'origine de chaque charge est conservée. Si l'utilisateur revient à l'unité précédente sans avoir modifié cette charge entre-temps, la valeur d'origine est restaurée exactement. [Option B, arrondi seul : écartée.]
 
 ### 3.4 Historique des exécutions
 
@@ -91,9 +105,15 @@ Aucune préférence d'unité n'existe aujourd'hui.
 
 | # | Question | Proposition |
 |---|---|---|
-| U1 | Pas de saisie en lb | 0,5 lb |
-| U2 | Non-dérive lb → kg → lb | Option A : restauration des valeurs d'origine non modifiées |
-| U3 | Unité par défaut d'une installation neuve | Région du téléphone (États-Unis → lb, sinon kg) ; base existante → kg |
+Réponses de Hermann du 24/11/2026 : U1 = grille de pas adaptatifs (§ 3.2) ; U2 « Ok » ; U4 « Ok » ; U5 « Ok ». U3 : sans réponse. U6 et U7 : nouvelles, nées de U1.
+
+| # | Question | Proposition | Décision |
+|---|---|---|---|
+| U1 | Pas de saisie en lb | 0,5 lb | Grille adaptative kg et lb (§ 3.2) |
+| U2 | Non-dérive lb → kg → lb | Option A : restauration des valeurs d'origine non modifiées | Ok |
+| U3 | Unité par défaut d'une installation neuve | Région du téléphone (États-Unis → lb, sinon kg) ; base existante → kg | En attente |
+| U6 | Valeur tapée hors grille (ex. 22 kg) | Arrondie au point supérieur de la grille (22,5 kg), comme l'arrondi actuel au 0,25 supérieur | En attente |
+| U7 | Charges déjà enregistrées hors grille (ex. 12,5 kg) | Conservées telles quelles jusqu'à leur prochaine modification ou conversion | En attente |
 | U4 | Historique des exécutions | Affiché dans l'unité de l'exécution, sans conversion |
 | U5 | Changement d'unité | Immédiat, sans fenêtre de confirmation |
 
