@@ -1,6 +1,6 @@
 # Plan — Lot Compte et Communauté (MVP)
 
-**Statut : PLAN_READY_FOR_REVIEW (T1 seule).** Révisé le 25/11/2026 en réponse à la revue ChatGPT `PLAN_CHANGES_REQUESTED` (`.github/orchestration/reports/2026-11-25_PLAN_REVIEW_COMPTE_T1.md`, candidat `06650dba`). T2 à T6 restent des esquisses. Aucun code avant `PLAN_APPROVED`.
+**Statut : voir § STATUT en fin de document (T1 seule).** Révisé le 25/11/2026 en réponse aux revues ChatGPT `PLAN_CHANGES_REQUESTED` (revue initiale, puis contre-revue F1 à F3) (`.github/orchestration/reports/2026-11-25_PLAN_REVIEW_COMPTE_T1.md`, candidat `06650dba`). T2 à T6 restent des esquisses. Aucun code avant `PLAN_APPROVED`.
 
 **Sources normatives :**
 - chapitre 07, décisions **CPT-01 à CPT-28** (section « Gestion de compte — premier lot » ; CPT-01 révisée, CPT-11 retirée, CPT-26 remplacée, CPT-28 corrigée) ;
@@ -144,10 +144,12 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 
 | Table | Contenu | Accès |
 |---|---|---|
-| `accounts` | `auth_user_id` (clé, vers `auth.users`) ; `provider` (`apple` ou `google`) ; `email` ; `email_is_private_relay` ; `given_name`, `family_name` (nullables) ; `created_at` ; `deletion_requested_at` (nullable) | Lecture de sa propre ligne |
+| `accounts` | `auth_user_id` (clé, vers `auth.users`) ; `provider` (`apple` ou `google`) ; `provider_subject` (identifiant `sub` du fournisseur) ; `email` ; `email_is_private_relay` ; `relay_forwarding_enabled` (Apple, nullable) ; `given_name`, `family_name` (nullables) ; `created_at` ; `deletion_requested_at` (nullable) | Lecture de sa propre ligne |
 | `account_local_users` | `auth_user_id`, `local_user_id`, `first_linked_at`, clé `(auth_user_id, local_user_id)` | Lecture de ses propres lignes |
 | `catalogues` | `id`, `owner_auth_user_id` UNIQUE, `created_at` | Lecture de sa propre ligne |
 | `apple_tokens` | `auth_user_id`, `client_id`, `refresh_token` chiffré | **Aucun accès client** (clé de service seulement) |
+| `account_deletions` (registre de suppression, **conservé après la suppression**) | `auth_user_id` (clé, sans clé étrangère) ; empreintes (hachages) du reçu de suppression et des `local_user_id` rattachés ; `requested_at`, `apple_revocation` (`done` \| `not_required` \| `not_applicable`), `data_purged_at`, `auth_deleted_at` ; purge automatique 90 jours après `auth_deleted_at` | **Aucun accès client** ; lecture uniquement via `deletion-status` |
+| `apple_notification_events` | `iss`, `jti` (clé `(iss, jti)`), `sub`, `type`, `received_at` ; purge après 90 jours | **Aucun accès client** |
 
 **Fonction SQL `link_account(local_user_id, given_name, family_name)`** (`SECURITY DEFINER`)
 - L'appelant est déterminé par `auth.uid()`, jamais par un paramètre.
@@ -164,15 +166,16 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 
 **Fonction serveur `delete-account`**, ordre et reprise : voir « Suppression ».
 
-**Fonction serveur `apple-notifications`**
-- Point de réception des notifications serveur à serveur d'Apple.
-- Elle vérifie la signature JWS des événements avec les clés publiques d'Apple et ignore les doublons (`events.type` et `event_time`).
-- Événements traités :
-  - `consent-revoked` : invalider les sessions du compte ;
-  - `account-delete` : suppression du compte, comme `delete-account` ;
-  - `email-disabled` / `email-enabled` : mise à jour de `email`.
-- Elle répond 200 après traitement idempotent.
-- Son adresse est à renseigner dans « Server-to-Server Notification Endpoint » de `com.ankusha.kodjo`, laissé vide le 24/11/2026.
+**Fonction serveur `apple-notifications`** (F3)
+- Point de réception des notifications serveur à serveur d'Apple ([documentation Apple](https://developer.apple.com/documentation/signinwithapple/processing-changes-for-sign-in-with-apple-accounts)). Son adresse est à renseigner dans « Server-to-Server Notification Endpoint » de `com.ankusha.kodjo`, laissé vide le 24/11/2026.
+- **Vérification** du jeton reçu (JWS) : signature par les clés publiques d'Apple, `iss = https://appleid.apple.com`, `aud` égal à l'un des identifiants clients KODJO. Sinon : 400, aucun effet.
+- **Identifiant de l'événement** : couple **`(iss, jti)`** du jeton vérifié. Il est inséré dans `apple_notification_events` avant tout traitement (`INSERT … ON CONFLICT DO NOTHING`) : un **même événement rejoué** n'est traité **qu'une fois**. Deux utilisateurs produisant le même type d'événement au même instant ont des `jti` distincts et sont **traités séparément**.
+- **Rattachement au compte** : `events.sub` vérifié ↔ `accounts.provider_subject` (fournisseur Apple). Sujet inconnu : 200, journalisé, aucun effet.
+- **Événements :**
+  - `email-disabled` / `email-enabled` : l'utilisateur coupe ou rétablit le **transfert** de son adresse relais. **L'adresse affichée ne change pas** ; seul `relay_forwarding_enabled` est mis à jour. Pas d'effet visible en T1.
+  - `consent-revoked` : Apple a invalidé les jetons. Suppression de la ligne `apple_tokens` (devenue inutile) et fermeture des sessions du compte (`auth.admin.signOut`). Au retour du réseau, l'app constate une session refusée et `deletion-status` répond `active` : nouvelle connexion (voir « Hors ligne »).
+  - `account-delete` : l'utilisateur a supprimé son compte Apple ; **Apple a déjà invalidé les jetons**. Purge du compte par la même procédure que `delete-account`, avec `apple_revocation = not_required` : **aucun appel de révocation, donc aucune boucle**.
+- Réponse 200 après traitement, y compris pour un doublon.
 
 **`supabase/config.toml`** : fournisseurs, adresses de retour autorisées, réglages de session par défaut.
 
@@ -198,8 +201,8 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 **Migration locale 040** (`migration040.ts`, enregistrée dans `migrateDatabase.ts`, `DATABASE_VERSION = 40`)
 - La 039 est la dernière de la chaîne actuelle. Le numéro sera revérifié après la fusion de `main`.
 - Elle est **additive** et crée deux tables :
-  - `account_link` (singleton) : `auth_user_id`, `provider`, `email`, `email_is_private_relay`, `given_name`, `family_name`, `catalogue_id`, `linked_at` ;
-  - `account_lifecycle` (singleton) : `state` (`NEVER_LINKED` | `LINKED` | `DELETED_ON_THIS_DEVICE`), `deletion_requested_at`.
+  - `account_link` (singleton) : `auth_user_id`, `provider`, `provider_subject`, `email`, `email_is_private_relay`, `given_name`, `family_name`, `catalogue_id`, `linked_at` ;
+  - `account_lifecycle` (singleton) : `state` (`NEVER_LINKED` | `LINKED` | `REAUTH_REQUIRED` | `DELETION_PENDING` | `DELETED_ON_THIS_DEVICE`), `deletion_requested_at`, `deletion_receipt` (reçu aléatoire de suppression, conservé jusqu'à confirmation).
 - Aucune donnée métier modifiée. Migrations et réparations existantes inchangées.
 
 **Domaine** (`src/domain/account/`)
@@ -208,6 +211,7 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 
 **Porte d'entrée**
 - `app/_layout.tsx` affiche É1 tant que `account_link` est vide. Elle est montée comme `MigrationNoticeGate`, après la base prête.
+- **Priorité de la réauthentification** (F2) : un lien présent suffit à ouvrir l'app **sauf** si l'état `REAUTH_REQUIRED` est enregistré (session refusée, compte encore actif ou état non prouvé) ; É1 s'affiche alors **avant** l'ouverture, le lien et les données étant conservés. Hors ligne, cet état ne peut pas apparaître : l'app s'ouvre.
 - Écran `app/sign-in.tsx` (É1).
 
 **Section Compte (É2)**
@@ -240,40 +244,52 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 | R2 | **Compte existant, téléphone vierge** (réinstallation, nouveau téléphone) | L'Utilisateur local (nouvel identifiant) est **ajouté** aux Utilisateurs du compte. Aucune réécriture de `users.id`. Aucune donnée récupérée (pas de sauvegarde en T1). Prénom et nom sont lus dans `accounts` quand Apple ne les renvoie plus. |
 | R3 | **Même compte, téléphone déjà peuplé** avec un autre identifiant local (appareils de recette, installation antérieure à T1) | Accepté. L'Utilisateur local est ajouté. **Chaque téléphone garde ses données et son identifiant**, sans fusion ni perte. |
 | R4 | **Autre compte Y**, téléphone lié à X (session expirée ou révoquée, nouvelle connexion avec Y) | **Refus É4**. La session Y est fermée localement. `account_link` de X est intact. **Aucun appel** à `link_account` pour Y. |
-| R5 | Téléphone où le compte a été **supprimé** (`DELETED_ON_THIS_DEVICE`), données conservées | Compte **neuf** : R1. Compte **existant** : **refus É4** (CPT-31). |
+| R5 | Téléphone où le compte a été **supprimé** (`DELETED_ON_THIS_DEVICE`), données conservées, **lien local vide** (fournisseur et e-mail effacés) | Compte **neuf** : R1. Compte **existant** : **refus**, alerte **É4-R5** (CPT-31), qui n'affiche ni fournisseur ni e-mail. |
 | R6 | Reprise après coupure pendant le rattachement | `link_account` idempotent. Tant que `account_link` n'est pas écrit, la porte reste sur É1 et le rattachement est rejoué à la connexion suivante. |
 
 **Tests**
-- Jest : R1 à R6, dont deux bases peuplées avec des identifiants différents pour le même compte, sans perte de lignes.
+- Jest : R1 à R6, dont deux bases peuplées avec des identifiants différents pour le même compte, sans perte de lignes ; R4 (É4 avec fournisseur et e-mail) et **R5 avec lien local vide** (É4-R5, aucun fournisseur ni e-mail affiché).
 - SQL : idempotence de `link_account`, appels concurrents, RLS.
 
 ### SUPPRESSION (CPT-08 à CPT-10, Apple TN3194)
 
 **Côté application**
 1. Confirmation É3.
-2. `account_lifecycle.deletion_requested_at` est écrit.
-3. Appel de `delete-account`.
-4. Seulement après une réponse `deleted` ou `already_deleted` :
+2. Génération d'un **reçu de suppression** aléatoire (`deletion_receipt`), `account_lifecycle.state = DELETION_PENDING`. Le lien local est **conservé**.
+3. Appel de `delete-account` avec le reçu.
+4. Seulement après une réponse `deleted`, ou une preuve `deleted` de `deletion-status` :
    - fermeture de la session (stockage `localStorage` vidé) ;
-   - suppression de `account_link` ;
+   - suppression de `account_link` et du reçu ;
    - `account_lifecycle.state = DELETED_ON_THIS_DEVICE` ;
    - retour à É1.
 5. **Données métier conservées.**
-6. En cas d'échec ou sans réseau : rien n'est effacé localement, message É3 sans réseau ou erreur, nouvelle tentative possible.
-7. Au lancement suivant, une demande en suspens est reprise (`resumePendingDeletion`).
+6. En cas d'échec, de réponse `retryable_error` ou sans réseau : rien n'est effacé localement, message É3 sans réseau ou erreur, nouvelle tentative possible.
+7. Au lancement suivant, une suppression en suspens est reprise (`resumePendingDeletion`, voir « Reprise »).
 
-**Côté serveur (`delete-account`)**, dans cet ordre, chaque étape étant idempotente :
+**Côté serveur (`delete-account`)** : chaque étape est enregistrée dans `account_deletions`, qui survit à la suppression. Une nouvelle exécution **reprend à la première étape non accomplie**.
 
 | Étape | Action | En cas d'échec |
 |---|---|---|
-| 0 | Authentification par le jeton de l'appelant. Sans jeton : 401. L'identifiant n'est jamais passé en paramètre, donc aucune action sur un autre compte. Si l'utilisateur n'existe plus : réponse `already_deleted`. | — |
-| 1 | `accounts.deletion_requested_at` est marqué. | — |
-| 2 | **Révocation Apple** (`/auth/revoke`) avec le jeton de `apple_tokens`, si le compte est Apple. | Réponse `retryable_error`, **rien n'est supprimé**. |
-| 3 | Suppression des objets Storage du compte. Ils sont absents en T1, mais l'étape est prévue, car `deleteUser` échoue si le compte possède des objets. | `retryable_error` |
-| 4 | Suppression de `catalogues`, `account_local_users`, `apple_tokens`, `accounts`. | `retryable_error` |
-| 5 | `auth.admin.deleteUser()`, puis réponse `deleted`. | `retryable_error` |
+| 0 | Authentification par le jeton de l'appelant. Sans jeton : 401. L'identifiant n'est jamais passé en paramètre, donc aucune action sur un autre compte. | — |
+| 1 | Création ou reprise de la ligne `account_deletions` : empreinte du reçu, empreintes des `local_user_id` rattachés, `requested_at`. | `retryable_error` |
+| 2 | **Révocation Apple** (`/auth/revoke`) avec le jeton de `apple_tokens`, si le compte est Apple ; `apple_revocation = done` (ou `not_applicable` pour Google, `not_required` si Apple a déjà invalidé les jetons). | `retryable_error`, **rien n'est supprimé** |
+| 3 | Suppression des objets Storage du compte (absents en T1 ; prévue car `deleteUser` échoue si le compte en possède). | `retryable_error` |
+| 4 | Suppression de `catalogues`, `account_local_users`, `apple_tokens`, `accounts` ; `data_purged_at`. | `retryable_error` |
+| 5 | `auth.admin.deleteUser()` ; `auth_deleted_at` ; réponse `deleted`. | `retryable_error` |
 
-**Réponse perdue** : un nouvel appel trouve l'utilisateur absent et reçoit `already_deleted`. L'application finalise le nettoyage local.
+**Fonction serveur `deletion-status`** (sans session, pour les cas où la session n'est plus utilisable)
+- Entrée : `auth_user_id` du lien local et **une preuve** : le reçu de suppression (téléphone qui a demandé la suppression) ou le `local_user_id` du téléphone (autre téléphone du même compte). Ces valeurs aléatoires de 128 bits ne sont jamais affichées ni publiées.
+- Sortie, seulement si la preuve correspond aux empreintes enregistrées ou à `account_local_users` : `deleted` (suppression achevée), `in_progress` (étapes restantes), `active` (compte existant, aucune suppression). Sinon : `unknown`, sans autre information.
+
+**Reprise** (F2), trois situations :
+
+| Situation | Preuve disponible | Action suivante | Lien local | Résultat observable |
+|---|---|---|---|---|
+| **a. Données serveur effacées, `deleteUser` en échec** (étape 4 faite, étape 5 échouée) | Le compte Auth existe encore : la session reste rafraîchissable ; `account_deletions.data_purged_at` est renseigné | L'app relance `delete-account` avec sa session (au lancement ou au retour du réseau) ; le serveur constate l'étape 4 faite et **reprend à l'étape 5**, sans révocation Apple à refaire (`apple_revocation` déjà renseigné) | **Conservé** (`DELETION_PENDING`) jusqu'à `deleted` | Message d'erreur de É3 au premier échec ; à la reprise réussie, retour à É1 |
+| **b. Suppression réussie, réponse perdue, justificatif expiré** | Plus de session possible (utilisateur supprimé). Le téléphone garde son **reçu de suppression** | L'app appelle `deletion-status` avec `auth_user_id` et le reçu ; réponse `deleted` | **Conservé** jusqu'à la réponse, puis effacé | Retour à É1 avec les données conservées, sans erreur |
+| **c. Retour en ligne avec une session refusée** (jeton de rafraîchissement refusé, sans demande de suppression sur ce téléphone) | Le `local_user_id` du téléphone, rattaché au compte | L'app appelle `deletion-status` avec `auth_user_id` et `local_user_id`. `deleted` : nettoyage local comme une suppression. `active` : `REAUTH_REQUIRED` (session seule révoquée, par exemple `consent-revoked`). `in_progress` ou `unknown` (ex. registre purgé après 90 jours) : `REAUTH_REQUIRED` | `deleted` : effacé. Autres cas : **conservé** | `deleted` : É1, données conservées. Sinon : É1 **avant** ouverture (priorité de la réauthentification) ; à la reconnexion, même compte : R3 ; **même `provider_subject` mais nouvel `auth_user_id`** (ancien compte supprimé, compte neuf du même titulaire) : R5, compte neuf accepté ; autre titulaire : R4 |
+
+Tant que la suppression n'est pas **prouvée** (`deleted`), le rattachement est conservé. Une erreur réseau ou 5xx n'est jamais interprétée comme une suppression.
 
 **Jeton Apple révocable** (TN3194) :
 - **iOS natif** : le code d'autorisation renvoyé par `expo-apple-authentication` est envoyé **immédiatement** (validité de 5 minutes) à `apple-token`, qui l'échange et stocke le jeton de rafraîchissement. Un ancien code n'est jamais réutilisé.
@@ -283,20 +299,19 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 - **Nouvelle connexion** d'un compte Apple : le jeton stocké est remplacé.
 
 **Tests**
-- Fonction serveur : appel anonyme, tentative sur un autre compte, échec simulé à chaque étape, réponse perdue puis nouvel appel, ordre des appels.
-- Jest : données métier intactes, session et lien effacés seulement après succès, reprise au lancement.
+- Fonction serveur : appel anonyme, tentative sur un autre compte, échec simulé à chaque étape puis reprise à la bonne étape (dont **a** : étape 4 faite, `deleteUser` en échec), ordre des appels.
+- `deletion-status` : preuve correcte ou incorrecte (`unknown` sans fuite), reçu (cas **b**), `local_user_id` d'un autre téléphone (cas **c**), registre purgé.
+- Jest : données métier intactes ; session et lien effacés seulement après preuve `deleted` ; reprise au lancement ; séquences **a**, **b** (réponse perdue, session impossible) et **c** (`deleted`, `active`, `unknown`) ; priorité de `REAUTH_REQUIRED` sur l'ouverture.
 - Recette réelle : suppression avec Apple (iOS et Android) et avec Google, puis vérification dans les réglages Apple (« Apps utilisant l'identifiant Apple ») que KODJO n'y figure plus.
 
 ### HORS LIGNE ET RETOUR DU RÉSEAU
 
 - **Lancement et exécution hors ligne avec un jeton expiré** : autorisés dès que `account_link` existe.
 - **Au retour du réseau**, le rafraîchissement de session est classé :
-  - **erreur transitoire** (réseau, délai, 5xx) : aucun changement, nouvel essai plus tard ;
-  - **jeton refusé** (jeton de rafraîchissement invalide ou révoqué, utilisateur introuvable) :
-    - appel de `link_account` impossible ;
-    - si le compte n'existe plus (supprimé depuis un autre téléphone ou par une notification Apple `account-delete`) : même nettoyage local qu'une suppression (lien et session effacés, `DELETED_ON_THIS_DEVICE`, données conservées), retour à É1, variante « installation existante » ;
-    - si seule la session est invalide (`consent-revoked`) : retour à É1 avec le lien conservé, puis nouvelle connexion du même compte : R3.
-- **Tests Jest** : expiration hors ligne, erreur transitoire, compte supprimé ailleurs, session révoquée.
+  - **erreur transitoire** (réseau, délai, 5xx) : aucun changement, nouvel essai plus tard ; l'app reste ouverte ;
+  - **jeton refusé** : l'erreur ne distingue pas « compte supprimé » de « session révoquée ». La conclusion vient **uniquement** de `deletion-status` (cas **c** de « Reprise ») : `deleted` → nettoyage local ; `active`, `in_progress` ou `unknown` → `REAUTH_REQUIRED`, lien conservé.
+- **Tests Jest** : expiration hors ligne (l'app s'ouvre), erreur transitoire (aucun changement), compte supprimé ailleurs (`deleted`), session révoquée (`active` → É1 avant ouverture), état indéterminé (`unknown` → É1, lien conservé), reconnexion avec nouvel `auth_user_id` et même `provider_subject` (R5).
+- **Tests fonction `apple-notifications`** : signature ou `aud` invalides (400, aucun effet) ; **même événement rejoué** (`jti` identique) traité une fois ; **deux sujets, même type, même instant** traités séparément ; sujet inconnu ignoré ; `email-disabled` puis `email-enabled` (adresse affichée inchangée) ; `consent-revoked` (sessions fermées, jeton supprimé) ; `account-delete` (purge **sans** appel de révocation).
 - **Recette** : suppression sur le téléphone A, puis le téléphone B revient en ligne.
 
 ### CONFIGURATION ET RECETTE
@@ -431,6 +446,19 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 
 **Bouton :** « OK ».
 
+Ce message vaut pour **R4** (téléphone encore lié au compte X : fournisseur et e-mail disponibles). Il reste inchangé.
+
+#### É4-R5 — Refus d'un compte existant après suppression (alerte native, CPT-31) — **libellé en ARBITRAGE**
+
+Le lien local est vide : ni fournisseur ni e-mail ne peuvent être affichés.
+
+**Titre :** « Ce téléphone appartient à un autre compte » (repris de É4).
+
+**Message proposé** (ARBITRAGE de Hermann, libellé seulement) :
+> Pour conserver les données de ce téléphone, connectez-vous avec un compte neuf. Pour utiliser ce compte existant, supprimez puis réinstallez l'application. Cette opération efface les données de ce téléphone.
+
+**Bouton :** « OK ».
+
 ## STATUT
 
-**PLAN_READY_FOR_REVIEW** pour T1. Arbitrages A1 à A3 tranchés (CPT-29 à CPT-31). Prochaine barrière : contre-revue ChatGPT, puis `PLAN_APPROVED` (mode, écrivain, baseline).
+**PLAN_DRAFT (corrections F1 à F3 de la contre-revue du 25/11/2026)** : F2 et F3 corrigés ; F1 corrigé sur le fond, **libellé de É4-R5 en attente de l'ARBITRAGE de Hermann**. `PLAN_READY_FOR_REVIEW` sera publié une fois ce libellé validé.

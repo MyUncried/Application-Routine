@@ -55,7 +55,7 @@ Nous ne vendons pas vos données et ne les utilisons pas à des fins publicitair
 
 ## 4. Combien de temps conservons-nous vos données ?
 
-- **Données de votre compte :** tant que votre compte existe. Elles sont supprimées dès que vous supprimez votre compte.
+- **Données de votre compte :** tant que votre compte existe. Elles sont supprimées dès que vous supprimez votre compte. Un registre technique de la suppression (identifiant technique du compte, empreintes non réversibles, dates des étapes) est conservé **90 jours**, pour achever une suppression interrompue et la confirmer à vos autres téléphones, puis effacé.
 - **Données de votre téléphone :** elles restent sous votre seul contrôle. Elles disparaissent lorsque vous supprimez l'application.
 
 ## 5. Supprimer votre compte
