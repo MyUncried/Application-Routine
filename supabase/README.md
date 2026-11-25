@@ -19,6 +19,7 @@ Plan : `_bmad-output/compte/plan-lot-compte.md` (T1). Projet de développement :
 | `APPLE_SERVICES_ID` | `com.ankusha.kodjo.signin` |
 | `APPLE_NATIVE_CLIENT_IDS` | `com.ankusha.kodjo,com.ankusha.kodjo.dev,com.ankusha.kodjo.bmad,com.ankusha.kodjo.catalogue` |
 | `KODJO_TOKEN_KEY` | 32 octets aléatoires en base64 (chiffrement des jetons Apple) |
+| `KODJO_SWEEP_TOKEN` | jeton aléatoire exigé par la planification de `apple-notifications` (en-tête `Authorization: Bearer <jeton>`) |
 
 `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` sont fournis automatiquement par Supabase aux fonctions.
 
@@ -35,6 +36,6 @@ supabase functions deploy delete-account apple-token deletion-status apple-notif
 - Apple Developer → `com.ankusha.kodjo` → Sign In with Apple → Server-to-Server Notification Endpoint :
   `https://qiruzadtbqcdewvsaizo.supabase.co/functions/v1/apple-notifications`.
 - Planification (Integrations → Cron) toutes les 15 minutes : appel `POST` de `apple-notifications` avec le corps
-  `{"sweep": true}` et l'en-tête `Authorization: Bearer <clé de service>` (reprise des notifications restées `received`).
+  `{"sweep": true}` et l'en-tête `Authorization: Bearer <KODJO_SWEEP_TOKEN>` (reprise des notifications restées `received`). Ne pas utiliser la clé de service.
 - Extension `pg_cron` (facultative) : purge quotidienne des registres de plus de 90 jours.
 - Régénérer la clé secrète Apple (connexion web) avant son expiration (180 jours).

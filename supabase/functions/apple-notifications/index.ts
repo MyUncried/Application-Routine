@@ -1,5 +1,5 @@
 // KODJO — T1 : notifications serveur à serveur d'Apple (plan T1, F3).
-// POST {"payload": "<JWS>"} par Apple ; POST {"sweep": true} par la planification (clé de service exigée).
+// POST {"payload": "<JWS>"} par Apple ; POST {"sweep": true} par la planification (jeton `KODJO_SWEEP_TOKEN` exigé).
 import { APPLE_KEYS_URL, verifyAppleNotification } from "../_shared/apple.ts";
 import { processAppleEvent, type AppleEventPorts } from "../_shared/appleEvents.ts";
 import { runDeletion } from "../_shared/deletion.ts";
@@ -40,7 +40,8 @@ Deno.serve(async (request) => {
   }
 
   if (body.sweep === true) {
-    if (request.headers.get("Authorization") !== `Bearer ${env("SUPABASE_SERVICE_ROLE_KEY")}`) return json(401, { error: "forbidden" });
+    // Jeton dédié à la planification (secret `KODJO_SWEEP_TOKEN`), indépendant du système de clés Supabase.
+    if (request.headers.get("Authorization") !== `Bearer ${env("KODJO_SWEEP_TOKEN")}`) return json(401, { error: "forbidden" });
     const limit = new Date(Date.now() - 15 * 60 * 1000).toISOString();
     const { data, error } = await admin.from("apple_notification_events").select("iss, jti, sub, type")
       .eq("status", "received").lt("received_at", limit).limit(100);
