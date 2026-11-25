@@ -130,6 +130,12 @@ Incident de configuration résolu : « Supabase is not configured » au premier 
 - L'essai « connexion Internet nécessaire » reste **non expliqué** (hypothèse : coupure réseau passagère) ; le nouveau journal de l'app permettra de le qualifier s'il se reproduit.
 - Classe de synchronisation : A (comportement de suppression spécifié) ; aucune documentation fonctionnelle touchée.
 
+| Après redéploiement : retour à É1 | **PASS** | déclaration de Hermann |
+| Connexion Google après suppression d'un compte Apple (CPT-32, É4-R5) | **PASS** : refus avec le texte validé | captures de Hermann |
+| Fenêtre système iOS « RoutineDev souhaite utiliser « qiruzadtbqcdewvsaizo.supaba… » » avant la page Google | Constat ; **ARBITRAGE résolu : « ok pour A »** → CPT-34 (session privée sur iOS) | capture de Hermann |
+
+**CPT-34 — classe B (évolution validée)** : registre ch07 (CPT-34), ch12 §12.7 (session privée sur iOS), code `SupabaseAccountGateway.signInWithWeb` (`preferEphemeralSession: true`). Pas de test automatisé (passerelle native non testée en Jest) : la disparition de la fenêtre est à vérifier sur iPhone. Le succès d'une suppression ne montre aucun message (CE-CPT-03 : retour direct à É1) : conforme, un éventuel message de confirmation serait une nouvelle décision.
+
 ### 5.2 Reste à faire
 
 Pas encore réalisé :

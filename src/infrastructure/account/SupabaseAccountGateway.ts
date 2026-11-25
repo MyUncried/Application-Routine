@@ -109,7 +109,8 @@ export class SupabaseAccountGateway implements AccountGateway {
       options: { redirectTo, skipBrowserRedirect: true },
     });
     if (error || !data.url) throw error ?? new Error("OAuth URL is missing.");
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    // CPT-34 : session privée sur iOS, sans la fenêtre système « … souhaite utiliser … pour se connecter ».
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo, { preferEphemeralSession: true });
     if (result.type !== "success") return "cancelled";
     const callback = parseAuthCallback(result.url);
     if ("error" in callback) throw new Error(`OAuth callback error: ${callback.error}`);

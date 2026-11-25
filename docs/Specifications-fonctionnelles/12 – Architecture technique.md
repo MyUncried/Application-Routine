@@ -469,7 +469,7 @@ Sans compte ni sauvegarde distante, la suppression de l’application ou la pert
   - fonctions serveur `delete-account`, `deletion-status` (sans session, sur preuve), `apple-token` et `apple-notifications`.
 - **Application** :
   - migration locale 040 (`account_link`, `account_lifecycle`) ; `users.id` n'est jamais réécrit, et un compte peut être rattaché à plusieurs Utilisateurs locaux, un par téléphone ;
-  - `AccountService` (domaine) et passerelle `SupabaseAccountGateway` : Apple natif sur iOS ; Apple sur Android et Google partout par page web, en PKCE ;
+  - `AccountService` (domaine) et passerelle `SupabaseAccountGateway` : Apple natif sur iOS ; Apple sur Android et Google partout par page web, en PKCE ; sur iOS, page web en session privée (`preferEphemeralSession`, CPT-34) ;
   - porte d'entrée `AccountGate` devant la pile d'écrans ;
   - session persistée par `expo-sqlite/localStorage`.
 
