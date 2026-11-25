@@ -134,9 +134,12 @@ Incident de configuration résolu : « Supabase is not configured » au premier 
 | Connexion Google après suppression d'un compte Apple (CPT-32, É4-R5) | **PASS** : refus avec le texte validé | captures de Hermann |
 | Fenêtre système iOS « RoutineDev souhaite utiliser « qiruzadtbqcdewvsaizo.supaba… » » avant la page Google | Constat ; **ARBITRAGE résolu : « ok pour A »** → CPT-34 (session privée sur iOS) | capture de Hermann |
 
-**CPT-34 — classe B (évolution validée)** : registre ch07 (CPT-34), ch12 §12.7 (session privée sur iOS), code `SupabaseAccountGateway.signInWithWeb` (`preferEphemeralSession: true`). Pas de test automatisé (passerelle native non testée en Jest) : la disparition de la fenêtre est à vérifier sur iPhone. Le succès d'une suppression ne montre aucun message (CE-CPT-03 : retour direct à É1) : conforme, un éventuel message de confirmation serait une nouvelle décision.
+**CPT-34 — classe B (évolution validée)** : registre ch07 (CPT-34), ch12 §12.7 (session privée sur iOS), code `SupabaseAccountGateway.signInWithWeb` (`preferEphemeralSession: true`). Pas de test automatisé (passerelle native non testée en Jest) ; vérifié sur iPhone le 25/11 : page Google ouverte sans la fenêtre système, puis refus CPT-32 (confirmation de Hermann). Le succès d'une suppression ne montre aucun message (CE-CPT-03 : retour direct à É1) : conforme, un éventuel message de confirmation serait une nouvelle décision.
 
 ### 5.2 Reste à faire
+
+Cahier de recette de suivi : `_bmad-output/compte/recette-T1.md` (identifiants A-01 à G-01, statuts et preuves).
+
 
 Pas encore réalisé :
 - **Déploiement du serveur par Hermann** (`supabase/README.md`) : `db push`, déploiement des fonctions, secrets, planification de la reprise et adresse des notifications Apple.
