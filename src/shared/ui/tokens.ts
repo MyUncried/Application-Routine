@@ -245,6 +245,9 @@ export const colors = {
   catalogueMovementsBackground: "#F1F7FF",
   catalogueSessionsContext: "#EAEAFF",
   catalogueSessionsBackground: "#F7F7FF",
+  // D-600 (25/11/2026) : case « +N » de la mosaïque de la carte de séance (Figma `13169:28168` / `13169:28169`).
+  sessionMosaicCounterSurface: "#E3E6F2",
+  sessionMosaicCounterText: "#404573",
   catalogueProgramsContext: "#EFE8FF",
   catalogueProgramsBackground: "#F9F6FF",
   // D-509 : bandeau de contexte des écrans hors catalogue (Composition, fiche Mouvement…) — #EAEAFF prévu par le

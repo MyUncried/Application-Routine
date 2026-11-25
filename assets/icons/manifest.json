@@ -989,6 +989,20 @@
       "runtime": "Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"
     },
     {
+      "key": "catalogue.sessionCard.movements",
+      "file": "icon-carte-seance-haltere",
+      "figmaNodeId": "13178:28139",
+      "figmaName": "Icône — Exercices — haltère",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "13168:28159",
+      "width": 12,
+      "height": 16,
+      "usage": [
+        "Carte de séance du catalogue — ligne 3, noms des mouvements (D-601, 25/11/2026)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context of 13168:28159 on 2026-11-25; preserveAspectRatio/overflow/style root attributes removed"
+    },
+    {
       "key": "catalogue.session.duration",
       "file": "icon-catalogue-sablier",
       "figmaNodeId": "6214:3556",
