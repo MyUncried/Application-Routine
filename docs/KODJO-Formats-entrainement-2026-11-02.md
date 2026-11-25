@@ -579,6 +579,32 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 - **Modale « Paramètres d'exécution Tabata »** (ouverte en touchant un mouvement du questionnaire, ou depuis la Composition) : seuls **Charge** et **De chaque côté** sont présentés. Mode, Condition d'arrêt, Phases du mouvement, Séries, Objectif de durée, Pause, Cadence, Durée de l'exercice et Récupération n'y figurent plus ; le nombre de séries, la durée de travail, la pause et la récupération se règlent sur l'écran principal du format. Les exercices du Tabata gardent Durée, À l'objectif, sans phases et sans cadence.
 - [Précisé le 25/11/2026 (D-568) : la règle « Règles des Exercices standards » du § 9 n'ouvre plus, dans cette modale, la modification individuelle de Mode, Phases, Séries, Objectif, Pause, Cadence, Durée de l'exercice et Récupération pour un exercice du Tabata.]
 - Figma : « Tabata — Modale exercice, standard » et « Tabata — Modale exercice, en alternance » (modale allégée). L'intégration de la modale sera revue ultérieurement.
+- [Précisé le 25/11/2026 (D-569) : règle générale au § 9.7 ; elle remplace la liste fermée « Charge et De chaque côté » pour les formats autres que les départs rapides.]
+
+### 9.7 Modale d'un exercice de la séance : les champs utiles dans le contexte (25/11/2026, D-569)
+
+**Règle.** La modale « Paramètres d'exécution » d'un exercice déjà dans la séance n'affiche que les champs dont l'utilisateur a besoin dans son contexte. Un champ déjà réglé par le questionnaire, le récapitulatif ou le circuit du format n'y figure pas ; pour le changer, on rouvre le circuit sur l'écran principal du format (§ 7.9).
+
+| Contexte de l'exercice | Champs affichés |
+|---|---|
+| Tabata, 30/30, Renforcement, Progression, À l'échec, Superset | Charge, De chaque côté |
+| EMOM (standard, en alternance) | Mode, Condition d'arrêt, Nombre de répétitions, Intervalle, Charge, De chaque côté |
+| EMOM dans chaque intervalle | Mode, Condition d'arrêt, Nombre de répétitions, Charge, De chaque côté |
+| AMRAP | Mode, Condition d'arrêt, Rôle (en circuit), Nombre de répétitions, Incrément par tour, Charge, De chaque côté |
+| Death by (standard) | Mode, Condition d'arrêt, Nombre de répétitions, Incrément par intervalle, Intervalle, Charge, De chaque côté |
+| Death by dans chaque intervalle | Les mêmes, sans Intervalle |
+| For time | Mode, Condition d'arrêt, Rôle (en circuit), Séries (tableau des répétitions et pauses), Charge, De chaque côté ; en buy-in ou buy-out : Nombre de répétitions à la place de Séries |
+| Exercice libre | Tous les champs d'un exercice libre |
+
+Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée de l'exercice (ou durée maximum), Récupération, Pause.
+
+**Sortie et entrée d'un format.**
+- Un exercice déplacé hors du format prend les champs d'un exercice libre, avec les valeurs par défaut d'un exercice libre ; aucune valeur du bloc d'origine n'est reprise.
+- Un exercice libre qui entre dans un format présente les champs du format ; ses autres valeurs sont conservées, masquées et inactives, et réapparaissent s'il sort du format.
+
+**Séquence d'ouverture.** Étendue au Tabata, 30/30, Renforcement, Progression, À l'échec et Superset : à la première ouverture du format, l'écran de choix des mouvements s'affiche en premier, sans nouvel écran. Le lien du haut de cet écran s'intitule **« Paramètres »**.
+
+Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternance, dans chaque intervalle), AMRAP (dans un circuit, buy-in, simple à l'échec, durée à l'échec), Death by (standard, dans chaque intervalle) et For time (standard, dans un circuit, buy-in ou buy-out) allégées, hauteur de feuille adaptée. Renforcement, Progression, À l'échec et Superset n'ont pas de modale dédiée dans le prototype : la règle s'y applique par la documentation. « Conception — Hors MVP » non touché.
 
 ## 10. Application de la règle à l'EMOM
 

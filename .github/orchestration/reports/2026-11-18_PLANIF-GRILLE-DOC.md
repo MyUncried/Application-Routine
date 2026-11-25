@@ -201,8 +201,17 @@
 ## Complément 25/11/2026 (suite) — Tabata : séquence d'ouverture et modale allégée (D-568, classe B)
 - Décision explicite de Hermann (25/11/2026, captures iPhone) : à l'ouverture du format Tabata, l'écran de choix des mouvements apparaît en premier (changement de séquence, aucun nouvel écran) ; la modale « Paramètres d'exécution » d'un exercice du Tabata ne garde que Charge et De chaque côté ; son intégration sera revue ultérieurement.
 - Figma : « Tabata — Modale exercice, standard » et « en alternance » : modale allégée à deux lignes, hauteur de feuille adaptée. Écrans « Conception — Hors MVP » non touchés.
-- Documents : registre ch07 D-568 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.6 ; prompt `docs/PROMPT-CLAUDE-CODE-TABATA-SEQUENCE-PARAMETRES-2026-11-25.md`.
+- Documents : registre ch07 D-568 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.6 ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md (renommé et généralisé, voir complément suivant)`.
 - Non traité : autres formats (séquence et modale) ; libellé du lien du haut de l'écran de choix des mouvements (« Revenir aux paramètres » ne convient plus à la première ouverture).
 - Vérification sur iPhone à faire : ouverture du Tabata sur le choix des mouvements, modale à deux lignes.
 - Tests : non applicables.
 
+## Complément 25/11/2026 (suite 2) — Modale d'exercice selon le contexte, tous formats (D-569, classe B)
+- Décision explicite de Hermann (25/11/2026) : la modale d'un exercice déjà dans la séance n'affiche que les champs utiles dans son contexte ; un exercice déplacé hors du circuit prend les champs d'un exercice libre ; déploiement aux autres formats ; lien du haut « Paramètres » ; sens inverse (exercice libre entrant dans un format : valeurs conservées, masquées) validé ; liste des champs par format validée (« ok »).
+- Figma : 13 écrans allégés (30/30 ; EMOM standard, en alternance, dans chaque intervalle ; AMRAP circuit, buy-in, simple à l'échec, durée à l'échec ; Death by standard et dans chaque intervalle ; For time standard, circuit, buy-in ou buy-out), hauteur de feuille adaptée, contrôle par captures (30/30, EMOM standard, For time circuit). « Conception — Hors MVP » non touché. Libellé « Revenir aux paramètres » : absent de Figma, aucune modification.
+- Écart à la liste annoncée : For time conserve la ligne Séries, car son tableau porte les répétitions et pauses (sans elle, la cible de répétitions n'est plus réglable) ; Pause, durée maximum et Récupération retirées.
+- Interprétation retenue : l'extension de la séquence d'ouverture porte sur les six formats à départ rapide (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset).
+- Documents : registre ch07 D-569 (D-568 précisé) ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.7 (§ 9.6 annoté) ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md`.
+- Non traité : modales dédiées de Renforcement, Progression, À l'échec, Superset (inexistantes dans le prototype ; règle documentée) ; modales de composition (création, modification), non validées ; intégration de la modale à revoir ultérieurement.
+- Vérification sur iPhone à faire : première ouverture sur le choix des mouvements, lien « Paramètres », champs de chaque modale, sortie et retour d'un exercice hors du format.
+- Tests : non applicables.
