@@ -597,6 +597,44 @@ describe("format 3.0.0 — diffusion et publication", () => {
   });
 });
 
+describe("marquage des photos — vue retenue (D-600)", () => {
+  const withView = (view: unknown, extra: object = {}) => catalogue([{ ...handWrittenSheet(), media: [{ ...photo, ...extra, view }] } as never]);
+
+  it("vue absente ou nulle : image retenue entière, fichier valide", () => {
+    expect(parseMovementCatalogueFile(withView(undefined)).ok).toBe(true);
+    expect(parseMovementCatalogueFile(withView(null)).ok).toBe(true);
+  });
+
+  it("vue valide en pourcentage, conservée par la lecture et l'aller-retour", () => {
+    const view = { x: 50.5, y: 0, width: 49.5, height: 100 };
+    const result = parseMovementCatalogueFile(withView(view));
+    expect(result.ok && result.file.sheets[0]!.media[0]!.view).toEqual(view);
+    if (!result.ok) return;
+    const again = parseMovementCatalogueFile(JSON.parse(serializeMovementCatalogueFile(result.file)));
+    expect(again.ok && again.file.sheets[0]!.media[0]!.view).toEqual(view);
+  });
+
+  it.each([
+    ["largeur nulle", { x: 0, y: 0, width: 0, height: 50 }],
+    ["hors de l'image", { x: 60, y: 0, width: 50, height: 100 }],
+    ["négatif", { x: -1, y: 0, width: 10, height: 10 }],
+    ["non numérique", { x: "0", y: 0, width: 10, height: 10 }],
+    ["incomplet", { x: 0, y: 0, width: 10 }],
+  ])("vue refusée : %s", (_label, view) => {
+    expect(codes(withView(view))).toEqual(["sheets[0].media[0]:INVALID"]);
+  });
+
+  it("vue réservée aux photos", () => {
+    expect(codes(withView({ x: 0, y: 0, width: 50, height: 50 }, { kind: "VIDEO" }))).toEqual(["sheets[0].media[0]:INVALID"]);
+  });
+
+  it("changer la vue change l'empreinte de la fiche (la mise à jour atteint le téléphone)", () => {
+    const a = parseMovementCatalogueFile(withView({ x: 0, y: 0, width: 50, height: 100 }));
+    const b = parseMovementCatalogueFile(withView({ x: 50, y: 0, width: 50, height: 100 }));
+    expect(a.ok && b.ok && sheetFingerprint(a.file.sheets[0]!) !== sheetFingerprint(b.file.sheets[0]!)).toBe(true);
+  });
+});
+
 describe("empreinte de fiche éditoriale complète", () => {
   const base = sheetFingerprint(handWrittenSheet() as CatalogueSheet);
   const variant = (change: (sheet: Mutable<CatalogueSheet>) => void) => {

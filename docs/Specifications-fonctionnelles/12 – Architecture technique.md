@@ -642,6 +642,8 @@ La suppression ou la modification ultérieure d’un média ne doit pas comprome
 
 Une évolution future pourra permettre le stockage ou la synchronisation des médias dans un service distant.
 
+**Vue retenue d’une photo (marquage des photos, D-600, 25/11/2026).** Le rectangle de la vue retenue (x, y, largeur, hauteur, en pourcentage de l’image) est une donnée de l’asset : champ facultatif `media[].view` du format de catalogue, colonnes nullables `media_assets.view_x`, `view_y`, `view_width`, `view_height` (`migration040`, version 40 ; contraintes 0–100), `MediaAsset.view` (absente : image entière). Il est proposé à la publication par l’administration Web (détection des bandes blanches entre les vues, règle de choix) et vérifié par la personne qui publie ; l’application ne détecte ni ne calcule rien. Un asset persisté restant immuable (`ensureMediaAssets`), l’identité d’une photo de catalogue (`catalogue-<empreinte>`) inclut la vue quand elle existe : une vue corrigée crée un nouvel asset et atteint le téléphone par la mise à jour de la fiche ; sans vue, l’identité est inchangée.
+
 ## 12.15 Instantanés et historique
 
 Au démarrage effectif d’une Exécution, `HistoryService` conserve l’Instantané fonctionnel défini au chapitre 09.
@@ -1195,6 +1197,8 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.catalogueMovementsBackground` | `#F1F7FF` | D-501 : fond d'écran, barre d'état, en-tête fixe et fondu de navigation du catalogue des mouvements (`color/catalogue/mouvements/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F1F7FF, remplace #F7FAFF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogueSessionsContext` | `#EAEAFF` | D-501 : zone de contexte et onglet sélectionné du catalogue des séances (`color/catalogue/seances/context`) |
 | `color.catalogueSessionsBackground` | `#F7F7FF` | D-501 : fond du catalogue des séances ; fond de la pilule Démarrer de la carte Séance (D-506) (`color/catalogue/seances/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F7F7FF, remplace #F8F8FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
+| `color.sessionMosaicCounterSurface` | `#E3E6F2` | D-600 (25/11/2026) : fond de la case « +N » de la mosaïque de la carte de séance (Figma `13169:28168`). |
+| `color.sessionMosaicCounterText` | `#404573` | D-600 (25/11/2026) : texte « +N » de la mosaïque, Inter Semi Bold 14 (Figma `13169:28169`). |
 | `color.catalogueProgramsContext` | `#EFE8FF` | D-501 : zone de contexte du catalogue des programmes — jeton prêt, aucun écran [20/11/2026 : écrans Figma du catalogue et de la modale des programmes — D-544, D-548] (`color/catalogue/programmes/context`) |
 | `color.catalogueProgramsBackground` | `#F9F6FF` | D-501 : fond du catalogue des programmes — jeton prêt, aucun écran [20/11/2026 : écrans Figma du catalogue et de la modale des programmes — D-544, D-548] (`color/catalogue/programmes/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F9F6FF, remplace #FAF8FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.agendaStartFrame` | `#E0E4F5` | D-599 : cadre de l’Agenda, à démarrer (bleu) ; bande = cadre à 18 % |

@@ -192,7 +192,7 @@ async function flush() {
 
 describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste, ouvrable sans erreur", () => {
   it(
-    "la carte affiche « 0 exercice » et « 0″ » (PRE-8 E.2 : carte unique, durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
+    "la carte affiche « 0″ · Libre », sans mouvement (D-601 ; durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
     async () => {
       const router = renderRouter(
         {
@@ -209,10 +209,11 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       );
       await flush();
 
-      // AC6 : la Séance figure dans la liste (Q32) ; PRE-8 (E.2, Q-E6) : synthèse « 0 exercice »,
-      // durée de séance au format D-443.
+      // AC6 : la Séance figure dans la liste (Q32) ; D-601 (25/11/2026) : ligne 2 durée · « Libre », ligne 3 vide.
+      // [PRE-8 (E.2, Q-E6) : synthèse « 0 exercice » — retirée de la carte.]
       expect(await screen.findByText("Séance b")).toBeTruthy();
-      expect(screen.getByTestId("session-card-session-b-summary")).toHaveTextContent("0 exercice");
+      expect(screen.getByTestId("session-card-session-b-formats")).toHaveTextContent("Libre");
+      expect(screen.getByTestId("session-card-session-b-movements-label")).toHaveTextContent("");
       expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0″");
 
       // AC7 : l'écran existant s'ouvre sur la Séance, sans Exercice et sans erreur.
@@ -242,7 +243,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       await flush();
       expect(router.getPathname()).toBe("/");
       expect(await screen.findByText("Séance b")).toBeTruthy();
-      expect(screen.getByTestId("session-card-session-b-summary")).toHaveTextContent("0 exercice");
+      expect(screen.getByTestId("session-card-session-b-formats")).toHaveTextContent("Libre");
     },
     20000,
   );

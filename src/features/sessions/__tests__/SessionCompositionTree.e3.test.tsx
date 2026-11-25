@@ -154,137 +154,57 @@ describe("PRE-8 E.3 — arbre rendu", () => {
   });
 });
 
-describe("PRE-8 E.3 — déploiement dans la liste", () => {
+/**
+ * D-602 (Hermann, 25/11/2026 ; DSF Carte de séance § 4) : plus de synthèse dépliée dans la liste — toucher la carte (hors
+ * Démarrer) ouvre la composition de la séance ; Démarrer garde sa cible propre. [PRE-8 E.3 et D-504 : chevron et zone
+ * centrale déploient la composition, animations de déploiement — remplacés le 25/11/2026 ; l'arbre ci-dessus reste le
+ * contenu de la variante Déployée conservée.]
+ */
+describe("D-602 — toucher la carte ouvre la composition", () => {
   const renderList = (onOpen = jest.fn()) => {
     render(withService(<SessionCatalogueList sessions={[knee(), projection("seul", [{ kind: "EXERCISE", exercise: exercise("Pompes") }])]} emptyMessage={null} onOpenSession={onOpen} />));
     return onOpen;
   };
 
-  it("replié par défaut ; le chevron déploie et replie, sans ouvrir la Séance", () => {
-    const onOpen = renderList();
-    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
-    fireEvent.press(screen.getByTestId("session-card-genou-disclosure"));
-    expect(screen.getByTestId("session-card-genou-composition")).toBeTruthy();
-    expect(screen.getByTestId("session-card-genou-disclosure").props.accessibilityState).toEqual({ expanded: true });
-    fireEvent.press(screen.getByTestId("session-card-genou-disclosure"));
-    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
-    expect(onOpen).not.toHaveBeenCalled();
-  });
-
-  // [« une Séance d'un seul exercice n'a rien à déployer » — remplacé le 03/11/2026] Recette iPhone
-  // n° 3 du 03/11/2026 (autres constats, Hermann : « toutes les séances, même celles avec un seul
-  // exercice doivent avoir un chevron et une vue déployée. »).
-  it("une Séance d'un seul exercice a aussi un chevron et une vue déployée", () => {
-    const onOpen = renderList();
-    expect(screen.getByTestId("session-card-seul-disclosure").props.accessibilityState).toEqual({ expanded: false });
-    const actions = screen.getByTestId("session-card-seul-swipe-card").props.accessibilityActions as { name: string }[];
-    expect(actions.map((action) => action.name)).toContain("toggleComposition");
-    fireEvent.press(screen.getByTestId("session-card-seul-disclosure"));
-    expect(screen.getByTestId("session-card-seul-composition")).toBeTruthy();
-    expect(onOpen).not.toHaveBeenCalled();
-  });
-
-  it("VoiceOver : action nommée de déploiement, état annoncé, composition ajoutée au nom", () => {
+  it("aucun chevron ni composition déployée dans la liste", () => {
     renderList();
-    const card = screen.getByTestId("session-card-genou-swipe-card");
-    expect(card.props.accessibilityState).toEqual({ expanded: false });
-    expect(card.props.accessibilityActions).toContainEqual({ name: "toggleComposition", label: "Afficher la composition de Séance genou" });
-    fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "toggleComposition" } });
-    const expandedCard = screen.getByTestId("session-card-genou-swipe-card");
-    expect(expandedCard.props.accessibilityState).toEqual({ expanded: true });
-    expect(expandedCard.props.accessibilityLabel).toContain("Composition de la séance : Mobilisation du genou 45 secondes");
+    expect(screen.queryByTestId("session-card-genou-disclosure")).toBeNull();
+    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
+    expect(screen.queryByTestId("session-card-genou-expanded-open")).toBeNull();
   });
 
-  // [« toucher la carte ouvre la Séance ; le chevron n'ouvre rien » — remplacé le 03/11/2026] Recette
-  // iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « l'appui sur la photo ou l'appui sur la
-  // zone déployée ouvre la séance en modification, l'appui sur le reste de la carte (dont le chevron)
-  // déploie la séance. »).
-  it("toucher le reste de la carte déploie et replie, sans ouvrir la Séance", () => {
+  it("toucher la carte ou le visuel ouvre la Séance", () => {
     const onOpen = renderList();
     fireEvent.press(screen.getByTestId("session-card-seul-swipe-card"));
-    expect(screen.getByTestId("session-card-seul-composition")).toBeTruthy();
-    expect(screen.getByTestId("session-card-seul-swipe-card").props.accessibilityState).toEqual({ expanded: true });
-    fireEvent.press(screen.getByTestId("session-card-seul-swipe-card"));
-    expect(screen.queryByTestId("session-card-seul-composition")).toBeNull();
-    expect(onOpen).not.toHaveBeenCalled();
-  });
-
-  it("toucher le visuel ou la zone déployée ouvre la Séance", () => {
-    const onOpen = renderList();
-    fireEvent.press(screen.getByTestId("session-card-seul-visual-open"));
-    expect(onOpen).toHaveBeenCalledWith("seul");
-    fireEvent.press(screen.getByTestId("session-card-genou-disclosure"));
-    fireEvent.press(screen.getByTestId("session-card-genou-expanded-open"));
+    expect(onOpen).toHaveBeenLastCalledWith("seul");
+    fireEvent.press(screen.getByTestId("session-card-genou-visual-open"));
     expect(onOpen).toHaveBeenLastCalledWith("genou");
     expect(onOpen).toHaveBeenCalledTimes(2);
   });
 
-  it("VoiceOver : l'ouverture est une action nommée « Modifier la séance »", () => {
+  it("Démarrer n'ouvre pas la Séance", () => {
     const onOpen = renderList();
-    const card = screen.getByTestId("session-card-seul-swipe-card");
-    expect(card.props.accessibilityActions).toContainEqual({ name: "openSession", label: "Modifier la séance" });
-    fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "openSession" } });
-    expect(onOpen).toHaveBeenCalledWith("seul");
-  });
-});
-
-describe("PRE-8 E.3 — animations", () => {
-  const { act } = jest.requireActual<typeof import("@testing-library/react-native")>("@testing-library/react-native");
-  const { AccessibilityInfo } = jest.requireActual<typeof import("react-native")>("react-native");
-
-  const reveal = async (reduce: boolean) => {
-    const spy = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(reduce);
-    render(withService(<SessionCatalogueList sessions={[knee()]} emptyMessage={null} onOpenSession={() => undefined} />));
-    await act(async () => {
-      await Promise.resolve();
-    });
-    fireEvent.press(screen.getByTestId("session-card-genou-disclosure"));
-    const frame = screen.getByTestId("session-card-genou-composition");
-    spy.mockRestore();
-    return frame;
-  };
-
-  it("déploiement révélé par l'animation commune de mise en page", async () => {
-    expect((await reveal(false)).props.entering).toBeDefined();
-  });
-
-  it("« Réduire les animations » : aucune animation", async () => {
-    expect((await reveal(true)).props.entering).toBeUndefined();
-  });
-});
-
-/**
- * D-504 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §5) : « le chevron et toute la
- * zone centrale de la carte déploient/replient la séance » ; Démarrer garde sa cible propre (aucune
- * Exécution livrée : indisponible) ; cibles distinctes.
- */
-describe("D-504 — zone centrale et Démarrer dans la liste", () => {
-  const renderOne = (onOpen = jest.fn()) => {
-    render(withService(<SessionCatalogueList sessions={[knee()]} emptyMessage={null} onOpenSession={onOpen} />));
-    return onOpen;
-  };
-
-  it("toucher le nom, les catégories ou la ligne 3 déploie puis replie, sans ouvrir la Séance", () => {
-    const onOpen = renderOne();
-    fireEvent.press(screen.getByTestId("session-card-genou-name"));
-    expect(screen.getByTestId("session-card-genou-composition")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("session-card-genou-summary"));
-    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
-    fireEvent.press(screen.getByTestId("session-card-genou-duration"));
-    expect(screen.getByTestId("session-card-genou-composition")).toBeTruthy();
-    expect(onOpen).not.toHaveBeenCalled();
-  });
-
-  it("Démarrer ne déploie ni n'ouvre la Séance", () => {
-    const onOpen = renderOne();
     fireEvent.press(screen.getByTestId("session-card-genou-start"));
-    expect(screen.queryByTestId("session-card-genou-composition")).toBeNull();
     expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it("ligne 3 et accessibilité : « 1 circuit · 4 exercices » (un circuit de 3 tours dans un Cycle)", () => {
-    renderOne();
-    expect(screen.getByTestId("session-card-genou-summary")).toHaveTextContent("1 circuit · 4 exercices");
-    expect(screen.getByTestId("session-card-genou-swipe-card").props.accessibilityLabel).toContain("1 circuit · 4 exercices");
+  it("VoiceOver : activer la carte ouvre la Séance ; aucune action de déploiement", () => {
+    const onOpen = renderList();
+    const card = screen.getByTestId("session-card-genou-swipe-card");
+    const actions = (card.props.accessibilityActions ?? []) as { name: string }[];
+    expect(actions.map((action) => action.name)).not.toContain("toggleComposition");
+    expect(card.props.accessibilityHint).toBe("Modifier la séance");
+    // Activation VoiceOver = toucher de la carte (Pressable) : même chemin que le test précédent.
+    fireEvent.press(card);
+    expect(onOpen).toHaveBeenCalledWith("genou");
+  });
+
+  it("nom accessible : nom, durée, formats (« Libre »), mouvements", () => {
+    renderList();
+    const label = screen.getByTestId("session-card-genou-swipe-card").props.accessibilityLabel as string;
+    expect(label).toContain("Séance genou");
+    expect(label).toContain("Libre");
+    expect(label).toContain("Mobilisation du genou, Squat assisté, Extension de jambe");
+    expect(label).not.toContain("1 circuit · 4 exercices");
   });
 });

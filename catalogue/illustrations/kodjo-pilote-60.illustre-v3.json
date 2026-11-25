@@ -4,7 +4,7 @@
   "catalogue": {
     "id": "kodjo.pilote-60",
     "title": "Catalogue pilote KODJO — 60 fiches de test",
-    "revision": "67",
+    "revision": "68",
     "owner": null,
     "notes": [
       "Conversion initiale (CA-2) du 2026-11-10 ; ce fichier fait désormais foi et s'édite directement.",
@@ -655,7 +655,7 @@
   "sheets": [
     {
       "sheetId": "REED-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -686,6 +686,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -751,7 +757,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -763,7 +775,7 @@
     },
     {
       "sheetId": "REED-002",
-      "revision": "8",
+      "revision": "9",
       "history": [
         {
           "revision": "1",
@@ -812,6 +824,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration et contenu publiés : révision prolongeant la révision 7 du téléphone de recette"
+        },
+        {
+          "revision": "9",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -879,7 +897,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -891,7 +915,7 @@
     },
     {
       "sheetId": "REED-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -922,6 +946,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -984,7 +1014,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -996,7 +1032,7 @@
     },
     {
       "sheetId": "REED-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1027,6 +1063,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1092,7 +1134,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.41,
+            "y": 0,
+            "width": 49.59,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -1104,7 +1152,7 @@
     },
     {
       "sheetId": "REED-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1135,6 +1183,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1198,7 +1252,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 0,
+            "y": 56.33,
+            "width": 100,
+            "height": 43.67
+          }
         }
       ],
       "phases": [],
@@ -1210,7 +1270,7 @@
     },
     {
       "sheetId": "REED-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1241,6 +1301,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1304,7 +1370,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -1316,7 +1388,7 @@
     },
     {
       "sheetId": "REED-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1347,6 +1419,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1411,7 +1489,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 0,
+            "y": 46.1,
+            "width": 100,
+            "height": 53.9
+          }
         }
       ],
       "phases": [],
@@ -1423,7 +1507,7 @@
     },
     {
       "sheetId": "REED-008",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -1460,6 +1544,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1525,7 +1615,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -1537,7 +1633,7 @@
     },
     {
       "sheetId": "REED-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1568,6 +1664,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1634,7 +1736,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0.1,
+            "width": 49.75,
+            "height": 99.9
+          }
         }
       ],
       "phases": [],
@@ -1646,7 +1754,7 @@
     },
     {
       "sheetId": "REED-010",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -1689,6 +1797,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1754,7 +1868,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -1766,7 +1886,7 @@
     },
     {
       "sheetId": "FIT-CRO-001",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -1809,6 +1929,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1876,7 +2002,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.33,
+            "y": 0,
+            "width": 49.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -1888,7 +2020,7 @@
     },
     {
       "sheetId": "FIT-CRO-002",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -1925,6 +2057,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1992,7 +2130,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0.1,
+            "width": 49.75,
+            "height": 99.9
+          }
         }
       ],
       "phases": [],
@@ -2004,7 +2148,7 @@
     },
     {
       "sheetId": "FIT-CRO-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2035,6 +2179,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2102,7 +2252,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 8.51,
+            "width": 49.75,
+            "height": 91.49
+          }
         }
       ],
       "phases": [],
@@ -2114,7 +2270,7 @@
     },
     {
       "sheetId": "FIT-CRO-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2145,6 +2301,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2208,7 +2370,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -2220,7 +2388,7 @@
     },
     {
       "sheetId": "FIT-CRO-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2251,6 +2419,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2316,7 +2490,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 33.25,
+            "y": 0,
+            "width": 33.58,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -2328,7 +2508,7 @@
     },
     {
       "sheetId": "FIT-CRO-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2359,6 +2539,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2428,7 +2614,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 33.17,
+            "y": 0,
+            "width": 33.5,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -2440,7 +2632,7 @@
     },
     {
       "sheetId": "FIT-CRO-007",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -2477,6 +2669,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2541,7 +2739,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 26.12,
+            "y": 9.32,
+            "width": 45.27,
+            "height": 90.58
+          }
         }
       ],
       "phases": [],
@@ -2553,7 +2757,7 @@
     },
     {
       "sheetId": "FIT-CRO-008",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -2590,6 +2794,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2656,7 +2866,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 9.73,
+            "width": 49.75,
+            "height": 90.17
+          }
         }
       ],
       "phases": [],
@@ -2668,7 +2884,7 @@
     },
     {
       "sheetId": "FIT-CRO-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2699,6 +2915,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2766,7 +2988,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -2778,7 +3006,7 @@
     },
     {
       "sheetId": "FIT-CRO-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2809,6 +3037,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2873,7 +3107,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.33,
+            "y": 0,
+            "width": 49.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -2885,7 +3125,7 @@
     },
     {
       "sheetId": "FIT-HYR-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2916,6 +3156,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2981,7 +3227,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -2993,7 +3245,7 @@
     },
     {
       "sheetId": "FIT-HYR-002",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3024,6 +3276,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3092,7 +3350,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3104,7 +3368,7 @@
     },
     {
       "sheetId": "FIT-HYR-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3135,6 +3399,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3199,7 +3469,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3211,7 +3487,7 @@
     },
     {
       "sheetId": "FIT-HYR-004",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -3248,6 +3524,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3315,7 +3597,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 7.7,
+            "width": 49.75,
+            "height": 92.3
+          }
         }
       ],
       "phases": [],
@@ -3327,7 +3615,7 @@
     },
     {
       "sheetId": "FIT-HYR-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3358,6 +3646,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3423,7 +3717,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.33,
+            "y": 0,
+            "width": 49.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3435,7 +3735,7 @@
     },
     {
       "sheetId": "FIT-HYR-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3466,6 +3766,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3531,7 +3837,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3543,7 +3855,7 @@
     },
     {
       "sheetId": "FIT-HYR-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3574,6 +3886,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3643,7 +3961,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.33,
+            "y": 0,
+            "width": 49.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3655,7 +3979,7 @@
     },
     {
       "sheetId": "FIT-HYR-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3686,6 +4010,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3755,7 +4085,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 32.67,
+            "y": 0,
+            "width": 33.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3874,7 +4210,7 @@
     },
     {
       "sheetId": "FIT-HYR-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3905,6 +4241,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3972,7 +4314,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -3984,7 +4332,7 @@
     },
     {
       "sheetId": "FIT-PIL-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4015,6 +4363,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4081,7 +4435,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4093,7 +4453,7 @@
     },
     {
       "sheetId": "FIT-PIL-002",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4124,6 +4484,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4190,7 +4556,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 33,
+            "y": 0,
+            "width": 34.08,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4202,7 +4574,7 @@
     },
     {
       "sheetId": "FIT-PIL-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4233,6 +4605,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4297,7 +4675,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4309,7 +4693,7 @@
     },
     {
       "sheetId": "FIT-PIL-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4340,6 +4724,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4406,7 +4796,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4418,7 +4814,7 @@
     },
     {
       "sheetId": "FIT-PIL-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4449,6 +4845,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4515,7 +4917,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4527,7 +4935,7 @@
     },
     {
       "sheetId": "FIT-PIL-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4558,6 +4966,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4624,7 +5038,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 0,
+            "y": 49.95,
+            "width": 99.92,
+            "height": 50.05
+          }
         }
       ],
       "phases": [],
@@ -4636,7 +5056,7 @@
     },
     {
       "sheetId": "FIT-PIL-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4667,6 +5087,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4732,7 +5158,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4744,7 +5176,7 @@
     },
     {
       "sheetId": "FIT-PIL-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4775,6 +5207,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4841,7 +5279,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 66.92,
+            "y": 0,
+            "width": 33.08,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4853,7 +5297,7 @@
     },
     {
       "sheetId": "FIT-PIL-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4884,6 +5328,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4950,7 +5400,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -4962,7 +5418,7 @@
     },
     {
       "sheetId": "FIT-PIL-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4993,6 +5449,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5059,7 +5521,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5071,7 +5539,7 @@
     },
     {
       "sheetId": "FIT-YOG-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5102,6 +5570,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5166,7 +5640,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5178,7 +5658,7 @@
     },
     {
       "sheetId": "FIT-YOG-002",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -5221,6 +5701,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5286,7 +5772,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5298,7 +5790,7 @@
     },
     {
       "sheetId": "FIT-YOG-003",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -5341,6 +5833,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5405,7 +5903,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5417,7 +5921,7 @@
     },
     {
       "sheetId": "FIT-YOG-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5448,6 +5952,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5513,7 +6023,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5525,7 +6041,7 @@
     },
     {
       "sheetId": "FIT-YOG-005",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -5562,6 +6078,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5627,7 +6149,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.33,
+            "y": 9.73,
+            "width": 49.67,
+            "height": 90.17
+          }
         }
       ],
       "phases": [],
@@ -5639,7 +6167,7 @@
     },
     {
       "sheetId": "FIT-YOG-006",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -5682,6 +6210,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5746,7 +6280,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5758,7 +6298,7 @@
     },
     {
       "sheetId": "FIT-YOG-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5789,6 +6329,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5854,7 +6400,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.17,
+            "y": 0,
+            "width": 49.83,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5866,7 +6418,7 @@
     },
     {
       "sheetId": "FIT-YOG-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5897,6 +6449,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5963,7 +6521,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.33,
+            "y": 0,
+            "width": 49.67,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -5975,7 +6539,7 @@
     },
     {
       "sheetId": "FIT-YOG-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6006,6 +6570,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6071,7 +6641,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -6083,7 +6659,7 @@
     },
     {
       "sheetId": "FIT-YOG-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6114,6 +6690,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6180,7 +6762,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -6192,7 +6780,7 @@
     },
     {
       "sheetId": "FIT-STR-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6223,6 +6811,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6288,7 +6882,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 44.11,
+            "y": 0,
+            "width": 55.8,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -6408,7 +7008,7 @@
     },
     {
       "sheetId": "FIT-STR-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6439,6 +7039,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6504,7 +7110,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 0,
+            "y": 49.14,
+            "width": 99.92,
+            "height": 50.86
+          }
         }
       ],
       "phases": [],
@@ -6743,7 +7355,7 @@
     },
     {
       "sheetId": "FIT-STR-006",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -6780,6 +7392,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6843,7 +7461,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],
@@ -6855,7 +7479,7 @@
     },
     {
       "sheetId": "FIT-STR-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6886,6 +7510,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6949,7 +7579,13 @@
           "sourceUrl": null,
           "attribution": "KODJO — illustration générée par IA",
           "license": "Utilisation et affichage aux utilisateurs dans KODJO autorisés par Hermann le 18 novembre 2026.",
-          "rightsStatus": "PERMISSION_CONFIRMED"
+          "rightsStatus": "PERMISSION_CONFIRMED",
+          "view": {
+            "x": 50.25,
+            "y": 0,
+            "width": 49.75,
+            "height": 100
+          }
         }
       ],
       "phases": [],

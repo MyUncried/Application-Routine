@@ -199,6 +199,44 @@ describe("installation et mise à jour sur SQLite réelle", () => {
   });
 });
 
+describe("marquage des photos : vue retenue stockée avec l'asset (D-600)", () => {
+  const VIEW = { x: 50.5, y: 0, width: 49.5, height: 100 };
+  const marked = (view: CatalogueMedia["view"]) => ({ ...photo("media-aaaaaa", PHOTO_A), view });
+
+  it("pur : la vue suit la photo ; sans vue, identité inchangée ; une vue corrigée change l'identité", () => {
+    const id = (media: CatalogueMedia) => catalogueMediaFiles("kodjo.pilote-60", fileWith([media]).sheets[0]!)[0]!;
+    expect(id(marked(VIEW)).view).toEqual(VIEW);
+    expect(id(photo("media-aaaaaa", PHOTO_A)).view).toBeNull();
+    expect(id(marked(null)).assetId).toBe(id(photo("media-aaaaaa", PHOTO_A)).assetId);
+    expect(id(marked(VIEW)).assetId).not.toBe(id(photo("media-aaaaaa", PHOTO_A)).assetId);
+    expect(id(marked({ ...VIEW, x: 40, width: 60 })).assetId).not.toBe(id(marked(VIEW)).assetId);
+  });
+
+  it("installation : la vue est relue depuis SQLite avec l'asset du Mouvement", async () => {
+    const service = await serviceOn();
+    const { outcome } = await acceptFirst(service, fileWith([marked(VIEW)]));
+    const movement = await movementOf((outcome as { movementId: string }).movementId);
+    expect(movement.media[0]!.asset.view).toEqual(VIEW);
+  });
+
+  it("photo sans vue : image entière (vue nulle)", async () => {
+    const service = await serviceOn();
+    const { outcome } = await acceptFirst(service, fileWith([photo("media-aaaaaa", PHOTO_A)]));
+    expect((await movementOf((outcome as { movementId: string }).movementId)).media[0]!.asset.view).toBeUndefined();
+  });
+
+  it("mise à jour qui ne corrige que la vue : le Mouvement reçoit la vue corrigée", async () => {
+    const service = await serviceOn();
+    const installed = await acceptFirst(service, fileWith([marked(VIEW)]));
+    const id = (installed.outcome as { movementId: string }).movementId;
+    const corrected = { x: 0, y: 50, width: 100, height: 50 };
+    const { state, outcome } = await acceptFirst(service, fileWith([marked(corrected)], "2"));
+    expect(state).toBe("NEW_REVISION");
+    expect(outcome.status).toBe("UPDATED");
+    expect((await movementOf(id)).media[0]!.asset.view).toEqual(corrected);
+  });
+});
+
 describe("une seule copie de la photo sur le téléphone (registre allégé, 19/11/2026)", () => {
   const storedRows = () =>
     registryDb.getAllAsync<{ sheet_json: string; fingerprint: string }>("SELECT sheet_json, fingerprint FROM installed_sheets");

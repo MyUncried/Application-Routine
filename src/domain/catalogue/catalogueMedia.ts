@@ -1,5 +1,6 @@
 import type { Movement } from "@/domain/activities/Movement";
 import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
+import { isValidMediaView, type MediaView } from "@/domain/media/MediaAsset";
 
 import { cyrb53, type CatalogueSheet } from "./MovementCatalogueFile";
 
@@ -27,6 +28,8 @@ export type CatalogueMediaFile = {
   readonly extension: string;
   readonly fileName: string | null;
   readonly base64: string;
+  /** Vue retenue de la photo (marquage, D-600) ; `null` : image entière. */
+  readonly view: MediaView | null;
 };
 
 /** Photos de la fiche à reprendre comme médias du Mouvement, dans l'ordre de la fiche. */
@@ -38,12 +41,18 @@ export function catalogueMediaFiles(catalogueId: string, sheet: CatalogueSheet):
     if (!match) continue;
     const mimeType = match[1] as string;
     const base64 = match[2] as string;
+    const view = isValidMediaView(media.view) ? { x: media.view.x, y: media.view.y, width: media.view.width, height: media.view.height } : null;
+    // Un asset persisté est immuable (`ensureMediaAssets`) : une vue corrigée donne une nouvelle identité, sans quoi la
+    // correction n'atteindrait jamais le téléphone. Sans vue, l'identité est inchangée (aucun nouvel asset à l'installation).
+    const identity = [catalogueId, sheet.sheetId, media.id, base64];
+    if (view) identity.push([view.x, view.y, view.width, view.height].join(","));
     files.push({
-      assetId: CATALOGUE_MEDIA_ASSET_PREFIX + cyrb53([catalogueId, sheet.sheetId, media.id, base64].join("|")),
+      assetId: CATALOGUE_MEDIA_ASSET_PREFIX + cyrb53(identity.join("|")),
       mimeType,
       extension: EXTENSIONS[mimeType] ?? ".jpg",
       fileName: typeof media.fileName === "string" && media.fileName.length > 0 ? media.fileName : null,
       base64,
+      view,
     });
   }
   return files;

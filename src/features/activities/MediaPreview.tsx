@@ -2,9 +2,10 @@ import { Image } from "expo-image";
 import { useContext, useState, type ReactNode } from "react";
 import { View, type ImageStyle, type StyleProp, type ViewStyle } from "react-native";
 
-import type { MediaAsset } from "@/domain/media/MediaAsset";
+import type { MediaAsset, MediaView } from "@/domain/media/MediaAsset";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useCatalogueVideoCover } from "@/features/activities/catalogueVideoCover";
+import { cropFrame } from "@/features/activities/mediaCrop";
 import { usePhotoThumbnail } from "@/features/activities/photoThumbnails";
 
 /**
@@ -76,6 +77,12 @@ export type MediaPreviewProps = {
   readonly unavailable?: ReactNode;
   readonly imageTestID: string;
   readonly fallbackTestID: string;
+  /**
+   * Mosaïque de la carte de séance (D-600) : photo cadrée sur sa vue retenue (rectangle en pourcentage stocké avec l'asset,
+   * absent : image entière) dans une case `box`, la vue couvrant la case autour de son centre (`cropFrame`). Les
+   * dimensions viennent de la miniature, sinon du chargement. Absent : `contentFit="cover"` (rendu antérieur).
+   */
+  readonly crop?: { readonly box: { readonly width: number; readonly height: number }; readonly view: MediaView | null };
 };
 
 /**
@@ -96,7 +103,9 @@ export function MediaPreview({
   unavailable,
   imageTestID,
   fallbackTestID,
+  crop,
 }: MediaPreviewProps) {
+  const [loadedSize, setLoadedSize] = useState<{ readonly uri: string; readonly width: number; readonly height: number } | null>(null);
   // Échec rattaché à l'URI. Revue 5.1b : il est oublié dès que l'URI change (ajustement d'état au
   // rendu, sans effet) — revenir ensuite à la première URI la recharge au lieu de rester en échec.
   const [failedUri, setFailedUri] = useState<string | null>(null);
@@ -120,6 +129,31 @@ export function MediaPreview({
   // Recette iPhone du 19/11/2026 : miniature réduite gardée en mémoire (`photoThumbnails.ts`) ; place réservée
   // pendant son premier chargement ; photo d'origine si la miniature ne peut pas être produite (comportement antérieur).
   if (thumbnail === undefined) return fallback;
+  if (crop) {
+    const size =
+      thumbnail && thumbnail.width > 0 && thumbnail.height > 0
+        ? { width: thumbnail.width, height: thumbnail.height }
+        : loadedSize?.uri === uri
+          ? loadedSize
+          : null;
+    const frame = size ? cropFrame(crop.box, size, crop.view) : null;
+    return (
+      <View style={[{ width: crop.box.width, height: crop.box.height, overflow: "hidden" }, imageStyle as StyleProp<ViewStyle>]}>
+        <Image
+          source={thumbnail ?? { uri }}
+          style={frame ? { position: "absolute", left: frame.left, top: frame.top, width: frame.width, height: frame.height } : { width: crop.box.width, height: crop.box.height, opacity: 0 }}
+          contentFit="fill"
+          accessible={false}
+          onLoad={(event) => {
+            const { width, height } = event.source;
+            if (width > 0 && height > 0) setLoadedSize({ uri, width, height });
+          }}
+          onError={() => setFailedUri(uri)}
+          testID={imageTestID}
+        />
+      </View>
+    );
+  }
   return (
     <Image
       source={thumbnail ?? { uri }}

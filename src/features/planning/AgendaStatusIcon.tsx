@@ -60,11 +60,28 @@ const DISC: Readonly<Record<"COMPLETED" | "STOPPED" | "DELETED" | "EXPIRED", str
   EXPIRED: colors.agendaIconMuted,
 };
 
+/**
+ * Ombres extérieures du disque en relief (Figma : ombre large 0 / 2,5 / flou 3,5 et ombre serrée 0 / 0,8 / flou 1), à l'appui
+ * l'ombre interne en haut et une ombre extérieure réduite (0 / 0,5 / flou 0,8). `shadowColor` absent : noir à 30 %, 22 % et
+ * 10 % (Agenda). Carte de séance du catalogue (D-602, Figma `13168:28151`) : couleur du fond de la zone de contexte, opaque.
+ */
+export function playShadows(shadowColor?: string): { readonly raised: string; readonly pressed: string } {
+  const [wide, tight, reduced] = shadowColor ? [shadowColor, shadowColor, shadowColor] : ["rgba(0, 0, 0, 0.3)", "rgba(0, 0, 0, 0.22)", "rgba(0, 0, 0, 0.1)"];
+  return {
+    raised: `0px 2.5px 3.5px ${wide}, 0px 0.8px 1px ${tight}`,
+    pressed: `inset 0px 1.5px 2px rgba(0, 0, 0, 0.28), 0px 0.5px 0.8px ${reduced}`,
+  };
+}
+
 /** Démarrer / Rattraper : disque en relief, triangle bleu ; état appuyé pendant le toucher. */
-export function AgendaPlayIcon({ pressed, testID }: { readonly pressed: boolean; readonly testID: string }) {
+export function AgendaPlayIcon({ pressed, testID, shadowColor }: { readonly pressed: boolean; readonly testID: string; readonly shadowColor?: string }) {
+  const shadows = shadowColor ? playShadows(shadowColor) : null;
   return (
     <View style={styles.box} testID={testID}>
-      <View style={[styles.disc, pressed ? styles.playPressed : styles.playRaised]} testID={`${testID}-disc${pressed ? "-pressed" : ""}`}>
+      <View
+        style={[styles.disc, pressed ? styles.playPressed : styles.playRaised, shadows ? { boxShadow: pressed ? shadows.pressed : shadows.raised } : null]}
+        testID={`${testID}-disc${pressed ? "-pressed" : ""}`}
+      >
         <Image source={PLAY} style={styles.play} tintColor={colors.primary} accessible={false} />
       </View>
     </View>
@@ -77,20 +94,33 @@ export function AgendaPlayButton({
   accessibilityLabel,
   style,
   testID,
+  shadowColor,
+  disabled = false,
 }: {
   readonly onPress: () => void;
   readonly accessibilityLabel: string;
   readonly style?: object;
   readonly testID: string;
+  /** Couleur des ombres extérieures (carte de séance : fond de la zone de contexte) ; absente : noir (Agenda). */
+  readonly shadowColor?: string;
+  /** Présent mais indisponible (aucune action) : atténué, annoncé désactivé, toucher intercepté. */
+  readonly disabled?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel} style={style} testID={testID}>
+    <Pressable
+      onPress={disabled ? () => undefined : onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      {...(disabled ? { accessibilityState: { disabled: true } } : {})}
+      style={[style, disabled ? styles.unavailable : null]}
+      testID={testID}
+    >
       {/* Recette du 24/11/2026 (Hermann : « le bouton démarrer n'est pas aligné à droite avec les autres boutons ») : même
           emplacement de 44 que les icônes d'état, l'icône y est centrée. [Zone de 44 portée par le bouton, icône décalée
           de 8 vers la droite — remplacé.] */}
       {({ pressed }) => (
         <View style={styles.touch} testID={`${testID}-slot`}>
-          <AgendaPlayIcon pressed={pressed} testID={`${testID}-icon`} />
+          <AgendaPlayIcon pressed={pressed && !disabled} testID={`${testID}-icon`} {...(shadowColor ? { shadowColor } : {})} />
         </View>
       )}
     </Pressable>
@@ -99,6 +129,8 @@ export function AgendaPlayButton({
 
 const styles = StyleSheet.create({
   box: { width: AGENDA_ICON_SIZE, height: AGENDA_ICON_SIZE, alignItems: "center", justifyContent: "center" },
+  // CE-T03-01 : même atténuation que l'ancienne pilule Démarrer indisponible (0,55).
+  unavailable: { opacity: 0.55 },
   touch: { width: AGENDA_ICON_TOUCH, height: AGENDA_ICON_TOUCH, alignItems: "center", justifyContent: "center" },
   disc: {
     width: AGENDA_ICON_SIZE,
