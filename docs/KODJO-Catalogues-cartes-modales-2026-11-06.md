@@ -104,7 +104,7 @@ Le bandeau de contexte commun du code (`ScreenShell.ContextBand`) utilise `color
 
 - **Catalogue des programmes :** aucun écran dans le prototype ; ses variables sont prêtes.
 - **Zone de contexte de la Composition, de la fiche Mouvement et des écrans d'exercice :** couleur non modifiée ; rattachement à une teinte de catalogue à décider. [Remplacé le 06/11/2026 (consigne de Hermann, D-509) : #EAEAFF (`color.contextBand`) pour toute bande de contexte hors catalogue ; le rattachement éventuel à une teinte de catalogue reste à décider.]
-- **Cartes de séance des contextes Calendrier, Suivi, Choix multiple :** non migrées au nouveau format.
+- **Cartes de séance des contextes Calendrier, Suivi, Choix multiple :** non migrées au nouveau format. [Précisé le 25/11/2026 (D-567) : la modale « Planifier une séance — Sélectionner une séance » du prototype utilise la variante Sélection de la carte du catalogue.]
 - **AMRAP :** proposition non arbitrée (au moins un exercice de la boucle en Répétitions ; Max seulement en Répétitions). Aucune règle n'est modifiée par ce document.
 - **Zones de toucher :** le champ Rechercher (34 pt), Démarrer (24 pt) et le chevron (10 pt) gardent une cible de 44 pt dans le code.
 

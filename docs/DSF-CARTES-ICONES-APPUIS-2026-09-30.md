@@ -57,11 +57,11 @@ Ces dimensions décrivent la référence à taille de texte standard. Le média 
 
 | Contexte | Classement représenté | Badge et commandes |
 |---|---|---|
-| Catalogue séance | Étiquette puis catégories issues des exercices | Durée ; Déployer et Lecture, ou Restaurer |
+| Catalogue séance | Étiquette puis catégories issues des exercices | Durée ; Déployer et Lecture, ou Restaurer [Remplacé le 25/11/2026 (D-567) pour la carte repliée : trois lignes (nom ; durée et formats ; mouvements), Démarrer en icône, sans Déployer ni catégories : voir DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24] |
 | Catalogue exercice | Catégorie puis zones corporelles | Durée ; Lecture/Restaurer ; aucun Déployer avec ou sans média (D-261) |
 | Calendrier Semaine | Catégorie puis étiquette pour séance ; catégorie puis zones pour exercice | Heure `08:00` ; cercle de nature à gauche ; durée avec sablier sur la ligne des valeurs |
 | Suivi | Ligne 1 : nature et titre ; ligne 2 : durée réelle et catégorie | Statut en haut à droite, largeur 76 ; indicateur Ressenti 20 × 20 en bas à droite ; sans déploiement, heure, zones ni étiquettes |
-| Choix calendrier/planification | Même famille visuelle que le Catalogue | Radio ; aucun badge durée, Lecture ou Déployer représenté |
+| Choix calendrier/planification | Même famille visuelle que le Catalogue | Radio ; aucun badge durée, Lecture ou Déployer représenté [Précisé le 25/11/2026 (D-567) : la modale « Planifier une séance — Sélectionner une séance » utilise la variante Sélection de la carte du catalogue ; ce contexte-ci n'est pas migré] |
 | Choix composition | Exercice | Case à cocher 20 ; aucun badge ni action représenté |
 
 Dans le Suivi, la carte fait 354 × 67. Statut à x=262/y=9 (76 × 24), Ressenti à x=318/y=39 (20 × 20). Ligne 1 : nature, titre, statut ; ligne 2 : durée, catégorie, ressenti. Aucun chevron, heure, zone corporelle ou étiquette. La boîte du Ressenti et son dessin font 20 × 20 ; aucune zone tactile ni action. Les données historiques complètes restent conservées. D-175 reste la règle des gestes dans les contextes où ils sont accessibles.

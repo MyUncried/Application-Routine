@@ -37,22 +37,20 @@ La carte repliée fait **72 pt de haut et trois lignes** ; elle n'a plus de chev
 - **Retirés de la carte repliée** : catégories, zones corporelles, nombre d'exercices, nombre de circuits, volume d'une séance à un seul exercice, chevron.
 - **Mosaïque à 5 images et plus** : trois images et une quatrième case « +N », N = nombre d'images − 3 (les cases à 5 et 6 images seraient trop petites à 64 pt).
 
-## 2 bis. Variante « Sélection »
+## 2 bis. Variante « Sélection » (modales de sélection)
 
-Dans les modales de choix d'une séance (par exemple « Planifier une séance — Sélectionner une séance »), la carte est la variante `État=Sélection` du même composant : mêmes trois lignes et même mosaïque, **sans bouton Démarrer** ; la pastille de sélection de la modale occupe la place de droite.
+Dans les modales de sélection de séances, la carte est la variante `État=Sélection` du composant `DSF / Cards / Séance — catalogue` : mêmes trois lignes et même mosaïque que la carte repliée, **sans bouton Démarrer** ; la pastille de sélection de la modale (numéro ou cercle vide) occupe la place de droite.
+
+- Écran migré dans le prototype : « Planifier une séance — Sélectionner une séance ».
+- Non migrés : les contextes `Choix calendrier ou planification` (radio) et `Choix multiple` de l'ancien composant `DSF / Cards / Séance`, ainsi que les écrans de « Conception — Hors MVP » (remplacement global prévu).
 
 ## 3. Points techniques
 
 - Le rectangle de la vue retenue est une donnée de l'image du catalogue (x, y, largeur, hauteur, en pourcentage de l'image). Aucun calcul au moment de l'affichage.
 - Essai de détection sur les 60 illustrations du 17/11/2026 (planches de Hermann du 24/11/2026) : 43 images à deux vues, 10 à trois vues (dont 4 en « deux en haut, une en bas »), 7 images simples ; détection d'une séparation horizontale seulement si la bande est blanche sur toute la largeur. Une fausse séparation a été observée (montants du portique de `FIT-CRO-010`) : la vérification par la personne qui publie reste nécessaire. Constat de Hermann : le résultat du recadrage centré est « très correct ». Dans les cases carrées, une vue verticale perd du haut et du bas (têtes ou jambes parfois coupées) ; accepté.
 
-## 4. Toucher la carte : composition en modale (D-567)
+## 4. Toucher la carte (D-567)
 
-Il n'y a plus de synthèse dépliée dans la liste : **toucher la carte ouvre la composition de la séance** (écran « Composition séance en modification ») **présentée en modale iOS**. Le visuel garde le même comportement.
+Il n'y a plus de synthèse dépliée dans la liste : **toucher la carte (hors Démarrer) ouvre la composition de la séance** (écran « Composition séance en modification ») **présentée en modale iOS**. Le visuel garde le même comportement. Démarrer exécute la séance, comme avant. Le contenu de la modale (titres, boutons Enregistrer et Démarrer) est décrit dans un lot distinct.
 
-- En-tête de la modale : croix à gauche, titre « Composer une séance ».
-- Pied de la modale : à gauche, **Démarrer** (icône ronde à relief, 44 pt) ; à droite, **« Valider les modifications »**.
-- **Valider les modifications** enregistre le brouillon de composition et ferme la modale. **Démarrer** enregistre, ferme la modale et lance la séance.
-- La durée totale (« ≥ 21’ ») est alignée à droite de la zone de contexte, entre l'étiquette et le carré d'illustration.
-- La variante `État=Déployée` du composant est conservée (usage futur possible) ; aucun écran du catalogue ne l'ouvre.
-- Écran de référence : « P-Catalogue des séances — Composition en modale (essai) ».
+La variante `État=Déployée` du composant est conservée (usage futur possible) ; aucun écran du catalogue ne l'ouvre.
