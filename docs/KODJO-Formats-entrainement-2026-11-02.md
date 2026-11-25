@@ -608,6 +608,14 @@ Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée
 
 Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternance, dans chaque intervalle), AMRAP (dans un circuit, buy-in, simple à l'échec, durée à l'échec), Death by (standard, dans chaque intervalle) et For time (standard, dans un circuit, buy-in ou buy-out) allégées, hauteur de feuille adaptée. Renforcement, Progression, À l'échec et Superset n'ont pas de modale dédiée dans le prototype : la règle s'y applique par la documentation. « Conception — Hors MVP » non touché.
 
+
+### 9.8 Appui sur un Exercice, exercice libre et écran des formats (25/11/2026, D-571)
+
+- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la **page unique du format** (il n'y a plus de page de récapitulatif distincte du questionnaire) ; la modale « Paramètres d'exécution » n'existe plus pour ces Exercices. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule (inchangé). La Charge et « De chaque côté » doivent être réglables dans la page du format. [Remplace, pour les Exercices issus d'un format, la modale par contexte du § 9.7 ; la liste des champs du § 9.7 reste la référence de ce que la page doit proposer.]
+- **Exercice libre.** Il se règle dans une modale de type format (Figma « Exercice libre — Modale de type format »), mêmes composants que les questionnaires : Mode (Répétitions par défaut), objectif « À l'objectif », Charge par « (+ kg) » dans le tableau, « De chaque côté » en ligne.
+- **Écran des formats (« Créer un exercice »).** Titre centré, aucun sous-titre ; carte **Libre** de la même taille que les autres, en première position, logo en cadre pointillé, sous-titre « un mouvement, à régler ».
+- Figma (Prototype MVP) : écran des formats `9977:19613` ; modale libre `13242:26255`. À valider sur iPhone.
+
 ## 10. Application de la règle à l'EMOM
 
 Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Répétitions par défaut et Durée possible**, par Exercice et dans toutes les organisations. Un EMOM peut associer 10 burpees et 20 s de gainage dans chaque minute, ou un seul gainage de 40 s par minute. Les objectifs en Durée sont soumis au contrôle strict de l’intervalle du §7.6.

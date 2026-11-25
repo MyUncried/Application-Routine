@@ -237,3 +237,11 @@
 - Documents : aucun (classe A, règle déjà écrite).
 - Vérification sur iPhone à faire : glissement de suppression sur une ligne du tableau AMRAP, saisie au clavier AMRAP et Progression.
 - Tests : non applicables.
+
+## Complément 25/11/2026 (suite 6) — Appui sur la carte, exercice libre, écran des formats (D-571, classe B)
+- Décisions explicites de Hermann (25/11/2026) : l'appui sur la carte d'un Exercice ouvre la page unique du format (plus de distinction questionnaire/récapitulatif) ; déplacer, dupliquer et supprimer restent sur la carte ; exercice libre en modale de type format ; écran des formats : sous-titre retiré, carte Libre de même taille avec logo en cadre pointillé, titre centré.
+- Figma (Prototype MVP) : écran des formats `9977:19613` ; modale libre `13242:26255` ; chevauchements corrigés (écran libre, AMRAP plusieurs, composant, mosaïque DSF) ; chevauchements restants volontaires : voile sur « Confirmer la suppression » du catalogue ; pages Démonstrations et Hors MVP intactes.
+- Documents : registre ch07 D-571 (annotation de la ligne « Constat c ») ; Formats § 9.8 ; docs 08 et 10 et PRODUCT annotés ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md` réécrit.
+- Non traité : place de Charge et De chaque côté dans la page du format (aucun écran, signalée À CLARIFIER dans le prompt) ; doc 13 (contrats d'écran) non revue ; modales de composition non validées.
+- Vérification sur iPhone à faire : appui sur carte, actions de la carte, modale libre, écran des formats.
+- Tests : non applicables.
