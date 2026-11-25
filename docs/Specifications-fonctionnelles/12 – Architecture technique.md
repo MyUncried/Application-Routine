@@ -1199,6 +1199,26 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.catalogueSessionsBackground` | `#F7F7FF` | D-501 : fond du catalogue des séances ; fond de la pilule Démarrer de la carte Séance (D-506) (`color/catalogue/seances/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F7F7FF, remplace #F8F8FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogueProgramsContext` | `#EFE8FF` | D-501 : zone de contexte du catalogue des programmes — jeton prêt, aucun écran [20/11/2026 : écrans Figma du catalogue et de la modale des programmes — D-544, D-548] (`color/catalogue/programmes/context`) |
 | `color.catalogueProgramsBackground` | `#F9F6FF` | D-501 : fond du catalogue des programmes — jeton prêt, aucun écran [20/11/2026 : écrans Figma du catalogue et de la modale des programmes — D-544, D-548] (`color/catalogue/programmes/background`) [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F9F6FF, remplace #FAF8FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
+| `color.agendaStartFrame` | `#E0E4F5` | D-599 : cadre de l’Agenda, à démarrer (bleu) ; bande = cadre à 18 % |
+| `color.agendaStartBar` | `#8F9BCC` | D-599 : trait épais, à démarrer (bleu) |
+| `color.agendaLateFrame` | `#F5E0E0` | D-599 : cadre rouge — en retard (Rattraper), arrêtée, expirée |
+| `color.agendaLateBar` | `#CC8F8F` | D-599 : trait épais rouge |
+| `color.agendaDoneFrame` | `#E0F5E8` | D-599 : cadre vert — complétée |
+| `color.agendaDoneBar` | `#8FCCA8` | D-599 : trait épais vert |
+| `color.agendaPartialFrame` | `#FDE9D3` | D-599 : cadre orange — partielle (recette du 24/11/2026 : teinte du symbole #F58C1A, plus saturée ; [#F5EBE0 — remplacé]) |
+| `color.agendaPartialBar` | `#F4B571` | D-599 : trait épais orange [#CCAD8F — remplacé] |
+| `color.agendaDeletedFrame` | `#F0F0F5` | D-599 : cadre gris — supprimée |
+| `color.agendaDeletedBar` | `#B8BAC9` | D-599 : trait épais gris |
+| `color.agendaIconStopped` | `#CC3838` | D-599 : disque de l’icône Arrêtée |
+| `color.agendaIconCompleted` | `#1A995C` | D-599 : disque de l’icône Complétée |
+| `color.agendaIconPartial` | `#F58C1A` | D-599 : arc de l’icône Partielle (trois quarts depuis 12 h) |
+| `color.agendaIconPartialTrack` | `#D6D6DB` | D-599 : piste de l’icône Partielle |
+| `color.agendaIconMuted` | `#8C919E` | D-599 : disque des icônes Supprimée et Expirée |
+| `color.agendaIconGlyph` | `#FFFFFF` | D-599 : symbole blanc des icônes à plat |
+| `color.agendaIconRaisedTop` | `#FFFFFF` | D-599 : haut du dégradé du disque Démarrer / Rattraper |
+| `color.agendaIconRaisedBottom` | `#E3E5F0` | D-599 : bas du dégradé du disque Démarrer / Rattraper |
+| `color.agendaIconRaisedStroke` | `#D6D9E3` | D-599 : filet du disque Démarrer / Rattraper |
+| `color.agendaIconPressed` | `#E8EBF5` | D-599 : fond du disque Démarrer / Rattraper appuyé |
 | `color.contextBand` | `#EAEAFF` | D-509 : bandeau de contexte commun hors catalogue (`ScreenShell.ContextBand` par défaut : Composition, sélection d'un mouvement…) ; remplace `selectionSurface`, réservé aux éléments sélectionnés |
 | `color.statusPositiveText` | `#1F804F` | D-510 : `color/status/positive-text` — badge « New » du catalogue des mouvements (porté par la forme vectorielle `catalogue-badge-nouveau*.svg`) |
 
