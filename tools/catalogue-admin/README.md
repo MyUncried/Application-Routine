@@ -73,6 +73,33 @@ l'application (import de fichier).
 Les problèmes trouvés par le validateur partagé s'affichent en continu ; l'enregistrement est
 refusé tant qu'il en reste.
 
+## Marquage des photos
+
+Décision D-600 (règle de Hermann du 24/11/2026, DSF Carte de séance § 1 et § 3). La mosaïque des cartes de
+séance utilise, pour chaque photo, un rectangle `view` (x, y, largeur, hauteur, en % de l'image) stocké avec la
+photo ; absent = image entière. L'application ne détecte rien : le rectangle est produit ici.
+
+- **Détection** (`viewDetection.js`, module pur partagé par la page et les scripts) : une séparation est une
+  bande quasi blanche sur toute la longueur de la zone (horizontale ou verticale, découpage récursif) ; les
+  marges du bord (blanches ou unies) ne séparent rien. Règle : deux vues → la plus à droite ; trois vues → la
+  plus large (« deux en haut, une en bas » : celle du bas) ; image simple → image entière.
+- **Galerie de la fiche** : sur chaque photo intégrée, la vue retenue en surimpression (trait plein) ;
+  « Proposer » affiche la proposition en pointillés, écrite seulement par « Accepter la proposition » ;
+  « Image entière » efface la vue ; « Ajuster » : quatre champs en %, ou glisser le rectangle (poignée en bas à
+  droite pour le redimensionner).
+- **Onglet « Marquage des photos »** (aussi depuis l'onglet Catalogue, « Avant publication ») : toutes les
+  photos intégrées du fichier ouvert, état « sans vue », « proposée » ou « vérifiée » ; « Proposer pour toutes
+  les photos sans vue », puis « Vérifier une à une » (accepter, corriger ou valider, photo suivante).
+  Enregistrer ensuite le fichier : le serveur revalide et calcule les révisions comme pour toute édition.
+- **« Vérifiée »** n'est pas dans le format : l'état est noté dans ce navigateur (`localStorage`), lié à la vue
+  exacte et à la photo ; une vue modifiée redevient « proposée ». Une vue présente dans le fichier mais non
+  validée dans ce navigateur est « proposée ».
+- **Propositions en lot** (Windows) : `node tools/catalogue-admin/propose-views.mjs [--file <fichier>] [--write]
+  [--replace]` (défaut : `catalogue/illustrations/kodjo-pilote-60.illustre-v3.json`). Décodage WebP par WIC
+  (PowerShell), lecture PNG par `pngjs`. N'ajoute que les clés `view` (contrôlé avant écriture), sans révision.
+- La page n'ouvre que `catalogue/catalogues/*.catalogue.json` : pour vérifier le catalogue illustré, le copier
+  à cet emplacement (comme pour la recette), sans le committer.
+
 ## Révisions (calculées par le serveur)
 
 - Le client envoie le fichier entier avec l'empreinte SHA-256 des octets lus (`etag`). Fichier
@@ -219,6 +246,7 @@ Les médias des Mouvements personnels **ne sont pas transférés** dans ce lot (
 
 ```text
 node --test tools/catalogue-admin/server.test.mjs
+node --test tools/catalogue-admin/viewDetection.test.mjs
 npx jest src/domain/catalogue
 node --test scripts/catalogue/__tests__/static-ovh-medias.test.mjs
 ```

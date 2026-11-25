@@ -9,6 +9,8 @@
  * Photos et vidéos par lien : HTTPS uniquement. Aucune donnée n'est envoyée ailleurs qu'au
  * serveur local au moment de l'enregistrement du fichier catalogue.
  */
+import { asStoredView, isMarkablePhoto, mountPhotoViewControls } from "./viewMarking.js";
+
 const MAX_PHOTO_SOURCE_BYTES = 8 * 1024 * 1024;
 const RIGHTS_LABELS = { UNVERIFIED: "Non vérifiés", PERMISSION_CONFIRMED: "Autorisation déclarée", RESTRICTED: "Utilisation interdite" };
 /**
@@ -236,7 +238,9 @@ export function mountMediaEditor(container, options) {
     }
     media.forEach((item, index) => {
       const card = el("article", "media-card");
-      card.append(preview(item));
+      // Marquage des photos (D-600) : vue retenue d'une photo intégrée, proposée puis vérifiée.
+      const marking = isMarkablePhoto(item) ? mountPhotoViewControls(item, { setView: (view, message) => setView(item.id, view, message) }) : null;
+      card.append(marking ? marking.visual : preview(item));
       const info = el("div", "media-info");
       info.append(
         el("strong", "", (index + 1) + ". " + (item.caption || (item.kind === "PHOTO" ? "Photo" : "Vidéo"))),
@@ -247,6 +251,7 @@ export function mountMediaEditor(container, options) {
         el("small", "media-rights" + (item.rightsStatus === "PERMISSION_CONFIRMED" ? " confirmed" : ""),
           "Droits : " + (RIGHTS_LABELS[item.rightsStatus] ?? "Non vérifiés")),
       );
+      if (marking) info.append(marking.controls);
       const buttons = el("div", "media-actions");
       const button = (text, action, disabled = false) => {
         const node = el("button", "", text);
@@ -275,6 +280,15 @@ export function mountMediaEditor(container, options) {
     render();
     if (message) notify(message, "ok");
     return true;
+  };
+  const setView = (id, view, message) => {
+    const stored = asStoredView(view);
+    const media = options.getMedia().map((entry) => {
+      if (entry.id !== id) return entry;
+      const { view: _previous, ...rest } = entry;
+      return stored ? { ...rest, view: stored } : rest;
+    });
+    commit(media, message);
   };
   const move = (index, step) => {
     const media = [...options.getMedia()];
@@ -342,6 +356,8 @@ export function mountMediaEditor(container, options) {
       sourceUrl: origin || (storage === "REMOTE" ? url : null),
       attribution: attribution.value.trim(), license: license.value.trim(), rightsStatus: rights.value,
     };
+    // Vue retenue (D-600) conservée tant que la photo reste la même ; une nouvelle photo est à marquer.
+    if (old?.view && kind === "PHOTO" && url === old.url) item.view = old.view;
     if (old) media.splice(media.findIndex((entry) => entry.id === old.id), 1, item);
     else media.push(item);
     if (commit(media, old ? "Média modifié (à enregistrer avec le catalogue)." : "Média ajouté (à enregistrer avec le catalogue).")) clearEditor();
