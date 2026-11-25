@@ -67,7 +67,7 @@ describe("D-600 — disposition de la mosaïque (pure)", () => {
     [4, [[0, 0, 31, 31], [33, 0, 31, 31], [0, 33, 31, 31], [33, 33, 31, 31]], null],
     [5, [[0, 0, 31, 31], [33, 0, 31, 31], [0, 33, 31, 31]], 2],
     [6, [[0, 0, 31, 31], [33, 0, 31, 31], [0, 33, 31, 31]], 3],
-  ] as const)("%i image(s)", (count, cells, hidden) => {
+  ] as [number, number[][], number | null][])("%i image(s)", (count, cells, hidden) => {
     const layout = mosaicLayout(count);
     expect(layout.cells.map((cell) => [cell.left, cell.top, cell.width, cell.height])).toEqual(cells);
     expect(layout.counter === null ? null : layout.counter.hidden).toBe(hidden);
