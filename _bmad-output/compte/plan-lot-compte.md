@@ -40,7 +40,7 @@ Toutes les tranches font partie du MVP. Chacune est livrée et recettée sur iPh
 | Tranche | Contenu | Dépend de |
 |---|---|---|
 | **T1** | Compte (détail ci-dessous) : connexion Apple ou Google, enregistrement du prénom et du nom fournis à la première connexion **sans écran supplémentaire**, rattachement, section Compte, suppression | — |
-| **T2** | Identité publique (écran « Comment les autres vous voient », CPT-25 à CPT-27), recherche par prénom, nom ou pseudo, Follow, demandes d'Ami, blocage, signalement d'un utilisateur, **notifications push** (première demande d'autorisation : ARBITRAGE A2) | T1 |
+| **T2** | Identité publique (écran « Comment les autres vous voient », CPT-25 à CPT-27), recherche par prénom, nom ou pseudo, Follow, demandes d'Ami, blocage, signalement d'un utilisateur, **notifications push** (première demande d'autorisation à la première activation de la Communauté, CPT-30) | T1 |
 | **T3** | Partage de contenus vers un Ami : envoi, réception, ajout explicite, médias, conservation CPT-17, mises à jour volontaires, signalement d'un contenu | T2 |
 | **T4** | Espaces relationnels : création, invitation et demande d'adhésion, rôles, partage dans un espace | T3 |
 | **T5** | Fil d'activité : publication des résumés d'exécution sans douleurs, visibilité par défaut et privée, fils global et d'espace, commentaires, réactions | T2 (T4 pour le fil d'espace) |
@@ -71,8 +71,8 @@ Acquis (chapitre 07) : notifications push et pastilles (CPT-23) ; ordre T1 à T6
 **Différé avant T5, ne conditionne pas T1 :** contenu définitif du résumé d'exécution dans le fil ; annonce éventuelle d'un changement de pseudo dans le fil des abonnés (CPT-28).
 
 **ARBITRAGES ouverts** (publiés sur la PR #446) :
-- **A1 — É3, delta de texte** (CPT-09) : voir É3 ci-dessous. Incidence T1 : texte de l'alerte de suppression.
-- **A2 — Moment de la première demande d'autorisation des notifications push** (CPT-23). Proposition : à la première activation de la Communauté (T2), jamais en T1. Incidence T1 : aucune ; T1 ne demande pas cette autorisation.
+- **A1 — É3, delta de texte** : **validé (CPT-29)**.
+- **A2 — Moment de la première demande d'autorisation des notifications push** : **validé (CPT-30)**, à la première activation de la Communauté (T2), jamais en T1.
 - **A3 — Téléphone dont le compte a été supprimé**, puis connexion avec un compte **existant** déjà utilisé sur un autre téléphone. Proposition : refuser (É4), seul un compte **neuf** reprend ces données (CPT-10 et CPT-14). Incidence T1 : règle R5 du rattachement.
 
 ## 5. Écrans nécessaires — T1 (à vérifier par Hermann dans Figma)
@@ -366,7 +366,7 @@ Traitements T1 à déclarer : identité du compte, prénom et nom, e-mail ou rel
 
 ### ÉCRANS (validés, CPT-16)
 
-Aucune frame Figma. Composants existants et primitives natives : bouton Apple natif, alertes natives. Les textes ci-dessous sont **validés** (CPT-16), sauf le delta É3 soumis en ARBITRAGE A1.
+Aucune frame Figma. Composants existants et primitives natives : bouton Apple natif, alertes natives. Les textes ci-dessous sont **validés** (CPT-16 ; delta É3 : CPT-29).
 
 #### É1 — Écran de connexion (porte d'entrée)
 
@@ -413,7 +413,7 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 > Votre compte, votre catalogue et les contenus que vous avez partagés seront supprimés de nos serveurs. Les personnes qui les ont déjà reçus les conservent.
 > Vos séances, mouvements et historique restent sur ce téléphone. Pour les effacer, supprimez l'application.
 
-**Delta proposé (ARBITRAGE A1, CPT-09 : mentionner la vidéo déjà téléchargée)** : remplacer « Les personnes qui les ont déjà reçus les conservent. » par « Les personnes qui les ont déjà reçus les conservent, y compris les photos et vidéos déjà téléchargées. » Le reste est inchangé.
+**Delta validé (CPT-29)** : remplacer « Les personnes qui les ont déjà reçus les conservent. » par « Les personnes qui les ont déjà reçus les conservent, y compris les photos et vidéos déjà téléchargées. » Le reste est inchangé.
 
 **Boutons :** « Annuler » / « Supprimer » (rouge).
 
