@@ -312,6 +312,26 @@ Ce qui reste :
 - un seul écran « Comment les autres vous voient » au **premier usage communautaire** (T2), avec prénom et nom préremplis et modifiables, pseudo facultatif vide et réglage « apparaître dans la recherche » ;
 - recherche par prénom, nom ou pseudo.
 
+## 16. Réponse à la revue ChatGPT du plan T1 (25/11/2026)
+
+**Origine.** Revue `PLAN_CHANGES_REQUESTED` sur le candidat `06650dba` (`.github/orchestration/reports/2026-11-25_PLAN_REVIEW_COMPTE_T1.md`) et instruction de reprise sur la PR #446 (commentaire 7149761248).
+
+**Traitement des huit demandes** : commits `17ff4a8d` et `50bc725b`. Détail dans la réponse `[Claude]` sur la PR. En bref :
+- migration locale 040 ;
+- périmètre T1 et T2 séparé ;
+- règles de rattachement R1 à R6, sans réécriture de `users.id` ;
+- suppression ordonnée, avec révocation Apple TN3194 et reprise ;
+- classification du retour réseau ;
+- configuration déclarée distinguée des vérifications à faire ;
+- annotations CPT-09, CPT-19, F4-B, BIB-23, titres « post-MVP », Communautaire, PU-17, ch. 03, Supabase.
+
+**ARBITRAGES publiés :**
+- A1 : delta de É3 ;
+- A2 : moment de la demande d'autorisation des notifications push ;
+- A3 : téléphone dont le compte a été supprimé, puis connexion avec un compte existant.
+
+**Tests** : aucun, mission documentaire.
+
 ## Hypothèses non démontrées
 
 - Le statut juridique des douleurs (§4.3).
