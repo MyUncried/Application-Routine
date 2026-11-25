@@ -29,6 +29,7 @@
  * Spécification : docs/KODJO-Format-catalogue-mouvements-v1.md (§ 13 pour la v3).
  * Module pur : aucune lecture de fichier, aucune écriture SQLite, aucune dépendance au moteur.
  */
+import { isValidMediaView, type MediaView } from "@/domain/media/MediaAsset";
 import { encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import {
   movementPhasesProblem,
@@ -101,23 +102,11 @@ export type CatalogueMedia = {
   readonly view?: CatalogueMediaView | null;
 };
 
-/** Rectangle de la vue retenue, en pourcentage de l'image (0 à 100). */
-export type CatalogueMediaView = {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-};
+/** Rectangle de la vue retenue, en pourcentage de l'image (0 à 100) : même règle que l'asset de l'application. */
+export type CatalogueMediaView = MediaView;
 
 /** Rectangle de vue valide : nombres finis, largeur et hauteur positives, entièrement dans l'image. */
-export function isValidCatalogueMediaView(view: unknown): view is CatalogueMediaView {
-  if (typeof view !== "object" || view === null || Array.isArray(view)) return false;
-  const { x, y, width, height } = view as Record<string, unknown>;
-  const n = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
-  if (!n(x) || !n(y) || !n(width) || !n(height)) return false;
-  const EPSILON = 1e-6;
-  return x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 100 + EPSILON && y + height <= 100 + EPSILON;
-}
+export const isValidCatalogueMediaView: (view: unknown) => view is CatalogueMediaView = isValidMediaView;
 
 export type CatalogueGlossaryEntry = {
   readonly id: string;

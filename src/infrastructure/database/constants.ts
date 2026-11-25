@@ -197,7 +197,12 @@ export const DATABASE_NAME = "kodjo.db";
  * défaut (D-530, 18/11/2026). Développée comme version 31 sur la branche Formats ; renumérotée 39 à la consolidation du
  * 24/11/2026. 001..038 inchangées.
  */
-export const DATABASE_VERSION = 39;
+/**
+ * **Vue retenue d'une photo (version 40, `migration040`)** : colonnes additives nullables `media_assets.view_x`, `view_y`,
+ * `view_width`, `view_height` (pourcentages de l'image), venues du marquage des photos du catalogue (D-600, 24-25/11/2026).
+ * 001..039 inchangées.
+ */
+export const DATABASE_VERSION = 40;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

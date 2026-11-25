@@ -642,6 +642,8 @@ La suppression ou la modification ultérieure d’un média ne doit pas comprome
 
 Une évolution future pourra permettre le stockage ou la synchronisation des médias dans un service distant.
 
+**Vue retenue d’une photo (marquage des photos, D-600, 25/11/2026).** Le rectangle de la vue retenue (x, y, largeur, hauteur, en pourcentage de l’image) est une donnée de l’asset : champ facultatif `media[].view` du format de catalogue, colonnes nullables `media_assets.view_x`, `view_y`, `view_width`, `view_height` (`migration040`, version 40 ; contraintes 0–100), `MediaAsset.view` (absente : image entière). Il est proposé à la publication par l’administration Web (détection des bandes blanches entre les vues, règle de choix) et vérifié par la personne qui publie ; l’application ne détecte ni ne calcule rien. Un asset persisté restant immuable (`ensureMediaAssets`), l’identité d’une photo de catalogue (`catalogue-<empreinte>`) inclut la vue quand elle existe : une vue corrigée crée un nouvel asset et atteint le téléphone par la mise à jour de la fiche ; sans vue, l’identité est inchangée.
+
 ## 12.15 Instantanés et historique
 
 Au démarrage effectif d’une Exécution, `HistoryService` conserve l’Instantané fonctionnel défini au chapitre 09.
