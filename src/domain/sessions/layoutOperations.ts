@@ -42,9 +42,9 @@
 import { clampSeriesCount, seriesCountOf, seriesRowsOf, unsetTarget, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
 import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
-import { enterCarrier, exitCarrier, exitNeedsChoice } from "./carrierMembership";
+import { enterCarrier, exitCarrier, exitNeedsChoice, freeExerciseOf, withFreeValues } from "./carrierMembership";
 import { entryExceedsMemberLimit, exitBreaksMemberMinimum } from "./circuitMemberLimit";
-import { circuitCompatibility, isSinglePassage, type ElementFormat, type ElementFormatKey } from "./formats";
+import { circuitCompatibility, isSinglePassage, PRECONFIGURATION_KEYS, type ElementFormat, type ElementFormatKey } from "./formats";
 import { seriesForRounds } from "./forTimeSeries";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import {
@@ -947,6 +947,17 @@ export type LayoutCircuitMembershipSettlement = {
  * Fonction pure : rien n'est écrit ; l'appelant applique `exercises` et `reservePatch` avec la
  * structure produite par son opération.
  */
+/** D-604 : Circuit d'un format à départ rapide (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset) — sans format porteur. */
+function isQuickStartCircuit(circuit: { readonly format?: ElementFormat | null; readonly originModel?: string | null } | undefined): boolean {
+  return (
+    circuit !== undefined &&
+    (circuit.format ?? null) === null &&
+    circuit.originModel !== undefined &&
+    circuit.originModel !== null &&
+    (PRECONFIGURATION_KEYS as readonly string[]).includes(circuit.originModel)
+  );
+}
+
 export function settleLayoutCircuitMembership(
   previous: Pick<SessionDraft, "exercises" | "structure" | "circuitSeriesReserve">,
   next: Pick<SessionDraft, "exercises" | "structure">,
@@ -984,13 +995,20 @@ export function settleLayoutCircuitMembership(
     // PRE-9 C.4 (référence Formats §6) : entrée dans un Circuit porteur — paramètres compatibles repris,
     // le reste à compléter, sans conversion ni confirmation de perte.
     if ((circuit.format ?? null) !== null) {
-      const entered = enterCarrier(exercise, circuit);
+      // D-604 (25/11/2026) : un exercice libre entré dans le format garde ses valeurs libres, masquées (`freeValues`).
+      const entered = enterCarrier(withFreeValues(exercise), circuit);
       changed ||= entered !== exercise;
       return entered;
     }
     if (!formattedMemberFits(exercise, circuit.nature, circuit.repeatCount)) {
       refusedExerciseIds.push(exercise.id);
       return exercise;
+    }
+    // D-604 (25/11/2026) : entrée dans un départ rapide — mêmes valeurs libres conservées et masquées.
+    if (isQuickStartCircuit(circuit)) {
+      const kept = withFreeValues(exercise);
+      changed ||= kept !== exercise;
+      exercise = kept;
     }
     if (circuit.nature !== "SERIES") {
       return exercise;
@@ -1018,6 +1036,12 @@ export function settleLayoutCircuitMembership(
       if (!exitNeedsChoice(exercise)) return settleEntry(exitCarrier(exercise, before, "FREE"));
       pendingExits.push({ exerciseId: exercise.id, formatKey: before.format!.key, free: settleEntry(exitCarrier(exercise, before, "FREE")) });
       return settleEntry(exitCarrier(exercise, before, "KEEP"));
+    }
+    // D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : sortie d'un départ rapide — champs et valeurs d'un exercice libre (valeurs libres
+    // conservées à l'entrée, sinon valeurs par défaut), rien n'est repris du bloc d'origine.
+    if (isQuickStartCircuit(before) && after?.id !== before!.id && exercise.type === "EXERCISE" && (exercise.format ?? null) === null) {
+      changed = true;
+      return settleEntry(freeExerciseOf(exercise));
     }
     // Décisions de Hermann du 07/11/2026 (EMOM), point 18 : sortie d'un Circuit standard (À la suite, En alternance) — l'EMOM simple reste EMOM, sans choix ;
     // Récupération à 0 s (séries modifiables et Intervalle propre conservés).

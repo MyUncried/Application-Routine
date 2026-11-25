@@ -409,6 +409,18 @@ export type ExecutionParametersSheetProps = {
    * Absent (`"series"`) : libellés inchangés.
    */
   readonly seriesWording?: "series" | "rounds";
+  /**
+   * D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : exercice d'un format à départ rapide (Tabata, 30/30, Renforcement, Progression,
+   * À l'échec, Superset) — la modale ne présente que Charge et De chaque côté ; nom du format dans le titre. Les autres valeurs de
+   * l'exercice ne changent pas (réglées par l'écran du format). Absent : exercice libre ou d'un format porteur (`format`).
+   */
+  readonly quickFormatName?: string;
+  /**
+   * D-604, interprétation à confirmer (25/11/2026) : départ rapide dont l'unité n'est pas imposée par le format (Renforcement, Progression,
+   * À l'échec, Superset — choisie dans cette modale depuis le 16/11/2026) : la ligne Mode reste, sans quoi l'exercice ne pourrait pas
+   * être complété. Tabata et 30/30 (Durée imposée) : absente.
+   */
+  readonly quickFormatUnitOpen?: boolean;
 };
 
 const t = strings.executionParameters.sheet;
@@ -637,6 +649,8 @@ export function ExecutionParametersSheet({
   recovery,
   profileDefaultsPending = false,
   format,
+  quickFormatName,
+  quickFormatUnitOpen = false,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -911,7 +925,7 @@ export function ExecutionParametersSheet({
   // Death by (Formats §12, « Condition d'arrêt Death by ») : ne pas appliquer ce masquage — Nombre de répétitions
   // (objectif de départ) visible à l'échec.
   const deathBySheet = format?.key === "DEATH_BY";
-  const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet);
+  const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet) && quickFormatName === undefined;
   // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
   const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
@@ -934,7 +948,25 @@ export function ExecutionParametersSheet({
   // la ligne Séries revient. [Recette du 07/11/2026 (y-format-cadres) : ligne Séries retirée pour le buy-in et le buy-out — remplacé
   // le 14/11/2026 ; la ligne Pause reste retirée.]
   const noSeriesRow = amrapMemberSheet;
-  const deathBySeriesRow = deathBySheet ? (format?.rows.includes("seriesUntilFailure") ?? false) : !noSeriesRow;
+  /*
+   * D-604 (Hermann, 25/11/2026 ; Formats § 9.7, Figma « … — Modale exercice » des formats) : la modale d'un exercice déjà dans la séance
+   * n'affiche que les champs utiles dans son contexte. Exercice d'un format (EMOM, AMRAP, Death by, For time) : Mode, Condition d'arrêt,
+   * Rôle (en circuit), Nombre de répétitions, Incrément, Intervalle, Charge, De chaque côté — et Séries pour le seul For time (en buy-in
+   * ou buy-out : Nombre de répétitions à la place). Retirés : Phases du mouvement, Cadence, Durée de l'exercice (ou durée maximum),
+   * Récupération, Pause (et Pause entre les côtés). Départ rapide (`quickFormatName`) : Charge et De chaque côté seulement. Les valeurs
+   * des champs retirés ne changent pas (ni affichées, ni réappliquées au ✓).
+   */
+  const leanFormat = format !== undefined;
+  const quickScope = quickFormatName !== undefined;
+  const forTimeOnce = forTimeSheet && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
+  // Séries variables déjà saisies (séance antérieure) : la ligne et son tableau restent, pour ne pas cacher les répétitions.
+  const leanSeriesRow = (forTimeSheet && !forTimeOnce) || showVariableTable;
+  const deathBySeriesRow = quickScope
+    ? false
+    : leanFormat
+      ? !deathBySheet && !noSeriesRow && leanSeriesRow
+      : // [Hors D-604 : Death by autonome — ligne Séries « Jusqu'à l'échec » (`seriesUntilFailure`) — remplacé : tout Death by est un format.]
+        !noSeriesRow;
   // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
   // cadre Cadence (lecture seule sous l'Intervalle, ou absente) ; Récupération absente en alternance et dans chaque intervalle.
   const emomSheet = format?.key === "EMOM";
@@ -943,10 +975,10 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet;
-  const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet;
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || quickScope;
+  const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet || leanFormat || quickScope;
   // Recette du 17/11/2026 (For time) : Récupération absente, sa valeur n'est pas réappliquée au ✓ (voir `handleValidate`).
-  const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false) && !forTimeSheet;
+  const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false) && !forTimeSheet && !leanFormat && !quickScope;
   // y-format-cadres (07/11/2026, Hermann, maquette `11264:19453`) : AMRAP, rôle Buy-in — « Récupération grisée, à 0 s, non modifiable ».
   const recoveryLocked = format?.key === "AMRAP" && formatValue?.role === "BUY_IN";
   // y-format-cadres (07/11/2026, Hermann) : « EMOM : retirer la colonne Pause du tableau et redistribuer horizontalement les deux
@@ -1497,7 +1529,8 @@ export function ExecutionParametersSheet({
         // Recette du 17/11/2026 (Hermann : « Les valeurs déjà saisies sont ignorées, sans être effacées ni modifiées ») : en For time,
         // Récupération ni affichée ni réappliquée — la valeur enregistrée reste telle quelle. [0 s appliqué comme une Récupération
         // absente — remplacé.]
-        if (!forTimeSheet) recovery?.onApply(appliedRecovery);
+        // D-604 : dans un format, la Récupération n'est ni affichée ni réappliquée — la valeur enregistrée reste telle quelle.
+        if (!forTimeSheet && !leanFormat && !quickScope) recovery?.onApply(appliedRecovery);
         // Précision du 14/11/2026 (soir), For time : séries déjà ajustées au Rôle choisi (`chooseRole`) — le Rôle est enregistré
         // d'abord, pour que ces séries ne soient pas lues comme un nouveau nombre de séries de l'ancien bloc (`withForTimeSeries`).
         const roleFirst = format !== undefined && appliedFormat !== null && roleBase.current !== null && appliedFormat.role !== format.role?.current;
@@ -1633,7 +1666,7 @@ export function ExecutionParametersSheet({
   // ligne Pause entre les côtés est absente sous Avec ; `sideRecoverySeconds` reste dans le Brouillon.
   // Recette du 18/11/2026 (emom-9, Hermann : « Le récapitulatif de l'EMOM en répétitions n'affiche plus la ligne « Pause entre les
   // côtés ». La valeur éventuellement saisie reste conservée dans le brouillon, sans effet ») : même principe ; EMOM en Durée inchangé.
-  const sideSettingsShown = bilateral && !forTimeSheet && !(emomSheet && draft.mode === "REPETITIONS");
+  const sideSettingsShown = bilateral && !forTimeSheet && !(emomSheet && draft.mode === "REPETITIONS") && format === undefined && quickFormatName === undefined;
   const sideOrderShown = !single;
   // AC3 : tant que la saisie de la Cadence est ouverte (Autre touché), l'option affichée est Autre.
   // Décision du 06/11/2026 : la valeur se saisit au clavier, dans le champ révélé sous la ligne.
@@ -1853,22 +1886,24 @@ export function ExecutionParametersSheet({
   // Suivant (`keyboardFieldOrder`) ; la charge commune y garde sa place (cadre Séries).
   const outsideFields: readonly KeyboardFieldId[] = [
     ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
-    ...(draft.inheritedSeriesCount ? [] : [scalarKeyboardField("count")]),
+    ...(draft.inheritedSeriesCount || !deathBySeriesRow ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
     ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
     ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
-    ...(beepOpen ? [scalarKeyboardField("beep")] : []),
-    ...(formatShown("duration")
+    ...(beepOpen && !leanFormat && !quickScope ? [scalarKeyboardField("beep")] : []),
+    ...(leanFormat || quickScope
+      ? []
+      : formatShown("duration")
       ? [scalarKeyboardField("formatDuration")]
       : formatShown("timeCap")
         ? [scalarKeyboardField("formatTimeCap")]
         : !formatShown("inheritedCap") && !noCadenceDuration && totalEntrySeconds !== undefined
           ? [scalarKeyboardField("total")]
           : []),
-    ...(signalsShown ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
+    ...(signalsShown && !noCadenceDuration ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
     ...(recoveryShown && !recoveryLocked ? [scalarKeyboardField("recovery")] : []),
   ];
   // PRE-5 story 2.2 (AD-26, AD-27) : hook unique focus / surface / application de la saisie.
@@ -2006,11 +2041,14 @@ export function ExecutionParametersSheet({
         </Row>
       </>
     ) : null;
+  // D-604 : lignes au-dessus des lignes de format dans le cadre Séries (sinon, pas de séparateur de tête).
+  const seriesLeadRows =
+    deathBySeriesRow || (uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS")) || (!showVariableTable && !noPauseRow && !formatShown("interval"));
   const formatSeriesRows = (
     <>
       {formatShown("increment") ? (
         <>
-          <Separator />
+          {seriesLeadRows ? <Separator /> : null}
           <Row label={formatDeathBy ? formatT.incrementPerInterval : formatT.incrementPerRound} testID="execution-sheet-format-increment-row">
             {formatIncrementLocked ? (
               <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
@@ -2032,7 +2070,7 @@ export function ExecutionParametersSheet({
       ) : null}
       {formatShown("interval") ? (
         <>
-          <Separator />
+          {seriesLeadRows || formatShown("increment") ? <Separator /> : null}
           <Row
             label={formatT.interval}
             // [Message du dépassement sous la ligne Intervalle — déplacé sous l'en-tête le 08/11/2026 (recette, Autres constats).]
@@ -2047,7 +2085,7 @@ export function ExecutionParametersSheet({
           </Row>
         </>
       ) : null}
-      {formatShown("durationReadOnly") ? (
+      {formatShown("durationReadOnly") && !leanFormat ? (
         <>
           <Separator />
           {/* Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Durée de l'exercice en lecture seule, N × intervalle, placée sous l'Intervalle. */}
@@ -2769,7 +2807,13 @@ export function ExecutionParametersSheet({
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
               <ModalHeader
                 // Recette du 07/11/2026 : nom du Format dans le titre (Figma « Paramètres d'exécution AMRAP »).
-                title={format !== undefined ? `${t.title} ${strings.executionParameters.format.names[format.key]}` : t.title}
+                title={
+                  format !== undefined
+                    ? `${t.title} ${strings.executionParameters.format.names[format.key]}`
+                    : quickFormatName !== undefined
+                      ? `${t.title} ${quickFormatName}`
+                      : t.title
+                }
                 onCancel={handleCancel}
                 cancelLabel={t.cancelAccessibilityLabel}
                 onValidate={handleValidate}
@@ -2836,7 +2880,8 @@ export function ExecutionParametersSheet({
                     lignes d'un même cadre. */}
                 {/* PRE-9 (CE-FMT-04) : réglages de Format de l'Exercice, dans les cadres existants (recette du 07/11/2026).
                     [Cadre séparé « {format} » — remplacé.] */}
-                {/* Cadre Exécution : Mode, Condition d'arrêt. */}
+                {/* Cadre Exécution : Mode, Condition d'arrêt. D-604 : absent en départ rapide (Charge et De chaque côté seulement). */}
+                {quickScope && !quickFormatUnitOpen ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("execution")}
@@ -2846,12 +2891,17 @@ export function ExecutionParametersSheet({
                   <Row label={t.mode} testID="execution-sheet-row-mode">
                     {modeControl}
                   </Row>
-                  <Separator />
-                  <Row label={t.stopCondition} testID="execution-sheet-row-stop-condition">
-                    {stopConditionControl}
-                  </Row>
+                  {quickScope ? null : (
+                    <>
+                      <Separator />
+                      <Row label={t.stopCondition} testID="execution-sheet-row-stop-condition">
+                        {stopConditionControl}
+                      </Row>
+                    </>
+                  )}
                   {formatRoleRow}
                 </SheetMotionView>
+                )}
                 {durationRefused ? (
                   <Text style={styles.durationRefusedNote} accessibilityRole="alert" testID="execution-sheet-duration-refused">
                     {strings.screens.formatModel.lastRepetitionsLocked}
@@ -2875,6 +2925,8 @@ export function ExecutionParametersSheet({
                     suivie d'un séparateur.] Même groupe à découpe que le tableau des séries
                     (E-20 : une seule animation à l'apparition du tableau), découpe levée pendant
                     un glisser. */}
+                {/* D-604 : Phases du mouvement absentes dans un format (valeurs conservées). */}
+                {leanFormat || quickScope ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("phases")}
@@ -2922,6 +2974,7 @@ export function ExecutionParametersSheet({
                     {adjustment?.kind === "phaseRemoval" ? adjustmentMessage : null}
                   </SheetMotionView>
                 </SheetMotionView>
+                )}
                 {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
                     des phases déployé ; sinon, séparateur entre les deux lignes.
                     [Remplacé le 30/10/2026 — contre-recette iPhone, Hermann : « il faut le trait
@@ -3074,7 +3127,7 @@ export function ExecutionParametersSheet({
                       saisie que les cellules (D-434, `cellDecimal`) ; Avec ouvre le clavier dans
                       l'option, élargie au strict nécessaire si la valeur ne tient pas dans 62. */}
                   {formatSeriesRows}
-                  <Separator />
+                  {seriesLeadRows || formatShown("increment") || formatShown("interval") ? <Separator /> : null}
                   <Row label={t.load} testID="execution-sheet-row-load">
                     <SegmentedControl<LoadChoice>
                       variant="inline"
@@ -3198,6 +3251,8 @@ export function ExecutionParametersSheet({
                 </SheetMotionView>
 
                 {/* Cadre Cadence et durée : Cadence, Durée de l'exercice, Compte à rebours, Fin. */}
+                {/* D-604 : Cadence et Durée de l'exercice (ou durée maximum) absentes dans un format. */}
+                {leanFormat || quickScope ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("cadence")}
@@ -3305,6 +3360,7 @@ export function ExecutionParametersSheet({
                     </>
                   ) : null}
                 </SheetMotionView>
+                )}
 
                 {/* PRE-9 — bloc 6 « Récupération » (ordre de Hermann du 01/11/2026, point 2 ; CE-UI-10
                     ligne 14 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : seule ligne

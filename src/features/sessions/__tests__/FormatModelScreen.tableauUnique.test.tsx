@@ -69,6 +69,21 @@ const service = {
 } as never;
 const t = strings.screens.formatModel;
 
+/**
+ * D-603 / D-604 (Hermann, 25/11/2026 ; Formats §§ 9.6 et 9.7) : à la première ouverture, le choix des mouvements s'affiche en premier.
+ * Les scénarios qui commencent par les paramètres le quittent d'abord, comme l'utilisateur (« Fermer sans sélectionner »).
+ */
+async function openedFormat() {
+  const title = await screen.findByTestId("format-title");
+  const leave = screen.queryByTestId("format-catalogue-add");
+  if (leave !== null) {
+    await act(async () => {
+      fireEvent.press(leave);
+    });
+  }
+  return title;
+}
+
 function Harness({ draftRef }: { draftRef: { current: SessionDraft } }) {
   const [draft, setDraft] = useState<SessionDraft>(createEmptyDraft);
   useEffect(() => {
@@ -93,7 +108,7 @@ function Harness({ draftRef }: { draftRef: { current: SessionDraft } }) {
 async function open(model: FormatModelKey, draftRef = { current: createEmptyDraft() }) {
   mockModel = model;
   render(<Harness draftRef={draftRef} />);
-  await screen.findByTestId("format-title");
+  await openedFormat();
   return draftRef;
 }
 
@@ -290,19 +305,15 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     fireEvent.scroll(screen.getByTestId("format-movements-columns"), { nativeEvent: { contentOffset: { x: 0, y: 0 } } });
     expect(screen.getByTestId("format-movements-more", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.queryByTestId("format-movements-more-before", { includeHiddenElements: true })).toBeNull();
-    // Modale : l'unité, puis le nombre de séries (ou de tours) ; Superset : « tours identiques ».
-    let typeValueOutside = false;
+    // Modale : l'unité. D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : plus de ligne Séries dans la modale d'un exercice de format — le
+    // nombre de séries (ou de tours) se règle par sa ligne. [Nombre de séries saisi dans la modale ; Superset : « tours identiques »
+    // (16/11/2026) — remplacé.]
     await inSheet(0, () => {
       fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
-      // Décision du 16/11/2026 (même modale que dans la Composition) : Superset — tours comptés en tours et imposés par le Nombre de
-      // tours, comme dans la Composition.
-      if (model === "SUPERSET") {
-        expect(screen.getByTestId("execution-sheet-series-value", { includeHiddenElements: true })).toHaveTextContent(/tours/);
-        typeValueOutside = true;
-      } else enterExecutionSheetValue("execution-sheet-series", 2, "integer");
+      expect(screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeNull();
       fillTargets(8);
     });
-    if (typeValueOutside) typeValue(row, "2");
+    typeValue(row, "2");
     expect(shown(row)).toMatch(/^2( tours)?$/);
     expect(screen.queryByTestId("format-movements-head-2")).toBeNull();
     expect(screen.queryByTestId("format-movements-more", { includeHiddenElements: true })).toBeNull();
