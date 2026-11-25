@@ -1790,6 +1790,15 @@ export function createEmptyExecutionParameters(defaults: ExecutionProfileDefault
   };
 }
 
+/**
+ * D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : paramètres d’un nouvel exercice libre — Mode
+ * Répétitions par défaut, objectif « À l’objectif » (Cible à renseigner). Le reste comme `createEmptyExecutionParameters`. Un Mouvement à
+ * phases garde la Durée (`repriseExecutionParameters`). [Mode Durée par défaut (recette du 29/10/2026) — remplacé pour l’exercice libre.]
+ */
+export function createFreeExerciseParameters(defaults: ExecutionProfileDefaults): ExecutionParametersInput {
+  return { ...createEmptyExecutionParameters(defaults), mode: "REPETITIONS" };
+}
+
 function workPhasesEqual(a: readonly WorkPhase[], b: readonly WorkPhase[]): boolean {
   return (
     a.length === b.length &&

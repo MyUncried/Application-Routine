@@ -40,6 +40,9 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
   sheet: {
     title: "Execution settings",
     cancelAccessibilityLabel: "Cancel settings",
+    freeTitle: "Free exercise",
+    freeTagline: "Set each parameter of the exercise freely.",
+    freeSection: "Execution settings",
     validateAccessibilityLabel: "Confirm settings",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",

@@ -3,7 +3,9 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useMemo, useState, type ReactNode } from "react";
 import { Platform } from "react-native";
 
+import { createFreeExerciseParameters, stopConditionOf } from "@/domain/activities/ExecutionParameters";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { freeExerciseOf } from "@/domain/sessions/carrierMembership";
 import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SessionStructure, StructureStopPointLocation } from "@/domain/sessions/structure";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
@@ -129,13 +131,30 @@ describe("D-606 — appui sur la carte d'un Exercice issu d'un format : page du 
     expect(actions.some((name: string) => name === "moveUp" || name === "moveDown")).toBe(true);
   });
 
-  it("exercice libre : la modale « Paramètres d'exécution », inchangée", async () => {
+  it("exercice libre : modale de type format « Exercice libre », avec tous les champs d'un exercice libre", async () => {
     await renderComposition(draftOf());
     await act(async () => {
       fireEvent.press(screen.getByTestId("composition-exercise-row-e0"));
     });
     expect(mockPush).not.toHaveBeenCalled();
     expect(await screen.findByTestId("execution-sheet")).toBeTruthy();
+    // Figma `13242:26255` : titre « Exercice libre », zone de contexte, accroche, intitulé des paramètres.
+    expect(screen.getByText("Exercice libre")).toBeTruthy();
+    expect(screen.getByTestId("execution-sheet-free-context")).toHaveStyle({ backgroundColor: "#FBF3E4" });
+    expect(screen.getByTestId("execution-sheet-free-tagline")).toHaveTextContent("Réglez librement chaque paramètre de l’exercice.");
+    expect(screen.getByTestId("execution-sheet-free-section")).toHaveTextContent("Paramètres d’exécution");
+    for (const id of ["execution-sheet-row-mode", "execution-sheet-row-stop-condition", "execution-sheet-row-load", "execution-sheet-row-side", "execution-sheet-frame-recovery"]) {
+      expect(screen.getByTestId(id)).toBeTruthy();
+    }
+  });
+
+  it("membre d'un Circuit composé à la main : exercice libre, même modale « Exercice libre »", async () => {
+    await renderComposition(draftOf());
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("composition-exercise-row-b1"));
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("execution-sheet-free-context")).toBeTruthy();
   });
 
   it("formatOriginOf : modèle d'origine du Circuit ; rien pour un exercice seul ou un Circuit composé à la main", () => {
@@ -143,5 +162,17 @@ describe("D-606 — appui sur la carte d'un Exercice issu d'un format : page du 
     expect(formatOriginOf(draft, "a2")).toEqual({ model: "TABATA", circuitId: "ca" });
     expect(formatOriginOf(draft, "e0")).toBeUndefined();
     expect(formatOriginOf(draft, "b1")).toBeUndefined();
+  });
+});
+
+describe("D-606 — valeurs par défaut d'un exercice libre", () => {
+  it("nouvel exercice libre et exercice sorti d'un format : Mode Répétitions, « À l'objectif » (Cible à renseigner)", () => {
+    const parameters = createFreeExerciseParameters({ countdownSeconds: 10, endSeconds: 5 });
+    expect(parameters.mode).toBe("REPETITIONS");
+    expect(stopConditionOf(parameters)).toBe("TARGET");
+    expect(parameters.series).toMatchObject({ kind: "UNIFORM", count: 1, target: { kind: "UNSET" } });
+    const exited = freeExerciseOf({ ...exercise("x"), format: { key: "EMOM", settings: {} } } as SessionDraftExercise);
+    expect(exited.executionParameters.mode).toBe("REPETITIONS");
+    expect(exited.format).toBeUndefined();
   });
 });

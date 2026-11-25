@@ -240,7 +240,7 @@ describe("sortie d'un Circuit porteur (§13)", () => {
     // Valeurs par défaut : Compte à rebours et Fin du Profil gardés, sans Récupération.
     const created = { ...enterCarrier(exercise("b"), FOR_TIME_CIRCUIT), executionParameters: { ...repetitionParameters(5, 2, 0), countdownSeconds: 7, endSeconds: 4 } };
     const freed = freeExerciseOf(created);
-    expect(freed.executionParameters).toMatchObject({ mode: "DURATION", countdownSeconds: 7, endSeconds: 4, series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" } } });
+    expect(freed.executionParameters).toMatchObject({ mode: "REPETITIONS" /* D-606 (25/11/2026) : Mode Répétitions par défaut d’un exercice libre [Durée — remplacé] */, countdownSeconds: 7, endSeconds: 4, series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" } } });
     expect(freed.postActivityRecoverySeconds).toBeNull();
     // Un exercice déjà formaté ne reçoit pas de valeurs libres.
     expect(withFreeValues(created)).toBe(created);
@@ -365,7 +365,7 @@ describe("D-604 — sortie et entrée d'un format (déplacements)", () => {
     const draft = draftOf([tabata(["t1", "t2"])], [member, exercise("t2", durationParameters(20))]);
     const out = at(applied(moveLayoutItem(draft, { kind: "EXERCISE", id: "t1" }, { container: { kind: "SESSION" }, index: 1 }, newId)), "t1");
     expect(out).not.toHaveProperty("format");
-    expect(out.executionParameters).toMatchObject({ mode: "DURATION", countdownSeconds: 5, endSeconds: 3, series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0 } });
+    expect(out.executionParameters).toMatchObject({ mode: "REPETITIONS" /* D-606 (25/11/2026) [Durée — remplacé] */, countdownSeconds: 5, endSeconds: 3, series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0 } });
     expect(out.postActivityRecoverySeconds).toBeNull();
     expect(out.profileDefaultsPending).toBe(true);
   });
