@@ -456,7 +456,7 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
   sessionModels: {
     // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
     creationTitle: "Create an exercise",
-    freeExercise: { title: "Free exercise", subtitle: "one movement, then its settings" },
+    freeExercise: { title: "Free exercise", subtitle: "one movement, to set up" },
     title: "Workout formats",
     closeAccessibilityLabel: "Close",
     cards: {

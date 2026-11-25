@@ -229,6 +229,7 @@ import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
+import { formatOriginOf } from "@/features/sessions/formatSheetContext";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -4738,13 +4739,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // l'Exercice (`handleOpenMovement`). Une autre Activité (sans paramètres d'exécution) ouvre son
       // éditeur, comme avant.
       const touched = draft.exercises.find((exercise) => exercise.id === activityId);
+      // D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : la carte d'un Exercice issu d'un format
+      // ouvre la page unique de ce format (réouverture sur ses paramètres, comme « Modifier le format ») ; la modale « Paramètres
+      // d'exécution » n'est plus ouverte pour ces Exercices. Photo, déplacer, dupliquer et supprimer : inchangés.
+      const origin = touched === undefined ? undefined : formatOriginOf(draft, activityId);
+      if (origin !== undefined) {
+        router.push({ pathname: "/format-summary", params: { model: origin.model, circuitId: origin.circuitId } });
+        return;
+      }
       if (touched !== undefined && (touched.type === "EXERCISE" || isExerciseParametersIncomplete(touched))) {
         openExerciseParameters(activityId);
         return;
       }
       router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
     },
-    [closeCircuitControls, draft.exercises, openExerciseParameters, router],
+    [closeCircuitControls, draft, openExerciseParameters, router],
   );
   /**
    * Recette iPhone n° 2 du 31/10/2026 (constat c) : photo d'une carte d'Exercice — fiche de l'Exercice / du Mouvement.
