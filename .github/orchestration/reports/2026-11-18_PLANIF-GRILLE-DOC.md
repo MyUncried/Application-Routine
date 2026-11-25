@@ -197,3 +197,12 @@
 - Dépendance ajoutée (consigne de Hermann, 25/11/2026) : le marquage des photos (rectangle de la vue retenue par image) est un prérequis de la mosaïque ; DSF carte et prompt mis à jour.
 - Vérification sur iPhone à faire : lisibilité des trois lignes et des mosaïques à 64 pt, relief de Démarrer, ouverture de la modale, modale de sélection.
 - Tests : non applicables.
+
+## Complément 25/11/2026 (suite) — Tabata : séquence d'ouverture et modale allégée (D-568, classe B)
+- Décision explicite de Hermann (25/11/2026, captures iPhone) : à l'ouverture du format Tabata, l'écran de choix des mouvements apparaît en premier (changement de séquence, aucun nouvel écran) ; la modale « Paramètres d'exécution » d'un exercice du Tabata ne garde que Charge et De chaque côté ; son intégration sera revue ultérieurement.
+- Figma : « Tabata — Modale exercice, standard » et « en alternance » : modale allégée à deux lignes, hauteur de feuille adaptée. Écrans « Conception — Hors MVP » non touchés.
+- Documents : registre ch07 D-568 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.6 ; prompt `docs/PROMPT-CLAUDE-CODE-TABATA-SEQUENCE-PARAMETRES-2026-11-25.md`.
+- Non traité : autres formats (séquence et modale) ; libellé du lien du haut de l'écran de choix des mouvements (« Revenir aux paramètres » ne convient plus à la première ouverture).
+- Vérification sur iPhone à faire : ouverture du Tabata sur le choix des mouvements, modale à deux lignes.
+- Tests : non applicables.
+

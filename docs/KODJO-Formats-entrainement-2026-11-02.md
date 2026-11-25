@@ -572,6 +572,14 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 [Contre-recette n° 3 bis du 03/11/2026 (f3-depart), Hermann, toujours applicable : « il manque la pause » — Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base ; « ne pas calculer de durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » — Durée totale au récapitulatif seulement (l'interrupteur « Avec charge » se place donc après Pause) ; « la ligne du mode d'exécution est la dernière, après la durée totale » ; colonne des noms fixe, colonnes des séries défilant horizontalement ; « clavier : supprimer le bouton "Next" ». « Aucun interrupteur global de charge » (02/11) remplacé le 04/11/2026 par l'interrupteur « Avec charge » du questionnaire (§9.3) ; « Suivant parcourt répétitions S1, charge S1, répétitions S2 » remplacé par l'ordre ci-dessus (objectifs puis charges). Fusion du 04/11/2026 de `main` 560f87bd dans `pre9-bmad/dev`.]
 
 
+
+### 9.6 Séquence d'ouverture et modale « Paramètres d'exécution » allégée (25/11/2026, D-568)
+
+- **Séquence.** À l'ouverture du format Tabata, l'écran de choix des mouvements s'affiche en premier ; le questionnaire reste accessible depuis cet écran. Aucun nouvel écran.
+- **Modale « Paramètres d'exécution Tabata »** (ouverte en touchant un mouvement du questionnaire, ou depuis la Composition) : seuls **Charge** et **De chaque côté** sont présentés. Mode, Condition d'arrêt, Phases du mouvement, Séries, Objectif de durée, Pause, Cadence, Durée de l'exercice et Récupération n'y figurent plus ; le nombre de séries, la durée de travail, la pause et la récupération se règlent sur l'écran principal du format. Les exercices du Tabata gardent Durée, À l'objectif, sans phases et sans cadence.
+- [Précisé le 25/11/2026 (D-568) : la règle « Règles des Exercices standards » du § 9 n'ouvre plus, dans cette modale, la modification individuelle de Mode, Phases, Séries, Objectif, Pause, Cadence, Durée de l'exercice et Récupération pour un exercice du Tabata.]
+- Figma : « Tabata — Modale exercice, standard » et « Tabata — Modale exercice, en alternance » (modale allégée). L'intégration de la modale sera revue ultérieurement.
+
 ## 10. Application de la règle à l'EMOM
 
 Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Répétitions par défaut et Durée possible**, par Exercice et dans toutes les organisations. Un EMOM peut associer 10 burpees et 20 s de gainage dans chaque minute, ou un seul gainage de 40 s par minute. Les objectifs en Durée sont soumis au contrôle strict de l’intervalle du §7.6.
