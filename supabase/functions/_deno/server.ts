@@ -147,6 +147,7 @@ export function deletionPorts(admin: SupabaseClient): DeletionPorts {
       if (error) throw error;
     },
     markAuthDeleted: (authUserId) => markAuthDeleted(admin, authUserId),
+    logError: (reason, error) => console.error(`delete-account: ${reason}`, error),
   };
 }
 

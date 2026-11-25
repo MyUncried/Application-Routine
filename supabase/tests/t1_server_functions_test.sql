@@ -90,4 +90,14 @@ do $$ begin
   perform pg_temp.assert((select count(*) from auth.sessions) = 1, 'sessions des autres comptes intactes');
 end $$;
 
+-- Droits directs du rôle serveur sur chaque table (recette 25/11/2026 : absents sur le projet).
+do $$ declare t text; p text; begin
+  foreach t in array array['accounts','account_local_users','catalogues','apple_tokens','account_deletions','apple_notification_events'] loop
+    foreach p in array array['SELECT','INSERT','UPDATE','DELETE'] loop
+      perform pg_temp.assert(has_table_privilege('service_role', 'public.' || t, p), format('service_role : %s sur %s', p, t));
+    end loop;
+    perform pg_temp.assert(not has_table_privilege('anon', 'public.' || t, 'SELECT'), format('anon : aucune lecture de %s', t));
+  end loop;
+end $$;
+
 select 'T1 SQL fonctions serveur : tous les tests réussis' as resultat;

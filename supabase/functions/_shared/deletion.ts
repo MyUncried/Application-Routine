@@ -53,6 +53,8 @@ export interface DeletionPorts {
   authUserExists(authUserId: string): Promise<boolean>;
   deleteAuthUser(authUserId: string): Promise<void>;
   markAuthDeleted(authUserId: string): Promise<void>;
+  /** Journal serveur de la cause d'une erreur (jamais renvoyée au client au-delà de `reason`). */
+  logError?(reason: string, error: unknown): void;
 }
 
 export type DeletionOutcome =
@@ -69,6 +71,11 @@ export function proofHash(authUserId: string, proof: string): Promise<string> {
   return sha256Hex(`kodjo-deletion:${authUserId}:${proof}`);
 }
 
+function failure(ports: DeletionPorts, reason: string, error: unknown): { result: "retryable_error"; reason: string } {
+  ports.logError?.(reason, error);
+  return { result: "retryable_error", reason };
+}
+
 export async function runDeletion(
   authUserId: string,
   receipt: string | null,
@@ -80,8 +87,8 @@ export async function runDeletion(
     const localUserHashes = await Promise.all(localUserIds.map((id) => proofHash(authUserId, id)));
     const receiptHash = receipt ? await proofHash(authUserId, receipt) : null;
     record = await ports.beginRecord(authUserId, receiptHash, localUserHashes);
-  } catch {
-    return { result: "retryable_error", reason: "record" };
+  } catch (error) {
+    return failure(ports, "record", error);
   }
   if (record.authDeletedAt) return { result: "deleted" };
 
@@ -92,13 +99,13 @@ export async function runDeletion(
     }
     try {
       await ports.deleteStorageObjects(authUserId);
-    } catch {
-      return { result: "retryable_error", reason: "storage" };
+    } catch (error) {
+      return failure(ports, "storage", error);
     }
     try {
       await ports.purgeAccountData(authUserId);
-    } catch {
-      return { result: "retryable_error", reason: "purge" };
+    } catch (error) {
+      return failure(ports, "purge", error);
     }
   }
 
@@ -109,8 +116,8 @@ async function revokeIfNeeded(authUserId: string, ports: DeletionPorts): Promise
   let account: AccountSnapshot | null;
   try {
     account = await ports.loadAccount(authUserId);
-  } catch {
-    return { result: "retryable_error", reason: "account" };
+  } catch (error) {
+    return failure(ports, "account", error);
   }
   try {
     if (!account || account.provider === "google") {
@@ -122,8 +129,8 @@ async function revokeIfNeeded(authUserId: string, ports: DeletionPorts): Promise
     if (token) {
       try {
         await ports.revokeAppleToken(token);
-      } catch {
-        return { result: "retryable_error", reason: "apple_revoke" };
+      } catch (error) {
+        return failure(ports, "apple_revoke", error);
       }
       await ports.setAppleRevocation(authUserId, "done");
       return { result: "ok" };
@@ -133,9 +140,9 @@ async function revokeIfNeeded(authUserId: string, ports: DeletionPorts): Promise
       return { result: "ok" };
     }
     // Compte Apple sans jeton ni invalidation connue : aucune suppression sans révocation.
-    return { result: "retryable_error", reason: "apple_token_missing" };
-  } catch {
-    return { result: "retryable_error", reason: "revocation_state" };
+    return failure(ports, "apple_token_missing", null);
+  } catch (error) {
+    return failure(ports, "revocation_state", error);
   }
 }
 
@@ -147,7 +154,7 @@ async function finishAuthDeletion(authUserId: string, ports: DeletionPorts): Pro
     await ports.markAuthDeleted(authUserId);
     return { result: "deleted" };
   } catch (error) {
-    return { result: "retryable_error", reason: error instanceof AuthUnavailableError ? "auth_unavailable" : "auth_delete" };
+    return failure(ports, error instanceof AuthUnavailableError ? "auth_unavailable" : "auth_delete", error);
   }
 }
 

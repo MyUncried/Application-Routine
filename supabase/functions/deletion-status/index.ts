@@ -19,7 +19,8 @@ Deno.serve(async (request) => {
   try {
     const status = await deletionStatus(authUserId, { receipt, localUserId }, deletionStatusPorts(adminClient()));
     return status === "indeterminate" ? json(503, { status }) : json(200, { status });
-  } catch {
+  } catch (error) {
+    console.error("deletion-status: indeterminate", error);
     return json(503, { status: "indeterminate" });
   }
 });

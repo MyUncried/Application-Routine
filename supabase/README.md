@@ -27,7 +27,7 @@ Plan : `_bmad-output/compte/plan-lot-compte.md` (T1). Projet de développement :
 
 ```bash
 supabase link --project-ref qiruzadtbqcdewvsaizo
-supabase db push
+supabase db push --remote
 supabase functions deploy delete-account apple-token deletion-status apple-notifications
 ```
 

@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 
 import {
   AuthUnavailableError,
@@ -106,6 +106,17 @@ describe("runDeletion — ordre et reprise", () => {
     expect(await runDeletion(UID, "r", ports)).toEqual({ result: "retryable_error", reason: "apple_revoke" });
     expect(state.calls).not.toContain("purge");
     expect(state.account).not.toBeNull();
+  });
+
+  it("registre impossible à créer (droits manquants) : retryable_error « record », cause journalisée côté serveur", async () => {
+    const { ports } = fake();
+    const cause = new Error("permission denied for table account_local_users");
+    ports.listLocalUserIds = async () => {
+      throw cause;
+    };
+    const logError = jest.fn();
+    expect(await runDeletion(UID, "r", { ...ports, logError })).toEqual({ result: "retryable_error", reason: "record" });
+    expect(logError).toHaveBeenCalledWith("record", cause);
   });
 
   it("Google : not_applicable, aucun appel de révocation", async () => {

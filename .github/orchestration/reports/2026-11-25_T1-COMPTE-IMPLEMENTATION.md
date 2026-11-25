@@ -110,6 +110,15 @@ Nettoyage demandé à Hermann : retirer `http://localhost:3999/` des Redirect UR
 
 Incident de configuration résolu : « Supabase is not configured » au premier essai, faute de `.env.local` sur le poste (les variables EAS ne parviennent pas à Metro local) ; corrigé par `eas env:pull --environment development` puis `expo start --clear`. Aucun changement de code.
 
+| Suppression du compte (É3), 1er essai | **FAIL** : « La suppression du compte n'a pas abouti » ; deux appels `delete-account` → 503 ; aucune ligne `account_deletions` ; ligne `accounts` intacte | journal Supabase et tableau de bord (Hermann) |
+
+**Défaut de suppression — analyse et correction**
+- Cause **démontrée** : sur le projet Supabase, `service_role` n'a reçu sur les six tables T1 que TRUNCATE, REFERENCES, TRIGGER (requête `information_schema.role_table_grants` exécutée par Hermann). Les fonctions `security definer` (`link_account`, `store_apple_token`) fonctionnent, d'où le succès de la connexion ; le premier accès direct (`listLocalUserIds` dans `runDeletion`) échoue → `reason: record` → 503, avant toute écriture.
+- Introduction : migration `20261125000001_t1_accounts.sql` (ce lot), qui supposait les privilèges par défaut du projet. Détection : cette recette. Les tests SQL locaux ne le voyaient pas car aucun ne contrôlait les droits directs de `service_role`.
+- Correction : migration `20261125000004_t1_service_role_grants.sql` (SELECT, INSERT, UPDATE, DELETE explicites pour `service_role` ; `anon`/`authenticated` inchangés) ; test SQL des droits (échoue sans la migration, réussit avec : vérifié) ; journalisation serveur de la cause (`logError` dans `runDeletion`, `console.error` dans `deletion-status`) ; test Jest associé.
+- Classe de synchronisation : A (le code rejoint le comportement de suppression déjà spécifié) / D (droits et journal) ; aucune documentation fonctionnelle touchée.
+- Effet attendu côté app : suppression déjà enregistrée « en cours » sur le téléphone, reprise automatiquement au prochain lancement avec réseau.
+
 ### 5.2 Reste à faire
 
 Pas encore réalisé :
