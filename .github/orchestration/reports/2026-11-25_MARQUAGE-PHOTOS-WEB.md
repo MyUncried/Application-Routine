@@ -114,15 +114,32 @@ de 1,4 %), FIT-CRO-010 (faux positif connu), les cinq images à bandeau gris (ma
 - Le glisser / redimensionner (événements pointeur) n'a pas été exercé.
 
 ## Éléments non traités / limites
-- **Révisions** : le script n'ajoute que les clés `view`, sans nouvelle révision des fiches (demande « seules des clés view »). Si Hermann
-  accepte une proposition telle quelle et enregistre, aucune révision ne sera calculée (contenu identique au disque) : un téléphone qui
-  décide des mises à jour par révision de fiche ne recevrait pas les vues. À trancher avant diffusion (par exemple réenregistrement avec
-  révision, ou option du script passant par `applyFileEdit`).
+- **Révisions** : traité, voir la section « Révisions » ci-dessous (la première livraison `36817e9b` n'ajoutait que les clés `view`).
 - **« Vérifiée »** n'existe pas dans le format (contrat inchangé) : noté dans le navigateur (`localStorage`), perdu avec les données du
   navigateur ou sur un autre poste.
 - La page n'ouvre que `catalogue/catalogues/*.catalogue.json` : pour vérifier le catalogue illustré, le copier à cet emplacement (sans le
   committer), comme pour la recette.
 - Le script de lot est Windows uniquement (WIC).
+
+## Révisions (suite demandée par le coordinateur, 25/11)
+- Constat bloquant confirmé : `src/domain/catalogue/catalogueLoadPlan.ts` l. 404-407 — même révision et empreinte différente ⇒
+  `INCOHERENT_REVISION` sur le téléphone. La livraison `36817e9b` (clés `view` sans révision) aurait donc été refusée.
+- `propose-views.mjs` applique désormais les vues par `applyFileEdit` (`catalogueEditing.ts`), comme `server.mjs` à l'enregistrement.
+  Métadonnées identiques à celles du serveur sans auteur déclaré (`editMeta`) : auteur `null`, date du moment (ISO), résumé
+  « Marquage des photos : vue retenue proposée ». Fonction exportée `applyViewsWithRevisions`, avec contrôles : seules changent la clé
+  `view` des photos visées, la révision et l'historique (une entrée ajoutée, préfixe identique) des fiches concernées, et la révision du
+  catalogue (que `applyFileEdit` avance dès que le fichier change).
+- Catalogue illustré régénéré depuis son contenu d'avant `36817e9b` (`git checkout 36817e9b^ -- <fichier>`, puis `--write`), en un nouveau
+  commit, sans réécriture d'historique : **53 fiches révisées** (révision + 1, ex. REED-001 5 → 6, entrée du 2026-11-25), 7 fiches sans vue
+  inchangées (FIT-HYR-009, FIT-STR-002, 004, 005, 008, 009, 010), révision du catalogue 67 → 68. Mêmes vues que dans le tableau ci-dessus.
+- Vérification indépendante contre la version d'origine : `parseMovementCatalogueFile` valide (62 avertissements `UNKNOWN_OWNER`, comme
+  avant) ; 53 fiches différentes, toutes uniquement par `view` + révision + historique ; 7 identiques ; reste du fichier identique hors
+  révision du catalogue.
+- Test `tools/catalogue-admin/propose-views.test.mjs` (4 tests) : révision incrémentée et entrée d'historique, fiche sans vue inchangée,
+  vue retirée (image entière) révisée, même vue sans changement ni révision, photo inconnue refusée.
+- `node --test "tools/catalogue-admin/*.test.mjs"` : 48 réussis, 0 échec.
+- Côté page : l'enregistrement passe déjà par le serveur, qui révise toute fiche dont la vue change ; accepter une proposition déjà
+  présente dans le fichier ne change rien et ne crée pas de révision (cohérent : même empreinte).
 
 ## Synchronisation code / documentation
 - Classe A : la page et le script appliquent la règle écrite (DSF § 1 et § 3, D-600). README de l'outil mis à jour. Aucun autre document.
@@ -134,10 +151,12 @@ de 1,4 %), FIT-CRO-010 (faux positif connu), les cinq images à bandeau gris (ma
 ## Fichiers modifiés
 - `tools/catalogue-admin/viewDetection.js` (nouveau), `viewDetection.test.mjs` (nouveau), `viewMarking.js` (nouveau),
   `propose-views.mjs` (nouveau), `media.js`, `app.js`, `index.html`, `styles.css`, `server.mjs`, `server.test.mjs`, `README.md`.
-- `catalogue/illustrations/kodjo-pilote-60.illustre-v3.json` (clés `view` seulement).
+- `catalogue/illustrations/kodjo-pilote-60.illustre-v3.json` (clés `view`, puis révisions et historique des 53 fiches marquées).
+- Suite « Révisions » : `propose-views.mjs`, `propose-views.test.mjs` (nouveau), `README.md`, ce rapport.
 
 ## Commits
-- `326a7b14` — code, tests, README. `36817e9b` — propositions dans le catalogue illustré. Rapport : commit suivant.
+- `326a7b14` — code, tests, README. `36817e9b` — propositions dans le catalogue illustré (sans révision, remplacé). `91077053` — rapport.
+- Suite « Révisions » : commit du script et du test, puis commit du catalogue régénéré et de ce rapport (voir `git log`).
 
 ## État Git
 - Branche `feat/marquage-photos-web-20261125`, non poussée ; worktree propre après le commit du rapport.

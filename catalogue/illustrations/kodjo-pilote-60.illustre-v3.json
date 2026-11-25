@@ -4,7 +4,7 @@
   "catalogue": {
     "id": "kodjo.pilote-60",
     "title": "Catalogue pilote KODJO — 60 fiches de test",
-    "revision": "67",
+    "revision": "68",
     "owner": null,
     "notes": [
       "Conversion initiale (CA-2) du 2026-11-10 ; ce fichier fait désormais foi et s'édite directement.",
@@ -655,7 +655,7 @@
   "sheets": [
     {
       "sheetId": "REED-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -686,6 +686,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -769,7 +775,7 @@
     },
     {
       "sheetId": "REED-002",
-      "revision": "8",
+      "revision": "9",
       "history": [
         {
           "revision": "1",
@@ -818,6 +824,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Illustration et contenu publiés : révision prolongeant la révision 7 du téléphone de recette"
+        },
+        {
+          "revision": "9",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -903,7 +915,7 @@
     },
     {
       "sheetId": "REED-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -934,6 +946,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1014,7 +1032,7 @@
     },
     {
       "sheetId": "REED-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1045,6 +1063,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1128,7 +1152,7 @@
     },
     {
       "sheetId": "REED-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1159,6 +1183,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1240,7 +1270,7 @@
     },
     {
       "sheetId": "REED-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1271,6 +1301,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1352,7 +1388,7 @@
     },
     {
       "sheetId": "REED-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1383,6 +1419,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1465,7 +1507,7 @@
     },
     {
       "sheetId": "REED-008",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -1502,6 +1544,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1585,7 +1633,7 @@
     },
     {
       "sheetId": "REED-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -1616,6 +1664,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1700,7 +1754,7 @@
     },
     {
       "sheetId": "REED-010",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -1743,6 +1797,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1826,7 +1886,7 @@
     },
     {
       "sheetId": "FIT-CRO-001",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -1869,6 +1929,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -1954,7 +2020,7 @@
     },
     {
       "sheetId": "FIT-CRO-002",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -1991,6 +2057,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2076,7 +2148,7 @@
     },
     {
       "sheetId": "FIT-CRO-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2107,6 +2179,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2192,7 +2270,7 @@
     },
     {
       "sheetId": "FIT-CRO-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2223,6 +2301,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2304,7 +2388,7 @@
     },
     {
       "sheetId": "FIT-CRO-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2335,6 +2419,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2418,7 +2508,7 @@
     },
     {
       "sheetId": "FIT-CRO-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2449,6 +2539,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2536,7 +2632,7 @@
     },
     {
       "sheetId": "FIT-CRO-007",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -2573,6 +2669,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2655,7 +2757,7 @@
     },
     {
       "sheetId": "FIT-CRO-008",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -2692,6 +2794,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2776,7 +2884,7 @@
     },
     {
       "sheetId": "FIT-CRO-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2807,6 +2915,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -2892,7 +3006,7 @@
     },
     {
       "sheetId": "FIT-CRO-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -2923,6 +3037,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3005,7 +3125,7 @@
     },
     {
       "sheetId": "FIT-HYR-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3036,6 +3156,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3119,7 +3245,7 @@
     },
     {
       "sheetId": "FIT-HYR-002",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3150,6 +3276,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3236,7 +3368,7 @@
     },
     {
       "sheetId": "FIT-HYR-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3267,6 +3399,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3349,7 +3487,7 @@
     },
     {
       "sheetId": "FIT-HYR-004",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -3386,6 +3524,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3471,7 +3615,7 @@
     },
     {
       "sheetId": "FIT-HYR-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3502,6 +3646,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3585,7 +3735,7 @@
     },
     {
       "sheetId": "FIT-HYR-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3616,6 +3766,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3699,7 +3855,7 @@
     },
     {
       "sheetId": "FIT-HYR-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3730,6 +3886,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -3817,7 +3979,7 @@
     },
     {
       "sheetId": "FIT-HYR-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -3848,6 +4010,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4042,7 +4210,7 @@
     },
     {
       "sheetId": "FIT-HYR-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4073,6 +4241,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4158,7 +4332,7 @@
     },
     {
       "sheetId": "FIT-PIL-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4189,6 +4363,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4273,7 +4453,7 @@
     },
     {
       "sheetId": "FIT-PIL-002",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4304,6 +4484,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4388,7 +4574,7 @@
     },
     {
       "sheetId": "FIT-PIL-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4419,6 +4605,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4501,7 +4693,7 @@
     },
     {
       "sheetId": "FIT-PIL-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4532,6 +4724,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4616,7 +4814,7 @@
     },
     {
       "sheetId": "FIT-PIL-005",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4647,6 +4845,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4731,7 +4935,7 @@
     },
     {
       "sheetId": "FIT-PIL-006",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4762,6 +4966,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4846,7 +5056,7 @@
     },
     {
       "sheetId": "FIT-PIL-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4877,6 +5087,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -4960,7 +5176,7 @@
     },
     {
       "sheetId": "FIT-PIL-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -4991,6 +5207,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5075,7 +5297,7 @@
     },
     {
       "sheetId": "FIT-PIL-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5106,6 +5328,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5190,7 +5418,7 @@
     },
     {
       "sheetId": "FIT-PIL-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5221,6 +5449,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5305,7 +5539,7 @@
     },
     {
       "sheetId": "FIT-YOG-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5336,6 +5570,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5418,7 +5658,7 @@
     },
     {
       "sheetId": "FIT-YOG-002",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -5461,6 +5701,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5544,7 +5790,7 @@
     },
     {
       "sheetId": "FIT-YOG-003",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -5587,6 +5833,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5669,7 +5921,7 @@
     },
     {
       "sheetId": "FIT-YOG-004",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -5700,6 +5952,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5783,7 +6041,7 @@
     },
     {
       "sheetId": "FIT-YOG-005",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -5820,6 +6078,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -5903,7 +6167,7 @@
     },
     {
       "sheetId": "FIT-YOG-006",
-      "revision": "7",
+      "revision": "8",
       "history": [
         {
           "revision": "1",
@@ -5946,6 +6210,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "8",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6028,7 +6298,7 @@
     },
     {
       "sheetId": "FIT-YOG-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6059,6 +6329,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6142,7 +6418,7 @@
     },
     {
       "sheetId": "FIT-YOG-008",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6173,6 +6449,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6257,7 +6539,7 @@
     },
     {
       "sheetId": "FIT-YOG-009",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6288,6 +6570,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6371,7 +6659,7 @@
     },
     {
       "sheetId": "FIT-YOG-010",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6402,6 +6690,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6486,7 +6780,7 @@
     },
     {
       "sheetId": "FIT-STR-001",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6517,6 +6811,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -6708,7 +7008,7 @@
     },
     {
       "sheetId": "FIT-STR-003",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -6739,6 +7039,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -7049,7 +7355,7 @@
     },
     {
       "sheetId": "FIT-STR-006",
-      "revision": "6",
+      "revision": "7",
       "history": [
         {
           "revision": "1",
@@ -7086,6 +7392,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "7",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
@@ -7167,7 +7479,7 @@
     },
     {
       "sheetId": "FIT-STR-007",
-      "revision": "5",
+      "revision": "6",
       "history": [
         {
           "revision": "1",
@@ -7198,6 +7510,12 @@
           "date": "2026-11-19",
           "author": null,
           "summary": "Photo de la fiche enregistrée comme média du Mouvement (une seule notion de médias, 19/11/2026)"
+        },
+        {
+          "revision": "6",
+          "date": "2026-11-25T01:20:14.240Z",
+          "author": null,
+          "summary": "Marquage des photos : vue retenue proposée"
         }
       ],
       "provenance": {
