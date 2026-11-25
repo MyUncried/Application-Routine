@@ -1792,6 +1792,7 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     editStatus: NonNullable<SessionDraftContextValue["editStatus"]>,
     extra: Partial<SessionDraftContextValue> = {},
     sessionId: string | null = null,
+    modal = false,
   ) {
     const retryHydration = jest.fn();
     const value: SessionDraftContextValue = {
@@ -1806,13 +1807,43 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
           <SessionDraftContext.Provider value={value}>
-            <CompositionScreen sessionId={sessionId} />
+            <CompositionScreen sessionId={sessionId} modal={modal} />
           </SessionDraftContext.Provider>
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
-    return { retryHydration };
+    return { retryHydration, value };
   }
+
+  // Recette du 25/11/2026 (Hermann) sur la modale de modification ouverte depuis une carte du catalogue (D-602) : titre
+  // « Modifier une séance » (CE-T03-08), en-tête sans réserve de barre d'état, Démarrer dans l'action finale (Figma `13181:26130`).
+  const savedDraft = () => ({
+    ...emptyEditDraft(),
+    name: "Gainage du soir",
+    exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30), sourceMovementId: "mov-gainage" }],
+  });
+
+  it("modification : titre « Modifier une séance » (aussi hors modale), sans Démarrer hors modale", () => {
+    const draft = savedDraft();
+    renderWithEditStatus("ready", { draft, hydratedBaseline: draft }, "s-edit");
+    expect(within(screen.getByTestId("screen-header")).getByText("Modifier une séance")).toBeTruthy();
+    expect(screen.queryByText(composition.title)).toBeNull();
+    expect(screen.queryByTestId("composition-start-action")).toBeNull();
+  });
+
+  it("modale : en-tête sans réserve de barre d'état ; Démarrer (brouillon inchangé) lance l'exécution sans enregistrer", () => {
+    const draft = savedDraft();
+    const { value } = renderWithEditStatus("ready", { draft, hydratedBaseline: draft }, "s-edit", true);
+    expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style)).toMatchObject({ paddingTop: 0 });
+    const start = screen.getByTestId("composition-start-action");
+    expect(start.props.accessibilityLabel).toBe("Démarrer la séance");
+    expect(screen.getByTestId("composition-start-icon")).toBeTruthy();
+    expect(screen.getByTestId("composition-save-action").props.accessibilityState).toMatchObject({ disabled: false });
+    fireEvent.press(start);
+    expect(value.resetDraft).toHaveBeenCalled();
+    expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/", params: { catalogueSegment: "sessions" } });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/execution", params: { sessionId: "s-edit" } });
+  });
 
   const t = composition.editStates;
 

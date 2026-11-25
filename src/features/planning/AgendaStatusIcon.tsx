@@ -74,15 +74,28 @@ export function playShadows(shadowColor?: string): { readonly raised: string; re
 }
 
 /** Démarrer / Rattraper : disque en relief, triangle bleu ; état appuyé pendant le toucher. */
-export function AgendaPlayIcon({ pressed, testID, shadowColor }: { readonly pressed: boolean; readonly testID: string; readonly shadowColor?: string }) {
+export function AgendaPlayIcon({
+  pressed,
+  testID,
+  shadowColor,
+  size = AGENDA_ICON_SIZE,
+}: {
+  readonly pressed: boolean;
+  readonly testID: string;
+  readonly shadowColor?: string;
+  /** Diamètre du disque (28 par défaut). Figma `13203:26038` : 40 dans l'action finale de la Composition, triangle à l'échelle. */
+  readonly size?: number;
+}) {
   const shadows = shadowColor ? playShadows(shadowColor) : null;
+  const scale = size / AGENDA_ICON_SIZE;
+  const sized = size === AGENDA_ICON_SIZE ? null : { width: size, height: size, borderRadius: size / 2 };
   return (
-    <View style={styles.box} testID={testID}>
+    <View style={[styles.box, sized ? { width: size, height: size } : null]} testID={testID}>
       <View
-        style={[styles.disc, pressed ? styles.playPressed : styles.playRaised, shadows ? { boxShadow: pressed ? shadows.pressed : shadows.raised } : null]}
+        style={[styles.disc, sized, pressed ? styles.playPressed : styles.playRaised, shadows ? { boxShadow: pressed ? shadows.pressed : shadows.raised } : null]}
         testID={`${testID}-disc${pressed ? "-pressed" : ""}`}
       >
-        <Image source={PLAY} style={styles.play} tintColor={colors.primary} accessible={false} />
+        <Image source={PLAY} style={sized ? { width: 10 * scale, height: 12 * scale, marginLeft: 2 * scale } : styles.play} tintColor={colors.primary} accessible={false} />
       </View>
     </View>
   );

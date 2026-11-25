@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
 
+import { isModalCompositionRoute } from "@/features/sessions/compositionRoutePresentation";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 
@@ -24,7 +25,7 @@ import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
  * brouillon vierge (création) ou de la Séance (`sessionId`), et le brouillon est remis à zéro quand la Composition se ferme.
  */
 export default function CompositionRoute() {
-  const params = useLocalSearchParams<{ sessionId?: string; keepDraft?: string }>();
+  const params = useLocalSearchParams<{ sessionId?: string; keepDraft?: string; presentation?: string }>();
   const { hydrateFromSession, resetDraft } = useSessionDraft();
   const sessionId =
     typeof params.sessionId === "string" && params.sessionId.length > 0 ? params.sessionId : null;
@@ -47,5 +48,6 @@ export default function CompositionRoute() {
   // premier rendu affichait le formulaire de création et ses valeurs par
   // défaut le temps d'une frame, avant que `editStatus` ne passe à
   // `"loading"`. Voir `CompositionScreenProps.sessionId`.
-  return <CompositionScreen sessionId={sessionId} />;
+  // D-602 : ouverte depuis une carte du catalogue des séances, la Composition est en modale (feuille native).
+  return <CompositionScreen sessionId={sessionId} modal={isModalCompositionRoute(params)} />;
 }
