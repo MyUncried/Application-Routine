@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 import { encodeInstructionSteps } from "@/domain/activities/instructionSteps";
@@ -22,6 +19,7 @@ import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { pilotCatalogueV3 } from "@/domain/catalogue/testing/pilotCatalogueV3";
 
 /**
  * P0/A1 — Bibliothèques sur deux bases SQLite réelles (`node:sqlite`) : registre v2, installation,
@@ -31,9 +29,8 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 
 const NOW = "2026-11-11T09:00:00.000Z";
 const PILOT = "kodjo.pilote-60";
-const pilot = JSON.parse(
-  readFileSync(join(__dirname, "../../../../catalogue/catalogues/kodjo-pilote-60.catalogue.json"), "utf8"),
-) as MovementCatalogueFile;
+// Format 3.0.0 : pilote déjà au format courant, sans reprise de la position de départ (voir `pilotCatalogueV3`).
+const pilot: MovementCatalogueFile = pilotCatalogueV3();
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 type Writable<T> = { -readonly [K in keyof T]: T[K] };
 
@@ -144,11 +141,13 @@ describe("registre v2 (base distincte, sans concurrence avec PRE-10)", () => {
       [PILOT, v2Sheet.sheetId, "pilot:X", "1", "ancienne-empreinte", JSON.stringify(v1Sheet), NOW, NOW]);
 
     const registry = await SqliteCatalogueRegistry.open(registryDb, () => NOW);
-    // v3 (12/11/2026) : tables additives des Bibliothèques personnelles. [Avant : version 2 — remplacé.]
-    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(3);
+    // v3 (12/11/2026) : tables additives des Bibliothèques personnelles. v4 (18/11/2026) : format 3.0.0, sauvegardes
+    // `*_backup_v3` et référentiels. [Avant : version 2, puis 3 — remplacé.]
+    expect((await registryDb.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))!.user_version).toBe(5);
     expect(Object.keys(await dump(registryDb))).toEqual([
-      "installed_libraries", "installed_sheets", "library_decisions", "library_operations", "local_author", "pending_operations",
-      "personal_libraries", "personal_library_members", "saved_local_values", "sheet_decisions",
+      "installed_libraries", "installed_libraries_backup_v3", "installed_references", "installed_sheets", "installed_sheets_backup_v3",
+      "library_decisions", "library_operations", "library_operations_backup_v3", "local_author", "pending_operations",
+      "pending_operations_backup_v3", "personal_libraries", "personal_library_members", "saved_local_values", "sheet_decisions",
     ]);
     const [record] = await registry.allInstalledSheets();
     expect(record!.sheet.provenance.author).toBeNull();
@@ -189,7 +188,7 @@ describe("Bibliothèques — installation et mise à jour volontaires", () => {
     const held = withMedia.sheets[0]!;
     (held as { media: unknown }).media = [{
       id: "media-000001", kind: "PHOTO", storage: "REMOTE", url: "https://exemple.fr/photo.webp", fileName: "photo.webp",
-      caption: "", alt: "Position", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
+      caption: "", sourceUrl: "https://exemple.fr/source", attribution: "", license: "", rightsStatus: "UNVERIFIED",
     }];
     const { libraries } = await servicesOn();
     const available = await libraries.available(withMedia);

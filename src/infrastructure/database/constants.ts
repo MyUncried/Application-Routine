@@ -166,8 +166,38 @@ export const DATABASE_NAME = "kodjo.db";
 /**
  * **Catalogue des Mouvements en grille (version 30, `migration030`)** : table singleton `catalogue_preferences` (`movement_catalogue_grid` : 0 =
  * liste, défaut ; 1 = grille), jointe au Profil ; aucune table existante modifiée. 001..029 inchangées.
+ * **Planification (version 31, `migration031`)** : tables additives `routines`, `routine_entries` et
+ * `routine_exclusions` (Routine multi-contenus, Calendrier Semaine). 001..030 inchangées. [Le chantier « catalogue
+ * connecté » prévoyait une migration « ≥ 029 » non développée : elle prendra la prochaine version disponible.]
  */
-export const DATABASE_VERSION = 30;
+/**
+ * **Nom des planifications (version 32, `migration032`)** : colonne additive `routines.name` (D-522), vide pour les
+ * planifications existantes (RM-264). 001..031 inchangées.
+ */
+/**
+ * **Occurrences enregistrées et archivage (version 34, `migration034`)** : table additive `routine_occurrences` (occurrence
+ * modifiée à la main ou commencée, D-536) et colonne `routines.archived_at` (D-537). 001..033 inchangées.
+ */
+/**
+ * **Mode du nom des routines (version 36, `migration036`)** : colonne additive `routines.name_generated` (D-553). La version
+ * 35 est réservée à la migration des Programmes (PROG-CAT-01), développée en parallèle. 001..034 inchangées.
+ */
+/**
+ * **Créneau ajouté (version 37, `migration037`)** : colonne additive `routine_occurrences.added` (D-554, RM-273). 001..036
+ * inchangées.
+ */
+/**
+ * **Programmes (version 38, `migration038`)** : table additive `programs`, colonnes `routines.program_id`,
+ * `executions.program_id` et table additive `user_privacy` (accord au suivi de la douleur) (PROG-CAT-01, D-543 à D-552).
+ * Développée comme version 35 ; renumérotée 38 à l’intégration du 23/11/2026 (INTEG-PROG-2311), la version 35 restant un
+ * passage sans effet. 001..037 inchangées.
+ */
+/**
+ * **Annonce des tours (version 39, `migration039`)** : colonne additive `guidance_preferences.announce_rounds_enabled`, activée par
+ * défaut (D-530, 18/11/2026). Développée comme version 31 sur la branche Formats ; renumérotée 39 à la consolidation du
+ * 24/11/2026. 001..038 inchangées.
+ */
+export const DATABASE_VERSION = 39;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;
@@ -177,3 +207,9 @@ export const STANDARD_PRAGMAS: readonly string[] = [
   "PRAGMA foreign_keys = ON",
   "PRAGMA journal_mode = WAL",
 ];
+
+/**
+ * Pragmas propres à chaque connexion, réappliqués sur la connexion dédiée d'une transaction exclusive
+ * (`ExpoDatabase.withExclusiveTransactionAsync`). `journal_mode = WAL` est persistant dans le fichier : inutile.
+ */
+export const CONNECTION_PRAGMAS: readonly string[] = ["PRAGMA foreign_keys = ON"];

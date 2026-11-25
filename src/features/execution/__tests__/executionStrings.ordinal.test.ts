@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { executionStrings, ordinalSuffix } from "../executionStrings";
+import { execution as executionStrings, ordinalSuffix } from "@/shared/i18n/resources/frExecution";
 
 describe("ordinalSuffix (recette du 13/11/2026)", () => {
   it("1er, 2d s'il n'y en a que deux, 2e s'il y a un troisième, puis 3e, 4e", () => {

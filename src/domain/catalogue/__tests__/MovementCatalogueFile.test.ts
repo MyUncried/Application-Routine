@@ -4,10 +4,19 @@ import { join } from "node:path";
 import { describe, expect, it } from "@jest/globals";
 
 import {
+  cataloguePublicationSynthesis,
+  diffusableCatalogue,
+  libraryPublicationSynthesis,
+  normalizeStoredLibrary,
+  normalizeStoredSheet,
   parseMovementCatalogueFile,
   projectSheetToMovement,
   serializeMovementCatalogueFile,
+  sheetBeforeStartingPositionMerge,
   sheetFingerprint,
+  STARTING_POSITION_MERGE_SUMMARY,
+  withoutInternalNotes,
+  type CatalogueLibrary,
   type CatalogueSheet,
   type MovementCatalogueFile,
 } from "@/domain/catalogue/MovementCatalogueFile";
@@ -27,7 +36,6 @@ const photo = {
   url: "https://exemple.fr/squat.webp",
   fileName: "squat.webp",
   caption: "Position basse",
-  alt: "Personne en position basse de squat",
   sourceUrl: "https://exemple.fr/source",
   attribution: "Exemple",
   license: "CC-BY-4.0",
@@ -40,23 +48,18 @@ function handWrittenSheet(): Mutable<CatalogueSheet> {
     revision: "1",
     history: [{ revision: "1", date: "2026-11-10", author: { kind: "PERSON", id: "coach-martin" }, summary: "Création" }],
     provenance: {
-      gestureId: "squat",
       origin: "LOCAL_CREATED",
       upstream: null,
       owner: { kind: "PERSON", id: "coach-martin" },
       author: { kind: "PERSON", id: "coach-martin" },
-      publisher: null,
       rightsHolder: null,
       license: null,
-      reviewStatus: "DRAFT",
-      visibility: "PRIVATE",
     },
     content: {
       name: "Squat gobelet",
       aliases: ["Goblet squat", "Squat au kettlebell"],
-      startingPosition: "Debout, charge contre la poitrine",
       equipment: "Kettlebell",
-      steps: ["Écartez les pieds.", "Descendez en gardant le buste droit.", "Remontez en poussant dans les talons."],
+      steps: ["Debout, charge contre la poitrine.", "Écartez les pieds.", "Descendez en gardant le buste droit.", "Remontez en poussant dans les talons."],
       safetyNotes: null,
       notes: "",
     },
@@ -67,12 +70,7 @@ function handWrittenSheet(): Mutable<CatalogueSheet> {
       gesturalFamilyIds: ["squat"],
       clinicalProblemIds: [],
       anatomicalTargetIds: ["quadriceps"],
-      basis: "Saisie de l'auteur",
-      review: null,
-      original: {},
-      originalProposedSpecialties: [],
     },
-    sources: { documentary: null, prescriptionContext: {} },
     validation: {
       classification: "PENDING",
       clinical: "NOT_ASSESSED",
@@ -83,23 +81,50 @@ function handWrittenSheet(): Mutable<CatalogueSheet> {
       publicationAllowed: false,
     },
     media: [photo],
+    phases: [],
     install: { knownLocalMovementIds: [] },
   }));
+}
+
+/** Fiche 2.0.0 (avant le 18/11/2026) : champs abandonnés présents, position de départ distincte. */
+function legacySheet(): Record<string, unknown> {
+  const sheet = handWrittenSheet() as unknown as Record<string, Record<string, unknown>>;
+  const { phases: _phases, ...rest } = sheet;
+  void _phases;
+  return {
+    ...rest,
+    provenance: { gestureId: "squat", ...sheet.provenance, publisher: null, reviewStatus: "DRAFT", visibility: "PRIVATE" },
+    content: { ...sheet.content, startingPosition: "Debout, charge contre la poitrine", steps: (sheet.content!.steps as string[]).slice(1) },
+    classification: { ...sheet.classification, basis: "Saisie de l'auteur", review: null, original: {}, originalProposedSpecialties: [] },
+    sources: { documentary: null, prescriptionContext: {} },
+    media: [{ ...photo, alt: "Personne en position basse de squat" }],
+  };
+}
+
+/** Catalogue 2.0.0 : en-tête et Bibliothèques avec les champs abandonnés. */
+function legacyCatalogue(sheets: unknown[] = [legacySheet()]): Record<string, unknown> {
+  const file = catalogue(sheets as never) as unknown as Record<string, unknown>;
+  const libraries = (file.libraries as Record<string, unknown>[]).map((library) => ({
+    ...library, editor: { kind: "PERSON", id: "coach-martin" }, publicationAllowed: false,
+  }));
+  return {
+    ...file,
+    formatVersion: "2.0.0",
+    catalogue: { ...(file.catalogue as object), manager: null, publisher: null, publicationAllowed: false },
+    libraries,
+  };
 }
 
 function catalogue(sheets: unknown[] = [handWrittenSheet()]): Mutable<MovementCatalogueFile> {
   const ref = (id: string) => ({ id, label: id, kind: null, status: null });
   return JSON.parse(JSON.stringify({
     format: "KODJO_MOVEMENT_CATALOGUE",
-    formatVersion: "2.0.0",
+    formatVersion: "3.0.0",
     catalogue: {
       id: "coach-martin.perso",
       title: "Catalogue de test",
       revision: "1",
       owner: { kind: "PERSON", id: "coach-martin" },
-      manager: null,
-      publisher: null,
-      publicationAllowed: false,
       notes: [],
     },
     references: {
@@ -117,10 +142,8 @@ function catalogue(sheets: unknown[] = [handWrittenSheet()]): Mutable<MovementCa
       description: null,
       revision: "1",
       history: [],
-      editor: { kind: "PERSON", id: "coach-martin" },
       owner: { kind: "PERSON", id: "coach-martin" },
       visibility: "PRIVATE",
-      publicationAllowed: false,
       members: sheets
         .filter((sheet): sheet is { sheetId: string } => typeof (sheet as { sheetId?: unknown })?.sheetId === "string")
         .map((sheet) => ({ catalogueId: "coach-martin.perso", sheetId: sheet.sheetId })),
@@ -134,7 +157,7 @@ const codes = (raw: unknown) => {
   return result.ok ? [] : result.issues.map((issue) => issue.path + ":" + issue.code);
 };
 
-describe("format KODJO_MOVEMENT_CATALOGUE v2 — validation", () => {
+describe("format KODJO_MOVEMENT_CATALOGUE v3 — validation", () => {
   it("accepte une fiche rédigée à la main dans le fichier, sans aucun code", () => {
     const result = parseMovementCatalogueFile(catalogue());
     expect(result).toMatchObject({ ok: true, warnings: [] });
@@ -148,7 +171,7 @@ describe("format KODJO_MOVEMENT_CATALOGUE v2 — validation", () => {
 
   it("refuse un format ou une version étrangers", () => {
     expect(codes({ ...catalogue(), format: "KODJO_ADMIN_DRAFTS" })).toEqual(["format:UNRECOGNIZED"]);
-    expect(codes({ ...catalogue(), formatVersion: "3.0.0" })).toEqual(["formatVersion:UNRECOGNIZED"]);
+    expect(codes({ ...catalogue(), formatVersion: "4.0.0" })).toEqual(["formatVersion:UNRECOGNIZED"]);
     expect(codes(null)).toEqual([":INVALID"]);
   });
 
@@ -217,35 +240,76 @@ describe("format KODJO_MOVEMENT_CATALOGUE v2 — validation", () => {
     published.validation.publicationAllowed = true;
     expect(codes(catalogue([published]))).toContain("sheets[0].validation.publicationAllowed:INCONSISTENT");
 
-    const diffused = handWrittenSheet();
-    diffused.provenance.owner = null;
-    diffused.provenance.visibility = "UNLISTED";
-    expect(codes(catalogue([diffused]))).toContain("sheets[0].provenance.owner:INCONSISTENT");
-
     const omitted = handWrittenSheet() as unknown as { provenance: Record<string, unknown> };
     delete omitted.provenance.owner;
     expect(codes(catalogue([omitted]))).toContain("sheets[0].provenance.owner:REQUIRED");
 
-    const header = catalogue([]);
+    const header = catalogue([]) as unknown as { catalogue: Record<string, unknown>; glossary: unknown[] };
+    header.glossary = [];
     header.catalogue.owner = null;
-    header.catalogue.publicationAllowed = true;
-    expect(codes(header)).toContain("catalogue.publicationAllowed:INCONSISTENT");
+    expect(parseMovementCatalogueFile(header)).toMatchObject({ ok: true, warnings: [{ path: "catalogue.owner", code: "UNKNOWN_OWNER" }] });
   });
 
-  it("gestionnaire administratif du catalogue : déclaré, distinct du propriétaire", () => {
-    const managed = catalogue([]);
-    managed.glossary = [];
-    managed.catalogue.owner = null;
-    managed.catalogue.manager = { kind: "ORGANIZATION", id: "ankusha" };
-    expect(parseMovementCatalogueFile(managed)).toMatchObject({
-      ok: true,
-      warnings: [{ path: "catalogue.owner", code: "UNKNOWN_OWNER" }],
-    });
-    const missing = catalogue([]) as unknown as { catalogue: Record<string, unknown> };
-    delete missing.catalogue.manager;
-    expect(codes(missing)).toContain("catalogue.manager:REQUIRED");
-    managed.catalogue.manager = { kind: "ORGANIZATION", id: " " };
-    expect(codes(managed)).toContain("catalogue.manager.id:REQUIRED");
+  it("MOUV-ADM-20261117 : les champs abandonnés ne réapparaissent pas dans un fichier 3.0.0", () => {
+    const sheet = handWrittenSheet() as unknown as Record<string, Record<string, unknown>>;
+    sheet.content!.startingPosition = "Debout";
+    sheet.provenance!.publisher = null;
+    sheet.provenance!.visibility = "PRIVATE";
+    sheet.classification!.basis = "x";
+    sheet.sources = { documentary: null, prescriptionContext: {} };
+    const file = catalogue([sheet]) as unknown as Record<string, Record<string, unknown>>;
+    file.catalogue!.manager = null;
+    expect(codes(file)).toEqual(expect.arrayContaining([
+      "sheets[0].content.startingPosition:UNRECOGNIZED",
+      "sheets[0].provenance.publisher:UNRECOGNIZED",
+      "sheets[0].provenance.visibility:UNRECOGNIZED",
+      "sheets[0].classification.basis:UNRECOGNIZED",
+      "sheets[0].sources:UNRECOGNIZED",
+      "catalogue.manager:UNRECOGNIZED",
+    ]));
+    const alt = handWrittenSheet();
+    alt.media = [{ ...photo, alt: "x" } as never];
+    expect(codes(catalogue([alt]))).toEqual(["sheets[0].media[0]:INVALID"]);
+  });
+
+  it("licence (MOUV-ADM n° 15) : non renseignée, nom et lien, ou texte ; jamais les deux ni vide", () => {
+    const sheet = handWrittenSheet();
+    const withLicense = (license: unknown) => {
+      (sheet.provenance as { license: unknown }).license = license;
+      return codes(catalogue([sheet]));
+    };
+    expect(withLicense(null)).toEqual([]);
+    expect(withLicense({ name: "CC BY 4.0", url: "https://creativecommons.org/licenses/by/4.0/", text: null })).toEqual([]);
+    expect(withLicense({ name: "Usage interne", url: null, text: null })).toEqual([]);
+    expect(withLicense({ name: null, url: null, text: "Reproduction autorisée pour les patients du cabinet." })).toEqual([]);
+    expect(withLicense({ name: "A", url: null, text: "B" })).toEqual(["sheets[0].provenance.license:INCONSISTENT"]);
+    expect(withLicense({ name: null, url: "https://x.fr", text: "B" })).toEqual(["sheets[0].provenance.license:INCONSISTENT"]);
+    expect(withLicense({ name: " ", url: null, text: null })).toEqual(["sheets[0].provenance.license:INCONSISTENT"]);
+    expect(withLicense({ name: "A", url: "ftp://x", text: null })).toEqual(["sheets[0].provenance.license:UNRECOGNIZED"]);
+    expect(withLicense("CC BY")).toEqual(["sheets[0].provenance.license:REQUIRED"]);
+  });
+
+  it("ayant droit (MOUV-ADM n° 14) : null = propriétaire ; un tiers distinct ; jamais le propriétaire en double", () => {
+    const sheet = handWrittenSheet();
+    sheet.provenance.rightsHolder = { kind: "ORGANIZATION", id: "editions-x" };
+    expect(codes(catalogue([sheet]))).toEqual([]);
+    sheet.provenance.rightsHolder = { kind: "PERSON", id: "coach-martin" };
+    expect(codes(catalogue([sheet]))).toEqual(["sheets[0].provenance.rightsHolder:INCONSISTENT"]);
+  });
+
+  it("phases (MOUV-UX-20261117) : contrat Mouvement — 6 au plus, libellé de 1 à 20, durée 1..3535 ou null", () => {
+    const sheet = handWrittenSheet();
+    const withPhases = (phases: unknown) => {
+      (sheet as { phases: unknown }).phases = phases;
+      return codes(catalogue([sheet]));
+    };
+    expect(withPhases([{ id: 1, label: "Descente", durationSeconds: 3 }, { id: 3, label: "Remontée", durationSeconds: null }])).toEqual([]);
+    expect(withPhases([{ id: 1, label: "", durationSeconds: null }])).toEqual(["sheets[0].phases:INVALID"]);
+    expect(withPhases([{ id: 1, label: "A", durationSeconds: 0 }])).toEqual(["sheets[0].phases:INVALID"]);
+    expect(withPhases([{ id: 1, label: "A" }])).toEqual(["sheets[0].phases:INVALID"]);
+    expect(withPhases([{ id: 1, label: "A", durationSeconds: null }, { id: 1, label: "B", durationSeconds: null }])).toEqual(["sheets[0].phases:INVALID"]);
+    expect(withPhases(Array.from({ length: 7 }, (_, i) => ({ id: i + 1, label: "P" + i, durationSeconds: null })))).toEqual(["sheets[0].phases:INVALID"]);
+    expect(withPhases(undefined)).toEqual(["sheets[0].phases:REQUIRED"]);
   });
 
   it("homonymie (spécification A1 ouverte) : signalée, non bloquante", () => {
@@ -258,8 +322,6 @@ describe("format KODJO_MOVEMENT_CATALOGUE v2 — validation", () => {
   it("applique les règles médias de l'administration", () => {
     const sheet = handWrittenSheet();
     sheet.media = [{ ...photo, url: "http://exemple.fr/a.webp" } as never];
-    expect(codes(catalogue([sheet]))).toEqual(["sheets[0].media[0]:INVALID"]);
-    sheet.media = [{ ...photo, alt: " " } as never];
     expect(codes(catalogue([sheet]))).toEqual(["sheets[0].media[0]:INVALID"]);
     sheet.media = [{ ...photo, rightsStatus: "PERMISSION_CONFIRMED", license: "" } as never];
     expect(codes(catalogue([sheet]))).toEqual(["sheets[0].media[0]:INVALID"]);
@@ -291,7 +353,7 @@ describe("format KODJO_MOVEMENT_CATALOGUE v2 — validation", () => {
 describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relecture v1, aller-retour", () => {
   /** Fichier v1 tel que produit par CA-1 : `authors[]`, aucune Bibliothèque. */
   function v1(authors: unknown[]): Record<string, unknown> {
-    const file = catalogue() as unknown as Record<string, unknown>;
+    const file = legacyCatalogue() as unknown as Record<string, unknown>;
     const sheets = (file.sheets as Record<string, unknown>[]).map((sheet) => {
       const { author: _author, ...provenance } = sheet.provenance as Record<string, unknown>;
       void _author;
@@ -308,16 +370,16 @@ describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relectu
     const one = parseMovementCatalogueFile(v1([{ kind: "PERSON", id: "coach-martin" }]));
     if (!one.ok) throw new Error("v1 refusé");
     expect(one.sourceFormatVersion).toBe("1.0.0");
-    expect(one.file.formatVersion).toBe("2.0.0");
+    expect(one.file.formatVersion).toBe("3.0.0");
     expect(one.file.sheets[0].provenance.author).toEqual({ kind: "PERSON", id: "coach-martin" });
     expect("authors" in one.file.sheets[0].provenance).toBe(false);
     expect(one.file.libraries).toEqual([expect.objectContaining({
       libraryId: "coach-martin.perso",
       title: "Catalogue de test",
       visibility: "PRIVATE",
-      publicationAllowed: false,
       members: [{ catalogueId: "coach-martin.perso", sheetId: "LOCAL-001" }],
     })]);
+    expect("publicationAllowed" in one.file.libraries[0]!).toBe(false);
     expect(one.warnings).toContainEqual({ path: "formatVersion", code: "CONVERTED_FROM_V1" });
   });
 
@@ -327,7 +389,7 @@ describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relectu
     raw.catalogue!.publicationAllowed = true;
     const result = parseMovementCatalogueFile(raw);
     if (!result.ok) throw new Error(JSON.stringify(result.issues));
-    expect(result.file.libraries[0]).toMatchObject({ libraryId: "coach-martin-perso", visibility: "PRIVATE", publicationAllowed: false });
+    expect(result.file.libraries[0]).toMatchObject({ libraryId: "coach-martin-perso", visibility: "PRIVATE" });
   });
 
   it("v1 à plusieurs auteurs : refus explicite, jamais de choix arbitraire (MOUV-D1)", () => {
@@ -358,14 +420,14 @@ describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relectu
     expect(result.warnings).toContainEqual({ path: "libraries[1].members[1]", code: "EXTERNAL_MEMBER" });
   });
 
-  it("valide les Bibliothèques : identité, doublons, fiche inconnue, propriétaire inconnu, diffusion sans droits", () => {
+  it("valide les Bibliothèques : identité, doublons, fiche inconnue, propriétaire inconnu", () => {
     const file = catalogue();
     const base = file.libraries[0];
     file.libraries = [
       { ...base, members: [...base.members, ...base.members, { catalogueId: "coach-martin.perso", sheetId: "ABSENTE" }] },
       { ...base },
       { ...base, libraryId: "Pas Valide" },
-      { ...base, libraryId: "inconnu", owner: null, visibility: "PUBLIC", publicationAllowed: true },
+      { ...base, libraryId: "inconnu", owner: null, visibility: "PUBLIC" },
       { ...base, libraryId: "publique", visibility: "PUBLIC", publicationAllowed: true },
     ] as never;
     expect(codes(file)).toEqual(expect.arrayContaining([
@@ -373,9 +435,7 @@ describe("format v2 — P0 (11/11/2026) : auteur unique, Bibliothèques, relectu
       "libraries[0].members[2].sheetId:UNKNOWN_REFERENCE",
       "libraries[1].libraryId:DUPLICATE",
       "libraries[2].libraryId:INVALID",
-      "libraries[3].publicationAllowed:INCONSISTENT",
       "libraries[3].visibility:INCONSISTENT",
-      "libraries[4].members[0]:INCONSISTENT",
     ]));
     const missing = catalogue() as unknown as Record<string, unknown>;
     delete missing.libraries;
@@ -403,7 +463,7 @@ describe("projection Mouvement", () => {
       id: "local-42",
       name: "Squat gobelet",
       aliases: ["Goblet squat", "Squat au kettlebell"],
-      description: "Écartez les pieds.\nDescendez en gardant le buste droit.\nRemontez en poussant dans les talons.",
+      description: "Debout, charge contre la poitrine.\nÉcartez les pieds.\nDescendez en gardant le buste droit.\nRemontez en poussant dans les talons.",
       categoryId: "renforcement",
       bodyZoneIds: ["cuisses", "hanches-bassin"],
       media: [],
@@ -411,6 +471,129 @@ describe("projection Mouvement", () => {
       nextPhaseId: 1,
       levelGroup: null,
     });
+  });
+
+  it("phases de la fiche projetées (MOUV-UX-20261117) : ordre, libellés, durée explicite, compteur au-delà du plus grand", () => {
+    const sheet = handWrittenSheet();
+    (sheet as { phases: unknown }).phases = [{ id: 4, label: "Descente", durationSeconds: 3 }, { id: 2, label: "Remontée", durationSeconds: null }];
+    const movement = projectSheetToMovement(sheet as CatalogueSheet, "m");
+    expect(movement.phases).toEqual([{ id: 4, label: "Descente", durationSeconds: 3 }, { id: 2, label: "Remontée", durationSeconds: null }]);
+    expect(movement.nextPhaseId).toBe(5);
+  });
+});
+
+describe("format 3.0.0 — conversion déterministe des fichiers 2.0.0 (MOUV-ADM-20261117)", () => {
+  const converted = () => {
+    const result = parseMovementCatalogueFile(legacyCatalogue());
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    return result;
+  };
+
+  it("position de départ reprise au début des étapes, nouvelle révision datée de la précédente, champs abandonnés retirés", () => {
+    const result = converted();
+    expect(result.sourceFormatVersion).toBe("2.0.0");
+    expect(result.warnings).toEqual(expect.arrayContaining([
+      { path: "formatVersion", code: "CONVERTED_FROM_V2" },
+      { path: "sheets[0].content.steps", code: "STARTING_POSITION_MERGED" },
+    ]));
+    const sheet = result.file.sheets[0]!;
+    expect(sheet.content.steps).toEqual(["Debout, charge contre la poitrine", "Écartez les pieds.", "Descendez en gardant le buste droit.", "Remontez en poussant dans les talons."]);
+    expect(sheet.revision).toBe("2");
+    expect(sheet.history.at(-1)).toEqual({ revision: "2", date: "2026-11-10", author: null, summary: STARTING_POSITION_MERGE_SUMMARY });
+    expect(Object.keys(sheet.content)).toEqual(["name", "aliases", "equipment", "steps", "safetyNotes", "notes"]);
+    expect(Object.keys(sheet.provenance)).toEqual(["origin", "upstream", "owner", "author", "rightsHolder", "license"]);
+    expect(Object.keys(sheet.classification)).toEqual(["categoryId", "bodyZoneIds", "specialtyIds", "gesturalFamilyIds", "clinicalProblemIds", "anatomicalTargetIds"]);
+    expect("sources" in sheet).toBe(false);
+    expect("alt" in sheet.media[0]!).toBe(false);
+    expect(sheet.phases).toEqual([]);
+    expect(Object.keys(result.file.catalogue)).toEqual(["id", "title", "revision", "owner", "notes"]);
+    expect(Object.keys(result.file.libraries[0]!)).toEqual(["libraryId", "title", "description", "revision", "history", "owner", "visibility", "members"]);
+  });
+
+  it("sans doublon : position déjà présente dans les étapes (casse, espaces, point final ignorés) → retirée sans révision", () => {
+    const sheet = legacySheet() as Record<string, Record<string, unknown>>;
+    sheet.content!.startingPosition = "  debout,  charge contre la poitrine ";
+    sheet.content!.steps = ["Debout, charge contre la poitrine.", "Écartez les pieds."];
+    const result = parseMovementCatalogueFile(legacyCatalogue([sheet]));
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    expect(result.file.sheets[0]!.content.steps).toEqual(["Debout, charge contre la poitrine.", "Écartez les pieds."]);
+    expect(result.file.sheets[0]!.revision).toBe("1");
+    const empty = legacySheet() as Record<string, Record<string, unknown>>;
+    empty.content!.startingPosition = null;
+    const again = parseMovementCatalogueFile(legacyCatalogue([empty]));
+    expect(again.ok && again.file.sheets[0]!.revision).toBe("1");
+  });
+
+  it("répétée, la conversion donne le même fichier ; relu, le fichier écrit en 3.0.0 est identique", () => {
+    const first = converted();
+    const second = converted();
+    expect(serializeMovementCatalogueFile(second.file)).toBe(serializeMovementCatalogueFile(first.file));
+    const reread = parseMovementCatalogueFile(JSON.parse(serializeMovementCatalogueFile(first.file)));
+    if (!reread.ok) throw new Error(JSON.stringify(reread.issues));
+    expect(reread.sourceFormatVersion).toBe("3.0.0");
+    expect(reread.file).toEqual(first.file);
+  });
+
+  it("licence texte → conditions connues en texte ; ayant droit égal au propriétaire → null ; identités et historique conservés", () => {
+    const sheet = legacySheet() as Record<string, Record<string, unknown>>;
+    sheet.provenance!.license = "Usage pédagogique";
+    sheet.provenance!.rightsHolder = { kind: "PERSON", id: "coach-martin" };
+    const result = parseMovementCatalogueFile(legacyCatalogue([sheet]));
+    if (!result.ok) throw new Error(JSON.stringify(result.issues));
+    const converted = result.file.sheets[0]!;
+    expect(converted.provenance.license).toEqual({ name: null, url: null, text: "Usage pédagogique" });
+    expect(converted.provenance.rightsHolder).toBeNull();
+    expect(converted.sheetId).toBe("LOCAL-001");
+    expect(converted.history[0]).toEqual((sheet.history as unknown as unknown[])[0]);
+    expect(converted.install).toEqual({ knownLocalMovementIds: [] });
+  });
+
+  it("instantané installé (téléphone) : conversion sans reprise ni révision, notes internes retirées, idempotente", () => {
+    const stored = { ...legacySheet(), content: { ...(legacySheet().content as object), notes: "Interne" } } as unknown as CatalogueSheet;
+    const normalized = normalizeStoredSheet(stored);
+    expect(normalized.revision).toBe("1");
+    expect(normalized.content.steps).toHaveLength(3);
+    expect(normalized.content.notes).toBe("");
+    expect("startingPosition" in normalized.content).toBe(false);
+    expect(normalizeStoredSheet(normalized)).toBe(normalized);
+    const library = { ...catalogue().libraries[0], editor: null, publicationAllowed: false } as unknown as CatalogueLibrary;
+    expect(Object.keys(normalizeStoredLibrary(library))).not.toContain("editor");
+  });
+
+  it("version d'avant la reprise reconstituée (révision précédente, première étape retirée)", () => {
+    const sheet = converted().file.sheets[0]!;
+    const before = sheetBeforeStartingPositionMerge(sheet);
+    expect(before).toMatchObject({ revision: "1", content: { steps: ["Écartez les pieds.", "Descendez en gardant le buste droit.", "Remontez en poussant dans les talons."] } });
+    expect(before!.history).toHaveLength(1);
+    expect(sheetBeforeStartingPositionMerge(handWrittenSheet() as CatalogueSheet)).toBeNull();
+  });
+});
+
+describe("format 3.0.0 — diffusion et publication", () => {
+  it("notes internes (fiche, catalogue) retirées de toute diffusion ; le reste inchangé", () => {
+    const file = catalogue();
+    file.sheets[0].content.notes = "À revoir avec le kiné";
+    file.catalogue.notes = ["Note interne"];
+    file.sheets[0].media = [{ ...photo, rightsStatus: "PERMISSION_CONFIRMED" } as never];
+    const recipient = withoutInternalNotes(file as MovementCatalogueFile);
+    expect(recipient.sheets[0]!.content.notes).toBe("");
+    expect(recipient.catalogue.notes).toEqual([]);
+    const diffusable = diffusableCatalogue(file as MovementCatalogueFile);
+    expect(diffusable.ok && diffusable.file.sheets[0]!.content.notes).toBe("");
+    expect(diffusable.ok && diffusable.file.catalogue.notes).toEqual([]);
+    expect(diffusable.ok && diffusable.file.sheets[0]!.revision).toBe("1");
+  });
+
+  it("synthèse calculée : Bibliothèque et catalogue publiables seulement si toutes les fiches ont l'autorisation système", () => {
+    const file = catalogue() as MovementCatalogueFile;
+    const library = file.libraries[0]!;
+    expect(libraryPublicationSynthesis(file, library)).toBe(false);
+    expect(cataloguePublicationSynthesis(file)).toBe(false);
+    const allowed = { ...file, sheets: file.sheets.map((sheet) => ({ ...sheet, validation: { ...sheet.validation, publicationAllowed: true } })) };
+    expect(libraryPublicationSynthesis(allowed, library)).toBe(true);
+    expect(cataloguePublicationSynthesis(allowed)).toBe(true);
+    expect(libraryPublicationSynthesis(allowed, { ...library, owner: null })).toBe(false);
+    expect(libraryPublicationSynthesis(allowed, { ...library, members: [...library.members, { catalogueId: "autre", sheetId: "X" }] })).toBe(false);
   });
 });
 
@@ -428,8 +611,8 @@ describe("empreinte de fiche éditoriale complète", () => {
     ["ordre des médias", (s: Mutable<CatalogueSheet>) => { s.media.push({ ...photo, id: "media-0002bb" } as never); s.media.reverse(); }],
     ["droits d'un média", (s: Mutable<CatalogueSheet>) => { (s.media[0] as { rightsStatus: string }).rightsStatus = "RESTRICTED"; }],
     ["consignes de sécurité", (s: Mutable<CatalogueSheet>) => { s.content.safetyNotes = "Sans douleur."; }],
-    ["classification d'origine", (s: Mutable<CatalogueSheet>) => { s.classification.original = { zone: "Jambes" }; }],
-    ["source documentaire", (s: Mutable<CatalogueSheet>) => { s.sources.documentary = { sourceId: "S", section: null, url: null, usageStatement: null }; }],
+    ["phases", (s: Mutable<CatalogueSheet>) => { (s as { phases: unknown }).phases = [{ id: 1, label: "Descente", durationSeconds: null }]; }],
+    ["licence", (s: Mutable<CatalogueSheet>) => { (s.provenance as { license: unknown }).license = { name: "CC BY", url: null, text: null }; }],
     ["statut de validation clinique", (s: Mutable<CatalogueSheet>) => { s.validation.clinical = "APPROVED"; }],
     ["auteur", (s: Mutable<CatalogueSheet>) => { s.provenance.author = null; }],
     ["spécialités", (s: Mutable<CatalogueSheet>) => { s.classification.specialtyIds = []; }],

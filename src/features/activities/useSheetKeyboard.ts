@@ -32,6 +32,7 @@ import {
   type SheetSurfaceEvent,
   type SheetSurfaceState,
 } from "@/features/activities/sheetSurface";
+import { formatDecimal } from "@/shared/i18n/format";
 
 /**
  * PRE-5 story 2.2 (AD-26, AD-27, FR-23 à FR-25, NFR-6) — hook UNIQUE de synchronisation
@@ -161,7 +162,7 @@ export function loadOfField(draft: ExecutionSheetDraft, row: LoadFieldRow): numb
 /** Texte d'édition d'une charge : le nombre seul au séparateur « , » (« 20 », « 1,25 ») ; vide pour 0 ; kg jamais saisi. */
 export function loadEditText(kg: number | null): string {
   if (kg === null || kg === 0) return "";
-  return String(kg).replace(".", ",");
+  return formatDecimal(kg);
 }
 
 /**

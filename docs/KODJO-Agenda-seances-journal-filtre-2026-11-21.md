@@ -1,0 +1,92 @@
+# KODJO — Agenda centré sur les Séances, Journal et filtre — décisions du 21/11/2026
+
+**Statut : décisions fonctionnelles validées (D-553, registre ch07) ; développement non demandé.** [Développées le 21/11/2026, mission AGENDA-SEANCES-01, branche `feat/agenda-seances-20261121` ; rapport `.github/orchestration/reports/2026-11-21_AGENDA-SEANCES-01.md`.]
+**Référence UX de l'Agenda : maquette validée par Hermann, transmise le 21/11/2026 (capture iPhone « Agenda », lundi 16 novembre).** Figma fait foi pour le rendu réel ; ne pas redessiner l'Agenda.
+**Sources préexistantes :** D-522, D-533 à D-540, CE-UI-15, DSF Agenda et DSF Journal (19–20/11/2026), modèle des occurrences et Exécutions (migration 033).
+**Prévalence :** les décisions ci-dessous remplacent uniquement les règles antérieures incompatibles sur la présentation par Routine, les noms obligatoires/uniques et le rattachement des Exécutions. Les règles non contradictoires d'exécution, de rattrapage, de suppression et de récurrence sont conservées.
+
+## 1. Identités et écrans
+
+- **Séance** : contenu exécutable, nom unique (règle existante conservée). Une Exécution correspond à une Séance et garde son instantané historique.
+- **Routine** : planification avec identité technique stable, un ou plusieurs contenus Séance ordonnés, créneaux et récurrence. Son nom est unique parmi les Routines actives (D-580) ; [texte remplacé le 23/11/2026 : « Son nom n'a plus de contrainte d'unicité ; deux Routines peuvent porter le même nom. »]
+- **Parcours** : présentation et enchaînement d'une Routine comprenant plusieurs Séances, pas une Exécution autonome ni un statut d'exécution agrégé.
+- **Journal** : une carte compacte par Routine, active ou terminée ; son nom de Routine est visible, avec Ⓟ si Parcours ; déploiement pour voir les Séances. Pas de multiplication en lignes de Séances dans la carte repliée.
+- **Agenda** : une carte par Séance, planifiée ou exécutée, y compris les Exécutions sans planification. Le titre est toujours le nom de la Séance, jamais le nom personnalisé de la Routine. Un Parcours ajoute une seule ligne d'en-tête compacte « Ⓟ Nom du parcours » immédiatement au-dessus de la première carte, et un rail vertical sans numéros reliant ses cartes. Pas de cadre, compteur, durée ni autre symbole dans la ligne Parcours. Une Routine à une Séance n'a ni ligne Ⓟ ni rail.
+- **Déploiement de carte Agenda** : seulement le contenu de composition de la Séance ; ne pas répéter son nom. Conserver un format de carte unique pour toutes les Séances, y compris celles d'un Parcours.
+
+## 2. Nom des Routines
+
+- À la création, nom par défaut : nom de la Séance si une seule ; noms des Séances dans leur ordre séparés par « + » si plusieurs.
+- Le nom par défaut non personnalisé suit les changements de composition ; le nom renommé explicitement par l'utilisateur reste stable.
+- Un renommage de Routine se voit dans le Journal, dans le filtre et dans la ligne « Ⓟ nom » d'un Parcours dans l'Agenda (écran validé : « Mobilité du matin »), mais pas dans le titre des cartes de l'Agenda (toujours la Séance).
+- Un nom vidé par l'utilisateur bloque l'enregistrement, avec « Nom obligatoire » sous le champ.
+- Modifier les Séances d'un seul créneau ne change pas le nom de la Routine ; la ligne Ⓟ garde ce nom, les cartes montrent les Séances réellement prévues.
+- Le nom d'une Routine est unique parmi les Routines actives, avec proposition du premier nom libre à la création (D-580) ; une Routine terminée garde son nom. L'unicité des noms de Séances reste inchangée. [Remplace le 23/11/2026 : « Les doublons de noms de Routines sont autorisés. »]
+- **À préciser dans le modèle technique** : mécanisme explicite distinguant nom généré et nom personnalisé, y compris pour les Routines existantes ; ne pas inférer ce mode d'un simple test d'égalité textuelle.
+
+## 3. Heures, dates, durées et statuts
+
+- Séance non exécutée et seule dans sa Routine : heure du créneau prévue.
+- Parcours : première Séance non exécutée = heure prévue du créneau ; toute Séance suivante non exécutée, que le Parcours soit commencé ou non, affiche un trait horizontal « — » dans la zone heure, **jamais un vide ni une heure calculée** (prompt de mission de Hermann du 21/11/2026 : « trait « — » pour les Séances suivantes non exécutées »).
+- Toute Séance exécutée : afficher l'heure **réelle de démarrage** ; la repositionner dans l'Agenda à la date et à l'heure réelles, même si elles diffèrent du créneau initial. Conserver séparément la date/heure planifiée pour la traçabilité.
+- La durée estimée reste affichée pour les Séances non exécutées ; pour les Séances exécutées, afficher la durée réelle conformément aux données de l'Exécution.
+- Statut par Séance uniquement (complétée, partielle, arrêtée, non commencée, rattrapable, expirée selon règles applicables) ; aucun statut d'exécution propre au Parcours. Ne pas compter le Parcours comme une Exécution.
+- Le rail indique l'appartenance à une même occurrence de Parcours, non son achèvement.
+- **Parcours à cheval sur minuit** : ses cartes restent groupées sous le jour du créneau ; une Séance exécutée après minuit affiche son heure réelle.
+- **Séance suivante d'un Parcours** :
+  - non commencée, Parcours non lancé : aucune action sur sa carte ; on lance le Parcours depuis sa première Séance ;
+  - non exécutée alors que le Parcours a été commencé (créneau figé, D-536) : « Rattraper » reste possible pour cette Séance seule, jusqu'au créneau suivant de la Routine (même délai que D-540, 10 jours pour le dernier créneau), puis « Expirée ». Le reste du Parcours n'est pas modifié.
+
+## 4. Rattachement des Exécutions lancées hors Agenda
+
+- Une Exécution démarrée depuis l'Agenda conserve son rattachement explicite au créneau et, pour un Parcours, son rang ; l'enchaînement actuel est conservé, sans changement de moteur.
+- Une Exécution lancée hors Agenda d'une Séance **hors Parcours** se rattache automatiquement si la même Séance est planifiée le même jour dans un créneau non commencé **et non expiré**. Si plusieurs créneaux éligibles existent, choisir celui dont l'heure prévue est la plus proche de l'heure de lancement ; à égalité, le plus ancien. Un créneau expiré ne reçoit jamais d'Exécution.
+- Sinon, afficher une carte « Hors planification » à l'heure réelle. Plusieurs Exécutions de la même Séance restent distinctes et ne se remplacent pas. [Rendu remplacé le 22/11/2026 (D-560) : la carte porte la spécialité comme les autres, et l'heure réelle est suivie d'un astérisque (« 17h05* ») ; plus de libellé « Hors planification » sur la carte.]
+- **Exception validée :** une Séance appartenant à un Parcours, lancée directement hors Agenda, est **Hors planification**, sans rattachement automatique au Parcours, même si ce Parcours est prévu le même jour. Elle ne marque aucun rang du Parcours comme exécuté et ne déclenche pas ses autres Séances. Le lancement ultérieur du Parcours garde sa séquence complète actuelle.
+- **Séance planifiée seule et dans un Parcours le même jour** : une Exécution lancée hors Agenda se rattache au créneau autonome de cette Séance (règle de rattachement ci-dessus) ; le Parcours n'est pas modifié.
+- Une Exécution historique garde le nom et la composition instantanés de la Séance, indépendamment de son renommage, archivage ou suppression ultérieurs.
+
+## 5. Filtre de l'Agenda et Journal
+
+- **Liste de choix du filtre** : une ligne par élément planifié, soit une Routine à Séance unique, soit un Parcours (Ⓟ et nom de Routine). Chaque ligne porte le nom de la Routine, comme le Journal (§ 2 : un renommage se voit dans le filtre). Reprendre le principe de la carte compacte du Journal : **une ligne par Routine**, jamais une ligne par Séance d'un Parcours.
+- La liste peut afficher plusieurs lignes de même nom (doublons de Routine autorisés) ; chaque sélection est liée à l'identifiant stable de la Routine, jamais à son libellé.
+- Sélection multiple : les occurrences correspondant aux éléments choisis s'affichent, sans doublons ; sélectionner un Parcours montre toutes les Séances de ses occurrences et le rail ; les Exécutions libres sont masquées lorsque ce filtre sur les planifications est actif, visibles en l'absence de filtre.
+- Le Journal conserve les états active/terminée, les créneaux, actions et protections déjà décidés (D-535 à D-540) ; le changement demandé concerne la représentation et la cohérence avec le filtre.
+- **Routines terminées** : proposées dans la liste du filtre, après les Routines actives ; sélectionnées, elles montrent leurs occurrences passées.
+
+## 6. Figma et limites de modification
+
+- **Agenda : déjà réalisé et validé dans Figma par Hermann** ; conserver son rendu (capture du 21/11/2026) et ne corriger que des écarts démontrés, après accord. Référence Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101`.
+- **Agenda** : écran validé « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » `12906:47` (ligne Ⓟ, lien vertical noir fin entre le Ⓟ et les traits des cartes, cartes du parcours décalées). L'écran `12890:19` (rail gris) est la variante non retenue.
+- **Journal et filtre Agenda : ajustés le 21/11/2026, à valider par Hermann.**
+  - « Calendrier — Journal — MVP » `1992:5510` : la carte « Mobilité du matin » (`12736:25026`) montre un parcours sur une ligne, Ⓟ après le nom (règle du 20/11/2026) ;
+  - « P-Calendrier — Semaine — Filtre par routine — Choix de la routine (proposition) » `12795:25088` : ligne `12798:26926`, même présentation ;
+  - « P-Calendrier — Semaine — Filtre par routine — Vue filtrée (proposition) » `12799:24881` : les cartes du parcours sélectionné, avec ligne Ⓟ et lien, au format de l'Agenda validé.
+- Ne pas transformer le dessin de la capture en règle technique.
+
+## 7. Impacts transverses et recette
+
+- **Registre** : superséder les seules clauses contradictoires de D-522 (nom obligatoire/unique), D-533 (carte par Routine), D-534 (une carte par occurrence, statut global), D-535/D-539 (libellés Journal/filtre), tout en conservant l'enchaînement D-534 et la protection des occurrences D-536–D-540.
+- **Modèle / données** : nom généré vs personnalisé ; lien Exécution–occurrence optionnel ; distinction Exécution hors planification ; historique et horodatage réel.
+- **API / architecture** : déterminer la stratégie de rattachement automatique et de lecture de toutes les Exécutions sans supposer que la migration 033 couvre les Exécutions libres.
+- **Tests attendus** : créneaux multiples, expirés, double Exécution, Parcours direct, ordre et heure réels, passage minuit, noms identiques, renommage, historique après suppression, filtre mixte, absence de doublon, trait « — », rail et statut individuel.
+- **Ne pas développer** dans cette mission documentaire ; Claude devra faire une revue indépendante avant toute implémentation.
+
+## 8. Arbitrages complémentaires du 21/11/2026
+
+Questions issues de la revue, tranchées par Hermann le 21/11/2026 et intégrées aux § 2 à § 5 :
+1. Séance planifiée seule et dans un Parcours le même jour : rattachement au créneau autonome.
+2. Parcours à cheval sur minuit : cartes groupées sous le jour du créneau, heure réelle.
+3. Filtre : Routines terminées proposées, après les actives.
+4. Modification d'un seul créneau : le nom de la Routine ne change pas.
+5. Séance suivante non commencée d'un Parcours non lancé : aucune action.
+6. Nom vidé : enregistrement bloqué, « Nom obligatoire ».
+7. Écran Agenda validé `12906:47` : la 2e carte du Parcours affiche « — » (corrigé dans Figma).
+8. Séance suivante non exécutée d'un Parcours commencé : « Rattraper » pour elle seule, jusqu'au créneau suivant, puis « Expirée ».
+9. Gestes sur la carte d'une Séance de Parcours :
+   - **Supprimer** (glisser) ne retire que cette Séance de l'occurrence. Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances. La suppression de la dernière Séance restante supprime le créneau : aucune ligne Ⓟ ne reste seule. [Complété le 23/11/2026 (D-568) : une occurrence prévue par la répétition reste affichée « Supprimée » (gris, rétablissable tant que la date n'est pas passée) ; voir [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.]
+   - Une Séance exécutée ne se supprime pas (historique). Une Séance non exécutée d'un Parcours commencé peut être supprimée ; elle n'est alors plus à rattraper.
+   - **Modifier** (cadre gauche) ouvre la modification de tout le créneau du Parcours (date, heure, Séances activées ou non) : une Séance de Parcours n'a pas d'heure propre.
+   - Un créneau commencé ne se modifie pas (D-536).
+
+Reste à préciser dans le modèle technique, sans incidence fonctionnelle : le mécanisme distinguant nom généré et nom personnalisé (§ 2).

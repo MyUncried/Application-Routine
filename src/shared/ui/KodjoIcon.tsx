@@ -169,6 +169,8 @@ const sources = {
   // 12240:26292, 12240:26300, opacité 40 % incluse dans l'export).
   "library-list-plus": require("../../../assets/icons/icon-bibliotheque-liste-plus.svg"),
   "library-list-plus-selected": require("../../../assets/icons/icon-bibliotheque-liste-plus-selection.svg"),
+  // Calendrier (19/11/2026) : « Planifier » de la zone de contexte du Journal et de l'Agenda (`icon-planifier.svg`, 18 × 18).
+  "calendar-plan": require("../../../assets/icons/icon-planifier.svg"),
   "screen-menu-inactive": require("../../../assets/icons/icon-menu-ecran-inactif.svg"),
   "screen-menu-active": require("../../../assets/icons/icon-menu-ecran-actif.svg"),
   "library-share-users": require("../../../assets/icons/icon-bibliotheque-utilisateurs.svg"),
@@ -353,6 +355,7 @@ const sizes = {
   "library-resume": [13.5002, 13.5002],
   "library-list-plus": [20, 20],
   "library-list-plus-selected": [20, 20],
+  "calendar-plan": [18, 18],
   "screen-menu-inactive": [40, 32],
   "screen-menu-active": [40, 32],
   "library-share-users": [18, 18],

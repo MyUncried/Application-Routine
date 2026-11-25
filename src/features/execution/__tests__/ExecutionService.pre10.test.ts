@@ -7,6 +7,7 @@ import type { StructuredSession } from "@/domain/sessions/SessionRepository";
 import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
+import { SqliteOccurrenceExecutionRepository } from "@/infrastructure/database/repositories/SqliteOccurrenceExecutionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 import { ExecutionBlockedError, ExecutionService, type ExecutionSignal } from "../ExecutionService";
@@ -120,6 +121,27 @@ describe("PRE-10 ExecutionService", () => {
     await target.start(prepared);
     return target;
   }
+
+  it("séance lancée depuis une occurrence de routine : lien enregistré, statut relu à la fin (recette du 19/11/2026 au soir)", async () => {
+    const run = service();
+    const prepared = await run.prepare("session-1");
+    if (prepared.status !== "ready") throw new Error("not ready");
+    await run.start(prepared, { routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 2 });
+    const links = new SqliteOccurrenceExecutionRepository(raw);
+    // D-553 (21/11/2026) : le lien relu porte la Séance exécutée (carte de Séance de l'Agenda).
+    expect(await links.list()).toEqual([
+      { executionId: "exec-1", routineId: "r1", occurrenceKey: "2026-11-19T08:00", rank: 2, sessionId: "session-1", startedAt: new Date(T0).toISOString(), businessStatus: null },
+    ]);
+    await run.dispatch({ type: "PAUSE" });
+    await run.dispatch({ type: "STOP" });
+    await scheduler.runUntil(T0 + 5 * S);
+    expect((await links.list())[0]?.businessStatus).toBe("INTERRUPTED");
+  });
+
+  it("séance lancée hors routine : aucun lien", async () => {
+    await started();
+    expect(await new SqliteOccurrenceExecutionRepository(raw).list()).toEqual([]);
+  });
 
   it("lancement depuis la Séance : instantané figé, plan parcouru par les réveils, clôture après la Fin, résultats cohérents", async () => {
     const run = await started();

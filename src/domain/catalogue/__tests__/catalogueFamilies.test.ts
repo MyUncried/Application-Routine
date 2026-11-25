@@ -34,7 +34,8 @@ function sheet(sheetId: string, levelGroup?: { groupId: string; sortKey: number 
     media: [],
     ...(levelGroup === undefined ? {} : { levelGroup }),
     install: { knownLocalMovementIds: [] },
-  } as CatalogueSheet;
+    // Fiche 2.0.0 (relue par la conversion du format 3.0.0).
+  } as unknown as CatalogueSheet;
 }
 
 function file(...sheets: CatalogueSheet[]): MovementCatalogueFile {

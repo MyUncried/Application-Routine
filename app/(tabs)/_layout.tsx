@@ -1,3 +1,4 @@
+import { GlassView } from "expo-glass-effect";
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -9,7 +10,9 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 
+import { noteTabFocus } from "@/features/planning/calendarArrival";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { LENS_VEIL, liquidGlassAvailable } from "@/shared/ui/liquidGlass";
 import {
   NAVIGATION_ACTIVE_FRAME,
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
@@ -24,6 +27,7 @@ import {
 } from "@/shared/ui/navigationLayout";
 import { colors, minTouchTarget, type } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
+import { FloatingCreateHost } from "@/shared/ui/FloatingCreateHost";
 
 /**
  * Navigation principale (docs/Specifications-fonctionnelles/06 – Écrans et
@@ -45,9 +49,13 @@ import { strings } from "@/shared/i18n";
 export default function TabsLayout() {
   return (
     <View style={styles.root}>
+      {/* D-594 (24/11/2026) : le bouton flottant « Créer » de l'écran affiché est rendu ici, devant la barre de navigation. */}
+      <FloatingCreateHost>
       <Tabs
         tabBar={(props) => <BottomTabBar {...props} />}
         screenOptions={{ headerShown: false }}
+        // D-562 (23/11/2026) : onglet quitté, pour l'onglet ouvert à l'arrivée dans le calendrier.
+        screenListeners={({ route }) => ({ focus: () => noteTabFocus(route.name) })}
       >
         <Tabs.Screen
           name="index"
@@ -91,7 +99,10 @@ export default function TabsLayout() {
         {/* « Modifier le profil » : écran de l'onglet Profil, sans destination propre dans la barre (demande de Hermann
             du 14/11/2026 : « Ajoute la barre de navigation Kodjo à la page d'accueil du Profil »). */}
         <Tabs.Screen name="profile-edit" options={{ href: null }} />
+        {/* PROG-CAT-01 (CE-PRF-01) : Profil › Confidentialité, écran de l'onglet Profil. */}
+        <Tabs.Screen name="profile-privacy" options={{ href: null }} />
       </Tabs>
+      </FloatingCreateHost>
     </View>
   );
 }
@@ -103,7 +114,7 @@ const COMMUNITY_BEFORE_ROUTE = "profile";
  * Écrans d'onglet sans destination propre dans la barre, et la destination qui reste active pendant qu'ils sont
  * affichés (14/11/2026 : « Modifier le profil » garde Profil actif).
  */
-const ROUTES_SHOWN_AS: Readonly<Record<string, string>> = { "profile-edit": "profile" };
+const ROUTES_SHOWN_AS: Readonly<Record<string, string>> = { "profile-edit": "profile", "profile-privacy": "profile" };
 
 /**
  * Cadre actif de navigation (V2-CAT-01) : un unique `Animated.View`, centré
@@ -116,6 +127,8 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   // `useState` : instance `Animated.Value` stable, jamais lue via un ref pendant le rendu.
   const [indicatorX] = useState(() => new Animated.Value(0));
   const [isIndicatorReady, setIsIndicatorReady] = useState(false);
+  // Effet lentille (24/11/2026) : fond de la barre et cadre actif en verre natif clair ; sans verre natif, rendu d'origine.
+  const [glass] = useState(liquidGlassAvailable);
   const focusedName = state.routes[state.index]?.name;
   const activeName = focusedName === undefined ? undefined : (ROUTES_SHOWN_AS[focusedName] ?? focusedName);
   const activeRouteKey = state.routes.find((route) => route.name === activeName)?.key;
@@ -128,7 +141,10 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     if (!layout) {
       return;
     }
-    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: false }).start();
+    // Recette du 20/11/2026 (Hermann : « La barre de navigation est saccadée (déplacement du cadre) ») : translation animée par
+    // le pilote natif, indépendante du fil JavaScript occupé par l'écran qui s'ouvre. [`left` animé sans pilote natif —
+    // remplacé.] Même trajet, même durée.
+    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: true }).start();
   }, [activeRouteKey, isIndicatorReady, indicatorX]);
 
   function handleItemLayout(routeKey: string, event: LayoutChangeEvent) {
@@ -193,13 +209,29 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   return (
     <View style={styles.navigationRow} testID="navigation-row">
-      <View style={styles.tabsGroup} testID="navigation-tabs-group">
+      <View style={[styles.tabsGroup, glass ? styles.tabsGroupLens : null]} testID="navigation-tabs-group">
+        {glass ? (
+          <View pointerEvents="none" style={styles.barLens} testID="navigation-bar-lens">
+            <GlassView glassEffectStyle="clear" colorScheme="light" style={StyleSheet.absoluteFill} testID="navigation-bar-glass" />
+            <View style={styles.barLensVeil} />
+          </View>
+        ) : null}
         {isIndicatorReady ? (
           <Animated.View
             pointerEvents="none"
             testID="navigation-active-indicator"
-            style={[styles.activeIndicator, { left: indicatorX }]}
-          />
+            style={[styles.activeIndicator, glass ? styles.activeIndicatorLens : null, { transform: [{ translateX: indicatorX }] }]}
+          >
+            {glass ? (
+              <GlassView
+                glassEffectStyle="clear"
+                colorScheme="light"
+                tintColor={ACTIVE_FRAME_LENS_TINT}
+                style={styles.activeIndicatorGlass}
+                testID="navigation-active-indicator-glass"
+              />
+            ) : null}
+          </Animated.View>
         ) : null}
         {items}
       </View>
@@ -228,6 +260,12 @@ function CommunityDestination() {
 function indicatorLeft(layout: { x: number; width: number }): number {
   return layout.x + (layout.width - NAVIGATION_ACTIVE_FRAME.width) / 2;
 }
+
+/**
+ * Recette du 24/11/2026 (barre-lentille, Hermann : « Le cadre qui entoure les options doit être un peu plus coloré pour qu'on
+ * voit le contraste ») : teinte du cadre actif en lentille, bleu à 20 % [10 %, celle du cadre opaque — remplacé].
+ */
+const ACTIVE_FRAME_LENS_TINT = "rgba(5, 8, 229, 0.2)";
 
 const BAR_BORDER_WIDTH = 1;
 /** Hauteur intérieure de la barre (les enfants se placent dans la boîte intérieure à la bordure). */
@@ -260,9 +298,32 @@ const styles = StyleSheet.create({
     shadowOpacity: NAVIGATION_BAR_SHADOW.opacity,
     shadowRadius: NAVIGATION_BAR_SHADOW.radius,
   },
+  // Effet lentille : la couleur passe au verre (voile blanc léger) ; forme, liseré blanc et ombre inchangés.
+  tabsGroupLens: {
+    backgroundColor: "transparent",
+  },
+  barLens: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: NAVIGATION_BAR_RADIUS - BAR_BORDER_WIDTH,
+    overflow: "hidden",
+  },
+  barLensVeil: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: LENS_VEIL,
+  },
+  // Cadre actif en lentille : verre clair teinté de bleu (20 %), mêmes dimensions.
+  activeIndicatorLens: {
+    backgroundColor: "transparent",
+    overflow: "hidden",
+  },
+  activeIndicatorGlass: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: NAVIGATION_ACTIVE_FRAME.radius,
+  },
   // Cadre actif, sous les destinations (premier enfant), centré verticalement dans la barre.
   activeIndicator: {
     position: "absolute",
+    left: 0,
     top: (BAR_INNER_HEIGHT - NAVIGATION_ACTIVE_FRAME.height) / 2,
     width: NAVIGATION_ACTIVE_FRAME.width,
     height: NAVIGATION_ACTIVE_FRAME.height,

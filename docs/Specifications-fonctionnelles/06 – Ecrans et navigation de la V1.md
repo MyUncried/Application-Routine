@@ -301,7 +301,7 @@ Aucun bouton Recherche dans la barre ; composant mutualisé entre les écrans, S
 
 L’onglet `Calendrier` permet de visualiser les **Séances et Exercices planifiés** et d’accéder à la création et à la gestion des Routines.  
 L’onglet `Suivi` permet de consulter les Exécutions enregistrées.  
-L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Préférences globales de l’application.
+L’onglet `Profil` permet d’accéder aux informations utilisateur et aux Préférences globales de l’application. [Précisé le 20/11/2026 — D-552 : trois onglets, Compte · Préférences · Confidentialité.]
 
 La barre de navigation principale utilise le composant DSF canonique décrit plus haut. L’onglet actif est matérialisé par la variante active correspondante ; aucune substitution par glyphe ou emoji système n’est autorisée.
 
@@ -1242,14 +1242,14 @@ L’écran est accessible depuis l’onglet `Calendrier`.
 | Vue / état | Présentation et règle locale | Contrat |
 |---|---|---|
 | Jour : initial, appui long, après planification, créneau, jour suivant | Carte à x=80 ; séance 298 × 46, exercice 298 × 48 ; hauteur ajustable selon événement ; barre couleur de l’événement 4 ; nature 26 ; titre 13 gras ; heure/durée11 (`08 h · 13 min`) ; Lecture 26 ; aucun Déployer | CE-UI-02 |
-| Semaine : liste, mardi sélectionné, suppression et actions glissées | Carte 354 × 95,5, sans barre ; nature 26 liste/tai-chi ; badge heure `08:00` ; classement catégorie puis étiquette (séance) ou zones (exercice) ; durée et sablier sur ligne des valeurs | CE-UI-03 |
+| Semaine : liste, mardi sélectionné, suppression et actions glissées | [Remplacé le 21/11/2026 (D-553) : une carte par Séance ; écran de référence « P-Calendrier — Semaine — Séances, parcours et hors planification (proposition B — lien fin) » (`12906:47`) ; voir [spécification du 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md).] [Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354 × 95,5, sans barre ; nature 26 liste/tai-chi ; badge heure `08:00` ; classement catégorie puis étiquette (séance) ou zones (exercice) ; durée et sablier sur ligne des valeurs | CE-UI-03 |
 | Semaine : séance déployée | Hauteur de référence 254,5 ; détail des exercices et ligne de récurrence avec calendrier ; badge heure et durée conservés | CE-UI-03 |
 | Choisir séance/exercice depuis Calendrier | Cartes de choix à cases à cocher, sans durée ni Déployer/Lecture ; état courant CE-UI-04 et matrice du 08/10 | CE-UI-04 |
 | Mois et état vide | Conserver leur structure fonctionnelle ; appliquer segmenté/navigation communs ; ne pas ajouter une carte Jour à une cellule Mois | CE-UI-03 |
 
 Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exercice restent sans photo et conservent leur icône de nature, même si un média est associé (D-260). Les deux modales de suppression conservent les cartes Semaine actualisées en arrière-plan.
 
-Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les cinq dessins DSF courants. Ces règles ne déplacent pas les jalons fonctionnels existants.
+[Libellés remplacés le 19/11/2026, D-532 : Journal / Agenda / Vue d’ensemble, format onglets du catalogue.] Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les cinq dessins DSF courants. Ces règles ne déplacent pas les jalons fonctionnels existants.
 
 #### Vues principales et états intégrés
 
@@ -1263,6 +1263,8 @@ Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 
 
 ##### Calendrier — Mois
 
+[Écran supprimé le 19/11/2026 : la vue Mois (Vue d’ensemble) n’a plus d’écran de référence ; son contenu reste à spécifier.]
+
 [Source Figma — `1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237)
 
 ![Navigation — écran 1992:5237](images/navigation-2026-10-27/1992-5237.png)
@@ -1271,11 +1273,15 @@ Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 
 
 ##### Calendrier — Jour — MVP
 
+[Écran remplacé le 19/11/2026 (D-535) : devenu « Calendrier — Journal — MVP », liste des routines créées ; voir `docs/DSF-JOURNAL-2026-11-19.md`.]
+
 [Source Figma — `1992:5510`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5510)
 
 ![Navigation — écran 1992:5510](images/navigation-2026-10-27/1992-5510.png)
 
 ##### Calendrier — Jour — Appui long — MVP
+
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
 
 [Source Figma — `1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602)
 
@@ -1287,6 +1293,8 @@ Sélection d’une plage horaire avant planification
 
 ##### Calendrier — Jour — MAJ — MVP
 
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
+
 [Source Figma — `1992:5697`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5697)
 
 ![Navigation — écran 1992:5697](images/navigation-2026-10-27/1992-5697.png)
@@ -1294,6 +1302,8 @@ Sélection d’une plage horaire avant planification
 Résultat attendu après enregistrement
 
 ##### Calendrier — Jour — Créneau à planifier — MVP
+
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
 
 [Source Figma — `1992:5794`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794)
 
@@ -1323,6 +1333,8 @@ Détail d’une occurrence et zone `Démarrer`
 
 ##### Calendrier — Jour suivant — Glissement gauche — MVP
 
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal.]
+
 [Source Figma — `2059:267`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2059-267)
 
 ![Navigation — écran 2059:267](images/navigation-2026-10-27/2059-267.png)
@@ -1330,6 +1342,8 @@ Détail d’une occurrence et zone `Démarrer`
 Résultat d’un glissement gauche ou du chevron suivant
 
 ##### Calendrier — Semaine — Après suppression d’une planification
+
+[Écran supprimé le 19/11/2026 : état résultat sans intérêt propre ; les liens de prototype de la modale « Supprimer des occurrences » sont retirés.]
 
 [Source Figma — `2074:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2074-86)
 
@@ -1339,6 +1353,8 @@ Liste hebdomadaire actualisée après suppression
 
 ##### Calendrier — Semaine — Étirements — Actions glissées
 
+[Écran supprimé le 19/11/2026 : redondant avec « P-Calendrier — Semaine — Actions glissées » (1992:5962) après la refonte de la carte de routine, D-533.]
+
 [Source Figma — `2094:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2094-86)
 
 ![Navigation — écran 2094:86](images/navigation-2026-10-27/2094-86.png)
@@ -1347,6 +1363,8 @@ Même interaction appliquée à une autre occurrence représentée
 
 ##### Calendrier — Jour — État vide
 
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535) ; les liens de navigation Calendrier mènent à « P-Calendrier — Semaine ».]
+
 [Source Figma — `2128:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2128-86)
 
 ![Navigation — écran 2128:86](images/navigation-2026-10-27/2128-86.png)
@@ -1354,6 +1372,8 @@ Même interaction appliquée à une autre occurrence représentée
 État sans occurrence planifiée
 
 ##### Calendrier — Semaine — Mardi sélectionné
+
+[Écran supprimé le 19/11/2026 : le comportement de sélection d’un jour est spécifié (CE-UI-03 et DSF Agenda) ; aucun écran dédié.]
 
 [Source Figma — `2252:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2252-86)
 
@@ -1427,11 +1447,17 @@ Frame `1992:7187` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 #### Planifier une séance — Stepper du nombre de semaines
 
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+
+
 Frame `1992:7537` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7537).
 
 
 
 #### Planifier une séance — Rappel personnalisé sélectionné
+
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+
 
 Frame `1992:7369` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7369).
 
@@ -1439,11 +1465,17 @@ Frame `1992:7369` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?
 
 #### Planifier une séance — Sans répétition
 
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+
+
 Frame `1992:7716` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7716).
 
 
 
 #### Modal — Planifier un parcours — Sélectionner plusieurs séances
+
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+
 
 Frame `7594:34809` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34809).
 
@@ -1451,11 +1483,17 @@ Frame `7594:34809` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg
 
 #### Planifier un parcours
 
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+
+
 Frame `7594:34531` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34531).
 
 ![Planifier un parcours](images/figma-7594-34531.png)
 
 #### Modal — Planifier un parcours — Fréquence
+
+> [Écran retiré ou remplacé le 18/11/2026, D-523 : voir CE-UI-12 (chapitre 13) pour les écrans de planification en vigueur.]
+
 
 Frame `7594:34653` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34653).
 
@@ -1621,6 +1659,8 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 ##### Suivi — Séances — Liste condensée
 
+[Écran supprimé de Figma le 20/11/2026 (décision de Hermann) : l’historique des séances est présenté dans l’Agenda (D-533, D-534).]
+
 [Source Figma — `1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843)
 
 ![Navigation — écran 1992:8843](images/navigation-2026-10-27/1992-8843.png)
@@ -1630,6 +1670,8 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 `Terminée`, `Partielle`, `Interrompue`
 
 ##### Référence historique hors MVP — Suivi — Séances — Vue déployée
+
+[Écran supprimé de Figma le 20/11/2026 (décision de Hermann) : l’historique des séances est présenté dans l’Agenda (D-533, D-534).]
 
 [Source Figma — `1992:8996`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8996)
 
@@ -2672,8 +2714,8 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 
 | N° | Écran | Capture | Variantes visibles | Node Figma |
 | --- | --- | --- | --- | --- |
-| Suivi — Séances | Suivi : Séances — Liste condensée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
-| Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
+| Suivi — Séances | Suivi : Séances — Liste condensée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` [supprimé le 20/11/2026] |
+| Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` [supprimé le 20/11/2026] |
 
 ### Conventions communes d’interface
 - **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
@@ -2755,7 +2797,7 @@ Le trait ne désigne pas la ligne entière de contenu. Supprimer les information
 
 ### Champs et comportements des fonctionnalités — Planifier une Séance ou un Exercice
 
-Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le nombre de semaines utilise désormais un stepper intégré (frame 1992:7537), sans roulette dédiée. Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
+Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le nombre de semaines utilise désormais un stepper intégré (frame 1992:7537), sans roulette dédiée. [Remplacé le 18/11/2026, D-520 : le nombre de semaines et le Rappel personnalisé utilisent une roulette native iOS en popover (frames 12652:28447 et 12652:28306), sans titre, bouton ni unité.] Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
 
 ### Champs et comportements des fonctionnalités — Dialogues de confirmation
 
@@ -3190,6 +3232,8 @@ Nœud [10266:20575](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=
 
 ##### Calendrier — Jour — Créneau à planifier — MVP
 
+[Écran supprimé le 19/11/2026 : la vue Jour est remplacée par le Journal (D-535).]
+
 Nœud [1992:5794](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794) · Export du 06/11/2026.
 
 ![Calendrier — Jour — Créneau à planifier — MVP](images/catalogues-2026-11-06/1992-5794.png)
@@ -3561,3 +3605,16 @@ La page Figma « Prototype MVP » `510:101` comporte des actions « Partager » 
 ### Composition séance — Guidage sonore
 
 Dans l’en-tête des écrans de Composition, sauf le récapitulatif Tabata, le bouton Guidage sonore ouvre une seule modale défilante. [Remplacé le 11/11/2026 — exception « sauf le récapitulatif Tabata » supprimée, retour de Hermann : « C’est un règle stupide que je n’ai jamais édictée et qu’il faut supprimer. » Le bouton Guidage sonore est celui de l’en-tête de la Composition ; aucune exception propre au Tabata.] [Composition séance — Guidage sonore (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12132-27436) et [Composition séance — Guidage sonore (modale, suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12175-25882) en montrent respectivement le haut et le bas. L’en-tête fixe réunit Fermer, le titre et Valider. Le bouton affiche son symbole plein pendant l’ouverture de la modale et retrouve son symbole fin à la fermeture, y compris après validation de réglages propres à la séance.
+
+### Complément du 21/11/2026 — Calendrier à trois onglets (D-554)
+
+Le Calendrier a trois onglets, Journal · Agenda · Plan ; tous les écrans du calendrier portent les trois libellés. Écrans du Plan :
+- « P-Calendrier — Plan » `12983:19` (référence) ;
+- « P-Calendrier — Plan — Mois de cinq semaines » `13005:14750` ;
+- « P-Calendrier — Plan — Case vide touchée (proposition) » `13005:14584`.
+
+Rendu et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Remplace l'écran « P-Calendrier — Vue d’ensemble — Routines et jours (proposition) », supprimé.
+
+### Complément du 22/11/2026 — bouton flottant « Créer » (D-558)
+
+Les écrans des catalogues, du Journal, de l'Agenda et de la composition de séance portent le bouton flottant (composant `13039:49732`) ; leur bouton de création de la zone de contexte est retiré. Écran du menu : « Composition séance — Créer (menu) » `10705:20223`. Voir [DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md).

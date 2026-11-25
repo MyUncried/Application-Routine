@@ -230,7 +230,10 @@ describe("B.1b — rendu d'une disposition générale", () => {
     fireEvent(card, "longPress");
     expect(screen.queryByTestId("composition-activity-actions-a1", hidden)).toBeNull();
     expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
-    expect(screen.getByTestId("composition-add-stop-action").props.accessibilityState).toMatchObject({ disabled: false });
+    // UI-FAB-01 : « Ajouter un point d’arrêt » dans le menu Créer du bouton flottant.
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    expect(screen.getByTestId("composition-add-activity-tree-stop").props.accessibilityState).toMatchObject({ disabled: false });
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
     // [Complément du 5 novembre 2026 (§6) : œil des Volumes retiré.]
     expect(screen.queryByTestId("composition-volumes-action")).toBeNull();
   });

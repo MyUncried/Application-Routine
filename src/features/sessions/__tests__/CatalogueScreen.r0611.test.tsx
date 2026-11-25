@@ -10,6 +10,7 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import { markMovementCreated, resetNewMovementMarks } from "@/features/activities/newMovementMarks";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { noteCalendarView, noteTabFocus, resetCalendarArrival } from "@/features/planning/calendarArrival";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
@@ -69,13 +70,16 @@ const referentials = {
 /** Navigation simulée de l'onglet du Catalogue : écouteurs de `blur` et état du navigateur d'onglets. */
 function fakeTabNavigation() {
   const listeners: (() => void)[] = [];
+  // Contre-recette du 23/11/2026 (constats f et g) : écouteurs de `tabPress`, à part de ceux de `blur`.
+  const pressListeners: (() => void)[] = [];
   const tabs = { index: 0, routes: [{ name: "index" }, { name: "calendar" }] };
   const navigation = {
-    addListener: (_type: string, listener: () => void) => {
-      listeners.push(listener);
+    addListener: (type: string, listener: () => void) => {
+      (type === "tabPress" ? pressListeners : listeners).push(listener);
       return () => undefined;
     },
     getState: () => tabs,
+    isFocused: () => tabs.index === 0,
   };
   return {
     navigation: navigation as unknown as ComponentProps<typeof NavigationContext.Provider>["value"],
@@ -83,6 +87,12 @@ function fakeTabNavigation() {
       act(() => {
         tabs.index = focusedTab;
         listeners.forEach((listener) => listener());
+      }),
+    /** Toucher l'onglet du Catalogue dans la barre du bas (émis avant son focus). */
+    pressTab: () =>
+      act(() => {
+        pressListeners.forEach((listener) => listener());
+        tabs.index = 0;
       }),
   };
 }
@@ -152,7 +162,8 @@ describe("D-510 (06/11/2026) : badge « New » d'une fiche créée", () => {
     await movements().create(movement("autre", "Abdos"));
     await focus();
     expect(badges()).toEqual([]);
-    await press("catalogue-create-action");
+    // UI-FAB-01 (D-558) : bouton flottant « Créer un mouvement ».
+    await press("floating-create");
     expect(mockPush).toHaveBeenLastCalledWith("/movement");
     await createWithService("fentes", "Fentes avant");
     expect(badges()).toEqual(["fentes"]);
@@ -247,5 +258,53 @@ describe("t-catalogue (06/11/2026) : symbole Trier dessiné avec son cercle", ()
     expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 20, height: 20 });
     // Axe et quatre branches de chevron.
     expect(icon.children).toHaveLength(5);
+  });
+});
+
+/**
+ * Contre-recette du 23/11/2026 (constats f et g — Hermann : « Aller de l'écran du Plan vers le catalogue doit amener à l'écran
+ * des programmes » ; « aller de l'écran de l'agenda vers le catalogue doit amener à l'écran des séances. ») : sens inverse de D-562.
+ */
+describe("arrivée dans le catalogue depuis le calendrier (constats f et g)", () => {
+  beforeEach(() => resetCalendarArrival());
+  const selected = (segment: string) => screen.getByTestId(`catalogue-content-type-row-${segment}`).props.accessibilityState?.selected;
+
+  it("Plan → Programmes ; Agenda → Séances ; Journal ou autre onglet : segment inchangé ; toucher l'onglet affiché : rien", async () => {
+    const tabs = fakeTabNavigation();
+    renderScreen(tabs.navigation);
+    noteTabFocus("index");
+    await focus();
+    await press("catalogue-content-type-row-movements");
+    // Depuis le Plan.
+    noteCalendarView("plan");
+    await tabs.blur(1);
+    noteTabFocus("calendar");
+    await tabs.pressTab();
+    expect(selected("programs")).toBe(true);
+    // Depuis l'Agenda (l'écouteur commun a déjà noté le catalogue).
+    await tabs.blur(1);
+    noteTabFocus("calendar");
+    noteCalendarView("agenda");
+    noteTabFocus("index");
+    await tabs.pressTab();
+    expect(selected("sessions")).toBe(true);
+    // Depuis le Journal : segment inchangé.
+    await press("catalogue-content-type-row-movements");
+    await tabs.blur(1);
+    noteTabFocus("calendar");
+    noteCalendarView("journal");
+    await tabs.pressTab();
+    expect(selected("movements")).toBe(true);
+    // Depuis un autre onglet (vue du calendrier Plan) : segment inchangé.
+    noteTabFocus("index");
+    noteCalendarView("plan");
+    await tabs.blur(1);
+    noteTabFocus("history");
+    await tabs.pressTab();
+    expect(selected("movements")).toBe(true);
+    // Toucher l'onglet du catalogue déjà affiché : rien.
+    noteTabFocus("index");
+    await tabs.pressTab();
+    expect(selected("movements")).toBe(true);
   });
 });

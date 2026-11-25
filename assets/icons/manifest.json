@@ -1524,6 +1524,71 @@
       ]
     },
     {
+      "key": "icon.plan",
+      "file": "icon-planifier",
+      "figmaNodeId": "11004:43991",
+      "figmaName": "icon/planifier",
+      "figmaStatus": "EXACT_EXPORT",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Calendrier — Semaine (1992:5101), action contextuelle Planifier"
+      ],
+      "runtime": "Exporté le 2026-11-13 (calques du pictogramme seuls) ; tracé de la maquette du 20/11/2026 (D-538, « + » recentré sous le bandeau, y = 16,5), affiché en 18 ; CalendarWeekScreen, JournalScreen (CommandCircle)"
+    },
+    {
+      "key": "icon.today",
+      "file": "icon-aujourdhui",
+      "figmaNodeId": "12779:24842",
+      "figmaName": "icon/aujourd’hui",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — zone de contexte, bouton « Aujourd’hui » (D-538)"
+      ],
+      "note": "Calendrier du composant sans le chiffre du jour : le chiffre (Inter gras 9) est un texte posé par TodayIcon, car il suit la date du jour. Teinté #333333 (jour courant) ou #0508E5 (autre jour)."
+    },
+    {
+      "key": "icon.routineFilter",
+      "file": "icon-filtre-routine",
+      "figmaNodeId": "12794:49374",
+      "figmaName": "icon/filtre-routine — État=Inactif",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — filtre par routine, sans filtre (D-539)"
+      ],
+      "note": "Tracé de l’export Figma (18 × 16,5) recentré dans la boîte de 24 du composant ; contour #0508E5 (D-555, 21/11/2026 : « Avec les traits bleus » ; #333333 jusqu’au 20/11/2026), trait 1,5."
+    },
+    {
+      "key": "icon.routineFilterActive",
+      "file": "icon-filtre-routine-actif",
+      "figmaNodeId": "12794:49376",
+      "figmaName": "icon/filtre-routine — État=Actif (filtre en cours)",
+      "figmaStatus": "DERIVED_DRAWING",
+      "width": 24,
+      "height": 24,
+      "usage": [
+        "Agenda — filtre par routine actif (D-539)"
+      ],
+      "note": "Même tracé, silhouette pleine #0508E5."
+    },
+    {
+      "key": "icon.agendaStopwatch",
+      "file": "icon-agenda-chronometre",
+      "figmaNodeId": "12580:27335",
+      "figmaName": "Agenda — Planning (proposition) — chronomètre de la carte de routine",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 10.8333,
+      "height": 12.5833,
+      "usage": [
+        "Agenda — carte de routine, bloc heure / durée (chronomètre 14)"
+      ],
+      "runtime": "Exporté le 2026-11-19 par le MCP Figma depuis l’écran 12580:27335 (identifiant du nœud de l’icône non relevé) ; RoutineAgendaCard"
+    },
+    {
       "key": "execution.pause",
       "file": "execution-pause",
       "figmaNodeId": "1992:8175",
@@ -1753,6 +1818,34 @@
         "Exécution For time — ✓ inactif en Pause"
       ],
       "note": "PRE-11, correction 3 du 14/11/2026 : absent du Figma (l’écran « En pause » 12283:26364 montre « Activité suivante ») ; contour et symbole #B4B9C4."
+    },
+    {
+      "key": "floatingCreate.calendar",
+      "file": "fab-calendrier",
+      "figmaNodeId": "13039:49713",
+      "figmaName": "icon/calendrier (bouton flottant — Créer, Contenu=Calendrier)",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "13039:49732",
+      "width": 28,
+      "height": 28,
+      "usage": [
+        "Bouton flottant « Créer » — Journal et Agenda (calendrier « + »)"
+      ],
+      "note": "UI-FAB-01 du 24/11/2026 : export MCP Figma en lecture seule ; le « + » est dessiné par le composant."
+    },
+    {
+      "key": "floatingCreate.movement",
+      "file": "fab-mouvement",
+      "figmaNodeId": "13039:49724",
+      "figmaName": "Pictogramme — mouvement (bouton flottant — Créer, Contenu=Mouvement)",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "13039:49732",
+      "width": 25.7608,
+      "height": 27.8,
+      "usage": [
+        "Bouton flottant « Créer » — Catalogue des mouvements (silhouette « + »)"
+      ],
+      "note": "UI-FAB-01 du 24/11/2026 : export MCP Figma en lecture seule ; image débordant du trait (23,96 × 26 dans Figma)."
     }
   ],
   "branding": {

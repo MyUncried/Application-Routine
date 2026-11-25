@@ -43,20 +43,20 @@ function sheet(sheetId: string, name: string): CatalogueSheet {
     revision: "1",
     history: [{ revision: "1", date: "2026-11-11", author: null, summary: "Création" }],
     provenance: {
-      gestureId: null, origin: "EXTERNAL_IMPORTED", upstream: { catalogueId: "test", sheetId, revision: "1" },
-      owner: null, author: null, publisher: null, rightsHolder: null, license: null, reviewStatus: "DRAFT", visibility: "PRIVATE",
+      origin: "EXTERNAL_IMPORTED", upstream: { catalogueId: "test", sheetId, revision: "1" },
+      owner: null, author: null, rightsHolder: null, license: null,
     },
-    content: { name, aliases: [], startingPosition: null, equipment: null, steps: ["Étape unique"], safetyNotes: null, notes: "" },
+    content: { name, aliases: [], equipment: null, steps: ["Étape unique"], safetyNotes: null, notes: "" },
     classification: {
       categoryId: "renforcement", bodyZoneIds: ["epaules"], specialtyIds: [], gesturalFamilyIds: [], clinicalProblemIds: [],
-      anatomicalTargetIds: [], basis: "TEST", review: null, original: {}, originalProposedSpecialties: [],
+      anatomicalTargetIds: [],
     },
-    sources: { documentary: null, prescriptionContext: {} },
     validation: {
       classification: "PENDING", clinical: "PENDING", rights: "PENDING", corpusReview: null, licensing: null,
       clinicalValidation: null, publicationAllowed: false,
     },
     media: [],
+    phases: [],
     install: { knownLocalMovementIds: [] },
   } as CatalogueSheet;
 }
@@ -64,8 +64,8 @@ function sheet(sheetId: string, name: string): CatalogueSheet {
 function catalogue(id: string, sheets: readonly CatalogueSheet[], members: readonly string[]): MovementCatalogueFile {
   return {
     format: "KODJO_MOVEMENT_CATALOGUE",
-    formatVersion: "2.0.0",
-    catalogue: { id, title: "Catalogue " + id, revision: "1", owner: null, manager: null, publisher: null, publicationAllowed: false, notes: [] },
+    formatVersion: "3.0.0",
+    catalogue: { id, title: "Catalogue " + id, revision: "1", owner: null, notes: [] },
     references: {
       categories: [{ id: "renforcement", label: "Renforcement", kind: null, status: null }],
       bodyZones: [{ id: "epaules", label: "Épaules", kind: null, status: null }],
@@ -73,8 +73,8 @@ function catalogue(id: string, sheets: readonly CatalogueSheet[], members: reado
     },
     glossary: [],
     libraries: [{
-      libraryId: "pompes", title: "Pompes", description: null, revision: "1", history: [], editor: null, owner: null,
-      visibility: "PRIVATE", publicationAllowed: false, members: members.map((sheetId) => ({ catalogueId: id, sheetId })),
+      libraryId: "pompes", title: "Pompes", description: null, revision: "1", history: [], owner: null,
+      visibility: "PRIVATE", members: members.map((sheetId) => ({ catalogueId: id, sheetId })),
     }],
     sheets: [...sheets],
   } as unknown as MovementCatalogueFile;

@@ -1,4 +1,4 @@
-import { forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
+import { amrapMaxRefused, forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
@@ -109,6 +109,8 @@ export function formatSheetContextOf(
     ...(roleChangeLoss !== undefined ? { roleChangeLoss } : {}),
     ...(seriesForRole !== undefined ? { seriesForRole } : {}),
     ...(durationRefused ? { durationRefused } : {}),
+    // D-531 / RM-271 (19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements.
+    ...(format.key === "AMRAP" && amrapMaxRefused(draft, draft.structure, exerciseId) ? { failureRefused: true } : {}),
     onApply: (next: FormatSettings, nextRole: CircuitRole | null) =>
       update((current) => {
         const withSettings: SessionDraft = {
@@ -131,12 +133,26 @@ export function formatSheetContextOf(
  */
 export function seriesWordingOf(draft: SessionDraft, exerciseId: string): "rounds" | "series" {
   const circuit = circuitOfExercise(draft.structure, exerciseId);
+  // Constat a) de la recette du 18/11/2026 (Hermann, EMOM à plusieurs mouvements) : « Dans chaque intervalle » (Circuit porteur EMOM)
+  // et « En alternance » (Circuit à séries alternées de membres EMOM), modale « X tours identiques / variables ». « À la suite » :
+  // séries, inchangé.
+  if (circuit !== undefined && circuit.exercises.length > 1 && emomRoundsCircuit(draft, circuit.nature, circuit.format?.key, exerciseId)) return "rounds";
   if (circuit === undefined || circuit.nature !== "SERIES") return "series";
   if (circuit.originModel === "SUPERSET") return "rounds";
   const key = circuit.format?.key;
   if (key !== "FOR_TIME" && key !== "AMRAP") return "series";
   const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);
   return exercise !== undefined && circuitRoleOf(exercise.format, circuit.exercises.indexOf(exerciseId)) === "TOUR" ? "rounds" : "series";
+}
+
+/**
+ * EMOM à plusieurs mouvements compté en tours (constat a) du 18/11/2026) : Circuit porteur EMOM (« Dans chaque intervalle ») ou Circuit
+ * à séries alternées dont l'Exercice est un EMOM (« En alternance »).
+ */
+function emomRoundsCircuit(draft: SessionDraft, nature: string, carrierKey: string | undefined, exerciseId: string): boolean {
+  if (carrierKey === "EMOM") return true;
+  if (nature !== "SERIES" || carrierKey !== undefined) return false;
+  return draft.exercises.find((candidate) => candidate.id === exerciseId)?.format?.key === "EMOM";
 }
 
 /** Le Rôle n'est changé que par `setMemberRole` (replacement dans sa zone). */

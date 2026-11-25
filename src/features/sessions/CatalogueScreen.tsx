@@ -26,7 +26,6 @@ import {
   type MovementCatalogueFilters,
 } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
 import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -35,13 +34,20 @@ import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { catalogueColors, CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { catalogueColors, countLabel } from "@/shared/ui/catalogueContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { FilterCommand } from "@/shared/ui/CatalogueCommands";
-import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { ListGridToggle, type ListGridView } from "@/shared/ui/ListGridToggle";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
-import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import type { ProgramStatus } from "@/domain/programs/Program";
+import { ProgramCatalogueBody, ProgramContext, useProgramSummaries } from "@/features/programs/ProgramCatalogue";
+import { programCounts, visiblePrograms } from "@/features/programs/programPresentation";
+import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
+import { CONTEXT_BAND_FADE_HEIGHT } from "@/shared/ui/ScreenShell";
+import { takePlanningNotice } from "@/features/planning/planningNotice";
+import { PlanningNoticeHost } from "@/features/planning/PlanningNoticeHost";
+import { catalogueArrivalSegment, noteCatalogueSegment } from "@/features/planning/calendarArrival";
+import { TabbedScreen } from "@/shared/ui/TabbedScreen";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
@@ -95,6 +101,8 @@ export function CatalogueScreen() {
   // T01-S10/V2-CAT-01 (D-108) : `Séances` sélectionné par défaut à
   // l'ouverture et après relance complète — aucun segment n'est persisté.
   const [activeSegment, setActiveSegment] = useState<CatalogueContentType>("sessions");
+  // D-562 (23/11/2026) : segment affiché, pour l'onglet ouvert en arrivant dans le calendrier (Programmes → Plan).
+  useEffect(() => noteCatalogueSegment(activeSegment), [activeSegment]);
   // E.4 : vue « Un exercice | Plusieurs » (aucune = collection complète), état de l'écran conservé au
   // retour d'un parcours, jamais persisté (relance : collection complète).
   const [sessionView, setSessionView] = useState<SessionCatalogueView | null>(null);
@@ -125,6 +133,7 @@ export function CatalogueScreen() {
   // l'Éditeur), jamais au blur : deux appuis rapprochés, même sur deux
   // points d'entrée différents, n'empilent qu'un seul Éditeur.
   const isOpeningEditorRef = useRef(false);
+  const [planningNotice, setPlanningNotice] = useState<string | null>(null);
   // Décision de Hermann du 16/11/2026 (ch07, « Catalogue des Mouvements — présentation en grille » ; CE-MVT-03, Bascule) :
   // catalogue des Mouvements en liste ou en grille, choix mémorisé dans le Profil (`movementCatalogueGridEnabled`, migration030).
   // Sans service de Profil (tests d'écran), la liste d'origine, sans mémorisation. `null` : choix pas encore lu (rien n'est
@@ -196,6 +205,20 @@ export function CatalogueScreen() {
       }),
     [navigation],
   );
+  // Contre-recette du 23/11/2026 (constats f et g — Hermann : « Aller de l'écran du Plan vers le catalogue doit amener à l'écran
+  // des programmes » ; « aller de l'écran de l'agenda vers le catalogue doit amener à l'écran des séances ») : sens inverse de
+  // D-562, arrivée par la barre de navigation depuis le calendrier ; depuis le Journal ou un autre onglet, segment inchangé.
+  useEffect(() => {
+    if (navigation === undefined) return undefined;
+    const tab = navigation as unknown as {
+      addListener: (event: "tabPress", handler: () => void) => () => void;
+      isFocused: () => boolean;
+    };
+    return tab.addListener("tabPress", () => {
+      const arrival = tab.isFocused() ? null : catalogueArrivalSegment();
+      if (arrival !== null) setActiveSegment(arrival);
+    });
+  }, [navigation]);
   const changeSegment = (segment: CatalogueContentType) => {
     // t-niveau : changer de vue par la barre du haut retire les pastilles.
     if (segment !== activeSegment) clearDisplayedNewMovements();
@@ -203,6 +226,12 @@ export function CatalogueScreen() {
   };
   // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
   const [sessionQuery, setSessionQuery] = useState("");
+  // PROG-CAT-01 (CE-PROG-01, D-545) : statut affiché (Actifs par défaut) et recherche, état de l'écran, jamais persistés.
+  const programService = useOptionalProgramService();
+  const programCatalogue = useProgramSummaries(programService);
+  const [programStatus, setProgramStatus] = useState<ProgramStatus>("ACTIVE");
+  const [programQuery, setProgramQuery] = useState("");
+  const reloadPrograms = programCatalogue.reload;
   const movementFilterSummary =
     movementFilterLabels.length === 0
       ? null
@@ -241,9 +270,13 @@ export function CatalogueScreen() {
     useCallback(() => {
       isOpeningEditorRef.current = false;
       screenFocused.current = true;
+      // d3 (23/11) : message laissé par une feuille qui vient de se fermer.
+      const pendingNotice = takePlanningNotice();
+      if (pendingNotice !== null) setPlanningNotice(pendingNotice);
       setFocusCount((current) => current + 1);
       setMovementsReloadToken((current) => current + 1);
       reloadSessions();
+      reloadPrograms();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
       // qu'un focus ultérieur SANS nouveau signal (retour d'édition d'une
       // Activité, par exemple) ne réapplique jamais ce forçage.
@@ -257,6 +290,7 @@ export function CatalogueScreen() {
       };
     }, [
       reloadSessions,
+      reloadPrograms,
       cancelPendingSessions,
       catalogueSegmentParam,
       router,
@@ -320,6 +354,10 @@ export function CatalogueScreen() {
       openMovement(null);
       return;
     }
+    if (activeSegment === "programs") {
+      openProgram({});
+      return;
+    }
     if (isOpeningEditorRef.current) {
       return;
     }
@@ -334,124 +372,140 @@ export function CatalogueScreen() {
     router.push("/formats-window");
   };
 
-  return (
-    <ScreenShell backgroundColor={palette.background}>
-      {/* PRE-9 CAT.1 (CE-CAT-CTX-01 : « Masquer le titre de page individuel dans les deux Catalogues ») :
-          l'en-tête porte la navigation des Catalogues Mouvements / Séances / Programmes à la place du
-          titre. D-502 (Hermann, 06/11/2026) : trois onglets à emplacements fixes, l'onglet sélectionné
-          prend la couleur `context` du Catalogue et se raccorde à la zone de contexte (`CatalogueNavigation`).
-          [Avant (recette CAT.1 du 30/10/2026) : libellés texte séparés par « | » — remplacé.] */}
-      <FixedHeader
-        title={title}
-        content={
-          <View style={styles.headerNavigation}>
-            <CatalogueNavigation
-              options={[
-                { value: "movements", label: strings.screens.movement.catalogue.segment },
-                { value: "sessions", label: t.contentTypes.sessions },
-                {
-                  value: "programs",
-                  label: t.programsSegment,
-                  disabled: true,
-                  accessibilityLabel: t.programsUnavailableAccessibilityLabel,
-                },
-              ]}
-              value={activeSegment}
-              onChange={changeSegment}
-              selectedColor={palette.context}
-              testID="catalogue-content-type-row"
-            />
-          </View>
-        }
-      />
-      {/* Recette 3 (T-49, EXT-R3-1, D-356) : plus de trait gris entre l’en-tête et la zone
-          de contexte. */}
+  // PROG-CAT-01 (CE-PROG-02, D-548) : création, configuration et copie dans la modale `program-sheet`, au-dessus du catalogue.
+  const openProgram = (params: { readonly programId?: string; readonly duplicateOf?: string }) => {
+    if (isOpeningEditorRef.current) return;
+    isOpeningEditorRef.current = true;
+    router.push({ pathname: "/program-sheet", params });
+  };
+  const today = programService?.today() ?? "";
+  const shownPrograms = programCatalogue.summaries === null ? [] : visiblePrograms(programCatalogue.summaries, programStatus, programQuery, today);
+  const programCountsValue =
+    programCatalogue.summaries === null ? null : programCounts(programCatalogue.summaries.map((summary) => summary.program), today);
 
-      {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément.
-          Recette iPhone du 29/10/2026 : le fondu des 20 % inférieurs va vers la TRANSPARENCE
-          (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs pour Catalogues »),
-          porté par `ContextBand` — plus de voile blanc posé sur la couleur du Catalogue.
-          PRE-9 CAT.1 (spécification du 30/10/2026, CE-CAT-CTX-01) : bande « Recherche et création »
-          à deux lignes — compteurs (ligne 1), Rechercher et Filtre / Tri / Créer (ligne 2) ; géométrie
-          D-503 dans `CONTEXT_ZONE_GEOMETRY`. Ordre des Mouvements [30/10/2026, Hermann :
-          « rechercher, filtrer, trier puis créer »] conservé, identique pour les Séances.
-          D-501 : couleur `context` du Catalogue, opaque sur 80 % de la hauteur puis fondue ; le fond
-          d'écran sous la part fondue est le `background` du Catalogue (fondu `context` → `background`). */}
-      <ContextBand
-        fadeToTransparent
-        color={palette.context}
-        padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
-      >
-        {activeSegment === "movements" ? (
-          <CatalogueContextZone
-            summary={
-              movementSummary !== null ? (
-                <MovementCounterToggles
-                  summary={movementSummary}
-                  active={movementCounter}
-                  onToggle={(touched) => setMovementCounter((current) => toggledMovementCounter(current, touched))}
+  return (
+    // Haut d'écran partagé `TabbedScreen` (Hermann, 19/11/2026, choix B : « ET APPLIQUE LE PARTOUT OÙ IL DOIT ÊTRE
+    // UTILISÉ ») : assemblage inchangé, désormais porté par le composant.
+    // PRE-9 CAT.1 (CE-CAT-CTX-01 : « Masquer le titre de page individuel dans les deux Catalogues ») : l'en-tête porte la
+    // navigation des Catalogues Mouvements / Séances / Programmes à la place du titre. D-502 (Hermann, 06/11/2026) : trois
+    // onglets à emplacements fixes, l'onglet sélectionné prend la couleur `context` du Catalogue et se raccorde à la zone de
+    // contexte. [Avant (recette CAT.1 du 30/10/2026) : libellés texte séparés par « | » — remplacé.]
+    // Recette 3 (T-49, EXT-R3-1, D-356) : plus de trait gris entre l'en-tête et la zone de contexte ; le bord bas de la zone
+    // n'est dessiné par aucun élément. Recette iPhone du 29/10/2026 : le fondu des 20 % inférieurs va vers la TRANSPARENCE
+    // (ch. 12, D-224), porté par `ContextBand`. PRE-9 CAT.1 (CE-CAT-CTX-01) : bande « Recherche et création » à deux lignes —
+    // compteurs (ligne 1), Rechercher et Filtre / Tri / Créer (ligne 2) ; géométrie D-503 dans `CONTEXT_ZONE_GEOMETRY`.
+    // Ordre des Mouvements [30/10/2026, Hermann : « rechercher, filtrer, trier puis créer »] conservé, identique pour les
+    // Séances. D-501 : couleur `context` du Catalogue, opaque sur 80 % de la hauteur puis fondue ; le fond d'écran sous la
+    // part fondue est le `background` du Catalogue.
+    <TabbedScreen
+      title={title}
+      palette={{ context: palette.context, background: palette.background }}
+      // UI-FAB-01 (D-558, DSF Bouton flottant § 3) : bouton flottant « Créer » selon le segment — silhouette « + » (créer un
+      // mouvement), liste « + » (créer une séance), carnet « + » (créer un programme) ; même action que l'ancien bouton
+      // Créer de la zone de contexte (`handleCreatePress`).
+      floatingCreate={{
+        variant: activeSegment === "movements" ? "movement" : activeSegment === "programs" ? "program" : "session",
+        label:
+          activeSegment === "movements"
+            ? strings.shared.floatingCreate.createMovement
+            : activeSegment === "programs"
+              ? strings.shared.floatingCreate.createProgram
+              : strings.shared.floatingCreate.createSession,
+        onPress: handleCreatePress,
+      }}
+      tabs={{
+        options: [
+          { value: "movements", label: strings.screens.movement.catalogue.segment },
+          { value: "sessions", label: t.contentTypes.sessions },
+          // PROG-CAT-01 (CE-PROG-01) : onglet Programmes actif. [Avant : visible et indisponible — remplacé.]
+          { value: "programs", label: t.programsSegment },
+        ],
+        value: activeSegment,
+        onChange: changeSegment,
+        testID: "catalogue-content-type-row",
+      }}
+      context={
+        activeSegment === "movements"
+          ? {
+              kind: "catalogue",
+              summary:
+                movementSummary !== null ? (
+                  <MovementCounterToggles
+                    summary={movementSummary}
+                    active={movementCounter}
+                    onToggle={(touched) => setMovementCounter((current) => toggledMovementCounter(current, touched))}
+                  />
+                ) : null,
+              results: movementResults,
+              search: {
+                value: movementQuery,
+                onChangeText: setMovementQuery,
+                placeholder: strings.screens.movement.catalogue.searchPlaceholder,
+                accessibilityLabel: strings.screens.movement.catalogue.searchAccessibilityLabel,
+                clearLabel: strings.screens.movement.catalogue.searchClear,
+                testID: "movement-catalogue-search",
+              },
+              filter: (
+                <FilterCommand
+                  label={t.filterAction}
+                  title={strings.screens.movement.catalogue.filters.command}
+                  summary={movementFilterSummary}
+                  clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+                  editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
+                  onOpen={openMovementFilters}
+                  onClear={() => {
+                    setMovementFilters(EMPTY_MOVEMENT_FILTERS);
+                    setMovementFilterLabels([]);
+                  }}
+                  testID="catalogue-filter-action"
                 />
-              ) : null
+              ),
+              sortLabel: t.sortAction,
+              summaryAccessory: (
+                <ListGridToggle
+                  value={movementView ?? "LIST"}
+                  onChange={chooseMovementView}
+                  listLabel={strings.screens.movement.catalogue.viewList}
+                  gridLabel={strings.screens.movement.catalogue.viewGrid}
+                  testID="movement-catalogue-view-toggle"
+                />
+              ),
             }
-            results={movementResults}
-            search={{
-              value: movementQuery,
-              onChangeText: setMovementQuery,
-              placeholder: strings.screens.movement.catalogue.searchPlaceholder,
-              accessibilityLabel: strings.screens.movement.catalogue.searchAccessibilityLabel,
-              clearLabel: strings.screens.movement.catalogue.searchClear,
-              testID: "movement-catalogue-search",
-            }}
-            filter={
-              <FilterCommand
-                label={t.filterAction}
-                title={strings.screens.movement.catalogue.filters.command}
-                summary={movementFilterSummary}
-                clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
-                editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-                onOpen={openMovementFilters}
-                onClear={() => {
-                  setMovementFilters(EMPTY_MOVEMENT_FILTERS);
-                  setMovementFilterLabels([]);
-                }}
-                testID="catalogue-filter-action"
-              />
+          : {
+              kind: "custom",
+              content:
+                activeSegment === "sessions" ? (
+                  <SessionCommandRow
+                    view={sessionView}
+                    onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
+                    counts={
+                      sessionCountsKnown ? { SINGLE: sessionContext.singleCount, MULTIPLE: sessionContext.multipleCount } : null
+                    }
+                    results={sessionResults}
+                    query={sessionQuery}
+                    onChangeQuery={setSessionQuery}
+                    filterSummary={sessionFilterSummary}
+                    filterCount={sessionFilterCount}
+                    onOpenFilters={openSessionFilters}
+                    onResetFilters={() => {
+                      setSessionFilters(EMPTY_SESSION_FILTERS);
+                      setSessionFilterLabels([]);
+                    }}
+                    widenSearch
+                  />
+                ) : activeSegment === "programs" ? (
+                  <ProgramContext
+                    status={programStatus}
+                    onChangeStatus={setProgramStatus}
+                    counts={programCountsValue}
+                    query={programQuery}
+                    onChangeQuery={setProgramQuery}
+                    widenSearch
+                  />
+                ) : null,
             }
-            sortLabel={t.sortAction}
-            createLabel={t.createAction}
-            onCreate={handleCreatePress}
-            summaryAccessory={
-              <ListGridToggle
-                value={movementView ?? "LIST"}
-                onChange={chooseMovementView}
-                listLabel={strings.screens.movement.catalogue.viewList}
-                gridLabel={strings.screens.movement.catalogue.viewGrid}
-                testID="movement-catalogue-view-toggle"
-              />
-            }
-          />
-        ) : null}
-        {activeSegment === "sessions" ? (
-          <SessionCommandRow
-            view={sessionView}
-            onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
-            counts={
-              sessionCountsKnown ? { SINGLE: sessionContext.singleCount, MULTIPLE: sessionContext.multipleCount } : null
-            }
-            results={sessionResults}
-            query={sessionQuery}
-            onChangeQuery={setSessionQuery}
-            filterSummary={sessionFilterSummary}
-            filterCount={sessionFilterCount}
-            onOpenFilters={openSessionFilters}
-            onResetFilters={() => {
-              setSessionFilters(EMPTY_SESSION_FILTERS);
-              setSessionFilterLabels([]);
-            }}
-            onCreate={handleCreatePress}
-          />
-        ) : null}
-      </ContextBand>
+      }
+    >
 
       {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Filtres […]
           Catalogue des séances : Filtres ») : feuilles de filtres présentées par la route `catalogue-filters`
@@ -475,9 +529,9 @@ export function CatalogueScreen() {
       <View
         style={[
           styles.body,
-          activeSegment === "movements" || (activeSegment === "sessions" && sessionCatalogue.state.status === "ready")
+          activeSegment === "movements" || activeSegment === "programs" || (activeSegment === "sessions" && sessionCatalogue.state.status === "ready")
             ? styles.bodyFlush
-            : null, { paddingBottom: navigationBarTotalHeight() }]}
+            : { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
       >
         {activeSegment === "sessions" ? (
@@ -493,19 +547,37 @@ export function CatalogueScreen() {
                 searching={sessionQuery.trim().length > 0}
                 resetToken={movementsReloadToken}
                 topInset={LIST_TOP_INSET}
+                bottomInset={navigationBarTotalHeight()}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
                 onStartSession={(sessionId) => router.push({ pathname: "/execution", params: { sessionId } })}
+                onPlanSession={(sessionId) => router.push({ pathname: "/planning", params: { sessionId } })}
                 onChanged={reloadSessions}
               />
             ) : null}
           </>
         ) : null}
+        {activeSegment === "programs" && programService !== null ? (
+          <ProgramCatalogueBody
+            service={programService}
+            summaries={programCatalogue.summaries}
+            visible={shownPrograms}
+            failed={programCatalogue.failed}
+            today={today}
+            topInset={LIST_TOP_INSET}
+            bottomInset={navigationBarTotalHeight()}
+            onOpen={(programId) => openProgram({ programId })}
+            onDuplicate={(programId) => openProgram({ duplicateOf: programId })}
+            onChanged={reloadPrograms}
+            onRetry={reloadPrograms}
+          />
+        ) : null}
         {activeSegment === "movements" && movementView === "GRID" ? (
           <MovementCatalogueGrid
             reloadToken={movementsReloadToken}
             topInset={LIST_TOP_INSET}
+            bottomInset={navigationBarTotalHeight()}
             query={movementQuery}
             filters={movementFilters}
             counter={movementCounter}
@@ -520,6 +592,7 @@ export function CatalogueScreen() {
           <MovementCatalogueList
             reloadToken={movementsReloadToken}
             topInset={LIST_TOP_INSET}
+            bottomInset={navigationBarTotalHeight()}
             query={movementQuery}
             filters={movementFilters}
             counter={movementCounter}
@@ -536,37 +609,16 @@ export function CatalogueScreen() {
           />
         ) : null}
       </View>
-      <NavigationFade background={palette.background} />
-    </ScreenShell>
+      {/* [Fondu et fond protégé au-dessus de la barre (D-501, `NavigationFade`) — retirés le 24/11/2026 (D-595, Hermann :
+          choix « Liste sous la barre ») : la liste défile sous la barre en verre, comme dans le Calendrier et le Profil.] */}
+      <PlanningNoticeHost message={planningNotice} onDismiss={() => setPlanningNotice(null)} testID="catalogue-notice" />
+    </TabbedScreen>
   );
 }
 
-/**
- * D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3 ; Figma `10266:20578`/`10266:20579`,
- * `5867:5070`/`5867:5069`) : fondu au-dessus de la navigation basse, à la couleur `background` du Catalogue —
- * dégradé de 40 pt de la transparence vers `background`, puis fond protégé jusqu'au haut de la barre (16 pt dans
- * Figma, plus les 8 pt entre ce fond et la barre, où la liste s'arrête). Décor, sans interaction ni VoiceOver.
- */
-function NavigationFade({ background }: { readonly background: string }) {
-  return (
-    <View
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={[styles.navigationFade, { bottom: navigationBarTotalHeight() }]}
-      testID="catalogue-navigation-fade"
-    >
-      <View
-        style={[styles.navigationFadeGradient, { experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)` }]}
-        testID="catalogue-navigation-fade-gradient"
-      />
-      <View style={[styles.navigationFadeSolid, { backgroundColor: background }]} testID="catalogue-navigation-fade-solid" />
-    </View>
-  );
-}
+// [D-501 : `NavigationFade` (fondu de 40 et fond protégé au-dessus de la barre) — retiré le 24/11/2026, D-595.]
 
 /** Figma : dégradé de 40, fond protégé de 16 puis 8 jusqu'au haut de la barre (`y = 732..796` à 874). */
-const NAVIGATION_FADE = { gradient: 40, solid: spacing[16] + spacing[8] } as const;
 
 function LoadingBody() {
   return (
@@ -637,15 +689,20 @@ function ReadyBody({
   searching,
   resetToken,
   topInset,
+  bottomInset,
   onOpenSession,
   onStartSession,
+  onPlanSession,
   onChanged,
 }: {
+  /** Planification : « Planifier » du glissé (Séance préremplie). */
+  onPlanSession: (sessionId: string) => void;
   /** PRE-9 CAT.1 : liste déjà dérivée (`sessionCatalogueContext` : filtres, recherche et vue). */
   sessions: readonly SessionCatalogueProjection[];
   searching: boolean;
   resetToken: number;
   topInset: number;
+  bottomInset: number;
   onOpenSession: (sessionId: string) => void;
   /** PRE-10 : Démarrer exécute la Séance (D-504). */
   onStartSession: (sessionId: string) => void;
@@ -660,8 +717,10 @@ function ReadyBody({
       emptyMessage={searching ? strings.screens.sessions.noResult : strings.screens.sessions.noMatch}
       resetToken={resetToken}
       topInset={topInset}
+      bottomInset={bottomInset}
       onOpenSession={onOpenSession}
       onStartSession={onStartSession}
+      onPlanSession={onPlanSession}
       onChanged={onChanged}
     />
   );
@@ -678,32 +737,6 @@ const LIST_TOP_INSET = spacing[8] + CONTEXT_BAND_FADE_HEIGHT;
 const CATALOGUE_TAB_ROUTE = "index";
 
 const styles = StyleSheet.create({
-  // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont
-  // désormais portés par le Shell Foundation partagé (`CMP-01`,
-  // `@/shared/ui/ScreenShell`) — aucune redéclaration locale équivalente
-  // n'est plus autorisée ici (correction Foundation, `[ChatGPT] PHASE02
-  // FOUNDATION CORRECTION`).
-  //
-  // PRE-9 CAT.1 (CE-CAT-CTX-01) : la navigation des Catalogues (`CatalogueNavigation`, style texte de
-  // Figma depuis la recette du 30/10) occupe la place du titre masqué, sur toute la largeur de l'en-tête.
-  // D-502 : la navigation occupe toute la hauteur de l'en-tête ; les onglets reposent sur son bord bas, contre la
-  // zone de contexte.
-  headerNavigation: {
-    flex: 1,
-    alignSelf: "stretch",
-  },
-  navigationFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: NAVIGATION_FADE.gradient + NAVIGATION_FADE.solid,
-  },
-  navigationFadeGradient: {
-    height: NAVIGATION_FADE.gradient,
-  },
-  navigationFadeSolid: {
-    height: NAVIGATION_FADE.solid,
-  },
   // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
   // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).
   body: {

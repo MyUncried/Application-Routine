@@ -143,10 +143,10 @@ describe("CatalogueScreen — cadre commun", () => {
     const types = strings.screens.sessions.contentTypes;
     expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
-    // PRE-8 (E.4, E.8-a) : trois segments, Programmes indisponible, plus de segment Exercices.
+    // PRE-8 (E.4, E.8-a) : trois segments, plus de segment Exercices. PROG-CAT-01 (CE-PROG-01) : Programmes actif.
     expect(screen.queryByLabelText(types.activities)).toBeNull();
-    expect(screen.getByLabelText(strings.screens.sessions.programsUnavailableAccessibilityLabel)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+    expect(screen.getByLabelText(strings.screens.sessions.programsSegment)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
 
     await act(async () => {
       pending.resolve([]);
@@ -157,7 +157,7 @@ describe("CatalogueScreen — cadre commun", () => {
     // Empty now, frame still present.
     expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
-    expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
   });
 
   it("PRE-9 CAT.1 — recomposes the Shell: fixed Header carrying the Catalogue navigation in place of the hidden title, no separator, and a Context band (distinct background) holding the two context lines (CE-CAT-CTX-01)", async () => {
@@ -182,12 +182,13 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.queryByTestId("screen-header-separator")).toBeNull();
 
     // Bande Context : fond distinct du fond général ; première ligne (bascule) et deuxième ligne
-    // (Rechercher, Filtre, Tri, Créer).
+    // (Rechercher, Filtre, Tri ; UI-FAB-01 : Créer est le bouton flottant, hors de la bande).
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
     expect(within(contextBand).getByTestId("catalogue-context-line1")).toBeTruthy();
     expect(within(contextBand).getByTestId("session-catalogue-search")).toBeTruthy();
-    expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
+    expect(within(contextBand).queryByLabelText(strings.shared.floatingCreate.createSession)).toBeNull();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
     expect(within(contextBand).queryByTestId("catalogue-content-type-row")).toBeNull();
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
@@ -255,7 +256,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByLabelText(strings.screens.movement.catalogue.segment).props.accessibilityState).toMatchObject({ selected: true });
   });
 
-  it("D-501 : fond d'écran (barre d'état et en-tête compris), zone de contexte et fondu au-dessus de la navigation aux couleurs du Catalogue actif", async () => {
+  it("D-501 : fond d'écran (barre d'état et en-tête compris) et zone de contexte aux couleurs du Catalogue actif ; D-595 : plus de fondu au-dessus de la navigation", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -271,12 +272,8 @@ describe("CatalogueScreen — cadre commun", () => {
       // L'en-tête fixe ne peint pas de fond propre : il laisse voir celui de l'écran.
       expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style).backgroundColor).toBeUndefined();
       expect(StyleSheet.flatten(screen.getByTestId("screen-context-band-solid", HIDDEN).props.style).backgroundColor).toBe(context);
-      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-solid", HIDDEN).props.style).backgroundColor).toBe(background);
-      expect(StyleSheet.flatten(screen.getByTestId("catalogue-navigation-fade-gradient", HIDDEN).props.style)).toMatchObject({
-        height: 40,
-        experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)`,
-      });
-      expect(screen.getByTestId("catalogue-navigation-fade", HIDDEN).props.pointerEvents).toBe("none");
+      // Recette du 24/11/2026 (D-595, choix « Liste sous la barre ») : fondu et fond protégé au-dessus de la barre retirés.
+      expect(screen.queryByTestId("catalogue-navigation-fade", HIDDEN)).toBeNull();
     };
     // D-501 révisée (Hermann, 08/11/2026) : fond = 40 % du contexte sur blanc.
     expectPalette("#EAEAFF", "#F7F7FF");
@@ -287,7 +284,9 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(colors.catalogueProgramsBackground).toBe("#F9F6FF");
   });
 
-  it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {
+  // UI-FAB-01 (D-558) : Créer est le bouton flottant de verre (rond de 60, contenu bleu). [Cercle blanc de 34 de la zone de
+  // contexte (CAT-R02, D01) — remplacé le 24/11/2026.]
+  it("Créer : bouton flottant de verre, rond de 60, liste « + » sur le segment Séances (UI-FAB-01, D-558)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -298,14 +297,11 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
-    const flattened = StyleSheet.flatten(createAction.props.style);
-    expect(flattened.backgroundColor).toBe(colors.background);
-    expect(flattened.borderColor).toBe(colors.primary);
-    // Recette PRE-8 A/B (D01, ch13 §4.5) : cercle 34, rayon 17 — remplace le 108 × 32 de D-184.
-    expect(flattened.width).toBe(34);
-    expect(flattened.height).toBe(34);
-    expect(flattened.borderRadius).toBe(17);
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createSession)).toBeTruthy();
+    const position = StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style);
+    expect(position).toMatchObject({ width: 60, height: 60 });
+    expect(screen.getByTestId("floating-create-glyph-session")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId("floating-create-face-veil").props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.22)"); // essai lentille du 24/11 (verre natif du simulacre)
   });
 
   it("places the empty-state text inside a dedicated frame (surface/border/radius), not floating alone in the body (CAT-R03, contre-recette iPhone 2026-09-03)", async () => {
@@ -345,7 +341,22 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(flattened.paddingBottom).toBe(navigationBarTotalHeight());
   });
 
-  it("marks Séances as selected (centre) at first render, and Circuits as disabled with an explicit unavailable label, with no navigation when pressed (T01-S10/V2-CAT-01, D-108)", async () => {
+  it("D-595 (recette du 24/11/2026, « Liste sous la barre ») : la liste des Séances défile sous la barre, réserve en bas de liste", async () => {
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([aSummary("a"), aSummary("b")]);
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-body").props.style).paddingBottom).toBeUndefined();
+    const list = StyleSheet.flatten(screen.getByTestId("catalogue-session-list").props.contentContainerStyle);
+    expect(list.paddingBottom).toBe(24 + navigationBarTotalHeight());
+  });
+
+  // PROG-CAT-01 (CE-PROG-01, D-544) : l'onglet Programmes devient actif. [Avant : visible et indisponible — remplacé.]
+  it("marks Séances as selected (centre) at first render; Programmes is enabled and switches without navigation (D-108, D-544)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -365,18 +376,16 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(options[1]?.props.accessibilityLabel).toBe(types.sessions);
 
     const sessionsTab = screen.getByLabelText(types.sessions);
-    const circuitsTab = screen.getByLabelText(strings.screens.sessions.programsUnavailableAccessibilityLabel);
+    const programsTab = screen.getByLabelText(strings.screens.sessions.programsSegment);
 
     expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
-    expect(circuitsTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    expect(programsTab.props.accessibilityState).toMatchObject({ disabled: false, selected: false });
 
-    fireEvent.press(circuitsTab);
+    fireEvent.press(programsTab);
 
+    // Changement d'onglet dans l'écran, sans navigation.
     expect(mockPush).not.toHaveBeenCalled();
-    // Toujours sur Séances : Circuit ne déclenche aucune navigation.
-    expect(screen.getByLabelText(types.sessions).props.accessibilityState).toMatchObject({
-      selected: true,
-    });
+    expect(screen.getByLabelText(strings.screens.sessions.programsSegment).props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("E.8-a — aucun segment Exercices : le Catalogue ne lit plus les anciennes définitions", async () => {
@@ -475,7 +484,8 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
+    // UI-FAB-01 (D-558) : le bouton flottant « Créer une séance » garde l'action de l'ancien Créer.
+    const createAction = screen.getByLabelText(strings.shared.floatingCreate.createSession);
     expect(createAction.props.accessibilityState?.disabled).toBeFalsy();
     fireEvent.press(createAction);
     fireEvent.press(createAction);
@@ -488,7 +498,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(mockPush).toHaveBeenCalledWith("/formats-window");
   });
 
-  it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
+  it("renders Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -499,7 +509,8 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    for (const testID of ["catalogue-create-action", "catalogue-filter-action", "catalogue-sort-action"]) {
+    // UI-FAB-01 : Créer quitte la zone (bouton flottant). [Créer, Filtrer, Trier — remplacé.]
+    for (const testID of ["catalogue-filter-action", "catalogue-sort-action"]) {
       const action = screen.getByTestId(testID);
       const flattened = StyleSheet.flatten(action.props.style);
       expect(flattened.width).toBe(34);
@@ -539,11 +550,11 @@ describe("CatalogueScreen — cadre commun", () => {
     const testIDsOf = (node: { children: (unknown)[] }) =>
       node.children.map((child) => (typeof child === "string" ? child : (child as { props: { testID?: string } }).props.testID));
     expect(testIDsOf(row)).toEqual(["movement-catalogue-search", "catalogue-context-commands"]);
-    expect(testIDsOf(screen.getByTestId("catalogue-context-commands"))).toEqual([
-      "catalogue-filter-action",
-      "catalogue-sort-action",
-      "catalogue-create-action",
-    ]);
+    // UI-FAB-01 (D-558) : Créer quitte la zone ; le champ Rechercher s'élargit jusqu'au Filtre.
+    expect(testIDsOf(screen.getByTestId("catalogue-context-commands"))).toEqual(["catalogue-filter-action", "catalogue-sort-action"]);
+    expect(StyleSheet.flatten(screen.getByTestId("movement-catalogue-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0 });
+    expect(screen.getByLabelText(strings.shared.floatingCreate.createMovement)).toBeTruthy();
+    expect(screen.getByTestId("floating-create-glyph-movement")).toBeTruthy();
     expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
     fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");
@@ -575,7 +586,7 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const testIDs = ["catalogue-create-action", "catalogue-filter-action", "catalogue-sort-action"];
+    const testIDs = ["catalogue-filter-action", "catalogue-sort-action"];
     for (const testID of testIDs) {
       const action = screen.getByTestId(testID);
       const hitSlop = action.props.hitSlop;
@@ -612,7 +623,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("renders the Créer, Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {
+  it("renders the Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -623,7 +634,6 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByTestId("catalogue-create-action-icon")).toBeTruthy();
     expect(screen.getByTestId("catalogue-filter-action-icon")).toBeTruthy();
     const sortIcon = screen.getByTestId("catalogue-sort-action-icon");
     expect(within(screen.getByTestId("catalogue-sort-action")).queryByText("↕")).toBeNull();
@@ -874,7 +884,7 @@ describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de co
       const order = (band.props.children as { props?: { testID?: string } }[]).flat().map((child) => child?.props?.testID).filter(Boolean);
       expect(order[0]).toBe("screen-context-band-fill");
       expect(screen.getByTestId("catalogue-content-type-row")).toBeTruthy();
-      expect(screen.getByTestId("catalogue-create-action")).toBeTruthy();
+      expect(screen.getByTestId("catalogue-sort-action")).toBeTruthy();
     }
   });
 });

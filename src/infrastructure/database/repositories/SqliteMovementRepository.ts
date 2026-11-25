@@ -431,7 +431,9 @@ async function assembleRecords(
     };
     const checked = validateMovement(movement);
     if (!checked.ok) {
-      throw new Error("Persisted movement does not satisfy the movement contract.");
+      // Recette iPhone du 20/11/2026 : le Mouvement et la règle en cause sont nommés, pour un diagnostic sans accès à la base.
+      const fields = checked.violations.map((violation) => `${violation.field}:${violation.code}`).join(", ");
+      throw new Error(`Persisted movement does not satisfy the movement contract. ${row.id} « ${row.name} » — ${fields}`);
     }
     records.set(row.id, { movement, mediaLinks, createdAt: row.created_at, updatedAt: row.updated_at });
   }
@@ -532,6 +534,14 @@ export class SqliteMovementRepository implements MovementRepository {
     );
     const records = await assembleRecords(this.database, rows);
     return rows.map((row) => records.get(row.id)!.movement);
+  }
+
+  async countAllOccurrences(): Promise<ReadonlyMap<string, number>> {
+    const rows = await this.database.getAllAsync<{ movement_id: string; count: number }>(
+      `SELECT source_movement_id AS movement_id, COUNT(*) AS count FROM activities
+       WHERE source_movement_id IS NOT NULL GROUP BY source_movement_id`,
+    );
+    return new Map(rows.map((row) => [row.movement_id, row.count]));
   }
 
   async countOccurrences(id: string, excludingSessionId?: string): Promise<number> {

@@ -16,6 +16,7 @@ import {
 import { ExecutionSounds } from "@/infrastructure/audio/ExecutionSounds";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { switchNudge } from "@/shared/ui/switchNudge";
 import { colors, switchOffColors } from "@/shared/ui/tokens";
 
 /**
@@ -108,7 +109,7 @@ export function GuidanceSettingsForm({
                 </Pressable>
                 <Switch
                   {...switchOffColors}
-                  style={styles.switchNudge}
+                  style={switchNudge}
                   onLayout={(e) => {
                     const width = e.nativeEvent.layout.width;
                     if (width > 0 && width !== switchWidth) setSwitchWidth(width);
@@ -184,13 +185,57 @@ export function GuidanceSwitchRow({
       </View>
       <Switch
         {...switchOffColors}
-        style={styles.switchNudge}
+        style={switchNudge}
         value={value}
         onValueChange={onChange}
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
         testID={`${testID}-switch`}
       />
+    </Pressable>
+  );
+}
+
+/**
+ * J1 « Gestion des langues » (D-569, Figma « Profil — Préférences » `1992:684`) : ligne à valeur et chevron — libellé à
+ * gauche, valeur grise et chevron à droite (même valeur et même chevron que la colonne Son). Un seul élément accessible
+ * de rôle bouton.
+ */
+export function GuidanceValueRow({
+  label,
+  value,
+  hint,
+  onPress,
+  variant,
+  testID,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly hint?: string;
+  readonly onPress: () => void;
+  readonly variant: GuidanceFormVariant;
+  readonly testID: string;
+}) {
+  const v = variants[variant];
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: value }}
+      {...(hint === undefined ? {} : { accessibilityHint: hint })}
+      style={[styles.row, v.row]}
+      testID={testID}
+    >
+      <Text style={[styles.label, styles.labelBlock]} numberOfLines={1} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        {label}
+      </Text>
+      <View style={styles.valueBlock} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        <Text style={v.soundValue} numberOfLines={1}>
+          {value}
+        </Text>
+        <KodjoIcon name={variant === "sheet" ? "chevron-aller-modale" : "chevron-aller"} />
+      </View>
     </Pressable>
   );
 }
@@ -289,13 +334,11 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: BORDER,
   },
+  // [Décalage des interrupteurs (recette du 11/11/2026, z2) — déplacé dans `switchNudge` (`shared/ui/switchNudge.ts`), commun à la Planification.]
   // Recette du 11/11/2026 (Hermann, z2 : « interrupteurs ne sont pas centrés verticalement sur leur ligne » ; puis
   // « les interrupteurs sont trop hauts ») : la mise en page centre le cadre mesuré de l’interrupteur iOS, mais son dessin
   // apparaît plus haut sur l’iPhone ; correction visuelle vers le bas. Capture de Hermann (21 h 46, avec 2) : centre de
   // l’interrupteur encore environ 5 au-dessus du centre de la ligne, d’où 7. [2 — remplacé.]
-  switchNudge: {
-    transform: [{ translateY: 7 }],
-  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -348,6 +391,11 @@ const styles = StyleSheet.create({
     // « L’espace est trop réduit pour le coup » (Hermann) : 7 entre la valeur et le chevron. [4 — remplacé.]
     gap: 7,
     alignSelf: "stretch",
+  },
+  valueBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
   },
   soundValueText: {
     flex: 1,

@@ -280,7 +280,8 @@ describe("Carte d'exercice de la Composition — buy-in / buy-out et prescriptio
 describe("Carte d'exercice de la Composition — mode placement (D-513, 08/11/2026)", () => {
   it("emplacements sélectionnables sans récupération ni point ; aucun cadre en pointillés sur les cartes ; bandeau « Confirmer 1 point d'arrêt ajouté » puis confirmation", async () => {
     await renderComposition(sampleDraft());
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    fireEvent.press(screen.getByTestId("composition-floating-create"));
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-stop"));
     await settle();
     expect(screen.getByTestId("composition-placement-bar")).toBeTruthy();
     // Aucune récupération ni aucun point : les emplacements sont proposés.

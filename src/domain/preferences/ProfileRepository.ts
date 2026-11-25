@@ -12,6 +12,8 @@ export type ProfilePreference =
   | "announceSessionEnabled"
   | "announceSidesEnabled"
   | "announcePhasesEnabled"
+  /** Annonce des tours (AMRAP, For time ; D-530). */
+  | "announceRoundsEnabled"
   /** Catalogue des Mouvements présenté en grille (CE-MVT-03, Bascule, 16/11/2026). */
   | "movementCatalogueGridEnabled";
 

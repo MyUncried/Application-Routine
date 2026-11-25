@@ -16,6 +16,10 @@ export const fr = {
       message: "Impossible d'afficher KODJO. Fermez puis relancez l'application.",
     },
   },
+  // J1 « Gestion des langues » (23/11/2026, accord de Hermann) : sous-titre de l’écran de lancement, déplacé à l’identique de `KodjoSplash`.
+  splash: {
+    subtitle: "Votre assistant du quotidien",
+  },
   // PRE-4 (story 1.2, H24, AD-12, RM-092) : avis unique des Exercices
   // illisibles écartés par `migration010` (Q19). Le pluriel est l'exemple
   // de H24 ; le singulier n'a pas de source et sera validé par Hermann à la
@@ -99,6 +103,16 @@ export const fr = {
     // d'une durée affichée hors du domaine — `estimated` (≈) et `lowerBound`
     // (≥), suivis d'une espace simple (rendu PRE-3 inchangé).
     // La Phrase et les formateurs du domaine en sont exemptés (AD-11).
+    // UI-FAB-01 (D-558, D-559, 24/11/2026) : nom VoiceOver du bouton flottant « Créer », propre à chaque écran.
+    floatingCreate: {
+      createRoutine: "Créer une routine",
+      createSlot: "Créer un créneau unique",
+      createMovement: "Créer un mouvement",
+      createSession: "Créer une séance",
+      createProgram: "Créer un programme",
+      openCreateMenu: "Ouvrir le menu Créer",
+      closeCreateMenu: "Fermer le menu Créer",
+    },
     durationNature: {
       estimatedPrefix: "≈ ",
       lowerBoundPrefix: "≥ ",
@@ -183,7 +197,7 @@ export const fr = {
         scheduled: "Planifiées",
         archived: "Archivées",
       },
-      createAction: "Créer",
+      // [Créer (bouton de la zone de contexte) — retiré le 24/11/2026, UI-FAB-01 : bouton flottant]
       loading: {
         accessibilityLabel: "Chargement des séances en cours",
       },
@@ -532,7 +546,9 @@ export const fr = {
         // Complément du 5 novembre 2026 (§3) : « Créer un circuit », « Créer un cycle ». [« Ajouter un … » — remplacé.]
         addCircuit: "Créer un circuit",
         addCycle: "Créer un cycle",
-        cancel: "Annuler",
+        // UI-FAB-01 (D-558) : quatrième option du menu Créer, ouvert depuis le bouton flottant (Figma `13057:49`).
+        addStopPoint: "Ajouter un point d’arrêt",
+        // [Annuler du menu Créer — remplacé le 24/11/2026, UI-FAB-01 : croix du bouton flottant (shared.floatingCreate.closeCreateMenu)]
         // Action indisponible : même traitement que « Un circuit » du menu du Catalogue (atténuée,
         // nom suivi de « indisponible »). Formulation à valider.
         unavailableAccessibilityLabel: "{action} — indisponible",
@@ -576,6 +592,8 @@ export const fr = {
       backToParameters: "Revenir aux paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
+      // D-531 / RM-271 (Hermann, 19/11/2026) : Max interdit dans une boucle de plusieurs mouvements (AMRAP, For time).
+      maxLocked: "Max n’est pas disponible dans une boucle de plusieurs mouvements.",
       // Recette du 17/11/2026 : boucle d’un For time déjà sans exercice en répétitions (séance antérieure).
       loopWithoutRepetitions: "Au moins un exercice de la boucle doit être en répétitions : choisissez Répétitions.",
       collapsePiles: "Replier les piles",
@@ -681,6 +699,9 @@ export const fr = {
         max: "Max",
         round: "Tour {n}",
         series: "S{n}",
+        // Constat a) de la recette du 18/11/2026 (Hermann, EMOM à plusieurs mouvements, « Dans chaque intervalle » et « En
+        // alternance ») : « Colonnes du tableau T1 … TN ».
+        roundShort: "T{n}",
         // Règles de Hermann du 14/11/2026 (For time, FT-4, FT-12) : séries propres du buy-in et du buy-out, chacun son tableau.
         buyInTitle: "Buy-in",
         buyOutTitle: "Buy-out",
@@ -930,7 +951,7 @@ export const fr = {
         validateAccessibilityLabel: "Valider",
       },
       // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
-      addActivity: "Ajouter un exercice",
+      // [« + » Ajouter un exercice de la zone de contexte — retiré le 24/11/2026, UI-FAB-01 : bouton flottant (shared.floatingCreate.openCreateMenu)]
       // PRE-4, décision Q54 : l'action finale de la Composition enregistre la Séance (repris de
       // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
       // PRE-6 (story 2.1, CE-T03-08, D-388, Figma `8328:28732`) : libellé « Continuer » ; même
@@ -942,7 +963,7 @@ export const fr = {
       // « Ajouter un arrêt » et mode placement — puces des emplacements, barre « Confirmer N
       // pauses ajoutées » / « Annuler » et roulette « Durée de récupération ».
       placement: {
-        addStopAccessibilityLabel: "Ajouter un arrêt",
+        // [sablier « Ajouter un arrêt » de la zone de contexte — retiré le 24/11/2026, UI-FAB-01 : option du menu Créer (addToSession.addStopPoint)]
         recovery: "Récupération",
         stopPoint: "Point d’arrêt",
         addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
@@ -1596,6 +1617,8 @@ export const fr = {
         objective: "Objectifs de durée et de répétition",
         pauses: "Pauses, récupérations et points d’arrêt",
         sides: "Changements de côté",
+        // D-530 / RM-269 (Hermann, 18/11/2026) : libellé de Hermann.
+        rounds: "Annonce des tours",
       },
       events: {
         COUNTDOWN: "Compte à rebours",
@@ -1644,6 +1667,15 @@ export const fr = {
         guidance: "Guidage",
         notifications: "Notifications",
       },
+      // J1 (D-569, règle 2 de « Gestion des langues ») : la ligne ouvre le réglage iOS de langue de l’application.
+      language: {
+        // Titre de la section en tête des Préférences (Figma `1992:684`).
+        sectionTitle: "Langue et unités",
+        label: "Langue",
+        hint: "Ouvre les réglages de l’application pour changer de langue",
+      },
+      /** Nom de chaque langue dans sa propre langue (usage iOS) : identique dans tous les catalogues. */
+      languageNames: { fr: "Français", en: "English" },
       settings: {
         sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
         exerciseCountdown: { label: "Compte à rebours d’un exercice", unit: "s" },
@@ -1867,6 +1899,17 @@ export const fr = {
         community: "Communauté",
         communityUnavailableAccessibilityLabel: "Communauté — indisponible",
       },
+      // Onglets du Profil (CE-PRF-01, D-552 ; PROG-CAT-01, 21/11/2026) : Compte · Préférences · Confidentialité (`profileTabs.ts`).
+      profileTabs: {
+        account: "Compte",
+        preferences: "Préférences",
+        privacy: "Confidentialité",
+      },
+      // PROG-CAT-01 (CE-PRF-01, mission §5) : éléments du Compte qui dépendent de la gestion des comptes, grisés.
+      accountRows: {
+        publicName: "Pseudo public",
+        access: "Accès au compte et connexion",
+      },
       sectionLabel: "Profil",
       name: {
         label: "Nom",
@@ -1900,6 +1943,33 @@ export const fr = {
   // V2-PRE-2 (plan §6.5, §4.10) : textes partagés par les trois modales de
   // référentiel (Catégorie, Zone, Étiquette) et le dialogue d'appui long.
   referenceData: {
+    // J1.8 « Gestion des langues » (24/11/2026, demande de Hermann) : noms des Catégories et Zones fournies par KODJO,
+    // affichés dans la langue de l’interface tant que l’utilisateur ne les a pas renommées (`referenceNames.ts`).
+    // Identiques aux noms enregistrés (`domain/categories/defaults.ts`, `features/reference-data/bodyZones.ts`).
+    predefinedCategories: {
+      renforcement: "Renforcement",
+      cardio: "Cardio",
+      mobilite: "Mobilité",
+      etirements: "Étirements",
+      equilibre: "Équilibre",
+      coordination: "Coordination",
+      recuperation: "Récupération",
+      respiration: "Respiration",
+      meditation: "Méditation",
+      autre: "Autre",
+    },
+    predefinedBodyZones: {
+      cou: "Cou",
+      epaules: "Épaules",
+      bras: "Bras",
+      "poignets-mains": "Poignets et mains",
+      dos: "Dos",
+      "hanches-bassin": "Hanches et bassin",
+      cuisses: "Cuisses",
+      genoux: "Genoux",
+      jambes: "Jambes",
+      "chevilles-pieds": "Chevilles et pieds",
+    },
     category: {
       title: "Catégorie",
       createAction: "Créer une catégorie",

@@ -44,6 +44,7 @@ import {
   showsExecution,
   allowedModes,
   lastRepetitionsLocked,
+  maxLocked,
   emomDurationOverflow,
   hasRequiredRoles,
   initialAnswers,
@@ -110,6 +111,7 @@ import { exerciseOfMovement, inheritsCircuitSeriesCount, takeMovementsHandedToFo
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ModalValidateAction } from "@/shared/ui/ModalHeaderActions";
 import { KodjoIcon, preloadKodjoIcons, whenKodjoIconsReady, type KodjoIconName } from "@/shared/ui/KodjoIcon";
@@ -1223,6 +1225,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Décision de Hermann du 14/11/2026 (« C'est exactement ça, Buy In, tous les tours de A, tous les tours de B..., Buy out ») : For time, dès deux exercices en tour.
   const showExecution = showsExecution(model, movements);
   const execution: ModelExecution = answers.execution ?? options[0] ?? "SEQUENCE";
+  /**
+   * Constat a) de la recette du 18/11/2026 (Hermann, « Concept série / tour de l'EMOM à plusieurs mouvements ») : EMOM à plusieurs
+   * mouvements joué « Dans chaque intervalle » ou « En alternance » — le nombre N se lit en tours (questionnaire « Nombre de tours »,
+   * colonnes T1 … TN). « À la suite » et EMOM à un seul mouvement : séries, inchangé.
+   */
+  const emomRounds = () => model === "EMOM" && showExecution && execution !== "SEQUENCE";
   const executionRow = (last = true) => (
     <Row key="execution" label={t().execution} last={last} testID="format-row-execution">
       <ExecutionMenu options={options} execution={execution} onSelect={(option) => setAnswers((current) => ({ ...current, execution: option }))} />
@@ -1336,8 +1344,11 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         ]).concat(model === "TABATA" && several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
       case "EMOM":
         // MAJ 04/11 §4.2 : ligne « Repos · jusqu'à la cadence » retirée ; §6 quater bis : « Avec charge » avant la durée totale.
+        // Constat a) de la recette du 18/11/2026 (Hermann) : « Dans chaque intervalle » et « En alternance », « Nombre de tours » ; le
+        // libellé suit le mode sélectionné. « À la suite » et un seul mouvement : « Nombre de séries » (inchangé). La réponse reste
+        // `seriesCount`.
         return withExecution([
-          stepRow("seriesCount", r.seriesCount),
+          stepRow("seriesCount", emomRounds() ? r.roundCount : r.seriesCount),
           stepRow("intervalSeconds", r.intervalSeconds),
           ...(stage === "questionnaire" ? [switchRow("withLoad", r.withLoad)] : []),
           totalRow(!showExecution),
@@ -1439,7 +1450,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
         // Complément du 5 novembre 2026 (Hermann), §11 : « Répétitions par série » retirée (l'objectif dépend du mouvement) ; Circuit (3 tours), « Récupération
         // après le tour » (Récupération du dernier Exercice actuel ; absente : à renseigner, zéro conservé), Durée totale.
         return [
-          stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${value > 1 ? t().roundUnit.many : t().roundUnit.one}` }),
+          stepRow("roundCount", r.supersetRounds, { format: (value) => `${value} ${pluralOf(value, { one: t().roundUnit.one, other: t().roundUnit.many })}` }),
           stepRow("recoveryBetweenSeconds", r.recoveryAfterPair, { fallback: movements[movements.length - 1]?.exercise.postActivityRecoverySeconds ?? undefined, placeholder: t().dash, missing: movements.length > 0 && supersetRecovery(answers, movements) === null }),
           ...loadSwitch,
           totalRow(true),
@@ -1490,6 +1501,10 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // Unité de l'objectif au clavier (MAJ 04/11 §4.5) : barre Répétitions | Durée, puis unité choisie, Précédent, Suivant.
   const focusedCellKey = focusedCell === null ? null : parseCellKey(focusedCell);
   const unitRow = focusedCellKey !== null && focusedCellKey.kind === "obj" ? focusedCellKey.row : null;
+  // D-531 / RM-271 (Hermann, 19/11/2026) : Max grisé pour un mouvement d'une boucle de plusieurs mouvements ; l'appui sur le Max grisé
+  // montre le message court sous le tableau, comme la Durée refusée (n-charge-colonne). Ligne touchée ; `null` : aucun message.
+  const [maxNoteRow, setMaxNoteRow] = useState<number | null>(null);
+  const maxNoteShown = maxNoteRow !== null && maxLocked(model, movements, maxNoteRow) && movements[maxNoteRow]?.values.max !== true;
   // Recette du 05/11/2026 (constat f, Hermann : « Death by : le clavier du tableau d'objectifs n'a pas d'unité ») : la barre
   // montre l'unité de Départ et d'Incrément. Complément du 5 novembre 2026 (Hermann), §13 : Répétitions ou Durée, choisie au clavier ; un seul mouvement : sur
   // l'Objectif de départ et l'Incrément du questionnaire. [Répétitions seule admise — remplacé.]
@@ -1964,6 +1979,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
             {t().lastRepetitionsLocked}
           </Text>
         ) : null}
+        {/* D-531 / RM-271 (Hermann, 19/11/2026) : Max grisé dans une boucle de plusieurs mouvements, message court au même endroit. */}
+        {maxNoteShown ? (
+          <Text style={styles.unitNote} accessibilityRole="alert" testID="format-max-locked">
+            {t().maxLocked}
+          </Text>
+        ) : null}
         {/* Complément du 5 novembre 2026 (Hermann), §13 : avertissement non bloquant du Death by, seulement si le premier rang ne tient pas dans l'intervalle. */}
         {model === "DEATH_BY" && deathByFirstRankWarning(answers, movements) ? (
           <Text style={styles.alert} accessibilityRole="alert" testID="format-death-by-warning">
@@ -2435,13 +2456,17 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
                 }
               />
             );
-          // Max en Répétitions seulement (n-charge-colonne, 05/11/2026).
-          const maxDisabled = mode !== "REPETITIONS";
+          // Max en Répétitions seulement (n-charge-colonne, 05/11/2026). D-531 (19/11/2026) : interdit pour un mouvement d'une boucle de
+          // plusieurs mouvements — grisé ; un Max déjà coché reste décochable (aucune donnée retirée d'office).
+          const loopLocked = !max && maxLocked(model, movements, index);
+          const maxDisabled = mode !== "REPETITIONS" || loopLocked;
           const radio = (
             <Pressable
               key="max"
-              onPress={() => updateValues(index, { ...values, max: !max })}
-              disabled={maxDisabled}
+              onPress={() => (loopLocked ? setMaxNoteRow(index) : updateValues(index, { ...values, max: !max }))}
+              // Max grisé dans la boucle : annoncé désactivé, mais l'appui reste reçu pour montrer le message court (sans `disabled`,
+              // qui écraserait l'état annoncé).
+              disabled={mode !== "REPETITIONS" ? true : undefined}
               accessibilityRole="radio"
               accessibilityState={{ checked: max, disabled: maxDisabled }}
               accessibilityLabel={label(name, tt.max)}
@@ -2503,7 +2528,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
               title={t().movements}
               rows={rows}
               count={count}
-              heading={(at) => (rounds ? tt.round : tt.series).replace("{n}", String(at + 1))}
+              // Constat a) du 18/11/2026 : EMOM « Dans chaque intervalle » / « En alternance », colonnes T1 … TN.
+              heading={(at) => (rounds ? tt.round : emomRounds() ? tt.roundShort : tt.series).replace("{n}", String(at + 1))}
               // Recette du 16/11/2026 (fmt-superset, Hermann : « Superset : après avoir ajouté deux mouvements, "+ ajouter" doit se
               // transformer en "Modifier" et être activé ») : le mode catalogue s'ouvre sur les deux mouvements choisis. [« + Ajouter »
               // grisé dès deux mouvements (Complément du 5 novembre 2026, §11) — remplacé.]

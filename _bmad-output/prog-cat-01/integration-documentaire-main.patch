@@ -1,0 +1,122 @@
+diff --git a/docs/KODJO-Programme-catalogue-creation-configuration-2026-11-20.md b/docs/KODJO-Programme-catalogue-creation-configuration-2026-11-20.md
+index a73ca3c1..e9cf61e7 100644
+--- a/docs/KODJO-Programme-catalogue-creation-configuration-2026-11-20.md
++++ b/docs/KODJO-Programme-catalogue-creation-configuration-2026-11-20.md
+@@ -31,7 +31,7 @@
+ - Couleurs Programmes : contexte et onglet `#EFE8FF`, fond `#F9F6FF`, y compris derrière les onglets.
+ - Première ligne **« Actifs N · Terminés N »**. Elle sert de filtre, comme la ligne « Actives · Terminées » du Journal du calendrier. Par défaut, la liste affiche les programmes **actifs**, en cours ou à venir.
+ - Champ « Rechercher » à gauche ; boutons filtre, tri et créer alignés à droite, à 16 px du bord.
+-- Cartes aux marges de 16 px. Chaque carte affiche le nom, la période et le statut, puis le nombre de planifications et d'exercices.
++- Cartes aux marges de 16 px. Chaque carte affiche le nom, la période et le statut, puis le nombre de planifications et d'exercices. [Précisé le 21/11/2026 — D-556 : « N planifications · N séances », séances distinctes des routines rattachées ; « exercices » remplacé.]
+ 
+ **État vide** : même présentation, avec « Actifs 0 · Terminés 0 ». La recherche, le filtre et le tri restent visibles.
+ 
+@@ -41,8 +41,8 @@
+ 
+ | Action | Couleur | Effet |
+ |---|---|---|
+-| Enregistrer comme modèle | violet | crée un modèle à partir du programme |
+-| Dupliquer | gris | crée une copie du programme |
++| Enregistrer comme modèle | violet | crée un modèle à partir du programme [21/11/2026 — D-553 : grisé et inactif tant que le modèle de programme n'existe pas] |
++| Dupliquer | gris | crée une copie du programme [21/11/2026 — D-554 : copie sans dates ni routines, nom suivi de « (copie) », objectif et suivi de la douleur repris] |
+ | Supprimer | rouge `#D92D20` | ouvre la confirmation (§3) |
+ 
+ Ces deux premières actions ne figurent plus dans la fiche du programme. « Archiver le programme » et « Arrêter le programme » sont supprimés : l'état Terminé les remplace.
+@@ -57,7 +57,7 @@ Même règle que la suppression d'une routine :
+ 1. titre « Supprimer ce programme » ;
+ 2. message, par exemple « 12 créneaux non commencés seront supprimés. Le programme sera terminé. » ;
+ 3. bouton rouge **« Supprimer avec ses routines »** : les créneaux futurs des routines du programme sont supprimés avec lui. C'est le cas courant ;
+-4. bouton violet clair **« Garder les routines dans le calendrier »** : les routines continuent, détachées du programme. Ce bouton n'apparaît que si le programme a des routines avec des créneaux à venir ;
++4. bouton violet clair **« Garder les routines dans le calendrier »** : les routines continuent, détachées du programme. Ce bouton n'apparaît que si le programme a des routines avec des créneaux à venir ; [Précisé le 21/11/2026 — D-557 : toutes les routines sont détachées, historique compris, aucun créneau supprimé ; programme Terminé s'il a un historique, sinon supprimé. L'historique d'un programme est porté par ses exécutions (programme figé au lancement).]
+ 5. bouton gris **« Annuler »**.
+ 
+ ## 4. Créer ou configurer un programme
+@@ -76,7 +76,7 @@ Même règle que la suppression d'une routine :
+ 2. **Planifications** :
+    - la liste des routines du programme : nom, puis créneau et nombre de contenus (« tous les jours, 14 h · 2 contenus ») ;
+    - **glisser une routine vers la gauche** la retire du programme sans la supprimer ;
+-   - **« + Planifier une séance ou un exercice »** ouvre l'écran de planification existant ; la routine créée est rattachée au programme ;
++   - **« + Planifier une séance ou un exercice »** ouvre l'écran de planification existant ; la routine créée est rattachée au programme ; [21/11/2026 — D-555 : libellé « + Planifier une séance » (D-449 : la séance est le seul contenu planifiable) ; D-559 : programme présélectionné et non modifiable, dates bornées par la période, « pendant N » plafonné à la fin du programme, sans message.]
+    - **« Rattacher une routine existante »** ouvre la liste des routines du calendrier qui n'appartiennent à aucun programme.
+ 3. **Suivi de la douleur** : interrupteur, désactivé par défaut (§5).
+ 
+@@ -91,7 +91,7 @@ Ne figurent pas dans cette modale : les indicateurs de résultats, l'enrôlement
+    - elle précise que les relevés restent sur le téléphone, ne sont jamais interprétés et peuvent être effacés ;
+    - elle propose « Annuler » (gris, à gauche) et « Autoriser » (bleu, à droite), côte à côte.
+    Annuler laisse l'interrupteur désactivé. Les activations suivantes, dans ce programme ou un autre, ne redemandent pas l'accord.
+-4. **Profil › Confidentialité.** L'accord n'y est pas donné : le Profil affiche l'état qui découle des programmes et permet de revenir dessus en un seul endroit. Sans accord : « non utilisé », sans réglage. Avec un accord : date d'accord et programmes concernés, « Retirer mon accord » (désactive le suivi dans tous les programmes) et « Effacer mes relevés ».
++4. **Profil › Confidentialité.** L'accord n'y est pas donné : le Profil affiche l'état qui découle des programmes et permet de revenir dessus en un seul endroit. Sans accord : « non utilisé », sans réglage. Avec un accord : date d'accord et programmes concernés, « Retirer mon accord » (désactive le suivi dans tous les programmes) et « Effacer mes relevés ». [21/11/2026 — D-558 : « Effacer mes relevés » grisé tant qu'aucun relevé n'existe ; confirmation prévue.]
+ 5. **Données.** Les relevés restent sur le téléphone, ne sont jamais interprétés par Kodjo et ne sont jamais partagés, même quand l'exécution est visible dans la communauté. La date d'accord est enregistrée. Désactiver l'accord arrête la collecte ; « Effacer mes relevés » supprime les relevés existants.
+ 6. **Évolution.** Au sens du RGPD, un relevé de douleur reste une donnée de santé, même sans interprétation. Une sauvegarde sur un compte ou un partage futur exigera un nouveau consentement, demandé au moment où l'usage apparaît.
+ 
+diff --git "a/docs/Specifications-fonctionnelles/04 \342\200\223 Mod\303\250le fonctionnel.md" "b/docs/Specifications-fonctionnelles/04 \342\200\223 Mod\303\250le fonctionnel.md"
+index dc48a061..145012a5 100644
+--- "a/docs/Specifications-fonctionnelles/04 \342\200\223 Mod\303\250le fonctionnel.md"	
++++ "b/docs/Specifications-fonctionnelles/04 \342\200\223 Mod\303\250le fonctionnel.md"	
+@@ -565,7 +565,7 @@ Le Programme apparaît pour la **première fois** dans l'interface, sur l'écran
+ 
+ Une **ligne de valeur** — libellé « Programme » à gauche, valeur à droite — en **première position du formulaire**, au-dessus de « Début le ».
+ 
+-Valeur par défaut : **« Aucun »**. Le rattachement est facultatif.
++Valeur par défaut : **« Aucun »**. Le rattachement est facultatif. [Précisé le 21/11/2026 — D-559 : ouverte depuis un programme (« + Planifier une séance »), la planification présélectionne ce programme, non modifiable à cet endroit ; « Début le » et « jusqu'au » sont bornés par la période ; la valeur maximale de « pendant N » est calculée pour que la fin ne dépasse jamais la fin du programme ; aucun message. D-557 : chaque exécution lancée depuis une occurrence d'une routine rattachée enregistre le programme du moment ; l'historique du programme ne dépend pas du lien routine → programme.]
+ 
+ #### Pourquoi en première position
+ 
+diff --git "a/docs/Specifications-fonctionnelles/07 \342\200\223 Registre des d\303\251cisions de conception.md" "b/docs/Specifications-fonctionnelles/07 \342\200\223 Registre des d\303\251cisions de conception.md"
+index 2fa8915a..6e8c80fa 100644
+--- "a/docs/Specifications-fonctionnelles/07 \342\200\223 Registre des d\303\251cisions de conception.md"	
++++ "b/docs/Specifications-fonctionnelles/07 \342\200\223 Registre des d\303\251cisions de conception.md"	
+@@ -2880,3 +2880,17 @@ Classe B (évolution validée) : demandes et validations explicites de Hermann d
+ | D-550 | Aucune personne n'est affectée à un programme : le partage passe par un Espace (hors MVP), qui gère les personnes. | Hermann, 20/11/2026 | spec §1 |
+ | D-551 | Suivi de la douleur : défini dans le programme (interrupteur) ; consentement recueilli à la première activation par une feuille (Annuler et Autoriser, côte à côte), valable pour toute l'application ; Profil › Confidentialité affiche l'état déduit (date d'accord, programmes concernés) et permet de retirer l'accord (désactivation partout) et d'effacer les relevés ; relevés locaux, jamais interprétés ni partagés. | Hermann, 20/11/2026 | CE-PROG-02, CE-PRF-01, ch04 |
+ | D-552 | Profil : onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné ; onglet Confidentialité avec Suivi de la douleur (état déduit, D-551) et Partage communautaire (règles des écrans Communauté : exécutions visibles par défaut, pas de rétro-publication, pseudo public, nom privé, profil visible des amis, relevés de douleur jamais partagés). | Hermann, 20/11/2026 | CE-PRF-01 |
++
++## Programme — précisions de mise en œuvre (21/11/2026, PROG-CAT-01)
++
++Classe B (évolution validée) : décisions explicites de Hermann du 21/11/2026 (mission PROG-CAT-01 et réponses aux points À CLARIFIER du plan). Elles précisent D-546, D-547, D-549, D-551 et CE-PROG-01 à 03 ; aucune autre décision n'est remplacée.
++
++| ID | Décision | Source | Portée |
++|---|---|---|---|
++| D-553 | « Enregistrer comme modèle » est affiché grisé et inactif, car le modèle de programme n'existe pas encore. [Précise D-546.] | Hermann, 21/11/2026 | CE-PROG-01 |
++| D-554 | « Dupliquer » crée une copie sans dates ni routines : nom suivi de « (copie) », objectif et suivi de la douleur repris ; la modale s'ouvre sur cette copie. | Hermann, 21/11/2026 | CE-PROG-01, CE-PROG-02 |
++| D-555 | « + Planifier une séance » ouvre la planification existante, qui ne propose que des séances (D-449). [Remplace le libellé « + Planifier une séance ou un exercice » de D-549 et de la spécification.] | Hermann, 21/11/2026 | CE-PROG-02 |
++| D-556 | Carte d'un programme : « N planifications · N séances », N séances étant le nombre de séances distinctes dans les routines rattachées. [Remplace « N exercices ».] | Hermann, 21/11/2026 | CE-PROG-01 |
++| D-557 | Supprimer avec « Garder les routines dans le calendrier » : toutes les routines sont détachées, y compris celles qui ont un historique, et aucun créneau n'est supprimé ; le programme passe en Terminé s'il a un historique, sinon il est supprimé. L'historique d'un programme ne dépend pas du lien routine → programme : chaque exécution lancée depuis une occurrence d'une routine rattachée enregistre le programme du moment (référence figée sur l'exécution, sans reprise des exécutions passées) ; détacher ou supprimer une routine ne retire jamais une exécution de l'historique du programme. [Précise D-547.] | Hermann, 21/11/2026 | CE-PROG-03, ch04 |
++| D-558 | « Effacer mes relevés » est grisé tant qu'aucun relevé n'existe ; sa confirmation est développée pour servir quand la saisie de la douleur existera. [Précise D-551.] | Hermann, 21/11/2026 | CE-PRF-01 |
++| D-559 | Planification depuis un programme : le programme est présélectionné et non modifiable dans l'écran de planification ; les dates sont bornées par la période du programme ; pour « pendant N », la valeur maximale du sélecteur est calculée pour que la fin ne dépasse jamais la date de fin du programme ; aucun message (l'avertissement hors période reste à concevoir). | Hermann, 21/11/2026 | CE-PROG-02, ch04 « Le Programme » |
+diff --git "a/docs/Specifications-fonctionnelles/13 \342\200\223 Contrats d\342\200\231\303\251cran.md" "b/docs/Specifications-fonctionnelles/13 \342\200\223 Contrats d\342\200\231\303\251cran.md"
+index 7ca06e21..d1e5f1a5 100644
+--- "a/docs/Specifications-fonctionnelles/13 \342\200\223 Contrats d\342\200\231\303\251cran.md"	
++++ "b/docs/Specifications-fonctionnelles/13 \342\200\223 Contrats d\342\200\231\303\251cran.md"	
+@@ -6286,15 +6286,15 @@ Classe B, D-543 à D-552. Référence : [spécification](../KODJO-Programme-cata
+ ### CE-PROG-01 — Catalogue des programmes
+ 
+ - **Écrans Figma :** « PROG — 7 Catalogue des programmes — Liste », « PROG — 8 Catalogue des programmes — État vide », « PROG — 7b Catalogue des programmes — Actions glissées ».
+-- **Layout :** onglets Mouvements · Séances · Programmes (Programmes sélectionné) ; couleurs Programmes, contexte et onglet #EFE8FF, fond #F9F6FF y compris derrière les onglets ; ligne « Actifs N · Terminés N » ; « Rechercher » à gauche, filtre, tri et créer à droite ; cartes 370 pt aux marges de 16 : nom, « période · statut », « N planifications · N exercices ».
++- **Layout :** onglets Mouvements · Séances · Programmes (Programmes sélectionné) ; couleurs Programmes, contexte et onglet #EFE8FF, fond #F9F6FF y compris derrière les onglets ; ligne « Actifs N · Terminés N » ; « Rechercher » à gauche, filtre, tri et créer à droite ; cartes 370 pt aux marges de 16 : nom, « période · statut », « N planifications · N exercices ». [21/11/2026 — D-556 : « N planifications · N séances ».]
+ - **États :** liste des actifs par défaut ; vide : « Actifs 0 · Terminés 0 », contrôles visibles, texte d'état vide.
+ - **Interactions :** toucher une carte ouvre CE-PROG-02 en configuration ; « Actifs » / « Terminés » filtrent ; glisser une carte à gauche révèle Enregistrer comme modèle (violet), Dupliquer (gris), Supprimer (rouge, ouvre CE-PROG-03).
+-- **Recette :** la liste par défaut ne montre aucun programme terminé ; les trois actions glissées sont présentes, dans cet ordre ; aucune action Archiver.
++- **Recette :** la liste par défaut ne montre aucun programme terminé ; les trois actions glissées sont présentes, dans cet ordre ; aucune action Archiver. [21/11/2026 — D-553 : « Enregistrer comme modèle » grisé et inactif ; D-554 : « Dupliquer » ouvre la modale sur une copie sans dates ni routines.]
+ 
+ ### CE-PROG-02 — Créer ou configurer un programme
+ 
+ - **Écran Figma :** « PROG — 13 Créer ou configurer un programme » ; feuille de consentement : « PROG — 13b Suivi de la douleur — Consentement », ouverte par-dessus cette modale.
+-- **Layout :** modale iOS au-dessus du catalogue, feuille arrondie aux quatre coins, marges latérales 8, poignée ; en-tête de modale croix · titre · coche ; zone de contexte Programmes (hauteur standard) : nom, objectif ; cartes séparées de 12, cartes à une ligne de 44 : période « Du … au … » (dates bleues sans cadre), titre « Planifications » puis carte (routines, « + Planifier une séance ou un exercice », « Rattacher une routine existante » avec chevron), carte « Suivi de la douleur » avec interrupteur.
++- **Layout :** modale iOS au-dessus du catalogue, feuille arrondie aux quatre coins, marges latérales 8, poignée ; en-tête de modale croix · titre · coche ; zone de contexte Programmes (hauteur standard) : nom, objectif ; cartes séparées de 12, cartes à une ligne de 44 : période « Du … au … » (dates bleues sans cadre), titre « Planifications » puis carte (routines, « + Planifier une séance ou un exercice » [21/11/2026 — D-555 : « + Planifier une séance »], « Rattacher une routine existante » avec chevron), carte « Suivi de la douleur » avec interrupteur.
+ - **États :** titre « Nouveau programme » à la création, nom du programme en configuration ; coche active quand nom, début et fin sont renseignés et cohérents (D-499).
+ - **Interactions :** toucher le nom, l'objectif ou une date les modifie ; glisser une routine à gauche la retire du programme sans la supprimer ; « + Planifier… » ouvre la planification, la routine créée est rattachée ; « Rattacher… » liste les routines sans programme ; activer le suivi de la douleur sans consentement ouvre la feuille de consentement (Annuler gris à gauche, Autoriser bleu à droite, côte à côte ; Annuler laisse l'interrupteur désactivé) ; croix : fermeture sans enregistrer.
+ - **Recette :** aucun indicateur de résultat, aucune personne, ni Enregistrer comme modèle ni Dupliquer dans la modale.
+@@ -6303,10 +6303,10 @@ Classe B, D-543 à D-552. Référence : [spécification](../KODJO-Programme-cata
+ 
+ - **Écran Figma :** « PROG — 7c Modal — Supprimer un programme » ; composant « DSF / Overlays / Confirmation », variante « Titre, message et action secondaire ».
+ - **Layout :** titre « Supprimer ce programme » ; message selon l'historique (« N créneaux non commencés seront supprimés. Le programme sera terminé. ») ; « Supprimer avec ses routines » (rouge) ; « Garder les routines dans le calendrier » (violet clair, texte bleu) ; « Annuler » (gris) ; sans croix.
+-- **Règles :** sans exécution, le programme est supprimé ; avec historique, créneaux non commencés supprimés, programme Terminé ; le bouton violet n'apparaît que si des routines du programme ont des créneaux à venir, et les garde détachées.
++- **Règles :** sans exécution, le programme est supprimé ; avec historique, créneaux non commencés supprimés, programme Terminé ; le bouton violet n'apparaît que si des routines du programme ont des créneaux à venir, et les garde détachées. [21/11/2026 — D-557 : toutes les routines détachées, historique compris, aucun créneau supprimé ; Terminé avec historique, sinon supprimé ; historique porté par les exécutions (programme figé au lancement).]
+ 
+ ### CE-PRF-01 — Profil — onglets et Confidentialité
+ 
+ - **Écrans Figma :** écrans du Profil de la page « Prototype MVP » ; « Profil — Confidentialité ».
+-- **Layout :** onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné (#EAEAFF), sans dégradé ni trait sous l'onglet. Confidentialité : « Suivi de la douleur », état déduit des programmes (avec accord : date, programmes concernés, « Retirer mon accord » en bleu, « Effacer mes relevés » en rouge ; sans accord : « non utilisé », sans réglage) ; « Partage communautaire » (interrupteur « Mes nouvelles exécutions sont visibles » activé par défaut ; lignes Pseudo, Nom d'affichage, Profil, Relevés de douleur ; mention de non-rétro-publication).
++- **Layout :** onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné (#EAEAFF), sans dégradé ni trait sous l'onglet. Confidentialité : « Suivi de la douleur », état déduit des programmes (avec accord : date, programmes concernés, « Retirer mon accord » en bleu, « Effacer mes relevés » en rouge [21/11/2026 — D-558 : grisé tant qu'aucun relevé n'existe ; confirmation] ; sans accord : « non utilisé », sans réglage) ; « Partage communautaire » (interrupteur « Mes nouvelles exécutions sont visibles » activé par défaut ; lignes Pseudo, Nom d'affichage, Profil, Relevés de douleur ; mention de non-rétro-publication).
+ - **États :** communauté non activée : la section Partage communautaire se réduit à « Activer la communauté ».

@@ -3,7 +3,7 @@ import { AccessibilityInfo, findNodeHandle, Keyboard, Pressable, StyleSheet, Tex
 
 import { recordKeyboardJournal } from "@/features/diagnostics/keyboardJournal";
 import { strings } from "@/shared/i18n";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 export type ReferenceValueDialogProps = {
@@ -150,16 +150,8 @@ export function ReferenceValueDialog({
       ) : (
         <View style={styles.card} accessibilityRole="menu" accessibilityLabel={name} testID={`${testIDPrefix}-card`}>
           <View style={styles.header}>
-            <Pressable
-              onPress={handleCancel}
-              accessibilityRole="button"
-              accessibilityLabel={t.longPressDialog.cancel}
-              hitSlop={5}
-              style={styles.close}
-              testID={`${testIDPrefix}-cancel`}
-            >
-              <KodjoIcon name="wheel-action-cancel" />
-            </Pressable>
+            {/* D-593 (Hermann, 24/11/2026 : « Ces boutons doivent utiliser le même composant que les autres ») : cercle blanc standard. [Croix grise sur fond gris — remplacée.] */}
+            <CloseCircleAction onPress={handleCancel} accessibilityLabel={t.longPressDialog.cancel} testID={`${testIDPrefix}-cancel`} />
             <Text ref={menuTitleRef} style={styles.headerTitle} numberOfLines={2}>
               {name}
             </Text>
@@ -243,14 +235,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing[8],
-  },
-  close: {
-    width: CLOSE_SIZE,
-    height: CLOSE_SIZE,
-    borderRadius: CLOSE_SIZE / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surfaceSubtle,
   },
   closeBalance: {
     width: CLOSE_SIZE,

@@ -290,8 +290,6 @@ export function proposedClassification(
   return { categoryId, bodyZoneIds, unmatchedZones };
 }
 
-export const INBOX_SHEET_BASIS = "RECEIVED_FROM_PHONE (Mouvement personnel reçu par Wi-Fi, non approuvé)";
-
 /**
  * Données de création d'une fiche à partir d'un Mouvement reçu : contenu projeté (nom, alias,
  * étapes), Catégorie et Zones choisies dans les référentiels du catalogue, rapprochement
@@ -307,7 +305,6 @@ export function inboxMovementToSheetInput(
     steps: [...movement.steps],
     categoryId: classification.categoryId,
     bodyZoneIds: [...classification.bodyZoneIds],
-    basis: INBOX_SHEET_BASIS,
     owner: null,
     author: null,
     knownLocalMovementIds: [movement.movementId],

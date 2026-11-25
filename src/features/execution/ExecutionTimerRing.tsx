@@ -57,6 +57,7 @@ export function ExecutionTimerRing({
   fading = false,
   color = RING.progressColor,
   segments = NO_SEGMENTS,
+  marks = NO_MARKS,
   fill,
   inner,
   children,
@@ -71,6 +72,11 @@ export function ExecutionTimerRing({
    * (`ringSegmentsOf`), dessinées par-dessus la portion en cours ; masquées dès que la minute est révolue.
    */
   readonly segments?: readonly RingSegment[];
+  /**
+   * Constat e) de la recette du 18/11/2026 (ligne n° 50, Circuit EMOM « dans chaque intervalle ») : positions (part du tour) où un cercle
+   * est figé sur l'anneau, à l'instant du changement de mouvement — la pastille de position, laissée sur place.
+   */
+  readonly marks?: readonly number[];
   /** For time, exercice en durée (16/11/2026) : fond du cercle (gris, vert, orange) ; aucun par défaut. */
   readonly fill?: string;
   /** For time, exercice en durée : anneau fin du compte à rebours, à l'intérieur de l'anneau gris (voir `InnerCountdown`). */
@@ -80,13 +86,14 @@ export function ExecutionTimerRing({
 }) {
   if (!hasSvg()) return <View testID={testID === undefined ? undefined : `${testID}-plain`}>{children}</View>;
   return (
-    <AnimatedRing motion={motion} fading={fading} color={color} segments={segments} fill={fill} inner={inner ?? null} testID={testID}>
+    <AnimatedRing motion={motion} fading={fading} color={color} segments={segments} marks={marks} fill={fill} inner={inner ?? null} testID={testID}>
       {children}
     </AnimatedRing>
   );
 }
 
 const NO_SEGMENTS: readonly RingSegment[] = [];
+const NO_MARKS: readonly number[] = [];
 
 /**
  * Registre ch07 (16/11/2026), Hermann : « le cercle vert […] doit être à l'intérieur juste à sa bordure », « ses deux bouts
@@ -106,6 +113,7 @@ function AnimatedRing({
   fading,
   color = RING.progressColor,
   segments,
+  marks,
   fill,
   inner,
   children,
@@ -114,6 +122,7 @@ function AnimatedRing({
   readonly motion: RingMotion;
   readonly fading: boolean;
   readonly segments: readonly RingSegment[];
+  readonly marks: readonly number[];
   readonly fill?: string | undefined;
   readonly inner: InnerCountdown | null;
   /** Couleur de l'anneau qui tourne et de sa trace (`ringColorOf`). */
@@ -199,6 +208,10 @@ function AnimatedRing({
         {segments.map((segment) => (
           <RingPortion key={`${segment.from}:${segment.color}`} segment={segment} turns={turns} wrap={wrap} opacity={arcOpacity} center={center} circumference={circumference} />
         ))}
+        {marks.map((mark) => {
+          const point = pointAt(mark, RING.progressRadius, center);
+          return <Svg.Circle key={`mark:${mark}`} cx={point.x} cy={point.y} r={RING.knobRadius} fill={RING.progressColor} stroke="#FFFFFF" strokeWidth={RING.knobStroke} testID="execution-ring-move-mark" />;
+        })}
         <AnimatedCircle cx={start.x} cy={start.y} r={RING.knobRadius} fill={color} stroke="#FFFFFF" strokeWidth={RING.knobStroke} animatedProps={knobProps} />
       </Svg.default>
       <View style={styles.content}>{children}</View>

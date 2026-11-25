@@ -160,9 +160,7 @@ export function MovementLevelsScreen({ service, movementId, onClose }: MovementL
           closeIcon
           horizontalPadding={sideMargin}
           layoutStyle={{ paddingLeft: EDITOR_HEADER.paddingLeft, gap: EDITOR_HEADER.gap }}
-          backCircleStyle={EDITOR_HEADER.backCircle}
           titleStyle={EDITOR_HEADER.title}
-          backIconTintColor={EDITOR_HEADER.closeIconTint}
         />
         <SheetMotionProvider reduceMotion={reduceMotion}>
           {state.kind === "error" ? (

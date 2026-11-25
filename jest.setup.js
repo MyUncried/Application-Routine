@@ -22,6 +22,16 @@ jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock
 // react-native-gesture-handler autorisé pour cet écran) : simulacres livrés par le paquet.
 require("react-native-gesture-handler/jestSetup");
 
+// Recette iPhone du 19/11/2026 : miniatures de photos réduites et gardées en mémoire par `Image.loadAsync` (module natif).
+// Sous Jest, aucune miniature : la vignette affiche la photo d'origine, comme avant ; le module est testé à part.
+jest.mock("@/features/activities/photoThumbnails", () => ({
+  THUMBNAIL_MAX_PIXELS: 288,
+  loadPhotoThumbnail: async () => ({ status: "failed" }),
+  preloadPhotoThumbnails: () => {},
+  usePhotoThumbnail: () => null,
+  resetPhotoThumbnailsForTests: () => {},
+}));
+
 // A-2 (11/11/2026) : la garde des Mouvements importés lit le registre natif des catalogues ; sous Jest,
 // garde inactive par défaut. Les tests de la garde injectent un registre SQLite réel.
 jest.mock("@/features/catalogue/importedMovements", () => ({
@@ -32,4 +42,11 @@ jest.mock("@/features/catalogue/importedMovements", () => ({
   sharedCatalogueRegistry: async () => {
     throw new Error("Registre natif indisponible sous Jest : injecter un registre.");
   },
+}));
+
+// J1 « Gestion des langues » (23/11/2026) : la suite tourne en français, langue de référence des attentes.
+// Les tests de la résolution de langue appellent directement `resolveLanguage` / `resolveLocaleTag`.
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageTag: "fr-FR", languageCode: "fr", regionCode: "FR" }],
+  getCalendars: () => [{ calendar: "gregory", firstWeekday: 2, timeZone: "Europe/Paris", uses24hourClock: true }],
 }));

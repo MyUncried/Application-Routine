@@ -40,7 +40,7 @@ export function SessionCommandRow({
   filterCount,
   onOpenFilters,
   onResetFilters,
-  onCreate,
+  widenSearch = false,
 }: {
   readonly view: SessionCatalogueView | null;
   readonly onToggleView: (view: SessionCatalogueView) => void;
@@ -56,7 +56,12 @@ export function SessionCommandRow({
   readonly filterCount: string | null;
   readonly onOpenFilters: () => void;
   readonly onResetFilters: () => void;
-  readonly onCreate: () => void;
+  /**
+   * UI-FAB-01 (D-558) : Catalogue des séances — le bouton Créer quitte la zone de contexte pour le bouton flottant et le
+   * champ Rechercher s'élargit. Absent : champ inchangé (Catalogue des séances ouvert depuis la planification, Figma
+   * `7594:34809`). [`onCreate` (bouton Créer de la zone) — remplacé le 24/11/2026.]
+   */
+  readonly widenSearch?: boolean;
 }) {
   const [available, setAvailable] = useState<number | null>(null);
   const [extendedWidth, setExtendedWidth] = useState<number | null>(null);
@@ -75,6 +80,7 @@ export function SessionCommandRow({
           extendedFilter: extendedWidth ?? 0,
           circle: COMMAND.visual,
           gap: COMMAND.gap,
+          roundCommands: widenSearch ? 1 : 2,
         });
   const shownSummary = layout.label === "COUNT" ? filterCount : filterSummary;
 
@@ -104,8 +110,7 @@ export function SessionCommandRow({
           />
         }
         sortLabel={t.sortAction}
-        createLabel={t.createAction}
-        onCreate={onCreate}
+        widenSearch={widenSearch}
         onCommandRowLayout={width(setAvailable)}
       />
       {/* Mesure hors écran de la commande étendue (largeur naturelle avec le résumé courant). */}

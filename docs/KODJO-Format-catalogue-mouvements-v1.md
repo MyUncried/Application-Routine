@@ -192,7 +192,7 @@ Les autres propriétés restent dans la fiche éditoriale complète, conservée 
   - un champ modifié par le fichier et non localement prend la nouvelle valeur ;
   - un champ modifié localement garde la valeur locale ;
   - les propriétés hors Mouvement entrent dans l'instantané du registre.
-- Le Mouvement n'est écrit que si un champ projeté change, et toujours par le service Catalogue existant. Médias, phases, famille et archivage locaux ne sont jamais modifiés.
+- Le Mouvement n'est écrit que si un champ projeté change, et toujours par le service Catalogue existant. Médias, phases, famille et archivage locaux ne sont jamais modifiés. [Précisé le 19/11/2026 (décision de Hermann, « une seule notion de médias ») : les photos intégrées de la fiche aux droits confirmés sont écrites comme médias du Mouvement à l'installation, à l'adoption et à chaque mise à jour acceptée ; un changement de ces photos suffit à réécrire le Mouvement. Une mise à jour remplace les médias venus de la fiche ; les autres médias du Mouvement restent, après eux. Choix technique : fichier interne `kodjo-media/catalogue-<empreinte>` (identité dérivée du contenu, non réécrit s'il existe), `src/domain/catalogue/catalogueMedia.ts`. L'instantané installé ne garde que l'empreinte de chaque photo intégrée, et l'empreinte de fiche (`sheetFingerprint`) représente la photo par cette empreinte (« je ne veux pas conserver deux photos sur le téléphone », 19/11/2026).]
 - Une décision est recalculée sur l'état actuel au moment où elle est prise, jamais sur un plan ancien.
 - Une fiche absente du fichier n'est jamais supprimée localement.
 
@@ -450,3 +450,57 @@ La suppression du champ éditorial `media[].alt` est la règle cible et supersè
 Les validateurs historiques « visibilité de fiche non privée » ou « éditeur requis » doivent évoluer : la fiche n'a plus de visibilité saisie et la bibliothèque n'a plus d'éditeur distinct. Les contrôles de propriétaire identifié et de droits nécessaires à la diffusion restent applicables. Les anciennes descriptions de projection `phases: []` ne fixent pas la nouvelle cible.
 
 La compatibilité de lecture des anciens fichiers, le calcul d'empreinte après retrait de champs et la migration doivent être spécifiés et testés. Préserver les valeurs de position de départ par intégration aux étapes ; ne pas effacer d'autres contenus conservés. Aucune migration des données utilisateur n'est exécutée par cette mise à jour documentaire.
+
+## 13. Format v3 `3.0.0` — mise en conformité MOUV-ADM-20261117 (18/11/2026)
+
+Classe A (le code rejoint les décisions MOUV-ADM, MOUV-ACC, MOUV-PART et MOUV-UX du 17/11/2026, validées par Hermann) et classe D (choix techniques ci-dessous). Rapport : `.github/orchestration/reports/2026-11-18_MOUV-CONFORMITE-FICHE-20261118.md`. [La phrase « Aucune nouvelle version de format n'est attribuée sans implémentation » de la section précédente est satisfaite : la version 3.0.0 est attribuée avec son implémentation.]
+
+### 13.1 Versionnement (classe D)
+
+- `formatVersion` **3.0.0** (version majeure : propriétés retirées et ajoutées). Versions relues : 1.0.0, 2.0.0, 3.0.0 ; seule la 3.0.0 est écrite.
+- Un fichier 3.0.0 qui porte une propriété abandonnée est refusé (`UNRECOGNIZED`) : les champs abandonnés ne réapparaissent pas.
+- Registre du téléphone `kodjo-catalogue-registry.db` : schéma **4** (`PRAGMA user_version`).
+
+### 13.2 Fiche 3.0.0
+
+| Porteur | Contenu |
+|---|---|
+| `provenance` | `origin`, `upstream` (automatiques), `owner`, `author`, `rightsHolder` (`null` = le propriétaire ; un ayant droit égal au propriétaire est refusé), `license` (`null` = « Non renseignée », sinon `{ name, url, text }` : nom avec lien http(s) facultatif, ou texte ; jamais les deux). |
+| `content` | `name`, `aliases`, `equipment` (facultatif), `steps` (la position de départ éventuelle est la première étape), `safetyNotes` (facultatif), `notes` (internes). |
+| `classification` | `categoryId`, `bodyZoneIds`, `specialtyIds`, `gesturalFamilyIds`, `clinicalProblemIds`, `anatomicalTargetIds`. |
+| `validation` | Inchangée ; `publicationAllowed` est l'autorisation système de la révision, jamais saisie. |
+| `media[]` | Sans `alt`. |
+| `phases[]` | `{ id, label, durationSeconds }` : contrat `MovementPhase` (au plus 6, identités entières ≥ 1 uniques, libellé de 1 à 20 points de code, durée 1..3535 s ou `null`). |
+| `levelGroup`, `install` | Inchangés. |
+
+Bibliothèque : `libraryId`, `title`, `description`, `revision`, `history`, `owner`, `visibility` (personnelle, partagée, publique), `members`. Catalogue : `id`, `title`, `revision`, `owner`, `notes` (internes). Publication de Bibliothèque et de catalogue : synthèses calculées (`libraryPublicationSynthesis`, `cataloguePublicationSynthesis`) — vraies seulement si le propriétaire est identifié et si chaque fiche a l'autorisation système. Le contrôle central reste hors lot.
+
+### 13.3 Lecture d'un fichier 2.0.0 (conversion déterministe)
+
+- Champs abandonnés retirés ; licence texte → `{ name: null, url: null, text }` ; ayant droit égal au propriétaire → `null` ; `phases: []`.
+- Position de départ non vide et absente des étapes (comparaison sans casse, espaces multiples ni point final) : ajoutée en **première étape**, et la fiche reçoit une **nouvelle révision** (règle `nextRevision`), datée de sa dernière révision, auteur inconnu, résumé « Format 3.0.0 : position de départ reprise au début des étapes ». Déjà présente : retirée sans révision.
+- Avertissements : `CONVERTED_FROM_V2`, `STARTING_POSITION_MERGED` (par fiche). La conversion répétée d'un même fichier donne le même résultat (révisions comprises).
+- Catalogue réel (copie de la révision 105, 81 fiches, vérifiée le 18/11/2026) : 61 positions reprises, 61 révisions avancées, aucune étape en double, identités et historiques conservés.
+
+### 13.4 Diffusion
+
+Export de l'administration, transfert Wi-Fi et chargement sur le téléphone utilisent la version diffusable : fiches à média non confirmé retirées (MOUV-D2) et **notes internes retirées** (`withoutInternalNotes` : notes de fiche et du catalogue). Le comparatif du téléphone n'affiche jamais `content.notes`.
+
+### 13.5 Téléphone
+
+- Phases : champ projeté (`PROJECTED_FIELDS`) — installées, puis mises à jour aux révisions acceptées ; valeur locale protégée comme les autres champs projetés (conflit, choix explicite). Projection : durée toujours explicite (`null` = aucune), car une durée absente serait conservée par `updateMovementContent` ; compteur local de phase jamais reculé.
+- Une fiche commune à plusieurs Bibliothèques reste un seul Mouvement local (`(catalogueId, sheetId)`).
+- Migration du registre 3 → 4, dans une transaction : copies `installed_sheets_backup_v3`, `pending_operations_backup_v3`, `installed_libraries_backup_v3`, `library_operations_backup_v3` ; instantanés convertis **sans reprise ni révision** (`normalizeStoredSheet`, notes internes retirées) et empreinte recalculée ; Bibliothèques installées sans `editor` ni `publicationAllowed`, clé cible recalculée seulement si l'ancienne est reproduite (aucune fausse mise à jour) ; opérations de Bibliothèque en cours converties ; table `installed_references` (référentiels de classification par catalogue). Les révisions converties du fichier source arrivent ensuite comme des mises à jour ordinaires (étapes mises à jour, mêmes Mouvements, aucune réinstallation).
+- Téléphone sans registre (Mouvements de l'ancien importeur, identifiants `pilot:*`) : un Mouvement identique à la version d'avant la reprise (`sheetBeforeStartingPositionMerge`) est classé « nouvelle révision » sur cette base, au lieu d'« à rapprocher ».
+- Filtres validés : `catalogueFilters.ts` (valeurs et libellés par axe, Mouvements portant une valeur) et `importedMovementClassifications()` ; aucun parcours de filtre (Figma à venir).
+- Bouton Livre : Bibliothèque, Catalogue, Source, Propriétaire, Auteur, Ayant droit (le propriétaire par défaut), Licence (« Non renseignée », nom et lien, ou texte), Matériel et Consignes de sécurité si renseignés, Spécialités, Familles gestuelles, Cibles anatomiques et Problèmes cliniques si renseignés, Version. Aucune note interne. [Ligne « Éditeur » — remplacée : diffuseur et éditeur de Bibliothèque supprimés.]
+
+### 13.6 Administration
+
+Formulaires alignés sur les 30 éléments : position de départ, fondement, sources, diffuseur, statut éditorial, visibilité de fiche, texte alternatif, éditeur de Bibliothèque et gestionnaire du catalogue retirés ; origine et source d'import en lecture seule ; ayant droit « Le propriétaire (par défaut) » ou « Un tiers » ; licence « Non renseignée » ou « Licence ou conditions connues » (nom et lien, ou texte) ; éditeur de phases (une phase ajoutée ne reprend jamais l'identité d'une phase de la version enregistrée) ; notes du catalogue internes ; synthèses de publication en lecture seule ; empreinte et version lue dans le volet « Diagnostic » ; historiques en lecture seule. Avant la première réécriture d'un fichier lu dans un format antérieur, copie à l'identique dans `catalogue/admin/sauvegardes/<nom>.v<version>.<empreinte>.catalogue.json` (non versionné).
+
+### 13.7 Limites
+
+- Une phase supprimée puis une nouvelle phase ajoutée dans une session d'administration ultérieure peut réutiliser l'identité d'une phase supprimée lors d'une révision antérieure (seule la version enregistrée courante est consultée).
+- Les référentiels de classification sont enregistrés sur le téléphone à la prochaine installation ou mise à jour de Bibliothèque (pas de reprise rétroactive par la migration).
+- Le chargement direct d'un fichier (écran de recette CA-4) n'enregistre pas les référentiels.

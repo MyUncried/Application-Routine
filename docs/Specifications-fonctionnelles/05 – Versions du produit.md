@@ -161,7 +161,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 
 #### Internationalisation
 
-Le MVP est monolingue en français. L’architecture est néanmoins préparée dès le MVP pour permettre une évolution multilingue simple.
+Le MVP est monolingue en français. L’architecture est néanmoins préparée dès le MVP pour permettre une évolution multilingue simple. [Remplacé le 23/11/2026 par « Gestion des langues — décisions de Hermann du 23/11/2026 » (chapitre 07) : le multilingue devient un chantier engagé immédiatement, il n’est plus reporté.]
 
 Les évolutions ultérieures pourront ajouter :
 - plusieurs langues d’interface à partir d’un catalogue de textes externalisés ;
@@ -169,7 +169,7 @@ Les évolutions ultérieures pourront ajouter :
 - la sélection de la langue utilisée pour les annonces vocales ;
 - des contenus traduisibles sans refonte des écrans ni de la logique métier.
 
-Aucun sélecteur de langue n’est affiché dans le MVP.
+Aucun sélecteur de langue n’est affiché dans le MVP. [Remplacé le 23/11/2026 : ligne Langue dans Profil › Compte, ouvrant le réglage iOS.]
 #### Composition avancée des séances
 
 La structure d'une séance pourra être étendue afin de permettre :
@@ -495,7 +495,7 @@ Ces points ne remettent pas en question les décisions consignées. Ils ne const
 
 1. **x : plafond ou résultat ?** Le premier stepper et le nombre de pastilles cochées expriment la même information ([Point ouvert à consigner comme tel](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#point-ouvert-à-consigner-comme-tel)).
 2. **La rangée L M M J V S D sous les unités Jour et Mois** — masquée ou remplacée ([Les jours de la semaine](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#les-jours-de-la-semaine)).
-3. **Les trois écrans du parcours Programme** : création, proposition de rattachement, avertissement hors période ([Ce qui reste à concevoir](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#ce-qui-reste-à-concevoir)).
+3. **Les trois écrans du parcours Programme** : création, proposition de rattachement, avertissement hors période ([Ce qui reste à concevoir](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#ce-qui-reste-à-concevoir)). [Création conçue le 20/11/2026 (D-548, D-549) ; proposition automatique de rattachement et avertissement hors période restent à concevoir.]
 4. **La conversion `jusqu'au` ↔ `pendant`** dans les deux sens, quand l'utilisateur bascule le paramètre ([`jusqu'au` / `pendant` : un paramètre, pas un mot fixe](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#jusquau--pendant--un-paramètre-pas-un-mot-fixe)).
 5. **Le décalage de 3 px du carré de Disclosure** dans les variantes `Cadre=Oui`, soit 196 instances annoncées par le brief (DSF général, § 8.1).
 

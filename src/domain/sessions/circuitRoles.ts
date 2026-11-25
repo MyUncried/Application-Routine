@@ -111,6 +111,19 @@ export function forTimeDurationRefused(draft: Pick<SessionDraft, "exercises">, l
 }
 
 /**
+ * D-531 / RM-271 (Hermann, 19/11/2026) : « À l'échec » (Max) est refusé à un membre de la boucle d'un Circuit AMRAP qui compte plusieurs
+ * membres en Tour (« le tour n'aurait plus de longueur définie »). Le buy-in reste libre ; le For time refuse déjà À l'échec à tous ses
+ * membres (`stopTarget`, FT-6). Aucune donnée n'est modifiée : un membre déjà à l'échec garde sa valeur tant qu'on ne la change pas.
+ */
+export function amrapMaxRefused(draft: Pick<SessionDraft, "exercises">, layout: LayoutLike | undefined, exerciseId: string): boolean {
+  const circuit = circuitOf(layout, exerciseId);
+  if (circuit === undefined || circuit.format?.key !== "AMRAP") return false;
+  const roles = memberRoles(draft, circuit);
+  const index = circuit.exercises.indexOf(exerciseId);
+  return roles[index] === "TOUR" && roles.filter((role) => role === "TOUR").length > 1;
+}
+
+/**
  * Garde de suppression ou de sortie d'un membre (voir `isLastTourMember`, `isLastRepetitionsMember`). Réponse de
  * Hermann du 08/11/2026 (« Superset : dans la composition on limite à deux exercices aussi. ») : `MEMBER_MINIMUM` —
  * membre d'un Superset à deux (`exitBreaksMemberMinimum`).

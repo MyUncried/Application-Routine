@@ -5,6 +5,7 @@ import { View, type ImageStyle, type StyleProp, type ViewStyle } from "react-nat
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useCatalogueVideoCover } from "@/features/activities/catalogueVideoCover";
+import { usePhotoThumbnail } from "@/features/activities/photoThumbnails";
 
 /**
  * Premier média à afficher en vignette (PRE-4 story 4.4, D-264 ; PRE-6 story 5.1b, D3 remplacé par
@@ -104,6 +105,7 @@ export function MediaPreview({
   }
   const photoFailed = failedUri === uri;
   const cover = useCatalogueVideoCover(isVideo ? uri : null);
+  const thumbnail = usePhotoThumbnail(isVideo || photoFailed ? null : uri);
   const fallback = <View style={fallbackStyle} testID={fallbackTestID} />;
   const missing = unavailable !== undefined ? unavailable : fallback;
   if (isVideo) {
@@ -114,11 +116,13 @@ export function MediaPreview({
     }
     return cover.status === "failed" ? missing : fallback;
   }
-  return photoFailed ? (
-    missing
-  ) : (
+  if (photoFailed) return missing;
+  // Recette iPhone du 19/11/2026 : miniature réduite gardée en mémoire (`photoThumbnails.ts`) ; place réservée
+  // pendant son premier chargement ; photo d'origine si la miniature ne peut pas être produite (comportement antérieur).
+  if (thumbnail === undefined) return fallback;
+  return (
     <Image
-      source={{ uri }}
+      source={thumbnail ?? { uri }}
       style={imageStyle}
       contentFit="cover"
       accessible={false}

@@ -554,9 +554,9 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
 | [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
-| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | Calendrier — Mois | `CE-UI-03` | — |
+| [`1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237) | [supprimé le 19/11/2026] Calendrier — Mois | `CE-UI-03` | — |
 | [`1992:5365`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5365) | Modal — Supprimer une planification unique — Calendrier | `CE-UI-02` | — |
-| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
+| [`1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602) | [supprimé le 19/11/2026] Calendrier — Jour — Appui long — MVP | `CE-UI-02` | — |
 | [`1992:5962`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5962) | Calendrier — Semaine — Actions glissées | `CE-UI-03` | — |
 | [`1992:6102`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6102) | Modal — Supprimer des occurrences — Calendrier | `CE-UI-02` | — |
 | [`1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249) | Modal — Choisir une séance — Planification — Liste longue | `CE-UI-04` | — |
@@ -566,7 +566,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`4968:8188`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8188) | Exécution d'un exercice — Démarrée | `CE-T03-10` | — |
 | [`1992:8718`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8718) | Synthèse de séance — Terminée —  Évaluation initiale | `CE-UI-08` | — |
 | [`4968:8055`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4968-8055) | Synthèse d'exécution — Exercice Terminé —  Évaluation initiale | `CE-T03-14` | — |
-| [`1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843) | Suivi — Séances — Liste condensée | `CE-T03-15` | — |
+| [`1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843) | Suivi — Séances — Liste condensée [écran supprimé le 20/11/2026 : historique présenté dans l’Agenda] | `CE-T03-15` | — |
 | [`1992:9910`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910) | Catalogue des séances — Liste par défaut | `CE-T03-01` | — |
 | [`1992:10014`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10014) | Catalogue des séances — Séance déployée | `CE-T03-01` | — |
 | [`3786:5093`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3786-5093) | Catalogue des Exercices — Liste | `CE-T03-02` | —  **Retiré du catalogue cible le 27/10/2026 ; preuve historique.** |
@@ -1875,9 +1875,9 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 **Nom de la Séance.** Le nom du Format peut être suggéré initialement ; le champ reste modifiable dès l’ouverture. Aucun Format n’impose le nom, et un nom personnalisé n’est jamais remplacé automatiquement. B.8 est déclarée développée et recettée par Hermann le 02/11 ; le parcours Formats actuel ne réintroduit pas cette option dans le menu à trois options.
 
-Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
+[Remplacé le 22/11/2026 (D-558) : le menu s’ouvre depuis le bouton flottant, vers le haut, et propose quatre options — Créer un exercice, Créer un circuit, Créer un cycle, **Ajouter un point d’arrêt** ; le + et le sablier quittent la zone de contexte ; voir [DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md) § 4.] Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
 
-À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
+[Remplacé le 22/11/2026 (D-558) : c’est le bouton flottant qui devient une croix ; le bouton Pause / Ajouter un arrêt est dans le menu.] À l’ouverture, le bouton + « Ajouter une activité » devient Annuler : croix standard sur fond gris, 34 px, à l’emplacement exact du + et au-dessus du voile. Le toucher ferme le menu sans action ; la fermeture rétablit +. Le bouton Pause / Ajouter un arrêt conserve sa place à gauche, sous le voile. [Précisé le 01/11/2026 — recette iPhone PRE-9 de Hermann : « la zone de contexte doit être sous le voile grisé, seuls le bouton créer -> annuler, et les options doivent être visible dessus » : toute la zone de contexte est sous le voile ; seuls Annuler (le + transformé), l’axe et les options sont au-dessus.] Un axe vertical, au-dessus du voile et sous les options, relie Annuler aux icônes et s’arrête à Ajouter un cycle. Aucune option Annuler n’est ajoutée à la liste.
 
 L’écran ouvert par « Créer un exercice » porte ce même titre. Le bouton de confirmation du mouvement sélectionné porte « Créer un exercice ». Les cartes de suggestion conservent les composants et règles du parcours de recherche existant ; ce libellé ne renomme pas les actions distinctes de correction ou de création d’un Mouvement dans les autres contextes.
 
@@ -2139,7 +2139,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Exercices | D-435 réintroduit uniquement la récupération contextuelle affichable sur la troisième ligne de la carte de Composition v2, sans afficher les Pauses propres aux Séries ; le trait de démarcation conserve les règles de D-303. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes ; cadre aligné à droite sur le cadre des cartes d’Exercice) ; valeur initiale 5 s. |
 | Résumé | Durée de ce Circuit seule, placée dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours` ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). La durée concerne exclusivement ce Circuit (D-382) et intègre les durées intrinsèques de ses Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est, sous la forme « — min » (D-390, D-399). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Le complément du 28/10 remplace ce rendu D-443 : durée à droite de l’en-tête, compteur à abscisse fixe et stepper révélé au toucher. |
-| Créer | Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
+| Créer | [Remplacé le 22/11/2026 (D-558) : quatre options, ouvertes depuis le bouton flottant ; voir le DSF Bouton flottant.] Le menu Créer propose trois options, dans cet ordre : **Créer un exercice**, **Créer un circuit**, **Créer un cycle**. Créer un exercice ouvre la modale commune « Créer un exercice » : Exercice libre, puis grille Formats d’entraînement. Les mouvements existants se sélectionnent dans la fiche de création ; aucun accès distinct « Utiliser des mouvements existants » ou « Utiliser un format d’entraînement » dans ce menu. Le bouton + devient Annuler, croix grise 34 px au même emplacement ; voile, axe jusqu’à Créer un cycle et fermeture sont conservés. Créer un circuit/un cycle conserve le choix d’emplacement existant.
 | Continuer | Désactivé lorsque le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123) ; valide et enregistre la Séance avec son Étiquette éventuelle. Bouton d’action principal standardisé, fixe en bas de l’écran dans sa zone protégée (D-444). |
 
 Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252). La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
@@ -2553,7 +2553,7 @@ Libellé de cellule associant mouvement, série, répétitions ou charge ; ordre
 
 FMT-08/14/15/19/20/26/28/29/30/31 ; cadence AMRAP/For time sans effet temporel ; données de tableau identiques aux séries de l’Exercice.
 
-EMOM Répétitions par défaut, Durée possible par Exercice ; tableau et modale partagent Mode et cible. Changement de mode : objectif à renseigner sans conversion ; autres paramètres compatibles conservés. Max AMRAP renseigne À l’échec et grise/désactive Objectif et Par tour, Charge reste modifiable. Progression initialise ses trois séries à 10, 12, 14 ; les séries supplémentaires sont à renseigner. Tableaux EMOM/Death by/AMRAP/Progression : mêmes champs standards que la modale, aucun second stockage ni champ supplémentaire.
+EMOM Répétitions par défaut, Durée possible par Exercice ; tableau et modale partagent Mode et cible. Changement de mode : objectif à renseigner sans conversion ; autres paramètres compatibles conservés. Max AMRAP renseigne À l’échec et grise/désactive Objectif et Par tour, Charge reste modifiable. [Précisé le 19/11/2026, D-531 : Max est autorisé pour le buy-in, l’AMRAP à un seul mouvement et la Progression, interdit dans une boucle de plusieurs mouvements ; voir RM-270 à RM-272.] Progression initialise ses trois séries à 10, 12, 14 ; les séries supplémentaires sont à renseigner. Tableaux EMOM/Death by/AMRAP/Progression : mêmes champs standards que la modale, aucun second stockage ni champ supplémentaire.
 
 #### 20. Recette déterministe
 
@@ -2768,6 +2768,16 @@ Les captures de composition ne prouvent pas le layout d’exécution. Les nombre
 
 Réemploi du shell Exécution ; cadran de fenêtre et contexte exercice. Position précise des informations propres au format à illustrer avant qualification visuelle.
 
+[Complété le 18/11/2026 pour le Death by — PRE-11 T4, registre ch07 « Death by — exécution (18/11/2026) » : écran de l'EMOM (grand chrono = temps restant de la fenêtre du rang, « Repos » orange, barre Arrêt / Pause désactivée / « Suivant ») ; compteur Tour = rang en cours ; fenêtre manquée : écran figé et feuille « Fin du Death by » (coche seule) ; feuille « Arrêt du Death by » ; aucun bandeau.] [Complété le 18/11/2026, recette de l'EMOM (registre ch07 « EMOM — recette iPhone (18/11/2026) ») : « Repos » en titre ; coin d'objectif vert pendant le repos et clignotant aux 3 dernières secondes ; barre du Format dès le Compte à rebours initial.]
+
+[Complété le 18/11/2026 pour l'AMRAP — PRE-11 T3, registre ch07 « AMRAP — exécution (18/11/2026) » : écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; compteur Tour sans total ; à l'échéance, écran figé et feuille « Fin du bloc » (exercice en cours, puis buy-in À l'échec) ; feuille « Arrêt de l'AMRAP ».]
+
+[Complété le 18/11/2026 pour l'EMOM — PRE-11 T2, registre ch07 « EMOM — exécution (18/11/2026) » : disposition du Figma `8982:15709` (grand chrono = temps restant de la fenêtre, « Repos » orange dans le cercle, portion travaillée de l'anneau dans la couleur du travail) ; barre du For time (Arrêt, Pause désactivée, « Suivant » 72) ; feuille « Arrêt de l'EMOM » ; bandeau non bloquant Q1 au-dessus de la barre ; feuille « Fin de l'EMOM » par fenêtre restant à saisir. L'appui sur le cadran est porté par « Suivant » (À CLARIFIER).] [Remplacé en partie le 18/11/2026, recette iPhone (registre ch07 « EMOM — recette iPhone (18/11/2026) ») : plus de bandeau ; « Repos » en titre, plus dans le cercle ; coin d'objectif conservé sur fond vert pendant le repos, clignotant aux 3 dernières secondes de chaque fenêtre ; barre du Format dès le Compte à rebours initial ; feuille « Fin de l'EMOM » sur écran figé, nom « Mouvement · série k » ; synthèse : une ligne par Série.] [Complété le 18/11/2026, recette emom-6 (registre ch07 « EMOM en durée — recette du 18/11/2026 ») : Série en Durée d'un EMOM — un seul anneau (la minute) ; effort cumulé / objectif au centre ; minute restante dans le coin du bas à gauche ; appui au centre partagé avec le For time (retenue de l'effort seul) ; repos tout seul à l'objectif (fond et anneau du repos, appui sans effet).] [Remplacé le 18/11/2026 — précision de Hermann, registre ch07 « EMOM en durée — précision du 18/11/2026 » : au centre, le chrono de l'intervalle en noir, sans valeur fixe ; anneau unique de l'intervalle, portions bleues (effort) et orange (retenue) ; compte à rebours de la Série dans le coin du bas à gauche, figé en retenue ; fond blanc au repos.]
+
+[Complété le 18/11/2026 — D-532 (registre ch07, constat a de la recette : « Un tour est un passage de tous les mouvements. Une série est une fenêtre d'un mouvement ») : EMOM à M mouvements, compteurs Série | Tour. « À la suite » : Série k / N, Tour = rang du mouvement / M. « Dans chaque intervalle » et « En alternance » : Série = position du mouvement dans le tour / M (remise à 1 à chaque tour, avance à chaque « Suivant »), Tour k / N (avance après le dernier mouvement). EMOM à un seul mouvement inchangé. Côté Format : « Nombre de tours » et colonnes T1 … TN en « Dans chaque intervalle » / « En alternance », modale « X tours identiques / variables ».]
+
+[Complété le 18/11/2026 — complément de D-532 (registre ch07, constat e, ligne n° 50 : « il faut figer un cercle sur l'anneau pour marquer l'instant de changement d'exercice » ; « pendant le repos […] Il faut le nombre de tours visible ») : Circuit EMOM « dans chaque intervalle », un cercle figé sur l'anneau à chaque changement de mouvement dans l'intervalle, effacé à l'intervalle suivant ; compteur Tour affiché pendant le repos.]
+
 #### 8. Éléments obligatoires
 
 Objectif et fenêtre courante ; temps restant ; distinction travail/repos ; rang distinct de tours acquis Death by.
@@ -2855,7 +2865,7 @@ Tours acquis par appuis valides, dernière fenêtre non acquise, répétitions p
 
 #### 7. Structure de l’écran
 
-Confirmation à deux choix métier : Limite atteinte / Abandonner ; saisie des répétitions partielles lorsqu’applicable ; synthèse ensuite.
+Confirmation à deux choix métier : Limite atteinte / Abandonner ; saisie des répétitions partielles lorsqu’applicable ; synthèse ensuite. [Remplacé le 18/11/2026 — arbitrage de Hermann (spec PRE-11 §5 point 30, « Feuille du For time ») : pas de choix « Limite atteinte / Abandonner » ; fenêtre manquée : écran figé, feuille « Fin du Death by » à coche seule (exercice, objectif du rang, répétitions faites ou durée tenue), puis élément suivant (D3) ; l'abandon passe par l'Arrêt (feuille « Arrêt du Death by », puis synthèse). Registre ch07, « Death by — exécution (18/11/2026) ».]
 
 #### 8. Éléments obligatoires
 
@@ -3486,9 +3496,9 @@ Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté di
 
 [Complété le 11/11/2026 au soir — recette de Hermann (cahier, x2 et r2) : « il ne faut pas de mouvement circulaire pendant le compte à rebours et la fin de séance » ; « La règle à suivre est exactement l’inverse. L’anneau ne doit PAS tourner pendant le compte à rebours et la fin de séance. » Pendant le Compte à rebours initial et la Fin de séance, l’anneau reste vide et immobile ; il avance seulement pendant les exercices, pauses et récupérations. [Anneau rempli avec le temps écoulé pendant ces deux étapes — remplacé.] Constat de Hermann : « Entre deux exercices d’une séance, le chronomètre et les autres éléments affichés ne doivent jamais changer de position sur l’écran (à corriger : le chronomètre est plus haut ou plus bas en fonction des informations affichées). » Nom de l’Exercice (deux lignes), contexte, côté, objectif et ligne de guidage gardent toujours leur hauteur, affichés ou non : l’anneau et le chrono ne bougent plus d’une étape à l’autre.]
 
-[Complété le 16/11/2026 — classe B, décisions de Hermann (registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause »). **For time — exercices en durée et « + Tour ».** Barre du bas du For time : « Arrêt » (carré blanc sur rouge, 48) remplace Réinitialiser [Remplacé le 16/11/2026 pour le For time — Hermann : « remplacer le bouton réinitialisé par le bouton d’arrêt rouge »] ; Pause (48, fond blanc, liseré et symbole gris) désactivé ; « + Tour » (72, bleu, « + » puis « Tour » sur deux lignes) remplace la coche et compte un tour, désactivé (blanc, liseré et libellé gris) tant qu’un exercice en durée du tour reste à lancer ou est en cours. Exercice en durée : forme d’angle unique en haut à gauche, objectif en rép. ou compte à rebours de l’exercice ; appui dans la zone du haut pour lancer, mettre en pause, reprendre ; fond du cercle blanc (en attente du lancement) [remplacé le 17/11/2026 : « gris » ; Hermann : « Je n’ai plus besoin d’un fond gris dans le cercle, cette zone est réservée à la pause pendant la durée »], vert (en cours), orange (en pause) ; chrono principal estompé pendant l’exercice ; anneau fin vert à l’intérieur de l’anneau gris, bouts arrondis, figé en pause ; mention « Appuyez pour lancer <exercice> », « … faire pause » (vert foncé), « … repartir » (orange foncé) ; à 00:00, exercice suivant automatique, fond blanc, chrono noir. Écrans Figma : `8982:15849`, `12514:27223`, `12514:27329`, `12503:27060`, `12519:27177`, `11990:24925`. Règles complètes : document Formats §11.1. Départ et fin (Hermann, 16/11/2026) : l’exercice en durée démarre seul quand le moment est connu (départ du For time, appui sur « + Tour », fin d’un autre exercice en durée), manuellement après un exercice en répétitions ; en dernier de la boucle, il compte le tour à 00:00 sans appui sur « + Tour » ; au dernier tour de la dernière série, le For time se termine à 00:00 et affiche le temps final. Arrière-plan (Hermann, 16/11/2026, classe A) : aucune mise en pause ni arrêt automatique, le temps est recalculé depuis les horodatages (chapitre 10) ; abandonner reste le rôle du bouton « Arrêt ».] Le bouton « + Tour » est le composant du DSF « DSF / Actions / Bouton + Tour » (72 × 72 pt, états Actif et Désactivé), à utiliser tel quel. Arrêt pendant une série en répétitions (décision de Hermann du 17/11/2026, ses propositions précisées) : l’appui sur « Arrêt » ouvre la modale des répétitions partielles ; le chrono continue derrière la modale. « Terminer l’exercice » enregistre le temps de l’instant de l’appui sur « Arrêt », non celui de la validation ; la croix revient à l’exercice, chrono poursuivi (aucune pause). Buy-in et buy-out (17/11/2026) : le bouton de droite est « Suivant » (composant du DSF « DSF / Actions / Bouton Suivant — série suivante (72) », 72 × 72 pt), qui passe à la série suivante ; « + Tour » est réservé aux exercices en rôle Tour ; à la dernière série du buy-out, « Succès ». Texte du cercle : « Appuyez à chaque série terminée ». Bouton de droite et fond du cercle du For time (17/11/2026, classe B ; décisions de Hermann, arbitrages A à D du 17/11 confirmés). Par ordre de priorité : (1) dernier exercice de la séance en répétitions : « Succès » bleu actif ; (2) dernier exercice de la séance en durée : « Succès » inactif (fin automatique) ; (3) exercice de buy-in ou de buy-out en répétitions : « Suivant » actif, à chaque série ; (4) exercice de buy-in ou de buy-out en durée : « Suivant » inactif (démarrage et fin automatiques) ; (5) dernier exercice d’un tour en répétitions : « + Tour » actif, sauf au dernier tour s’il est suivi d’un buy-out (« Suivant » : compte le tour et passe au buy-out) ; (6) dernier exercice d’un tour en durée : « + Tour » inactif (tour compté automatiquement) ; (7) exercice de tour en répétitions qui n’est pas le dernier du tour : « Suivant » actif, quel que soit le suivant (un « Suivant » avant un exercice en durée lance cet exercice, comme un appui sur le cercle) ; (8) exercice de tour en durée qui n’est pas le dernier du tour : « + Tour » inactif. Fond du cercle : blanc par défaut, vert quand l’exercice en durée court, orange quand son compte à rebours est en pause ; jamais gris. Texte du cercle : « Appuyez pour lancer X » quand l’exercice en cours est en répétitions et que le suivant est en durée, « Appuyez pour faire pause » (vert foncé) et « Appuyez pour repartir » (orange foncé) pendant la durée ; aucun texte dans les autres cas (remplace « Appuyez à chaque série terminée » et « à chaque tour terminé »). Aucun temps de repos imposé en For time (17/11/2026, classe B). Hermann : « Fort time, exercice avec changement de côté. Est ce qu’on ne doit pas retirer la pause de changement de côté ? » — « On supprime tous les temps de repos imposés. » Sont supprimés en For time : la pause après chaque série, la pause de changement de côté, le repos entre les tours, le repos entre les séries (mode « À la suite ») et la récupération après un exercice. Ces lignes n’apparaissent ni dans les paramètres d’exécution, ni dans le questionnaire, ni dans le récapitulatif ; les valeurs déjà saisies sont ignorées, sans être effacées ; les autres formats sont inchangés. À l’exécution, aucun décompte de repos ne s’intercale : un exercice en durée démarre dès que le moment est connu (y compris le second côté, juste après le premier) ; en répétitions, le changement de côté n’a ni écran ni compteur. Remplace, pour le For time, les repos des chapitres 10 et DSF-FORMATS (« Repos entre les tours / les séries ») et le « changement de côté » des paramètres ; la ligne « Pause après chaque série » du buy-in et du buy-out, déjà retirée, l’est désormais pour tout le For time.
+[Complété le 16/11/2026 — classe B, décisions de Hermann (registre ch07, « For time — exécution : exercices en durée, « + Tour », sans Pause »). **For time — exercices en durée et « + Tour ».** Barre du bas du For time : « Arrêt » (carré blanc sur rouge, 48) remplace Réinitialiser [Remplacé le 16/11/2026 pour le For time — Hermann : « remplacer le bouton réinitialisé par le bouton d’arrêt rouge »] ; Pause (48, fond blanc, liseré et symbole gris) désactivé ; « + Tour » (72, bleu, « + » puis « Tour » sur deux lignes) remplace la coche et compte un tour, désactivé (blanc, liseré et libellé gris) tant qu’un exercice en durée du tour reste à lancer ou est en cours. Exercice en durée : forme d’angle unique en haut à gauche, objectif en rép. ou compte à rebours de l’exercice ; appui dans la zone du haut pour lancer, mettre en pause, reprendre ; fond du cercle blanc (en attente du lancement) [remplacé le 17/11/2026 : « gris » ; Hermann : « Je n’ai plus besoin d’un fond gris dans le cercle, cette zone est réservée à la pause pendant la durée »], vert (en cours), orange (en pause) ; chrono principal estompé pendant l’exercice ; anneau fin vert à l’intérieur de l’anneau gris, bouts arrondis, figé en pause ; mention « Appuyez pour lancer <exercice> », « … faire pause » (vert foncé), « … repartir » (orange foncé) ; à 00:00, exercice suivant automatique, fond blanc, chrono noir. Écrans Figma : `8982:15849`, `12514:27223`, `12514:27329`, `12503:27060`, `12519:27177`, `11990:24925`. Règles complètes : document Formats §11.1. Départ et fin (Hermann, 16/11/2026) : l’exercice en durée démarre seul quand le moment est connu (départ du For time, appui sur « + Tour », fin d’un autre exercice en durée), manuellement après un exercice en répétitions ; en dernier de la boucle, il compte le tour à 00:00 sans appui sur « + Tour » ; au dernier tour de la dernière série, le For time se termine à 00:00 et affiche le temps final. Arrière-plan (Hermann, 16/11/2026, classe A) : aucune mise en pause ni arrêt automatique, le temps est recalculé depuis les horodatages (chapitre 10) ; abandonner reste le rôle du bouton « Arrêt ».] Le bouton « + Tour » est le composant du DSF « DSF / Actions / Bouton + Tour » (72 × 72 pt, états Actif et Désactivé), à utiliser tel quel. Arrêt pendant une série en répétitions (décision de Hermann du 17/11/2026, ses propositions précisées) : l’appui sur « Arrêt » ouvre la modale des répétitions partielles ; le chrono continue derrière la modale. « Terminer l’exercice » enregistre le temps de l’instant de l’appui sur « Arrêt », non celui de la validation ; la croix revient à l’exercice, chrono poursuivi (aucune pause). Buy-in et buy-out (17/11/2026) : le bouton de droite est « Suivant » (composant du DSF « DSF / Actions / Bouton Suivant — série suivante (72) », 72 × 72 pt), qui passe à la série suivante ; « + Tour » est réservé aux exercices en rôle Tour ; à la dernière série du buy-out, « Succès ». Texte du cercle : « Appuyez à chaque série terminée ». Bouton de droite et fond du cercle du For time (17/11/2026, classe B ; décisions de Hermann, arbitrages A à D du 17/11 confirmés). Par ordre de priorité : (1) dernier exercice de la séance en répétitions : « Succès » bleu actif ; (2) dernier exercice de la séance en durée : « Succès » inactif (fin automatique) ; (3) exercice de buy-in ou de buy-out en répétitions : « Suivant » actif, à chaque série ; (4) exercice de buy-in ou de buy-out en durée : « Suivant » inactif (démarrage et fin automatiques) ; (5) dernier exercice d’un tour en répétitions : « + Tour » actif, sauf au dernier tour s’il est suivi d’un buy-out (« Suivant » : compte le tour et passe au buy-out) ; (6) dernier exercice d’un tour en durée : « + Tour » inactif (tour compté automatiquement) ; (7) exercice de tour en répétitions qui n’est pas le dernier du tour : « Suivant » actif, quel que soit le suivant (un « Suivant » avant un exercice en durée lance cet exercice, comme un appui sur le cercle) ; (8) exercice de tour en durée qui n’est pas le dernier du tour : « + Tour » inactif. Fond du cercle : blanc par défaut, vert quand l’exercice en durée court, orange quand son compte à rebours est en pause ; jamais gris. Texte du cercle : « Appuyez pour lancer X » quand l’exercice en cours est en répétitions et que le suivant est en durée, « Appuyez pour faire pause » [remplacé le 18/11/2026 : « Appuyer pour » / « faire une pause », dans tous les Formats — ch07 « EMOM en durée — précision du 18/11/2026 »] (vert foncé) et « Appuyez pour repartir » (orange foncé) pendant la durée ; aucun texte dans les autres cas (remplace « Appuyez à chaque série terminée » et « à chaque tour terminé »). Aucun temps de repos imposé en For time (17/11/2026, classe B). Hermann : « Fort time, exercice avec changement de côté. Est ce qu’on ne doit pas retirer la pause de changement de côté ? » — « On supprime tous les temps de repos imposés. » Sont supprimés en For time : la pause après chaque série, la pause de changement de côté, le repos entre les tours, le repos entre les séries (mode « À la suite ») et la récupération après un exercice. Ces lignes n’apparaissent ni dans les paramètres d’exécution, ni dans le questionnaire, ni dans le récapitulatif ; les valeurs déjà saisies sont ignorées, sans être effacées ; les autres formats sont inchangés. À l’exécution, aucun décompte de repos ne s’intercale : un exercice en durée démarre dès que le moment est connu (y compris le second côté, juste après le premier) ; en répétitions, le changement de côté n’a ni écran ni compteur. Remplace, pour le For time, les repos des chapitres 10 et DSF-FORMATS (« Repos entre les tours / les séries ») et le « changement de côté » des paramètres ; la ligne « Pause après chaque série » du buy-in et du buy-out, déjà retirée, l’est désormais pour tout le For time.
 
-[Complété les 17 et 18/11/2026 — classe B (registre ch07, « For time — exécution : recettes iPhone des 17 et 18/11/2026 »). **For time — Arrêt, Durée maximum, écran figé.** Feuille unique « Arrêt du For Time » : croix et coche (coche seule à la Durée maximum), séparateur, nom de l'exercice centré, « Objectif », « Résultat » (demi-roulette, ou durée tenue dans le cadre gris), aucun bouton en bas. Modale laissée ouverte ou Durée maximum : écran figé sur le dernier exercice à l'instant de sa fin ; ni écran « Résultat », ni Fin de séance ; croix et coche mènent à la synthèse (la croix sans la valeur). Mentions du cercle : « Appuyez pour faire pause » / « Appuyez pour repartir » seulement [« Appuyez pour lancer <exercice> » — remplacé] ; chrono et anneau sans changement de couleur ni fondu pendant une durée [chrono estompé — remplacé] ; clignotement du coin du compte à rebours aux 3 dernières secondes.]
+[Complété les 17 et 18/11/2026 — classe B (registre ch07, « For time — exécution : recettes iPhone des 17 et 18/11/2026 »). **For time — Arrêt, Durée maximum, écran figé.** Feuille unique « Arrêt du For Time » : croix et coche (coche seule à la Durée maximum), séparateur, nom de l'exercice centré, « Objectif », « Résultat » (demi-roulette, ou durée tenue dans le cadre gris), aucun bouton en bas. Modale laissée ouverte ou Durée maximum : écran figé sur le dernier exercice à l'instant de sa fin ; ni écran « Résultat », ni Fin de séance ; croix et coche mènent à la synthèse (la croix sans la valeur). Mentions du cercle : « Appuyez pour faire pause » [remplacé le 18/11/2026 : « Appuyer pour » / « faire une pause », dans tous les Formats — ch07 « EMOM en durée — précision du 18/11/2026 »] / « Appuyez pour repartir » seulement [« Appuyez pour lancer <exercice> » — remplacé] ; chrono et anneau sans changement de couleur ni fondu pendant une durée [chrono estompé — remplacé] ; clignotement du coin du compte à rebours aux 3 dernières secondes.]
 
 #### 8. Éléments obligatoires
 
@@ -3674,11 +3684,15 @@ Elle ne s’affiche pas pour une Série en mode Répétitions ou à cible À l�
 
 **Titre**
 
-> Passer à l’exercice suivante ?
+> Passer à l’exercice suivant ?
+
+[Corrigé le 23/11/2026, demande de Hermann (« Corrige les deux fautes ») ; texte d’origine : « Passer à l’exercice suivante ? ».]
 
 **Message**
 
-> La séance continuera avec l’exercice suivante, elle sera enregistrée comme partiellement exécutée.
+> La séance continuera avec l’exercice suivant, elle sera enregistrée comme partiellement exécutée.
+
+[Corrigé le 23/11/2026, même demande ; texte d’origine : « … avec l’exercice suivante, … ».]
 
 **Actions**
 
@@ -3993,7 +4007,7 @@ Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, 
 
 #### 1. Identification
 
-Calendrier Jour ; frames 1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants 6374:12704/12705.
+Calendrier Jour ; frames 1992:5510 [remplacé le 19/11/2026 par le Journal, D-535 : « Calendrier — Journal — MVP », voir `docs/DSF-JOURNAL-2026-11-19.md`],1992:5602,1992:5697,1992:5794,2059:267,2128:86 [supprimés le 19/11/2026 : la vue Jour est remplacée par le Journal] ; composants 6374:12704/12705.
 
 Règles applicables : RM-045, RM-049, RM-072, RM-095, RM-112 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -4086,7 +4100,7 @@ Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissement
 
 #### 1. Identification
 
-Calendrier ; frames 1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois 1992:5237 ; suppressions 1992:5365/6102.
+Calendrier ; frames 1992:5101,2252:86 [supprimé le 19/11/2026 : comportement spécifié, aucun écran dédié],1992:6389,1992:5962,2094:86 [supprimé le 19/11/2026, redondant avec 1992:5962],2074:86 [supprimé le 19/11/2026 : état résultat sans intérêt propre] ; Mois 1992:5237 [supprimé le 19/11/2026] ; suppressions 1992:5365/6102.
 
 Règles applicables : RM-045, RM-046, RM-050, RM-072, RM-112, RM-123 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -4127,7 +4141,7 @@ Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; st
 
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
-Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
+[Remplacé le 21/11/2026 (D-553) : carte par Séance, voir « Complément CE-UI-15 / Journal / filtre — 21/11/2026 ».] [Remplacé le 19/11/2026, D-533 : en vue Agenda (ex-Semaine), la carte d’occurrence est remplacée par la carte de routine du DSF Agenda — bloc heure / durée encadré, titre, « Spécialité · zones corporelles », étiquette « Terminée » ou bouton « Démarrer » ; texte d’origine conservé ci-dessous ; états déployé et actions glissées À CLARIFIER.] Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
 
 *Texte identique à celui de la section [« CE-T03-15 — Suivi général — Exécution ACTIVITY »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-15--suivi-général--exécution-activity) ; il n’est pas recopié ici.*
 
@@ -4149,7 +4163,7 @@ Swipe contextuel en Semaine selon§4.7 ; Mois : tap jour/chevrons, pas de déplo
 
 #### 14. Validation
 
-Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence / Toutes les occurrences à venir / Annuler. La seconde action porte les occurrences futures de la Routine, pas d’autres Routines de la même source. Historique et source conservés.
+Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence / Toutes les occurrences à venir / Annuler. La seconde action porte les occurrences futures de la Routine, pas d’autres Routines de la même source. Historique et source conservés. [Remplacé le 20/11/2026, D-537 : dans l’Agenda, seule l’occurrence est supprimée (« Supprimer cette occurrence », « Confirmer », « Annuler » en haut à gauche) ; le choix « Toutes les occurrences à venir » disparaît ; une occurrence commencée ne peut pas être supprimée.]
 
 #### 15. Brouillon et persistance
 
@@ -4199,7 +4213,7 @@ La coche de l’en-tête valide la sélection dans le brouillon et revient au fo
 
 #### 5. Données affichées et source de vérité
 
-Sources actives SESSION/ACTIVITY appartenant à l’utilisateur ; collection d’identifiants retenus. Aucun contenu de démonstration injecté en liste vide. Conserver les règles existantes de classement et les paramètres de carte sans durée/Lecture/Déployer.
+Sources actives SESSION/ACTIVITY appartenant à l’utilisateur ; collection d’identifiants retenus. Aucun contenu de démonstration injecté en liste vide. Conserver les règles existantes de classement et les paramètres de carte sans durée/Lecture/Déployer. [Recette du 17/11/2026 (Hermann : « La durée de la séance doit être sur la troisième ligne, après le nombre ») : la durée figure sur la troisième ligne de la carte, après « N circuits · N exercices » — « sans durée » remplacé.]
 
 #### 6. Classification des valeurs Figma
 
@@ -4216,7 +4230,7 @@ Cases à cocher même pour un seul élément. La coche valide les éléments sé
 #### 9. Layout déterministe
 
 
-Marges 24 et largeur 354 sur 402 ; validation par la coche dans l’en-tête, sans bouton inférieur (D-499, 06/11/2026). Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
+Marges 24 et largeur 354 sur 402 ; validation par la coche dans l’en-tête, sans bouton inférieur (D-499, 06/11/2026). Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. [Recette du 17/11/2026 (Hermann : « Ouvrir l’écran de catalogue des séances par une modale iOS » ; « la coche de sélection doit être centrée verticalement sur la carte » ; « la coche de sélection doit être ronde, sélectionnée elle a un fond bleu et un chiffre blanc à l’intérieur qui représente l’ordre de sélection des séances et de leur planification ») : feuille native iOS posée sur le formulaire CE-UI-05 ; case ronde de 24, centrée verticalement sur la carte, à droite ; cochée : fond bleu KODJO, numéro blanc = rang dans la sélection, qui donne l’ordre initial de la liste du formulaire ; durée sur la troisième ligne (§5). Case carrée en bas à droite, « sans durée » — remplacés.] [Recette du 18/11/2026 (k2c, Hermann : « UTILISER LE COMPOSANT DE LA ZONE DE CONTEXTE » ; « la zone de contexte n'a pas le dégradé » ; « il manque la courbure sous le bouton Annuler (avec le halo) » ; « mettre une courbure sous le bouton valider (avec le halo) » ; « le titre de la modale doit être centré horizontalement ») : en-tête et zone de contexte standards de feuille (titre centré, zone fondue vers la transparence, halo et courbure sous ✕ et sous la coche). Constats du 17/11/2026 (« changer ouvre le catalogue avec les séances déjà sélectionnée au dessus de la liste dans l'ordre, elle ne bouge pas pendant le défilement des autres séances. désélectionner une séance la fait sortir de la zone figée (la hauteur de cette zone est dynamique) ») : les Séances cochées, dans l’ordre de sélection, forment une zone figée sous la zone de contexte, de hauteur variable ; la liste qui défile ne montre que les autres ; décocher rend la Séance à la liste, cocher l’ajoute en fin de zone.] États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -4264,6 +4278,8 @@ Tester 0/1/2, mêmes types et mixte, bascule de segment sans perte, cocher/déco
 
 ### CE-UI-05 — Planification — formulaire et états de paramètres
 
+> [Remplacé en partie le 18/11/2026, D-519 à D-523 : la mise en page, la ligne Répétition, le Rappel et le nombre de semaines sont définis par CE-UI-12 ; les frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 sont retirés ou remplacés. Texte d’origine conservé.]
+
 #### 1. Identification
 
 CE-UI-05 ; formulaire de Routine à un ou plusieurs contenus. Frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 ; fréquence CE-UI-11 ; sélection CE-UI-04.
@@ -4292,15 +4308,15 @@ Libellés de structure statiques ; titre dépend du nombre/type ; noms, dates, m
 
 #### 7. Structure de l’écran
 
-Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif en bas. Enregistrer est porté par la coche de l’en-tête (D-499). En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
+Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif en bas. [Recette du 17/11/2026 (Hermann : « Remplacer "Début le" par "Planifié le" ») : libellé « Planifié le ».] Enregistrer est porté par la coche de l’en-tête (D-499). En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
 
 #### 8. Éléments obligatoires
 
-Programme : Aucun par défaut, facultatif. Une date et une heure. Interrupteurs Répétition/Rappel. Répétition sur Oui : Jour/Semaine/Mois, multiplicateur, borne jusqu’au/pendant ; jours de semaine pour Semaine. Rappel sur Oui : 5 min/15 min/30 min/1 h/Autre. Poignées 12×18 et fréquence générique pour chaque ligne à N ≥ 2.
+Programme : Aucun par défaut, facultatif. Une date et une heure. Interrupteurs Répétition/Rappel. Répétition sur Oui : Jour/Semaine/Mois, multiplicateur, borne jusqu’au/pendant ; jours de semaine pour Semaine. Rappel sur Oui : 5 min/15 min/30 min/1 h/Autre. Poignées 12×18 et fréquence générique pour chaque ligne à N ≥ 2. [Recette du 17/11/2026 : rappel activé sans délai présélectionné, « Autre » réglé par les roues natives d’heure (RM-054c) ; la fréquence d’une ligne n’apparaît que si la Répétition est activée (Hermann : « L’option "à chaque fois" ne doit apparaître que si l’interrupteur de répétition est activé ») ; le dernier jour de semaine coché ne se décoche pas (§14) ; bornes converties (RM-047a).] [Recette du 18/11/2026 : rappel à 15 min par défaut ; « Autre » ouvre la roulette heures / minutes et affiche la valeur choisie à sa place (RM-054c, révisée).]
 
 #### 9. Layout déterministe
 
-Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. Récapitulatif en bas de l’écran, dans la zone protégée libérée par le bouton ; hauteur adaptée au texte, dégradé de 40 px au-dessus et fond opaque jusqu’au bas (D-499, 06/11/2026). Le formulaire défile sous cette zone.
+Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. [Recette du 17/11/2026 (Hermann : « Ouvrir l’écran de Planification d’une séance / d’un parcours par une modale iOS » ; « Tous les textes, hors titre de section, doivent avoir la même police et taille de police, celle de "Début" » ; « aligner verticalement l’interrupteur avec le texte "Répétition" » ; « date et heure : texte en noir ») : feuille native iOS (comme la fiche d’un mouvement) au lieu de ModalFullscreen ; titres de section Semi Bold 16, tous les autres textes du formulaire Medium 14 (valeurs, liaisons, récapitulatif, messages) ; interrupteurs alignés sur leur titre ; texte des sélecteurs de date et d’heure en noir. ModalFullscreen, valeurs 16 et liaisons 12 — remplacés.] [Recette du 18/11/2026 (k6 : « La date et l'heure n'ont pas la même taille que "Planifié le" et "à" » ; k8 : « Le contraste des modales de sélection de date et d'heure n'est pas bon avec le fond blanc. Mettre un voile grisé en même temps, le temps de la saisie (apparition / disparition en fondu). Centrer horizontalement le calendrier » ; k2c : en-tête et zone de contexte standards, titre centré) : date et heure affichées en Medium 14 noir comme les autres valeurs ; un appui ouvre le voile grisé des sélecteurs (fondu) avec, au centre, le calendrier natif (date) ou la roulette native heures / minutes (heure, la même que le rappel « Autre ») ; titre de la feuille centré, halos et courbures sous ✕ et sous la coche ; valeurs du rappel (5 min … Autre) dans la typographie du titre des cartes de Séance, Semi Bold 15 (k13 : « la taille de toutes les valeurs de rappel doit être celle du texte "Progression" »). Sélecteurs compacts iOS dans la ligne et titre aligné à gauche (Figma `1992:6838`) — remplacés.] Récapitulatif en bas de l’écran, dans la zone protégée libérée par le bouton ; hauteur adaptée au texte, dégradé de 40 px au-dessus et fond opaque jusqu’au bas (D-499, 06/11/2026). Le formulaire défile sous cette zone.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -4316,7 +4332,7 @@ Interrupteur Répétition sur Non replie et retire toute récurrence du résumé
 
 #### 13. Gestes
 
-Tap, scroll, poignée de réordonnancement, steppers et sélecteurs dédiés ; D-237 conservée. La bascule jusqu’au/pendant nécessite une conversion non encore spécifiée ; ne pas en inventer une.
+Tap, scroll, poignée de réordonnancement, steppers et sélecteurs dédiés ; D-237 conservée. [Recette du 17/11/2026 (« On ne peut plus déplacer les séances, l'appui long fait bouger l'écran, pas la carte. Et l'écran doit être figé pendant le déplacement d'une carte ») : une ligne de contenu se déplace par appui long puis glisser, comme les lignes des blocs de la Composition ; le défilement du formulaire est figé pendant le déplacement.] La bascule jusqu’au/pendant nécessite une conversion non encore spécifiée ; ne pas en inventer une.
 
 #### 14. Validation
 
@@ -4347,6 +4363,8 @@ Le créneau produit les occurrences, les contenus filtrent. Parcours n’est pas
 Tester contenu unique Séance/Exercice et liste mixte, ordre, suppression du titre des lignes, masquage complet à N = 1, répétition désactivée sans récurrence dans résumé, rappel oui/non, dates invalides, permission refusée, défilement long/résumé protégé, texte agrandi. Scénarios Mois, conversion et x marqués en attente des règles manquantes ; pas de PASS inventé.
 
 ### CE-UI-11 — Planification — fréquence d’un contenu
+
+> [Remplacé le 18/11/2026, D-519 : la fréquence d’un contenu se règle par les points de la grille (CE-UI-12, RM-253 à RM-256). Texte d’origine conservé.]
 
 #### 1. Identification
 
@@ -4431,6 +4449,90 @@ n pastilles ; fréquence sans unité ; aucune occurrence ajoutée au créneau ; 
 Tester 1 sur 2, 2 sur 3 avec positions 1/3 ou 1/2, x=n, chaque stepper réinitialisant toutes les pastilles, annuler/valider, indépendance des contenus. Les tests du comportement de x et des bornes attendent leur spécification.
 
 <a id="controles-planification"></a>
+### CE-UI-12 — Planification — grille de créneaux (D-519 à D-523, 18/11/2026)
+
+#### 1. Identification
+
+CE-UI-12 ; planification d’un parcours (plusieurs séances) et d’une séance seule. Frames Figma : `12650:27854` (grille, cycle 1), ~~`12624:29713` (cycle étendu à 3)~~ [retiré le 19/11/2026, écran supprimé], `7599:14197` (« Modal — Planifier une séance — Sélectionner une séance », contenu = sélecteur numéroté ; ancien écran `12628:34456` supprimé le 19/11/2026) ; séance seule `12652:28035`, date `12652:28155`, Rappel personnalisé `12652:28306`, nombre de semaines `12652:28447`, répétition en jours `12665:27227` (rangée des jours de la semaine absente, « tous les 2 jours »). Modale iOS (D-522).
+
+Règles applicables : RM-043, RM-044, RM-052, RM-053, RM-253 à RM-264.
+
+#### 2. Contenu
+
+- Zone de contexte : nom (texte libre, unique, RM-258) [nom généré par défaut, personnalisable, non unique depuis le 21/11/2026 (D-553)] puis synthèse 14 px (RM-259). [Remplacé le 23/11/2026 (D-580) : nom unique parmi les Routines actives, suffixe proposé à la création ; une Routine terminée garde son nom.]
+- Quatre cartes grises (fond et trait de la carte du Profil, rayon 12, marges 12, marges d’écran 16) : Programme + Début le ; Répétition ; Séance par créneau ; Rappel. [23/11/2026 — D-579 : la ligne Programme ouvre la modale « Rattacher un programme » ; D-588 : en modification d’une occurrence depuis l’Agenda, la ligne Programme est visible mais non modifiable ; D-587 : depuis le Journal, la question des créneaux hors période est une fenêtre unique « Modifier la routine ». Calendrier de date réutilisé par la carte Période d’un programme (D-581).]
+- Répétition : libellé, valeur modifiable (« toutes les » / « tous les » / « aucune »), nombre, unité, « jusqu’au » + date ; rangée des jours pour semaines seulement, de « toutes les » au bord droit. [Précisé le 19/11/2026, recette iPhone du 19/11/2026 (d4) : « jusqu’au » bascule vers « pendant » N semaines pour l’unité semaines.]
+- Séance par créneau : libellé au-dessus du tableau, non gras ; en-tête de tableau avec « Changer » (toujours visible) et colonnes #1 à #7 ; une ligne par séance ; points = séance jouée (RM-254) ; mention « à chaque fois » / « x fois sur n » (RM-255).
+- Rappel : Sans / 15 min / 30 min / 1 h / Autre, sans interrupteur ; « Sans » désactive le rappel ; « Autre » ouvre la roulette, sans unité (D-524). [Remplacé en partie le 19/11/2026, recette iPhone du 19/11/2026 (k13, e2, k14) : unités heures / minutes à droite des roues ; plus de texte quand les notifications sont refusées, message natif au choix d’un délai.]
+
+#### 3. Interactions
+
+Toucher un numéro de colonne ouvre le sélecteur numéroté (longueur du cycle). Nombre de semaines et Rappel personnalisé : roulette native iOS (`pickerStyle("wheel")`) en popover près du champ, fond grisé, ni titre, ni bouton, ni unité ; aucune primitive native n’est remplacée. Date : sélecteur de date en popover. [Remplacé le 18/11/2026 (Hermann : « tu peux réutiliser les modales et format de texte que tu as utilisé pour la date et l'heure, à la taille de police près ») : la date et l'heure s'ouvrent dans le voile grisé déjà en place (calendrier natif graphique, roulette heures / minutes), valeurs en noir à la taille des autres valeurs.]
+
+[Remplacé le 19/11/2026, recette iPhone du 19/11/2026 (k19, k8, k13) : date, heure, nombre de semaines, « pendant » et Rappel personnalisé s’ouvrent dans le même popover près du champ, sans titre ni bouton, au-dessus du champ quand il ne tient pas dessous ; la valeur touchée s’applique ; un toucher sur le voile ferme. Valeurs en bleu KODJO.]
+
+#### 4. Points à clarifier
+
+Aucun. Occurrences passées : rejouables (D-525) ; unité « mois » retirée (D-526).
+
+### CE-UI-13 — Exécution — EMOM en durée (D-528, 18/11/2026)
+
+#### 1. Identification
+
+CE-UI-13 ; écran d’exécution d’un EMOM dont les tours sont définis par une durée d’effort. Règles : RM-265 à RM-268.
+
+#### 2. Contenu
+
+- Un seul anneau : les 60 secondes du tour en cours, avancement continu. Aucun second anneau.
+- Centre : composant du For time (même position, même couleur, même flash, même double chrono). Chiffre principal : effort cumulé sur objectif (ex. 00:25 / 00:40) ; secondaire : temps restant avant la minute suivante.
+- Mode Effort : couleurs d’effort de l’anneau et du fond. Mode Repos : couleurs de repos de l’anneau et du fond.
+
+#### 3. Interactions
+
+Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’anneau continue). Appui en Repos : sans effet. Objectif atteint : bascule automatique en Repos jusqu’à la fin de la minute. Fin de minute : tour suivant, effort remis à zéro ; effort inférieur à l’objectif enregistré en effort partiel (RM-267).
+
+#### 4. À vérifier sur appareil
+
+Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
+
+### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026)
+
+#### 1. Règle
+
+Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas.
+
+#### 2. Emplacements par scénario
+
+| Scénario | Haut gauche | Haut droite | Bas gauche | Bas droite |
+|---|---|---|---|---|
+| Exercice en répétitions | objectif répétitions | — | charge | — |
+| Exercice en durée avec phases | objectif durée | — | charge | nombre de mouvements |
+| Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
+| For time | objectif du tour | temps max | charge | — |
+| AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| AMRAP à un seul mouvement en Max | — | temps limite du bloc | charge | score cumulé |
+| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
+| EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
+| Death by | objectif du rang | intervalle | charge | — |
+| Tabata / 30-30 | durée de la phase | — | charge | — |
+
+#### 3. Précisions
+
+- Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
+- Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
+- Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). À chaque début de tour, annonce vocale ou bip selon D-530 (18/11/2026). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
+- Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
+
+#### 4. Limites
+
+Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
+
+### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
+
+[Carte et parcours remplacés le 21/11/2026 (D-553) : voir « Complément CE-UI-15 / Journal / filtre — 21/11/2026 ».]
+
+Écran « Agenda — Planning (proposition) » (`12580:27335`) : rendu et mises en page décrits dans le [DSF Agenda](../DSF-AGENDA-PLANNING-2026-11-19.md). Aucune règle métier nouvelle ; la propriété « spécialité » d’une routine reste À CLARIFIER (absente du modèle de données). [19/11/2026 — la zone de contexte, la rangée des jours, la liste et la carte de cet écran s’appliquent aux écrans Semaine du calendrier (déployé, actions glissées, après suppression, jour sélectionné, fonds des modales de suppression) : voir DSF Agenda § 6. Les écrans Jour et Mois ne sont pas concernés à ce stade.] [19/11/2026 — D-534 : une carte par occurrence de routine, enchaînement des séances et écran de transition : DSF Agenda § 7. L’écran Jour doit être remplacé (décision de Hermann).] [20/11/2026 — D-538 : la zone de contexte et la rangée des jours sont redessinées (écran « P-Calendrier — Semaine — Carrousel dans la zone de contexte (proposition) », `12765:24572`) : deux lignes, rangée des sept jours dans la bande, bouton « Aujourd’hui » (icône calendrier, bleu hors jour courant), DSF Agenda § 2. Aucune règle métier nouvelle.] [20/11/2026 — D-539 : filtre par routine (icône entonnoir sur la ligne 1, modale « Filtrer par routine » à sélection multiple, vue filtrée = même zone de contexte, icône pleine bleue) : DSF Agenda § 9.]
+
 ### Contrôles et layout de planification
 
 #### Règles d'interface propres à la planification
@@ -4509,7 +4611,7 @@ Permettre à l’utilisateur de visualiser les Routines planifiées, de naviguer
 
 ### Calendrier — Contenu
 
-L’écran comporte les vues `Jour`, `Semaine` et `Mois`. L’onglet `Calendrier` ouvre la vue `Jour`.
+L’écran comporte les vues `Jour`, `Semaine` et `Mois`. [Libellés remplacés le 19/11/2026, D-532 : onglets « Journal », « Agenda » et « Vue d’ensemble », au format des onglets du catalogue (onglet actif sur fond arrondi grisé) ; le contenu des vues est inchangé.] L’onglet `Calendrier` ouvre la vue `Jour`.
 
 L’écran affiche :
 
@@ -4542,7 +4644,7 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 
 Pour une planification unique, `Supprimer` ouvre un dialogue centré comportant `Annuler` et `Confirmer`. Après confirmation, la planification est supprimée ; la source associée et les Exécutions historiques sont conservées.
 
-Pour une planification périodique, le dialogue à trois choix présente sur sa première ligne les deux actions destructives `Seulement cette occurrence` et `Toutes les occurrences à venir`, puis `Annuler` en pleine largeur sur une seconde ligne. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées.
+Pour une planification périodique, le dialogue à trois choix présente sur sa première ligne les deux actions destructives `Seulement cette occurrence` et `Toutes les occurrences à venir`, puis `Annuler` en pleine largeur sur une seconde ligne. Les deux choix peuvent mener au même écran de résultat dans le prototype ; la vue Semaine montre ensuite l’occurrence retirée. Les Exécutions historiques restent conservées. [Remplacé le 20/11/2026, D-537 : le dialogue à trois choix est remplacé par un dialogue à titre seul « Supprimer cette occurrence » avec « Confirmer » et « Annuler » en haut à gauche.]
 
 ### Planifier une séance, un exercice ou plusieurs contenus
 
@@ -4966,7 +5068,7 @@ Photo/nom existants puis deux choix de silhouette sous l’aide du Nom d’affic
 
 #### 8. Éléments obligatoires
 
-Champ Nom d’affichage, action photo facultative, deux silhouettes à sélection unique et Enregistrer. Aucun sélecteur de langue ni identité distante.
+Champ Nom d’affichage, action photo facultative, deux silhouettes à sélection unique et Enregistrer. Aucun sélecteur de langue ni identité distante. [Remplacé le 23/11/2026 pour la langue : Profil › Compte reçoit les lignes Langue et Unité de charge, groupées avec le genre — « Gestion des langues » (chapitre 07) ; contrat à compléter après Figma.]
 
 #### 9. Layout déterministe
 
@@ -5108,7 +5210,7 @@ Nom et état on/off annoncés ; steppers annoncent unité et borne ; cibles dist
 
 #### 19. Invariants
 
-Pas de compte distant, pas de langue MVP, aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.
+Pas de compte distant, pas de langue MVP [remplacé le 23/11/2026 : voir « Gestion des langues » (chapitre 07)], aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.
 
 *Texte identique à celui de la section [« CE-T03-17 — Navigation principale — inventaire DSF »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-17--navigation-principale--inventaire-dsf) ; il n’est pas recopié ici.*
 
@@ -5140,7 +5242,7 @@ Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours i
 
 Le feedback haptique des roulettes est systématique dans le MVP et reste indépendant des réglages de vibration par événement.
 
-Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
+Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de langue. [Remplacé le 23/11/2026 : voir « Gestion des langues » (chapitre 07).] Tous les textes destinés à l’utilisateur sont référencés par des clés de traduction centralisées, sans texte fonctionnel codé directement dans les écrans. Les traductions futures peuvent ainsi être ajoutées sans modifier les composants. Les pluriels, variables, dates, heures, nombres, notifications et libellés d’accessibilité utilisent également ce mécanisme d’internationalisation.
 
 ### Profil — Comportement
 
@@ -5287,7 +5389,7 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 
-Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
+Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système. [Complément du 24/11/2026, D-595 : effet lentille sur la pilule et sur le cadre actif, avec le verre natif d'iOS 26 ; voir [DSF Navigation](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md), contrat commun.]
 
 #### 4.4 Conservation d’état Catalogue
 
@@ -6008,7 +6110,7 @@ Références Figma : `11551:21479`, `11551:21673`, fichier `G6RY5Ebhgwb4AHIOYDww
 **Règle.** Les questionnaires For time, AMRAP et EMOM comportent le même interrupteur **« Avec charge »** que la Progression, **désactivé par défaut** : la charge est souvent prescrite dans ces formats (par exemple Fran, thrusters à 43 kg ; kettlebell en AMRAP ou EMOM). Il n'existe que dans le questionnaire. [Remplacé le 15/11/2026 pour le For time : plus de questionnaire ni d’interrupteur ; charge par mouvement par (+ kg)/(− kg) dans le tableau unique — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
 - **Activé, For time** : présentation et fonctionnement identiques à la Progression : colonne Unité, une colonne par tour (Tour 1, Tour 2, Tour 3 ; 4 colonnes visibles au plus, défilement au-delà), **une charge par tour** sous l'objectif (40 / 45 / 50 kg), car elle varie souvent d'un tour à l'autre ; les tours sont préremplis avec la même valeur. Même clavier. [Remplacé le 15/11/2026 pour le For time : plus de questionnaire ni d’interrupteur ; charge par mouvement par (+ kg)/(− kg) dans le tableau unique — registre ch07, « For time — tableau unique, sans questionnaire (15/11/2026) ».]
 - EMOM : tableau Unité | S1…Sn, cible et charge effectives de chaque série, aucune colonne ni formule d’incrément. Avec charge rend les commandes locales (+ kg)/(− kg) disponibles. Pour chaque fenêtre, travail connu des membres en Durée, deux côtés et pause applicable compris ; somme des membres dans l’intervalle commun ou intervalle local du membre. Atteinte ou dépassement bloque la validation ; Répétitions sans durée estimée inventée. Modale et récapitulatif partagent ces données.
-- **Activé, AMRAP** : **charge fixe** (on ne change pas de charge en cours d'AMRAP). Quatrième colonne **Charge** entre Par tour et Max ; colonnes resserrées : Objectif, Par tour, Charge, Max. Une seule valeur d'objectif par mouvement, avec l'unité à côté de la valeur ; même clavier. Max grise l'Objectif et Par tour, **pas la Charge** : un max de répétitions se fait avec une charge.
+- **Activé, AMRAP** : **charge fixe** (on ne change pas de charge en cours d'AMRAP). Quatrième colonne **Charge** entre Par tour et Max ; colonnes resserrées : Objectif, Par tour, Charge, Max. Une seule valeur d'objectif par mouvement, avec l'unité à côté de la valeur ; même clavier. Max grise l'Objectif et Par tour, **pas la Charge** : un max de répétitions se fait avec une charge. [Précisé le 19/11/2026, D-531 : Max indisponible pour un mouvement d’une boucle de plusieurs mouvements.]
 - **Charge des modèles — cible du 5 novembre.** Les dix questionnaires proposent Avec charge, Sans par défaut. L’activation globale rend les commandes locales disponibles sans charger tous les mouvements ; (+ kg)/(− kg) pilote chaque Exercice. Charges facultatives : Progression/For time/Superset/EMOM par série ou tour ; autres modèles fixes par mouvement. Affichage entre parenthèses et unité kg. Masquer puis réactiver retrouve états et valeurs dans le même brouillon avant sauvegarde ; vider efface réellement. Une réouverture lit l’état enregistré, sans nouvelle obligation de mémorisation de réponses historiques. Aucun incrément de charge EMOM ; seules les charges effectives par série font référence.
 - **Commun** : la charge est facultative : laissée vide, le mouvement est fait **sans charge**, sans valeur 0 enregistrée (les tractions de Fran) ; elle ne bloque pas l'enregistrement. Saisie au clavier numérique avec la virgule.
 - **Ordre de Suivant** : Progression et For time, objectif S1 → Sn (ou Tour 1 → n), puis charges, puis ligne suivante ; AMRAP, Objectif → Par tour → Charge → ligne suivante ; EMOM, objectifs S1→Sn puis charges S1→Sn, puis ligne suivante. Les cases grisées sont sautées.
@@ -6261,6 +6363,7 @@ La distribution dans l'Espace en étoile reste individuelle, avec invitation acc
 La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et points d’arrêt. Pour chacun des neuf événements, la colonne Son indique le son utilisé. Choisir « Aucun » coupe uniquement le son de cet événement, y compris pour Mi-temps. Chaque annonce, chaque son et chaque vibration se règle indépendamment. Le choix du son ouvre [Préférences — Choix d’un son (modale)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12068-25044).
 
 [Complété le 11/11/2026 — réalisation dans l’application (demande de Hermann, cahier, constat d ; précision : « ne développe pas l'écran Profil (navigation) - Profil (section), mais uniquement les écrans Profil (navigation) - Préférences ») :
+- [Complété le 24/11/2026 — J1 « Gestion des langues », D-569, Figma `1992:684` : section « Langue et unités » en tête des Préférences ; ligne « Langue » avec la langue en cours écrite dans sa propre langue (« Français », « English ») et un chevron, qui ouvre le réglage iOS de langue de l’application ; la ligne « Unité de charge » (kg · lb) viendra avec l’étape J3.]
 - Profil › Préférences : sections Notifications (« Autoriser les notifications », « Rappels des séances planifiées »), Séance (« Compte à rebours de la séance », « Fin de séance »), Annonces vocales, Sons et vibrations ; le bloc Identité et l’accès à Modifier le profil ne sont pas modifiés ; les onglets Profil, Préférences et Communauté du Figma ne sont pas réalisés.
 - À CLARIFIER : le groupe Exercice (Pause entre les côtés, Compte à rebours d’un exercice, Fin d’exercice) et la Récupération après exercice, absents des deux vues Figma mais exigés par CE-UI-07 (« Six défauts distincts »), sont conservés, après la section Séance. [Remplacé le 11/11/2026, retour de Hermann : « tu n'as pas utilisé la référence Figma pour le layout / La charte graphique, ni le contenu des préférences ou je vois encore des anciennes entrées. A corriger avec que je ne continue les tests » — groupe Exercice et Récupération après exercice retirés de l’écran ; bloc Identité retiré : en-tête à onglets Profil / Préférences / Communauté du Figma, l’onglet Profil ouvrant l’écran existant Modifier le profil, Communauté indisponible (hors MVP). Mise en page et charte relevées dans `1992:684`, `12093:25010`, `12132:27436`, `12068:25044` (fond `#F7F7FF`, groupes, lignes de 42 ou 40, typographies Inter, pastille de valeur « 10″ »). Les valeurs déjà enregistrées de Pause entre les côtés, Compte à rebours et Fin d’exercice, Récupération après exercice restent utilisées pour les nouveaux exercices, sans réglage visible.]
 - Choix d’un son : « Par défaut », « Aucun », puis les sons de l’application. À CLARIFIER : la liste « Sons du système » du design (Aurore, Bambou…) n’est pas proposée, iOS ne donnant pas accès à ses sons d’alerte aux applications.
@@ -6278,3 +6381,60 @@ La ligne sonore « Point d’arrêt » regroupe pauses, récupérations et point
 Retirer les champs et sections supprimés dans MOUV-ADM-20261117 ; masquer les données techniques courantes et proposer un diagnostic. Historiques en lecture seule. Licence : « Non renseignée » ou « Licence ou conditions connues ». Les filtres avancés et états de séance à corriger sont à détailler dans Figma ; accès glossaire reporté aux aides. Aucune conformité visuelle actuelle n’est déclarée.
 
 [Inventaire et règles validées](../KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.
+
+## Programmes — catalogue, création et configuration (20/11/2026)
+
+Classe B, D-543 à D-552. Référence : [spécification](../KODJO-Programme-catalogue-creation-configuration-2026-11-20.md).
+
+### CE-PROG-01 — Catalogue des programmes
+
+- **Écrans Figma :** « PROG — 7 Catalogue des programmes — Liste », « PROG — 8 Catalogue des programmes — État vide », « PROG — 7b Catalogue des programmes — Actions glissées ».
+- **Layout :** onglets Mouvements · Séances · Programmes (Programmes sélectionné) ; couleurs Programmes, contexte et onglet #EFE8FF, fond #F9F6FF y compris derrière les onglets ; ligne « Actifs N · Terminés N » ; « Rechercher » à gauche, filtre, tri et créer à droite ; cartes 370 pt aux marges de 16 : nom, « période · statut », « N planifications · N exercices ». [21/11/2026 — D-573 : « N planifications · N séances ».] [23/11/2026 — D-590 : « semaine N sur M » après « En cours » pour un programme en cours ; D-589 : filtre et tri inactifs, Tri reporté, critères du Filtre (par séance ; avec / sans douleur) décidés mais non développés.]
+- **États :** liste des actifs par défaut ; vide : « Actifs 0 · Terminés 0 », contrôles visibles, texte d'état vide. [Confirmé le 23/11/2026, D-592.]
+- **Interactions :** toucher une carte ouvre CE-PROG-02 en configuration ; « Actifs » / « Terminés » filtrent ; glisser une carte à gauche révèle Enregistrer comme modèle (violet), Dupliquer (gris), Supprimer (rouge, ouvre CE-PROG-03).
+- **Recette :** la liste par défaut ne montre aucun programme terminé ; les trois actions glissées sont présentes, dans cet ordre ; aucune action Archiver. [21/11/2026 — D-570 : « Enregistrer comme modèle » grisé et inactif ; D-571 : « Dupliquer » ouvre la modale sur une copie sans dates ni routines.]
+
+### CE-PROG-02 — Créer ou configurer un programme
+
+- **Écran Figma :** « PROG — 13 Créer ou configurer un programme » ; feuille de consentement : « PROG — 13b Suivi de la douleur — Consentement », ouverte par-dessus cette modale.
+- **Layout :** modale iOS au-dessus du catalogue, feuille arrondie aux quatre coins, marges latérales 8, poignée ; en-tête de modale croix · titre · coche ; zone de contexte Programmes (hauteur standard) : nom, objectif ; cartes séparées de 12, cartes à une ligne de 44 : période « Du … au … » (dates bleues sans cadre) [remplacé le 23/11/2026 — D-577, D-581, D-582 : carte Période « Du » (15) + date en pastille, « au » / « pendant » basculé d’un toucher, date ou nombre (roulette) et unité en pastille (touchers successifs, conversion automatique), ligne d’information grise ; calendrier de Planifier en popover, sans marquage de la période ; routines au format D-578 / D-583 (cadre = début dans le programme, « N créneaux, jusqu’au … »)], titre « Planifications » puis carte (routines, « + Planifier une séance ou un exercice » [21/11/2026 — D-572 : « + Planifier une séance »], « Rattacher une routine existante » avec chevron), carte « Suivi de la douleur » avec interrupteur.
+- **États :** titre « Nouveau programme » à la création, nom du programme en configuration ; coche active quand nom, début et fin sont renseignés et cohérents (D-499).
+- **Interactions :** toucher le nom, l'objectif ou une date les modifie ; glisser une routine à gauche la retire du programme sans la supprimer ; « + Planifier… » ouvre la planification, la routine créée est rattachée ; « Rattacher… » liste les routines sans programme ; activer le suivi de la douleur sans consentement ouvre la feuille de consentement (Annuler gris à gauche, Autoriser bleu à droite, côte à côte ; Annuler laisse l'interrupteur désactivé) ; croix : fermeture sans enregistrer.
+- **Recette :** aucun indicateur de résultat, aucune personne, ni Enregistrer comme modèle ni Dupliquer dans la modale.
+
+### CE-PROG-03 — Supprimer un programme
+
+- **Écran Figma :** « PROG — 7c Modal — Supprimer un programme » ; composant « DSF / Overlays / Confirmation », variante « Titre, message et action secondaire ».
+- **Layout :** titre « Supprimer ce programme » ; message selon l'historique (« N créneaux non commencés seront supprimés. Le programme sera terminé. ») ; « Supprimer avec ses routines » (rouge) ; « Garder les routines dans le calendrier » (violet clair, texte bleu) ; « Annuler » (gris) ; sans croix.
+- **Règles :** [23/11/2026 — D-592 : message sans historique « Le programme sera supprimé. » ; programme terminé avec historique : reste Terminé.] sans exécution, le programme est supprimé ; avec historique, créneaux non commencés supprimés, programme Terminé ; le bouton violet n'apparaît que si des routines du programme ont des créneaux à venir, et les garde détachées. [21/11/2026 — D-574 : toutes les routines détachées, historique compris, aucun créneau supprimé ; Terminé avec historique, sinon supprimé ; historique porté par les exécutions (programme figé au lancement).]
+
+### CE-PRF-01 — Profil — onglets et Confidentialité
+
+- **Écrans Figma :** écrans du Profil de la page « Prototype MVP » ; « Profil — Confidentialité ».
+- **Layout :** onglets Compte · Préférences · Confidentialité ; zone centrale de la couleur uniforme de l'onglet sélectionné (#EAEAFF), sans dégradé ni trait sous l'onglet. Confidentialité : « Suivi de la douleur », état déduit des programmes (avec accord : date, programmes concernés, « Retirer mon accord » en bleu, « Effacer mes relevés » en rouge [21/11/2026 — D-575 : grisé tant qu'aucun relevé n'existe ; confirmation] [23/11/2026 — D-591 : « Utilisé par N programmes » ne compte que les programmes actifs] ; sans accord : « non utilisé », sans réglage) ; « Partage communautaire » (interrupteur « Mes nouvelles exécutions sont visibles » activé par défaut ; lignes Pseudo, Nom d'affichage, Profil, Relevés de douleur ; mention de non-rétro-publication).
+- **États :** communauté non activée : la section Partage communautaire se réduit à « Activer la communauté ».
+
+### Complément CE-UI-15 / Journal / filtre — 21/11/2026 (D-553)
+
+Les prescriptions précédentes « carte par occurrence de Routine » et « nom de Routine en titre de l'Agenda » sont **supersédées**. Agenda : une carte unique de Séance par contenu planifié ou Exécution libre, titre = nom de Séance, déployé = composition sans répétition du nom ; Parcours = une ligne Ⓟ compacte avant la première carte, avec rail sans numéros, sans cadre/compteur/durée dans la ligne ; pas de ligne Ⓟ pour une Routine à Séance unique. Heure prévue pour la première Séance d'un Parcours tant qu'elle n'est pas exécutée ; « — » pour toute Séance suivante non exécutée ; après Exécution, heure réelle et repositionnement chronologique. Journal : une carte par Routine ; Parcours sur une ligne Ⓟ. Filtre : une ligne par Routine à Séance unique ou Parcours, avec sélection multiple, libellé identique au Journal. Référence : [KODJO — Agenda / Journal / filtre, 21/11/2026](../KODJO-Agenda-seances-journal-filtre-2026-11-21.md). **Agenda Figma validé (`12906:47`) ; Journal et filtre ajustés le 21/11/2026, à valider.**
+
+### CE-UI-16 — Calendrier — Plan (D-554, 21/11/2026)
+
+Écran « P-Calendrier — Plan » (`12983:19`). Rendu, groupes, parcours, Total et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Contrat :
+- les cases suivent les états et les heures de l'Agenda (D-553) ;
+- toucher une case vide ouvre la modale du créneau, pré-remplie (date du jour, heure habituelle) ; pour un parcours, le créneau entier ;
+- toucher une case pleine ouvre la modification du créneau ; un créneau commencé ne s'ouvre pas ;
+- « + Routine » ouvre la planification avec le programme du groupe ;
+- pas de filtre ;
+- la ligne Total donne la durée estimée prévue par jour et pour la semaine.
+
+### Complément du 22/11/2026 — bouton flottant « Créer » (D-558, D-559)
+
+Sur les catalogues, le Journal, l'Agenda et la composition de séance, la création passe par le bouton flottant ([DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md)). Contrat :
+- le contenu du bouton dépend de l'écran ;
+- toucher le bouton déclenche l'action ;
+- [glisser déplace le bouton, qui se range contre le bord le plus proche ; la position est conservée — remplacé le 24/11/2026 par D-594 :] dès 10 pt de glissement, le bouton suit le doigt avec un retard ; relâché, il garde son élan et se range contre le bord gauche ou droit vers lequel l'élan le porte, à la hauteur où il s'arrête, sur tout l'écran (barre de navigation comprise) ; la position est conservée ;
+- le bouton passe sous les feuilles modales ;
+- en composition, le menu Créer s'ouvre vers le haut, avec quatre options [complété le 24/11/2026, D-594 : vers le bas quand il n'y a pas la place au-dessus].
+
+L'Agenda crée un créneau unique au jour sélectionné ; le Plan n'a pas de bouton flottant.

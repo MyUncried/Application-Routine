@@ -124,7 +124,7 @@ function incomplete(id: string, structuralPosition: SessionDraftExercise["struct
 const flatDraft = (): SessionDraft => ({ ...createEmptyDraft(), name: "Séance", exercises: ["a", "b", "c"].map((id) => exercise(id)) });
 
 async function envelopeAround(container: "CIRCUIT" | "CYCLE", targetTestID: string) {
-  fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+  fireEvent.press(screen.getByTestId("composition-floating-create"));
   fireEvent.press(screen.getByTestId(container === "CIRCUIT" ? "composition-add-activity-tree-circuit" : "composition-add-activity-tree-cycle"));
   fireEvent.press(screen.getByTestId(`${targetTestID}-target`));
   fireEvent.press(screen.getByTestId("composition-envelope-bar-confirm"));
@@ -145,9 +145,26 @@ async function savedAndReopened(draft: SessionDraft): Promise<SessionDraft> {
   return toSessionDraft(opened.session);
 }
 
-const addStop = () => screen.getByTestId("composition-add-stop-action");
+/**
+ * UI-FAB-01 (D-558, 24/11/2026) : « Ajouter un point d'arrêt » est la quatrième option du menu Créer, ouvert par le bouton
+ * flottant. [Sablier « Ajouter un arrêt » de la zone de contexte (`composition-add-stop-action`) — remplacé.]
+ */
+const FAB = "composition-floating-create";
+const STOP_OPTION = "composition-add-activity-tree-stop";
+async function expectAddStopAvailable() {
+  fireEvent.press(screen.getByTestId(FAB));
+  await act(async () => undefined);
+  expect(screen.getByTestId(STOP_OPTION).props.accessibilityState).toEqual({ disabled: false });
+  fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
+  await act(async () => undefined);
+}
+async function startPlacement() {
+  fireEvent.press(screen.getByTestId(FAB));
+  await act(async () => undefined);
+  fireEvent.press(screen.getByTestId(STOP_OPTION));
+  await act(async () => undefined);
+}
 const placementStrings = strings.screens.composition.placement;
-const enabled = { selected: false, disabled: false };
 const cardOf = (id: string) =>
   screen.getByLabelText(new RegExp(`^${strings.screens.composition.occurrenceCard.accessibilityType}, Exercice ${id},`));
 
@@ -182,9 +199,8 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit", () =>
     // Modèle unique des Circuits (10/11/2026) : un Circuit unique relève de la disposition générale.
     expect(resolveRichLayout(draft)).not.toBeNull();
     await renderComposition(draft);
-    expect(addStop().props.accessibilityState).toEqual(enabled);
-    fireEvent.press(addStop());
-    await act(async () => undefined);
+    await expectAddStopAvailable();
+    await startPlacement();
     expect(screen.getByLabelText(placementStrings.addStopPointAfterCircuitAccessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(placementStrings.addStopPointAccessibilityLabel.replace("{exercise}", "Exercice c"))).toBeTruthy();
   });
@@ -200,17 +216,16 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit", () =>
     // Modèle unique des Circuits (10/11/2026) : un Circuit unique relève de la disposition générale.
     expect(resolveRichLayout(draft)).not.toBeNull();
     await renderComposition(draft);
-    expect(addStop().props.accessibilityState).toEqual(enabled);
+    await expectAddStopAvailable();
   });
 
   it("Circuit posé par « Ajouter un circuit » (B.2) : « Ajouter un arrêt » disponible ; début et fin du Circuit proposés", async () => {
     await renderComposition(flatDraft());
-    expect(addStop().props.accessibilityState).toEqual(enabled);
+    await expectAddStopAvailable();
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     expect(resolveRichLayout(probe.draft!)).not.toBeNull(); // modèle unique des Circuits (10/11/2026)
-    expect(addStop().props.accessibilityState).toEqual(enabled);
-    fireEvent.press(addStop());
-    await act(async () => undefined);
+    await expectAddStopAvailable();
+    await startPlacement();
     expect(screen.getByLabelText(placementStrings.addStopPointAtCircuitStartAccessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(placementStrings.addStopPointAfterCircuitAccessibilityLabel)).toBeTruthy();
   });
@@ -220,7 +235,7 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit", () =>
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     // Modèle unique des Circuits (10/11/2026) : le Point est conservé à sa place dans la structure générale.
     expect(probe.draft!.structure?.stopPoints).toEqual([{ id: "p1", circuitId: null, position: 1 }]);
-    expect(addStop().props.accessibilityState).toEqual(enabled);
+    await expectAddStopAvailable();
   });
 
   // [« limite connue jusqu'à B.6 : deux Circuits (disposition générale) — « Ajouter un arrêt »
@@ -230,7 +245,7 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit", () =>
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-a");
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-c");
     expect(resolveRichLayout(probe.draft!)).not.toBeNull();
-    expect(addStop().props.accessibilityState).toEqual({ selected: false, disabled: false });
+    await expectAddStopAvailable();
   });
 });
 
@@ -298,36 +313,39 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
 });
 
 /**
- * Contre-recette iPhone du 30/10 (Hermann : « Appuyer de nouveau sur le bouton d'action point
- * d'arrêt referme l'écran de sélection (même comportement sur confirmer) »).
+ * Contre-recette iPhone du 30/10 (Hermann : « Appuyer de nouveau sur le bouton d'action point d'arrêt referme l'écran de
+ * sélection (même comportement sur confirmer) »). UI-FAB-01 (D-558, 24/11/2026) : le sablier quitte la zone de contexte pour le
+ * menu Créer ; en placement, le bouton flottant est inactif (comme l'ancien « + ») et la sélection se referme par la barre
+ * « Confirmer » / « Annuler » (inchangée). [Second appui sur le sablier = « Confirmer » — sans objet depuis le 24/11/2026 ;
+ * À CLARIFIER, rapport UI-FAB-01.]
  */
-describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »", () => {
-  it("in placement the button stays active (selected); pressing it again applies the selection like « Confirmer »", async () => {
+describe("placement ouvert depuis le menu Créer (UI-FAB-01)", () => {
+  // Recette du 24/11/2026 (fab-point-arret) : en placement, le bouton disparaît en fondu lent (caché à VoiceOver, sans toucher).
+  it("in placement the floating button fades out (inactive, hidden from VoiceOver); « Confirmer » applies the selection and it comes back", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     const before = probe.draft!.structure?.stopPoints ?? []; // modèle unique des Circuits (10/11/2026)
-    fireEvent.press(addStop());
-    await act(async () => undefined);
-    expect(addStop().props.accessibilityState).toEqual({ selected: true, disabled: false });
+    await startPlacement();
+    expect(screen.getByTestId(FAB, { includeHiddenElements: true }).props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByTestId(`${FAB}-fade`, { includeHiddenElements: true }).props).toMatchObject({ pointerEvents: "none", accessibilityElementsHidden: true });
+    expect(screen.queryByTestId(FAB)).toBeNull();
     fireEvent.press(screen.getByLabelText(placementStrings.addStopPointAfterCircuitAccessibilityLabel));
     await act(async () => undefined);
-    expect(screen.getByTestId("composition-placement-bar-confirm").props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(addStop());
+    fireEvent.press(screen.getByTestId("composition-placement-bar-confirm"));
     await act(async () => undefined);
-    // Sélection refermée, Point posé (comme « Confirmer »).
     expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
     expect(probe.draft!.structure?.stopPoints ?? []).toHaveLength(before.length + 1);
-    expect(addStop().props.accessibilityState).toEqual(enabled);
+    expect(screen.getByTestId(FAB).props.accessibilityState).toEqual({ disabled: false });
+    expect(screen.getByTestId(`${FAB}-fade`).props.pointerEvents).toBe("auto");
   });
 
-  it("without any applicable change, the second press closes the selection without mutation", async () => {
+  it("« Annuler » closes the selection without mutation", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
     const before = probe.draft;
-    fireEvent.press(addStop());
-    await act(async () => undefined);
+    await startPlacement();
     expect(screen.getByTestId("composition-placement-bar")).toBeTruthy();
-    fireEvent.press(addStop());
+    fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
     await act(async () => undefined);
     expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
     expect(probe.draft).toBe(before);
@@ -355,7 +373,7 @@ describe("bouton Guidage sonore de l'en-tête de Composition", () => {
   });
 
   it("une Séance à réglages propres garde le symbole fin tant que la modale est fermée", async () => {
-    await renderComposition({ ...flatDraft(), guidance: { announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false }, events: DEFAULT_GUIDANCE_EVENTS } });
+    await renderComposition({ ...flatDraft(), guidance: { announcements: { session: true, names: true, phases: true, objective: true, pauses: true, sides: false, rounds: true }, events: DEFAULT_GUIDANCE_EVENTS } });
     expect(screen.getByTestId("composition-guidance-icon-light")).toBeTruthy();
     expect(screen.queryByTestId("composition-guidance-icon-fill")).toBeNull();
   });

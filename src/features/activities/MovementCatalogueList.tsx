@@ -32,6 +32,7 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
+import { preloadPhotoThumbnails } from "@/features/activities/photoThumbnails";
 import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
 import { importedMovementInfo, personalLibraryTitlesContaining } from "@/features/catalogue/importedMovements";
 import {
@@ -49,6 +50,7 @@ import {
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { strings } from "@/shared/i18n";
+import { pluralOf } from "@/shared/i18n/plural";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -119,6 +121,7 @@ import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, typ
 
 const t = strings.screens.movement.catalogue;
 const tVariant = strings.screens.activities.editor.movementSuggestion;
+const tLibraries = strings.libraries.movementList;
 
 type LoadState =
   | { readonly status: "loading" }
@@ -142,13 +145,19 @@ export function useMovementCatalogue(reloadToken: number): {
     catalogue.listEntries().then(
       (entries) => {
         if (generation.current === current) setState({ status: "ready", entries });
+        // Recette iPhone du 19/11/2026 : miniatures préparées pour toute la liste (défilement, grille, retours).
+        preloadPhotoThumbnails(entries.flatMap(({ movement }) => {
+          const first = firstMediaPreviewSource(movement.media);
+          if (!first || first.isVideo) return [];
+          return [typeof service.resolveMediaUri === "function" ? service.resolveMediaUri(first.uri) : first.uri];
+        }));
       },
       (error: unknown) => {
         console.error("Le catalogue des mouvements n'a pas pu être chargé.", error);
         if (generation.current === current) setState({ status: "error" });
       },
     );
-  }, [catalogue]);
+  }, [catalogue, service]);
   useEffect(() => {
     reload();
   }, [reload, reloadToken]);
@@ -230,6 +239,7 @@ export function MovementCatalogueList({
   onCreateVariant,
   selection,
   topInset,
+  bottomInset = 0,
   counter,
   onSummaryChange,
   newMovementIds,
@@ -263,6 +273,8 @@ export function MovementCatalogueList({
   readonly onScrollTargetHandled?: (id: string) => void;
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
+  /** D-595 complément (Hermann, 24/11/2026, choix « Liste sous la barre ») : réserve sous la dernière carte quand la liste défile sous la barre de navigation. */
+  readonly bottomInset?: number;
   /** PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur actif de la zone de contexte ; absent : aucun. */
   readonly counter?: MovementCounter | null;
   /** PRE-9 CAT.1 : compteurs de la liste affichée (`null` tant qu’elle n’est pas prête). */
@@ -571,13 +583,13 @@ export function MovementCatalogueList({
           proceed();
           return;
         }
-        const names = titles.map((title) => `« ${title} »`).join(", ");
+        const names = titles.map((title) => fillTemplate(tLibraries.libraryName, { title })).join(", ");
         Alert.alert(
-          "Archiver ce mouvement ?",
-          `Il fait partie de ${titles.length > 1 ? "vos bibliothèques" : "votre bibliothèque"} ${names}. Archivé, il n'y apparaîtra plus.`,
+          tLibraries.archiveTitle,
+          fillTemplate(pluralOf(titles.length, { one: tLibraries.archiveMessageSingular, other: tLibraries.archiveMessagePlural }), { names }),
           [
-            { text: "Annuler", style: "cancel" },
-            { text: "Archiver", onPress: proceed },
+            { text: tLibraries.cancel, style: "cancel" },
+            { text: tLibraries.archive, onPress: proceed },
           ],
         );
       })();
@@ -614,13 +626,15 @@ export function MovementCatalogueList({
         setDeleteCandidate(movementId);
         return;
       }
-      const names = libraries.map((title) => `« ${title} »`).join(", ");
+      const names = libraries.map((title) => fillTemplate(tLibraries.libraryName, { title })).join(", ");
       const origin =
-        libraries.length === 0 ? "d'une bibliothèque" : `de ${libraries.length > 1 ? "vos bibliothèques" : "la bibliothèque"} ${names}`;
+        libraries.length === 0
+          ? tLibraries.originUnknown
+          : fillTemplate(pluralOf(libraries.length, { one: tLibraries.originSingular, other: tLibraries.originPlural }), { names });
       Alert.alert(
-        "Suppression impossible",
-        `Ce mouvement vient ${origin}. Il reste archivé ; seule la désinstallation de la bibliothèque le retirera de votre Catalogue.`,
-        [{ text: "OK" }],
+        tLibraries.deleteImpossibleTitle,
+        fillTemplate(tLibraries.deleteImpossibleMessage, { origin }),
+        [{ text: tLibraries.ok }],
       );
     })();
   };
@@ -1286,7 +1300,7 @@ export function MovementCatalogueList({
                   ref={scrollRef}
                   contentContainerStyle={[
                     styles.list,
-                    selection !== undefined ? { paddingBottom: selection.bottomInset } : null,
+                    selection !== undefined ? { paddingBottom: selection.bottomInset } : bottomInset > 0 ? { paddingBottom: spacing[24] + bottomInset } : null,
                     topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
                   ]}
                   keyboardShouldPersistTaps="handled"

@@ -1,0 +1,31 @@
+# DSF — Barre de titre à onglets — 19/11/2026
+
+Référence Figma : « P-Catalogue des séances » (`4168:11149`, onglet Séances ; exemple de « Séance déployée » `1992:10014`) et « Agenda — Planning (proposition) » (`12580:27335`), page Prototype MVP. Le Figma définit le rendu ; il ne crée pas de règle métier. Décision D-532 (chapitre 07).
+
+## 1. Portée
+
+La navigation entre les trois vues d’un même domaine se fait par une barre de titre à onglets, et non plus par un contrôle segmenté sous le titre :
+- Catalogues : **Mouvements · Séances · Programmes** (onglet actif selon l’écran) ;
+- Calendrier : **Journal · Agenda · Vue d’ensemble** (D-532). [Remplacé le 20/11/2026 (D-542) : **Journal · Agenda** — troisième onglet « Vue d’ensemble » puis « Plan » retiré.] [Remplacé le 21/11/2026 (D-554) : **Journal · Agenda · Plan**.]
+
+Le comportement de navigation (changement de vue, vue conservée) est inchangé ; seul le contrôle change.
+
+## 2. Géométrie et peinture (402 × 874)
+
+| Élément | Prescription |
+|---|---|
+| Libellés | Trois zones de 123 × 21, centrées, à x = 16 · 139 · 263, y = 60 ; Inter 17 ; interligne automatique. « Vue d’ensemble » a la largeur de son texte (127) et reste centrée sur son axe (x centre ≈ 324,5). [Remplacé le 20/11/2026 (D-542) : Catalogues : trois zones de 123 × 21 inchangées ; Calendrier : deux libellés centrés sur x = 139,5 et 262,5, y = 60 ; « Plan » centré sur le même axe (x centre ≈ 324,5).] [Remplacé le 21/11/2026 (D-554) : Calendrier à trois libellés, **Journal · Agenda · Plan**, emplacements de 123 à x = 16, 139 et 262.] |
+| Onglet actif | Inter 17 **gras**, noir `#141414`, posé sur une forme arrondie 143 × 43 à y = 50, remplie `#EAEAFF`, centrée sur son libellé. |
+| Onglets inactifs | Inter 17 normal, gris `#595E66`, sans fond. |
+| En-tête fixe et barre d’état | Teinte `#F7F7FF`, sur 95 px de haut. |
+| Ordre des couches | Barre d’état, en-tête, bande de contexte, forme de l’onglet actif, contenu, libellés au-dessus de tout. |
+
+## 3. Bande de contexte
+
+Bande 402 × 115 à y = 92 (la hauteur ne change pas d’un écran à l’autre). Dégradé vertical lilas `#EAEAFF` opaque jusqu’à 80 % de la hauteur, puis transparent en bas. Elle porte les contrôles propres à l’écran (recherche, filtre, tri, création pour un catalogue ; navigation de période pour l’Agenda).
+
+## 4. Accessibilité et état
+
+Chaque libellé est un onglet (rôle `tab`) ; l’onglet actif est annoncé comme sélectionné. La zone tactile de chaque onglet couvre au moins 44 × 44 px.
+
+[Mise en œuvre du 20/11/2026 — D-542 (branche `docs/planification-grille-creneaux`, commit bce52a34, non fusionnée) : le Calendrier n'a plus que deux onglets, Journal · Agenda, centrés (emplacements d'un tiers de la largeur, centres à x = 139,5 et 262,5) ; « Vue d’ensemble » retirée, aucun écran « Plan ». Les Catalogues gardent leurs trois onglets. Classe A ; rapport `2026-11-20_CALENDRIER-DEUX-ONGLETS.md`.] [Remplacé le 21/11/2026 (D-554) : le Calendrier a de nouveau trois onglets, **Journal · Agenda · Plan**, emplacements de 123 à x = 16, 139 et 262 ; voir [DSF Plan](DSF-PLAN-2026-11-21.md).]

@@ -37,8 +37,8 @@ describe("bandeau « Propriétaire inconnu » (constat d) du 12/11)", () => {
 describe("propriétaire par défaut des nouvelles fiches et Bibliothèques", () => {
   const owner = { kind: "LOCAL_USER", id: "Hermann" } as const;
   const file = {
-    format: "KODJO_MOVEMENT_CATALOGUE", formatVersion: "2.0.0",
-    catalogue: { id: "test", title: "Test", revision: "1", owner, manager: null, publisher: null, publicationAllowed: false, notes: [] },
+    format: "KODJO_MOVEMENT_CATALOGUE", formatVersion: "3.0.0",
+    catalogue: { id: "test", title: "Test", revision: "1", owner, notes: [] },
     references: { categories: [{ id: "renforcement", label: "R", kind: null, status: null }], bodyZones: [{ id: "epaules", label: "É", kind: null, status: null }],
       specialties: [], gesturalFamilies: [], clinicalProblems: [], anatomicalTargets: [] },
     glossary: [], libraries: [], sheets: [],

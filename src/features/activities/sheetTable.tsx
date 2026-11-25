@@ -137,6 +137,27 @@ export function InsertionGuide({ testID }: { testID: string }) {
 }
 
 /** Libellés d'une ligne déplaçable, gabarits à `{n}` (numéro affiché de la ligne). */
+/**
+ * Six points sur deux colonnes de trois lignes, dessin de la poignée des tableaux de la modale des paramètres d'exécution
+ * (AD-28, 12 × 18). Partagé avec le tableau « Séance par créneau » de la planification (recette du 20/11/2026, r20-ordre —
+ * Hermann : « utiliser le symbole des 6 points sur deux colonnes de 3 lignes (voir la modale paramètres d'exécution, liste
+ * des séries variables) »). Le conteneur fournit la taille (`DRAG_HANDLE_SIZE`) et la cible tactile.
+ */
+export const DRAG_HANDLE_SIZE = { width: HANDLE_WIDTH, height: HANDLE_HEIGHT } as const;
+
+export function DragHandleDots() {
+  return (
+    <>
+      {[0, 1, 2].map((line) => (
+        <View key={line} style={styles.dragDotsLine}>
+          <View style={styles.dragDot} />
+          <View style={styles.dragDot} />
+        </View>
+      ))}
+    </>
+  );
+}
+
 export type DraggableRowLabels = {
   readonly handle: string;
   readonly row: string;
@@ -306,12 +327,7 @@ export function DraggableRow({
           style={movable ? styles.dragHandle : [styles.dragHandle, styles.unselected]}
           testID={`${testIDPrefix}-${number}-handle`}
         >
-          {[0, 1, 2].map((line) => (
-            <View key={line} style={styles.dragDotsLine}>
-              <View style={styles.dragDot} />
-              <View style={styles.dragDot} />
-            </View>
-          ))}
+          <DragHandleDots />
         </View>
         <Text style={styles.rowNumber} accessibilityLabel={fill(labels.row, number)}>
           {number}

@@ -294,6 +294,10 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
   - « AMRAP — Modale exercice, dans un circuit, durée à l'échec » ;
   - « AMRAP — Modale exercice simple, à la cible » et « … à l'échec ».
 
+### 7.5 bis Exécution de l'AMRAP (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « AMRAP — exécution (18/11/2026) ». En résumé : buy-in une fois au début du premier bloc ; boucle des membres de Rôle Tour, objectif recalculé à chaque tour (incrément signé, borné à 1) ; Récupération à chaque tour dans le temps du bloc ; arrêt net à l'échéance, feuille « Fin du bloc » pour l'exercice en cours puis les buy-in À l'échec ; repos entre les blocs ; écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; bip long au début du bloc, 3 bips avant son échéance.
+
 <a id="formats-formulaire-controles"></a>
 ### 7.6 Tableaux et données effectives
 
@@ -307,7 +311,7 @@ Les unités proposées restent limitées par le modèle et le contexte de l’Ex
 | Progression — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k |
 | For time — Tour 1…n | Objectif et charge du tour k | **Séries variables** : cible et charge de la série k ; nombre de séries = nombre de tours |
 | Superset — Tour 1…n | Objectif et charge du tour k | **Séries variables** : cible et charge de la série k ; nombre de séries = nombre de tours (Circuit standard à séries alternées : A1, B1, récupération, A2, B2…) ; « Récupération après le tour » = **Récupération** du dernier Exercice |
-| EMOM — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k ; nombre de séries = Nombre de séries de l'EMOM |
+| EMOM — S1…Sn | Objectif et charge de la série k | **Séries variables** : cible et charge de la série k ; nombre de séries = Nombre de séries de l'EMOM [Précisé le 18/11/2026 — D-532 (registre ch07) : EMOM à plusieurs mouvements en « Dans chaque intervalle » ou « En alternance », colonnes T1 … TN, ligne « Nombre de tours » et modale « X tours identiques / variables » ; « À la suite » et un seul mouvement : S1 … Sn inchangé.] |
 | Tabata, 30/30 — Objectif \| Pause \| Charge | Objectif | **Objectif de durée** (ou Nombre de répétitions) de chaque série, **séries identiques** |
 | | Pause | **Pause** après chaque série |
 | | Charge | **Charge** commune de l'Exercice |
@@ -326,7 +330,7 @@ Les unités proposées restent limitées par le modèle et le contexte de l’Ex
 
 **Préremplissage et réouverture.** La copie de la valeur de S1 concerne l’EMOM et le Superset décrits ici. Elle ne remplace pas les valeurs initiales propres aux autres modèles : la Progression conserve notamment 10 / 12 / 14 ; une échelle For time explicitement choisie n’est pas uniformisée. Les cases initiales non définies restent à renseigner, sans prendre les chiffres illustratifs Figma comme défauts. L’ajout ultérieur de séries/tours conserve les règles existantes de nouvelles cases à compléter. À la réouverture (« Modifier le format »), les cases affichent les valeurs effectives de chaque série, sans réinitialisation ni changement silencieux Identiques/Variables. Un réglage commun dont les valeurs diffèrent entre Exercices affiche « variable » (§7.9 de la référence Formats).
 
-**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; [Recette du 06/11/2026 (n-emom), Hermann : « Il ne faut pas recopier la saisie d'une colonne vers une autre. Je ne sais pas d'où vient ce besoin. » ; réponse A : « Oui retirée partout (c'est une erreur d'interprétation) » — aucune recopie de S1 (ni du premier tour du Superset) : chaque colonne se saisit à la main ; « valeurs de S1 reprises initialement » remplacé.] nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; [Recette du 06/11/2026 (n-emom), Hermann : « Il ne faut pas recopier la saisie d'une colonne vers une autre. Je ne sais pas d'où vient ce besoin. » ; réponse A : « Oui retirée partout (c'est une erreur d'interprétation) » — aucune recopie de S1 (ni du premier tour du Superset) : chaque colonne se saisit à la main ; « valeurs de S1 reprises initialement » remplacé.] nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions. [Précisé le 18/11/2026 — D-532 (registre ch07) : EMOM à plusieurs mouvements en « Dans chaque intervalle » ou « En alternance », colonnes T1 … TN, ligne « Nombre de tours » et modale « X tours identiques / variables » ; « À la suite » et un seul mouvement : S1 … Sn inchangé.]
 
 *(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
 
@@ -595,7 +599,7 @@ Exemple chiffré ci-dessous : 2 mouvements, 6 séries, intervalle 1 min, 10 rép
 
 Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouvement).
 
-**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; [Recette du 06/11/2026 (n-emom), Hermann : « Il ne faut pas recopier la saisie d'une colonne vers une autre. Je ne sais pas d'où vient ce besoin. » ; réponse A : « Oui retirée partout (c'est une erreur d'interprétation) » — aucune recopie de S1 (ni du premier tour du Superset) : chaque colonne se saisit à la main ; « valeurs de S1 reprises initialement » remplacé.] nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions.
+**EMOM — tableau et validation du 5 novembre.** Tableau Unité | S1…Sn, quatre colonnes visibles au plus, nom et unité fixes ; chaque série porte sa cible et sa charge. Pas de champ d’incrément d’objectif ni de charge. Création : valeurs de S1 reprises initialement ; [Recette du 06/11/2026 (n-emom), Hermann : « Il ne faut pas recopier la saisie d'une colonne vers une autre. Je ne sais pas d'où vient ce besoin. » ; réponse A : « Oui retirée partout (c'est une erreur d'interprétation) » — aucune recopie de S1 (ni du premier tour du Superset) : chaque colonne se saisit à la main ; « valeurs de S1 reprises initialement » remplacé.] nouvelles séries ajoutées après coup à compléter selon les règles existantes ; réouverture sans réinitialisation. Pour chaque rang/fenêtre, travail connu en Durée incluant deux côtés et pause entre côtés applicable ; somme des membres dans un intervalle commun, intervalle local sinon. Atteinte ou dépassement de l’intervalle bloque la validation (message et cadres rouges), y compris après modification en Composition ; aucune durée inventée pour les membres en Répétitions. [Précisé le 18/11/2026 — D-532 (registre ch07) : EMOM à plusieurs mouvements en « Dans chaque intervalle » ou « En alternance », colonnes T1 … TN, ligne « Nombre de tours » et modale « X tours identiques / variables » ; « À la suite » et un seul mouvement : S1 … Sn inchangé.]
 
 [04/11/2026 (recette iPhone), Hermann : « EMOM : Aucun mode d'exécution par défaut, le champ de valeur a un fond rouge » — à la création, une ligne EMOM n'a pas d'unité : objectif « à renseigner » (fond rouge), l'unité se choisit au clavier (Répétitions | Durée). Remplace « EMOM en mode Répétitions » / « Répétitions par défaut » ; registre ch07, « Recette iPhone du 04/11/2026 ».]
 
@@ -613,6 +617,10 @@ Le Nombre de séries garde le même sens qu’au Tabata (séries de chaque mouve
 **EMOM et Death by.** Les deux Formats partagent le principe de fenêtres temporelles, mais conservent leurs contrats distincts : compte fini et objectifs prescrits par série pour l’EMOM ; progression par rang, compte ouvert et fin au premier échec pour le Death by. Leur proximité ne justifie pas leur fusion.
 
 **Écrans Figma :** « EMOM — Récapitulatif, dans chaque intervalle » (charge activée : Squats sautés 10 / 10 / 10 rép. « (+ kg) » ; Fentes avant 30 s × 3 à « (12 kg) » « (− kg) ») ; « … en alternance » et « … à la suite » (sans charge). L'écran « EMOM — Récapitulatif, saisie d'un incrément de charge négatif au clavier » est supprimé.
+
+### 10.1 Exécution de l'EMOM (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « EMOM — exécution (18/11/2026) ». En résumé : une fenêtre par Série (au tour k pour le Circuit « dans chaque intervalle ») ; deux côtés dans la même fenêtre ; « Suivant » termine le travail en Répétitions et révèle le repos ; une Série en Durée démarre à l'ouverture de la fenêtre et finit à son terme ; la fenêtre suivante commence à l'heure ; fenêtre non terminée déclarée dans un bandeau non bloquant pendant la fenêtre suivante, ou à la fin de l'EMOM [bandeau supprimé le 18/11/2026, recette : saisie à la fin de l'EMOM seulement — registre ch07 « EMOM — recette iPhone (18/11/2026) »] ; barre du For time (Arrêt, Pause désactivée) ; bip long au début de chaque fenêtre, 3 bips avant son échéance.
 
 ## 11. Application de la règle au For time
 
@@ -672,7 +680,7 @@ Principe : un volume fixé, le plus vite possible. Résultat : le temps réalis�
 | État | Haut gauche | Fond du cercle | Chrono principal | Mention (cercle) | « + Tour » |
 |---|---|---|---|---|---|
 | Exercice en répétitions avant une durée | Objectif en rép. | Gris | Noir | « Appuyez pour lancer <exercice> » | Désactivé |
-| Durée en cours | Compte à rebours, vert | Vert | Estompé | « Appuyez pour faire pause » (vert foncé) | Désactivé |
+| Durée en cours | Compte à rebours, vert | Vert | Estompé | « Appuyer pour » / « faire une pause » (vert foncé) [« Appuyez pour faire pause » — remplacé le 18/11/2026, décision de Hermann, ch07 « EMOM en durée — précision du 18/11/2026 »] | Désactivé |
 | Durée en pause | Compte à rebours figé, orange | Orange | Estompé, continue | « Appuyez pour repartir » (orange foncé) | Désactivé |
 | Exercice suivant en répétitions | Objectif en rép. | Blanc | Noir | « Appuyez à chaque tour terminé » | Actif |
 
@@ -739,6 +747,10 @@ Le récapitulatif « Death by — Récapitulatif, à la suite » (`11411:20474`)
 **Documentation :** référence Formats §12 du complément du 5 novembre, règles métier, données/résultats, capacités et conception du moteur. Le libellé « Nombre de répétitions de départ » devient « Objectif de départ » ; la tagline et les textes doivent couvrir les deux modes et les intervalles configurables, sans imposer ici une nouvelle formulation graphique.
 
 **Écrans Figma :** récapitulatifs Death by avec un exemple mixte Répétitions/Durée. L’avertissement du premier rang n’a pas d’écran dédié : il suit la présentation des messages du formulaire.
+
+### 12.1 Exécution du Death by (18/11/2026)
+
+Décision de Hermann du 18/11/2026 (« Prends en considération ce qui a été fait pour For Time ») et arbitrages du même jour : registre ch07, « Death by — exécution (18/11/2026) ». En résumé : rang après rang, objectif départ + incrément × (rang − 1) ; une fenêtre par rang (commune aux membres « dans chaque intervalle », une par membre en alternance) ; écran et barre de l'EMOM (Arrêt, Pause désactivée, « Suivant » qui acquiert le rang et révèle le repos) ; Série en Durée lancée à l'ouverture de la fenêtre ; fenêtre manquée : écran figé, feuille « Fin du Death by », puis élément suivant ; limite de l'intervalle : arrêt avant le rang incompatible, sans saisie ; Arrêt : feuille « Arrêt du Death by », puis synthèse ; bip long au début de chaque fenêtre, 3 bips avant l'échéance.
 
 ## 13. Sortie d'un format
 

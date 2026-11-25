@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { Linking } from "react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
@@ -23,7 +24,7 @@ jest.mock("expo-router", () => ({
   useFocusEffect: (effect: () => (() => void) | void) => {
     focusEffectHarness.effect = effect;
   },
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, navigate: mockPush }),
 }));
 
 /**
@@ -95,13 +96,37 @@ describe("ProfileScreen", () => {
     }
   });
 
-  it("en-tête du Figma : onglets Profil, Préférences (sélectionné), Communauté (indisponible)", async () => {
+  // J1 « Gestion des langues » (D-569, Figma `1992:684`) : section « Langue et unités » en tête, ligne Langue qui affiche
+  // la langue en cours et ouvre le réglage iOS de langue de l'application.
+  it("D-569 — « Langue et unités » en tête des Préférences ; Langue — Français ouvre les réglages de l'application", async () => {
+    const openSettings = jest.spyOn(Linking, "openSettings").mockResolvedValue(undefined);
+    try {
+      await renderScreen();
+      const body = screen.getByTestId("profile-screen-body");
+      const sections = body.findAll((node) => typeof node.props.testID === "string" && /^profile-group-[a-z]+$/.test(node.props.testID) && typeof node.type === "string");
+      expect(sections[0]?.props.testID).toBe("profile-group-language");
+      expect(screen.getByText(t.language.sectionTitle)).toBeTruthy();
+      const row = screen.getByTestId("profile-language");
+      expect(row.props.accessibilityLabel).toBe(t.language.label);
+      expect(row.props.accessibilityValue).toEqual({ text: "Français" });
+      fireEvent.press(row);
+      expect(openSettings).toHaveBeenCalledTimes(1);
+    } finally {
+      openSettings.mockRestore();
+    }
+  });
+
+  // PROG-CAT-01 (CE-PRF-01, D-552) : Compte · Préférences (sélectionné) · Confidentialité ; zone centrale uniforme #EAEAFF.
+  // [Avant : Profil, Préférences, Communauté (indisponible) — remplacé.]
+  it("en-tête : onglets Compte, Préférences (sélectionné), Confidentialité ; Confidentialité ouvre son écran", async () => {
     await renderScreen();
 
     expect(screen.getByTestId("profile-tabs-preferences").props.accessibilityState).toEqual({ selected: true, disabled: false });
-    expect(screen.getByTestId("profile-tabs-community").props.accessibilityState).toEqual({ selected: false, disabled: true });
-    fireEvent.press(screen.getByTestId("profile-tabs-community"));
+    expect(screen.queryByTestId("profile-tabs-community")).toBeNull();
+    fireEvent.press(screen.getByTestId("profile-tabs-preferences"));
     expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("profile-tabs-privacy"));
+    expect(mockPush).toHaveBeenCalledWith("/profile-privacy");
   });
 
   // Profil › Préférences (Figma `1992:684`, `12093:25010` ; documentation de main `ebe72f76`) : six annonces vocales
@@ -222,10 +247,10 @@ describe("ProfileScreen", () => {
 
   // Section Profil non développée (Hermann, 11/11/2026) : l'onglet Profil ouvre l'écran existant Modifier le profil.
   // [Remplacé — bloc Identité et action Modifier le profil en tête de l'écran.]
-  it("onglet Profil : ouvre Modifier le profil", async () => {
+  it("onglet Compte : ouvre Modifier le profil", async () => {
     await renderScreen();
 
-    fireEvent.press(screen.getByTestId("profile-tabs-profile"));
+    fireEvent.press(screen.getByTestId("profile-tabs-account"));
 
     expect(mockPush).toHaveBeenCalledWith("/profile-edit");
   });

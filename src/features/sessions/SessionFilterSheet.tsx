@@ -75,10 +75,11 @@ export function selectedSessionFilterLabels(
   categories: readonly Pick<Category, "id" | "name">[],
   bodyZones: readonly Pick<BodyZone, "id" | "name">[],
   labels: readonly Pick<Label, "id" | "name">[],
+  statusLabels: { readonly active: string; readonly archived: string } = { active: t.active, archived: t.archived },
 ): readonly string[] {
   const result: string[] = [];
-  if (draft.statuses.has("ACTIVE")) result.push(t.active);
-  if (draft.statuses.has("ARCHIVED")) result.push(t.archived);
+  if (draft.statuses.has("ACTIVE")) result.push(statusLabels.active);
+  if (draft.statuses.has("ARCHIVED")) result.push(statusLabels.archived);
   for (const category of categories) if (draft.categoryIds.has(category.id)) result.push(category.name);
   for (const zone of bodyZones) if (draft.bodyZoneIds.has(zone.id)) result.push(zone.name);
   for (const label of labels) if (draft.labelIds.has(label.id)) result.push(label.name);
@@ -91,9 +92,15 @@ export function SessionFilterSheet({
   onApply,
   onClose,
   native,
+  statusLabels,
 }: {
   /** Demande de Hermann du 04/11/2026 : contenu d'une feuille native iOS (`FilterSheetFrame`, `native`). */
   readonly native?: { readonly onNeededHeight?: (height: number) => void };
+  /**
+   * D-540 (20/11/2026) : feuille ouverte depuis le Journal — le statut porte sur la routine, « Actives » / « Terminées » (le
+   * statut « Archivées » des séances n'est pas concerné). Absent : libellés des séances, inchangés.
+   */
+  readonly statusLabels?: { readonly active: string; readonly archived: string };
   readonly filters: SessionCatalogueFilters;
   readonly onApply: (filters: SessionCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
@@ -132,7 +139,7 @@ export function SessionFilterSheet({
       closeLabel={t.close}
       applyLabel={t.apply}
       onClose={onClose}
-      onApply={() => onApply(draft, selectedSessionFilterLabels(draft, categories, bodyZones, labels))}
+      onApply={() => onApply(draft, selectedSessionFilterLabels(draft, categories, bodyZones, labels, statusLabels))}
       testIDPrefix="session-filter"
       {...(native === undefined ? {} : { native })}
       footer={<ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_SESSION_FILTERS))} testID="session-filter-reset" />}
@@ -143,8 +150,8 @@ export function SessionFilterSheet({
           {t.status}
         </Text>
         <View style={styles.compactChips}>
-          <FilterChip label={t.active} selected={draft.statuses.has("ACTIVE")} onPress={() => toggle("statuses", "ACTIVE")} testID="session-filter-status-active" />
-          <FilterChip label={t.archived} selected={draft.statuses.has("ARCHIVED")} onPress={() => toggle("statuses", "ARCHIVED")} testID="session-filter-status-archived" />
+          <FilterChip label={statusLabels?.active ?? t.active} selected={draft.statuses.has("ACTIVE")} onPress={() => toggle("statuses", "ACTIVE")} testID="session-filter-status-active" />
+          <FilterChip label={statusLabels?.archived ?? t.archived} selected={draft.statuses.has("ARCHIVED")} onPress={() => toggle("statuses", "ARCHIVED")} testID="session-filter-status-archived" />
         </View>
       </View>
       <Section section="CATEGORIES" title={t.categories} open={open.has("CATEGORIES")} onToggle={toggleSection}>

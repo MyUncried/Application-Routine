@@ -3,8 +3,9 @@
  *
  * Trois termes (plan, § 5) : B = fiche installée (instantané du registre), L = Mouvement local
  * actuel, R = fiche du fichier. Le suivi couvre TOUTES les propriétés éditoriales de la fiche ;
- * seuls cinq champs sont projetés sur le Mouvement et peuvent donc entrer en conflit avec une
- * modification locale.
+ * seuls six champs sont projetés sur le Mouvement et peuvent donc entrer en conflit avec une
+ * modification locale (les phases depuis le format 3.0.0, MOUV-UX-20261117 : transmises à
+ * l'installation et aux mises à jour acceptées, valeur locale protégée comme les autres champs).
  *
  * Décisions de Hermann du 10/11/2026 :
  * - conflit : la modification locale est conservée et la révision reportée par défaut ; aucun
@@ -18,6 +19,8 @@ import { normalizeMovementName, type Movement } from "@/domain/activities/Moveme
 import {
   canonicalJson,
   projectSheetToMovement,
+  sheetBeforeStartingPositionMerge,
+  compactSheetMedia,
   sheetFingerprint,
   type CatalogueSheet,
   type MovementCatalogueFile,
@@ -82,10 +85,12 @@ export const PROJECTED_FIELDS = [
   "content.steps",
   "classification.categoryId",
   "classification.bodyZoneIds",
+  "phases",
 ] as const;
 export type ProjectedField = (typeof PROJECTED_FIELDS)[number];
 
-export type EditorialSection = "provenance" | "content" | "classification" | "sources" | "validation" | "media" | "levelGroup";
+/** [« sources » retirée le 18/11/2026 (format 3.0.0, MOUV-ADM n° 18) ; « phases » ajoutée.] */
+export type EditorialSection = "provenance" | "content" | "classification" | "validation" | "media" | "phases" | "levelGroup";
 
 export type FieldComparison = {
   /** Chemin dans la fiche, ex. `content.steps`, `provenance.owner`, `classification.original.Objectif`. */
@@ -183,7 +188,7 @@ export type CatalogueLoadPlan = {
 
 // ——— Implémentation ———
 
-const SECTIONS: readonly EditorialSection[] = ["provenance", "content", "classification", "sources", "validation", "media", "levelGroup"];
+const SECTIONS: readonly EditorialSection[] = ["provenance", "content", "classification", "validation", "media", "phases", "levelGroup"];
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -206,6 +211,8 @@ function editorialPairs(before: CatalogueSheet | null, after: CatalogueSheet): M
     }
   };
   for (const section of SECTIONS) visit(before === null ? undefined : before[section], after[section], section);
+  // Notes internes de l'administration : jamais présentées au destinataire (MOUV-ADM n° 5).
+  pairs.delete("content.notes");
   return pairs;
 }
 
@@ -221,6 +228,8 @@ export function localValueOf(movement: Movement, field: ProjectedField): unknown
     case "content.steps": return decodeInstructionSteps(movement.description);
     case "classification.categoryId": return movement.categoryId;
     case "classification.bodyZoneIds": return [...movement.bodyZoneIds];
+    // Même forme que la fiche : durée explicite, `null` sans durée par défaut.
+    case "phases": return movement.phases.map((phase) => ({ id: phase.id, label: phase.label, durationSeconds: phase.durationSeconds ?? null }));
   }
 }
 
@@ -238,6 +247,8 @@ export function withProjectedValue(movement: Movement, sheet: CatalogueSheet, fi
     case "content.steps": return { ...movement, description: projection.description };
     case "classification.categoryId": return { ...movement, categoryId: projection.categoryId };
     case "classification.bodyZoneIds": return { ...movement, bodyZoneIds: projection.bodyZoneIds };
+    // Identités de phase de la fiche conservées ; le compteur local ne recule jamais.
+    case "phases": return { ...movement, phases: projection.phases, nextPhaseId: Math.max(movement.nextPhaseId, projection.nextPhaseId) };
   }
 }
 
@@ -257,7 +268,9 @@ export function compareSheet(
 ): readonly FieldComparison[] {
   const projectedPaths = new Set<string>(PROJECTED_FIELDS);
   const result: FieldComparison[] = [];
-  for (const [path, [was, now]] of editorialPairs(installed, incoming)) {
+  // Photos intégrées comparées par empreinte : l'instantané installé n'en garde pas le contenu (19/11/2026).
+  const pairs = editorialPairs(installed === null ? null : compactSheetMedia(installed), compactSheetMedia(incoming));
+  for (const [path, [was, now]] of pairs) {
     const section = path.slice(0, path.indexOf(".") < 0 ? path.length : path.indexOf(".")) as EditorialSection;
     if (projectedPaths.has(path)) continue;
     const incomingChanged = installed === null || !same(path, was, now);
@@ -278,7 +291,7 @@ export function compareSheet(
     if (!incomingChanged && !localModified) continue;
     result.push({
       path: field,
-      section: field.startsWith("content.") ? "content" : "classification",
+      section: field === "phases" ? "phases" : field.startsWith("content.") ? "content" : "classification",
       installed: base,
       incoming: next,
       ...(local === null ? {} : { local: current }),
@@ -410,9 +423,13 @@ export function planCatalogueLoad(
       .find((entry): entry is LocalMovement => entry !== undefined && !registeredMovements.has(entry.movement.id));
     if (known) {
       if (known.archived) return make("WITHDRAWN_LOCALLY", null, known);
-      return movementMatchesSheet(known.movement, sheet)
-        ? make("ADOPTABLE", null, known)
-        : make("TO_RECONCILE", null, known, writeBlockers(known));
+      if (movementMatchesSheet(known.movement, sheet)) return make("ADOPTABLE", null, known);
+      // Format 3.0.0 : Mouvement identique à la version d'avant la reprise de la position de départ (ancien
+      // importeur, sans registre) — cette version sert de base, la reprise est proposée comme une mise à jour.
+      const before = sheetBeforeStartingPositionMerge(sheet);
+      // (Une révision refusée a déjà été écartée ci-dessus.)
+      if (before !== null && movementMatchesSheet(known.movement, before)) return make("NEW_REVISION", before, known, writeBlockers(known));
+      return make("TO_RECONCILE", null, known, writeBlockers(known));
     }
     const homonym = localByName.get(normalizeMovementName(sheet.content.name));
     if (homonym && !registeredMovements.has(homonym.movement.id) && !homonym.archived) {

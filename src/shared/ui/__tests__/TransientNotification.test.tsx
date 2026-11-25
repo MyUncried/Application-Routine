@@ -234,4 +234,23 @@ describe("TransientNotification", () => {
     });
     expect(props.onDismiss).not.toHaveBeenCalled();
   });
+
+  it("recette iPhone du 19/11 : an onDismiss recreated at every host render does not postpone the dismissal", () => {
+    const first = jest.fn();
+    const props = renderProps({ onDismiss: first });
+    const { rerender } = render(<TransientNotification {...props} />);
+    const latest = jest.fn();
+    // L'hôte se redessine toutes les secondes avec une nouvelle fonction (cas du Catalogue des Mouvements).
+    for (let second = 1; second <= 4; second += 1) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      rerender(<TransientNotification {...props} onDismiss={second === 4 ? latest : jest.fn()} />);
+    }
+    act(() => {
+      jest.advanceTimersByTime(TRANSIENT_NOTIFICATION_DURATION_MS - 4000);
+    });
+    expect(latest).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+  });
 });

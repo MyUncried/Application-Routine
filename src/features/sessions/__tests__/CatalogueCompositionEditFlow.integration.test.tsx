@@ -326,7 +326,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
 
     // Aucun élément ni aucune valeur par défaut du parcours de CRÉATION.
     expect(screen.queryByLabelText(composition.name)).toBeNull();
-    expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
+    expect(screen.queryByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeNull();
     expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
     expect(screen.queryByText("10″")).toBeNull();
     expect(screen.queryByText("5″")).toBeNull();

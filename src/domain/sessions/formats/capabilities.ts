@@ -118,11 +118,8 @@ export type FormatCapabilityDescriptor = {
 
 const GENERIC_RESULTS: readonly CapabilityResult[] = ["END_REASON", "ACHIEVED_RESULT", "COMPLETION_LEVEL"];
 
-/** Commun AMRAP et Death by sous ARB-03 : suite de la Séance après l'élément (`arbitrages-pre9.md` §3, A4). */
-const NEXT_AFTER_PROGRESSIVE: Undefined = {
-  status: UNDEFINED_CAPABILITY,
-  question: "Suite de la Séance après la fin de l'élément lorsqu'il est suivi d'autres éléments (A4, avant PRE-11).",
-};
+// [Commun AMRAP et Death by sous ARB-03 : « Suite de la Séance après la fin de l'élément lorsqu'il est suivi d'autres éléments (A4,
+// avant PRE-11) » — tranché par D3 (02/11/2026) ; retiré de l'AMRAP (PRE-11 T3) puis du Death by (PRE-11 T4, 18/11/2026).]
 
 const freeModel = (model: CapabilityModelKey): FormatCapabilityDescriptor => ({
   model,
@@ -155,11 +152,12 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     progression: "FIXED",
     results: GENERIC_RESULTS,
     prescription: { memberModes: ["REPETITIONS", "DURATION"], perSeries: true, increment: "NONE" },
-    undefinedAspects: [
-      { status: UNDEFINED_CAPABILITY, question: "Résultat d'une fenêtre non terminée (A6, PRE-11)." },
-      { status: UNDEFINED_CAPABILITY, question: "Coexistence de la fenêtre avec une série Durée, des phases ou des côtés (A2, R-02)." },
-    ],
-    executionAvailable: false,
+    // [« Résultat d'une fenêtre non terminée (A6, PRE-11) » — tranché par D5 et Q1 (02/11/2026), PRE-11 T2.] [« Coexistence de la
+    // fenêtre avec une série Durée, des phases ou des côtés (A2, R-02) » — Q5 et FMT-20 : une Série et ses deux côtés consomment une
+    // fenêtre ; une Série en Durée démarre à l'ouverture de la fenêtre (PRE-11 T2, 18/11/2026).]
+    undefinedAspects: [],
+    // PRE-11 (T2, 18/11/2026) : EMOM exécutable (politique EMOM, src/domain/execution/policies/emom.ts).
+    executionAvailable: true,
     sources: ["FMT-20…25", "REC-13", "ch12 l.1829", "recherche/03-formats §1.4"],
   },
   AMRAP: {
@@ -168,13 +166,19 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     expansion: "PROGRESSIVE",
     timeReferences: ["ELEMENT_DEADLINE", "STEP", "PHASES"],
     triggers: ["ELEMENT_BOUND", "TARGET_REACHED", "NEXT"],
-    onExpiry: { status: UNDEFINED_CAPABILITY, question: "Étape en cours à l'échéance de l'élément (A4, PRE-11)." },
+    // [« Étape en cours à l'échéance de l'élément (A4, PRE-11) » — tranché par D1 (02/11/2026) : arrêt net, Clôture du bloc avec le
+    // partiel ; PRE-11 T3, 18/11/2026.]
+    onExpiry: "DESCENDANTS_CLOSED_THEN_CLOSURE",
     end: "ELEMENT_BOUND",
     progression: "CONTENT_REPEATED",
     results: [...GENERIC_RESULTS, "ROUNDS_COMPLETED"],
     prescription: { increment: "SIGNED_FLOOR_ONE" },
-    undefinedAspects: [{ status: UNDEFINED_CAPABILITY, question: "Tour partiel à l'échéance (A6, PRE-11)." }, NEXT_AFTER_PROGRESSIVE],
-    executionAvailable: false,
+    // [« Tour partiel à l'échéance (A6, PRE-11) » — tranché par D-20 et l'arbitrage de Hermann du 18/11/2026 (« Exercice en cours
+    // seul ») : répétitions faites de l'exercice en cours, saisies à la Clôture du bloc.] [« Suite de la Séance après la fin de
+    // l'élément (A4) » — tranché par D3 : la Séance enchaîne après la Clôture.]
+    undefinedAspects: [],
+    // PRE-11 (T3, 18/11/2026) : AMRAP exécutable (politique AMRAP, src/domain/execution/policies/amrap.ts).
+    executionAvailable: true,
     // MAJ 04/11 §6 bis 2 : buy-in pris sur le premier bloc, « Terminé » lance la boucle sans saisie intercalée.
     configuration: { roles: ["BUY_IN", "TOUR"], buyInStop: ["TARGET", "FAILURE"], buyInResult: "AT_FIRST_BLOCK_CLOSE", memberModes: ["REPETITIONS", "DURATION"], incrementUnit: "OBJECTIVE", loads: "PER_SERIES_FROM_SNAPSHOT" },
     sources: ["FMT-26", "REC-15", "ch12 l.1829", "ARB-03", "recherche/03-formats §1.4"],
@@ -212,11 +216,12 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     progression: "DYNAMIC_TARGET",
     results: [...GENERIC_RESULTS, "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS", "INTERVAL_LIMIT_REACHED"],
     prescription: { memberModes: ["REPETITIONS", "DURATION"], increment: "POSITIVE_MIN_ONE", intervalLimit: "STOP_BEFORE_INCOMPATIBLE_RANK" },
-    undefinedAspects: [
-      { status: UNDEFINED_CAPABILITY, question: "Suite après une fenêtre non acquise (A4)." },
-      NEXT_AFTER_PROGRESSIVE,
-    ],
-    executionAvailable: false,
+    // [« Suite après une fenêtre non acquise (A4) » — tranché par D2 (02/11/2026) et l'arbitrage de Hermann du 18/11/2026 : le défi
+    // s'arrête à la fin de la fenêtre manquée, feuille « Fin du Death by » (partiel), puis la Séance enchaîne (D3) ; PRE-11 T4.]
+    // [« Suite de la Séance après la fin de l'élément (A4) » — tranché par D3.]
+    undefinedAspects: [],
+    // PRE-11 (T4, 18/11/2026) : Death by exécutable (politique Death by, src/domain/execution/policies/deathBy.ts).
+    executionAvailable: true,
     // 02/11 (A2, §6.1, §12) : un Death by autonome rejoué dans un Circuit groupé repart de son départ initial et
     // finit localement ; le Death by alterné est porté par le Circuit, arrêt collectif au premier échec.
     sources: ["FMT-33…38", "§12", "A2", "§6.1", "D-368", "CE-FMT-05 §15", "ch05 l.484", "D-16", "D-18", "D-29", "recherche/03-formats §1.4"],

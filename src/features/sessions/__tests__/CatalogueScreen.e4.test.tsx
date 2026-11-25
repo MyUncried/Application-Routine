@@ -174,7 +174,7 @@ describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de conte
         filterCount={count}
         onOpenFilters={() => undefined}
         onResetFilters={() => undefined}
-        onCreate={() => undefined}
+        widenSearch
       />,
     );
   const measure = (available: number, extended?: number) => {
@@ -189,27 +189,29 @@ describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de conte
     expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).alignItems).toBe("center");
   });
 
-  it("ordre Rechercher, puis Filtre, Tri, Créer ; Créer le plus à droite", () => {
+  // UI-FAB-01 (D-558, 24/11/2026) : Créer quitte la zone de contexte (bouton flottant). [Filtre, Tri, Créer — remplacé.]
+  it("ordre Rechercher, puis Filtre, Tri ; plus de Créer dans la zone", () => {
     renderRow(null);
     const ids = (testID: string) =>
       screen.getByTestId(testID).children.map((child) => (typeof child === "string" ? child : child.props.testID));
     expect(ids("catalogue-command-row")).toEqual(["session-catalogue-search", "catalogue-context-commands"]);
-    expect(ids("catalogue-context-commands")).toEqual(["catalogue-filter-action", "catalogue-sort-action", "catalogue-create-action"]);
+    expect(ids("catalogue-context-commands")).toEqual(["catalogue-filter-action", "catalogue-sort-action"]);
   });
 
   it("filtre actif : toujours étendu, sur une ligne ; nom du critère s'il tient à côté du champ réduit (107), sinon « 1 filtre » ; aucune croix", () => {
     renderRow("Archivées");
-    // 402 pt : 370 disponibles ; 107 + 12 + pilule + 2 × (12 + 34) ≤ 370 ⇔ pilule ≤ 159.
+    // 402 pt : 370 disponibles ; UI-FAB-01 : Tri seul après le Filtre — 107 + 12 + pilule + (12 + 34) ≤ disponible.
+    // [2 × (12 + 34), Tri et Créer — remplacé.]
     measure(370, 132);
     expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("Archivées");
     expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, Archivées");
     expect(screen.getByTestId("catalogue-filter-action-clear").props.accessibilityLabel).toBe("Réinitialiser les filtres");
 
-    for (const available of [343, 328]) {
+    for (const available of [297, 296]) {
       measure(available, 132);
-      expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent(available === 343 ? "Archivées" : "1 filtre");
+      expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent(available === 297 ? "Archivées" : "1 filtre");
     }
-    measure(370, 171);
+    measure(370, 206);
     expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("1 filtre");
     expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, 1 filtre");
     // Plus de forme compacte : un seul rond de réinitialisation, celui de la pilule étendue.
@@ -222,11 +224,11 @@ describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de conte
     expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("3 filtres");
   });
 
-  it("filtre inactif : bouton rond, champ Rechercher 216 ; filtre actif : champ étendu jusqu'à Filtre (≥ 107, recette du 30/10) et « N résultats »", () => {
+  it("filtre inactif : bouton rond, champ Rechercher élargi (UI-FAB-01 ; [216 — remplacé]) ; filtre actif : champ étendu jusqu'à Filtre (≥ 107, recette du 30/10) et « N résultats »", () => {
     const view = renderRow(null);
     measure(328);
     expect(screen.queryByTestId("catalogue-filter-action-clear")).toBeNull();
-    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style).width).toBe(216);
+    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0 });
     expect(screen.queryByTestId("catalogue-results")).toBeNull();
     view.unmount();
     renderRow("Archivées");

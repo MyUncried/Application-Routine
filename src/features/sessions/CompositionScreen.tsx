@@ -213,6 +213,9 @@ import {
   type StickyScroll,
 } from "@/features/sessions/StickyHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
+import { FloatingCreateButton, type FloatingCreateAnchor } from "@/shared/ui/FloatingCreateButton";
+import { FLOATING_BOTTOM_GAP } from "@/shared/ui/floatingCreatePosition";
+import { finalActionContentPadding } from "@/shared/ui/finalAction";
 import { circuitRoleOf, isSinglePassage, singlePassageLabel, type CircuitRole } from "@/domain/sessions/formats";
 import {
   durationEntryResult,
@@ -1042,8 +1045,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
-  /** Contre-recette du 30/10 : « + » de la zone de contexte, mesuré par le menu Créer. */
-  const addActionRef = useRef<View>(null);
+  /**
+   * UI-FAB-01 (D-558) : centre du bouton flottant « Créer », d'où s'ouvre le menu Créer. [Contre-recette du 30/10 : « + » de
+   * la zone de contexte, mesuré par le menu Créer (`addActionRef`) — remplacé le 24/11/2026.]
+   */
+  const [floatingAnchor, setFloatingAnchor] = useState<FloatingCreateAnchor | null>(null);
   /**
    * PRE-9 B.2 (ARB-06, COMP §5 ; Figma `10819:20344`, `10836:20478`) : mode enveloppe — conteneur à
    * poser (Circuit ou Cycle) et premier contenu désigné (`null` tant qu'aucun ne l'est) ; `null` hors
@@ -1059,16 +1065,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * fois la structure générale écrite.
    */
   const [circuitReveal, setCircuitReveal] = useState<{ readonly knownMembers: ReadonlySet<string> } | null>(null);
-  // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
-  // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
-  // de l'en-tête fixe et de la bande Context, jamais seulement
-  // `contextBand.height` (qui plaçait l'arbre ~100 pt trop haut, chevauchant
-  // l'en-tête). Recette 3 (D-353) : plus de séparateur entre les deux.
-  const addActivityTreeTop =
-    insets.top +
-    dimensions.header.contentHeight +
-    dimensions.contextBand.height +
-    spacing[8];
+  // [Ordonnée de la première rangée du menu Créer, sous la zone de contexte (`addActivityTreeTop`, VISUAL_CORRECTION 5753653735) —
+  // sans objet depuis le 24/11/2026 : le menu s'ouvre depuis le bouton flottant (D-558, D-594).]
   // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
@@ -4873,20 +4871,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         setIsLabelPickerOpen(true);
       }}
       sessionDuration={sessionDuration}
-      onAdd={() => {
-        closeCircuitControls();
-        setIsAddActivityTreeOpen(true);
-      }}
-      onAddStop={toggleAddStop}
-      addActionRef={addActionRef}
-      // Recette du 01/11/2026 (m11-annuler) : le « + » s'efface pendant le menu (Annuler à sa place).
-      isCreateMenuOpen={isAddActivityTreeOpen}
-      isPlacementActive={isPlacementActive}
-      // PRE-9 B.6 : « Ajouter un arrêt » s'applique aussi à une disposition générale. [B.1b : « ||
-      // richLayout !== null » (placement indisponible) — retiré le 31/10/2026 par B.6.]
-      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null || layoutLift !== null}
-      addStopFocusRequest={addStopFocusRequest}
-      addStopAccessibilityHint={addStopAccessibilityHint}
+      // [UI-FAB-01 (D-558, 24/11/2026) : « + Ajouter une activité » et le sablier « Ajouter un arrêt » quittent la zone de
+      // contexte — bouton flottant « Créer » et menu Créer, ci-dessous.]
       testID="composition-context-header"
     />
   );
@@ -5787,6 +5773,30 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        *   change rien à cet ordre) : l'arbre peint désormais AU-DESSUS de
        *   tout le reste de l'écran, jamais dessous.
        */}
+      {/*
+       * UI-FAB-01 (D-558, DSF Bouton flottant § 2 et § 4) : bouton flottant « + », 12 au-dessus du bouton « Continuer » ; il
+       * ouvre le menu Créer. Inactif (atténué) en placement et en mode enveloppe, comme l'ancien « + » de la zone de contexte ;
+       * absent en consultation. Retour du focus après le placement (revue 6.3) : sur le bouton, qui porte désormais
+       * « Ajouter un point d'arrêt ».
+       */}
+      {readOnly ? null : (
+        <FloatingCreateButton
+          variant="plus"
+          accessibilityLabel={strings.shared.floatingCreate.openCreateMenu}
+          onPress={() => {
+            closeCircuitControls();
+            setIsAddActivityTreeOpen(true);
+          }}
+          bottom={actionZone.scrollReserve - finalActionContentPadding(Platform.OS, insets.bottom).top + FLOATING_BOTTOM_GAP}
+          // Recette du 24/11/2026 (fab-point-arret ; Hermann : « en mode circuit / cycle, le bouton flottant doit aussi disparaître
+          // en fondu ») : en placement comme en mode enveloppe, le bouton disparaît en fondu lent. [Atténué — remplacé.]
+          faded={isPlacementActive || isEnvelopeActive}
+          hidden={isAddActivityTreeOpen}
+          onAnchorChange={setFloatingAnchor}
+          focusRequest={addStopFocusRequest}
+          testID="composition-floating-create"
+        />
+      )}
       {isAddActivityTreeOpen ? (
         /*
          * PRE-9 B.2 (COMP §5) : menu Créer au rendu de Figma `10705:20223` (`CreateMenu`) — cinq
@@ -5808,9 +5818,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * existante, Ajouter un circuit, Ajouter un cycle. Annuler reste le « + » transformé.]
          */
         <CreateMenu
-          top={addActivityTreeTop}
-          // Contre-recette du 30/10 : un seul « + », reposé exactement sur celui de la zone de contexte.
-          plusAnchorRef={addActionRef}
+          // UI-FAB-01 (D-558) : ouvert vers le haut depuis le bouton flottant, qui devient la croix.
+          anchor={floatingAnchor}
           // Complément du 5 novembre 2026 (Hermann, §3 et §6, CE-T03-08, CE-CIR-03 retiré) : trois options, dans cet ordre — Créer un exercice (modale de création commune : Exercice libre et
           // Formats, CE-CREATION-01), Créer un circuit, Créer un cycle ; « Utiliser des mouvements existants » et « Utiliser
           // un format d'entraînement » retirés (suggestions et mode catalogue de la fiche de création ; Formats dans la modale).
@@ -5840,9 +5849,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               onPress: cycleEnvelopeCandidates.length > 0 ? enterCycleEnvelope : undefined,
               testID: "composition-add-activity-tree-cycle",
             },
+            // UI-FAB-01 (D-558 : « On met le point d'arrêt aussi dans le menu ») : « Ajouter un point d'arrêt », icône du
+            // sablier ; ouvre le placement existant (`toggleAddStop` hors placement : `enterPlacement`). Indisponible dans
+            // les mêmes cas que l'ancien sablier de la zone de contexte (PRE-9 B.6 ; aucun emplacement, glissement en cours).
+            {
+              key: "stop",
+              label: addToSession.addStopPoint,
+              icon: "stopPoint",
+              onPress:
+                !hasPlacementOffer || draggedKey !== null || layoutLift !== null
+                  ? undefined
+                  : () => {
+                      setIsAddActivityTreeOpen(false);
+                      toggleAddStop();
+                    },
+              ...(addStopAccessibilityHint !== undefined ? { accessibilityHint: addStopAccessibilityHint } : {}),
+              testID: "composition-add-activity-tree-stop",
+            },
           ]}
           onCancel={() => setIsAddActivityTreeOpen(false)}
-          cancelLabel={addToSession.cancel}
+          cancelLabel={strings.shared.floatingCreate.closeCreateMenu}
           cancelTestID="composition-add-activity-tree-cancel"
         />
       ) : null}
