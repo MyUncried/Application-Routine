@@ -61,7 +61,15 @@
 - **présent** : disponibilité démontrée, l'implémentation de T1 se poursuit ;
 - **absent** : `CHANGE_REQUEST_REQUIRED`. L'alternative est celle prévue au plan : flux OAuth Apple Android porté par une fonction serveur KODJO qui conserve le jeton.
 
-**Statut de la mission :** en attente du résultat de cette manipulation, conformément au mandat (« Reprends dès que le résultat est disponible »). Aucun fichier applicatif modifié à ce stade.
+**Résultat de l'essai réel (Hermann, 25/11/2026) : `provider_refresh_token` PRÉSENT.**
+- Parcours : navigateur Chrome d'ordinateur → `…/auth/v1/authorize?provider=apple` → page de consentement Apple « KODJO Sign in with Apple » (Services ID) → retour `http://localhost:3999/` avec `provider_refresh_token=` non vide dans l'adresse.
+- Aucun jeton n'a été transmis.
+- **Disponibilité démontrée** pour le flux web Apple de Supabase, utilisé par Android. L'implémentation se poursuit.
+- **Restent à vérifier en recette** :
+  - le retour vers l'app Android par lien profond ;
+  - l'acceptation de ce jeton par `/auth/revoke` lors d'une suppression réelle.
+
+Nettoyage demandé à Hermann : retirer `http://localhost:3999/` des Redirect URLs, supprimer l'utilisateur de test dans Supabase, et révoquer « KODJO Sign in with Apple » dans les réglages de l'identifiant Apple (facultatif).
 
 ## Tests
 
