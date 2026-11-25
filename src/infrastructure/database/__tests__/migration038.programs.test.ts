@@ -42,7 +42,7 @@ describe("migration 038 — programmes", () => {
     await migrateDatabase(database, undefined, 37);
     expect(await database.getFirstAsync("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'programs'")).toBeNull();
     await migrateDatabase(database);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 39 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
     expect(await database.getFirstAsync("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'programs'")).toEqual({ name: "programs" });
     expect(await database.getFirstAsync("SELECT program_id, name_generated FROM routines WHERE id = 'r1'")).toEqual({ program_id: null, name_generated: 0 });
     expect(await count(database, "user_privacy")).toBe(0);
@@ -60,8 +60,8 @@ describe("migration 038 — programmes", () => {
       links: await count(database, "occurrence_executions"),
     };
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(39);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 39 });
+    expect(DATABASE_VERSION).toBe(40);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
     expect({
       routines: await count(database, "routines"),
       entries: await count(database, "routine_entries"),

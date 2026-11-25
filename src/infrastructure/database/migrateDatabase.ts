@@ -40,6 +40,7 @@ import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
 import { applyMigration039 } from "./migrations/migration039";
+import { applyMigration040 } from "./migrations/migration040";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -398,6 +399,13 @@ export async function migrateDatabase(
     if (pending(38)) {
       await applyMigration039(transaction);
       version = 39;
+    }
+
+    // T1 Compte (25/11/2026, CPT-02, CPT-14, CPT-32) : lien de compte et état du rattachement, tables additives.
+    // Un échec laisse `user_version` à 39.
+    if (pending(39)) {
+      await applyMigration040(transaction);
+      version = 40;
     }
 
     if (version !== targetVersion) {
