@@ -228,3 +228,12 @@
 - Documents : registre ch07 D-570 ; Formats § 9.7 ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md` (point 4).
 - Vérification sur iPhone à faire : recouvrement total à l'ouverture de chacun des dix formats, à la fermeture et au retour.
 - Tests : non applicables.
+
+## Complément 25/11/2026 (suite 5) — Récapitulatifs restés à l'ancien ordre (classe A)
+- Constat (Hermann, 25/11/2026) : sur « AMRAP — Récapitulatif, suppression glissée » et « …buy-in et incrément », la section Mouvements était en haut, au-dessus des paramètres. Les autres récapitulatifs (ordre : Paramètres d'exécution puis tableau des mouvements, registre du 07/11/2026 et Formats § 9.5) étaient déjà à jour ; ces écrans n'avaient pas été repris. Non causé par les travaux du 25/11.
+- Décision de Hermann : option A — reconstruction sur la mise en page de « AMRAP — Récapitulatif », état propre de chaque écran conservé.
+- Figma (Prototype MVP, 10 écrans) : AMRAP buy-in et incrément ; AMRAP suppression glissée (glissement porté par la ligne du tableau) ; AMRAP saisie de l'objectif au clavier (répétitions et durée) et saisie d'un incrément négatif ; Progression clavier étapes 1, 2 et 3 et ajout d'une charge ; P-Tabata fiche du mouvement (récapitulatif en alternance sous la fiche). Écrans « (archive) » et page « Profil » non touchés ; « Conception — Hors MVP » non touché.
+- Choix de représentation (à valider sur iPhone) : paramètres AMRAP complets (Durée, Nombre d'AMRAP, Repos) sur les écrans qui n'affichaient que la Durée ; section sans buy-in intitulée « Mouvements » (Formats § 7.4) ; Progression : étiquette « (unité, ± kg) » sous le nom, charges « (10 kg) » sous les valeurs, case vide en rouge, case active en bleu clair.
+- Documents : aucun (classe A, règle déjà écrite).
+- Vérification sur iPhone à faire : glissement de suppression sur une ligne du tableau AMRAP, saisie au clavier AMRAP et Progression.
+- Tests : non applicables.
