@@ -2,6 +2,8 @@
 
 Sources : plan approuvé `_bmad-output/compte/plan-lot-compte.md` (T1), décisions CPT-01 à CPT-34 (chapitre 07, « Gestion de compte — premier lot »), contrats d'écran CE-CPT-01 à CE-CPT-05 (chapitre 13). Branche : `compte/lot-1`, PR #460.
 
+**Version en ligne (saisie des verdicts)** : https://claude.ai/artifact/6CChXQCL8LkQsjKGY3qfCy (même format que la recette Programmes ; identifiants en minuscules : `a-01` = A-01). Les verdicts saisis en ligne font foi ; ce fichier garde la liste des scénarios.
+
 **Mode d'emploi**
 - Statuts : `À FAIRE`, `PASS`, `FAIL` (avec renvoi au défaut), `BLOQUÉ` (prérequis manquant), `N/A`.
 - Preuve : capture, ligne du journal Supabase, valeur d'une colonne. **Jamais** de secret (clé `.p8`, clé de service, `KODJO_TOKEN_KEY`, `KODJO_SWEEP_TOKEN`) ni le contenu de `apple_tokens`.
