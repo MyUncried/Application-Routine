@@ -10766,13 +10766,16 @@ const DRAG_SHIFT_GAPS = {
 } as const;
 
 const styles = StyleSheet.create({
-  // Figma `13203:26037` : Démarrer dans l'action finale — cercle de 48 couleur principale, liseré blanc de 2, aligné à droite.
+  // Figma `13203:26037` : Démarrer dans l'action finale — cercle de 48 couleur principale collé au bout droit du bouton,
+  // liseré blanc de 2 À L'EXTÉRIEUR du cercle (recette 25/11 : liseré translucide visible sur le bleu du bouton, pas un
+  // anneau blanc intérieur) : 52 de côté, décalé de 2 vers la droite ; anneau bleu de 4 autour de l'icône de 40.
   startInSave: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginRight: -2,
     borderWidth: 2,
-    borderColor: colors.background,
+    borderColor: `${colors.background}80`,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",

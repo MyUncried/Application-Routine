@@ -1838,6 +1838,8 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     const start = screen.getByTestId("composition-start-action");
     expect(start.props.accessibilityLabel).toBe("Démarrer la séance");
     expect(screen.getByTestId("composition-start-icon")).toBeTruthy();
+    // Recette 25/11 : cercle de 48 collé au bout droit, liseré blanc translucide de 2 à l'extérieur (52, décalé de 2).
+    expect(StyleSheet.flatten(start.props.style)).toMatchObject({ width: 52, height: 52, borderRadius: 26, marginRight: -2, borderWidth: 2, borderColor: "#FFFFFF80" });
     expect(screen.getByTestId("composition-save-action").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(start);
     expect(value.resetDraft).toHaveBeenCalled();
