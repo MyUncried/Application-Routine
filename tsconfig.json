@@ -21,6 +21,8 @@
     "node_modules",
     "android",
     "ios",
-    "example"
+    "example",
+    "supabase/functions/_deno",
+    "supabase/functions/*/index.ts"
   ]
 }

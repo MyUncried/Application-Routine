@@ -19,3 +19,4 @@ create function auth.uid() returns uuid language sql stable as
 grant usage on schema auth to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
+create table auth.sessions (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users (id) on delete cascade);

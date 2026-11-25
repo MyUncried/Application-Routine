@@ -11,3 +11,7 @@ trap 'run dropdb --if-exists "$db"' EXIT
 run "${PSQL[@]}" -d "$db" -f "$here/auth_stub.sql"
 for f in "$here"/../migrations/*.sql; do run "${PSQL[@]}" -d "$db" -f "$f"; done
 run "${PSQL[@]}" -d "$db" -f "$here/t1_accounts_test.sql"
+run dropdb "$db"; run createdb "$db"
+run "${PSQL[@]}" -d "$db" -f "$here/auth_stub.sql"
+for f in "$here"/../migrations/*.sql; do run "${PSQL[@]}" -d "$db" -f "$f"; done
+run "${PSQL[@]}" -d "$db" -f "$here/t1_server_functions_test.sql"
