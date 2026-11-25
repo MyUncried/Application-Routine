@@ -58,12 +58,12 @@ Prérequis : un compte **Apple Developer Program** actif.
    - domaine : `<ref>.supabase.co` ;
    - adresse de retour : `https://<ref>.supabase.co/auth/v1/callback`.
 3. **Clé de signature** (Keys) : créer une clé avec Sign in with Apple activé. Télécharger le fichier `.p8`, **une seule fois possible**, et le conserver en lieu sûr. Noter le **Key ID** et le **Team ID**.
-4. **Clé secrète** : la générer à partir du `.p8`, du Key ID, du Team ID et du Services ID, avec l'outil fourni par la documentation Supabase.
+4. **Clé secrète** : la générer à partir du `.p8`, du Key ID, du Team ID et du Services ID, avec l'outil de la page Supabase « Login with Apple ». Code source vérifié (`apps/docs/components/AppleSecretGenerator`) : la signature se fait dans le navigateur, sans envoi réseau, et la clé est **valable 180 jours**.
    - **Elle expire au bout de 6 mois** : sans régénération, la connexion Apple cesse de fonctionner sur Android.
    - Créer **dès maintenant un rappel récurrent tous les 5 mois**, et désigner qui le fait.
 5. Dans Supabase → Authentication → Providers → **Apple** :
    - activer le fournisseur ;
-   - **Client IDs** : les identifiants iOS du §0 (toutes variantes), puis le Services ID ;
+   - **Client IDs** : **d'abord le Services ID** (`com.ankusha.kodjo.signin`), car Supabase utilise la première entrée pour la connexion par page web ; ensuite les identifiants iOS du §0 (toutes variantes), séparés par des virgules ;
    - **Secret key** : la clé secrète du point 4.
 6. Pour un essai avec **Expo Go**, ajouter aussi `host.exp.Exponent` aux Client IDs. Recommandation Supabase ; facultatif si l'on teste uniquement en *development build*.
 
