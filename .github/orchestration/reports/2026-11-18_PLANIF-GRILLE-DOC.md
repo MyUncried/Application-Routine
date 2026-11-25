@@ -210,8 +210,14 @@
 - Décision explicite de Hermann (25/11/2026) : la modale d'un exercice déjà dans la séance n'affiche que les champs utiles dans son contexte ; un exercice déplacé hors du circuit prend les champs d'un exercice libre ; déploiement aux autres formats ; lien du haut « Paramètres » ; sens inverse (exercice libre entrant dans un format : valeurs conservées, masquées) validé ; liste des champs par format validée (« ok »).
 - Figma : 13 écrans allégés (30/30 ; EMOM standard, en alternance, dans chaque intervalle ; AMRAP circuit, buy-in, simple à l'échec, durée à l'échec ; Death by standard et dans chaque intervalle ; For time standard, circuit, buy-in ou buy-out), hauteur de feuille adaptée, contrôle par captures (30/30, EMOM standard, For time circuit). « Conception — Hors MVP » non touché. Libellé « Revenir aux paramètres » : absent de Figma, aucune modification.
 - Écart à la liste annoncée : For time conserve la ligne Séries, car son tableau porte les répétitions et pauses (sans elle, la cible de répétitions n'est plus réglable) ; Pause, durée maximum et Récupération retirées.
-- Interprétation retenue : l'extension de la séquence d'ouverture porte sur les six formats à départ rapide (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset).
+- Séquence d'ouverture : d'abord comprise comme limitée aux six formats à départ rapide ; [Remplacé le 25/11/2026 : Hermann précise « tous les formats sans exception » — Tabata, 30/30, Renforcement, Progression, À l'échec, Superset, EMOM, AMRAP, Death by, For time].
 - Documents : registre ch07 D-569 (D-568 précisé) ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.7 (§ 9.6 annoté) ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md`.
 - Non traité : modales dédiées de Renforcement, Progression, À l'échec, Superset (inexistantes dans le prototype ; règle documentée) ; modales de composition (création, modification), non validées ; intégration de la modale à revoir ultérieurement.
 - Vérification sur iPhone à faire : première ouverture sur le choix des mouvements, lien « Paramètres », champs de chaque modale, sortie et retour d'un exercice hors du format.
+- Tests : non applicables.
+
+## Complément 25/11/2026 (suite 3) — Séquence d'ouverture, tous les formats (D-569, classe B)
+- Décision explicite de Hermann (25/11/2026) : séquence d'ouverture (choix des mouvements en premier, lien « Paramètres ») applicable à tous les formats sans exception.
+- Documents : registre ch07 D-569 ; Formats § 9.7 ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md`. Figma : aucun écran concerné (aucun écran ne relie les questionnaires aux catalogues de format à l'ouverture).
+- Vérification sur iPhone à faire : première ouverture de chacun des dix formats.
 - Tests : non applicables.

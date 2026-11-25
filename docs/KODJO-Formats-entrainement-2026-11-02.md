@@ -602,7 +602,7 @@ Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée
 - Un exercice déplacé hors du format prend les champs d'un exercice libre, avec les valeurs par défaut d'un exercice libre ; aucune valeur du bloc d'origine n'est reprise.
 - Un exercice libre qui entre dans un format présente les champs du format ; ses autres valeurs sont conservées, masquées et inactives, et réapparaissent s'il sort du format.
 
-**Séquence d'ouverture.** Étendue au Tabata, 30/30, Renforcement, Progression, À l'échec et Superset : à la première ouverture du format, l'écran de choix des mouvements s'affiche en premier, sans nouvel écran. Le lien du haut de cet écran s'intitule **« Paramètres »**.
+**Séquence d'ouverture.** Étendue à **tous les formats, sans exception** (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset, EMOM, AMRAP, Death by, For time) : à la première ouverture du format, l'écran de choix des mouvements s'affiche en premier, sans nouvel écran. Le lien du haut de cet écran s'intitule **« Paramètres »**.
 
 Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternance, dans chaque intervalle), AMRAP (dans un circuit, buy-in, simple à l'échec, durée à l'échec), Death by (standard, dans chaque intervalle) et For time (standard, dans un circuit, buy-in ou buy-out) allégées, hauteur de feuille adaptée. Renforcement, Progression, À l'échec et Superset n'ont pas de modale dédiée dans le prototype : la règle s'y applique par la documentation. « Conception — Hors MVP » non touché.
 
