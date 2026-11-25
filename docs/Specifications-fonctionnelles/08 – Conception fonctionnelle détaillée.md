@@ -1031,6 +1031,8 @@ Elle propose :
 
 ## Bibliothèques et partage des Mouvements — conception détaillée cible (post-MVP)
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 **Dans le Catalogue**, un utilisateur peut créer sa Bibliothèque et y ajouter des références vers des Mouvements, sans créer de copies. Il peut dupliquer **un Mouvement créé personnellement** ; il ne peut ni copier, ni dupliquer, ni modifier une fiche reçue/importée (MOUV-D3, A-2) ; il peut la référencer dans plusieurs Bibliothèques sans duplication, et la redistribuer à l'identique uniquement si autorisé (lot futur). Les fiches de sources distinctes peuvent porter le même nom affiché, leur identité éditoriale restant indépendante du libellé.
 
 **Dans l'écran de partage**, le propriétaire habilité peut publier sa propre fiche sans autoriser sa redistribution par les destinataires ; seuls les Mouvements tiers autorisés à la redistribution sont inclus dans la Bibliothèque reçue. Les fiches interdites ne sont pas exposées. Une nouvelle révision doit être approuvée centralement avant diffusion.

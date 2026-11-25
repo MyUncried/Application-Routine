@@ -2795,6 +2795,8 @@ La règle « présent dans les deux natures » et la grille des volumes (S1…Sn
 
 ## Règles transverses — Bibliothèques et partage de Mouvements (post-MVP)
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 1. **Référencement sans copie :** les Bibliothèques personnelles référencent des Mouvements de toute provenance ; leur affectation, ordre et retrait d'association n'écrivent pas la fiche source. Les Bibliothèques reçues ne sont pas modifiables dans leur composition.
 2. **Identité :** deux fiches de sources distinctes peuvent porter le même nom affiché. La fiche source conserve un identifiant stable indépendant du nom et du propriétaire administratif.
 3. **Droits (MOUV-D3, A-2) :** une fiche reçue/importée est consultable et utilisable selon l'accès, mais **jamais modifiable, copiable ni duplicable**, même pour un usage personnel. Sa redistribution à l'identique exige une autorisation explicite de la source (lot futur) ; à défaut, elle est interdite. Le propriétaire habilité peut **publier une première fois** sa fiche originale et la modifier, sans autoriser la redistribution à des tiers ; le Mouvement personnel reste éditable et duplicable par son créateur. Les paramètres propres à l'Exercice restent indépendants. Les quatre anciens modes de permissions éditoriales sont supersédés (11/11/2026).
