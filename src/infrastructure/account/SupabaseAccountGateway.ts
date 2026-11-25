@@ -51,8 +51,10 @@ async function postFunction(name: string, body: unknown, accessToken?: string): 
     } catch {
       parsed = null;
     }
+    if (!response.ok) console.warn(`Fonction ${name} : réponse ${response.status}.`, parsed);
     return { status: response.status, body: parsed };
-  } catch {
+  } catch (error) {
+    console.warn(`Fonction ${name} injoignable.`, error);
     return { status: null, body: null };
   }
 }
