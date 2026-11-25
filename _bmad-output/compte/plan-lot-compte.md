@@ -433,4 +433,4 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 
 ## STATUT
 
-**PLAN_READY_FOR_REVIEW** pour T1, sous réserve des ARBITRAGES A1 et A3, qui n'empêchent pas la contre-revue du delta. Prochaine barrière : contre-revue ChatGPT, puis `PLAN_APPROVED` (mode, écrivain, baseline).
+**PLAN_READY_FOR_REVIEW** pour T1, sous réserve de l’ARBITRAGE A3, qui n’empêche pas la contre-revue du delta. Prochaine barrière : contre-revue ChatGPT, puis `PLAN_APPROVED` (mode, écrivain, baseline).
