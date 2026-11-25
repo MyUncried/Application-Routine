@@ -26,6 +26,8 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 - Toucher le visuel garde son comportement actuel (ouvre la composition en modification).
 - Variantes horizontales (2 images empilées ; une horizontale et deux carrés) dessinées sur la planche et **écartées**.
 
+**Prérequis : le marquage des photos.** La mosaïque ne peut s'afficher correctement qu'une fois le rectangle de la vue retenue produit et stocké pour chaque image du catalogue (marquage à la publication, vérifié par la personne qui publie). Ce marquage est livré **avant** la mosaïque ; sans lui, les images sont utilisées entières, ce qui n'est qu'un repli provisoire.
+
 ## 2. Informations (D-565, D-567)
 
 La carte repliée fait **72 pt de haut et trois lignes** ; elle n'a plus de chevron.
