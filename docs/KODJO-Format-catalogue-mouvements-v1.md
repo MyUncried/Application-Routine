@@ -45,7 +45,8 @@ sheets[]     fiche éditoriale complète :
                ← référence documentaire originale, distincte de upstream (source d'import) et des droits
   validation   { classification, clinical, rights, corpusReview, licensing, clinicalValidation, publicationAllowed }
   media[]      (ordonnés) { id, kind PHOTO|VIDEO, storage EMBEDDED|REMOTE, url, fileName, caption,
-                 sourceUrl, attribution, license, rightsStatus }  ← modèle de l'administration Web
+                 sourceUrl, attribution, license, rightsStatus, view? }  ← modèle de l'administration Web
+                 view : { x, y, width, height } en % de l'image, photos seulement (marquage des photos, D-600)
   install      { knownLocalMovementIds[] }
 ```
 
@@ -62,6 +63,7 @@ sheets[]     fiche éditoriale complète :
 - **Révisions** : historique non vide, révisions uniques, la dernière entrée portant la `revision` de la fiche, dates ISO.
 - **Provenance** : contrôlée par `validateMovementEditorialProvenance`. Une source (`upstream`) est exigée hors création originale ; les auteurs en double sont refusés. [11/11/2026, MOUV-D1 : auteur unique `author|null` ; une liste est refusée.]
 - **Médias** : règles de l'administration Web.
+- **Vue retenue** (`media[].view`, facultative, 25/11/2026, D-600) : rectangle de la vue retenue d'une photo, en pourcentage de l'image (nombres finis, largeur et hauteur positives, entièrement dans l'image) ; refusée sur une vidéo. Absente ou `null` : l'image est retenue entière. Proposée par l'administration Web à la publication, vérifiée par la personne qui publie ; l'application l'applique sans calcul. Champ additif du format 3.0.0 : l'empreinte de fiche change avec lui, donc une vue corrigée est proposée comme mise à jour sur le téléphone.
   - 30 au plus par fiche ;
   - liens HTTPS uniquement ;
   - photo intégrée de 580 000 caractères au plus ;

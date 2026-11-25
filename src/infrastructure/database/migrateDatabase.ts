@@ -40,6 +40,7 @@ import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
 import { applyMigration039 } from "./migrations/migration039";
+import { applyMigration040 } from "./migrations/migration040";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -398,6 +399,13 @@ export async function migrateDatabase(
     if (pending(38)) {
       await applyMigration039(transaction);
       version = 39;
+    }
+
+    // D-600 (24-25/11/2026) : vue retenue d'une photo (marquage des photos), colonnes additives de `media_assets`.
+    // Un échec laisse `user_version` à 39.
+    if (pending(39)) {
+      await applyMigration040(transaction);
+      version = 40;
     }
 
     if (version !== targetVersion) {

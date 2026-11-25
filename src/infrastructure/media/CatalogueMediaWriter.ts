@@ -50,6 +50,7 @@ export function createCatalogueMediaWriter(fileSystem: CatalogueMediaFileSystem,
           mimeType: file.mimeType,
           fileName: file.fileName,
           sizeBytes: fileSystem.size(absolute),
+          view: file.view,
         },
       });
     }
