@@ -97,14 +97,28 @@ Nettoyage demandé à Hermann : retirer `http://localhost:3999/` des Redirect UR
 
 ## 5. Recette restant à faire sur appareils réels
 
-Aucune n'a été réalisée :
+### 5.1 Résultats déjà obtenus (25/11/2026, iPhone, build de développement « Routine Dev » + Metro)
+
+| Vérification | Résultat | Preuve |
+|---|---|---|
+| Déploiement serveur (migrations `--remote`, 4 fonctions, secrets, tâche planifiée) | Fait par Hermann | tables et fonctions visibles dans le tableau de bord Supabase ; réponse 200 de la tâche planifiée non encore confirmée |
+| Connexion Apple native | **PASS** | déclaration de Hermann |
+| Lignes serveur après connexion | **PASS** : une ligne dans `accounts`, `account_local_users`, `catalogues`, `apple_tokens` | déclaration de Hermann (tableau de bord) |
+| É2 section Compte | **PASS** : « Connecté avec Apple », nom, e-mail (adresse réelle partagée, donc sans mention de relais), « Pseudo public » grisé, « Supprimer mon compte », aucune déconnexion | capture d'écran de Hermann |
+| App ouverte, mode avion puis retour au premier plan | **PASS** : la porte reste ouverte, pas d'écran de connexion | déclaration de Hermann |
+| Démarrage à froid hors ligne | **NON VÉRIFIABLE sur build de développement** : le bundle JS vient de Metro par le Wi-Fi (« Error loading app » en mode avion, limite de l'outil, pas de l'app) | à refaire sur une build embarquant le bundle (recette ou TestFlight) |
+
+Incident de configuration résolu : « Supabase is not configured » au premier essai, faute de `.env.local` sur le poste (les variables EAS ne parviennent pas à Metro local) ; corrigé par `eas env:pull --environment development` puis `expo start --clear`. Aucun changement de code.
+
+### 5.2 Reste à faire
+
+Pas encore réalisé :
 - **Déploiement du serveur par Hermann** (`supabase/README.md`) : `db push`, déploiement des fonctions, secrets, planification de la reprise et adresse des notifications Apple.
 - **iPhone** :
-  - connexion Apple native ;
   - connexion Google par page web ;
   - nom enregistré à la première connexion ;
   - relais « Masquer mon e-mail » ;
-  - app ouverte hors ligne ;
+  - démarrage à froid hors ligne (build embarquant le bundle) ;
   - suppression avec révocation, vérifiée dans les réglages Apple.
 - **Android** :
   - connexion Google par page web ;
