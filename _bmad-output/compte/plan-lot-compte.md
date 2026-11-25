@@ -73,7 +73,7 @@ Acquis (chapitre 07) : notifications push et pastilles (CPT-23) ; ordre T1 à T6
 **ARBITRAGES** (publiés sur la PR #446, tous tranchés) :
 - **A1 — É3, delta de texte** : **validé (CPT-29)**.
 - **A2 — Moment de la première demande d'autorisation des notifications push** : **validé (CPT-30)**, à la première activation de la Communauté (T2), jamais en T1.
-- **A3 — Téléphone dont le compte a été supprimé, puis compte existant** : **refus validé (CPT-31)**.
+- **A3 — Téléphone dont le compte a été supprimé, puis compte existant** : **refus validé (CPT-31)**, puis règle précisée par **CPT-32** (seul le même identifiant Apple ou Google retrouve les données).
 
 ## 5. Écrans nécessaires — T1 (à vérifier par Hermann dans Figma)
 
@@ -202,7 +202,7 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 - La 039 est la dernière de la chaîne actuelle. Le numéro sera revérifié après la fusion de `main`.
 - Elle est **additive** et crée deux tables :
   - `account_link` (singleton) : `auth_user_id`, `provider`, `provider_subject`, `email`, `email_is_private_relay`, `given_name`, `family_name`, `catalogue_id`, `linked_at` ;
-  - `account_lifecycle` (singleton) : `state` (`NEVER_LINKED` | `LINKED` | `REAUTH_REQUIRED` | `DELETION_PENDING` | `DELETED_ON_THIS_DEVICE`), `deletion_requested_at`, `deletion_receipt` (reçu aléatoire de suppression, conservé jusqu'à confirmation).
+  - `account_lifecycle` (singleton) : `state` (`NEVER_LINKED` | `LINKED` | `REAUTH_REQUIRED` | `DELETION_PENDING` | `DELETED_ON_THIS_DEVICE`), `deletion_requested_at`, `deletion_receipt` (reçu aléatoire de suppression, conservé jusqu'à confirmation), `deleted_provider_subject_hash` (empreinte de l'identifiant Apple ou Google du compte supprimé, CPT-32).
 - Aucune donnée métier modifiée. Migrations et réparations existantes inchangées.
 
 **Domaine** (`src/domain/account/`)
@@ -244,11 +244,11 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 | R2 | **Compte existant, téléphone vierge** (réinstallation, nouveau téléphone) | L'Utilisateur local (nouvel identifiant) est **ajouté** aux Utilisateurs du compte. Aucune réécriture de `users.id`. Aucune donnée récupérée (pas de sauvegarde en T1). Prénom et nom sont lus dans `accounts` quand Apple ne les renvoie plus. |
 | R3 | **Même compte, téléphone déjà peuplé** avec un autre identifiant local (appareils de recette, installation antérieure à T1) | Accepté. L'Utilisateur local est ajouté. **Chaque téléphone garde ses données et son identifiant**, sans fusion ni perte. |
 | R4 | **Autre compte Y**, téléphone lié à X (session expirée ou révoquée, nouvelle connexion avec Y) | **Refus É4**. La session Y est fermée localement. `account_link` de X est intact. **Aucun appel** à `link_account` pour Y. |
-| R5 | Téléphone où le compte a été **supprimé** (`DELETED_ON_THIS_DEVICE`), données conservées, **lien local vide** (fournisseur et e-mail effacés) | Compte **neuf** : R1. Compte **existant** : **refus**, alerte **É4-R5** (CPT-31), qui n'affiche ni fournisseur ni e-mail. |
+| R5 | Téléphone où le compte a été **supprimé** (`DELETED_ON_THIS_DEVICE`), données conservées, **lien local vide** (fournisseur et e-mail effacés) ; seule l'empreinte `deleted_provider_subject_hash` subsiste (CPT-32) | **Même identifiant Apple ou Google** (empreinte identique) : compte neuf créé, rattachement R1. **Autre identifiant**, compte neuf ou existant : **refus**, alerte **É4-R5**, sans appel à `link_account`. |
 | R6 | Reprise après coupure pendant le rattachement | `link_account` idempotent. Tant que `account_link` n'est pas écrit, la porte reste sur É1 et le rattachement est rejoué à la connexion suivante. |
 
 **Tests**
-- Jest : R1 à R6, dont deux bases peuplées avec des identifiants différents pour le même compte, sans perte de lignes ; R4 (É4 avec fournisseur et e-mail) et **R5 avec lien local vide** (É4-R5, aucun fournisseur ni e-mail affiché).
+- Jest : R1 à R6, dont deux bases peuplées avec des identifiants différents pour le même compte, sans perte de lignes ; R4 (É4 avec fournisseur et e-mail) et **R5 avec lien local vide** : même identifiant (rattaché), autre identifiant neuf ou existant (É4-R5, aucun fournisseur ni e-mail affiché).
 - SQL : idempotence de `link_account`, appels concurrents, RLS.
 
 ### SUPPRESSION (CPT-08 à CPT-10, Apple TN3194)
@@ -259,7 +259,7 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 3. Appel de `delete-account` avec le reçu.
 4. Seulement après une réponse `deleted`, ou une preuve `deleted` de `deletion-status` :
    - fermeture de la session (stockage `localStorage` vidé) ;
-   - suppression de `account_link` et du reçu ;
+   - empreinte de `provider_subject` enregistrée dans `deleted_provider_subject_hash` (CPT-32), puis suppression de `account_link` et du reçu ;
    - `account_lifecycle.state = DELETED_ON_THIS_DEVICE` ;
    - retour à É1.
 5. **Données métier conservées.**
@@ -287,7 +287,7 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 |---|---|---|---|---|
 | **a. Données serveur effacées, `deleteUser` en échec** (étape 4 faite, étape 5 échouée) | Le compte Auth existe encore : la session reste rafraîchissable ; `account_deletions.data_purged_at` est renseigné | L'app relance `delete-account` avec sa session (au lancement ou au retour du réseau) ; le serveur constate l'étape 4 faite et **reprend à l'étape 5**, sans révocation Apple à refaire (`apple_revocation` déjà renseigné) | **Conservé** (`DELETION_PENDING`) jusqu'à `deleted` | Message d'erreur de É3 au premier échec ; à la reprise réussie, retour à É1 |
 | **b. Suppression réussie, réponse perdue, justificatif expiré** | Plus de session possible (utilisateur supprimé). Le téléphone garde son **reçu de suppression** | L'app appelle `deletion-status` avec `auth_user_id` et le reçu ; réponse `deleted` | **Conservé** jusqu'à la réponse, puis effacé | Retour à É1 avec les données conservées, sans erreur |
-| **c. Retour en ligne avec une session refusée** (jeton de rafraîchissement refusé, sans demande de suppression sur ce téléphone) | Le `local_user_id` du téléphone, rattaché au compte | L'app appelle `deletion-status` avec `auth_user_id` et `local_user_id`. `deleted` : nettoyage local comme une suppression. `active` : `REAUTH_REQUIRED` (session seule révoquée, par exemple `consent-revoked`). `in_progress` ou `unknown` (ex. registre purgé après 90 jours) : `REAUTH_REQUIRED` | `deleted` : effacé. Autres cas : **conservé** | `deleted` : É1, données conservées. Sinon : É1 **avant** ouverture (priorité de la réauthentification) ; à la reconnexion, même compte : R3 ; **même `provider_subject` mais nouvel `auth_user_id`** (ancien compte supprimé, compte neuf du même titulaire) : R5, compte neuf accepté ; autre titulaire : R4 |
+| **c. Retour en ligne avec une session refusée** (jeton de rafraîchissement refusé, sans demande de suppression sur ce téléphone) | Le `local_user_id` du téléphone, rattaché au compte | L'app appelle `deletion-status` avec `auth_user_id` et `local_user_id`. `deleted` : nettoyage local comme une suppression. `active` : `REAUTH_REQUIRED` (session seule révoquée, par exemple `consent-revoked`). `in_progress` ou `unknown` (ex. registre purgé après 90 jours) : `REAUTH_REQUIRED` | `deleted` : effacé. Autres cas : **conservé** | `deleted` : É1, données conservées. Sinon : É1 **avant** ouverture (priorité de la réauthentification) ; à la reconnexion, même compte : R3 ; **même `provider_subject` mais nouvel `auth_user_id`** (ancien compte supprimé, compte neuf du même titulaire) : rattachement accepté (CPT-32) ; autre titulaire : R4 |
 
 Tant que la suppression n'est pas **prouvée** (`deleted`), le rattachement est conservé. Une erreur réseau ou 5xx n'est jamais interprétée comme une suppression.
 
@@ -448,17 +448,17 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 
 Ce message vaut pour **R4** (téléphone encore lié au compte X : fournisseur et e-mail disponibles). Il reste inchangé.
 
-#### É4-R5 — Refus d'un compte existant après suppression (alerte native, CPT-31) — **libellé en ARBITRAGE**
+#### É4-R5 — Refus après suppression du compte (alerte native, CPT-32, validé)
 
-Le lien local est vide : ni fournisseur ni e-mail ne peuvent être affichés.
+Le lien local est vide : ni fournisseur ni e-mail ne sont affichés.
 
-**Titre :** « Ce téléphone appartient à un autre compte » (repris de É4).
+**Titre :** « Ce téléphone contient les données d'un compte supprimé »
 
-**Message proposé** (ARBITRAGE de Hermann, libellé seulement) :
-> Pour conserver les données de ce téléphone, connectez-vous avec un compte neuf. Pour utiliser ce compte existant, supprimez puis réinstallez l'application. Cette opération efface les données de ce téléphone.
+**Message :**
+> Pour les retrouver, reconnectez-vous avec le même identifiant Apple ou Google qu'avant la suppression. Pour utiliser un autre compte, supprimez puis réinstallez l'application : cette opération efface les données de ce téléphone.
 
 **Bouton :** « OK ».
 
 ## STATUT
 
-**PLAN_DRAFT (corrections F1 à F3 de la contre-revue du 25/11/2026)** : F2 et F3 corrigés ; F1 corrigé sur le fond, **libellé de É4-R5 en attente de l'ARBITRAGE de Hermann**. `PLAN_READY_FOR_REVIEW` sera publié une fois ce libellé validé.
+**PLAN_READY_FOR_REVIEW** pour T1 : corrections F1 à F3 de la contre-revue du 25/11/2026 faites ; libellé É4-R5 et règle de rattachement validés par Hermann (CPT-32). Prochaine barrière : contre-vérification ChatGPT du delta depuis `0e37f700`, puis `PLAN_APPROVED`.
