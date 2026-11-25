@@ -75,7 +75,7 @@ import { circuitRoleOf } from "@/domain/sessions/formats";
 import { seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { createEmptyDraft } from "@/domain/sessions/SessionDraft";
 import type { ExecutionMode, ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
-import { formatSheetContextOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { formatSheetContextOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
 import { currentLayout } from "@/domain/sessions/layoutOperations";
@@ -535,7 +535,20 @@ function savesFromQuestionnaire(model: FormatModelKey, movementCount: number): b
 /** Compteur des ouvertures de questionnaire (identité du brouillon de modèle de chaque ouverture). */
 let openings = 0;
 
-export function FormatModelScreen({ stage: initialStage }: { readonly stage: Stage }) {
+/**
+ * D-605 (Hermann, 25/11/2026 ; Formats § 9.7) : ouvert depuis la fenêtre « Formats d'entraînement », l'écran du format remplace le contenu de
+ * la feuille native de cette fenêtre (`model`, `onClose`) au lieu d'une seconde feuille empilée — la modale des formats n'est plus visible
+ * derrière. Sans ces props : route `/format-summary` (réouverture « Modifier le format » depuis la Composition), inchangée.
+ */
+type FormatModelScreenProps = {
+  readonly stage: Stage;
+  /** Modèle choisi dans la fenêtre Formats (sinon : paramètre de route `model`). */
+  readonly model?: FormatModelKey;
+  /** Croix : retour au contenu de la fenêtre Formats (sinon : retour de la pile). */
+  readonly onClose?: () => void;
+};
+
+export function FormatModelScreen({ stage: initialStage, model: chosenModel, onClose }: FormatModelScreenProps) {
   // Décision de Hermann du 15/11/2026 (« Le questionnaire n’est plus nécessaire » ; registre ch07, « For time — tableau unique, sans
   // questionnaire (15/11/2026) ») : le For time n'a plus de questionnaire, il s'ouvre sur son récapitulatif (état vide).
   // Décision de Hermann du 15/11/2026 (registre ch07, « Formats à tableau — écran unique, sans redondance (15/11/2026) » ; CE-FMT-02 §4) :
@@ -554,7 +567,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const router = useRouter();
   const navigation = useNavigation();
   const params = useLocalSearchParams<{ model?: string; circuitId?: string }>();
-  const routeModel: FormatModelKey = isFormatModelKey(params.model) ? params.model : "TABATA";
+  const routeModel: FormatModelKey = chosenModel ?? (isFormatModelKey(params.model) ? params.model : "TABATA");
   const { draft: modelDraft, start, startWith, setAnswers, setMovements } = useFormatModelDraft();
   // For time (FT-3, 14/11/2026) : rang du mouvement dont la modale des paramètres est ouverte.
   const [parametersOf, setParametersOf] = useState<number | null>(null);
@@ -722,7 +735,12 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // recette n° 3 du 03/11/2026 (f3r-recherche, Hermann : « Sur le deuxième écran des valeurs des paramètres,
   // appuyer sur "+ Ajouter" ouvre directement le catalogue alors que le comportement doit être exactement le
   // même que pour le premier écran. Idem pour le bouton "Changer" ») : même champ dans chaque section, aux deux étapes.
-  const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | "BUY_OUT" | null>(null);
+  // D-603 / D-604 (Hermann, 25/11/2026 ; Formats §§ 9.6 et 9.7) : à la première ouverture de tout format, sans exception, l'écran de choix
+  // des mouvements (mode catalogue du format, section des mouvements) s'affiche en premier ; les paramètres restent accessibles par le lien
+  // du haut « Paramètres ». Aucun nouvel écran : seul l'état initial change. La réouverture d'un format (« Modifier le format », `circuitId`)
+  // garde ses paramètres en premier.
+  const firstOpening = reedit === null;
+  const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | "BUY_OUT" | null>(() => (firstOpening ? "LOOP" : null));
   const [query, setQuery] = useState("");
   const windowHeight = useWindowDimensions().height;
   const keyboardFrame = useKeyboardFrame();
@@ -736,7 +754,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // applique la sélection (multiple dans chaque section, buy-in et buy-out compris depuis le 08/11/2026 — [unique pour le buy-in :
   // remplacé]), « Fermer le mode catalogue » revient à la saisie sans ajout.
   // [Modale du Catalogue séparée (`/movement-selection`), ouverte en fondu — remplacée.]
-  const [catalogueMode, setCatalogueMode] = useState(false);
+  const [catalogueMode, setCatalogueMode] = useState(firstOpening);
   const [catalogueFilters, setCatalogueFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
   const [filterLabels, setFilterLabels] = useState<readonly string[]>([]);
   const [pilesCollapsed, setPilesCollapsed] = useState(false);
@@ -745,7 +763,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   const [collapsedPiles, setCollapsedPiles] = useState<ReadonlySet<string>>(new Set());
   // f4-catalogue (« elle se rétrécit en largeur, le bouton croix apparaît à l'intérieur, et les 3 boutons apparaissent ») :
   // le champ de saisie garde son format ; les commandes apparaissent après son premier rendu, le champ se rétrécit.
-  const [commandsShown, setCommandsShown] = useState(false);
+  const [commandsShown, setCommandsShown] = useState(firstOpening);
   const [catalogueFocus, setCatalogueFocus] = useState(false);
   const [bandHeight, setBandHeight] = useState(CONTEXT_HEIGHT);
   const [picked, setPicked] = useState<ReadonlyMap<string, Movement>>(new Map());
@@ -769,7 +787,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
   // préchargée), au plus `CATALOGUE_ICON_WAIT_MS`, pour que boutons, cartes et pastilles apparaissent ensemble.
   // [07/11 : un seul fondu du contenu, de la recherche et du bouton du bas — sortie jusqu'à disparition, remplacement du
   // contenu, puis entrée (≈ 2 × 450 ms dont une page blanche) — remplacé le 08/11/2026.]
-  const catalogueOpacity = useSharedValue(0);
+  const catalogueOpacity = useSharedValue(firstOpening ? 1 : 0);
   const catalogueFadeStyle = useAnimatedStyle(() => ({ opacity: catalogueOpacity.value }));
   const catalogueClosing = useRef(false);
   const [catalogueLeaving, setCatalogueLeaving] = useState(false);
@@ -1099,7 +1117,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     // si la fenêtre Formats était empilée dessous — remplacé.] Réédition (« Modifier le format ») : retour à la Composition.
     // Règle du 06/11/2026 (ordre des écrans) : la croix revient à l'écran qui a ouvert le questionnaire (modale « Créer un
     // exercice », ou Composition pour « Modifier le format »).
-    dismissWith(() => router.back());
+    dismissWith(() => (onClose !== undefined ? onClose() : router.back()));
   };
 
   // Cases au clavier (lignes de paramètres et tableaux) : focus, Suivant / Précédent, révélation au-dessus du clavier et de sa
@@ -2604,6 +2622,7 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
     const built = formatSheetContextOf(opening, exercise.id, (change) => {
       working = change(working);
     });
+    const quick = quickFormatOf(opening, exercise.id, model);
     // Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément
     // vide au tableau (Death by : Départ commun ou du mouvement ; AMRAP : « ± / tour » d'un mouvement en boucle) → à renseigner.
     const incrementMissing =
@@ -2717,6 +2736,8 @@ export function FormatModelScreen({ stage: initialStage }: { readonly stage: Sta
           },
         }}
         {...(context !== undefined ? { format: context } : {})}
+        // D-604 (25/11/2026) : exercice d'un format à départ rapide — Charge et De chaque côté seulement.
+        {...(context === undefined && quick !== undefined ? { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen } : {})}
         onApply={(value) => {
           applied = value;
           later();

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { render } from "@testing-library/react-native";
+import { act, render } from "@testing-library/react-native";
 import type { ComponentType } from "react";
 
 import { requestFormatsWindowClose, takeFormatsWindowCloseRequest, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
@@ -19,6 +19,8 @@ const mockDismiss = jest.fn();
 let mockRoutes: { name: string; params?: object }[] = [];
 const focusEffects: (() => void)[] = [];
 let windowProps: { onClose: () => void; onFreeExercise: () => void; onSelect: (model: string) => void } | null = null;
+let modelProps: { model?: string; stage: string; onClose?: () => void } | null = null;
+const mockSheetOptions: object[] = [];
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush, back: mockBack, dismiss: mockDismiss }),
@@ -26,12 +28,25 @@ jest.mock("expo-router", () => ({
   useFocusEffect: (effect: () => void) => {
     focusEffects.push(effect);
   },
+  Stack: {
+    Screen: ({ options }: { options: object }) => {
+      mockSheetOptions.push(options);
+      return null;
+    },
+  },
 }));
 jest.mock("@/features/sessions/FormatsWindow", () => ({
   FormatsWindow: (props: typeof windowProps) => {
     windowProps = props;
     return null;
   },
+}));
+jest.mock("@/features/sessions/FormatModelScreen", () => ({
+  FormatModelScreen: (props: typeof modelProps) => {
+    modelProps = props;
+    return null;
+  },
+  useFormatSheetDetent: () => 0.9,
 }));
 jest.mock("@/features/activities/MovementScreen", () => ({ MOVEMENT_SESSION_CONTEXT: "session" }));
 
@@ -48,40 +63,48 @@ describe("modale « Créer un exercice » (règle du 06/11/2026)", () => {
     mockDismiss.mockReset();
     focusEffects.length = 0;
     windowProps = null;
+    modelProps = null;
+    mockSheetOptions.length = 0;
     takeMovementsHandedToComposition();
     takeFormatsWindowCloseRequest();
   });
 
   // [« un Format ouvre son questionnaire » — remplacé le 15/11/2026 : écran unique de chaque Format (décision de Hermann, registre ch07).]
-  it("Exercice libre : la fiche s'ouvre par-dessus la modale, sans la refermer ; un Format ouvre son écran unique", () => {
+  // [Le Format ouvrait son écran par-dessus (`/format-summary`, feuilles empilées) — remplacé le 25/11/2026 (D-605).]
+  it("Exercice libre : la fiche s'ouvre par-dessus la modale, sans la refermer", () => {
     mockRoutes = FROM_CATALOGUE;
     render(<FormatsWindowRoute />);
     windowProps!.onFreeExercise();
     expect(mockBack).not.toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement", params: { context: "session" } });
-    windowProps!.onSelect("TABATA");
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model: "TABATA" } });
   });
 
-  it("décision de Hermann du 15/11/2026 : For time sans questionnaire — la carte ouvre directement le récapitulatif (état vide)", () => {
-    mockRoutes = FROM_COMPOSITION;
-    render(<FormatsWindowRoute />);
-    windowProps!.onSelect("FOR_TIME");
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model: "FOR_TIME" } });
-    // [AMRAP vers son questionnaire — remplacé le 15/11/2026 (« Formats à tableau — écran unique, sans redondance »).]
-    windowProps!.onSelect("AMRAP");
-    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model: "AMRAP" } });
-  });
-
-  it("décision de Hermann du 15/11/2026 : les neuf Formats à tableau ouvrent leur écran unique, jamais un questionnaire", () => {
-    mockRoutes = FROM_COMPOSITION;
-    render(<FormatsWindowRoute />);
-    for (const model of ["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE", "PROGRESSION", "EMOM", "SUPERSET", "DEATH_BY", "AMRAP"] as const) {
-      windowProps!.onSelect(model);
-      expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/format-summary", params: { model } });
-    }
-    expect(mockPush).not.toHaveBeenCalledWith(expect.objectContaining({ pathname: "/format-questionnaire" }));
-  });
+  /*
+   * D-605 (Hermann, 25/11/2026 ; Formats § 9.7) : à l'ouverture d'un format depuis la modale « Formats d'entraînement », la modale du
+   * format la recouvre entièrement — l'écran du format remplace le contenu de la même feuille native (aucune seconde feuille empilée,
+   * aucune navigation), haut de la feuille porté à celui des modales de format ; la croix du format rend le contenu de la fenêtre,
+   * de nouveau ajustée à son contenu. Les dix formats, sans exception.
+   */
+  it.each(["TABATA", "INTERVALS_30_30", "STRENGTH", "PROGRESSION", "UNTIL_FAILURE", "SUPERSET", "EMOM", "AMRAP", "DEATH_BY", "FOR_TIME"] as const)(
+    "D-605 — %s : l'écran du format remplace le contenu de la feuille (aucune feuille empilée) ; croix : retour à la fenêtre des formats",
+    (model) => {
+      mockRoutes = FROM_COMPOSITION;
+      render(<FormatsWindowRoute />);
+      expect(mockSheetOptions[mockSheetOptions.length - 1]).toEqual({ sheetAllowedDetents: "fitToContents" });
+      const opener = windowProps!;
+      windowProps = null;
+      act(() => opener.onSelect(model));
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(windowProps).toBeNull();
+      expect(modelProps).toMatchObject({ model, stage: "summary" });
+      expect(mockSheetOptions[mockSheetOptions.length - 1]).toEqual({ sheetAllowedDetents: [0.9] });
+      act(() => modelProps!.onClose!());
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(windowProps).not.toBeNull();
+      expect(mockSheetOptions[mockSheetOptions.length - 1]).toEqual({ sheetAllowedDetents: "fitToContents" });
+      expect(mockPush).not.toHaveBeenCalled();
+    },
+  );
 
   it("croix : retour à l'écran qui a ouvert la modale (Catalogue ou Composition), sans autre écran", () => {
     for (const routes of [FROM_CATALOGUE, FROM_COMPOSITION]) {

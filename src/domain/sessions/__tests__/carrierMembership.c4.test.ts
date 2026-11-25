@@ -2,7 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 
 import { durationParameters, repetitionParameters, variableParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { seriesCountOf, seriesRowsOf } from "@/domain/activities/ExecutionParameters";
-import { enterCarrier, exitCarrier, exitNeedsChoice } from "@/domain/sessions/carrierMembership";
+import { enterCarrier, exitCarrier, exitNeedsChoice, freeExerciseOf, withFreeValues } from "@/domain/sessions/carrierMembership";
 import type { ElementFormat } from "@/domain/sessions/formats";
 import { duplicateLayoutExercise, moveLayoutItem } from "@/domain/sessions/layoutMoves";
 import { applyLayoutNatureChange, setLayoutCircuitCount, setLayoutCircuitFormatSetting } from "@/domain/sessions/layoutOperations";
@@ -218,7 +218,32 @@ describe("sortie d'un Circuit porteur (§13)", () => {
     expect(exitCarrier(member, AMRAP_CIRCUIT, "KEEP").format).toEqual({ key: "AMRAP", settings: { durationSeconds: 600, incrementPerRound: 0 } });
     const free = exitCarrier(member, AMRAP_CIRCUIT, "FREE");
     expect(free).not.toHaveProperty("format");
-    expect(seriesRowsOf(free.executionParameters)[0]!.target).toEqual({ kind: "NUMBER", value: 12 });
+    // D-604 (25/11/2026) : rien n'est repris du bloc — valeurs par défaut d'un exercice libre. [Répétitions du bloc reprises — remplacé.]
+    expect(seriesRowsOf(free.executionParameters)[0]!.target).toEqual({ kind: "UNSET" });
+    expect(seriesCountOf(free.executionParameters)).toBe(1);
+    expect(free.profileDefaultsPending).toBe(true);
+  });
+
+  it("D-604 : exercice libre entré dans le format — valeurs libres conservées, rendues à la sortie libre ; créé dans le format — valeurs par défaut", () => {
+    const own = { ...exercise("a", repetitionParameters(12, 3, 30)), postActivityRecoverySeconds: 45 };
+    const entered = enterCarrier(withFreeValues(own), FOR_TIME_CIRCUIT);
+    expect(entered.format?.key).toBe("FOR_TIME");
+    expect(entered.postActivityRecoverySeconds).toBe(0);
+    expect(entered.freeValues).toEqual({ executionParameters: own.executionParameters, postActivityRecoverySeconds: 45 });
+    const out = exitCarrier(entered, FOR_TIME_CIRCUIT, "FREE");
+    expect(out).not.toHaveProperty("format");
+    expect(out).not.toHaveProperty("freeValues");
+    expect(out.executionParameters).toEqual(own.executionParameters);
+    expect(out.postActivityRecoverySeconds).toBe(45);
+    // Conserver le format : il reste dans un format, ses valeurs libres restent masquées.
+    expect(exitCarrier(entered, FOR_TIME_CIRCUIT, "KEEP").freeValues).toEqual(entered.freeValues);
+    // Valeurs par défaut : Compte à rebours et Fin du Profil gardés, sans Récupération.
+    const created = { ...enterCarrier(exercise("b"), FOR_TIME_CIRCUIT), executionParameters: { ...repetitionParameters(5, 2, 0), countdownSeconds: 7, endSeconds: 4 } };
+    const freed = freeExerciseOf(created);
+    expect(freed.executionParameters).toMatchObject({ mode: "DURATION", countdownSeconds: 7, endSeconds: 4, series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" } } });
+    expect(freed.postActivityRecoverySeconds).toBeNull();
+    // Un exercice déjà formaté ne reçoit pas de valeurs libres.
+    expect(withFreeValues(created)).toBe(created);
   });
 
   it("membre AMRAP en Durée : aucune durée convertie, objectif de répétitions à renseigner", () => {
@@ -313,5 +338,69 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     expect(rows(four, "a")).toEqual([...[21, 15, 9].map((value) => ({ kind: "NUMBER", value })), { kind: "UNSET" }]);
     expect(rows(four, "out")).toHaveLength(1);
     expect(rows(setLayoutCircuitCount(four, "f", 2), "a")).toEqual([21, 15].map((value) => ({ kind: "NUMBER", value })));
+  });
+});
+
+/*
+ * D-604 (Hermann, 25/11/2026 ; Formats § 9.7, « Sortie et entrée d'un format » ; D-569 sur la branche de documentation) : un exercice
+ * déplacé hors du format prend les champs et les valeurs par défaut d'un exercice libre, sans rien reprendre du bloc d'origine ; un
+ * exercice libre qui entre dans un format présente les champs du format, ses autres valeurs étant conservées, masquées et inactives —
+ * elles réapparaissent à sa sortie. Déplacements réels (`moveLayoutItem`), départ rapide (Tabata) et format porteur (For time).
+ */
+describe("D-604 — sortie et entrée d'un format (déplacements)", () => {
+  let next = 0;
+  const newId = () => `d${++next}`;
+  const at = (draft: SessionDraft, id: string) => draft.exercises.find((item) => item.id === id)!;
+  const applied = (outcome: ReturnType<typeof moveLayoutItem>): SessionDraft => {
+    if (outcome.status === "APPLIED" || outcome.status === "CONFIRMATION_REQUIRED") return outcome.draft;
+    throw new Error(`issue inattendue : ${outcome.status}`);
+  };
+  const tabata = (ids: readonly string[]): StructureElement<string> => ({
+    kind: "CIRCUIT",
+    circuit: { id: "tab", nature: "SERIES", repeatCount: 8, originModel: "TABATA", exercises: [...ids] },
+  });
+
+  it("Tabata : exercice créé dans le format, déplacé hors du format — valeurs par défaut d'un exercice libre, rien du bloc", () => {
+    const member = { ...exercise("t1", { ...durationParameters(20), countdownSeconds: 5, endSeconds: 3 }), postActivityRecoverySeconds: 0 };
+    const draft = draftOf([tabata(["t1", "t2"])], [member, exercise("t2", durationParameters(20))]);
+    const out = at(applied(moveLayoutItem(draft, { kind: "EXERCISE", id: "t1" }, { container: { kind: "SESSION" }, index: 1 }, newId)), "t1");
+    expect(out).not.toHaveProperty("format");
+    expect(out.executionParameters).toMatchObject({ mode: "DURATION", countdownSeconds: 5, endSeconds: 3, series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0 } });
+    expect(out.postActivityRecoverySeconds).toBeNull();
+    expect(out.profileDefaultsPending).toBe(true);
+  });
+
+  it("Tabata : exercice libre entré puis ressorti — ses valeurs libres, conservées et masquées dans le format, réapparaissent", () => {
+    const free = { ...exercise("x", repetitionParameters(12, 3, 30)), postActivityRecoverySeconds: 45 };
+    const draft = draftOf([{ kind: "EXERCISE", exercise: "x" }, tabata(["t1", "t2"])], [free, exercise("t1", durationParameters(20)), exercise("t2", durationParameters(20))]);
+    const inside = applied(moveLayoutItem(draft, { kind: "EXERCISE", id: "x" }, { container: { kind: "CIRCUIT", id: "tab" }, index: 2 }, newId));
+    expect(at(inside, "x").freeValues).toEqual({ executionParameters: free.executionParameters, postActivityRecoverySeconds: 45 });
+    const back = at(applied(moveLayoutItem(inside, { kind: "EXERCISE", id: "x" }, { container: { kind: "SESSION" }, index: 0 }, newId)), "x");
+    expect(back.executionParameters).toEqual(free.executionParameters);
+    expect(back.postActivityRecoverySeconds).toBe(45);
+    expect(back).not.toHaveProperty("freeValues");
+  });
+
+  it("For time : exercice libre entré (champs du format) puis « Adopter un format libre » — valeurs libres retrouvées ; « Conserver » les garde masquées", () => {
+    const free = { ...exercise("x", repetitionParameters(12, 3, 30)), postActivityRecoverySeconds: 45 };
+    const forTime: StructureElement<string> = { kind: "CIRCUIT", circuit: { id: "ft", nature: "SERIES", repeatCount: 3, format: FOR_TIME_CIRCUIT.format, exercises: ["f1"] } };
+    const draft = draftOf([{ kind: "EXERCISE", exercise: "x" }, forTime], [free, enterCarrier(exercise("f1"), FOR_TIME_CIRCUIT)]);
+    const inside = applied(moveLayoutItem(draft, { kind: "EXERCISE", id: "x" }, { container: { kind: "CIRCUIT", id: "ft" }, index: 1 }, newId));
+    expect(at(inside, "x").format?.key).toBe("FOR_TIME");
+    expect(at(inside, "x").postActivityRecoverySeconds).toBe(0);
+    const exit = moveLayoutItem(inside, { kind: "EXERCISE", id: "x" }, { container: { kind: "SESSION" }, index: 0 }, newId);
+    expect(exit.status).toBe("FORMAT_EXIT_CHOICE");
+    if (exit.status !== "FORMAT_EXIT_CHOICE") return;
+    const freed = at(applied(exit.resolutions.FREE), "x");
+    expect(freed).not.toHaveProperty("format");
+    expect(freed.executionParameters).toEqual(free.executionParameters);
+    expect(freed.postActivityRecoverySeconds).toBe(45);
+    expect(at(applied(exit.resolutions.KEEP), "x").freeValues).toEqual({ executionParameters: free.executionParameters, postActivityRecoverySeconds: 45 });
+    // Exercice créé dans le format : « Adopter un format libre » — valeurs par défaut, rien du bloc.
+    const created = moveLayoutItem(inside, { kind: "EXERCISE", id: "f1" }, { container: { kind: "SESSION" }, index: 0 }, newId);
+    if (created.status !== "FORMAT_EXIT_CHOICE") throw new Error(created.status);
+    const createdFree = at(applied(created.resolutions.FREE), "f1");
+    expect(createdFree.executionParameters.series).toMatchObject({ kind: "UNIFORM", count: 1, target: { kind: "UNSET" } });
+    expect(createdFree.postActivityRecoverySeconds).toBeNull();
   });
 });

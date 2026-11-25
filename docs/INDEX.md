@@ -29,7 +29,7 @@ Les décisions BIB-01 à BIB-18, F4-A à F4-G et KIN-01 couvrent : Bibliothèque
 - [Architecture, modèle de données et axes de simplification pour Claude](KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md) — proposition technique à examiner, notamment la migration `normalized_name UNIQUE` et la cohérence des mises à jour sur deux bases.
 - [Registre des décisions](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md) ; [données](Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md), [API](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md), [architecture](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md).
 
-**Périmètre :** premier lot Bibliothèques génériques KODJO distinct du MVP local ; partage et modération centrale reportés. Aucune réalisation de réseau ou de modération centrale revendiquée. La page « Prototype MVP » de Figma comporte des actions « Partager », pas des parcours complets de Bibliothèques ou de modération validés.
+**Périmètre :** premier lot Bibliothèques génériques KODJO distinct du MVP local ; partage et modération centrale reportés. [Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.] Aucune réalisation de réseau ou de modération centrale revendiquée. La page « Prototype MVP » de Figma comporte des actions « Partager », pas des parcours complets de Bibliothèques ou de modération validés.
 
 ## Formats — base de reprise actualisée le 5 novembre 2026
 

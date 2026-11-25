@@ -6324,6 +6324,8 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 
 ## Parcours UX à concevoir — Bibliothèques et partage (post-MVP)
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 Écrans et états **fonctionnels à concevoir**, sans contrat visuel Figma validé à cette date [11/11/2026 : écrans existants listés par A-4, sans validation UX complète ; « Mes bibliothèques » et désinstallation reportées hors du premier lot] : **Mes Bibliothèques**, **Bibliothèque personnelle (composition modifiable)**, **Bibliothèque reçue (composition non modifiable)**, **Partage d'une fiche ou Bibliothèque**, **Mise à jour disponible / détail des changements**, **Espace en étoile / transmission individuelle** et **Signalement / contenu suspendu**.
 
 L'écran **« Mise à jour disponible »** doit signaler, avant « Mettre à jour », la nouvelle composition éventuelle et les fiches révisées, **dont celles référencées dans d'autres Bibliothèques**. Une seule validation actualise ces fiches dans toutes leurs références, sans changer les compositions des autres Bibliothèques. Les homonymes de sources différentes doivent rester identifiables par leur provenance, sans suffixes arbitraires imposés. Le propriétaire habilité peut publier initialement sa fiche sans accorder la redistribution à ses destinataires. [Texte d'origine : « Le mode « Protégé » n'empêche pas la première publication d'une fiche par son propriétaire. » — remplacé le 11/11/2026, les quatre modes étant supersédés par MOUV-D3/A-2.]

@@ -85,9 +85,21 @@ function Harness() {
   );
 }
 
+/** Fin du fondu de sortie du choix initial des mouvements (fondus retenus par le test : déclenchée par lui). */
+let leaveInitialCatalogue: () => Promise<void> = async () => {};
+
+/**
+ * D-603 / D-604 (25/11/2026) : la première ouverture montre déjà le choix des mouvements. Les scénarios du mode catalogue partent des
+ * paramètres et le rouvrent par « + Ajouter » : sortie du choix initial (« Fermer sans sélectionner »), compteurs de fondus remis à zéro.
+ */
 async function openCatalogue() {
   render(<Harness />);
   await screen.findByTestId("format-title");
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("format-catalogue-add"));
+  });
+  await leaveInitialCatalogue();
+  if (jest.isMockFunction(Reanimated.withTiming)) (Reanimated.withTiming as unknown as jest.Mock).mockClear();
   await act(async () => {
     fireEvent.press(screen.getByTestId("format-movements-link"));
   });
@@ -99,6 +111,7 @@ const bottomLabel = () => within(screen.getByTestId("format-bottom-action"));
 
 describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
   beforeEach(() => {
+    leaveInitialCatalogue = async () => {};
     jest.restoreAllMocks();
     resetPreloadedKodjoIconsForTests();
   });
@@ -238,6 +251,10 @@ describe("Recette iPhone du 08/11/2026 — fondu enchaîné du mode catalogue d'
       fades.push({ to, done });
       return to;
     }) as never);
+    leaveInitialCatalogue = async () => {
+      await finishFade(0);
+      fades = [];
+    };
   });
   const finishFade = async (to: number) => {
     const fade = [...fades].reverse().find((item) => item.to === to);

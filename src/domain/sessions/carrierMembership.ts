@@ -18,6 +18,7 @@
  */
 
 import {
+  createEmptyExecutionParameters,
   failureTarget,
   seriesRowsOf,
   unsetTarget,
@@ -152,6 +153,44 @@ function withoutFailureTargets(parameters: ExecutionParametersInput): ExecutionP
   return { ...parameters, series: { ...parameters.series, rows: parameters.series.rows.map((row) => (row.target.kind === "FAILURE" ? { ...row, target: unsetTarget() } : row)) } };
 }
 
+/**
+ * D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : un exercice libre qui entre dans un format présente les champs du format ; ses autres
+ * valeurs sont conservées, masquées et inactives (`freeValues`), et réapparaissent s'il sort du format. Un exercice déjà formaté, ou qui
+ * garde des valeurs libres d'une entrée précédente, est rendu tel quel.
+ */
+export function withFreeValues(exercise: SessionDraftExercise): SessionDraftExercise {
+  if (exercise.type !== "EXERCISE" || (exercise.format ?? null) !== null || exercise.freeValues !== undefined) return exercise;
+  return { ...exercise, freeValues: { executionParameters: exercise.executionParameters, postActivityRecoverySeconds: exercise.postActivityRecoverySeconds } };
+}
+
+/**
+ * D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : un exercice déplacé hors du format prend les champs d'un exercice libre, avec les valeurs
+ * par défaut d'un exercice libre ; aucune valeur du bloc d'origine n'est reprise. Entré libre dans le format : ses valeurs libres
+ * conservées (`freeValues`) réapparaissent. Valeurs par défaut : paramètres vierges d'un nouvel exercice (`createEmptyExecutionParameters`)
+ * avec le Compte à rebours et la Fin du Profil déjà portés par l'exercice, sans Récupération, défauts du Profil « en attente »
+ * (comme `exerciseOfMovement`). Les durées de phases du Mouvement ne sont pas reprises (le Mouvement n'est pas lu ici).
+ * [PRE-9 C.4 : « paramètres compatibles conservés » à la sortie libre — remplacé le 25/11/2026.]
+ */
+export function freeExerciseOf(exercise: SessionDraftExercise): SessionDraftExercise {
+  if (exercise.type !== "EXERCISE") return exercise;
+  const { format: _format, freeValues, profileDefaultsPending: _pending, ...rest } = exercise;
+  if (freeValues !== undefined) {
+    return {
+      ...rest,
+      executionParameters: freeValues.executionParameters,
+      postActivityRecoverySeconds: freeValues.postActivityRecoverySeconds,
+      ...(exercise.profileDefaultsPending === true ? { profileDefaultsPending: true as const } : {}),
+    };
+  }
+  const { countdownSeconds, endSeconds } = exercise.executionParameters;
+  return {
+    ...rest,
+    executionParameters: createEmptyExecutionParameters({ countdownSeconds, endSeconds }),
+    postActivityRecoverySeconds: null,
+    profileDefaultsPending: true,
+  };
+}
+
 export type CarrierExitChoice = "KEEP" | "FREE";
 
 /**
@@ -163,8 +202,9 @@ export function exitCarrier(exercise: SessionDraftExercise, circuit: CarrierCirc
   if (carried === null || exercise.type !== "EXERCISE") return exercise;
   const parameters = exercise.executionParameters;
   if (choice === "FREE" || isSinglePassage(exercise.format)) {
-    // Format libre : paramètres compatibles conservés ; Passage et réglages du Format retirés.
-    return withFormat(exercise, null, parameters);
+    // D-604 (25/11/2026) : valeurs d'un exercice libre (freeExerciseOf). [Format libre : paramètres compatibles conservés ; Passage et
+    // réglages du Format retirés — remplacé.]
+    return freeExerciseOf(exercise);
   }
   const target = commonTarget(parameters);
   const numeric: SeriesTarget = target.kind === "NUMBER" ? target : unsetTarget();

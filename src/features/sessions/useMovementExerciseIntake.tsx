@@ -26,7 +26,7 @@ import {
   withMovementExercises,
 } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
-import { formatSheetContextOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { formatSheetContextOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 
 type ProfileDefaults = {
@@ -213,6 +213,8 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
         profileDefaultsPending={exercise.profileDefaultsPending === true}
         // PRE-9 (CE-FMT-04, MAJ 04/11/2026 §6 bis 2) : réglages de Format selon le porteur, appliqués par le ✓.
         {...withFormat(formatSheetContextOf(draft, exercise.id, (change) => updateDraft((current) => change(current))))}
+        // D-604 (25/11/2026) : membre d'un format à départ rapide — Charge et De chaque côté seulement.
+        {...quickFormatProps(quickFormatOf(draft, exercise.id))}
         onApply={(parameters) => {
           const validated = validateForSave(parameters, opening.baseline);
           const applied = validated.ok ? validated.value : parameters;
@@ -248,6 +250,13 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
   };
 }
 
+
+function quickFormatProps(quick: { readonly name: string; readonly unitOpen: boolean } | undefined): {
+  readonly quickFormatName?: string;
+  readonly quickFormatUnitOpen?: boolean;
+} {
+  return quick === undefined ? {} : { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen };
+}
 
 function withFormat<T>(context: T | undefined): { readonly format?: T } {
   return context === undefined ? {} : { format: context };

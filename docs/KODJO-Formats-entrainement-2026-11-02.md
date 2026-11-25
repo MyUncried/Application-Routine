@@ -125,6 +125,8 @@ Le For time n'a pas d'Incrément par tour.
 
 **Modale For time d'un Exercice seul.** Les séries peuvent être **variables** (21 / 15 / 9, cas le plus courant) ou **identiques** (par exemple 5 × 20 burpees) : le For time fixe un travail fait le plus vite possible, sans imposer sa forme. L'écran « For time — Modale exercice, standard » montre l'état initial cohérent avec le questionnaire : « 3 séries variables » sélectionné, 21 / 15 / 9 répétitions, pauses à 0 s.
 
+[Précisé le 25/11/2026 (D-604, § 9.7) : dans la modale, Séries (tableau des répétitions et pauses) ; en buy-in ou buy-out, Nombre de répétitions à la place de Séries ; ni durée maximum, ni Cadence, ni Récupération, ni Pause.]
+
 **Boucle du For time.** Un Exercice de rôle Tour peut être en Répétitions ou en Durée (par exemple « 3 tours : 20 burpees, puis 30 s de gainage » : le chrono mesure toujours la performance). **Au moins un Exercice de la boucle (Rôle Tour) reste en Répétitions** ; les buy-in et buy-out ne comptent pas (décision de Hermann du 16/11/2026, recette mp-duree-refusee : « Les mouvements en buy-in et buy out doivent être exclus de cette vérification. Il faut au moins un exercice en répétition sur les exercices en boucle. ») : le travail de la boucle ne doit pas être entièrement défini par des durées fixes. Pour le dernier Exercice en Répétitions de la boucle, l’option Durée est refusée, avec un message court ; un buy-in ou un buy-out peut toujours passer en Durée. [Remplacé le 16/11/2026 : « Au moins un Exercice de l’ensemble du Circuit reste en Répétitions, buy-in et buy-out compris : le travail du Circuit ne doit pas être entièrement défini par des durées fixes. Pour le dernier Exercice en Répétitions du Circuit, l’option Durée est désactivée, avec un message court. »] Ce contrôle s’applique aussi à la suppression, au déplacement hors du Circuit et aux autres modifications de mode. Une boucle entièrement en Durée est possible si un buy-in ou un buy-out reste en Répétitions.
 
 **Données et développement.** Le champ « Passage » (Une fois / À chaque tour) devient « Rôle dans le circuit » (Buy-in / Tour / Buy-out). La règle qui réservait « Une fois » au premier ou au dernier Exercice, la limite à un seul buy-in et l'interdiction de dupliquer isolément un buy-in sont retirées : dupliquer un buy-in crée un second buy-in, exécuté une seule fois, placé juste après l'original dans la zone buy-in ; il en va de même pour un buy-out, dont la copie est placée juste après l'original dans la zone buy-out. Les règles de réordonnancement des buy-in et buy-out (§6, points 4 et suivants) sont remplacées par le découpage en zones ci-dessus.
@@ -170,6 +172,8 @@ Tout Exercice ajouté ou déplacé dans un Circuit porteur d’un Format suit le
 | EMOM dans chaque intervalle | Mode Répétitions par défaut ou Durée, Condition d’arrêt, cible chiffrée propre au mode, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
 | Death by dans chaque intervalle | Mode Répétitions ou Durée, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, Cadence Sans, Récupération initiale 0 s | Compte ouvert et intervalle commun du Circuit ; durée globale non portée localement |
 | Death by en alternance | Mode Répétitions ou Durée, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, **Intervalle propre modifiable dans la modale**, Cadence Sans, Récupération initiale 0 s | Identité Death by et compte ouvert au Circuit ; aucune durée dans son en-tête |
+
+[Précisé le 25/11/2026 (D-604, § 9.7) : la modale « Paramètres d'exécution » d'un exercice déjà dans la séance n'affiche plus que les champs utiles dans son contexte — Phases du mouvement, Cadence, Durée de l'exercice (ou durée maximum), Récupération et Pause n'y figurent plus pour l'EMOM, l'AMRAP, le Death by et le For time ; les valeurs correspondantes restent celles de l'exercice.]
 
 6. **Déplacement direct entre deux Circuits porteurs de Formats** : seule la règle d’entrée du Circuit d’arrivée s’applique. Les paramètres compatibles sont conservés et les autres à compléter, sans confirmation de perte, sans étape intermédiaire d’Exercice seul et sans choix de sortie du §13. Un Circuit ne se déplace pas à l’intérieur d’un autre Circuit.
 7. **Dernier Exercice du Circuit** :
@@ -576,6 +580,43 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 [Contre-recette n° 3 bis du 03/11/2026 (f3-depart), Hermann, toujours applicable : « il manque la pause » — Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base ; « ne pas calculer de durée total sur l'écran Questionnaire, l'utilisateur ne voit pas les valeur par défaut utilisées » — Durée totale au récapitulatif seulement (l'interrupteur « Avec charge » se place donc après Pause) ; « la ligne du mode d'exécution est la dernière, après la durée totale » ; colonne des noms fixe, colonnes des séries défilant horizontalement ; « clavier : supprimer le bouton "Next" ». « Aucun interrupteur global de charge » (02/11) remplacé le 04/11/2026 par l'interrupteur « Avec charge » du questionnaire (§9.3) ; « Suivant parcourt répétitions S1, charge S1, répétitions S2 » remplacé par l'ordre ci-dessus (objectifs puis charges). Fusion du 04/11/2026 de `main` 560f87bd dans `pre9-bmad/dev`.]
 
 
+### 9.6 Séquence d'ouverture et modale « Paramètres d'exécution » allégée (25/11/2026, D-603)
+
+- **Séquence.** À l'ouverture du format Tabata, l'écran de choix des mouvements s'affiche en premier ; le questionnaire reste accessible depuis cet écran. Aucun nouvel écran.
+- **Modale « Paramètres d'exécution Tabata »** (ouverte en touchant un mouvement du questionnaire, ou depuis la Composition) : seuls **Charge** et **De chaque côté** sont présentés. Mode, Condition d'arrêt, Phases du mouvement, Séries, Objectif de durée, Pause, Cadence, Durée de l'exercice et Récupération n'y figurent plus ; le nombre de séries, la durée de travail, la pause et la récupération se règlent sur l'écran principal du format. Les exercices du Tabata gardent Durée, À l'objectif, sans phases et sans cadence.
+- [Précisé le 25/11/2026 (D-603) : la règle « Règles des Exercices standards » du § 9 n'ouvre plus, dans cette modale, la modification individuelle de Mode, Phases, Séries, Objectif, Pause, Cadence, Durée de l'exercice et Récupération pour un exercice du Tabata.]
+- Figma : « Tabata — Modale exercice, standard » et « Tabata — Modale exercice, en alternance » (modale allégée). L'intégration de la modale sera revue ultérieurement.
+- [Précisé le 25/11/2026 (D-604) : règle générale au § 9.7 ; elle remplace la liste fermée « Charge et De chaque côté » pour les formats autres que les départs rapides.]
+
+### 9.7 Modale d'un exercice de la séance : les champs utiles dans le contexte (25/11/2026, D-604)
+
+[Report du 25/11/2026 depuis la branche de documentation `docs/planification-grille-creneaux` (non fusionnée), où ces décisions portent les numéros D-568, D-569 et D-570, déjà pris sur main : renumérotées D-603, D-604 et D-605. Interprétations de l'implémentation à confirmer : voir D-604 au registre (ligne Mode des départs rapides à unité libre, buy-in et buy-out en Nombre de répétitions, valeurs par défaut à la sortie, exercice seul d'un départ rapide, valeurs libres non enregistrées).]
+
+**Règle.** La modale « Paramètres d'exécution » d'un exercice déjà dans la séance n'affiche que les champs dont l'utilisateur a besoin dans son contexte. Un champ déjà réglé par le questionnaire, le récapitulatif ou le circuit du format n'y figure pas ; pour le changer, on rouvre le circuit sur l'écran principal du format (§ 7.9).
+
+| Contexte de l'exercice | Champs affichés |
+|---|---|
+| Tabata, 30/30, Renforcement, Progression, À l'échec, Superset | Charge, De chaque côté |
+| EMOM (standard, en alternance) | Mode, Condition d'arrêt, Nombre de répétitions, Intervalle, Charge, De chaque côté |
+| EMOM dans chaque intervalle | Mode, Condition d'arrêt, Nombre de répétitions, Charge, De chaque côté |
+| AMRAP | Mode, Condition d'arrêt, Rôle (en circuit), Nombre de répétitions, Incrément par tour, Charge, De chaque côté |
+| Death by (standard) | Mode, Condition d'arrêt, Nombre de répétitions, Incrément par intervalle, Intervalle, Charge, De chaque côté |
+| Death by dans chaque intervalle | Les mêmes, sans Intervalle |
+| For time | Mode, Condition d'arrêt, Rôle (en circuit), Séries (tableau des répétitions et pauses), Charge, De chaque côté ; en buy-in ou buy-out : Nombre de répétitions à la place de Séries |
+| Exercice libre | Tous les champs d'un exercice libre |
+
+Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée de l'exercice (ou durée maximum), Récupération, Pause.
+
+**Sortie et entrée d'un format.**
+- Un exercice déplacé hors du format prend les champs d'un exercice libre, avec les valeurs par défaut d'un exercice libre ; aucune valeur du bloc d'origine n'est reprise.
+- Un exercice libre qui entre dans un format présente les champs du format ; ses autres valeurs sont conservées, masquées et inactives, et réapparaissent s'il sort du format.
+
+**Séquence d'ouverture.** Étendue à **tous les formats, sans exception** (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset, EMOM, AMRAP, Death by, For time) : à la première ouverture du format, l'écran de choix des mouvements s'affiche en premier, sans nouvel écran. Le lien du haut de cet écran s'intitule **« Paramètres »**.
+
+**Recouvrement (D-605).** À l'ouverture d'un format depuis la modale « Formats d'entraînement », la modale du format la recouvre entièrement : aucune partie de la modale des formats n'est visible derrière. Les écrans Figma du prototype la recouvrent déjà (la fenêtre des formats occupe de 103 à 850 pt, la modale du questionnaire de 95 à 866 pt) ; la correction porte sur l'application.
+
+Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternance, dans chaque intervalle), AMRAP (dans un circuit, buy-in, simple à l'échec, durée à l'échec), Death by (standard, dans chaque intervalle) et For time (standard, dans un circuit, buy-in ou buy-out) allégées, hauteur de feuille adaptée. Renforcement, Progression, À l'échec et Superset n'ont pas de modale dédiée dans le prototype : la règle s'y applique par la documentation. « Conception — Hors MVP » non touché.
+
 ## 10. Application de la règle à l'EMOM
 
 Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Répétitions par défaut et Durée possible**, par Exercice et dans toutes les organisations. Un EMOM peut associer 10 burpees et 20 s de gainage dans chaque minute, ou un seul gainage de 40 s par minute. Les objectifs en Durée sont soumis au contrôle strict de l’intervalle du §7.6.
@@ -592,6 +633,8 @@ Exemple chiffré ci-dessous : 2 mouvements, 6 séries, intervalle 1 min, 10 rép
 | **Dans chaque intervalle** | A puis B dans le même intervalle, repos jusqu'à l'intervalle suivant | Circuit **porteur du format** (Format d'origine = EMOM) : 6 tours, nature fixée « groupées », **Durée de chaque tour** = intervalle (1 min), modifiable | Mode Répétitions ; Nombre de répétitions 10 ; ni Séries, ni Intervalle, ni Durée de l'exercice (portés par le circuit) ; Récupération 0 s | 6 min |
 
 [07/11/2026, Hermann : « Condition d'arrêt : « À l'objectif » seul. « À l'échec » est affiché mais désactivé (grisé, non sélectionnable) dans tous les cas EMOM. » ; « Jamais de ligne Pause » ; Durée de l’exercice en lecture seule (N × intervalle) placée sous l’Intervalle (cas 1 à 3), absente dans chaque intervalle ; Récupération retirée en alternance et dans chaque intervalle — ch07 du même jour.] [07/11/2026, Hermann, réponses aux points ouverts : en alternance, « la confirmation ne s'affiche que s'il y a plus de séries que de tours. S'il y en a moins, les séries ajoutées sont à renseigner, sans confirmation » ; « Quand un exercice entre dans un circuit alterné ou « dans chaque intervalle », sa Récupération passe à 0 s dans les données » (données existantes normalisées, migration 023) ; dans la Composition, un dépassement d’intervalle teinte le Circuit replié comme ses cartes, et la durée de tour d’un Circuit « dans chaque intervalle » est marquée en rouge. Texte complet : ch07, section EMOM du 07/11/2026.]
+
+[Précisé le 25/11/2026 (D-604, § 9.7) : modale EMOM — Mode, Condition d'arrêt, Nombre de répétitions, Intervalle (absent dans chaque intervalle), Charge, De chaque côté ; Durée de l'exercice en lecture seule et Récupération n'y figurent plus (valeurs inchangées).]
 
 « Dans chaque intervalle » est le seul cas EMOM où le circuit porte le format : l'intervalle englobe plusieurs exercices. Il réutilise le champ « Durée de chaque tour » du circuit, introduit pour l'AMRAP.
 
@@ -761,7 +804,7 @@ Lorsqu'un exercice sort d'un circuit qui porte un format (AMRAP, For time, EMOM 
    - Sortie d'un circuit For time → For time simple ; Séries = nombre de tours, mêmes volumes.
    - Sortie d'un circuit EMOM « dans chaque intervalle » → EMOM simple ; Intervalle = durée de chaque tour, Séries = nombre de tours.
    - Sortie d’un Circuit Death by → Death by simple ; Séries « Jusqu’à l’échec », Nombre de répétitions et Incrément conservés. Dans chaque intervalle : Intervalle repris du Circuit. En alternance : Intervalle propre de l’Exercice conservé, sans reprise d’une durée de Circuit inexistante.
-2. **« Adopter un format libre »** : l'exercice devient un exercice standard. Exception : un buy-in ou un buy-out sorti du circuit devient directement un exercice libre (section 6), sans cette confirmation. Le choix explicite du Format Libre reprend les paramètres compatibles et laisse les autres à compléter ; aucune conversion de durée en répétitions, aucun calcul arbitraire et aucune confirmation supplémentaire de perte. Ne pas promettre « aucune perte » pour tous les changements de prescription.
+2. **« Adopter un format libre »** : l'exercice devient un exercice standard. Exception : un buy-in ou un buy-out sorti du circuit devient directement un exercice libre (section 6), sans cette confirmation. Le choix explicite du Format Libre reprend les paramètres compatibles et laisse les autres à compléter ; aucune conversion de durée en répétitions, aucun calcul arbitraire et aucune confirmation supplémentaire de perte. Ne pas promettre « aucune perte » pour tous les changements de prescription. [Précisé le 25/11/2026 (D-604, § 9.7) : il prend les champs et les valeurs par défaut d'un exercice libre, sans rien reprendre du bloc d'origine ; entré libre dans le format, il retrouve ses valeurs libres, conservées et masquées pendant son passage. Même règle à la sortie d'un format à départ rapide (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset).]
 
 **Dialogue représenté** : « AMRAP — Séance, sortie d’un exercice du circuit (confirmation) » (`11410:20123`), composant « DSF / Overlays / Confirmation », variante Trois actions, sur fond voilé. Titre « Sortir du circuit AMRAP ? » ; exemple de message « Fentes avant devient un AMRAP simple de 12 min, ou un exercice libre sans incrément par tour. » Actions : **Conserver le format AMRAP** (principale bleue, choix par défaut), **Adopter un format libre** (secondaire), **Annuler**. Annuler conserve l’emplacement et les paramètres antérieurs. Le message varie selon le mouvement, le Format et les paramètres effectivement repris ; ce texte illustratif ne supprime pas les règles de compatibilité ou de champs à compléter.
 

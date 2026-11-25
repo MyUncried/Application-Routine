@@ -594,7 +594,8 @@ export const fr = {
       // sélectionné, puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés »).
       closeWithoutSelecting: "Fermer sans sélectionner",
       // p-coche / p-ajout : « le bouton +Ajouter est remplacé par « revenir aux paramètres » après qu'il ait été sélectionné ».
-      backToParameters: "Revenir aux paramètres",
+      // D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : le lien du haut du choix des mouvements s'intitule « Paramètres ». [« Revenir aux paramètres » — remplacé.]
+      backToParameters: "Paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
       // D-531 / RM-271 (Hermann, 19/11/2026) : Max interdit dans une boucle de plusieurs mouvements (AMRAP, For time).
