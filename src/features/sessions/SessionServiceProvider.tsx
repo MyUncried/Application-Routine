@@ -32,6 +32,9 @@ import { ActivityDefinitionService } from "@/features/activities/ActivityDefinit
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import { AccountServiceContext } from "@/features/account/AccountServiceContext";
+import { createAccountService } from "@/features/account/createAccountService";
+import type { AccountService } from "@/domain/account/AccountService";
 import { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { MigrationNoticeRepositoryContext } from "@/features/sessions/MigrationNoticeRepositoryContext";
@@ -111,6 +114,8 @@ type SessionServiceInitializerProps = {
   onReferentialServiceReady: (service: ReferentialService) => void;
   /** PRE-4 (story 1.1, AD-12) : remonte le repository des avis de migration, même connexion SQLite. */
   onMigrationNoticeRepositoryReady: (repository: MigrationNoticeRepository) => void;
+  /** T1 Compte : service de compte sur la même connexion. */
+  onAccountServiceReady: (service: AccountService) => void;
   /** PRE-10 : remonte le service d'Exécution et son adaptateur de signaux, même connexion SQLite. */
   onExecutionReady: (value: ExecutionContextValue) => void;
   /** Planification : remonte `PlanningService` (Routines, occurrences), même connexion SQLite. */
@@ -134,6 +139,7 @@ function SessionServiceInitializer({
   onProfileServiceReady,
   onReferentialServiceReady,
   onMigrationNoticeRepositoryReady,
+  onAccountServiceReady,
   onExecutionReady,
   onPlanningServiceReady,
   onProgramServiceReady,
@@ -272,6 +278,13 @@ function SessionServiceInitializer({
     onMigrationNoticeRepositoryReady(migrationNoticeRepository);
   }, [migrationNoticeRepository, onMigrationNoticeRepositoryReady]);
 
+  // T1 Compte (plan `_bmad-output/compte/plan-lot-compte.md`) : lien de compte et porte d'entrée, même connexion.
+  const accountService = useMemo(() => createAccountService(new ExpoDatabase(nativeDatabase)), [nativeDatabase]);
+
+  useEffect(() => {
+    onAccountServiceReady(accountService);
+  }, [accountService, onAccountServiceReady]);
+
   useEffect(() => {
     onActivityDefinitionServiceReady(activityDefinitionService);
   }, [activityDefinitionService, onActivityDefinitionServiceReady]);
@@ -311,6 +324,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
   const [execution, setExecution] = useState<ExecutionContextValue | null>(null);
   const [planningService, setPlanningService] = useState<PlanningService | null>(null);
   const [programService, setProgramService] = useState<ProgramService | null>(null);
+  const [accountService, setAccountService] = useState<AccountService | null>(null);
 
   const handleServiceReady = useCallback((service: SessionService) => {
     setSessionService(service);
@@ -347,10 +361,10 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
   // que `SessionService` seul est construit. Aucun écran n'est donc jamais
   // rendu avec un contexte Profil ou référentiel nul.
   useEffect(() => {
-    if (sessionService && profileService && referentialService && isProfileLoaded) {
+    if (sessionService && profileService && referentialService && isProfileLoaded && accountService) {
       onReady?.();
     }
-  }, [sessionService, profileService, referentialService, isProfileLoaded, onReady]);
+  }, [sessionService, profileService, referentialService, isProfileLoaded, accountService, onReady]);
 
   return (
     <>
@@ -361,6 +375,7 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
           onProfileServiceReady={handleProfileServiceReady}
           onReferentialServiceReady={handleReferentialServiceReady}
           onMigrationNoticeRepositoryReady={handleMigrationNoticeRepositoryReady}
+          onAccountServiceReady={setAccountService}
           onExecutionReady={setExecution}
           onPlanningServiceReady={setPlanningService}
           onProgramServiceReady={setProgramService}
@@ -373,7 +388,9 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
               <MigrationNoticeRepositoryContext.Provider value={migrationNoticeRepository}>
                 <ExecutionServiceContext.Provider value={execution}>
                   <PlanningServiceContext.Provider value={planningService}>
-                    <ProgramServiceContext.Provider value={programService}>{children}</ProgramServiceContext.Provider>
+                    <ProgramServiceContext.Provider value={programService}>
+                      <AccountServiceContext.Provider value={accountService}>{children}</AccountServiceContext.Provider>
+                    </ProgramServiceContext.Provider>
                   </PlanningServiceContext.Provider>
                 </ExecutionServiceContext.Provider>
               </MigrationNoticeRepositoryContext.Provider>
