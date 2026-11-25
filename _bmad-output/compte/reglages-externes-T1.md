@@ -1,6 +1,6 @@
 # Réglages externes nécessaires à T1 (Compte)
 
-**Avancement au 24/11/2026 :** §1 fait. Projet Supabase `kodjo-dev` (`https://qiruzadtbqcdewvsaizo.supabase.co`, Paris `eu-west-3`, Free), adresses de retour enregistrées, clé publique relevée.
+**Avancement au 24/11/2026 :** §1 fait. Projet Supabase `kodjo-dev` (`https://qiruzadtbqcdewvsaizo.supabase.co`, Paris `eu-west-3`, Free), adresses de retour enregistrées, clé publique relevée. §2 fait le 25/11/2026 : capacité Sign in with Apple sur `com.ankusha.kodjo` (identifiant principal) et sur les variantes groupées ; Services ID `com.ankusha.kodjo.signin` ; clé « KODJO Sign in with Apple » ; fournisseur Apple activé dans Supabase, Services ID en premier ; « Allow users without an email » désactivé. Rappel de régénération de la clé secrète : à la charge de Hermann.
 
 Guide à suivre par Hermann. **Aucun secret ne doit être collé dans une conversation ni committé dans le dépôt.** Les secrets vont dans les tableaux de bord concernés (Supabase, EAS).
 
