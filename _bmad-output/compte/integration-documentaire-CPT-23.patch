@@ -1,3 +1,4 @@
+# [APPLIQUÉ le 25/11/2026 sous le numéro CPT-33 sur la branche de la PR #446 — collision : CPT-23 y désigne déjà les notifications push. Ne pas appliquer ce patch tel quel.]
 diff --git a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
 index a392d82..88d6cc8 100644
 --- a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md

@@ -44,7 +44,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 | Arbitrage | Application aux parcours |
 |---|---|
 | **F4-A** | Mise à jour de la Bibliothèque sur action explicite, jamais automatique (PU-10). |
-| **F4-B** | Mouvement retiré d'une version reçue conservé localement et dans les Séances (PU-10/12). |
+| **F4-B** | Mouvement retiré d'une version reçue conservé localement et dans les Séances (PU-10/12). [Précisé le 25/11/2026 : F4-B vise le **retrait d’un Mouvement de la composition** d’une Bibliothèque. Le retrait d’un droit d’accès relève de CPT-17 (conservation hors relation payante) et le retrait par KODJO d’un contenu signalé relève de CPT-19/CPT-17 ; ces trois cas ne sont pas assimilés.] |
 | **F4-C** | Accès attribué au niveau Bibliothèque ; retrait du Mouvement n'annule pas l'usage déjà reçu (PU-08/12). |
 | **F4-D** | Un seul « Mettre à jour » installe composition et nouvelles révisions sans écraser les Mouvements personnels originaux distincts (PU-10). |
 | **F4-E** | Archivage du propriétaire sans effet pour les destinataires (PU-13). |
@@ -172,6 +172,7 @@ La visibilité d'une Bibliothèque est **personnelle, partagée ou publique**, i
 **Acteurs :** utilisateur émetteur et destinataire lié individuellement. **Exemple d'usage :** kinésithérapeute transmettant un Mouvement à son patient, avec texte facultatif au partage personnalisé (réconciliation du 17/11/2026).
 **Déroulement :** l'émetteur invite une autre personne dans une relation individuelle en étoile ; le destinataire accepte ou refuse et peut bloquer l'émetteur. L'émetteur sélectionne ensuite le destinataire et transmet un ou plusieurs Mouvements autorisés. Pour l'usage kiné-patient, les paramètres d'exécution sont donnés **oralement**, sans créer de prescription numérique d'Exercice, Séance ou programme.  
 **Résultat :** le patient reçoit et peut utiliser les Mouvements concernés dans son Catalogue, selon les permissions et le contrôle central de diffusion applicables aux fiches. La relation avec chaque patient est distincte ; cette topologie ne constitue ni un groupe de patients ni une Bibliothèque partagée. Le Mouvement peut ensuite être référencé dans les Bibliothèques personnelles du patient, sans copier la fiche.  
+[Précisé le 25/11/2026 — alignement KIN-01, MOUV-PART-20261117, CPT-17, CPT-18, CPT-20 : consignes orales possibles et texte facultatif au partage personnalisé ; rôle déclaré (kiné, coach…) sans aucun privilège ; aucune prescription numérique ; contenu reçu conservé hors relation payante ; la relation individuelle s’inscrit dans les relations Ami et espaces relationnels du document Communautaire V1.]
 **À CLARIFIER :** durée et fin de relation, notifications, conservation après fin du lien, contrôle d'accès, minimisation des données et obligations juridiques applicables au contexte d'utilisation. Aucun rôle professionnel, champ clinique ou prescription numérique dans le modèle cible de ce lot.
 
 ## 3. États métier — distinction indispensable

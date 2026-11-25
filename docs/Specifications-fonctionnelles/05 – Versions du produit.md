@@ -190,6 +190,8 @@ Faire évoluer l’application personnelle vers un service synchronisé permetta
 
 #### Comptes et synchronisation
 
+[Précisé le 17/11/2026 — décisions CPT-01 à CPT-06 de Hermann, chapitre 07 : le premier lot est le **compte seul** (créer un compte, se connecter de manière sécurisée, catalogue par compte), obligatoire, par Apple ou Google [remplacé le 19/11/2026 — CPT-01 révisée : le premier lot comprend le compte et les trois partages, vers des utilisateurs, vers des espaces et publique, modération comprise] ; la **sauvegarde et la restauration sur le serveur KODJO** forment le lot suivant ; la synchronisation multi-appareils reste à planifier.]
+
 - créer un compte utilisateur ;
 - se connecter de manière sécurisée ;
 - synchroniser les routines, programmations et séances ;
@@ -361,7 +363,7 @@ Le MVP s’adresse en priorité à une personne qui crée ses propres Séances e
 
 Il fonctionne :
 
-- sans compte utilisateur obligatoire ;
+- sans compte utilisateur obligatoire ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 - sans synchronisation entre appareils ;
 - sans partage avec un professionnel ou un groupe ;
 - uniquement en français à l’écran.
@@ -570,7 +572,7 @@ La cible prévoit des Bibliothèques personnelles constituées par références,
 
 Le partage en Bibliothèque attribue l'accès au niveau de la collection ; la publication initiale d'une fiche par son propriétaire est distincte de la redistribution par un destinataire. Les anciens quatre modes de modification/redistribution sont **supersédés** (MOUV-D3, A-2 du 11/11/2026) : les fiches reçues/importées sont non modifiables, non copiables et non duplicables ; leur redistribution à l'identique est autorisée seulement si la source accorde ce droit, dans un lot futur. L'Espace en étoile assure séparément la transmission individuelle de Mouvements, sans rôle professionnel ni prescription numérique ; dans l'usage kiné-patient un texte facultatif peut accompagner le partage personnalisé (17/11/2026).
 
-L'archivage est indépendant de la diffusion ; l'arrêt du partage ne supprime pas les installations reçues. La gestion des comptes, du partage réseau, de la modération et des offres commerciales reste **post-MVP** ; son ordonnancement exact entre versions futures n'est pas arrêté. L'import pilote des 60 fiches et le moteur d'Exécution local n'impliquent aucune livraison de ces fonctions. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
+L'archivage est indépendant de la diffusion ; l'arrêt du partage ne supprime pas les installations reçues. La gestion des comptes, du partage réseau, de la modération et des offres commerciales reste **post-MVP** [Remplacé le 19/11/2026 — CPT-01 révisée et CPT-07 : le compte et les trois partages (utilisateurs, espaces, publique, modération comprise) font partie du MVP.] Les offres commerciales restent post-MVP ; son ordonnancement exact entre versions futures n'est pas arrêté. L'import pilote des 60 fiches et le moteur d'Exécution local n'impliquent aucune livraison de ces fonctions. [Parcours](../KODJO-Bibliotheques-Parcours-utilisateurs-cibles-2026-11-10.md).
 ## Décisions consolidées du 17 novembre 2026
 
 Les champs validés mais reportés restent documentés. Partage interutilisateurs et contrôle central de publication : lot futur. Accès utilisateur au glossaire : chantier futur des aides. Ces décisions ne sont pas une preuve de livraison.
