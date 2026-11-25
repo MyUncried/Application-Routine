@@ -18,7 +18,7 @@
  */
 
 import {
-  createEmptyExecutionParameters,
+  createFreeExerciseParameters,
   failureTarget,
   seriesRowsOf,
   unsetTarget,
@@ -166,7 +166,7 @@ export function withFreeValues(exercise: SessionDraftExercise): SessionDraftExer
 /**
  * D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : un exercice déplacé hors du format prend les champs d'un exercice libre, avec les valeurs
  * par défaut d'un exercice libre ; aucune valeur du bloc d'origine n'est reprise. Entré libre dans le format : ses valeurs libres
- * conservées (`freeValues`) réapparaissent. Valeurs par défaut : paramètres vierges d'un nouvel exercice (`createEmptyExecutionParameters`)
+ * conservées (`freeValues`) réapparaissent. Valeurs par défaut : paramètres vierges d'un nouvel exercice (`createFreeExerciseParameters` depuis le 25/11/2026, D-606 : Mode Répétitions)
  * avec le Compte à rebours et la Fin du Profil déjà portés par l'exercice, sans Récupération, défauts du Profil « en attente »
  * (comme `exerciseOfMovement`). Les durées de phases du Mouvement ne sont pas reprises (le Mouvement n'est pas lu ici).
  * [PRE-9 C.4 : « paramètres compatibles conservés » à la sortie libre — remplacé le 25/11/2026.]
@@ -185,7 +185,8 @@ export function freeExerciseOf(exercise: SessionDraftExercise): SessionDraftExer
   const { countdownSeconds, endSeconds } = exercise.executionParameters;
   return {
     ...rest,
-    executionParameters: createEmptyExecutionParameters({ countdownSeconds, endSeconds }),
+    // D-606 : défauts d’un exercice libre (Mode Répétitions, « À l’objectif »).
+    executionParameters: createFreeExerciseParameters({ countdownSeconds, endSeconds }),
     postActivityRecoverySeconds: null,
     profileDefaultsPending: true,
   };

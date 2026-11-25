@@ -1,6 +1,6 @@
 import { amrapMaxRefused, forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
-import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
+import { isFormatModelKey, plannedWorkOfParameters, type FormatModelKey } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
 import { circuitRoleOf, PRECONFIGURATION_KEYS, type CircuitRole, type FormatSettings, type PreconfigurationKey } from "@/domain/sessions/formats";
 import type { SessionDraft } from "@/domain/sessions/SessionDraft";
@@ -182,4 +182,17 @@ export function quickFormatOf(draft: SessionDraft, exerciseId: string, model?: s
   const circuit = circuitOfExercise(draft.structure, exerciseId);
   if (circuit === undefined || (circuit.format ?? null) !== null) return undefined;
   return named(circuit.originModel);
+}
+
+/**
+ * D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : Exercice issu d'un format — membre d'un Circuit
+ * qui porte son modèle d'origine (`originModel`). L'appui sur sa carte, dans la Composition, ouvre la page unique de ce format (réouverture
+ * « Modifier le format », `circuitId`), et non plus la modale « Paramètres d'exécution ». `undefined` : exercice libre, ou exercice seul
+ * issu d'un format (un seul mouvement, sans Circuit) — la page du format ne se rouvre aujourd'hui que depuis un Circuit (À CLARIFIER :
+ * l'exercice seul garde la modale par contexte de D-604).
+ */
+export function formatOriginOf(draft: SessionDraft, exerciseId: string): { readonly model: FormatModelKey; readonly circuitId: string } | undefined {
+  const circuit = circuitOfExercise(draft.structure, exerciseId);
+  const model = circuit?.originModel ?? null;
+  return circuit !== undefined && isFormatModelKey(model) ? { model, circuitId: circuit.id } : undefined;
 }

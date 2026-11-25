@@ -592,6 +592,8 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 
 [Report du 25/11/2026 depuis la branche de documentation `docs/planification-grille-creneaux` (non fusionnée), où ces décisions portent les numéros D-568, D-569 et D-570, déjà pris sur main : renumérotées D-603, D-604 et D-605. Interprétations de l'implémentation à confirmer : voir D-604 au registre (ligne Mode des départs rapides à unité libre, buy-in et buy-out en Nombre de répétitions, valeurs par défaut à la sortie, exercice seul d'un départ rapide, valeurs libres non enregistrées).]
 
+[Précisé le 25/11/2026 (D-606) : pour un Exercice issu d'un format, l'appui sur la carte dans la Composition ouvre la page du format (§ 9.8) ; la modale par contexte ci-dessous n'est plus ouverte depuis la Composition pour ces Exercices. La liste des champs reste la référence de ce que la page du format doit proposer.]
+
 **Règle.** La modale « Paramètres d'exécution » d'un exercice déjà dans la séance n'affiche que les champs dont l'utilisateur a besoin dans son contexte. Un champ déjà réglé par le questionnaire, le récapitulatif ou le circuit du format n'y figure pas ; pour le changer, on rouvre le circuit sur l'écran principal du format (§ 7.9).
 
 | Contexte de l'exercice | Champs affichés |
@@ -616,6 +618,16 @@ Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée
 **Recouvrement (D-605).** À l'ouverture d'un format depuis la modale « Formats d'entraînement », la modale du format la recouvre entièrement : aucune partie de la modale des formats n'est visible derrière. Les écrans Figma du prototype la recouvrent déjà (la fenêtre des formats occupe de 103 à 850 pt, la modale du questionnaire de 95 à 866 pt) ; la correction porte sur l'application.
 
 Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternance, dans chaque intervalle), AMRAP (dans un circuit, buy-in, simple à l'échec, durée à l'échec), Death by (standard, dans chaque intervalle) et For time (standard, dans un circuit, buy-in ou buy-out) allégées, hauteur de feuille adaptée. Renforcement, Progression, À l'échec et Superset n'ont pas de modale dédiée dans le prototype : la règle s'y applique par la documentation. « Conception — Hors MVP » non touché.
+
+### 9.8 Appui sur un Exercice, exercice libre et écran des formats (25/11/2026, D-606)
+
+[Report du 25/11/2026 depuis la branche de documentation `docs/planification-grille-creneaux` (non fusionnée), où cette décision porte le numéro D-571, déjà pris sur main : renumérotée D-606.]
+
+- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la **page unique du format** (il n'y a plus de page de récapitulatif distincte du questionnaire) ; la modale « Paramètres d'exécution » n'existe plus pour ces Exercices. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule (inchangé). La Charge et « De chaque côté » doivent être réglables dans la page du format. [Remplace, pour les Exercices issus d'un format, la modale par contexte du § 9.7 ; la liste des champs du § 9.7 reste la référence de ce que la page doit proposer.]
+- **Exercice libre.** Il se règle dans une modale de type format (Figma « Exercice libre — Modale de type format »), mêmes composants que les questionnaires : Mode (Répétitions par défaut), objectif « À l'objectif », Charge par « (+ kg) » dans le tableau, « De chaque côté » en ligne.
+- **Écran des formats (« Créer un exercice »).** Titre centré, aucun sous-titre ; carte **Libre** de la même taille que les autres, en première position, logo en cadre pointillé, sous-titre « un mouvement, à régler ».
+- Figma (Prototype MVP) : écran des formats `9977:19613` ; modale libre `13242:26255`. À valider sur iPhone.
+- [Application du 25/11/2026, à confirmer par Hermann : (1) « Exercice issu d'un format » = membre d'un Circuit qui porte son modèle d'origine ; un exercice seul issu d'un format (un seul mouvement, sans Circuit) n'a pas de page de format à rouvrir et garde la modale par contexte du § 9.7 (À CLARIFIER). (2) Charge : déjà réglable dans la page du format (ligne « Charge » d'un seul mouvement, « (+ kg) » dans les tableaux) ; « De chaque côté » : aucun écran Figma de page de format ne le montre — il reste réglable dans la modale du mouvement ouverte depuis la page (§ 9.7), sans nouvelle ligne inventée (À CLARIFIER). (3) Exercice libre : titre « Exercice libre », zone de contexte, accroche et valeurs par défaut (Répétitions, « À l'objectif ») appliqués ; le tableau « Exercice | S1 … Sn » avec « (+ kg) », « Nombre de séries » et une Pause commune, à la place de la ligne Charge et du tableau des séries variables, retirerait la Pause propre à chaque série, le déplacement et la suppression d'une série : en attente de l'accord de Hermann (À CLARIFIER), la saisie des séries reste celle de la feuille.]
 
 ## 10. Application de la règle à l'EMOM
 

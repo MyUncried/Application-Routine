@@ -1,4 +1,4 @@
-import { createEmptyExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import { createEmptyExecutionParameters, createFreeExerciseParameters } from "@/domain/activities/ExecutionParameters";
 import { repriseExecutionParameters, type Movement } from "@/domain/activities/Movement";
 import { DEFAULT_CIRCUIT_NATURE } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
@@ -122,7 +122,8 @@ export type MovementExerciseDefaults = {
  * Exercice enregistré reçoit une valeur par défaut ajoutée ensuite au Mouvement (« Paramètre à
  * vérifier », `parametersToVerify.ts`).]
  */
-export function exerciseOfMovement(movement: Movement, id: string, defaults: MovementExerciseDefaults): SessionDraftExercise {
+/** `free` (D-606, 25/11/2026) : exercice libre de la Composition — Mode Répétitions par défaut, « À l’objectif » (`createFreeExerciseParameters`). */
+export function exerciseOfMovement(movement: Movement, id: string, defaults: MovementExerciseDefaults, free = false): SessionDraftExercise {
   return {
     ...createExerciseDraft(id),
     name: movement.name,
@@ -130,7 +131,7 @@ export function exerciseOfMovement(movement: Movement, id: string, defaults: Mov
     categoryId: movement.categoryId,
     bodyZoneIds: [...movement.bodyZoneIds],
     media: [...movement.media],
-    executionParameters: repriseExecutionParameters(movement, createEmptyExecutionParameters(defaults)),
+    executionParameters: repriseExecutionParameters(movement, free ? createFreeExerciseParameters(defaults) : createEmptyExecutionParameters(defaults)),
     sourceMovementId: movement.id,
     profileDefaultsPending: true,
   };

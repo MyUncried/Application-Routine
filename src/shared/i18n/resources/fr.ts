@@ -790,7 +790,8 @@ export const fr = {
     sessionModels: {
       // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
       creationTitle: "Créer un exercice",
-      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, puis ses paramètres" },
+      // D-606 (Hermann, 25/11/2026 ; Figma `13245:25982`) : « un mouvement, à régler ». [« un mouvement, puis ses paramètres » (05/11/2026) — remplacé.]
+      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, à régler" },
       title: "Formats d’entraînement",
       closeAccessibilityLabel: "Fermer",
       cards: {
