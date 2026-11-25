@@ -41,7 +41,7 @@ Le flux communautaire est une vue des exécutions visibles auxquelles l’utilis
 
 - Follow public ;
 - relation Ami ;
-- recherche simple par pseudo / identifiant ;
+- recherche simple par pseudo / identifiant ; [Précisé le 24/11/2026 — CPT-25 à CPT-27 : recherche par prénom, nom ou pseudo ; pseudo obligatoire et unique à l’activation de la Communauté ; apparition dans la recherche choisie explicitement.]
 - demandes d’ami ;
 - profil public minimal ;
 - espaces relationnels ;
@@ -83,7 +83,7 @@ Le Follow est unidirectionnel et immédiat si la personne suivie autorise le Fol
 
 Le follower peut voir dans son flux les exécutions visibles de la personne suivie, commenter et réagir.
 
-La personne suivie peut désactiver complètement le Follow public. Cela n’affecte ni ses amis, ni sa trouvabilité par pseudo.
+La personne suivie peut désactiver complètement le Follow public. Cela n’affecte ni ses amis, ni sa trouvabilité par pseudo. [Précisé le 24/11/2026 — CPT-27 : le Follow public est choisi explicitement (Oui / Non, sans présélection) sur l’écran d’identité ; la trouvabilité dépend du réglage « Apparaître dans la recherche ».]
 
 ### Parcours 2 — Devenir amis
 
@@ -182,7 +182,7 @@ Le destinataire doit choisir explicitement de l’ajouter.
 
 Lorsqu’il l’ajoute, il reçoit une copie indépendante.
 
-Les modifications ultérieures de l’auteur n’affectent pas cette copie.
+Les modifications ultérieures de l’auteur n’affectent pas cette copie. [Précisé le 19/11/2026 — CPT-17 : les fiches Mouvement reçues restent non modifiables et non copiables (MOUV-D3) ; les mises à jour de l’auteur restent proposées volontairement ; le contenu reçu est conservé hors relation payante ; un retrait par KODJO atteint les copies.]
 
 Si l’auteur supprime l’original avant récupération, le contenu devient indisponible.
 
@@ -326,7 +326,7 @@ Pour une exécution composée, la confidentialité est globale.
 
 ## 6.9 Découverte
 
-- recherche simple par pseudo / identifiant ;
+- recherche simple par pseudo / identifiant ; [Précisé le 24/11/2026 — CPT-25 à CPT-27 : recherche par prénom, nom ou pseudo ; pseudo obligatoire et unique à l’activation de la Communauté ; apparition dans la recherche choisie explicitement.]
 - profil public minimal ;
 - pas de recherche par email ou téléphone ;
 - pas de réglages avancés de découvrabilité dans le périmètre initial.
@@ -440,7 +440,7 @@ Aucune donnée historique existante ne doit devenir publique automatiquement.
 # 15. Éléments différés
 
 - messagerie ;
-- signalement ;
+- signalement ; [Remplacé le 19/11/2026 — CPT-19 : signalement minimal et retrait manuel inclus au premier lot.]
 - modération avancée ;
 - QR code ;
 - lien d’invitation ;

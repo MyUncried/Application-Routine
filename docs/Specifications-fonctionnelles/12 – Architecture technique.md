@@ -828,7 +828,7 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Tests end-to-end | **Maestro** | Automatisation des parcours mobiles critiques après stabilisation |
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
-| Backend | **Aucun dans le MVP** [Remplacé le 17/11/2026 pour la cible Compte — CPT-05 : **Supabase** retenu, sous réserve d’une vérification courte : région UE, coût, connexion Apple et Google avec Expo 57] | Architecture local-first et réduction de la complexité |
+| Backend | **Aucun dans le MVP** [Remplacé le 17/11/2026 pour la cible Compte — CPT-05 : **Supabase** retenu, sous réserve d’une vérification courte : région UE, coût, connexion Apple et Google avec Expo 57 ; réserve levée le 17/11/2026, projet de développement à Paris `eu-west-3`] | Architecture local-first et réduction de la complexité |
 | Authentification | **Aucune dans le MVP ; Apple/Google préparés** [Remplacé le 17/11/2026 pour la cible Compte — CPT-02/CPT-03 : compte obligatoire, Apple et Google uniquement] | Évite la complexité des comptes tout en préservant l’évolution future |
 
 ### Contraintes techniques propres à T04
@@ -2044,7 +2044,7 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 
 **Droits et médias (MOUV-D3, A-2) :** pour une fiche reçue/importée, aucun droit de modification, de copie ni de duplication, dans l'application comme dans les services (garde de lecture seule au niveau service). Seul un droit de redistribution à l'identique, lié à la révision et soumis à autorisation de la source, peut être accordé ; il est vérifié localement et côté serveur futur. Les fiches originales restent éditables par leur propriétaire habilité. Droits des médias vérifiés séparément. Blocage local d'une fiche ou d'un média reçu comme décision de modération, prioritaire sur les révisions volontaires. Notifications silencieuses iOS facultatives sans garantie de révocation immédiate d'une installation hors ligne.
 
-**Prestataires non décidés :** PostgreSQL/Supabase, stockage privé, traitement vidéo ou API texte/image, interface d'administration. L'administration Node/OVH du pilote de 60 fiches demeure un outil de recette, sans contournement des contrôles de diffusion du futur produit.
+**Prestataires non décidés :** [Précisé le 17/11/2026 — CPT-05 : **Supabase** retenu pour le compte, l’authentification et la base (réserve levée le 17/11/2026 ; projet de développement à Paris, `eu-west-3`). Restent ouverts : prestataires vidéo, modération automatique, choix de stockage des médias.] PostgreSQL/Supabase, stockage privé, traitement vidéo ou API texte/image, interface d'administration. L'administration Node/OVH du pilote de 60 fiches demeure un outil de recette, sans contournement des contrôles de diffusion du futur produit.
 
 **Périmètre :** ne pas modifier le moteur d'Exécution au titre de la distribution. Vérifier toutefois sa compatibilité avec la neutralisation d'une fiche sur la branche `pre10-bmad/dev` ; ce moteur y existe en développement, ce qui rend obsolète l'affirmation selon laquelle PRE-10 ne serait pas développé. [Analyse de simplification](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
 

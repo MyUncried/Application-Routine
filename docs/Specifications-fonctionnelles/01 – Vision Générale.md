@@ -476,6 +476,8 @@ Exercice libre : entrée de création d’un Exercice sans préconfiguration de 
 
 ## Glossaire cible — Bibliothèques et Mouvements distribués (post-MVP)
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le modèle opérationnel actuel avant migration. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
 
 - **Fiche source** : identité éditoriale stable (espace de noms de source + identifiant de fiche), indépendante du nom affiché, de l'auteur et des Bibliothèques.

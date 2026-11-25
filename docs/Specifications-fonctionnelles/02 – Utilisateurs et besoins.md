@@ -161,6 +161,8 @@ Aucune interface professionnelle spécifique n’est incluse dans le MVP.
 
 ## 4. Groupe et partage — périmètre post-MVP
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 Les fonctions suivantes sont envisagées après le MVP :
 
 - créer ou rejoindre un groupe ;
@@ -273,6 +275,8 @@ Contenu identique à la section [« Conception de planification »](03%20%E2%80%
 Composer un protocole sans ressaisir ses constantes ; choisir l’organisation lorsqu’elle est autorisée ; connaître la durée calculable avant départ ; conserver un résultat fidèle aux conditions réellement exécutées. Une séance libre reste libre, y compris après préremplissage. Le Death by restitue tours acquis et répétitions partielles ; aucune comparaison entre individus ni aucun classement n’est ajouté.
 
 ## Besoins post-MVP — Bibliothèques et partage de Mouvements
+
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
 
 Tout utilisateur peut constituer des Bibliothèques personnelles en référençant les Mouvements de son Catalogue, sans les copier. Il peut recevoir une Bibliothèque dont la composition reste en lecture seule, ou transmettre directement des Mouvements dans une relation individuelle de l'**Espace en étoile**. Le modèle ne distingue pas de type d'utilisateur « coach » ou « kinésithérapeute ». Dans l'usage kiné-patient, l'exécution est expliquée oralement et aucune prescription numérique n'est créée à ce stade.
 

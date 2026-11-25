@@ -69,7 +69,7 @@ Les droits s'appliquent à la fiche éditoriale **reçue**, pas à l'insertion o
 
 La composition personnelle peut inclure des fiches propres dont la redistribution n'est pas accordée aux destinataires et des fiches tierces non redistribuables [texte d'origine : « des fiches propres Protégées » — remplacé le 11/11/2026]. La version reçue n'expose que les fiches que l'émetteur a le droit de publier ou redistribuer : aucune donnée des fiches tierces interdites, pas même un titre ou un emplacement bloqué. Les Mouvements reçus gardent leurs restrictions ; le destinataire ne peut ni réorganiser la Bibliothèque reçue ni faire apparaître les éléments non autorisés.
 
-Un changement de permission ne doit jamais révéler rétroactivement un contenu avant autorisation centrale et contrôle de droits. Le devenir d'une ancienne version déjà téléchargée après modification de droits ou de composition est à préciser (§ 7).
+Un changement de permission ne doit jamais révéler rétroactivement un contenu avant autorisation centrale et contrôle de droits. [Remplacé le 19/11/2026 — CPT-22 : plus d’autorisation centrale préalable ; le contrôle des droits côté serveur demeure.] Le devenir d'une ancienne version déjà téléchargée après modification de droits ou de composition est à préciser (§ 7).
 
 ## 3. Révisions, alerte et intervention de modération
 
@@ -110,7 +110,7 @@ La cible technique cherche à réutiliser la base locale opérationnelle et le r
 
 **Chaîne de modération :** contrôles de format et de cohérence ; analyse automatique des textes/images ; vidéos par examen de séquences ou service spécialisé ; approbation humaine des premières publications publiques et payantes, et des cas suspects. Aucun outil automatique ne prouve à lui seul les droits d'auteur ni la validité clinique d'une démonstration. Déclarations de droits, signalement, traitement des contestations et suspension restent nécessaires.
 
-**Options techniques à évaluer (non arbitrées) :** PostgreSQL/Supabase, stockage privé et URL temporaires, fonctions serveur et file de travaux, API de modération texte/image, service d'analyse vidéo, petite interface d'administration web. Ne pas confondre l'administration éditoriale locale/OVH actuelle avec un backend de publication ou une console de modération opérationnelle. Prévoir la maîtrise des coûts, la protection des données personnelles, les durées de rétention et la conformité juridique.
+**Options techniques à évaluer (non arbitrées) :** [Précisé le 17/11/2026 — CPT-05 : **Supabase** retenu pour le compte, l’authentification et la base (réserve levée le 17/11/2026 ; projet de développement à Paris, `eu-west-3`). Restent ouverts : prestataires vidéo, modération automatique, choix de stockage des médias.] PostgreSQL/Supabase, stockage privé et URL temporaires, fonctions serveur et file de travaux, API de modération texte/image, service d'analyse vidéo, petite interface d'administration web. Ne pas confondre l'administration éditoriale locale/OVH actuelle avec un backend de publication ou une console de modération opérationnelle. Prévoir la maîtrise des coûts, la protection des données personnelles, les durées de rétention et la conformité juridique.
 
 **Invariants :** un contenu non approuvé n'est pas téléchargeable par un tiers ; une approbation concerne une empreinte/révision précise ; toute nouvelle révision à diffuser repasse par le contrôle ; les permissions de fiche sont appliquées côté serveur ; aucune validation précédente ne couvre un média modifié.
 

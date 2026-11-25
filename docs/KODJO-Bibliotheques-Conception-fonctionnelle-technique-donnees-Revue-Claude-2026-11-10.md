@@ -42,7 +42,7 @@ La cible vise une **séparation logique** simple, pas un ensemble de microservic
 | BIB-14–17 | Validation centrale des révisions avant toute diffusion ; privé sans anomalie = automatique possible ; premier public/payant = humain ; modération prioritaire après publication et signalement. |
 | BIB-18 | Partage, comptes, modération centrale, monétisation hors MVP local. |
 | F4-A | La mise à jour d'une Bibliothèque reçue est **manuelle** avec pastille. |
-| F4-B | Un Mouvement retiré d'une Bibliothèque source et précédemment installé reste **dans le Catalogue local** de l'utilisateur ; ses références dans les Séances/Bibliothèques personnelles restent. |
+| F4-B | Un Mouvement retiré d'une Bibliothèque source et précédemment installé reste **dans le Catalogue local** de l'utilisateur ; ses références dans les Séances/Bibliothèques personnelles restent. [Précisé le 25/11/2026 : F4-B vise le **retrait d’un Mouvement de la composition** d’une Bibliothèque. Le retrait d’un droit d’accès relève de CPT-17 (conservation hors relation payante) et le retrait par KODJO d’un contenu signalé relève de CPT-19/CPT-17 ; ces trois cas ne sont pas assimilés.] |
 | F4-C | Pour un **partage de Bibliothèque** (notamment coach), le propriétaire attribue le droit d'accès au niveau Bibliothèque ; le retrait d'un membre ne révoque pas l'usage local déjà acquis. Ce modèle de Bibliothèque **ne constitue pas le parcours de transmission kiné-patient** (KIN-01) ; commerce et modération restent séparés. |
 | F4-D | Un seul « Mettre à jour » installe la nouvelle **composition ET les nouvelles révisions de Mouvements**, sans détruire les références des Mouvements retirés ni écraser les Mouvements personnels distincts ; la disponibilité après retrait dépend d’un autre accès valide (MOUV-ACC-20261117). |
 | F4-E | Archiver une Bibliothèque est personnel/local et n'a **aucun effet sur les destinataires** ni sur leurs mises à jour. |
@@ -164,7 +164,7 @@ KODJO iPhone (Expo / RN)
 
 Les orientations S-02 à S-09 sont des **candidats techniques**, à confronter au code. Les fusions de tables proposées par Claude (C-07/C-17) ne sont pas imposées : deux faits métier distincts ne doivent pas être fusionnés sans justification.
 
-**Choix non décidés :** Supabase/PostgreSQL, service de stockage objet, fournisseur d'authentification, API de modération (texte/image/vidéo), dispositif de notifications et hébergement. Les citer dans ce dossier ne les rend pas obligatoires.
+**Choix non décidés :** [Précisé le 17/11/2026 — CPT-05 : **Supabase** retenu pour le compte, l’authentification et la base (réserve levée le 17/11/2026 ; projet de développement à Paris, `eu-west-3`). Restent ouverts : prestataires vidéo, modération automatique, choix de stockage des médias.] Supabase/PostgreSQL, service de stockage objet, fournisseur d'authentification, API de modération (texte/image/vidéo), dispositif de notifications et hébergement. Les citer dans ce dossier ne les rend pas obligatoires.
 
 ## 5. Modèle de données fonctionnel / relationnel cible
 
@@ -296,7 +296,7 @@ Le refus/suspension ne supprime pas la fiche de travail locale de l'auteur. Un c
 
 ### 7.3 Fournisseurs envisageables — à étudier, pas imposés
 
-- Backend relationnel/auth/stockage : PostgreSQL + services adaptés, éventuellement Supabase.
+- Backend relationnel/auth/stockage : PostgreSQL + services adaptés, éventuellement Supabase. [Précisé le 17/11/2026 — CPT-05 : **Supabase** retenu pour le compte, l’authentification et la base (réserve levée le 17/11/2026 ; projet de développement à Paris, `eu-west-3`). Restent ouverts : prestataires vidéo, modération automatique, choix de stockage des médias.]
 - Modération texte/image : API spécialisées (OpenAI Moderation, Google Vision SafeSearch, etc.).
 - Vidéo : extraction de trames et revue humaine au début ; service vidéo dédié (ex. AWS Rekognition) si volume et couverture le justifient.
 - Administration : interface Web limitée à file d'examen, visionnage sécurisé, décision, signalement et historique.
@@ -439,6 +439,6 @@ Les anciens lots L1–L6 centrés sur la distribution communautaire sont **super
 
 ## Décisions consolidées du 17 novembre 2026
 
-Modèle cible : relation compte–catalogue unique, identité source stable et multiples appartenances sans duplication locale. Calculer les accès effectifs depuis les voies de partage, distinguer indisponibilité, archivage et destruction physique. Préserver références et historique lors de la perte du dernier accès. Séparer médias communs et compléments du destinataire. Autorisation centrale portée par révision, synthèses au niveau bibliothèque/catalogue ; aucune case auteur. Les détails de stockage/transit restent reportés.
+Modèle cible : relation compte–catalogue unique, identité source stable et multiples appartenances sans duplication locale. Calculer les accès effectifs depuis les voies de partage, distinguer indisponibilité, archivage et destruction physique. [Précisé le 19/11/2026 — CPT-17 : hors relation payante, le contenu reçu est conservé ; l’indisponibilité ne résulte que d’un retrait dans une relation payante ou d’un retrait par KODJO (CPT-19).] Préserver références et historique lors de la perte du dernier accès. Séparer médias communs et compléments du destinataire. Autorisation centrale portée par révision, synthèses au niveau bibliothèque/catalogue ; aucune case auteur. Les détails de stockage/transit restent reportés.
 
 [Inventaire et règles validées](KODJO-Mouvements-Etape2-Modele-cible-et-migrations-2026-11-11.md). Les descriptions antérieures de formats et de livraison restent des constats datés, pas des exigences contraires à cette cible.

@@ -25,6 +25,8 @@ KODJO exige un compte, que vous créez avec **Apple** ou **Google**. Nous recevo
 
 Nous ne recevons jamais votre mot de passe Apple ou Google.
 
+Nous enregistrons aussi l'identifiant technique de l'application sur chacun de vos téléphones, afin de rattacher ses données locales à votre compte, et, si vous utilisez Apple, un jeton fourni par Apple qui sert uniquement à révoquer l'autorisation de connexion lorsque vous supprimez votre compte.
+
 **Pourquoi :** vous identifier, sécuriser l'accès à l'application et afficher les informations de votre compte dans votre profil.
 
 **Base légale :** l'exécution du contrat d'utilisation de l'application.
