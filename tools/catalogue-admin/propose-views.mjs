@@ -2,10 +2,14 @@
  * Marquage des photos (D-600) — propositions en lot pour un fichier catalogue.
  *
  * Pour chaque photo intégrée, détecte les vues (`viewDetection.js`, même module que la page) et
- * propose la vue retenue. Avec `--write`, n'ajoute QUE la clé `view` des photos (image simple : aucune
- * clé, l'image est retenue entière) ; tout le reste du fichier est conservé à l'identique, ce qui est
- * contrôlé avant écriture. Aucune révision n'est calculée : ce sont des propositions, que la personne
- * qui publie vérifie ensuite dans la page « Marquage des photos ».
+ * propose la vue retenue. Avec `--write`, applique les vues (image simple : aucune clé, l'image est
+ * retenue entière) par le calcul de révision du domaine (`applyFileEdit`, comme l'enregistrement du
+ * serveur) : chaque fiche dont une vue change reçoit une révision et une entrée d'historique
+ * (« Marquage des photos : vue retenue proposée », auteur inconnu, date du moment), et la révision du
+ * catalogue avance. Sans cela, le téléphone verrait une empreinte différente sous la même révision
+ * (`INCOHERENT_REVISION`, `catalogueLoadPlan.ts`). Rien d'autre ne change, ce qui est contrôlé avant
+ * écriture. Ce sont des propositions, que la personne qui publie vérifie ensuite dans la page
+ * « Marquage des photos ».
  *
  * Décodage : Node ne décode pas le WebP. Les photos sont converties en PNG temporaires par le décodeur
  * WIC de Windows (PowerShell, `System.Windows.Media.Imaging`), puis lues avec `pngjs` (déjà présent
@@ -60,6 +64,67 @@ function convertToPng(sourceDir, targetDir) {
   });
 }
 
+export const MARKING_REVISION_SUMMARY = "Marquage des photos : vue retenue proposée";
+
+/** Domaine partagé (mêmes modules que le serveur). */
+export async function loadDomain() {
+  buildDomain();
+  const file = await import(generatedModuleUrl("src/domain/catalogue/MovementCatalogueFile.ts"));
+  const editing = await import(generatedModuleUrl("src/domain/catalogue/catalogueEditing.ts"));
+  return { ...file, applyFileEdit: editing.applyFileEdit };
+}
+
+/**
+ * Applique des vues (`[{ sheetId, mediaId, view | null }]`, null = image entière) à un fichier catalogue
+ * valide, avec le calcul de révision du domaine. Contrôle que seules changent : la clé `view` des médias
+ * visés, la révision et l'historique (une entrée ajoutée) des fiches concernées, la révision du catalogue.
+ * @returns {{ file: object, changedSheets: string[], changed: boolean }}
+ */
+export function applyViewsWithRevisions(source, views, meta, domain) {
+  const previous = domain.parseMovementCatalogueFile(structuredClone(source));
+  if (!previous.ok) throw new Error("Fichier catalogue invalide avant marquage : " + JSON.stringify(previous.issues.slice(0, 5)));
+  const edited = structuredClone(previous.file);
+  for (const { sheetId, mediaId, view } of views) {
+    const media = edited.sheets.find((sheet) => sheet.sheetId === sheetId)?.media.find((entry) => entry.id === mediaId);
+    if (!media) throw new Error("Photo introuvable : " + sheetId + " / " + mediaId);
+    if (view) media.view = view;
+    else delete media.view;
+  }
+  const checked = domain.parseMovementCatalogueFile(edited);
+  if (!checked.ok) throw new Error("Fichier invalide après marquage : " + JSON.stringify(checked.issues.slice(0, 5)));
+  const result = domain.applyFileEdit(previous.file, checked.file, meta);
+  if (!result.ok) throw new Error("Calcul des révisions refusé : " + JSON.stringify(result.issues));
+  const file = JSON.parse(domain.serializeMovementCatalogueFile(result.file));
+  const reread = domain.parseMovementCatalogueFile(structuredClone(file));
+  if (!reread.ok) throw new Error("Revalidation impossible après calcul des révisions");
+
+  // Contrôles de portée.
+  const before = JSON.parse(domain.serializeMovementCatalogueFile(previous.file));
+  const changed = new Set(result.changedSheets);
+  const { sheets: sheetsAfter, catalogue: headerAfter, ...restAfter } = file;
+  const { sheets: sheetsBefore, catalogue: headerBefore, ...restBefore } = before;
+  if (!isDeepStrictEqual(restAfter, restBefore)) throw new Error("Contrôle échoué : autre chose que des fiches a changé.");
+  if (!isDeepStrictEqual({ ...headerAfter, revision: null }, { ...headerBefore, revision: null })) {
+    throw new Error("Contrôle échoué : l'en-tête du catalogue a changé au-delà de sa révision.");
+  }
+  if (sheetsAfter.length !== sheetsBefore.length) throw new Error("Contrôle échoué : nombre de fiches modifié.");
+  sheetsAfter.forEach((sheet, index) => {
+    const old = sheetsBefore[index];
+    if (!changed.has(sheet.sheetId)) {
+      if (!isDeepStrictEqual(sheet, old)) throw new Error("Contrôle échoué : fiche " + sheet.sheetId + " modifiée sans révision.");
+      return;
+    }
+    const core = (entry) => withoutViews({ sheets: [{ ...entry, revision: null, history: null }] }).sheets[0];
+    if (!isDeepStrictEqual(core(sheet), core(old))) throw new Error("Contrôle échoué : fiche " + sheet.sheetId + " modifiée au-delà des vues.");
+    if (sheet.revision === old.revision || sheet.history.length !== old.history.length + 1 ||
+        !isDeepStrictEqual(sheet.history.slice(0, -1), old.history) || sheet.history.at(-1).revision !== sheet.revision) {
+      throw new Error("Contrôle échoué : révision ou historique incohérent pour " + sheet.sheetId + ".");
+    }
+  });
+  return { file, changedSheets: result.changedSheets, changed: result.changed };
+}
+
+
 const withoutViews = (file) => ({
   ...file,
   sheets: file.sheets.map((sheet) => ({
@@ -81,9 +146,8 @@ async function main() {
   const text = raw.replace(/\r\n/g, "\n");
   const original = JSON.parse(text);
 
-  buildDomain();
-  const { parseMovementCatalogueFile, serializeMovementCatalogueFile } =
-    await import(generatedModuleUrl("src/domain/catalogue/MovementCatalogueFile.ts"));
+  const domain = await loadDomain();
+  const { parseMovementCatalogueFile, serializeMovementCatalogueFile } = domain;
   const parsed = parseMovementCatalogueFile(JSON.parse(text));
   if (!parsed.ok) throw new Error("Fichier catalogue invalide avant marquage : " + JSON.stringify(parsed.issues.slice(0, 5)));
   if (serializeMovementCatalogueFile(original) !== text) {
@@ -141,25 +205,23 @@ async function main() {
     console.log("Aucune écriture (ajouter --write pour appliquer les propositions).");
     return;
   }
-  const next = JSON.parse(text);
-  for (const { proposal, applied, target } of rows) {
-    if (!applied) continue;
-    const media = next.sheets[target.sheetIndex].media[target.mediaIndex];
-    if (proposal.view) media.view = proposal.view;
-    else delete media.view;
+  // Même calcul que l'enregistrement du serveur (`editMeta` sans auteur déclaré : auteur inconnu, date du moment).
+  const meta = { date: new Date().toISOString(), author: null, summary: MARKING_REVISION_SUMMARY };
+  const views = rows.filter((row) => row.applied).map(({ sheet, media, proposal }) => ({ sheetId: sheet.sheetId, mediaId: media.id, view: proposal.view }));
+  const result = applyViewsWithRevisions(original, views, meta, domain);
+  if (!result.changed) {
+    console.log("Aucun changement : fichier non réécrit.");
+    return;
   }
-  // Contrôles : seules des clés `view` changent ; fichier valide pour le parseur partagé.
-  if (!isDeepStrictEqual(withoutViews(next), withoutViews(original))) throw new Error("Contrôle échoué : autre chose que des vues a changé.");
-  const checked = parseMovementCatalogueFile(JSON.parse(JSON.stringify(next)));
-  if (!checked.ok) throw new Error("Fichier invalide après marquage : " + JSON.stringify(checked.issues.slice(0, 5)));
-  const output = serializeMovementCatalogueFile(next);
+  const output = serializeMovementCatalogueFile(result.file);
   writeFileSync(filePath, eol === "\n" ? output : output.replace(/\n/g, eol));
-  const written = rows.filter((row) => row.applied && row.proposal.view).length;
-  console.log("Écrit : " + path.relative(REPO_ROOT, filePath) + " — " + written + " vues proposées, " +
-    rows.filter((row) => row.applied && !row.proposal.view).length + " images entières (aucune clé).");
+  console.log("Écrit : " + path.relative(REPO_ROOT, filePath) + " — " + result.changedSheets.length + " fiche(s) révisée(s), " +
+    "révision du catalogue " + original.catalogue.revision + " → " + result.file.catalogue.revision + ".");
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}

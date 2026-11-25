@@ -96,7 +96,10 @@ photo ; absent = image entière. L'application ne détecte rien : le rectangle e
   validée dans ce navigateur est « proposée ».
 - **Propositions en lot** (Windows) : `node tools/catalogue-admin/propose-views.mjs [--file <fichier>] [--write]
   [--replace]` (défaut : `catalogue/illustrations/kodjo-pilote-60.illustre-v3.json`). Décodage WebP par WIC
-  (PowerShell), lecture PNG par `pngjs`. N'ajoute que les clés `view` (contrôlé avant écriture), sans révision.
+  (PowerShell), lecture PNG par `pngjs`. Applique les vues par le calcul de révision du domaine (`applyFileEdit`,
+  comme le serveur) : chaque fiche dont une vue change reçoit une révision et une entrée d'historique (« Marquage des
+  photos : vue retenue proposée », auteur inconnu), la révision du catalogue avance ; rien d'autre ne change (contrôlé
+  avant écriture). Sans nouvelle révision, le téléphone refuserait la fiche (`INCOHERENT_REVISION`).
 - La page n'ouvre que `catalogue/catalogues/*.catalogue.json` : pour vérifier le catalogue illustré, le copier
   à cet emplacement (comme pour la recette), sans le committer.
 
@@ -246,7 +249,7 @@ Les médias des Mouvements personnels **ne sont pas transférés** dans ce lot (
 
 ```text
 node --test tools/catalogue-admin/server.test.mjs
-node --test tools/catalogue-admin/viewDetection.test.mjs
+node --test tools/catalogue-admin/viewDetection.test.mjs tools/catalogue-admin/propose-views.test.mjs
 npx jest src/domain/catalogue
 node --test scripts/catalogue/__tests__/static-ovh-medias.test.mjs
 ```
