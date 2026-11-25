@@ -119,6 +119,17 @@ Incident de configuration résolu : « Supabase is not configured » au premier 
 - Classe de synchronisation : A (le code rejoint le comportement de suppression déjà spécifié) / D (droits et journal) ; aucune documentation fonctionnelle touchée.
 - Effet attendu côté app : suppression déjà enregistrée « en cours » sur le téléphone, reprise automatiquement au prochain lancement avec réseau.
 
+| Suppression après correction des droits (reprise auto, puis 2e suppression) | **PASS** : tables vidées, `account_deletions` : `apple_revocation = done`, `data_purged_at` et `auth_deleted_at` renseignés | tableau de bord (Hermann) |
+| Reconnexion Apple avec le même identifiant après suppression (CPT-32) | **PASS** : nouveau compte créé | déclaration de Hermann |
+| 3e suppression | **FAIL** : un essai « connexion Internet nécessaire » (aucun appel visible côté serveur, cause non démontrée), puis « La suppression n'a pas abouti » ; journal : deux appels `delete-account` à 20:40:12, l'un 200, l'autre 503 `auth_delete AuthApiError: User not found` | journal Supabase (Hermann) |
+
+**Défaut de suppression concurrente — analyse et correction**
+- Cause **démontrée** par le journal : deux exécutions simultanées (bouton de É3 et reprise `resumePendingDeletion` au retour au premier plan, déclenchée par `AccountGate`). La seconde a constaté le compte Auth présent, puis `deleteUser` a échoué car la première venait de le supprimer.
+- Introduction : ce lot (pas de garde contre l'exécution concurrente, côté app comme côté serveur). Détection : cette recette.
+- Correction : côté app, une seule suppression à la fois (`deletionInFlight` partagé par É3 et la reprise) ; côté serveur, un échec de `deleteUser` suivi d'une absence **vérifiée** du compte vaut succès, sinon l'erreur d'origine est conservée. Tests : concurrence côté app (échoue sans la garde : vérifié), deux tests serveur. Journal de l'app pour les appels de fonctions en échec (`645286e9`).
+- L'essai « connexion Internet nécessaire » reste **non expliqué** (hypothèse : coupure réseau passagère) ; le nouveau journal de l'app permettra de le qualifier s'il se reproduit.
+- Classe de synchronisation : A (comportement de suppression spécifié) ; aucune documentation fonctionnelle touchée.
+
 ### 5.2 Reste à faire
 
 Pas encore réalisé :

@@ -99,7 +99,11 @@ class FakeGateway implements AccountGateway {
     if (this.tokenFails) throw new Error("x");
     this.storedTokens.push(token);
   }
+  deleteCalls = 0;
+  deleteGate: Promise<void> | null = null;
   async deleteAccount() {
+    this.deleteCalls += 1;
+    if (this.deleteGate) await this.deleteGate;
     return this.deleteResults.shift() ?? "retryable_error";
   }
   async deletionStatus(input: { authUserId: string; receipt?: string; localUserId?: string }) {
@@ -245,6 +249,22 @@ describe("suppression", () => {
     gateway.statusResults = ["deleted"];
     expect(await service.resumePendingDeletion()).toBe("deleted");
     expect(gateway.statusCalls[0]).toEqual({ authUserId: "auth-x", receipt: "receipt-123456789012" });
+    expect(store.link).toBeNull();
+  });
+
+  it("bouton de É3 et reprise au premier plan simultanés : un seul appel au serveur, même résultat", async () => {
+    let release: () => void = () => undefined;
+    gateway.deleteGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    gateway.deleteResults = ["deleted"];
+    const fromButton = service.deleteAccount();
+    while (gateway.deleteCalls === 0) await Promise.resolve();
+    const fromResume = service.resumePendingDeletion();
+    release();
+    expect(await fromButton).toBe("deleted");
+    expect(await fromResume).toBe("deleted");
+    expect(gateway.deleteCalls).toBe(1);
     expect(store.link).toBeNull();
   });
 

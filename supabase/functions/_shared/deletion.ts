@@ -150,7 +150,15 @@ async function revokeIfNeeded(authUserId: string, ports: DeletionPorts): Promise
 async function finishAuthDeletion(authUserId: string, ports: DeletionPorts): Promise<DeletionOutcome> {
   try {
     const exists = await ports.authUserExists(authUserId);
-    if (exists) await ports.deleteAuthUser(authUserId);
+    if (exists) {
+      try {
+        await ports.deleteAuthUser(authUserId);
+      } catch (error) {
+        // Exécution concurrente (recette 25/11/2026) : l'autre exécution a déjà supprimé le compte Auth.
+        // Seule une absence vérifiée vaut succès ; sinon l'erreur d'origine est conservée.
+        if (await ports.authUserExists(authUserId)) throw error;
+      }
+    }
     await ports.markAuthDeleted(authUserId);
     return { result: "deleted" };
   } catch (error) {

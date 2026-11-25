@@ -167,6 +167,22 @@ describe("runDeletion — ordre et reprise", () => {
     expect(state.calls).toEqual(["begin", "authExists", "markAuth"]);
   });
 
+  it("exécution concurrente : deleteUser « User not found » mais compte absent vérifié → deleted", async () => {
+    const { state, ports } = fake();
+    ports.deleteAuthUser = async () => {
+      state.authExists = false;
+      throw new Error("User not found");
+    };
+    expect(await runDeletion(UID, "r", ports)).toEqual({ result: "deleted" });
+    expect(state.record!.authDeletedAt).toBe("t5");
+  });
+
+  it("deleteUser en échec et compte toujours présent : retryable_error auth_delete", async () => {
+    const { state, ports } = fake({ fail: { deleteAuth: true } });
+    expect(await runDeletion(UID, "r", ports)).toEqual({ result: "retryable_error", reason: "auth_delete" });
+    expect(state.record!.authDeletedAt).toBeNull();
+  });
+
   it("service Auth indisponible à l'étape 5 : retryable_error, aucune conclusion", async () => {
     const { state, ports } = fake({ fail: { authExists: true } });
     expect(await runDeletion(UID, "r", ports)).toEqual({ result: "retryable_error", reason: "auth_unavailable" });

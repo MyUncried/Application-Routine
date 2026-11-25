@@ -214,7 +214,17 @@ export class AccountService {
     return "reauth_required";
   }
 
-  private async pursueDeletion(link: AccountLink, receipt: string): Promise<DeleteOutcome> {
+  /** Une seule suppression à la fois : le bouton de É3 et la reprise au premier plan partagent le même appel. */
+  private deletionInFlight: Promise<DeleteOutcome> | null = null;
+
+  private pursueDeletion(link: AccountLink, receipt: string): Promise<DeleteOutcome> {
+    this.deletionInFlight ??= this.runPursueDeletion(link, receipt).finally(() => {
+      this.deletionInFlight = null;
+    });
+    return this.deletionInFlight;
+  }
+
+  private async runPursueDeletion(link: AccountLink, receipt: string): Promise<DeleteOutcome> {
     const result = await this.gateway.deleteAccount(receipt);
     if (result === "deleted") {
       await this.finalizeDeletion(link);
