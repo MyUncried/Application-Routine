@@ -604,6 +604,8 @@ Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée
 
 **Séquence d'ouverture.** Étendue à **tous les formats, sans exception** (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset, EMOM, AMRAP, Death by, For time) : à la première ouverture du format, l'écran de choix des mouvements s'affiche en premier, sans nouvel écran. Le lien du haut de cet écran s'intitule **« Paramètres »**.
 
+**Recouvrement (D-570).** À l'ouverture d'un format depuis la modale « Formats d'entraînement », la modale du format la recouvre entièrement : aucune partie de la modale des formats n'est visible derrière. Les écrans Figma du prototype la recouvrent déjà (la fenêtre des formats occupe de 103 à 850 pt, la modale du questionnaire de 95 à 866 pt) ; la correction porte sur l'application.
+
 Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternance, dans chaque intervalle), AMRAP (dans un circuit, buy-in, simple à l'échec, durée à l'échec), Death by (standard, dans chaque intervalle) et For time (standard, dans un circuit, buy-in ou buy-out) allégées, hauteur de feuille adaptée. Renforcement, Progression, À l'échec et Superset n'ont pas de modale dédiée dans le prototype : la règle s'y applique par la documentation. « Conception — Hors MVP » non touché.
 
 ## 10. Application de la règle à l'EMOM

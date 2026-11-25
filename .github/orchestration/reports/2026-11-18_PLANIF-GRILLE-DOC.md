@@ -221,3 +221,10 @@
 - Documents : registre ch07 D-569 ; Formats § 9.7 ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md`. Figma : aucun écran concerné (aucun écran ne relie les questionnaires aux catalogues de format à l'ouverture).
 - Vérification sur iPhone à faire : première ouverture de chacun des dix formats.
 - Tests : non applicables.
+
+## Complément 25/11/2026 (suite 4) — Recouvrement de la modale des formats (D-570, classe B)
+- Décision explicite de Hermann (25/11/2026) : à l'ouverture d'un format, sa modale recouvre totalement la modale des formats.
+- Figma : aucune modification ; lecture seule, les écrans recouvrent déjà (fenêtre des formats 103–850 pt, modale du questionnaire 95–866 pt). Cause côté application non investiguée (code absent de ce dépôt).
+- Documents : registre ch07 D-570 ; Formats § 9.7 ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-SEQUENCE-PARAMETRES-2026-11-25.md` (point 4).
+- Vérification sur iPhone à faire : recouvrement total à l'ouverture de chacun des dix formats, à la fermeture et au retour.
+- Tests : non applicables.
