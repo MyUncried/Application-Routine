@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { AccountLink } from "@/domain/account/AccountService";
-import { useAccountGateRefresh, useAccountService } from "@/features/account/AccountServiceContext";
+import { AccountServiceContext, useAccountGateRefresh } from "@/features/account/AccountServiceContext";
 import { strings } from "@/shared/i18n";
 import { colors, spacing } from "@/shared/ui/tokens";
 
@@ -18,12 +18,14 @@ function displayName(link: AccountLink): string | null {
  */
 export function AccountSection() {
   const t = strings.account;
-  const service = useAccountService();
+  // Absent hors de l'application (écran rendu seul, par exemple en test) : la section ne s'affiche pas.
+  const service = useContext(AccountServiceContext);
   const refreshGate = useAccountGateRefresh();
   const [link, setLink] = useState<AccountLink | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    if (!service) return;
     let active = true;
     service.getLink().then(
       (value) => {
@@ -37,8 +39,9 @@ export function AccountSection() {
   }, [service]);
 
   const runDeletion = useCallback(async () => {
+    if (!service) return;
     setDeleting(true);
-    let outcome: Awaited<ReturnType<typeof service.deleteAccount>>;
+    let outcome: "deleted" | "offline" | "error";
     try {
       outcome = await service.deleteAccount();
     } catch (error) {
