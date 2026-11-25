@@ -57,6 +57,8 @@ La Composition, la fiche Mouvement et les autres écrans à zone de contexte ne 
 
 ## 5. Carte Séance (D-504, D-505, D-506)
 
+[Remplacé le 25/11/2026 pour la carte repliée du catalogue des séances (D-600, D-601, D-602) : mosaïque, trois lignes sans chevron, Démarrer en icône ronde — [DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24](DSF-CARTE-SEANCE-VISUEL-INFOS-2026-11-24.md). Texte d’origine conservé ci-dessous.]
+
 Composant « DSF / Cards / Séance », variantes Catalogue repliée, archivée et dépliée.
 
 | Élément | Règle |
@@ -78,6 +80,8 @@ Composant « DSF / Cards / Séance », variantes Catalogue repliée, archivée e
 - **Remplace :** action lecture ronde à droite, sablier, chevron seulement pour plusieurs exercices, « jamais 1 exercice », format ou volume en ligne 3, carte de 80 pt, visuel à 8 pt du bord.
 
 ## 6. Carte Séance dépliée (D-507)
+
+[25/11/2026 (D-602) : plus de carte dépliée dans la liste du catalogue ; toucher la carte ouvre la composition en modale iOS. La variante est conservée dans le composant. Texte d’origine conservé ci-dessous.]
 
 - Ligne de **cycle** : « Cycle » à gauche, « **N passages** » aligné à droite dans la colonne des volumes.
 - Ligne de **circuit** : « Circuit · **séries groupées** » ou « Circuit · **séries alternées** » à gauche, « **N tours** » aligné à droite.

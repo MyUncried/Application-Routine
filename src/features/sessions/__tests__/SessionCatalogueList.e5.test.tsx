@@ -101,21 +101,21 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
   });
 
   // [Bloc de 80 — remplacé le 06/11/2026 par D-504 : actions glissées hautes de 72, alignées sur la carte.]
-  it("bloc de 72, aligné en haut, même sur une carte déployée (D-504)", () => {
+  // D-602 (25/11/2026) : plus de carte déployée dans la liste. [« même sur une carte déployée » — remplacé.]
+  it("bloc de 72, aligné en haut (D-504)", () => {
     renderList([session("a")]);
-    fireEvent.press(screen.getByTestId("session-card-a-disclosure"));
     reveal("a");
     const style = StyleSheet.flatten(screen.getByTestId("session-card-a-swipe-actions").props.style);
     expect(style).toMatchObject({ top: 0, right: 0, height: 72, width: 3 * 68 });
     expect(style.bottom).toBeUndefined();
-    expect(screen.getByTestId("session-card-a-composition")).toBeTruthy();
   });
 
   it("actions accessibles : Planifier absent (indisponible), Dupliquer et Archiver présents", () => {
     renderList([session("a")]);
     const names = (screen.getByTestId("session-card-a-swipe-card").props.accessibilityActions as { name: string }[]).map((action) => action.name);
-    // Recette iPhone n° 3 du 03/11/2026 : ouverture en action nommée (l'activation déploie).
-    expect(names).toEqual(["duplicate", "archive", "openSession", "toggleComposition"]);
+    // D-602 (25/11/2026) : l'activation de la carte ouvre la Séance ; plus d'action « openSession » ni de déploiement.
+    // [« openSession », « toggleComposition » (recette iPhone n° 3 du 03/11/2026) — remplacé.]
+    expect(names).toEqual(["duplicate", "archive"]);
   });
 
   it("carte ouverte par le glissé : toucher le visuel n'ouvre pas la Séance", () => {
@@ -130,7 +130,7 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
     expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it("carte archivée : chevron, déploiement, et le visuel ouvre la Séance (même chemin)", () => {
+  it("carte archivée : toucher la carte ou le visuel ouvre la Séance (même chemin, D-602)", () => {
     const onOpen = jest.fn();
     render(
       <SessionServiceContext.Provider value={makeService() as unknown as SessionService}>
@@ -138,10 +138,9 @@ describe("PRE-8 E.5 — actions selon l'état", () => {
       </SessionServiceContext.Provider>,
     );
     fireEvent.press(screen.getByTestId("session-card-z-swipe-card"));
-    expect(screen.getByTestId("session-card-z-composition")).toBeTruthy();
-    expect(onOpen).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByTestId("session-card-z-visual-open"));
     expect(onOpen).toHaveBeenCalledWith("z");
+    fireEvent.press(screen.getByTestId("session-card-z-visual-open"));
+    expect(onOpen).toHaveBeenCalledTimes(2);
   });
 });
 

@@ -3,12 +3,10 @@ import { useCallback, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { spokenDurations } from "@/domain/activities/durationFormat";
-import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "@/features/activities/SheetMotion";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
-import { formatSessionStructureLine, SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
-import { compositionAccessibilityText, SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
+import { SESSION_CARD_HEADER_HEIGHT, SessionCard, sessionFormatsLabel } from "@/features/sessions/SessionCard";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import type { SessionLifecycleOutcome } from "@/domain/sessions/SessionRepository";
@@ -58,16 +56,16 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 const t = strings.screens.sessions;
 const tCard = t.catalogueCard;
 
-export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjection, expanded = false): string {
+export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjection): string {
   // Accessibilité (08/11/2026 au soir) : durées lues en toutes lettres, pas les primes.
+  // D-601 (25/11/2026) : les trois lignes de la carte — nom, durée et formats, mouvements. [Avant : catégories, « N circuits ·
+  // N exercices », durée et composition déployée — remplacé.]
   return spokenDurations([
     projection.name,
-    projection.categories.map((category) => category.name).join(", "),
-    // D-505 (Hermann, 06/11/2026) : ligne 3 « N circuits · N exercices ». [Avant : format ou volume.]
-    formatSessionStructureLine(projection),
     formatCatalogueSessionDuration(projection.duration, projection.forTimeBound),
+    sessionFormatsLabel(projection),
+    projection.movementNames.join(", "),
     projection.status === "ARCHIVED" ? tCard.archivedAccessibility : null,
-    expanded && projection.tree.length > 0 ? compositionAccessibilityText(projection.tree) : null,
   ]
     .filter((part) => part !== null && part.length > 0)
     .join(", "));
@@ -105,7 +103,6 @@ export function SessionCatalogueList({
 }) {
   const sessionService = useSessionService();
   const reduceMotion = useReduceMotion();
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [revealedId, setRevealedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<string | null>(null);
@@ -117,14 +114,6 @@ export function SessionCatalogueList({
     setSeenResetToken(resetToken);
     setRevealedId(null);
   }
-
-  const toggle = (sessionId: string) =>
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(sessionId)) next.delete(sessionId);
-      else next.add(sessionId);
-      return next;
-    });
 
   const run = useCallback(
     (action: () => Promise<SessionLifecycleOutcome | { readonly status: string }>, onDone: () => void) => {
@@ -237,11 +226,6 @@ export function SessionCatalogueList({
             </Text>
           ) : null}
           {sessions.map((projection) => {
-            // Recette iPhone n° 3 du 03/11/2026 : toute Séance se déploie (`projection.expandable` ignoré).
-            const isExpanded = expanded.has(projection.id);
-            const toggleLabel = fillTemplate(isExpanded ? tCard.collapseAccessibilityLabel : tCard.expandAccessibilityLabel, {
-              name: projection.name,
-            });
             const revealed = revealedId === projection.id;
             // Carte ouverte par le glissé : appui neutre, comme le reste de la carte (`SwipeActionsRow`).
             const open = () => {
@@ -254,26 +238,19 @@ export function SessionCatalogueList({
                   revealed={revealed}
                   onReveal={() => setRevealedId(projection.id)}
                   onHide={() => setRevealedId((current) => (current === projection.id ? null : current))}
-                  onPress={() => toggle(projection.id)}
-                  accessibilityLabel={sessionCardAccessibilityLabel(projection, isExpanded)}
-                  accessibilityHint={toggleLabel}
-                  accessibilityState={{ expanded: isExpanded }}
-                  extraAccessibilityActions={[
-                    { name: "openSession", label: t.card.openAccessibilityLabel, onAction: () => onOpenSession(projection.id) },
-                    { name: "toggleComposition", label: toggleLabel, onAction: () => toggle(projection.id) },
-                  ]}
+                  // D-602 (Hermann, 25/11/2026) : toucher la carte (hors Démarrer) ouvre la composition en modale ; plus de
+                  // synthèse dépliée dans la liste. [Toucher → déployer / replier, chevron — remplacé.]
+                  onPress={open}
+                  accessibilityLabel={sessionCardAccessibilityLabel(projection)}
+                  accessibilityHint={t.card.openAccessibilityLabel}
                   actionsHeight={SESSION_CARD_HEADER_HEIGHT}
                   testID={`session-card-${projection.id}-swipe`}
                 >
                   <SessionCard
                     projection={projection}
-                    expanded={isExpanded}
-                    onToggleExpanded={() => toggle(projection.id)}
                     onOpen={open}
                     {...(onStartSession !== undefined && projection.status !== "ARCHIVED" ? { onStart: () => onStartSession(projection.id) } : {})}
-                  >
-                    <SessionCompositionTree tree={projection.tree} testID={`session-card-${projection.id}-composition`} />
-                  </SessionCard>
+                  />
                 </SwipeActionsRow>
               </SheetMotionView>
             );

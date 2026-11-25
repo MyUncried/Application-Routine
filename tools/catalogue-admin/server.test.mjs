@@ -110,7 +110,7 @@ describe("Administration locale v2 et connexion Wi-Fi", () => {
 
   describe("W1 — édition du format v2", () => {
     it("sert l'interface, le domaine partagé et la liste des catalogues", async () => {
-      for (const asset of ["/", "/app.js", "/media.js", "/styles.css", "/domain/src/domain/catalogue/MovementCatalogueFile.js"]) {
+      for (const asset of ["/", "/app.js", "/media.js", "/viewMarking.js", "/viewDetection.js", "/styles.css", "/domain/src/domain/catalogue/MovementCatalogueFile.js"]) {
         const response = await fetch(admin + asset);
         assert.equal(response.status, 200, asset);
         assert.match(response.headers.get("content-security-policy"), /default-src 'none'/);

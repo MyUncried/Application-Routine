@@ -18,8 +18,8 @@ describe("migration030 — catalogue des Mouvements en liste ou en grille", () =
     await migrateDatabase(database, undefined, 29);
     const before = await columns(database, "profiles");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(39);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 39 });
+    expect(DATABASE_VERSION).toBe(40);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
     expect(await columns(database, "profiles")).toEqual(before);
     expect(await columns(database, "catalogue_preferences")).toEqual(["singleton_key", "movement_catalogue_grid", "updated_at"]);
     expect(await database.getAllAsync("SELECT * FROM catalogue_preferences")).toEqual([]);

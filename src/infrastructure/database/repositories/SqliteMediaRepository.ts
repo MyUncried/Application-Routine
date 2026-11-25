@@ -1,5 +1,5 @@
 import type { MediaLinkInput } from "@/domain/media/ActivityMedia";
-import { isValidNewMediaAsset, type MediaAsset } from "@/domain/media/MediaAsset";
+import { isValidMediaView, isValidNewMediaAsset, type MediaAsset, type MediaView } from "@/domain/media/MediaAsset";
 import type { MediaRepository } from "@/domain/media/MediaRepository";
 import type { Database } from "@/infrastructure/database/Database";
 import type { JoinedMediaAssetColumns, MediaAssetRow } from "@/infrastructure/database/types/DatabaseRows";
@@ -14,7 +14,11 @@ export const JOINED_ASSET_COLUMNS = `
   media_assets.size_bytes AS asset_size_bytes,
   media_assets.duration_ms AS asset_duration_ms,
   media_assets.width AS asset_width,
-  media_assets.height AS asset_height
+  media_assets.height AS asset_height,
+  media_assets.view_x AS asset_view_x,
+  media_assets.view_y AS asset_view_y,
+  media_assets.view_width AS asset_view_width,
+  media_assets.view_height AS asset_view_height
 `;
 
 /** Erreur d'écriture de média : asset invalide ou absent — la transaction entière est annulée. */
@@ -41,7 +45,8 @@ export class SqliteMediaRepository implements MediaRepository {
 
   async findAsset(assetId: string): Promise<MediaAsset | null> {
     const row = await this.database.getFirstAsync<MediaAssetRow>(
-      `SELECT id, uri, created_at, kind, mime_type, file_name, size_bytes, duration_ms, width, height
+      `SELECT id, uri, created_at, kind, mime_type, file_name, size_bytes, duration_ms, width, height,
+              view_x, view_y, view_width, view_height
        FROM media_assets WHERE id = ?`,
       [assetId],
     );
@@ -59,6 +64,7 @@ export class SqliteMediaRepository implements MediaRepository {
 }
 
 export function mapMediaAssetRow(row: MediaAssetRow): MediaAsset {
+  const view = mediaViewOf(row.view_x, row.view_y, row.view_width, row.view_height);
   return {
     id: row.id,
     uri: row.uri,
@@ -70,7 +76,20 @@ export function mapMediaAssetRow(row: MediaAssetRow): MediaAsset {
     durationMs: row.duration_ms ?? null,
     width: row.width ?? null,
     height: row.height ?? null,
+    // Vue absente : clé omise (image entière), comme avant la version 40.
+    ...(view ? { view } : {}),
   };
+}
+
+/** Vue retenue persistée (`migration040`) : les quatre colonnes ou rien (image entière). */
+function mediaViewOf(
+  x: number | null | undefined,
+  y: number | null | undefined,
+  width: number | null | undefined,
+  height: number | null | undefined,
+): MediaView | null {
+  const view = { x, y, width, height };
+  return isValidMediaView(view) ? view : null;
 }
 
 export function mapJoinedAsset(assetId: string, row: JoinedMediaAssetColumns): MediaAsset {
@@ -85,6 +104,10 @@ export function mapJoinedAsset(assetId: string, row: JoinedMediaAssetColumns): M
     duration_ms: row.asset_duration_ms,
     width: row.asset_width,
     height: row.asset_height,
+    view_x: row.asset_view_x,
+    view_y: row.asset_view_y,
+    view_width: row.asset_view_width,
+    view_height: row.asset_view_height,
   });
 }
 
@@ -113,8 +136,9 @@ export async function ensureMediaAssets(
     }
     const asset = item.asset;
     await transaction.runAsync(
-      `INSERT INTO media_assets (id, uri, created_at, kind, mime_type, file_name, size_bytes, duration_ms, width, height)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO media_assets (id, uri, created_at, kind, mime_type, file_name, size_bytes, duration_ms, width, height,
+                                 view_x, view_y, view_width, view_height)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         asset.id,
         asset.uri,
@@ -126,6 +150,10 @@ export async function ensureMediaAssets(
         asset.durationMs ?? null,
         asset.width ?? null,
         asset.height ?? null,
+        asset.view?.x ?? null,
+        asset.view?.y ?? null,
+        asset.view?.width ?? null,
+        asset.view?.height ?? null,
       ],
     );
   }

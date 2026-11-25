@@ -232,6 +232,11 @@ export const enCore: Omit<FrResource, "screens"> & {
       // PRE-8 (epic E, E.2 et E.3) : carte unique du Catalogue des séances (spécification du 27/10).
       catalogueCard: {
         categoriesOverflow: "+{count}",
+        // D-600 / D-601 (25/11/2026) : carte de séance — séparateur des formats et des mouvements, « +N » des mouvements
+        // (ligne 3) et de la mosaïque (5 images et plus).
+        listSeparator: ", ",
+        movementsOverflow: "+{count}",
+        mosaicOverflow: "+{count}",
         expandAccessibilityLabel: "Show the structure of {name}",
         collapseAccessibilityLabel: "Hide the structure of {name}",
         // CE-T03-01 : destination non livrée, explicitement indisponible.

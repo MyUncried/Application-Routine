@@ -235,6 +235,11 @@ export const fr = {
       // PRE-8 (epic E, E.2 et E.3) : carte unique du Catalogue des séances (spécification du 27/10).
       catalogueCard: {
         categoriesOverflow: "+{count}",
+        // D-600 / D-601 (25/11/2026) : carte de séance — séparateur des formats et des mouvements, « +N » des mouvements
+        // (ligne 3) et de la mosaïque (5 images et plus).
+        listSeparator: ", ",
+        movementsOverflow: "+{count}",
+        mosaicOverflow: "+{count}",
         expandAccessibilityLabel: "Afficher la composition de {name}",
         collapseAccessibilityLabel: "Masquer la composition de {name}",
         // CE-T03-01 : destination non livrée, explicitement indisponible.
@@ -803,6 +808,11 @@ export const fr = {
     composition: {
       // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
       title: "Composer une séance",
+      // CE-T03-08 (titre « Modification d’une Séance ») ; recette du 25/11/2026 (Hermann : « le titre doit être "Modifier une
+      // séance" et non "Composer une séance" »).
+      editTitle: "Modifier une séance",
+      // Recette du 25/11/2026 (Hermann) et Figma `13181:26130` : Démarrer dans l'action finale de la modale de modification.
+      startAccessibilityLabel: "Démarrer la séance",
       backAccessibilityLabel: "Retour",
       // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
       closeAccessibilityLabel: "Fermer",

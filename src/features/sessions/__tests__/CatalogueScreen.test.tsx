@@ -760,7 +760,7 @@ describe("CatalogueScreen — quatre états", () => {
     expect(screen.getByText("Séance b")).toBeTruthy();
   });
 
-  it("opening a card's main area navigates to Composition passing only that sessionId (T01-S10, CE-T01-S10-01)", async () => {
+  it("opening a card's main area navigates to Composition passing that sessionId, presented as an iOS modal (T01-S10, CE-T01-S10-01 ; D-602)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([aSummary("card-a"), aSummary("card-b")]);
 
@@ -777,7 +777,7 @@ describe("CatalogueScreen — quatre états", () => {
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/composition",
-      params: { sessionId: "card-b" },
+      params: { sessionId: "card-b", presentation: "modal" },
     });
   });
 });
