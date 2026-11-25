@@ -116,11 +116,30 @@ Aucune n'a été réalisée :
 
 ## Tests
 
-Aucun test exécuté à ce stade : aucun code n'a été modifié.
+| Commande | Résultat |
+|---|---|
+| `npx jest` (suite complète, commit `cdba9a3f`) | **PASS** : 483 suites, 6 820 tests réussis, 32 ignorés (référence `main@a48622d3` : 477 suites, 6 752 tests, tous réussis) |
+| `npx jest supabase` | PASS : 28 tests (suppression, reprise a/b1/b2, `deletion-status`, secret client ES256, échange et révocation, vérification JWS, chiffrement, notifications) |
+| `supabase/tests/run-sql-tests.sh` (Postgres 16 local, schéma `auth` simulé) | PASS : schéma, RLS, `link_account` (R1 à R3, nom non écrasé, refus pendant une suppression), purge 90 jours, fonctions serveur (rejeu, deux sujets, `consent-revoked` puis nouveau jeton, reprise d'un `account-delete` après purge, sessions) |
+| `npx tsc --noEmit` | PASS |
+| `npx expo lint` | 22 erreurs, **toutes antérieures et hors des fichiers modifiés** (Composition, formatTimeline, StickyHeader, TransientNotification et leurs tests) ; aucune dans les fichiers du lot |
+
+**Remarque.** Lors d'un premier passage complet, intermédiaire et non conservé, `CompositionScreen.test.tsx` (focus d'accessibilité D-442) a échoué une fois sous charge. Il réussit au passage final et dans la suite de référence ; il est sans lien avec le compte.
+
+**Tests non exécutables ici :**
+- fonctions Deno (aucun environnement Deno) : leur logique est testée par Jest ;
+- connexions réelles, révocation Apple, notifications Apple réelles, retours par lien profond sur appareil.
 
 ## Fichiers modifiés
 
 - `.github/orchestration/reports/2026-11-25_T1-COMPTE-IMPLEMENTATION.md` (création)
+- `supabase/` (nouveau) : migrations, fonctions, tests, `config.toml`, `README.md`
+- `src/domain/account/`, `src/infrastructure/account/`, `src/features/account/` (nouveaux)
+- `src/infrastructure/database/` : `migration040.ts`, `migrateDatabase.ts`, `constants.ts`, `SqliteAccountRepository.ts`, tests de migration (version 40)
+- `src/features/sessions/SessionServiceProvider.tsx`, `app/_layout.tsx`, `src/features/preferences/ProfileEditScreen.tsx` et leurs tests
+- `src/shared/i18n/resources/` : `frAccount.ts`, `enAccount.ts`, `bundles.ts`
+- `app.json`, `app.config.js`, `package.json`, `package-lock.json`, `tsconfig.json`, `eslint.config.js`
+- Documentation : chapitres 06, 12 et 13
 
 ## Commit et état Git
 
