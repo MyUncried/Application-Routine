@@ -154,6 +154,7 @@ import { withLevelSuffix } from "@/features/activities/movementChoicePresentatio
 import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
+import { AgendaPlayIcon } from "@/features/planning/AgendaStatusIcon";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import {
@@ -906,6 +907,11 @@ export type CompositionScreenProps = {
    * aucun état intermédiaire, aucune frame de création possible.
    */
   readonly sessionId?: string | null;
+  /**
+   * D-602 (25/11/2026) : Composition ouverte depuis une carte du catalogue des séances, présentée en modale iOS (feuille
+   * native). Recette du 25/11/2026 (Hermann) : en-tête sans la réserve de la barre d'état ; Démarrer dans l'action finale.
+   */
+  readonly modal?: boolean;
 };
 
 /**
@@ -971,8 +977,11 @@ export type CompositionScreenProps = {
  * interceptée par `useCompositionExitGuard` exactement comme le geste
  * système.
  */
-export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
+export function CompositionScreen({ sessionId = null, modal = false }: CompositionScreenProps = {}) {
   const router = useRouter();
+  // Recette du 25/11/2026 (Hermann : « je ne vois pas le bouton démarrer sur la modale en mode modification, pour pouvoir lancer
+  // l'exécution directement de la modale ») : Démarrer enregistre d'abord les modifications éventuelles, puis lance l'exécution.
+  const startAfterSaveRef = useRef(false);
   // Guidage sonore : symbole plein pendant l'ouverture de la modale, fin dès qu'elle se ferme (validation comprise).
   const [guidanceOpen, setGuidanceOpen] = useState(false);
   useFocusEffect(
@@ -1390,7 +1399,29 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // segment `Séances` — `catalogueSegment` est un signal PONCTUEL, consommé une seule fois
     // par `CatalogueScreen` (`useFocusEffect`), jamais persisté.
     router.dismissTo({ pathname: "/", params: { catalogueSegment: "sessions" } });
-  }, [hasSaved, router]);
+    // Démarrer depuis la modale : l'exécution s'ouvre sur le catalogue, comme Démarrer de la carte.
+    if (startAfterSaveRef.current && sessionId !== null) {
+      startAfterSaveRef.current = false;
+      router.push({ pathname: "/execution", params: { sessionId } });
+    }
+  }, [hasSaved, router, sessionId]);
+
+  /** Démarrer (modale de modification) : modifications enregistrées d'abord ; brouillon inchangé : exécution directe. */
+  function handleStart() {
+    if (sessionId === null) return;
+    const changed = hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : true;
+    if (changed) {
+      startAfterSaveRef.current = true;
+      void handleSave().then(() => {
+        // Échec de l'enregistrement : rien ne démarre (message D-107 affiché, comme pour Enregistrer).
+        if (!isSavingRef.current) startAfterSaveRef.current = false;
+      });
+      return;
+    }
+    resetDraft();
+    router.dismissTo({ pathname: "/", params: { catalogueSegment: "sessions" } });
+    router.push({ pathname: "/execution", params: { sessionId } });
+  }
 
   /**
    * Q54 : enregistrement de la Séance, repris de l'ancien `CategoriesScreen.handleSave` —
@@ -4880,7 +4911,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   return (
     <ScreenShell>
       <FixedHeader
-        title={readOnly ? composition.consultation.title : composition.title}
+        // CE-T03-08 ; recette du 25/11/2026 (Hermann : « le titre doit être "Modifier une séance" et non "Composer une séance" ») :
+        // une Séance existante s'ouvre en modification. [« Composer une séance » en modification — remplacé.]
+        title={readOnly ? composition.consultation.title : sessionId !== null ? composition.editTitle : composition.title}
+        // Recette du 25/11/2026 (Hermann : « il y a un espace très grand entre le haut de la modale, et la première ligne ») :
+        // en modale (feuille native), pas de réserve de barre d'état — comme les autres feuilles (`NativeSheetTop`).
+        {...(modal ? { topInset: 0 } : {})}
         // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
         // PRE-9 B.2 : de même, en mode enveloppe, le X l'annule d'abord.
         onBack={() => (placement !== null ? cancelPlacement() : envelope !== null ? cancelEnvelope() : router.back())}
@@ -5635,6 +5671,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onPress={handleSave}
             disabled={!isCompositionValid || saveState === "saving"}
             testID="composition-save-action"
+            {...(modal && sessionId !== null
+              ? {
+                  // Figma `13204:26037` : cercle bleu de 48 à liseré blanc, icône Démarrer en relief de 40 (D-599).
+                  trailing: (
+                    <Pressable
+                      onPress={handleStart}
+                      disabled={!isCompositionValid || saveState === "saving"}
+                      accessibilityRole="button"
+                      accessibilityLabel={composition.startAccessibilityLabel}
+                      accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
+                      style={styles.startInSave}
+                      testID="composition-start-action"
+                    >
+                      {({ pressed }) => <AgendaPlayIcon pressed={pressed} size={40} testID="composition-start-icon" />}
+                    </Pressable>
+                  ),
+                }
+              : {})}
           />
         ) : null}
       </PrimaryActionZone>
@@ -10712,6 +10766,17 @@ const DRAG_SHIFT_GAPS = {
 } as const;
 
 const styles = StyleSheet.create({
+  // Figma `13203:26037` : Démarrer dans l'action finale — cercle de 48 couleur principale, liseré blanc de 2, aligné à droite.
+  startInSave: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: colors.background,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   // PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » sur la troisième ligne de la carte, à droite.
   // T01-S10 : corps des états de réhydratation en modification.
   editStateBody: {

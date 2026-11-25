@@ -145,3 +145,29 @@ B : décisions de Hermann du 24-25/11/2026. Documents mis à jour dans la même 
 ## Commits et état Git
 
 Le commit qui contient ce rapport et l'état final sont indiqués dans le compte rendu de livraison.
+
+## Complément du 25/11/2026 : modale de modification (recette de Hermann)
+
+- **Demandes** :
+  - « il y a un espace très grand entre le haut de la modale, et la première ligne de la modale » ;
+  - « le titre doit être "Modifier une séance" et non "Composer une séance" » ;
+  - « je ne vois pas le bouton démarrer sur la modale en mode modification ».
+- **Corrections** :
+  - **En-tête** : en modale, sans la réserve de la barre d'état (`topInset={0}`, comme les autres feuilles natives). Classe B.
+  - **Titre** : « Modifier une séance » pour toute séance existante ouverte en modification (CE-T03-08, règle déjà écrite). Classe A. La création garde « Composer une séance » ; une séance archivée garde « Séance archivée ».
+  - **Démarrer** : dans l'action finale de la modale, cercle de 48 à liseré blanc avec l'icône en relief de 40 (Figma `13181:26130`, D-599). Classe B.
+    - Avec des modifications : il enregistre, puis ouvre l'exécution sur le catalogue.
+    - Sans modification : il ouvre directement l'exécution.
+    - Il est inactif quand l'enregistrement l'est.
+    - C'est une interprétation, consignée au registre (D-602) et à confirmer.
+- **Code** :
+  - `CompositionScreen` (prop `modal`, `handleStart`) ;
+  - `app/(creation)/composition.tsx` ;
+  - `PrimaryActionButton` (option `trailing`) ;
+  - `AgendaPlayIcon` (option `size`).
+- **Non changé** : le libellé du bouton reste « Continuer ». La maquette montre « Enregistrer », mais la demande ne le cite pas.
+- **Tests** :
+  - `CompositionScreen` : 2 nouveaux tests (titre ; modale, en-tête et Démarrer) et les blocs voisins sont verts ;
+  - `rootLayoutGesture` adapté (options calculées selon la route) ;
+  - i18n, `PrimaryActionZone`, Agenda, catalogue et ouverture d'une séance : 17 suites, 148 tests ;
+  - `tsc` propre.
