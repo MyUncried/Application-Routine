@@ -70,10 +70,10 @@ Acquis (chapitre 07) : notifications push et pastilles (CPT-23) ; ordre T1 à T6
 
 **Différé avant T5, ne conditionne pas T1 :** contenu définitif du résumé d'exécution dans le fil ; annonce éventuelle d'un changement de pseudo dans le fil des abonnés (CPT-28).
 
-**ARBITRAGES ouverts** (publiés sur la PR #446) :
+**ARBITRAGES** (publiés sur la PR #446, tous tranchés) :
 - **A1 — É3, delta de texte** : **validé (CPT-29)**.
 - **A2 — Moment de la première demande d'autorisation des notifications push** : **validé (CPT-30)**, à la première activation de la Communauté (T2), jamais en T1.
-- **A3 — Téléphone dont le compte a été supprimé**, puis connexion avec un compte **existant** déjà utilisé sur un autre téléphone. Proposition : refuser (É4), seul un compte **neuf** reprend ces données (CPT-10 et CPT-14). Incidence T1 : règle R5 du rattachement.
+- **A3 — Téléphone dont le compte a été supprimé, puis compte existant** : **refus validé (CPT-31)**.
 
 ## 5. Écrans nécessaires — T1 (à vérifier par Hermann dans Figma)
 
@@ -240,7 +240,7 @@ RLS activée sur toutes les tables. Aucune écriture directe par l'app : les éc
 | R2 | **Compte existant, téléphone vierge** (réinstallation, nouveau téléphone) | L'Utilisateur local (nouvel identifiant) est **ajouté** aux Utilisateurs du compte. Aucune réécriture de `users.id`. Aucune donnée récupérée (pas de sauvegarde en T1). Prénom et nom sont lus dans `accounts` quand Apple ne les renvoie plus. |
 | R3 | **Même compte, téléphone déjà peuplé** avec un autre identifiant local (appareils de recette, installation antérieure à T1) | Accepté. L'Utilisateur local est ajouté. **Chaque téléphone garde ses données et son identifiant**, sans fusion ni perte. |
 | R4 | **Autre compte Y**, téléphone lié à X (session expirée ou révoquée, nouvelle connexion avec Y) | **Refus É4**. La session Y est fermée localement. `account_link` de X est intact. **Aucun appel** à `link_account` pour Y. |
-| R5 | Téléphone où le compte a été **supprimé** (`DELETED_ON_THIS_DEVICE`), données conservées | Compte **neuf** : R1. Compte **existant** : **refus É4** (proposition, ARBITRAGE A3). |
+| R5 | Téléphone où le compte a été **supprimé** (`DELETED_ON_THIS_DEVICE`), données conservées | Compte **neuf** : R1. Compte **existant** : **refus É4** (CPT-31). |
 | R6 | Reprise après coupure pendant le rattachement | `link_account` idempotent. Tant que `account_link` n'est pas écrit, la porte reste sur É1 et le rattachement est rejoué à la connexion suivante. |
 
 **Tests**
@@ -433,4 +433,4 @@ Elle est ajoutée sous la photo et le nom d'affichage existants. Elle reprend le
 
 ## STATUT
 
-**PLAN_READY_FOR_REVIEW** pour T1, sous réserve de l’ARBITRAGE A3, qui n’empêche pas la contre-revue du delta. Prochaine barrière : contre-revue ChatGPT, puis `PLAN_APPROVED` (mode, écrivain, baseline).
+**PLAN_READY_FOR_REVIEW** pour T1. Arbitrages A1 à A3 tranchés (CPT-29 à CPT-31). Prochaine barrière : contre-revue ChatGPT, puis `PLAN_APPROVED` (mode, écrivain, baseline).
