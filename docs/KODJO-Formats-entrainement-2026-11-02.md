@@ -611,7 +611,7 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 ### 9.8 Appui sur un Exercice, exercice libre et écran des formats (25/11/2026, D-571)
 
-- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la **page unique du format** (il n'y a plus de page de récapitulatif distincte du questionnaire) ; la modale « Paramètres d'exécution » n'existe plus pour ces Exercices. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule (inchangé). La Charge et « De chaque côté » doivent être réglables dans la page du format. [Remplace, pour les Exercices issus d'un format, la modale par contexte du § 9.7 ; la liste des champs du § 9.7 reste la référence de ce que la page doit proposer.]
+- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la modale « Paramètres d'exécution » allégée selon le format (§ 9.7 et § 9.9), présentée comme la modale de l'exercice libre. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule. [Une page unique du format intégrant ces réglages n'est pas retenue en l'état : sa faisabilité n'est pas établie.]
 - **Exercice libre.** Il se règle dans une modale de type format (Figma « Exercice libre — Modale de type format »), mêmes composants que les questionnaires : Mode (Répétitions par défaut), objectif « À l'objectif », Charge par « (+ kg) » dans le tableau, « De chaque côté » en ligne.
 - **Écran des formats (« Créer un exercice »).** Titre centré, aucun sous-titre ; carte **Libre** de la même taille que les autres, en première position, logo en cadre pointillé, sous-titre « un mouvement, à régler ».
 - Figma (Prototype MVP) : écran des formats `9977:19613` ; modale libre `13242:26255`. À valider sur iPhone.
@@ -943,7 +943,7 @@ Aucun token ajouté. Couleurs saisies en dur, à transformer en tokens si le dé
 
 ### 9.9 Réglages d'exercice par format, catalogue en modification, nom du Superset (25/11/2026, D-572)
 
-Ces règles décrivent le contenu des réglages d'exercice (modale actuelle, puis page du format, D-571).
+Ces règles décrivent le contenu de la modale « Paramètres d'exécution » allégée.
 
 **Général.** Le clavier ne masque jamais le champ saisi ; « De chaque côté » : menu natif iOS ; « + Ajouter » devient « + Modifier » dès qu'un mouvement est choisi ; 5 mouvements au plus par format. Catalogue en modification : sélectionnés figés en haut (zone plafonnée à environ 40 % de la hauteur, défilement interne), liste qui défile dessous et disparaît derrière la zone figée, marge sous la dernière carte ; désélectionner une carte la libère.
 

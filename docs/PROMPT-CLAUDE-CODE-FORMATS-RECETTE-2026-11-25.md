@@ -1,6 +1,6 @@
 # Claude Code — Formats : corrections de recette iPhone (25/11/2026)
 
-Mission : appliquer D-572 (registre, ch07 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.9, branche `docs/planification-grille-creneaux`, à lire sans la fusionner), en complément de D-568 à D-571. Ces règles décrivent le contenu des réglages d'exercice (modale actuelle, puis page du format).
+Mission : appliquer D-572 (registre, ch07 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` § 9.9, branche `docs/planification-grille-creneaux`, à lire sans la fusionner), en complément de D-568 à D-571 (D-571 point 1 non retenu : la modale est conservée). Ces règles décrivent le contenu des réglages d'exercice (modale « Paramètres d'exécution » allégée).
 
 Général
 1. Le clavier ne doit jamais masquer le champ saisi (Charge notamment) : la feuille se remonte ou défile au-dessus du clavier.

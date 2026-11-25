@@ -252,3 +252,8 @@
 - Non traité : écrans Figma correspondants (aucun dessiné), Giant set à 5 mouvements (appliqué « 4 et plus »), doc 13 non revue.
 - Vérification sur iPhone à faire : chaque point du prompt.
 - Tests : non applicables.
+
+## Complément 25/11/2026 (suite 8) — Modale d'exercice conservée (D-571 point 1 non retenu, classe B)
+- Décision de Hermann (25/11/2026) : la faisabilité d'une page unique intégrant les réglages d'exercice n'est pas établie ; des modales allégées, au format commun avec l'exercice libre, constituent déjà une amélioration.
+- Documents : registre ch07 D-571 (point 1) et D-572 (point 9), annotations de la ligne « Constat c » et des documents 08 et 10 ; Formats §§ 9.8 et 9.9 ; deux prompts ajustés.
+- Tests : non applicables.
