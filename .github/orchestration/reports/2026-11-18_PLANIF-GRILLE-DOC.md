@@ -245,3 +245,10 @@
 - Non traité : place de Charge et De chaque côté dans la page du format (aucun écran, signalée À CLARIFIER dans le prompt) ; doc 13 (contrats d'écran) non revue ; modales de composition non validées.
 - Vérification sur iPhone à faire : appui sur carte, actions de la carte, modale libre, écran des formats.
 - Tests : non applicables.
+
+## Complément 25/11/2026 (suite 7) — Recette iPhone : réglages d'exercice par format (D-572, classe B ; corrections de conformité classe A)
+- Décisions explicites de Hermann (25/11/2026) : réglages par format, nombre de cycles, intervalles EMOM, condition d'arrêt AMRAP/For time, catalogue en modification, nom Superset / Tri-set / Giant set.
+- Documents : registre ch07 D-572 ; Formats § 9.9 (§ 9.4 annoté) ; prompt `docs/PROMPT-CLAUDE-CODE-FORMATS-RECETTE-2026-11-25.md`. Figma : aucun écran modifié.
+- Non traité : écrans Figma correspondants (aucun dessiné), Giant set à 5 mouvements (appliqué « 4 et plus »), doc 13 non revue.
+- Vérification sur iPhone à faire : chaque point du prompt.
+- Tests : non applicables.
