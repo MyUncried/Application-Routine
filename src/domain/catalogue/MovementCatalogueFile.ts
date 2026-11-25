@@ -93,7 +93,31 @@ export type CatalogueMedia = {
   readonly attribution: string;
   readonly license: string;
   readonly rightsStatus: (typeof CATALOGUE_MEDIA_RIGHTS)[number];
+  /**
+   * Vue retenue d'une photo (marquage des photos, D-600, Hermann, 24-25/11/2026 ; DSF Carte de séance § 1) : rectangle
+   * en pourcentage de l'image (x, y, largeur, hauteur), proposé à la publication par l'administration Web puis vérifié
+   * par la personne qui publie. Absent : l'image est retenue entière. L'application l'applique tel quel, sans calcul.
+   */
+  readonly view?: CatalogueMediaView | null;
 };
+
+/** Rectangle de la vue retenue, en pourcentage de l'image (0 à 100). */
+export type CatalogueMediaView = {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+};
+
+/** Rectangle de vue valide : nombres finis, largeur et hauteur positives, entièrement dans l'image. */
+export function isValidCatalogueMediaView(view: unknown): view is CatalogueMediaView {
+  if (typeof view !== "object" || view === null || Array.isArray(view)) return false;
+  const { x, y, width, height } = view as Record<string, unknown>;
+  const n = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+  if (!n(x) || !n(y) || !n(width) || !n(height)) return false;
+  const EPSILON = 1e-6;
+  return x >= 0 && y >= 0 && width > 0 && height > 0 && x + width <= 100 + EPSILON && y + height <= 100 + EPSILON;
+}
 
 export type CatalogueGlossaryEntry = {
   readonly id: string;
@@ -1093,6 +1117,10 @@ function mediaProblem(media: unknown): string | null {
   if (media.sourceUrl !== null && !isSecureUrl(media.sourceUrl)) return "URL de provenance invalide";
   if (media.storage === "REMOTE" && !media.sourceUrl) return "source obligatoire pour un média distant";
   if ("alt" in media) return "texte alternatif retiré du format 3.0.0";
+  if (media.view !== undefined && media.view !== null) {
+    if (media.kind !== "PHOTO") return "vue retenue réservée aux photos";
+    if (!isValidCatalogueMediaView(media.view)) return "vue retenue invalide (pourcentages hors de l'image)";
+  }
   for (const [field, max] of [["caption", 180], ["attribution", 160], ["license", 160]] as const) {
     const text = media[field];
     if (!isString(text) || text.length > max) return field + " absent ou trop long";
