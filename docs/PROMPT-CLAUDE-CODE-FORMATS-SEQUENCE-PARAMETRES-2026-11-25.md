@@ -1,6 +1,6 @@
 # Claude Code — Formats : séquence d'ouverture et modale « Paramètres d'exécution » selon le contexte (25/11/2026)
 
-Mission : appliquer D-568 et D-569 (registre, ch07 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` §§ 9.6 et 9.7, branche `docs/planification-grille-creneaux`, à lire sans la fusionner). Figma : modales « … — Modale exercice » du 30/30, de l'EMOM, de l'AMRAP, du Death by, du For time et du Tabata ; « P-Tabata — Choix des mouvements ».
+Mission : appliquer D-568, D-569 et D-570 (registre, ch07 ; `docs/KODJO-Formats-entrainement-2026-11-02.md` §§ 9.6 et 9.7, branche `docs/planification-grille-creneaux`, à lire sans la fusionner). Figma : modales « … — Modale exercice » du 30/30, de l'EMOM, de l'AMRAP, du Death by, du For time et du Tabata ; « P-Tabata — Choix des mouvements ».
 
 1. Séquence : à la première ouverture de **tous les formats, sans exception** (Tabata, 30/30, Renforcement, Progression, À l'échec, Superset, EMOM, AMRAP, Death by, For time), afficher en premier l'écran de choix des mouvements (mode catalogue du format) ; le questionnaire reste accessible depuis cet écran. Le lien du haut s'intitule « Paramètres ». Aucun nouvel écran : seul l'état initial change.
 2. Modale « Paramètres d'exécution » d'un exercice déjà dans la séance (ouverte depuis le questionnaire ou la Composition ; même modale) : n'afficher que les champs utiles dans le contexte de l'exercice (§ 9.7 des Formats) :
