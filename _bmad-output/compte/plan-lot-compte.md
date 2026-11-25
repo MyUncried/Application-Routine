@@ -44,7 +44,7 @@ Toutes les tranches font partie du MVP. Chacune est livrée et recettée sur iPh
 | **T3** | Partage de contenus vers un Ami : envoi, réception, ajout explicite, médias, conservation CPT-17, mises à jour volontaires, signalement d'un contenu | T2 |
 | **T4** | Espaces relationnels : création, invitation et demande d'adhésion, rôles, partage dans un espace | T3 |
 | **T5** | Fil d'activité : publication des résumés d'exécution sans douleurs, visibilité par défaut et privée, fils global et d'espace, commentaires, réactions | T2 (T4 pour le fil d'espace) |
-| **T6** | Publication publique d'une Bibliothèque et sa découverte (carte « Publique ») | T3 |
+| **T6** | Publication publique d'une Bibliothèque et sa découverte (carte « Publique ») ; **suite de T6** : envoi du catalogue officiel KODJO vers un compte KODJO, téléchargé après la première connexion (CPT-33) | T3 |
 | **Transverse** | Outil de retrait KODJO (CPT-19) : fonction serveur et procédure ; tableau de bord Supabase pour consulter les signalements | T2 |
 
 ## 3. Modèle serveur (Supabase, Paris), vue d'ensemble

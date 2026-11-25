@@ -152,7 +152,7 @@
 - **Classe B** (décision explicite de Hermann : « le compte Kodjo »). Le catalogue de base des Mouvements est publié sur un compte KODJO comme Bibliothèque publique (CPT-22), téléchargé après la première connexion, non livré dans le paquet de l'application. Les 60 fiches actuelles sont un jeu de test.
 - **Source normative absente de cette branche** : le chapitre 07 de la section « Gestion de compte » n'existe que sur la PR #446 (`claude/blissful-meitner-iauzaf`). Pas de fusion. Patch préparé : `_bmad-output/compte/integration-documentaire-CPT-23.patch` (ajoute la ligne CPT-23 après CPT-22).
 - **Vérification** : `git apply --cached --check` sur un index temporaire de la branche de la PR #446 : applicable.
-- **Statut : préparé, non appliqué.** À appliquer sur la branche de la PR #446. Le plan du lot Compte (`_bmad-output/compte/plan-lot-compte.md`, même PR) doit aussi mentionner l'envoi du catalogue officiel comme suite de T6.
+- **Statut : préparé, non appliqué.** À appliquer sur la branche de la PR #446. [Appliqué le 25/11/2026 sur cette branche sous le numéro **CPT-33** : CPT-23 y désignait déjà les notifications push (décision du 24/11/2026). Mention dans le plan du lot Compte ajoutée.] Le plan du lot Compte (`_bmad-output/compte/plan-lot-compte.md`, même PR) doit aussi mentionner l'envoi du catalogue officiel comme suite de T6.
 - Aucun test applicable (documentation).
 
 ## Complément 23/11/2026 — Programmes : période, routines, rattachement (D-560 à D-562, classe B)
