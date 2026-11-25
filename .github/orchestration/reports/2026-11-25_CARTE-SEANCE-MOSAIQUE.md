@@ -171,3 +171,11 @@ Le commit qui contient ce rapport et l'état final sont indiqués dans le compte
   - `rootLayoutGesture` adapté (options calculées selon la route) ;
   - i18n, `PrimaryActionZone`, Agenda, catalogue et ouverture d'une séance : 17 suites, 148 tests ;
   - `tsc` propre.
+
+## Complément du 25/11/2026 : position du cercle Démarrer (recette de Hermann)
+
+- **Constat** (capture livré / demandé) : le liseré blanc de 2 était dessiné à l'intérieur du cercle de 48, ce qui laissait un anneau blanc franc autour d'un anneau bleu mince. La maquette (`13203:26037`, cotes relues dans la session car Figma était injoignable) place le liseré à l'extérieur du cercle collé au bout droit du bouton ; il apparaît translucide sur le bleu.
+- **Correction** : `startInSave` mesure désormais 52 de côté, rayon 26, décalé de 2 vers la droite (`marginRight: -2`), liseré `#FFFFFF80`. L'anneau bleu autour de l'icône de 40 mesure 4. Classe A (conformité à Figma) : aucun document à modifier.
+- **Hypothèse** : l'opacité du liseré (50 %) est déduite de la capture ; Figma n'était pas joignable pour la confirmer.
+- **Tests** : `CompositionScreen` ciblé (25 tests modale/modification) vert, avec une assertion de style ajoutée ; `tsc` propre.
+- **À vérifier sur iPhone** : rendu du cercle sur l'appareil.
