@@ -389,14 +389,18 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
     expect(onRecovery).not.toHaveBeenCalled();
   });
 
-  it("EMOM, séries variables : tableau sans colonne Pause", () => {
+  // [« EMOM : retirer la colonne Pause du tableau » (07/11/2026) — conservé : jamais de Pause ; D-607 (D-572 point 6, Hermann,
+  // 25/11/2026) : la deuxième colonne porte l'Intervalle de chaque série.]
+  it("EMOM, séries variables : tableau sans colonne Pause ; colonne Intervalle (D-607)", () => {
     renderWithRecovery("EMOM", ["stopTarget", "interval", "durationReadOnly"], { settings: { intervalSeconds: 60 } }, params({
       series: { kind: "VARIABLE", rows: [{ target: numberTarget(8), pauseSeconds: 0, loadKg: 0 }, { target: numberTarget(10), pauseSeconds: 0, loadKg: 0 }], workPhases: [] },
     }));
     expect(query("execution-sheet-table-row-1-target-cell")).not.toBeNull();
-    expect(query("execution-sheet-table-row-1-pause-cell")).toBeNull();
+    expect(query("execution-sheet-table-row-1-pause")).toBeNull();
+    expect(query("execution-sheet-table-row-1-interval")).not.toBeNull();
     expect(query("execution-sheet-table-row-1-load-cell")).not.toBeNull();
     expect(within(get("execution-sheet-table-header")).queryByText(strings.executionParameters.sheet.columns.pause, hidden)).toBeNull();
+    expect(within(get("execution-sheet-table-header")).queryByText(strings.executionParameters.sheet.columns.interval, hidden)).not.toBeNull();
   });
 
   it("Death by : À l'échec imposé sans effacer le départ ; un objectif déjà « à l'échec » est à renseigner", () => {

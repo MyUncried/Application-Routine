@@ -104,7 +104,7 @@ describe("PRE-9 (01/11/2026, point 2) — bloc Récupération de Paramètres d'e
       .map((frame) => String(frame.props.testID));
     expect(frames).toEqual([
       "execution-sheet-frame-execution",
-      "execution-sheet-frame-phases",
+      // [« execution-sheet-frame-phases » — retiré le 26/11/2026 par D-608 (D-573 point 6) : sans phases, aucun bloc.]
       "execution-sheet-frame-series",
       "execution-sheet-frame-sides",
       "execution-sheet-frame-cadence",

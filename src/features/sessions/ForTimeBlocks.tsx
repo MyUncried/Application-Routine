@@ -208,6 +208,7 @@ export function ForTimeBlocks({
   sequence,
   movementOf,
   onAdd,
+  addTextOf,
   onChange,
   onOpenParameters,
   onOpenSheet,
@@ -224,6 +225,8 @@ export function ForTimeBlocks({
   readonly sequence: boolean;
   readonly movementOf: (item: ModelMovement) => Movement | null;
   readonly onAdd: (role: "LOOP" | "BUY_IN" | "BUY_OUT") => void;
+  /** Libellé du lien d’un bloc (D-572 : « + Ajouter », puis « + Modifier » dès un mouvement choisi). Par défaut « + Ajouter ». */
+  readonly addTextOf?: (role: "LOOP" | "BUY_IN" | "BUY_OUT") => string;
   readonly onChange: (index: number, values: MovementValues) => void;
   readonly onOpenParameters: (index: number) => void;
   readonly onOpenSheet: (movement: Movement) => void;
@@ -259,6 +262,7 @@ export function ForTimeBlocks({
         count={count}
         heading={heading}
         onAdd={() => onAdd(addRole)}
+        {...(addTextOf !== undefined ? { addText: addTextOf(addRole) } : {})}
         kit={kit}
         access={FOR_TIME_ACCESS}
         onChange={onChange}
@@ -299,7 +303,7 @@ function BlockHeader({
   readonly onAdd: () => void;
   readonly addDisabled?: boolean;
   readonly addLeft?: number;
-  /** Libellé du lien (« + Ajouter » ; Superset complet : « Modifier »). */
+  /** Libellé du lien (« + Ajouter » ; dès un mouvement choisi : « + Modifier », D-572). */
   readonly addText?: string;
   readonly testID: string;
   readonly children?: React.ReactNode;

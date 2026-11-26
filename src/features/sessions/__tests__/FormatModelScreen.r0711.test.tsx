@@ -214,7 +214,8 @@ describe("Recette iPhone du 07/11/2026 — mode catalogue d'un Format", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-movements-link"));
     });
-    await screen.findByTestId("format-catalogue-card-fentes");
+    // D-572 (25/11/2026) : « + Modifier » — le mouvement choisi est figé en haut du catalogue en modification.
+    await screen.findByTestId("format-catalogue-pinned-fentes");
     await act(async () => {
       // En mode catalogue, le lien de la section est « Revenir aux paramètres ».
       fireEvent.press(screen.getByTestId("format-movements-link"));

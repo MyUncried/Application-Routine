@@ -174,6 +174,8 @@ export type DraftWorkPhase = {
   readonly id: number;
   readonly label: string;
   readonly durationSeconds: number | null;
+  /** D-608 (D-573 point 6) : son de la phase désactivé (`WorkPhase.soundOff`) ; absent : son actif. */
+  readonly soundOff?: true;
 };
 
 export type ExecutionSheetDraft = {
@@ -238,6 +240,8 @@ export type ExecutionSheetDraft = {
   readonly disabledWorkPhases: readonly DraftWorkPhase[] | null;
   /** Charge Avec / Sans (AD-19) ; les `loadKg` restent portés sous Sans. */
   readonly loadEnabled: boolean;
+  /** D-607 (Tabata, 30/30, HIIT) : objectif de répétitions facultatif, distinct de la Cible ; absent : aucun. */
+  readonly repetitionsGoal?: number;
 };
 
 /** Copie des paramètres du parent à l'ouverture — aucune réserve héritée. */
@@ -300,10 +304,12 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
       id: phase.id,
       label: phase.label,
       durationSeconds: phase.durationSeconds < WORK_PHASE_LIMITS.durationMin ? null : phase.durationSeconds,
+      ...(phase.soundOff === true ? { soundOff: true as const } : {}),
     })),
     nextPhaseId: openingNextPhaseId(workPhases, options.nextPhaseId),
     disabledWorkPhases: null,
     loadEnabled: parameters.loadEnabled,
+    ...(parameters.repetitionsGoal !== undefined ? { repetitionsGoal: parameters.repetitionsGoal } : {}),
   };
   // PRE-7 (D-446, remplace l'ouverture de D à renseigner d'A2.1) : la Cible est lue telle quelle,
   // liste de phases complète ou non (`requestedParameters(openSheetDraft(p))` = `p`).
@@ -339,6 +345,7 @@ export function requestedParameters(draft: ExecutionSheetDraft): ExecutionParame
     id: phase.id,
     label: phase.label,
     durationSeconds: phase.durationSeconds ?? 0,
+    ...(phase.soundOff === true ? { soundOff: true as const } : {}),
   }));
   return {
     version: EXECUTION_PARAMETERS_VERSION,
@@ -360,7 +367,14 @@ export function requestedParameters(draft: ExecutionSheetDraft): ExecutionParame
     countdownSeconds: draft.countdownSeconds,
     endSeconds: draft.endSeconds,
     loadEnabled: draft.loadEnabled,
+    ...(draft.repetitionsGoal !== undefined ? { repetitionsGoal: draft.repetitionsGoal } : {}),
   };
+}
+
+/** D-607 : objectif de répétitions facultatif — `null` le retire (aucun objectif). */
+export function setRepetitionsGoal(draft: ExecutionSheetDraft, value: number | null): ExecutionSheetDraft {
+  const { repetitionsGoal: _previous, ...rest } = draft;
+  return value === null || value < 1 ? rest : { ...rest, repetitionsGoal: Math.round(value) };
 }
 
 /**
@@ -1142,6 +1156,26 @@ export function setWorkPhaseDuration(
   return withWorkPhases(
     draft,
     draft.workPhases.map((phase, current) => (current === index ? { ...phase, durationSeconds } : phase)),
+  );
+}
+
+/**
+ * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : active ou désactive le son de la phase d'identité `phaseId`
+ * (bip et annonce du changement de phase à l'exécution). Phase inconnue : Brouillon inchangé.
+ */
+export function toggleWorkPhaseSound(draft: ExecutionSheetDraft, phaseId: number): ExecutionSheetDraft {
+  const index = workPhaseIndex(draft, phaseId);
+  if (index < 0) return draft;
+  return withWorkPhases(
+    draft,
+    draft.workPhases.map((phase, current) => {
+      if (current !== index) return phase;
+      if (phase.soundOff === true) {
+        const { soundOff: _soundOff, ...rest } = phase;
+        return rest;
+      }
+      return { ...phase, soundOff: true as const };
+    }),
   );
 }
 

@@ -76,9 +76,11 @@ import { seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { createEmptyDraft } from "@/domain/sessions/SessionDraft";
 import type { ExecutionMode, ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { formatSheetContextOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { formatModelName } from "@/features/sessions/carrierPresentation";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
-import { currentLayout } from "@/domain/sessions/layoutOperations";
+import { emomIntervalsOf } from "@/domain/sessions/emomIntervals";
+import { circuitOfExercise, currentLayout } from "@/domain/sessions/layoutOperations";
 import { structureCircuits } from "@/domain/sessions/structure";
 import type { MovementChoice } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
@@ -107,6 +109,7 @@ import {
 } from "@/features/sessions/FormatTables";
 import { FormatModelIllustration, formatModelColors } from "@/features/sessions/FormatsWindow";
 import { DimensionBlock, DimensionCell, DimensionText, ForTimeBlocks, FormatBlocks, SeriesBlock, type BlockRow, type RowKit, type SeriesAccess } from "@/features/sessions/ForTimeBlocks";
+import { withoutPinned } from "@/features/sessions/formatCatalogueSelection";
 import { exerciseOfMovement, inheritsCircuitSeriesCount, takeMovementsHandedToFormat, type MovementExerciseDefaults } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { DOMAIN_DEFAULTS, profileDefaultsOf } from "@/features/sessions/useMovementExerciseIntake";
@@ -148,6 +151,18 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  */
 
 const t = () => strings.screens.formatModel;
+
+/** D-572 (Hermann, 25/11/2026 ; Formats § 9.9) : 5 mouvements au plus par format, toutes sections comprises. */
+export const MAX_FORMAT_MOVEMENTS = 5;
+/**
+ * D-572 : zone figée du catalogue en modification plafonnée à environ 40 % de la hauteur, défilement interne ; marge sous sa dernière
+ * carte (écart des cartes de la liste).
+ */
+export const PINNED_ZONE_MAX_RATIO = 0.4;
+const PINNED_ZONE_BOTTOM_MARGIN = 8;
+type SectionRole = "LOOP" | "BUY_IN" | "BUY_OUT";
+/** Section d'un mouvement choisi : Buy-in, Buy-out, sinon Mouvements (ou En boucle). */
+const sectionRoleOf = (item: ModelMovement): SectionRole => (item.buyIn === true ? "BUY_IN" : item.buyOut === true ? "BUY_OUT" : "LOOP");
 
 const VALUE_COLOR = "#0508E5";
 const PANEL = "#F9FAFC";
@@ -528,7 +543,7 @@ export function useFormatSheetDetent(): number {
  * s'enregistre depuis le questionnaire. [Superset sans récapitulatif — remplacé.]
  */
 function savesFromQuestionnaire(model: FormatModelKey, movementCount: number): boolean {
-  if (model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE") return movementCount < 2;
+  if (model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" || model === "STRENGTH" || model === "UNTIL_FAILURE") return movementCount < 2;
   return false;
 }
 
@@ -614,7 +629,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   const model = modelDraft?.model ?? routeModel;
   const answers = useMemo(() => (fresh ? modelDraft?.answers : undefined) ?? initialAnswers(routeModel), [fresh, modelDraft, routeModel]);
   const movements = useMemo(() => (fresh ? modelDraft?.movements : undefined) ?? [], [fresh, modelDraft]);
-  const modelName = strings.screens.sessionModels.cards[model].title;
+  // D-607 (Formats § 9.9) : le nom du Superset suit le nombre de mouvements choisis (Superset, Tri-set, Giant set).
+  const modelName = formatModelName(model, movements.length);
   const colors = formatModelColors(model);
 
   // Valeurs du Profil pour les Exercices de base (§14.3 : valeurs initialisées depuis le Profil).
@@ -770,6 +786,17 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   // Superset complet, « Modifier » (recette du 16/11/2026, fmt-superset) : la sélection remplace les mouvements du tableau.
   const [replacing, setReplacing] = useState(false);
   const catalogueItems = useMemo(() => (catalogueMode ? visibleMovementItems(entries, query, catalogueFilters) : []), [catalogueFilters, catalogueMode, entries, query]);
+  // Catalogue en modification (D-572, Hermann, 25/11/2026 ; Formats § 9.9) : les mouvements sélectionnés sont figés en haut, en état
+  // sélectionné, dans l'ordre de la sélection, sans recherche ni filtre ; la liste dessous ne les montre plus. Désélectionner une carte
+  // figée la rend à la liste ; sélectionner une carte de la liste la fige. Hors modification (« + Ajouter ») : liste inchangée.
+  const pinnedEntries = useMemo(
+    () =>
+      replacing
+        ? [...picked.values()].map((movement) => entries.find((entry) => entry.movement.id === movement.id) ?? { movement, level: null, exerciseCount: 0, archived: false })
+        : [],
+    [entries, picked, replacing],
+  );
+  const listedItems = useMemo(() => (replacing ? withoutPinned(catalogueItems, new Set(picked.keys())) : catalogueItems), [catalogueItems, picked, replacing]);
   // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » (ou « Changer ») ouvre directement le mode catalogue — champ de
   // recherche actif, clavier ouvert, filtres, tri et piles à côté du champ. [Étape intermédiaire de saisie avec suggestions et lien
   // « Ouvrir / Fermer le mode catalogue » (recette n° 3 du 03/11/2026, f3r-recherche ; MAJ 04/11 §3) — remplacés.]
@@ -908,7 +935,13 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   };
   // Recette du 04/11/2026 (x-sans-recap, Hermann : « Superset : questionnaire : il manque la ligne de récupération après
   // la paire ; on ne doit pas pouvoir sélectionner plus de deux exercices, afficher un message ») : deux exercices au plus ; au-delà, message et aucun ajout.
-  const supersetFull = (adding: number) => model === "SUPERSET" && movements.length + adding > 2;
+  // [Remplacé le 25/11/2026 (D-572, Formats § 9.9 : « 5 mouvements au plus par format » ; Superset de deux à cinq mouvements) : plafond
+  // de deux propre au Superset (`supersetFull`).] Plafond commun : la sélection en cours compte avec les mouvements des autres sections
+  // (et, hors modification, avec ceux déjà choisis dans la section).
+  const formatFull = (selected: number) => {
+    const others = replacing ? movements.filter((item) => sectionRoleOf(item) !== searchRole).length : movements.length;
+    return others + selected > MAX_FORMAT_MOVEMENTS;
+  };
   // Recette du 05/11/2026 (g-superset-deux, Hermann : « Remplacer Ok par J'ai compris. Lorsque l'utilisateur a appuyé il faut
   // fermer le clavier, le mode catalogue s'il est ouvert, supprimer le texte de la zone de saisie et revenir à l'écran
   // questionnaire »).
@@ -916,8 +949,9 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   // fenêtre d'information, lorsque j'ai appuyé sur "J'ai compris" il faut laisser le catalogue ouvert, ne pas le refermer ») : en mode
   // catalogue, le message se referme seul ; catalogue, recherche et sélection restent en place. [Fermeture du mode catalogue — remplacée
   // le 16/11/2026 ; hors mode catalogue, comportement du 05/11/2026 inchangé.]
-  const warnSupersetFull = () =>
-    Alert.alert(t().supersetLimitTitle, t().supersetLimitMessage, [
+  // D-572 : même message (« J'ai compris », catalogue laissé ouvert), au libellé du plafond de cinq mouvements.
+  const warnFormatFull = () =>
+    Alert.alert(t().formatLimitTitle, t().formatLimitMessage, [
       {
         text: t().supersetLimitAcknowledge,
         onPress: () => {
@@ -929,8 +963,9 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       },
     ]);
   const togglePicked = (movement: Movement) => {
-    if (!picked.has(movement.id) && searchRole === "LOOP" && (replacing ? model === "SUPERSET" && picked.size + 1 > 2 : supersetFull(picked.size + 1))) {
-      warnSupersetFull();
+    // D-572 : une sixième sélection est refusée (message), quelle que soit la section. [Superset seul, à deux — remplacé le 25/11/2026.]
+    if (!picked.has(movement.id) && formatFull(picked.size + 1)) {
+      warnFormatFull();
       return;
     }
     setPicked((current) => {
@@ -954,9 +989,16 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     if (catalogueClosing.current) return;
     if (replacing) {
       // « Modifier » : les mouvements gardés conservent leurs valeurs ; les retirés disparaissent ; les nouveaux sont ajoutés.
-      const kept = new Set(movements.flatMap((item) => (item.exercise.sourceMovementId !== undefined && picked.has(item.exercise.sourceMovementId) ? [item.exercise.sourceMovementId] : [])));
+      const kept = new Set(
+        movements.flatMap((item) =>
+          sectionRoleOf(item) === role && item.exercise.sourceMovementId !== undefined && picked.has(item.exercise.sourceMovementId) ? [item.exercise.sourceMovementId] : [],
+        ),
+      );
+      // D-572 : seule la section modifiée est remplacée ; les mouvements des autres sections (buy-in, boucle, buy-out) restent.
       fadeCatalogueOut(() => {
-        setMovements((current) => current.filter((item) => item.exercise.sourceMovementId !== undefined && kept.has(item.exercise.sourceMovementId)));
+        setMovements((current) =>
+          current.filter((item) => sectionRoleOf(item) !== role || (item.exercise.sourceMovementId !== undefined && kept.has(item.exercise.sourceMovementId))),
+        );
         addMovements(
           ordered.filter((movement) => !kept.has(movement.id)),
           role,
@@ -966,16 +1008,25 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     }
     fadeCatalogueOut(() => addMovements(ordered, role));
   };
-  /** Superset complet : « Modifier » ouvre le mode catalogue sur les deux mouvements choisis (recette du 16/11/2026, fmt-superset). */
-  const editSuperset = () => {
+  /**
+   * « + Modifier » (D-572, 25/11/2026, Formats § 9.9) : le mode catalogue s'ouvre en modification sur les mouvements déjà choisis de la
+   * section, sélectionnés et figés en haut. [Superset complet seul, « Modifier » (recette du 16/11/2026, fmt-superset) — étendu à toute
+   * section dès un mouvement choisi.]
+   */
+  const editSection = (role: SectionRole) => {
     setQuery("");
-    setSearchRole("LOOP");
+    setSearchRole(role);
     openCatalogue();
     setReplacing(true);
-    setPicked(new Map(movements.flatMap((item) => {
-      const movement = movementOf(item);
-      return movement === null ? [] : [[movement.id, movement] as const];
-    })));
+    setPicked(
+      new Map(
+        movements.flatMap((item) => {
+          if (sectionRoleOf(item) !== role) return [];
+          const movement = movementOf(item);
+          return movement === null ? [] : [[movement.id, movement] as const];
+        }),
+      ),
+    );
   };
   const openSheet = (movement: Movement) => router.push({ pathname: "/movement-sheet", params: { movementId: movement.id } });
   const filterSummary =
@@ -1143,6 +1194,22 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     active: focusedCell === key,
   });
 
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026) : l'Intervalle du questionnaire règle de nouveau toutes les séries de chaque mouvement
+   * (intervalles propres réglés dans la modale retirés ; ceux des tours le sont par `withAnswer`).
+   */
+  const resetEmomIntervals = () => {
+    if (model !== "EMOM") return;
+    setMovements((current) =>
+      current.some((item) => item.values.intervals !== undefined)
+        ? current.map((item) => {
+            if (item.values.intervals === undefined) return item;
+            const { intervals: _intervals, ...values } = item.values;
+            return { ...item, values };
+          })
+        : current,
+    );
+  };
   // Lignes de paramètres du modèle.
   // `fallback` : valeur héritée affichée tant que la réponse n'est pas fixée (Pause du Renforcement : pause des Exercices).
   const stepRow = (
@@ -1174,6 +1241,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           onPress: () => {
             setVariable((current) => new Set([...current].filter((item) => item !== id)));
             setAnswers((current) => withAnswer(current, id, (initialAnswers(model)[id] as number | undefined) ?? bounds.min));
+            if (id === "intervalSeconds") resetEmomIntervals();
           },
         },
       ]);
@@ -1193,6 +1261,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               return;
             }
             setAnswers((current) => withAnswer(current, id, entered));
+            if (id === "intervalSeconds") resetEmomIntervals();
           }}
           {...binding}
           onFocus={() => {
@@ -1322,12 +1391,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   // « Avec charge » au questionnaire seulement, après Pause.
   function progressionTail(): React.ReactNode {
     if (model !== "PROGRESSION") return null;
+    // [Pause commune (recette n° 3 du 03/11/2026) — retirée le 25/11/2026 par D-607 (D-572 point 2, Hermann : « Progression : retirer la
+    // pause comme paramètre global ») ; la pause de chaque série reste dans le tableau.]
     return (
       <>
-        {stepRow("pauseSeconds", t().rows.pauseSeconds, {
-          fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0,
-          last: stage === "questionnaire" && !showExecution,
-        })}
         {stage === "questionnaire" ? switchRow("withLoad", t().rows.withLoad) : null}
         {stage === "summary" ? totalRow(!showExecution) : null}
         {showExecution ? executionRow() : null}
@@ -1353,6 +1420,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     switch (model) {
       case "TABATA":
       case "INTERVALS_30_30":
+      case "HIIT":
         return withExecution([
           stepRow("seriesCount", r.seriesCount),
           ...(byMovement ? [] : [stepRow("workSeconds", r.workSeconds), stepRow("pauseSeconds", r.pauseSeconds)]),
@@ -1549,7 +1617,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           },
           onReopen: () => setUnitPicking(true),
         }
-      : unitRow === null || movements[unitRow] === undefined || model === "TABATA" || model === "INTERVALS_30_30"
+      : unitRow === null || movements[unitRow] === undefined || model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT"
       ? null
       : {
           current: movements[unitRow]!.values.mode ?? ("REPETITIONS" as const),
@@ -1594,7 +1662,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       ? [answerFieldKey("startRepetitions"), answerFieldKey("increment"), ...(movements[0]!.values.loadOn === true ? [cellKey("load", 0)] : [])]
       : [];
   // Formats à tableau (15/11/2026) : lignes du cadre des paramètres (Progression : Pause comprise), puis cases du tableau.
-  const fieldOrder = [...rowFields, ...(model === "PROGRESSION" ? [answerFieldKey("pauseSeconds")] : []), ...deathBySingleFields, ...cellOrder];
+  const fieldOrder = [...rowFields, ...deathBySingleFields, ...cellOrder];
   const focusedAt = focusedCell === null ? -1 : fieldOrder.indexOf(focusedCell);
   // Recette iPhone du 16/11/2026 (Hermann, fmt-entree : « après le choix de l'unité, le focus doit aller directement sur le premier champ
   // éditable de la ligne ») : une fois la ligne rendue dans sa nouvelle unité, le clavier s'ouvre sur sa première case (Death by à un
@@ -1767,6 +1835,13 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       },
     };
   };
+  /**
+   * Lien de l'en-tête d'une section (D-572, 25/11/2026, Formats § 9.9) : « + Ajouter » tant qu'aucun mouvement n'y est choisi, puis
+   * « + Modifier », qui ouvre le catalogue en modification (`editSection`). [« + Ajouter » qui ajoute sans retirer, sections déjà
+   * garnies comprises (08/11/2026 au soir) — remplacé.]
+   */
+  const sectionAction = (role: SectionRole) =>
+    movements.some((item) => sectionRoleOf(item) === role) ? { text: t().editMovements, onPress: () => editSection(role) } : sectionLink(role, t().add);
   // Mode catalogue : en-tête de la section et ligne de recherche, figés dans la zone de contexte (recette du 04/11/2026,
   // f4-catalogue : « la zone colorée jusqu'à la ligne de recherche et avec les boutons de filtre, de tri et de pli doit
   // rester figée, le catalogue doit dérouler par-dessous »).
@@ -1888,13 +1963,14 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
             <View style={styles.catalogueList} testID="format-catalogue-results">
               {/* Recette du 05/11/2026 (k-aucun-resultat, Hermann : « je ne vois pas de message ») : « Aucun résultat » aussi en
                   mode catalogue. */}
-              {query.trim().length > 0 && catalogueItems.length === 0 ? (
+              {query.trim().length > 0 && listedItems.length === 0 ? (
                 <Text style={styles.noResult} testID="format-catalogue-empty">
                   {t().noSearchResult}
                 </Text>
               ) : null}
               {familyCards(
-                catalogueItems,
+                // D-572 : en modification, les cartes figées en haut ne figurent plus dans la liste.
+                listedItems,
                 (entry, onPress) => (
                   <SelectedMovementCard
                     key={entry.movement.id}
@@ -2104,6 +2180,27 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
             </View>
             {catalogueHead()}
           </View>
+          {/* D-572 (Hermann, 25/11/2026 ; Formats § 9.9) : catalogue en modification — zone figée des mouvements sélectionnés, sous la
+              recherche, fond blanc opaque, plafonnée à environ 40 % de la hauteur avec son propre défilement, cartes contiguës (écart de
+              la liste) et marge sous la dernière ; la liste défile dessous et disparaît à son bord. */}
+          {pinnedEntries.length > 0 ? (
+            <View style={[styles.pinnedZone, { maxHeight: windowHeight * PINNED_ZONE_MAX_RATIO }]} testID="format-catalogue-pinned">
+              <ScrollView style={styles.pinnedScroll} contentContainerStyle={styles.pinnedContent} keyboardShouldPersistTaps="handled" testID="format-catalogue-pinned-scroll">
+                {pinnedEntries.map((entry) => (
+                  <View key={entry.movement.id} style={styles.familySingle}>
+                    <SelectedMovementCard
+                      movement={entry.movement}
+                      levelRank={entry.level?.rank ?? null}
+                      selected
+                      onPress={() => togglePicked(entry.movement)}
+                      onPhotoPress={() => openSheet(entry.movement)}
+                      testID={`format-catalogue-pinned-${entry.movement.id}`}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
           {/* Recette du 04/11/2026 (f4-catalogue : « lorsqu'un texte est tapé dans la zone de recherche on doit pouvoir continuer de
               faire défiler la liste des mouvements ») : défilement jamais figé ; clavier gardé (f3s-recherche). */}
           <ScrollView
@@ -2166,7 +2263,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         answers={answers}
         sequence={sequence}
         movementOf={movementOf}
-        onAdd={(role) => sectionLink(role, t().add).onPress()}
+        onAdd={(role) => sectionAction(role).onPress()}
+        addTextOf={(role) => sectionAction(role).text}
         onChange={updateValues}
         onOpenParameters={setParametersOf}
         onOpenSheet={openSheet}
@@ -2206,7 +2304,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   function formatBlocks() {
     const tt = t().table;
     const unitChoice = UNIT_CHOICE_AT_ADD.has(model);
-    const defaultMode: "REPETITIONS" | "DURATION" = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+    const defaultMode: "REPETITIONS" | "DURATION" = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" ? "DURATION" : "REPETITIONS";
     const shownMode = (item: ModelMovement) => item.values.mode ?? (unitChoice ? undefined : defaultMode);
     const single = movements.length === 1;
     const kit: RowKit = {
@@ -2254,7 +2352,9 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       rowTestID: (index) => `format-line-${index}`,
     };
     const rows: BlockRow[] = movements.map((item, index) => ({ item, index }));
-    const add = (role: "LOOP" | "BUY_IN") => () => sectionLink(role, t().add).onPress();
+    // D-572 : « + Ajouter », puis « + Modifier » dès qu’un mouvement est choisi dans la section.
+    const add = (role: "LOOP" | "BUY_IN") => sectionAction(role).onPress;
+    const addText = (role: "LOOP" | "BUY_IN") => sectionAction(role).text;
     const label = (name: string, column: string) => `${name}, ${column}`;
     const notYet = t().forTimeTable.disabledValue;
     // Charge : grisée (« — ») sans charge, active avec ; elle s'ouvre au toucher comme une case. Recette du 16/11/2026 (fmt-entree,
@@ -2317,6 +2417,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     switch (model) {
       case "TABATA":
       case "INTERVALS_30_30":
+      case "HIIT":
       case "STRENGTH":
       case "UNTIL_FAILURE": {
         const objectiveFallback = model === "STRENGTH" ? answers.repetitions : answers.workSeconds;
@@ -2327,6 +2428,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               rows={rows}
               heads={[tt.objective, tt.pause, tt.load]}
               onAdd={add("LOOP")}
+              addText={addText("LOOP")}
               addLeft={movementsAddLeft}
               kit={kit}
               testID="format-movements"
@@ -2373,6 +2475,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               rows={rows}
               heads={[tt.start, tt.increment, tt.load]}
               onAdd={add("LOOP")}
+              addText={addText("LOOP")}
               addLeft={movementsAddLeft}
               kit={kit}
               testID="format-movements"
@@ -2505,6 +2608,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               rows={rows.filter(({ item }) => item.buyIn === true)}
               heads={[tt.objective]}
               onAdd={add("BUY_IN")}
+              addText={addText("BUY_IN")}
               kit={kit}
               testID="format-buy-in"
               columns={(row) => amrapColumns(row, false)}
@@ -2514,6 +2618,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               rows={rows.filter(({ item }) => item.buyIn !== true)}
               heads={increasing ? [tt.objective, tt.perRoundHead, tt.max] : [tt.objective, tt.max]}
               onAdd={add("LOOP")}
+              addText={addText("LOOP")}
               kit={kit}
               testID="format-loop"
               columns={(row) => amrapColumns(row, true)}
@@ -2550,9 +2655,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               heading={(at) => (rounds ? tt.round : emomRounds() ? tt.roundShort : tt.series).replace("{n}", String(at + 1))}
               // Recette du 16/11/2026 (fmt-superset, Hermann : « Superset : après avoir ajouté deux mouvements, "+ ajouter" doit se
               // transformer en "Modifier" et être activé ») : le mode catalogue s'ouvre sur les deux mouvements choisis. [« + Ajouter »
-              // grisé dès deux mouvements (Complément du 5 novembre 2026, §11) — remplacé.]
-              {...(model === "SUPERSET" && movements.length >= 2 ? { addText: t().supersetEdit } : {})}
-              onAdd={model === "SUPERSET" && movements.length >= 2 ? editSuperset : add("LOOP")}
+              // grisé dès deux mouvements (Complément du 5 novembre 2026, §11) — remplacé.] D-572 (25/11/2026) : « + Modifier » dès un
+              // mouvement, pour tous les formats. [« Modifier » du Superset complet (deux mouvements) — remplacé.]
+              addText={addText("LOOP")}
+              onAdd={add("LOOP")}
               addLeft={movementsAddLeft}
               kit={kit}
               access={access}
@@ -2646,7 +2752,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       queueMicrotask(commit);
     };
     // Valeurs affichées des tableaux à dimensions : un Objectif ou une Pause inchangés restent communs.
-    const defaultMode: ExecutionMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+    const defaultMode: ExecutionMode = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" ? "DURATION" : "REPETITIONS";
     const shownObjective =
       movement.values.repetitions !== undefined
         ? movement.values.repetitions
@@ -2673,7 +2779,26 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       const initial = exercise!.format?.settings ?? {};
       const changed = (key: string) =>
         typeof settings[key] === "number" && (settings[key] !== initial[key] || (key === "incrementPerRound" && incrementMissing)) ? (settings[key] as number) : null;
-      const interval = changed("intervalSeconds");
+      // D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9) : EMOM — intervalles de chaque série du mouvement
+      // (seul, À la suite, En alternance) ou de chaque tour, partagés (« Dans chaque intervalle », portés par le Circuit provisoire).
+      // L'Intervalle du questionnaire n'est repris que pour un mouvement seul ou pour les tours partagés.
+      const emomCarrier = model === "EMOM" ? circuitOfExercise(working.structure, exercise!.id) : undefined;
+      const sharedBefore = model === "EMOM" ? circuitOfExercise(opening.structure, exercise!.id)?.format?.settings : undefined;
+      const emomTours =
+        emomCarrier?.format?.key === "EMOM" && sharedBefore !== undefined
+          ? (() => {
+              const after = emomIntervalsOf(emomCarrier.format!.settings, "windowSeconds", count);
+              return after.join() === emomIntervalsOf(sharedBefore, "windowSeconds", count).join() ? null : after;
+            })()
+          : null;
+      const emomOwn =
+        model === "EMOM" && emomCarrier?.format == null
+          ? (() => {
+              const after = emomIntervalsOf(settings, "intervalSeconds", count);
+              return after.join() === emomIntervalsOf(initial, "intervalSeconds", count).join() ? null : after;
+            })()
+          : null;
+      const interval = model === "EMOM" ? (emomTours?.[0] ?? (!several ? (emomOwn?.[0] ?? null) : null)) : changed("intervalSeconds");
       const duration = changed("durationSeconds");
       const increment = changed("incrementPerRound");
       const cap = changed("timeCapSeconds");
@@ -2685,6 +2810,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         ...(recoverySeconds !== null && recoverySeconds !== initialRecovery ? { recovery: recoverySeconds } : {}),
         ...(increment !== null && model === "AMRAP" ? { increment } : {}),
         ...(increment !== null && model === "DEATH_BY" && several ? { startIncrement: increment } : {}),
+        ...(emomOwn !== null ? { intervals: emomOwn } : {}),
       };
       setMovements((current) =>
         current.map((item, at) => {
@@ -2710,6 +2836,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           }
         }
         if (interval !== null) updated = withAnswer(updated, "intervalSeconds", interval);
+        // D-607 : intervalles des tours partagés (« Dans chaque intervalle ») ; tous égaux : l'Intervalle seul.
+        if (emomTours !== null && emomTours.some((seconds) => seconds !== emomTours[0])) updated = { ...updated, intervalsSeconds: emomTours };
         if (duration !== null) updated = withAnswer(updated, "durationSeconds", duration);
         if (cap !== null) updated = withAnswer(updated, "timeCapSeconds", cap);
         if (increment !== null && model === "DEATH_BY" && !several) updated = withAnswer(updated, "increment", increment);
@@ -2737,7 +2865,11 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         }}
         {...(context !== undefined ? { format: context } : {})}
         // D-604 (25/11/2026) : exercice d'un format à départ rapide — Charge et De chaque côté seulement.
-        {...(context === undefined && quick !== undefined ? { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen } : {})}
+        {...(context === undefined && quick !== undefined ? { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen, quickFormatKey: quick.key } : {})}
+        // D-608 (D-573 points 2 et 7, Hermann, 26/11/2026) : même modale que depuis la Composition — titre = nom du mouvement, en-tête à la
+        // couleur du format.
+        movementName={exercise.name}
+        headerTint={colors.background}
         onApply={(value) => {
           applied = value;
           later();
@@ -2823,6 +2955,7 @@ function genericDuration(model: FormatModelKey, answers: ModelAnswers, format: (
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
       return format((answers.seriesCount ?? 0) * ((answers.workSeconds ?? 0) + (answers.pauseSeconds ?? 0)));
     case "EMOM":
       return format((answers.seriesCount ?? 0) * (answers.intervalSeconds ?? 0));
@@ -2849,6 +2982,10 @@ const styles = StyleSheet.create({
   searchZone: { zIndex: 1 },
   catalogueLayer: { backgroundColor: "#FFFFFF" },
   catalogueScroll: { flex: 1 },
+  // D-572 : zone figée du catalogue en modification (même retrait et même écart que les cartes de la liste).
+  pinnedZone: { backgroundColor: "#FFFFFF" },
+  pinnedScroll: { flexGrow: 0 },
+  pinnedContent: { marginHorizontal: 16, gap: 8, paddingTop: 4, paddingBottom: PINNED_ZONE_BOTTOM_MARGIN },
   // Blanc opaque depuis le bas de la zone de contexte (la zone commence 16 plus bas), puis fondu de 8 sous la recherche.
   searchZoneSolid: { position: "absolute", left: 0, right: 0, top: -MOVEMENTS_TOP_OFFSET, bottom: 0, backgroundColor: "#FFFFFF" },
   searchZoneFade: { position: "absolute", left: 0, right: 0, top: "100%", height: SEARCH_ZONE_FADE },

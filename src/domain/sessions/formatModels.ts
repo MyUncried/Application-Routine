@@ -42,6 +42,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 
 import type { CircuitNature } from "./circuit";
+import { withEmomIntervals } from "./emomIntervals";
 import { withCircuitRole, type CircuitRole, type ElementFormat, type ElementFormatKey, type PreconfigurationKey } from "./formats";
 import { valuesForRounds } from "./forTimeSeries";
 import { currentLayout, withLayout } from "./layoutOperations";
@@ -54,6 +55,8 @@ export type FormatModelKey = ElementFormatKey | PreconfigurationKey;
 export const FORMAT_MODEL_KEYS: readonly FormatModelKey[] = [
   "TABATA",
   "INTERVALS_30_30",
+  // D-608 (D-573 de la branche de documentation, point 3, Hermann, 26/11/2026 ; Formats § 9.10) : HIIT, sur le modèle du 30/30.
+  "HIIT",
   "EMOM",
   "AMRAP",
   "FOR_TIME",
@@ -111,10 +114,16 @@ export type ModelAnswers = {
   /** Récupération entre les mouvements (À la suite, §9, §10, §12) ; Superset : « Récupération après le tour » (dernier Exercice). */
   readonly recoveryBetweenSeconds?: number;
   readonly execution?: ModelExecution;
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM « Dans chaque intervalle » — intervalle de chaque tour, partagé
+   * par les mouvements (réglé dans leur modale) ; absent : `intervalSeconds` pour chaque tour. Remis à zéro quand l'Intervalle du
+   * questionnaire change (`withAnswer`).
+   */
+  readonly intervalsSeconds?: readonly number[];
 };
 
 /** Paramètre de réglage d'un questionnaire, dans l'ordre d'affichage. */
-export type ModelAnswerKey = Exclude<keyof ModelAnswers, "execution">;
+export type ModelAnswerKey = Exclude<keyof ModelAnswers, "execution" | "intervalsSeconds">;
 
 const MINUTE = 60;
 
@@ -146,6 +155,9 @@ export function initialAnswers(key: FormatModelKey): ModelAnswers {
       return { seriesCount: 8, workSeconds: 20, pauseSeconds: 10, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "SEQUENCE" };
     case "INTERVALS_30_30":
       return { seriesCount: 6, workSeconds: 30, pauseSeconds: 30, withLoad: false, execution: "SEQUENCE" };
+    case "HIIT":
+      // D-608 (Formats § 9.10) : Mode Durée, 6 séries identiques, objectif 40 s, pause 20 s (Durée de l'exercice 6 min), Récupération 0 s.
+      return { seriesCount: 6, workSeconds: 40, pauseSeconds: 20, withLoad: false, execution: "SEQUENCE" };
     case "EMOM":
       return { seriesCount: 6, intervalSeconds: MINUTE, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "EACH_INTERVAL" };
     case "AMRAP":
@@ -187,6 +199,7 @@ export function executionOptions(key: FormatModelKey): readonly ModelExecution[]
       return ["SEQUENCE", "ALTERNATED", "EACH_INTERVAL"];
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "PROGRESSION":
     case "UNTIL_FAILURE":
@@ -227,6 +240,11 @@ export function answerBounds(id: ModelAnswerKey): { readonly min: number; readon
 
 /** Réponse bornée ; `null` (temps limite seulement) : « Sans limite ». */
 export function withAnswer(answers: ModelAnswers, id: ModelAnswerKey, value: number | boolean | null): ModelAnswers {
+  // D-607 : l'Intervalle du questionnaire règle de nouveau tous les tours (les intervalles par tour sont retirés).
+  if (id === "intervalSeconds" && answers.intervalsSeconds !== undefined) {
+    const { intervalsSeconds: _tours, ...rest } = answers;
+    return withAnswer(rest, id, value);
+  }
   if (typeof value === "boolean" || value === null) return { ...answers, [id]: value };
   const { min, max } = ANSWER_BOUNDS[id];
   return { ...answers, [id]: Math.min(max, Math.max(min, Math.round(value))) };
@@ -286,6 +304,11 @@ export type MovementValues = {
   readonly seriesKind?: "UNIFORM" | "VARIABLE";
   /** Progression, EMOM (S1…Sn), Superset (Tour 1…n) : objectif et charge de chaque série (Complément du 5 novembre 2026 (Hermann), §11, §14, §17). */
   readonly cells?: readonly SeriesCell[];
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM seul, À la suite ou En alternance — intervalle de chaque série
+   * du mouvement (S1…Sn), réglé dans sa modale ; absent : l'Intervalle du questionnaire pour chaque série.
+   */
+  readonly intervals?: readonly number[];
   /**
    * Récupération après l'exercice réglée dans la modale des paramètres d'exécution (Décision de Hermann du 16/11/2026 (« la modale des paramètres d’exécution doit être la même qu’on l’ouvre de la composition de séance ou de l’écran d’un format, les effets de changement de rôle sont aussi identiques »)) : elle remplace, pour ce mouvement, la
    * récupération que le Format calcule ; absente : celle du Format.
@@ -474,7 +497,9 @@ export function withMovementMode(values: MovementValues, mode: ExecutionMode): M
  */
 export function maxLocked(key: FormatModelKey, movements: readonly ModelMovement[], index: number): boolean {
   const current = movements[index];
-  if (current === undefined || (key !== "AMRAP" && key !== "FOR_TIME") || movementRole(current) !== "TOUR") return false;
+  // [AMRAP — remplacé le 25/11/2026 par D-607 (D-572 point 7, Hermann : « corriger […] la case « Max » inactive dans le tableau ») : en
+  // AMRAP, « À l'échec » reste au choix dans la boucle. For time : inchangé.]
+  if (current === undefined || key !== "FOR_TIME" || movementRole(current) !== "TOUR") return false;
   return movements.filter((movement) => movementRole(movement) === "TOUR").length > 1;
 }
 
@@ -501,7 +526,8 @@ export function allowedModes(key: FormatModelKey, movements: readonly ModelMovem
   const both: readonly ExecutionMode[] = ["REPETITIONS", "DURATION"];
   // Recette du 05/11/2026 (n-tabata ; décision de Hermann du 05/11/2026, « Durée seule, sans choix ») : objectif du Tabata et du
   // 30/30 toujours en Durée. [Complément du 5 novembre 2026, §15 : « modifiable au clavier, Répétitions ou Durée » — remplacé.]
-  if (key === "TABATA" || key === "INTERVALS_30_30") return ["DURATION"];
+  // D-608 : HIIT comme le 30/30.
+  if (key === "TABATA" || key === "INTERVALS_30_30" || key === "HIIT") return ["DURATION"];
   // AMRAP : au moins un Exercice de la boucle en Répétitions (n-charge-colonne) ; buy-in libre. [Un seul mouvement en Répétitions,
   // plusieurs en Répétitions ou Durée — précisé.] For time : au moins un Exercice de l'ensemble du Circuit (buy-in et buy-out compris).
   if (key === "AMRAP" || key === "FOR_TIME") return lastRepetitionsLocked(key, movements, index) ? ["REPETITIONS"] : both;
@@ -558,20 +584,33 @@ export function plannedWorkSeconds(exercise: SessionDraftExercise, values: Movem
  * dépasse l'intervalle commun. Les membres en Répétitions ne reçoivent aucune durée. Rend les cases en cause.
  */
 export function emomDurationOverflow(answers: ModelAnswers, movements: readonly ModelMovement[]): readonly IssueCell[] {
-  const interval = answers.intervalSeconds ?? MINUTE;
   const count = answers.seriesCount ?? 1;
   const eachInterval = movements.length > 1 && (answers.execution ?? "EACH_INTERVAL") === "EACH_INTERVAL";
+  // D-607 (D-572 point 6) : intervalle de chaque tour (partagé) ou de chaque série du mouvement.
+  const tours = emomModelIntervals(answers, undefined, count);
+  const own = movements.map((movement) => emomModelIntervals(answers, movement.values, count));
   const cells: IssueCell[] = [];
   for (let column = 0; column < count; column += 1) {
     const work = movements.map((movement) => plannedWorkSeconds(movement.exercise, movement.values, column));
     if (eachInterval) {
       const sum = work.reduce((total, value) => total + value, 0);
-      if (sum >= interval) work.forEach((value, index) => (value > 0 ? cells.push({ index, column }) : undefined));
+      if (sum >= tours[column]!) work.forEach((value, index) => (value > 0 ? cells.push({ index, column }) : undefined));
     } else {
-      work.forEach((value, index) => (value >= interval ? cells.push({ index, column }) : undefined));
+      work.forEach((value, index) => (value >= own[index]![column]! ? cells.push({ index, column }) : undefined));
     }
   }
   return cells;
+}
+
+/**
+ * D-607 (D-572 point 6, Hermann, 25/11/2026) : intervalle de chaque série (S1…Sn) d'un EMOM du modèle — `values` : intervalles propres
+ * au mouvement (seul, À la suite, En alternance) ; sans `values` : intervalles des tours (« Dans chaque intervalle »). Absents ou
+ * incomplets : l'Intervalle du questionnaire.
+ */
+export function emomModelIntervals(answers: ModelAnswers, values: MovementValues | undefined, count: number): readonly number[] {
+  const single = answers.intervalSeconds ?? MINUTE;
+  const list = values === undefined ? answers.intervalsSeconds : values.intervals;
+  return Array.from({ length: Math.max(1, count) }, (_, rank) => list?.[rank] ?? single);
 }
 
 /**
@@ -622,6 +661,7 @@ export function summaryIssues(key: FormatModelKey, answers: ModelAnswers, moveme
           return !several || (values.start != null && values.start >= 1 && values.startIncrement != null && values.startIncrement >= 1);
         case "TABATA":
         case "INTERVALS_30_30":
+        case "HIIT":
         case "STRENGTH":
           // Objectif propre au mouvement (tableau) : `null` après un changement d'unité.
           return values.repetitions !== null;
@@ -870,7 +910,8 @@ function buildFormatElements(
   const execution = several ? (answers.execution ?? executionOptions(key)[0] ?? "SEQUENCE") : "SEQUENCE";
   switch (key) {
     case "TABATA":
-    case "INTERVALS_30_30": {
+    case "INTERVALS_30_30":
+    case "HIIT": {
       // §9, §9.2 : Exercices standards (N séries identiques, travail, pause) ; aucune constante. Complément du 5 novembre 2026 (Hermann), §15, §17 : objectif
       // (Durée ou Répétitions), pause et charge commune propres à chaque mouvement ; réglages du questionnaire par défaut.
       const count = answers.seriesCount ?? 1;
@@ -928,9 +969,14 @@ function buildFormatElements(
         // §10 : Circuit porteur, tours = N, durée de chaque tour = intervalle ; membres sans Intervalle propre. Chaque membre
         // porte ses N séries : au tour k, il joue sa série k (comme le For time), sans multiplication N × N.
         const members = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: {} }));
-        return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: { windowSeconds: interval } }, members)];
+        // D-607 (D-572 point 6) : intervalle de chaque tour, partagé par les membres (porté par le Circuit).
+        const windows = withEmomIntervals({ windowSeconds: interval }, "windowSeconds", emomModelIntervals(answers, undefined, count));
+        return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: windows }, members)];
       }
-      const exercises = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: { intervalSeconds: interval } }));
+      // D-607 (D-572 point 6) : intervalle propre à chaque série du mouvement.
+      const exercises = movements.map(({ exercise, values }) =>
+        withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: withEmomIntervals({ intervalSeconds: interval }, "intervalSeconds", emomModelIntervals(answers, values, count)) }),
+      );
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, several ? answers.recoveryBetweenSeconds : undefined);
     }
     case "DEATH_BY": {

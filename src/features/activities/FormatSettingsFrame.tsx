@@ -1,4 +1,5 @@
 import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { emomIntervalsOf, withEmomIntervals } from "@/domain/sessions/emomIntervals";
 import type { CircuitRole, ElementFormatKey, FormatSettings } from "@/domain/sessions/formats";
 
 /**
@@ -61,8 +62,18 @@ export type FormatSheetContext = {
    * travail prévu des autres membres ; absent : l'intervalle est celui de l'Exercice (`intervalSeconds`).
    */
   /** Complément du 5 novembre 2026 (Hermann), §14 : travail prévu des autres membres de l'intervalle commun, rang par rang (S1…Sn). */
-  readonly emom?: { readonly windowSeconds: number | null; readonly othersWorkByRank: readonly number[] };
-  readonly onApply: (settings: FormatSettings, role: CircuitRole | null) => void;
+  readonly emom?: {
+    readonly windowSeconds: number | null;
+    readonly othersWorkByRank: readonly number[];
+    /**
+     * D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9, § 9.10) : « Dans chaque intervalle » — intervalle de
+     * chaque tour du Circuit porteur, partagé par ses mouvements : affiché et modifiable dans la modale de chacun ; le ✓ le reporte au
+     * Circuit (`onApply`), donc aux autres mouvements. Absent : l'intervalle est propre à l'Exercice.
+     */
+    readonly sharedIntervals?: readonly number[];
+  };
+  /** D-607 : `sharedIntervals` — intervalles des tours du Circuit porteur EMOM à reporter (`null` : aucun changement). */
+  readonly onApply: (settings: FormatSettings, role: CircuitRole | null, sharedIntervals?: readonly number[] | null) => void;
   /**
    * For time (correction 2 de Hermann du 14/11/2026, règle 5) : nombre de valeurs qu'un nouveau Rôle retirerait à ces séries, et
    * nombre de séries gardées — annoncé avant de valider (« aucune valeur perdue en silence »). Absent : aucune annonce.
@@ -83,18 +94,51 @@ export type FormatSheetContext = {
   readonly incrementRequired?: boolean;
 };
 
-export type FormatSheetValue = { readonly settings: FormatSettings; readonly role: CircuitRole | null };
+/** D-607 : `sharedIntervals` — intervalles des tours du Circuit porteur EMOM en cours de saisie (`null` : Exercice hors Circuit porteur). */
+export type FormatSheetValue = { readonly settings: FormatSettings; readonly role: CircuitRole | null; readonly sharedIntervals?: readonly number[] | null };
 
 export function initialFormatSheetValue(context: FormatSheetContext): FormatSheetValue {
-  return { settings: context.settings, role: context.role?.current ?? null };
+  return { settings: context.settings, role: context.role?.current ?? null, sharedIntervals: context.emom?.sharedIntervals ?? null };
 }
 
-/** Intervalle effectif du contrôle EMOM (celui du Circuit, sinon celui de l'Exercice). */
+/** Intervalle effectif du contrôle EMOM (celui du Circuit, sinon celui de l'Exercice) — série ou tour 1. */
 export function emomIntervalOf(context: FormatSheetContext, value: FormatSheetValue): number | null {
   if (context.key !== "EMOM" || context.emom === undefined) return null;
-  if (context.emom.windowSeconds !== null) return context.emom.windowSeconds;
+  if (context.emom.windowSeconds !== null) return value.sharedIntervals?.[0] ?? context.emom.windowSeconds;
   const own = value.settings.intervalSeconds;
   return typeof own === "number" ? own : null;
+}
+
+/**
+ * D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : intervalle de chaque série ou tour (rangs 0…count−1) dans la modale —
+ * ceux des tours du Circuit porteur (partagés), sinon ceux de l'Exercice (`intervalsSeconds`, absent : Intervalle). `null` : pas un EMOM.
+ */
+export function emomSheetIntervals(context: FormatSheetContext, value: FormatSheetValue, count: number): readonly number[] | null {
+  if (context.key !== "EMOM") return null;
+  const ranks = Math.max(1, count);
+  if (context.emom !== undefined && context.emom.windowSeconds !== null) {
+    const shared = value.sharedIntervals ?? [];
+    const first = shared[0] ?? context.emom.windowSeconds;
+    return Array.from({ length: ranks }, (_, rank) => shared[rank] ?? first);
+  }
+  return emomIntervalsOf(value.settings, "intervalSeconds", ranks);
+}
+
+/**
+ * D-607 : intervalle de la série ou du tour `rank` remplacé dans la modale. Dans chaque intervalle, c'est l'intervalle du tour, partagé
+ * (reporté au Circuit au ✓) ; sinon celui de la série de l'Exercice (`intervalSeconds` = série 1, `intervalsSeconds` si elles diffèrent).
+ */
+export function withEmomSheetInterval(context: FormatSheetContext, value: FormatSheetValue, count: number, rank: number, seconds: number): FormatSheetValue {
+  const intervals = emomSheetIntervals(context, value, count);
+  if (intervals === null || rank < 0 || rank >= intervals.length) return value;
+  return withEmomSheetIntervals(context, value, intervals.map((current, at) => (at === rank ? seconds : current)));
+}
+
+/** D-607 : intervalles de toutes les séries ou de tous les tours remplacés (ligne Intervalle : séries identiques ou un seul tour). */
+export function withEmomSheetIntervals(context: FormatSheetContext, value: FormatSheetValue, intervals: readonly number[]): FormatSheetValue {
+  if (context.key !== "EMOM" || intervals.length === 0) return value;
+  if (context.emom !== undefined && context.emom.windowSeconds !== null) return { ...value, sharedIntervals: intervals.map((seconds) => Math.max(1, Math.round(seconds))) };
+  return { ...value, settings: withEmomIntervals(value.settings, "intervalSeconds", intervals) };
 }
 
 /**
@@ -118,13 +162,16 @@ export function emomOverflowRanks(
 ): { readonly ranks: readonly number[]; readonly alone: boolean } {
   const interval = emomIntervalOf(context, value);
   if (interval === null) return { ranks: [], alone: false };
+  // D-607 (D-572 point 6) : intervalle de chaque série ou tour.
+  const intervals = emomSheetIntervals(context, value, ranks) ?? [];
   const overflowing: number[] = [];
   let alone = false;
   for (let rank = 0; rank < ranks; rank += 1) {
     const own = workOfRank(rank);
-    if (own > 0 && own + (context.emom?.othersWorkByRank[rank] ?? 0) >= interval) {
+    const window = intervals[rank] ?? interval;
+    if (own > 0 && own + (context.emom?.othersWorkByRank[rank] ?? 0) >= window) {
       overflowing.push(rank);
-      if (own >= interval) alone = true;
+      if (own >= window) alone = true;
     }
   }
   return { ranks: overflowing, alone };

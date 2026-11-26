@@ -41,6 +41,7 @@ import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
 import { applyMigration039 } from "./migrations/migration039";
 import { applyMigration040 } from "./migrations/migration040";
+import { applyMigration041 } from "./migrations/migration041";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -406,6 +407,12 @@ export async function migrateDatabase(
     if (pending(39)) {
       await applyMigration040(transaction);
       version = 40;
+    }
+
+    // D-608 (26/11/2026) : HIIT, clé admise par `sessions.origin` et `tours.origin_model`. Un échec laisse `user_version` à 40.
+    if (pending(40)) {
+      await applyMigration041(transaction);
+      version = 41;
     }
 
     if (version !== targetVersion) {

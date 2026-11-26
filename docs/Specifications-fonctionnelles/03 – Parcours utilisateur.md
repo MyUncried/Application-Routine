@@ -187,7 +187,7 @@ La création suit le parcours suivant :
 1. saisie du nom et construction de la Composition dans l’écran unique `Composer une séance` ;
 2. sélection facultative de l’Étiquette de Séance dans la modale intégrée ; la couleur de l’Étiquette devient la couleur de la Séance ;
 3. ajout d’au moins un Exercice valide ;
-4. action `Continuer` pour valider et enregistrer ;
+4. action `Continuer` pour valider et enregistrer [Libellé remplacé le 26/11/2026 : « Enregistrer » ; en modification, « Fermer » tant que rien n'est modifié — recette de Hermann, remarques b et g ; voir D-123 au registre.] ;
 5. retour au `Catalogue des séances`, segment `Séances`.
 
 Aucune Routine n’est créée automatiquement. La transition canonique d’avancement fait entrer l’écran cible depuis la droite et sortir l’écran courant vers la gauche.
@@ -372,7 +372,7 @@ Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégori
 
 En mode Durée, l’utilisateur peut confirmer soit `Nombre de séries`, soit `Durée de l’exercice` (libellés D-413 et D-409). Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message. [Remplacé le 09/11/2026 — D-515 (Hermann, recette PRE-10, d5) : une Durée de l’exercice saisie qui ne correspond à aucun nombre entier de séries n’est plus ajustée automatiquement ; une alerte native « Arrondir la durée de l’exercice ? » propose « Arrondir à » la durée réalisable inférieure ou supérieure, et le choix s’applique sans message d’ajustement.]
 
-`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123). L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette. [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
+`Continuer` reste désactivé tant que le nom n’est pas renseigné, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123). L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette. [Libellé remplacé le 26/11/2026 : « Enregistrer » ; en modification, « Fermer » tant que rien n'est modifié — recette de Hermann, remarques b et g ; voir D-123 au registre.] [Remplacé le 06/11/2026 pour la Composition uniquement — D-511 à D-513 : carte 72 pt, photo à 4/rayon 8 ; niveau en ligne 1, prescription en ligne 2 sans chronomètre, récupération conditionnelle en ligne 3 ; chevron de Circuit avant le nom ; placement réservé aux Points d’arrêt. Voir la spec Catalogues, cartes et modales du 06/11 §11.]
 ##### Réorganiser une séance
 
 À tout moment, l'utilisateur peut revenir modifier une séance existante.

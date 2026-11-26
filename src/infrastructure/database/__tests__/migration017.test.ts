@@ -14,6 +14,7 @@ import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { MIGRATION_017_FORMAT_KEYS, MIGRATION_017_SESSION_ORIGINS } from "@/infrastructure/database/migrations/migration017";
+import { MIGRATION_041_SESSION_ORIGINS } from "@/infrastructure/database/migrations/migration041";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
@@ -205,11 +206,13 @@ async function seededVersion16(): Promise<NodeSqliteDatabase> {
 
 describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de création)", () => {
   it("version courante 19 (017 à 019, A.2b et recette n° 2 constat e) ; listes figées de la 017 égales aux clés stockables et aux origines du registre du domaine (réalignement du 02/11/2026)", () => {
-    expect(DATABASE_VERSION).toBe(40);
+    expect(DATABASE_VERSION).toBe(41);
     expect([...MIGRATION_017_FORMAT_KEYS]).toEqual([...STORABLE_FORMAT_KEYS]);
     // Clés stockables = quatre Formats spécialisés + clés Tabata et 30/30 écrites avant le 02/11 (relues libres).
     expect([...STORABLE_FORMAT_KEYS].sort()).toEqual([...ELEMENT_FORMAT_KEYS, ...LEGACY_PRECONFIGURATION_FORMAT_KEYS].sort());
-    expect([...MIGRATION_017_SESSION_ORIGINS]).toEqual([...SESSION_ORIGINS]);
+    // D-608 : la 017 reste figée ; la 041 y ajoute HIIT, égale aux origines du registre.
+    expect([...MIGRATION_017_SESSION_ORIGINS, "HIIT"]).toEqual([...SESSION_ORIGINS]);
+    expect([...MIGRATION_041_SESSION_ORIGINS]).toEqual([...SESSION_ORIGINS]);
   });
 
   it("ajoute les colonnes sans toucher aucune ligne : toute Séance existante reste libre et sans origine (FMT-40)", async () => {

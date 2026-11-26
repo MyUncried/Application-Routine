@@ -19,7 +19,6 @@ import {
   typeInExecutionSheetCell,
   enterExecutionSheetValue,
 } from "@/features/activities/testing/executionSheetActions";
-import { TABLE_ROW_HEIGHT } from "@/features/activities/sheetTable";
 import { PHASE_CELL_GAP, PHASE_CELL_WIDTH } from "@/features/activities/WorkPhasesTable";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -79,6 +78,23 @@ function withPhases(phases: readonly (readonly [string, number])[]): ExecutionPa
   });
 }
 
+/**
+ * D-608 (D-573 point 6, 26/11/2026) : l'option Avec, qui créait deux phases à renseigner, est retirée — les phases viennent de la
+ * fiche du mouvement. Exercice dont les deux phases (libellés vides) sont encore à renseigner, à la place de cette activation.
+ */
+function missingPhases(target: SeriesTarget = numberTarget(9), labels: readonly [string, string] = ["", ""]): ExecutionParametersInput {
+  return params(target, {
+    series: {
+      kind: "UNIFORM",
+      count: 3,
+      target,
+      pauseSeconds: 15,
+      loadKg: 0,
+      workPhases: labels.map((phaseLabel, index) => ({ id: index + 1, label: phaseLabel, durationSeconds: 0 })),
+    },
+  });
+}
+
 function renderSheet(parent: ExecutionParametersInput) {
   const onApply = jest.fn<(value: ExecutionParameters) => void>();
   const onCancel = jest.fn();
@@ -110,10 +126,7 @@ const seriesDurationPill = () => get("execution-sheet-target");
  * [− / + du réglage du nombre de phases — remplacé le 06/11/2026, décision de Hermann (constat c) :
  * saisie au clavier] : focus, frappes et sortie du champ « n phases ».
  */
-const focusCount = () => fireEvent(get(`${STEPPER}-input`), "focus");
-const blurCount = () => fireEvent(get(`${STEPPER}-input`), "blur");
-const countActive = () => get(STEPPER).props.accessibilityState?.selected === true;
-const enterPhaseCount = (count: number) => enterExecutionSheetValue(STEPPER, count, "integer");
+// [`focusCount`, `blurCount`, `countActive`, `enterPhaseCount` — retirés le 26/11/2026 par D-608 (D-573 point 6 : nombre de phases fixé).]
 
 /** Saisie d'une durée de phase au clavier MMSS (focus, frappes, sortie). */
 function enterDuration(n: number, keys: string) {
@@ -126,12 +139,7 @@ function enterDuration(n: number, keys: string) {
   fireEvent(get(`${duration(n)}-input`), "blur");
 }
 
-/** Saisie d'un libellé au clavier texte (focus, texte, sortie par Retour). */
-function enterLabel(n: number, text: string) {
-  fireEvent(get(label(n)), "focus");
-  fireEvent.changeText(get(label(n)), text);
-  fireEvent(get(label(n)), "blur");
-}
+// [`enterLabel` (libellé saisi dans la feuille) — retiré le 26/11/2026 par D-608 (D-573 point 6 : libellés de la fiche du mouvement).]
 
 /**
  * Hermann, 01/11/2026 (remplace « déployé à l'ouverture » de PRE-5 story 2.8, FR-28) : « Lorsque la
@@ -148,76 +156,32 @@ function unfoldPhases() {
 describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", () => {
   // [Remplacé le 01/11/2026 — ordre de Hermann, point 3 : « Phases du mouvement » forme son propre
   // bloc entre Exécution et Séries ; le bloc Séries commence par la ligne Séries.]
-  it("PRE5-2.8/AC1 — sans phase : « Phases du mouvement » (D-448, point 8) est la seule ligne de son bloc ; Séries commence par la ligne Séries ; Sans sélectionné, sans tableau ni chevron", () => {
+  // [« sans phase : « Phases du mouvement » est la seule ligne de son bloc ; Sans sélectionné » — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : sans phases,
+  // aucune ligne.]
+  it("PRE5-2.8/AC1 → D-608 (D-573 point 6) — sans phase : aucun cadre « Phases du mouvement », aucune ligne ni option ; Séries commence par la ligne Séries", () => {
     renderSheet(params());
     const rowIdsOf = (frameID: string) =>
       within(get(frameID))
         .queryAllByTestId(/^execution-sheet-row-[a-z-]+$/, hidden)
         .map((node) => String(node.props.testID))
         .filter((id) => !/-(selection|line|content|value-group)$/.test(id));
-    expect(rowIdsOf("execution-sheet-frame-phases")).toEqual(["execution-sheet-row-phases"]);
-    // Recette du 20/10 (RC-15) : le bloc Séries commence par la ligne Séries (portant le nombre de séries).
+    expect(query("execution-sheet-frame-phases")).toBeNull();
+    expect(query("execution-sheet-row-phases")).toBeNull();
+    expect(query(CONTROL)).toBeNull();
+    expect(screen.queryByText(t.workPhases, hidden)).toBeNull();
     expect(rowIdsOf("execution-sheet-frame-series")[0]).toBe("execution-sheet-row-series-type");
-    expect(rowIdsOf("execution-sheet-frame-series")).not.toContain("execution-sheet-row-phases");
-    expect(within(get("execution-sheet-row-phases")).getByText(t.workPhases, hidden)).toBeTruthy();
-    expect(optionState(WITHOUT)).toMatchObject({ selected: true });
-    expect(optionState(WITH)).toMatchObject({ selected: false, disabled: false });
     expect(query(TABLE)).toBeNull();
     expect(query(CHEVRON)).toBeNull();
-    // Largeur : Avec et Sans à 62 sous Sans.
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(62);
-    expect(styleOf(`${CONTROL}-tile-WITHOUT`).width).toBe(62);
   });
 
-  it.each([
-    ["Mode Répétitions", params(numberTarget(12), { mode: "REPETITIONS" })],
-    ["À l’échec", params(failureTarget())],
-    ["Répétitions à l’échec", params(failureTarget(), { mode: "REPETITIONS" })],
-  ])("PRE-7 (D-446) — %s : option Avec disponible ; deux phases à renseigner, Cible inchangée", (_case, parent) => {
-    const { onApply } = renderSheet(parent);
-    expect(optionState(WITH)).toMatchObject({ disabled: false, selected: false });
-    fireEvent.press(get(WITH));
-    expect(optionState(WITH)).toMatchObject({ selected: true });
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
-    enterDuration(1, "5");
-    enterDuration(2, "2");
-    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
-    validate();
-    const value = applied(onApply);
-    expect(value.mode).toBe(parent.mode);
-    expect(value.series).toMatchObject({ kind: "UNIFORM", target: (parent.series as { readonly target: SeriesTarget }).target });
-    expect(value.series.kind === "UNIFORM" ? value.series.workPhases.map((phase) => phase.durationSeconds) : null).toEqual([5, 2]);
-  });
+  // [Test « PRE-7 (D-446) — option Avec disponible en Répétitions / À l'échec » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
-  it.each([
-    [
-      "séries Variables",
-      params(numberTarget(9), {
-        series: {
-          kind: "VARIABLE",
-          rows: [
-            { target: numberTarget(9), pauseSeconds: 10, loadKg: 0 },
-            { target: numberTarget(12), pauseSeconds: 10, loadKg: 0 },
-          ],
-          workPhases: [],
-        },
-      }),
-    ],
-  ])("PRE5-2.8/AC1 — D-446 (complément du 26/10/2026, remplace l'exclusion FR-2) — %s : option Avec disponible ; appui : deux phases à renseigner (Q5), Variables conservé", (_case, parent) => {
-    renderSheet(parent);
-    expect(optionState(WITH)).toMatchObject({ disabled: false, selected: false });
-    expect(optionState(WITHOUT)).toMatchObject({ selected: true });
-    fireEvent.press(get(WITH));
-    expect(optionState(WITH)).toMatchObject({ selected: true });
-    expect(phaseRows()).toHaveLength(2);
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
-    expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ selected: true });
-  });
+  // [Test « D-446 — séries Variables : option Avec disponible » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
-  it("PRE5-2.8/AC3 — activation depuis 9″ : « 2 phases », Q5 (remplace le préremplissage de D-432) : lignes « — » et « — » (rouge pâle), tableau déployé, chevron haut ; PRE-7 (D-446) : D inchangée et modifiable", () => {
-    renderSheet(params());
+  // [« activation depuis 9″ » par l'option Avec — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : mêmes contrôles sur un exercice à deux phases à renseigner.]
+  it("PRE5-2.8/AC3 → D-608 — deux phases à renseigner, Cible 9″ : « 2 phases », lignes « — » et « — » (rouge pâle), tableau déployé, chevron haut ; PRE-7 (D-446) : D inchangée et modifiable", () => {
+    renderSheet(missingPhases());
     expect(get("execution-sheet-target-value")).toBeTruthy();
-    fireEvent.press(get(WITH));
     expect(optionState(WITH)).toMatchObject({ selected: true });
     expect(countText()).toBe("2 phases");
     expect(phaseRows()).toHaveLength(2);
@@ -242,7 +206,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(seriesDurationText()).toBe("9″");
     // Largeur de l’option Avec, réglage fermé : 110 (D-448, point 8 ; 104 auparavant, RC-16 : marges de « Sans ») ; Sans garde 62.
     expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(110);
-    expect(styleOf(`${CONTROL}-tile-WITHOUT`).width).toBe(62);
+    // D-608 : plus d'option Sans.
+    expect(query(WITHOUT)).toBeNull();
     // PRE-7 (D-446) : avec des phases, Répétitions et À l'échec restent disponibles ; complément
     // du 26/10/2026 : Variables aussi (motif commun aux séries identiques et variables).
     expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ disabled: false });
@@ -273,98 +238,20 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     ]);
   });
 
-  it("PRE5-2.8/AC3 — activation depuis « — » : deux durées à renseigner, rien d'inventé", () => {
-    renderSheet(params(unsetTarget()));
-    fireEvent.press(get(WITH));
+  // [Activation par l'option Avec — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
+  it("PRE5-2.8/AC3 → D-608 — Cible « — », deux phases à renseigner : rien d'inventé", () => {
+    renderSheet(missingPhases(unsetTarget()));
     expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
     expect(seriesDurationText()).toBe("—");
   });
 
-  it("PRE5-2.8/AC2, AC3 (D-432, QR-1) — nombre de phases au clavier (bornes 2..6) : ajout à la durée de la dernière ; retrait de la dernière avec « Phase supprimée — Annuler » [stepper révélé — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
-    renderSheet(withPhases([["A", 6], ["B", 3]]));
-    unfoldPhases();
-    expect(query(`${STEPPER}-increment`)).toBeNull();
-    expect(get(STEPPER).props.accessibilityLabel).toBe(t.workPhaseCountLabel);
-    expect(get(`${STEPPER}-input`).props.keyboardType).toBe("number-pad");
-    focusCount();
-    expect(countActive()).toBe(true);
-    // En saisie : chiffres seuls ; option Avec de largeur inchangée (110).
-    expect(String(get(`${STEPPER}-value`).props.children)).toBe("2");
-    expect(styleOf(STEPPER).backgroundColor).toBe("#EAEAFF");
-    typeInExecutionSheetCell(STEPPER, "9");
-    blurCount();
-    // 9 ramené à 6 ; les phases ajoutées reprennent la durée de la dernière.
-    expect(countText()).toBe("6 phases");
-    expect(phaseRows()).toHaveLength(6);
-    expect([3, 4, 5, 6].map(shownDuration)).toEqual(["3″", "3″", "3″", "3″"]);
-    // PRE-7 (D-446) : D inchangée (9 s), non la somme.
-    expect(seriesDurationText()).toBe("9″");
-    enterPhaseCount(5);
-    expect(phaseRows()).toHaveLength(5);
-    expect(within(get("execution-sheet-adjusted")).getByText(t.phaseRemoved, hidden)).toBeTruthy();
-    expect(within(get("execution-sheet-phases-group")).getByTestId("execution-sheet-adjusted", hidden)).toBeTruthy();
-    fireEvent.press(get("execution-sheet-adjusted-undo"));
-    expect(phaseRows()).toHaveLength(6);
-    // 1 ramené à 2 (borne basse).
-    enterPhaseCount(1);
-    expect(countText()).toBe("2 phases");
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(110);
-  });
+  // [Test « nombre de phases au clavier (bornes 2..6) » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
-  it("RC-16 — « n phases » ouvre le clavier, le chevron replie / déploie sans l'ouvrir ; actions indépendantes, place du chevron réservée", () => {
-    renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
-    unfoldPhases();
-    // Libellé puis chevron, à 12 l’un de l’autre (D-448, point 8 ; 6 auparavant), dans l’option de 110.
-    expect(styleOf(CHEVRON)).toMatchObject({ width: 10, height: 10, marginLeft: 12 });
-    expect(get(STEPPER).props.hitSlop).toEqual({ top: 14, bottom: 14, left: 17, right: 6 });
-    expect(get(CHEVRON).props.hitSlop).toEqual({ top: 17, bottom: 17, left: 6, right: 17 });
-    fireEvent.press(get(CHEVRON));
-    expect(query(TABLE)).toBeNull();
-    expect(countActive()).toBe(false);
-    focusCount();
-    expect(countActive()).toBe(true);
-    expect(query(TABLE)).toBeNull();
-  });
+  // [Test « RC-16 — « n phases » ouvre le clavier » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
-  it("RC-16 — en saisie : fond #EAEAFF, texte primaire, segmenté de 32 ; le chevron (grisé, indisponible) ferme le clavier sans changer le repli ; un toucher ailleurs ferme aussi [réglage − | n | chevron | + — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
-    renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
-    unfoldPhases();
-    focusCount();
-    expect(styleOf("execution-sheet-phases-control").height).toBe(32);
-    expect(StyleSheet.flatten(get(`${STEPPER}-value`).props.style).color).toBe(colors.primary);
-    // RC-16 : saisie ouverte, chevron grisé et annoncé indisponible.
-    expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.disabled);
-    expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true });
-    typeInExecutionSheetCell(STEPPER, "4");
-    // Chevron touché pendant la saisie : « Fermer » du clavier (perte du focus simulée), tableau inchangé.
-    fireEvent.press(get(CHEVRON));
-    blurCount();
-    expect(countActive()).toBe(false);
-    expect(phaseRows()).toHaveLength(4);
-    expect(countText()).toBe("4 phases");
-    // Toucher ailleurs : fermeture.
-    focusCount();
-    fireEvent.press(get("execution-sheet-body-outside"));
-    expect(countActive()).toBe(false);
-    blurCount();
-    expect(phaseRows()).toHaveLength(4);
-  });
+  // [Test « RC-16 — en saisie du nombre de phases » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
-  for (const field of ["label", "duration"] as const) {
-    it(`RC-17 — activer un champ du tableau des phases (${field}) ferme la saisie du nombre (surface clavier, une seule surface) ; nombre et repli inchangés ; chevron actif`, () => {
-      renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
-      unfoldPhases();
-      focusCount();
-      fireEvent(get(field === "label" ? label(2) : `${duration(2)}-input`), "focus");
-      expect(countActive()).toBe(false);
-      blurCount();
-      expect(countText()).toBe("3 phases");
-      expect(phaseRows()).toHaveLength(3);
-      expect(chevronIcon()).toEqual(UP);
-      expect(get(CHEVRON).props.accessibilityState).toMatchObject({ expanded: true });
-      expect(styleOf(`${CHEVRON}-icon`).tintColor).toBe(colors.background);
-    });
-  }
+  // [Test « RC-17 — un champ du tableau ferme la saisie du nombre » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("PRE5-2.8/AC2 (FR-28) — chevron : replie le tableau (chevron bas), nombre et phases inchangés ; redéploie", () => {
     const { onApply } = renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
@@ -382,35 +269,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(14) });
   });
 
-  it("PRE5-2.8/AC3b, AC7 (FR-8) — croix : à 3 phases, retrait + « Phase supprimée — Annuler », Annuler restitue ordre, libellé et durée ; D inchangée (D-446) ; à 2, croix disponible (PRE-7 A2.1, D-438 remplace D-371 et D-432 pour le retrait)", () => {
-    renderSheet(withPhases([["Descente", 6], ["Maintien", 3], ["Montée", 5]]));
-    unfoldPhases();
-    expect(get(remove(2)).props.accessibilityLabel).toBe("Supprimer la phase 2");
-    expect(get(remove(2)).props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(get(remove(2)));
-    expect(phaseRows()).toHaveLength(2);
-    expect([shownLabel(1), shownLabel(2)]).toEqual(["Descente", "Montée"]);
-    expect(seriesDurationText()).toBe("14″");
-    expect(countText()).toBe("2 phases");
-    expect(within(get("execution-sheet-adjusted")).getByText(t.phaseRemoved, hidden)).toBeTruthy();
-    // PRE-7 A2.1 (D-438) : à deux phases, croix disponibles (2 → Sans, voir `ExecutionParametersSheet.mfn.a21`).
-    expect(get(remove(1)).props.accessibilityState).toMatchObject({ disabled: false });
-    expect(get(remove(2)).props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(get("execution-sheet-adjusted-undo"));
-    expect([1, 2, 3].map(shownLabel)).toEqual(["Descente", "Maintien", "Montée"]);
-    expect([1, 2, 3].map(shownDuration)).toEqual(["6″", "3″", "5″"]);
-    expect(seriesDurationText()).toBe("14″");
-    expect(countText()).toBe("3 phases");
-  });
+  // [Test « croix : retrait d'une phase et Annuler » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
-  it("PRE5-2.8/AC3b — croix pendant une saisie : l'appui range le champ ouvert sans retirer", () => {
-    renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
-    unfoldPhases();
-    fireEvent(get(`${duration(1)}-input`), "focus");
-    expect(styleOf(duration(1)).backgroundColor).toBe("#EAEAFF");
-    fireEvent.press(get(remove(3)));
-    expect(phaseRows()).toHaveLength(3);
-  });
+  // [Test « croix pendant une saisie » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("PRE5-2.8/AC5 (D-434) — durée au clavier MMSS : 1,7,5 → « 2′15″ » ; vidée → « — » ; 9999 → 58′55″ ; 0 → 0″ (D-448, point 6) ; PRE-7 (D-446) : D inchangée", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
@@ -433,27 +294,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(seriesDurationText()).toBe("9″");
   });
 
-  it("PRE5-2.8/AC4 (FR-6) — libellé au clavier texte : « Descente » puis Retour ; vide → « Phase n » ; au-delà de 20 points de code refusé ; sans barre", () => {
-    renderSheet(withPhases([["A", 6], ["B", 3]]));
-    unfoldPhases();
-    expect(get(label(1)).props.keyboardType).toBe("default");
-    expect(get(label(1)).props.submitBehavior).toBe("blurAndSubmit");
-    expect(get(label(1)).props.accessibilityLabel).toBe("Phase 1, libellé");
-    enterLabel(1, "Descente");
-    expect(shownLabel(1)).toBe("Descente");
-    enterLabel(2, "");
-    expect(shownLabel(2)).toBe("Phase 2");
-    fireEvent(get(label(1)), "focus");
-    showExecutionSheetKeyboard();
-    // Libellé : aucune barre (RC-1 réservée aux champs numériques).
-    expect(query("execution-sheet-keyboard-bar")).toBeNull();
-    fireEvent.changeText(get(label(1)), "x".repeat(21));
-    expect(String(get(label(1)).props.value)).toBe("Descente");
-    fireEvent.changeText(get(label(1)), "😀".repeat(20));
-    fireEvent(get(label(1)), "blur");
-    hideExecutionSheetKeyboard();
-    expect(shownLabel(1)).toBe("😀".repeat(20));
-  });
+  // [Test « libellé de phase au clavier texte » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("PRE5-2.8/AC5 (D-434) — navigation : Suivant de la durée 1 → durée 2 (jamais un libellé) ; « À l’échec » absent ; extrémités indisponibles ; repère de la ligne active", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
@@ -479,24 +320,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     hideExecutionSheetKeyboard();
   });
 
-  it("PRE5-2.8/AC7 (FR-8) — Avec → Sans : 6″ + 3″ + 5″ → Sans, « Durée d’une série » 14″ modifiable ; repasser à Avec pendant l'édition restitue les trois phases (D-448, point 4, remplace « recrée deux phases »)", () => {
-    renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
-    fireEvent.press(get(WITHOUT));
-    expect(optionState(WITHOUT)).toMatchObject({ selected: true });
-    expect(query(TABLE)).toBeNull();
-    expect(query(CHEVRON)).toBeNull();
-    expect(String(get("execution-sheet-target-value").props.children)).toBe("14″");
-    expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ disabled: false });
-    fireEvent.press(get(WITH));
-    expect(phaseRows()).toHaveLength(3);
-    expect([shownDuration(1), shownDuration(2), shownDuration(3)]).toEqual(["6″", "3″", "5″"]);
-    expect([shownLabel(1), shownLabel(2), shownLabel(3)]).toEqual(["A", "B", "C"]);
-  });
+  // [Test « Avec → Sans, puis Avec » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("PRE7-A1.1 (D-438 remplace D-373, nettoyage FR-3/FR-9/AD-20 écarté) — [9, —] : ✓ indisponible, les deux phases conservées ; la cellule « — » à renseigner ; D 9″ inchangée (D-446)", () => {
-    const { onApply } = renderSheet(params());
-    fireEvent.press(get(WITH));
-    // Q5 : la première durée est saisie (plus de préremplissage par la Cible).
+    // [Activation par l'option Avec — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
+    const { onApply } = renderSheet(missingPhases());
     enterDuration(1, "9");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     validate();
@@ -533,12 +361,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
 
   it("PRE5-2.8/AC7 (FR-9, QN-3) — ✓ avec [6 « », 3 « Maintien »] : phases « Phase 1 » 6″ et « Maintien » 3″ ; PRE-7 (D-446) : cible 6″ inchangée", () => {
     // Décision du 09/11/2026 (recette PRE-10, constat d) : durée de série multiple du motif (18″ = 2 × 9″).
-    const { onApply } = renderSheet(params(numberTarget(18)));
-    fireEvent.press(get(WITH));
-    // Q5 : la première durée est saisie (plus de préremplissage par la Cible).
+    // [Activation par Avec et libellé saisi dans la feuille — remplacés le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : libellés venus de la fiche du mouvement.]
+    const { onApply } = renderSheet(missingPhases(numberTarget(18), ["", "Maintien"]));
     enterDuration(1, "6");
     enterDuration(2, "3");
-    enterLabel(2, "Maintien");
     expect(seriesDurationText()).toBe("18″");
     validate();
     const series = applied(onApply).series;
@@ -590,7 +416,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
   it("PRE5-2.8 (Q47) — champ de phase focalisé : le premier appui sur ✓ ou ✕ sort du champ, sans valider ni abandonner", () => {
     const { onApply, onCancel } = renderSheet(withPhases([["A", 6], ["B", 3]]));
     unfoldPhases();
-    fireEvent(get(label(1)), "focus");
+    // [Libellé focalisé — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : le libellé n'est plus modifiable.]
+    fireEvent(get(`${duration(1)}-input`), "focus");
     validate();
     expect(onApply).not.toHaveBeenCalled();
     fireEvent(get(`${duration(2)}-input`), "focus");
@@ -600,22 +427,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(onApply).toHaveBeenCalledTimes(1);
   });
 
-  it("PRE5-2.8/AC3b (FR-4, CE-UI-10) — actions accessibles Monter / Descendre : le libellé suit sa phase ; D inchangée", () => {
-    const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
-    unfoldPhases();
-    const handle = get(`${row(1)}-handle`);
-    expect(handle.props.accessibilityLabel).toBe("Déplacer la phase 1");
-    expect((handle.props.accessibilityActions as { name: string; label: string }[]).map((action) => action.label)).toEqual([
-      "Descendre la phase 1",
-    ]);
-    fireEvent(handle, "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
-    expect([shownLabel(1), shownLabel(2)]).toEqual(["Maintien", "Descente"]);
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["3″", "6″"]);
-    expect(seriesDurationText()).toBe("9″");
-    validate();
-    const series = applied(onApply).series;
-    expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.label) : null).toEqual(["Maintien", "Descente"]);
-  });
+  // [Test « actions accessibles Monter / Descendre » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("PRE5-2.8/AC3b (FR-29, Figma `9207:18817`) — tableau : en-têtes « Libellé » et « Durée », séparés de 20, ni pied ni ± ; recette du 29/10/2026 : colonnes distribuées à parts égales", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
@@ -630,19 +442,20 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect([PHASE_CELL_WIDTH, PHASE_CELL_GAP]).toEqual([76, 20]);
     expect(within(get(TABLE)).queryAllByTestId(/-(increment|decrement)$/, hidden)).toEqual([]);
     expect(get(`${duration(1)}`).props.hitSlop).toEqual({ top: 6, bottom: 6 });
-    expect(get(label(1)).props.hitSlop).toEqual({ top: 6, bottom: 6 });
+    // [Libellé au clavier (marge de toucher 6) — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : libellé affiché, non modifiable.]
+    expect(get(label(1)).props.editable).toBe(false);
   });
 
   it("PRE5-2.8/AC7 — deux phases à renseigner, Cible « — » : « Durée d’une série » « — » marquée (fond #FFF1F0, indice annoncé), ✓ indisponible", () => {
-    renderSheet(params(unsetTarget()));
-    fireEvent.press(get(WITH));
+    // [Activation par l'option Avec — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
+    renderSheet(missingPhases(unsetTarget()));
     expect(seriesDurationText()).toBe("—");
     expect(styleOf("execution-sheet-target").backgroundColor).toBe(colors.dangerSurface);
     expect(seriesDurationPill().props.accessibilityHint).toBe(t.invalidHint);
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("PRE-7 (D-446) — Cible indépendante : phases [5, 2] et Cible 2′00″ ; durée de phase modifiée ou Sans → Cible 2′00″, saisissable au clavier [roue — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
+  it("PRE-7 (D-446) — Cible indépendante : phases [5, 2] et Cible 2′00″ ; durée de phase modifiée → Cible 2′00″, saisissable au clavier [roue — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
     const { onApply } = renderSheet(
       params(numberTarget(120), {
         series: {
@@ -669,8 +482,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     fireEvent(get("execution-sheet-target-input"), "blur");
     validate();
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(120) });
-    fireEvent.press(get(WITHOUT));
-    expect(seriesDurationText()).toBe("2′00″");
+    // [Passage à Sans (Cible inchangée) — retiré le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
     enterExecutionSheetValue("execution-sheet-target", 150);
     expect(seriesDurationText()).toBe("2′30″");
   });
@@ -702,26 +514,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(countText()).toBe("1 phase");
   });
 
-  it("PRE5-2.8/AC3b (RC-5) — glisser la poignée de la phase 1 d'une ligne : réglage du nombre rangé au départ, repère d'insertion pendant le geste, phases échangées, ✓ dans le nouvel ordre", () => {
-    const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
-    unfoldPhases();
-    // Décision du 06/11/2026 : saisie du nombre (clavier) rangée au départ du glisser.
-    focusCount();
-    expect(countActive()).toBe(true);
-    const handle = get(`${row(1)}-handle`);
-    fireEvent(handle, "responderGrant", { nativeEvent: { pageY: 100 } });
-    expect(countActive()).toBe(false);
-    blurCount();
-    fireEvent(handle, "responderMove", { nativeEvent: { pageY: 100 + TABLE_ROW_HEIGHT } });
-    expect(get("execution-sheet-phases-insertion-guide-before-3")).toBeTruthy();
-    fireEvent(get(`${row(1)}-handle`), "responderRelease", { nativeEvent: { pageY: 100 + TABLE_ROW_HEIGHT } });
-    expect(query("execution-sheet-phases-insertion-guide-before-3")).toBeNull();
-    expect([shownLabel(1), shownLabel(2)]).toEqual(["Maintien", "Descente"]);
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["3″", "6″"]);
-    validate();
-    const series = applied(onApply).series;
-    expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.label) : null).toEqual(["Maintien", "Descente"]);
-  });
+  // [Test « glisser la poignée d'une phase » — retiré : règle remplacée le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("PRE5-2.8/AC6 (FR-3) — phases 6″ et 3″, 3 séries, pause 15″, D lue 9″ (modifiable depuis D-446) : Durée de l'exercice 1′12″ (calcul existant)", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
@@ -757,30 +550,22 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(totalShown()).not.toContain("≈");
   });
 
-  it("PRE5-2.8/AC8 (FR-32, NR Δ38) — six phases : six lignes, 7 saisi ramené à 6 ; le nombre de séries reste un champ distinct [± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]", () => {
+  // [« 7 saisi ramené à 6 ; une seule surface avec le nombre de séries » — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : le nombre n'est plus saisi.]
+  it("PRE5-2.8/AC8 → D-608 — six phases : six lignes, « 6 phases », aucun champ de saisie du nombre", () => {
     renderSheet(withPhases([["A", 1], ["B", 1], ["C", 1], ["D", 1], ["E", 1], ["F", 1]]));
     unfoldPhases();
     expect(phaseRows()).toHaveLength(6);
     expect(countText()).toBe("6 phases");
-    enterPhaseCount(7);
-    expect(phaseRows()).toHaveLength(6);
-    // Une seule surface : le focus du nombre de séries range la saisie des phases.
-    focusCount();
-    fireEvent(get("execution-sheet-series-input"), "focus");
-    expect(countActive()).toBe(false);
-    expect(get("execution-sheet-series").props.accessibilityState).toMatchObject({ selected: true });
+    expect(query(`${STEPPER}-input`)).toBeNull();
   });
 });
 
 describe("ExecutionParametersSheet — recette iPhone du 29/10/2026 : tableau des phases replié par un autre contrôle", () => {
-  it("toucher le réglage du nombre de phases le laisse ouvert ; un autre segmenté (Cadence) ou la valeur de la Cible le replie (sortie animée existante) ; phases conservées, chevron pour le redéployer", () => {
+  it("un autre segmenté (Cadence) ou la valeur de la Cible le replie (sortie animée existante) ; phases conservées, chevron pour le redéployer", () => {
     renderSheet(withPhases([["A", 5], ["B", 2]]));
     unfoldPhases();
     expect(phaseRows()).toHaveLength(2);
-    // Option Avec (réglage du nombre) : partie de la ligne des phases, le tableau reste.
-    fireEvent.press(get(WITH));
-    expect(phaseRows()).toHaveLength(2);
-    fireEvent.press(get(WITH));
+    // [Option Avec (réglage du nombre) touchée deux fois, tableau inchangé — retiré le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
     // Autre contrôle : le tableau se replie.
     fireEvent.press(get("execution-sheet-cadence-control-1"));
     expect(phaseRows()).toHaveLength(0);
@@ -818,10 +603,11 @@ describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des ph
     expect(query("execution-sheet-phases-separator")).toBeNull();
   });
 
-  it("sans phases : bloc d'une seule ligne, sans trait", () => {
+  // [« bloc d'une seule ligne, sans trait » — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : sans phases, aucun bloc.]
+  it("sans phases : aucun bloc", () => {
     renderSheet(params());
     expect(query(TABLE)).toBeNull();
-    expect(separatorsUnder("execution-sheet-frame-phases")).toHaveLength(0);
+    expect(query("execution-sheet-frame-phases")).toBeNull();
     expect(query("execution-sheet-phases-separator")).toBeNull();
   });
 });
@@ -833,8 +619,8 @@ describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a ; contrôle cr
   const INDICATOR = "execution-sheet-phases-control-indicator";
   const COUNT_TEXT = "execution-sheet-phase-count-value";
   it("durée de phase manquante, tableau déployé ou replié : le champ « n phases » est rouge (cadre danger, fond dangerSurface, sans fond violet), jamais la ligne ; complet : aucun rouge", () => {
-    renderSheet(params());
-    fireEvent.press(get(WITH));
+    // [Activation par l'option Avec — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
+    renderSheet(missingPhases());
     // Contre-recette n° 3 (cr4-rouge) : déployé, le champ est déjà rouge — plus de fond violet.
     expect(get(TABLE)).toBeTruthy();
     expect(styleOf(FRAME)).toMatchObject({ borderWidth: 1, borderColor: colors.danger });
@@ -1028,19 +814,7 @@ describe("Hermann, 01/11/2026 — tableau des phases replié à l'ouverture s'il
     expect(query(TABLE)).toBeNull();
   });
 
-  it("activation de l'option Avec : tableau déployé (inchangé), depuis Sans comme après Sans → Avec", () => {
-    renderOpening(params());
-    fireEvent.press(get(WITH));
-    expect(get(TABLE)).toBeTruthy();
-    expect(chevronIcon()).toEqual(UP);
-    screen.unmount();
-    renderOpening(withPhases([["A", 6], ["B", 3]]));
-    expect(query(TABLE)).toBeNull();
-    fireEvent.press(get(WITHOUT));
-    fireEvent.press(get(WITH));
-    expect(phaseRows()).toHaveLength(2);
-    expect(chevronIcon()).toEqual(UP);
-  });
+  // [« activation de l'option Avec : tableau déployé » — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 
   it("chevron : déploie puis replie, sans changer le nombre ni les phases", () => {
     renderOpening(withPhases([["A", 6], ["B", 3]]));
@@ -1113,5 +887,62 @@ describe("ExecutionParametersSheet — durée de série et durée des phases (d�
     choose(alert, 0);
     validate();
     expect(applied(onApply).series).toMatchObject({ target: numberTarget(10) });
+  });
+});
+
+describe("D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) — phases définies dans la fiche du mouvement", () => {
+  it("nombre fixé : une seule option « n phases » (sans Avec / Sans), son appui replie ou déploie le tableau ; ni croix, ni poignée active, libellés non modifiables ; durées modifiables", () => {
+    const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
+    expect(query(WITHOUT)).toBeNull();
+    expect(optionState(WITH)).toMatchObject({ selected: true });
+    expect(countText()).toBe("2 phases");
+    fireEvent.press(get(WITH));
+    expect(phaseRows()).toHaveLength(2);
+    fireEvent.press(get(WITH));
+    expect(query(TABLE)).toBeNull();
+    fireEvent.press(get(CHEVRON));
+    expect(query(remove(1))).toBeNull();
+    expect(get(label(1)).props.editable).toBe(false);
+    expect(query(`${STEPPER}-input`)).toBeNull();
+    enterDuration(1, "8");
+    expect(shownDuration(1)).toBe("8″");
+    // Durée de série 9″ = motif d’origine (décision du 09/11/2026 : ✓ demande l’arrondi d’une durée non multiple du motif).
+    enterDuration(1, "6");
+    validate();
+    const series = applied(onApply).series;
+    expect(series.workPhases.map((phase) => [phase.label, phase.durationSeconds])).toEqual([
+      ["Descente", 6],
+      ["Maintien", 3],
+    ]);
+  });
+
+  it("son de chaque phase désactivable : l'interrupteur remplace la croix ; ✓ écrit `soundOff` sur la seule phase coupée ; réactivé, la clé disparaît", () => {
+    const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
+    unfoldPhases();
+    expect(get(`${row(2)}-sound`).props.accessibilityLabel).toBe("Son de la phase 2");
+    expect(get(`${row(2)}-sound`).props.accessibilityState).toMatchObject({ checked: true });
+    expect(get(`${row(2)}-sound-on`)).toBeTruthy();
+    fireEvent.press(get(`${row(2)}-sound`));
+    expect(get(`${row(2)}-sound`).props.accessibilityState).toMatchObject({ checked: false });
+    expect(get(`${row(2)}-sound-off`)).toBeTruthy();
+    validate();
+    expect(applied(onApply).series.workPhases).toEqual([
+      { id: 1, label: "Descente", durationSeconds: 6 },
+      { id: 2, label: "Maintien", durationSeconds: 3, soundOff: true },
+    ]);
+  });
+
+  it("son coupé relu : interrupteur éteint ; le réactiver retire `soundOff`", () => {
+    const parent = withPhases([["Descente", 6], ["Maintien", 3]]);
+    const series = parent.series as { readonly workPhases: readonly WorkPhase[] };
+    const { onApply } = renderSheet({
+      ...parent,
+      series: { ...parent.series, workPhases: [{ ...series.workPhases[0]!, soundOff: true }, series.workPhases[1]!] },
+    } as ExecutionParametersInput);
+    unfoldPhases();
+    expect(get(`${row(1)}-sound`).props.accessibilityState).toMatchObject({ checked: false });
+    fireEvent.press(get(`${row(1)}-sound`));
+    validate();
+    expect(applied(onApply).series.workPhases[0]).toEqual({ id: 1, label: "Descente", durationSeconds: 6 });
   });
 });

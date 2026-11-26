@@ -137,7 +137,8 @@ const model = (id: string, role: "TOUR" | "BUY_IN" | "BUY_OUT"): ModelMovement =
 describe("D-531 — disponibilité de « Max » (À l'échec)", () => {
   it("règle : grisé pour un mouvement d'une boucle de plusieurs mouvements (AMRAP, For time) ; libre pour un seul mouvement et pour le buy-in", () => {
     expect(maxLocked("AMRAP", [model("a", "TOUR")], 0)).toBe(false);
-    expect(maxLocked("AMRAP", [model("a", "TOUR"), model("b", "TOUR")], 0)).toBe(true);
+    // D-607 (D-572 point 7, 25/11/2026) : en AMRAP, « À l’échec » reste au choix dans la boucle (D-531 remplacé pour l’AMRAP).
+    expect(maxLocked("AMRAP", [model("a", "TOUR"), model("b", "TOUR")], 0)).toBe(false);
     expect(maxLocked("FOR_TIME", [model("a", "TOUR"), model("b", "TOUR")], 1)).toBe(true);
     expect(maxLocked("AMRAP", [model("in", "BUY_IN"), model("a", "TOUR")], 0)).toBe(false);
     expect(maxLocked("AMRAP", [model("in", "BUY_IN"), model("a", "TOUR")], 1)).toBe(false);
@@ -154,36 +155,22 @@ describe("D-531 — disponibilité de « Max » (À l'échec)", () => {
     expect(screen.queryByTestId("format-max-locked")).toBeNull();
   });
 
-  it("AMRAP à deux mouvements en boucle : Max grisé ; l'appui montre le message court sans cocher ; modale : À l'échec grisé avec le même message", async () => {
+  it("D-607 — AMRAP à deux mouvements en boucle : « À l’échec » cochable, sans message ; modale : « À l’échec » proposé", async () => {
     await open("AMRAP");
     await pick("Squ", "mv-squats", "format-loop");
     await pick("Fen", "mv-fentes", "format-loop");
     await repetitions(0);
     await repetitions(1);
-    expect(disabled("format-amrap-max-0")).toBe(true);
-    expect(disabled("format-amrap-max-1")).toBe(true);
-    expect(screen.queryByTestId("format-max-locked")).toBeNull();
+    expect(disabled("format-amrap-max-0")).toBe(false);
+    expect(disabled("format-amrap-max-1")).toBe(false);
     fireEvent.press(screen.getByTestId("format-amrap-max-1"));
-    expect(screen.getByTestId("format-max-locked")).toHaveTextContent(t.maxLocked);
-    expect((screen.getByTestId("format-amrap-max-1").props.accessibilityState as { checked?: boolean }).checked).toBe(false);
-    // Modale du mouvement de boucle : « À l'échec » grisé, message court sous le cadre Exécution.
+    expect(screen.queryByTestId("format-max-locked")).toBeNull();
+    expect((screen.getByTestId("format-amrap-max-1").props.accessibilityState as { checked?: boolean }).checked).toBe(true);
     fireEvent.press(screen.getByTestId("format-line-0-name-open"));
     await screen.findByTestId("execution-sheet");
-    expect(screen.getByTestId("execution-sheet-max-refused")).toHaveTextContent(t.maxLocked);
-    expect(disabled("execution-sheet-stop-condition-control-FAILURE")).toBe(true);
+    expect(screen.queryByTestId("execution-sheet-max-refused")).toBeNull();
+    expect(disabled("execution-sheet-stop-condition-control-FAILURE")).toBe(false);
     expect(disabled("execution-sheet-stop-condition-control-TARGET")).toBe(false);
-  });
-
-  it("Max déjà coché, puis un second mouvement en boucle : rien n'est retiré d'office — Max reste coché et décochable", async () => {
-    await open("AMRAP");
-    await pick("Squ", "mv-squats", "format-loop");
-    await repetitions(0);
-    fireEvent.press(screen.getByTestId("format-amrap-max-0"));
-    await pick("Fen", "mv-fentes", "format-loop");
-    const max = () => screen.getByTestId("format-amrap-max-0").props.accessibilityState as { checked?: boolean; disabled?: boolean };
-    expect(max()).toMatchObject({ checked: true, disabled: false });
-    fireEvent.press(screen.getByTestId("format-amrap-max-0"));
-    expect(max()).toMatchObject({ checked: false, disabled: true });
   });
 
   it("buy-in de l'AMRAP : À l'échec proposé dans la modale (règle existante), sans message", async () => {

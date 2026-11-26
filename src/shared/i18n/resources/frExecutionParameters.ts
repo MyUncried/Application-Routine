@@ -41,6 +41,8 @@ export const executionParameters = {
     freeTitle: "Exercice libre",
     freeTagline: "Réglez librement chaque paramètre de l’exercice.",
     freeSection: "Paramètres d’exécution",
+    // D-608 (D-573 point 5, Figma « Exercice libre — Modale de type format » `13269:26160`) : ligne « Mouvement » du cadre du mouvement.
+    freeMovement: "Mouvement",
     validateAccessibilityLabel: "Valider les paramètres",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",
@@ -94,12 +96,19 @@ export const executionParameters = {
     // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
     // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
     repetitionsTarget: "Nombre de répétitions",
+    // D-607 / D-608 (Hermann, 25-26/11/2026) : AMRAP à l’échec — ligne grisée, valeur « — ».
+    repetitionsPerRound: "Nombre de répétitions par tour",
+    // D-607 / D-608 : Tabata, 30/30, HIIT — objectif de répétitions facultatif.
+    repetitionsGoal: "Objectif de répétitions",
+    durationPerRound: "Durée par tour",
     repetitionsUnit: "rép.",
     pause: "Pause après chaque série",
-    columns: { DURATION: "Durée", REPETITIONS: "Répétitions", pause: "Pause", load: "Charge" },
+    // D-607 (D-572 point 6, Hermann, 25/11/2026) : EMOM — colonne Intervalle du tableau par série.
+    columns: { DURATION: "Durée", REPETITIONS: "Répétitions", pause: "Pause", interval: "Intervalle", load: "Charge" },
     row: "Série {n}",
     rowTarget: "Série {n}, {field}",
     rowPause: "Série {n}, pause",
+    rowInterval: "Série {n}, intervalle",
     // PRE-5 story 2.2 (FR-23 à FR-25, AD-26) : ligne « Charge » (Avec / Sans), cellule de
     // charge d’une ligne du tableau, et barre du clavier décimal (Précédent / Suivant /
     // « Fermer ») ; les flèches ne sont jamais lues (`…Spoken`).
@@ -162,6 +171,8 @@ export const executionParameters = {
     phaseMoveDown: "Descendre la phase {n}",
     phaseMoveHandle: "Déplacer la phase {n}",
     removePhase: "Supprimer la phase {n}",
+    // D-608 (D-573 point 6, Hermann, 26/11/2026) : son de chaque phase désactivable.
+    phaseSound: "Son de la phase {n}",
     phaseRemoved: "Phase supprimée",
     // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série et phases du mouvement.
     phaseCycleBelow: "La durée de la série est inférieure à la durée des phases du mouvement ({cycle}).",

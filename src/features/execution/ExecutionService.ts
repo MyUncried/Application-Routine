@@ -526,5 +526,7 @@ function phasePatternOf(plan: ExecutablePlan, state: EngineState): PhasePattern 
   // Répétitions, les phases continuent au-delà du nombre prévu, jusqu'à Suivant ; seule une étape chronométrée borne le
   // guidage. [D-446 Q4 « après le nombre cible, plus de signal » — remplacé pour les Répétitions.]
   const limit = spec.target === undefined || spec.end !== "TIMED" ? null : nominalGuidanceSeconds(spec.mode ?? null, spec.target, phases);
-  return { durationsMs: phases.map((phase) => phase.durationSeconds * 1000), limitMs: limit === null ? null : limit * 1000 };
+  // D-608 (D-573 point 6) : son d'une phase désactivé — aucun bip ni annonce à son début.
+  const silent = phases.some((phase) => phase.soundOff === true) ? { silent: phases.map((phase) => phase.soundOff === true) } : {};
+  return { durationsMs: phases.map((phase) => phase.durationSeconds * 1000), limitMs: limit === null ? null : limit * 1000, ...silent };
 }

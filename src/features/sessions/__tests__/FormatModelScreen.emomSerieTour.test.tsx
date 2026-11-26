@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { useState } from "react";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { FormatModelDraftProvider } from "@/features/sessions/FormatModelDraftContext";
+import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
 import { FormatModelScreen } from "@/features/sessions/FormatModelScreen";
 import { SessionDraftContext, type SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
@@ -151,7 +152,10 @@ describe("Constat a) du 18/11/2026 — EMOM à plusieurs mouvements, libellés s
     expect(heads()).toEqual([...columns]);
     void sheet;
     expect(await sheetSeriesRow()).toBeNull();
-    expect(screen.getByTestId("execution-sheet-row-target", { includeHiddenElements: true })).toBeTruthy();
+    // D-607 (D-572 point 6, Hermann, 25/11/2026) : plus d'un tour — tableau par série (objectif, intervalle, charge), sans ligne
+    // Séries. [Ligne « Nombre de répétitions » commune (D-604) — remplacée.]
+    expect(screen.queryByTestId("execution-sheet-row-target", { includeHiddenElements: true })).toBeNull();
+    expect(screen.getByTestId("execution-sheet-table-row-3-interval", { includeHiddenElements: true })).toBeTruthy();
   });
 
   it("le libellé du questionnaire et les colonnes suivent le mode dès qu'il change", async () => {
@@ -173,5 +177,48 @@ describe("Constat a) du 18/11/2026 — EMOM à plusieurs mouvements, libellés s
     setCount("3");
     expect(screen.getByTestId("format-row-seriesCount")).toHaveTextContent(t.rows.seriesCount, { exact: false });
     expect(heads()).toEqual(["S1", "S2", "S3"]);
+  });
+});
+
+/**
+ * D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9, § 9.10) : une seule modale, quelle que soit son
+ * origine — ouverte depuis la page du format, l'intervalle d'un tour est partagé « Dans chaque intervalle », propre au mouvement
+ * sinon ; la valeur est relue à la réouverture de la modale.
+ */
+describe("D-607 — intervalle par tour dans la modale ouverte depuis la page du format", () => {
+  const interval = (row: number) => String(screen.getByTestId(`execution-sheet-table-row-${row}-interval-value`, { includeHiddenElements: true }).props.children);
+  async function openSheet(line: number) {
+    fireEvent.press(screen.getByTestId(`format-line-${line}-name-open`));
+    await screen.findByTestId("execution-sheet");
+    fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
+    // Objectifs encore à renseigner (aucune recopie entre séries) : saisis pour pouvoir valider.
+    for (const row of [1, 2, 3]) {
+      const target = String(screen.getByTestId(`execution-sheet-table-row-${row}-target-value`, { includeHiddenElements: true }).props.children);
+      if (target === "—") enterExecutionSheetValue(`execution-sheet-table-row-${row}-target`, 10, "integer");
+    }
+  }
+  async function validateSheet() {
+    for (let press = 0; press < 2 && screen.queryByTestId("execution-sheet") !== null; press += 1)
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+      });
+    await waitFor(() => expect(screen.queryByTestId("execution-sheet")).toBeNull(), { timeout: 4000 });
+  }
+
+  it.each([
+    ["EACH_INTERVAL", "1′30″"],
+    ["SEQUENCE", "1′00″"],
+  ] as [string, string][])("%s : tour 2 du premier mouvement à 1′30″ ; second mouvement : %s", async (mode, other) => {
+    await openThree();
+    fireEvent.press(screen.getByTestId(`format-execution-${mode}`));
+    await openSheet(0);
+    enterExecutionSheetValue("execution-sheet-table-row-2-interval", 90);
+    await validateSheet();
+    await openSheet(1);
+    expect(interval(2)).toBe(other);
+    expect(interval(1)).toBe("1′00″");
+    await validateSheet();
+    await openSheet(0);
+    expect(interval(2)).toBe("1′30″");
   });
 });

@@ -191,7 +191,7 @@ async function seededVersion13(): Promise<NodeSqliteDatabase> {
 
 describe("migration014 — structure générale de Séance, conversion sans perte (A.3, D-449 §4)", () => {
   it("version courante 19 (014 à 019, PRE-9 A.1, C.1, A.2b et recette n° 2 constat e)", () => {
-    expect(DATABASE_VERSION).toBe(40);
+    expect(DATABASE_VERSION).toBe(41);
   });
 
   it("convertit chaque Séance en [avant…, Circuit, après…] sans supprimer aucune ligne", async () => {
@@ -310,10 +310,11 @@ describe("migration014 — structure générale de Séance, conversion sans pert
       "nature",
       "format_key",
       "format_settings",
-      // Recette iPhone n° 3 du 03/11/2026 (`migration020`) : modèle d'origine du Circuit.
-      "origin_model",
       // Reprise Formats du 04/11/2026 (`migration022`) : nom du Circuit.
       "name",
+      // Recette iPhone n° 3 du 03/11/2026 (`migration020`) : modèle d'origine du Circuit ; remplacé en dernière position par la
+      // `migration041` (D-608, CHECK élargi à HIIT). [Avant « name » — remplacé le 26/11/2026.]
+      "origin_model",
     ]);
     expect(await columns(database, "cycles")).toEqual(["id", "session_id", "position", "repeat_count"]);
     // PRE-9 (A.1, `migration016`) : Point d'arrêt dans un Cycle.

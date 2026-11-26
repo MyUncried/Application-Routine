@@ -140,6 +140,7 @@ export function hasSummaryTable(model: FormatModelKey, movements: readonly Model
     case "DEATH_BY":
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "UNTIL_FAILURE":
       return movements.length > 1;
@@ -195,6 +196,7 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
         return;
       case "TABATA":
       case "INTERVALS_30_30":
+      case "HIIT":
       case "STRENGTH":
       case "UNTIL_FAILURE":
         // Formats à tableau, écran unique (15/11/2026) : tableau dès un mouvement. [À partir de deux mouvements — remplacé.]
@@ -972,7 +974,7 @@ export function ObjectivePauseTable({
   onAddLoad,
   cell,
 }: {
-  readonly model: "TABATA" | "INTERVALS_30_30" | "STRENGTH" | "UNTIL_FAILURE";
+  readonly model: "TABATA" | "INTERVALS_30_30" | "HIIT" | "STRENGTH" | "UNTIL_FAILURE";
   readonly movements: readonly ModelMovement[];
   /** Objectif commun du questionnaire (travail par série, répétitions par série). */
   readonly objectiveFallback: number | undefined;
@@ -984,7 +986,7 @@ export function ObjectivePauseTable({
   readonly cell: CellBinding;
 }) {
   const tt = t().table;
-  const defaultMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+  const defaultMode = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" ? "DURATION" : "REPETITIONS";
   return (
     <View style={styles.table} testID="format-objective-pause-table">
       <MovementTableHeader heads={[tt.objective, tt.pause]} />

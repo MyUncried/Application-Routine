@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useState } from "react";
 
 import type { Movement } from "@/domain/activities/Movement";
@@ -74,7 +74,8 @@ function Harness() {
   );
 }
 
-const ALL_FORMATS: readonly FormatModelKey[] = ["TABATA", "INTERVALS_30_30", "STRENGTH", "PROGRESSION", "UNTIL_FAILURE", "SUPERSET", "EMOM", "AMRAP", "DEATH_BY", "FOR_TIME"];
+// D-608 : HIIT, nouveau format, compris dans « tous les formats ».
+const ALL_FORMATS: readonly FormatModelKey[] = ["TABATA", "INTERVALS_30_30", "HIIT", "STRENGTH", "PROGRESSION", "UNTIL_FAILURE", "SUPERSET", "EMOM", "AMRAP", "DEATH_BY", "FOR_TIME"];
 
 describe("D-603 — séquence d'ouverture : choix des mouvements en premier, lien « Paramètres »", () => {
   it.each(ALL_FORMATS)("%s : première ouverture sur le choix des mouvements ; « Paramètres » rend les paramètres, sans ajout", async (model) => {
@@ -139,17 +140,37 @@ describe("D-604 — modale d'un exercice d'un format à départ rapide, ouverte 
   it.each([
     ["TABATA", "Tabata", false],
     ["INTERVALS_30_30", "30/30", false],
+    // D-608 : HIIT, comme le 30/30 (Durée imposée).
+    ["HIIT", "HIIT", false],
     ["STRENGTH", strings.screens.sessionModels.cards.STRENGTH.title, true],
     ["PROGRESSION", strings.screens.sessionModels.cards.PROGRESSION.title, true],
     ["UNTIL_FAILURE", strings.screens.sessionModels.cards.UNTIL_FAILURE.title, true],
     ["SUPERSET", strings.screens.sessionModels.cards.SUPERSET.title, true],
-  ] as [FormatModelKey, string, boolean][])("%s : Charge et De chaque côté (Mode si l'unité est libre : %s) ; nom du format dans le titre", async (model, name, unitOpen) => {
+  ] as [FormatModelKey, string, boolean][])("%s : Charge et De chaque côté (Mode si l'unité est libre : %s) ; titre : nom du mouvement (D-608)", async (model, name, unitOpen) => {
     await sheetOf(model);
-    expect(screen.getByText(`${sheet.title} ${strings.screens.sessionModels.cards[model].title}`, hidden)).toBeTruthy();
+    // [Nom du format dans le titre (D-604) — remplacé le 26/11/2026 par D-608 (D-573 point 2) : nom du mouvement.]
+    expect(screen.getByTestId("execution-sheet-title", hidden)).toHaveTextContent("Squats sautés");
     void name;
     expect(screen.getByTestId("execution-sheet-row-load", hidden)).toBeTruthy();
     expect(screen.getByTestId("execution-sheet-row-side", hidden)).toBeTruthy();
-    for (const testID of absent) expect(screen.queryByTestId(testID, hidden)).toBeNull();
+    // D-607 (D-572 points 2, 3, 5) : Cadence rétablie (hors À l'échec), dans le cadre de « De chaque côté » ; objectif de répétitions
+    // facultatif (Tabata, 30/30) ; valeur de la série (Renforcement, Superset) ; tableau des séries et Pause (Superset).
+    const cadence = model !== "UNTIL_FAILURE";
+    const goal = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT";
+    const value = model === "STRENGTH" || model === "SUPERSET";
+    const table = model === "SUPERSET";
+    if (cadence) expect(within(screen.getByTestId("execution-sheet-frame-sides", hidden)).getByTestId("execution-sheet-row-beep", hidden)).toBeTruthy();
+    else expect(screen.queryByTestId("execution-sheet-row-beep", hidden)).toBeNull();
+    if (goal) expect(screen.getByTestId("execution-sheet-repetitions-goal", hidden)).toHaveTextContent("—");
+    else expect(screen.queryByTestId("execution-sheet-row-repetitions-goal", hidden)).toBeNull();
+    const expected = new Set([...(value ? ["execution-sheet-row-target"] : []), ...(table ? ["execution-sheet-row-series-type", "execution-sheet-row-pause"] : [])]);
+    // Superset : Cible et Pause selon le Mode choisi et le type de série (identiques ou variables) — non imposées ici.
+    const optional = new Set(table ? ["execution-sheet-row-target", "execution-sheet-row-pause"] : []);
+    for (const testID of absent) {
+      if (optional.has(testID)) continue;
+      if (expected.has(testID)) expect(screen.getByTestId(testID, hidden)).toBeTruthy();
+      else expect(screen.queryByTestId(testID, hidden)).toBeNull();
+    }
     if (unitOpen) expect(screen.getByTestId("execution-sheet-row-mode", hidden)).toBeTruthy();
     else expect(screen.queryByTestId("execution-sheet-frame-execution", hidden)).toBeNull();
   });

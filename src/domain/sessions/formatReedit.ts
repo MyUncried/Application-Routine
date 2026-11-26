@@ -20,6 +20,7 @@
 
 import { seriesRowsOf, type ExecutionParametersInput, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
+import { emomIntervalsOf } from "./emomIntervals";
 import { circuitRoleOf } from "./formats";
 import {
   buildModelElements,
@@ -89,6 +90,7 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
       return { mode, cells: cells(), ...loadOn };
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "UNTIL_FAILURE":
       // Complément du 5 novembre 2026 (Hermann), §15–§17 : objectif, pause et charge commune propres à l'Exercice.
@@ -138,6 +140,7 @@ export function sheetValuesOf(
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "UNTIL_FAILURE": {
       const objective = firstNumber(rows);
@@ -183,6 +186,7 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
       set("seriesCount", circuit.nature === "SERIES" ? circuit.repeatCount : common(exercises.map((exercise) => rowsOf(exercise).length)));
       set("workSeconds", common(exercises.map((exercise) => firstNumber(rowsOf(exercise)))));
       set("pauseSeconds", common(exercises.map((exercise) => rowsOf(exercise)[0]?.pauseSeconds ?? 0)));
@@ -213,6 +217,11 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       );
       answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled);
       if (answers.execution === "SEQUENCE" && exercises.length > 1) set("recoveryBetweenSeconds", common(recovery.slice(0, -1)));
+      // D-607 (D-572 point 6) : intervalles différents selon le tour (« Dans chaque intervalle »), repris tels quels.
+      if (format !== null) {
+        const windows = emomIntervalsOf(format.settings, "windowSeconds", circuit.repeatCount);
+        if (windows.some((value) => value !== windows[0])) answers.intervalsSeconds = windows;
+      }
       break;
     case "DEATH_BY":
       set(
@@ -261,6 +270,12 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
   }
   const movements = exercises.map((exercise, index): ModelMovement => {
     let values = valuesOf(model, exercise);
+    // D-607 (D-572 point 6) : intervalle propre à chaque série du mouvement (seul, À la suite, En alternance), repris dès qu'il diffère
+    // de l'Intervalle du questionnaire.
+    if (model === "EMOM" && format === null && exercise.format?.key === "EMOM") {
+      const own = emomIntervalsOf(exercise.format.settings, "intervalSeconds", rowsOf(exercise).length);
+      if (own.some((value) => value !== answers.intervalSeconds)) values = { ...values, intervals: own };
+    }
     // EMOM « dans chaque intervalle » d'avant le 05/11/2026 : membres à une série jouée à chaque tour — la série est reprise
     // pour chacun des N tours (même prescription), sans valeur inventée.
     if (model === "EMOM" && format !== null && values.cells !== undefined && values.cells.length === 1 && circuit.repeatCount > 1) {
@@ -268,7 +283,7 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
     }
     // Complément du 5 novembre 2026 (§15–§17) : un réglage commun hétérogène (« variable ») est repris par Exercice dans le
     // tableau ; un réglage commun reste porté par le questionnaire, qui modifie ainsi les mêmes prescriptions effectives.
-    if (model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE") {
+    if (model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" || model === "STRENGTH" || model === "UNTIL_FAILURE") {
       const objectiveKey = model === "STRENGTH" ? "repetitions" : "workSeconds";
       const firstRow = rowsOf(exercise)[0];
       if (variable.has("pauseSeconds")) values = { ...values, pause: firstRow?.pauseSeconds ?? 0 };

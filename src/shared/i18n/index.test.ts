@@ -269,8 +269,10 @@ describe("strings", () => {
       validateAccessibilityLabel: "Valider",
     });
     // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance ; PRE-6 story 2.1
-    // (CE-T03-08, D-388) : son libellé est « Continuer ».
-    expect(strings.screens.composition.saveAction).toBe("Continuer");
+    // (CE-T03-08, D-388) : son libellé était « Continuer » ; remarques b et g du 26/11/2026 : « Enregistrer »,
+    // « Fermer » en modification sans changement.
+    expect(strings.screens.composition.saveAction).toBe("Enregistrer");
+    expect(strings.screens.composition.closeAction).toBe("Fermer");
     expect(strings.screens.composition.saveError).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
   });
 

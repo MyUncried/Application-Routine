@@ -230,10 +230,8 @@ import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
-import { formatOriginOf } from "@/features/sessions/formatSheetContext";
 import {
   clampSwipeTranslateX,
-  isTap,
   LONG_PRESS_DELAY_MS,
   NO_DRAG_SHIFTS,
   resolveDragShifts,
@@ -241,6 +239,7 @@ import {
   resolveDropTarget,
   resolveInsertionPoses,
   resolveRemovalShifts,
+  shouldFollowSwipe,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
@@ -1032,7 +1031,7 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
   // PRE-9 A.2 (ARB-22a, ARB-07) : Mouvements remis par la création ou la sélection, devenus
   // Exercices du brouillon au retour au premier plan. Demande de Hermann du 29/10/2026 : aucune
   // feuille à l'insertion ; la carte « Paramètres à compléter » ouvre la feuille de paramètres.
-  const { sheet: movementExerciseSheet, openParameters: openExerciseParameters } = useMovementExerciseIntake();
+  const { sheet: movementExerciseSheet, openParameters: openExerciseParameters } = useMovementExerciseIntake(levelPositions);
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
@@ -1364,6 +1363,10 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       placement !== null ||
       envelope !== null ||
       (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline)));
+  // Remarque b de Hermann (26/11/2026) : en Modifier une séance, l'action principale est « Fermer » tant que le
+  // brouillon est égal à la Séance réhydratée (aucune suppression animée en attente d'écriture).
+  const isUnmodifiedEdit =
+    hydratedBaseline !== null && hydratedBaseline !== undefined && deletion === null && sessionDraftsEqual(draft, hydratedBaseline);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
@@ -4770,14 +4773,9 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       // l'Exercice (`handleOpenMovement`). Une autre Activité (sans paramètres d'exécution) ouvre son
       // éditeur, comme avant.
       const touched = draft.exercises.find((exercise) => exercise.id === activityId);
-      // D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : la carte d'un Exercice issu d'un format
-      // ouvre la page unique de ce format (réouverture sur ses paramètres, comme « Modifier le format ») ; la modale « Paramètres
-      // d'exécution » n'est plus ouverte pour ces Exercices. Photo, déplacer, dupliquer et supprimer : inchangés.
-      const origin = touched === undefined ? undefined : formatOriginOf(draft, activityId);
-      if (origin !== undefined) {
-        router.push({ pathname: "/format-summary", params: { model: origin.model, circuitId: origin.circuitId } });
-        return;
-      }
+      // [D-606 (25/11/2026) : la carte d'un Exercice issu d'un format ouvrait la page unique du format — remplacé le 26/11/2026 par
+      // D-608 (D-573 point 1, Hermann ; Formats § 9.10) : la carte ouvre de nouveau la modale « Paramètres d'exécution » allégée ;
+      // la page du format s'ouvre par la ligne « N tours · alternées / groupées » de l'en-tête du Circuit (`onOpenFormat`).]
       if (touched !== undefined && (touched.type === "EXERCISE" || isExerciseParametersIncomplete(touched))) {
         openExerciseParameters(activityId);
         return;
@@ -5664,9 +5662,11 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
             {composition.emomOverflow}
           </Text>
         ) : null}
-        {placement === null && (saveState === "error" || saveState === "nameTaken" || (saveState === "sessionNameTaken" && sessionNameTaken)) ? (
+        {/* [Message « Ce nom est déjà utilisé… » aussi affiché ici, au bas de l'écran — retiré le 26/11/2026, remarque f de
+            Hermann : il n'apparaît qu'une fois, sous le nom, dans la zone de contexte (`nameError`).] */}
+        {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
-            {saveState === "nameTaken" ? composition.nameTakenError : saveState === "sessionNameTaken" ? composition.sessionNameTaken : composition.saveError}
+            {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
           </Text>
         ) : null}
         {readOnly ? (
@@ -5674,31 +5674,41 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
             {composition.consultation.notice}
           </Text>
         ) : null}
+        {/* Remarques b et g de Hermann (26/11/2026) : « Enregistrer » (ex-« Continuer ») ; en Modifier une séance,
+            « Fermer » tant que rien n'a été modifié — il referme comme le X, sans enregistrer. */}
         {placement === null && envelope === null && !readOnly ? (
-          <PrimaryActionButton
-            label={composition.saveAction}
-            onPress={handleSave}
-            disabled={!isCompositionValid || saveState === "saving"}
-            testID="composition-save-action"
-            {...(modal && sessionId !== null
-              ? {
-                  // Figma `13204:26037` : cercle bleu de 48 à liseré blanc, icône Démarrer en relief de 40 (D-599).
-                  trailing: (
-                    <Pressable
-                      onPress={handleStart}
-                      disabled={!isCompositionValid || saveState === "saving"}
-                      accessibilityRole="button"
-                      accessibilityLabel={composition.startAccessibilityLabel}
-                      accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
-                      style={styles.startInSave}
-                      testID="composition-start-action"
-                    >
-                      {({ pressed }) => <AgendaPlayIcon pressed={pressed} size={40} testID="composition-start-icon" />}
-                    </Pressable>
-                  ),
-                }
-              : {})}
-          />
+          (() => {
+            const startTrailing =
+              modal && sessionId !== null
+                ? {
+                    // Figma `13204:26037` : cercle bleu de 48 à liseré blanc, icône Démarrer en relief de 40 (D-599).
+                    trailing: (
+                      <Pressable
+                        onPress={handleStart}
+                        disabled={!isCompositionValid || saveState === "saving"}
+                        accessibilityRole="button"
+                        accessibilityLabel={composition.startAccessibilityLabel}
+                        accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
+                        style={styles.startInSave}
+                        testID="composition-start-action"
+                      >
+                        {({ pressed }) => <AgendaPlayIcon pressed={pressed} size={40} testID="composition-start-icon" />}
+                      </Pressable>
+                    ),
+                  }
+                : {};
+            return isUnmodifiedEdit ? (
+              <PrimaryActionButton label={composition.closeAction} onPress={() => router.back()} testID="composition-close-action" {...startTrailing} />
+            ) : (
+              <PrimaryActionButton
+                label={composition.saveAction}
+                onPress={handleSave}
+                disabled={!isCompositionValid || saveState === "saving"}
+                testID="composition-save-action"
+                {...startTrailing}
+              />
+            );
+          })()
         ) : null}
       </PrimaryActionZone>
 
@@ -7507,7 +7517,8 @@ function CompositionActivityRow({
       if (isDraggingRef.current) {
         return true;
       }
-      if (!canSwipe || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
+      // Remarque c du 26/11/2026 : un glissement engagé garde sa direction (`shouldFollowSwipe`).
+      if (!canSwipe || !shouldFollowSwipe(dx, dy, isSwipingRef.current)) {
         return false;
       }
       applySwipeMovement(dx);
@@ -7528,7 +7539,7 @@ function CompositionActivityRow({
   const handleTouchMove = useCallback(
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
-      if (!canSwipe || isDraggingRef.current || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
+      if (!canSwipe || isDraggingRef.current || !shouldFollowSwipe(dx, dy, isSwipingRef.current)) {
         return;
       }
       applySwipeMovement(dx);
@@ -7543,7 +7554,7 @@ function CompositionActivityRow({
         applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
         return;
       }
-      if (canSwipe && Math.abs(dx) > Math.abs(dy)) {
+      if (canSwipe && (isSwipingRef.current || Math.abs(dx) > Math.abs(dy))) {
         applySwipeMovement(dx);
       }
     },
@@ -9699,6 +9710,11 @@ function LayoutCircuitBlock({
         carrier={withCarrierEditor(carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit), (circuit.format?.key === "EMOM") && hasEmomOverflow), context.carrierDurationEditor(circuit.id))}
         // Recette iPhone n° 3 du 03/11/2026 (autres constats) : nom du modèle d'origine à la place de « Circuit ».
         originTitle={circuitDisplayTitle(circuit)}
+        // D-608 (D-573 point 1, Hermann, 26/11/2026 ; Formats § 9.10) : Circuit issu d'un format — la ligne « N tours · alternées /
+        // groupées » et sa durée ouvrent la page globale du format (récapitulatif), dont la fermeture ramène à la Composition.
+        {...((circuit.originModel ?? null) !== null && !ghost && !inPlacement && context.circuitActions.renamingId !== circuit.id
+          ? { onOpenFormat: () => context.circuitActions.onEditFormat(circuit) }
+          : {})}
         isNatureMenuOpen={openOverlay === natureKind}
         onOpenNatureMenu={() => onToggleOverlay(natureKind)}
         onCloseNatureMenu={() => context.onDismissNature(circuit.id)}
@@ -9765,6 +9781,8 @@ function LayoutCircuitBlock({
             actionsRadius={CIRCUIT_RADIUS}
             // Recette du 05/11/2026 (e-replie-glisse) : les options glissent avec le Circuit, à l'ouverture et à la fermeture.
             slideActions
+            // Remarque c du 26/11/2026 : glissement engagé verrouillé à l'horizontale, comme les cartes.
+            lockSwipeDirection
             actionsInsets={{
               top: CIRCUIT_PADDING_VERTICAL,
               bottom: blockHeight !== null && headerBottom !== null ? Math.max(0, blockHeight - headerBottom) : CIRCUIT_PADDING_VERTICAL,

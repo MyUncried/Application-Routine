@@ -191,6 +191,19 @@ export function setLayoutCircuitFormatSetting(draft: SessionDraft, circuitId: st
 }
 
 /**
+ * D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026) : réglages d'un Circuit porteur remplacés en une fois — intervalle de
+ * chaque tour d'un EMOM « Dans chaque intervalle », réglé depuis la modale d'un de ses mouvements et partagé par tous. Le Format
+ * d'origine et la nature restent fixés. Sans effet sur un Circuit standard.
+ */
+export function replaceLayoutCircuitFormatSettings(draft: SessionDraft, circuitId: string, settings: ElementFormat["settings"]): SessionDraft {
+  const circuit = layoutCircuit(draft, circuitId);
+  const carried = circuit?.format ?? null;
+  if (circuit === undefined || carried === null || draft.structure === undefined) return draft;
+  const format: ElementFormat = { key: carried.key, settings };
+  return { ...draft, structure: withLayoutCircuit(draft.structure, circuitId, (current) => ({ ...current, format })) };
+}
+
+/**
  * Compte du Circuit désigné, borné 1..99 (voir l'en-tête). PRE-9 B.6 : Points réglés selon D-442
  * (`layoutCircuitCountOutcome`) ; un passage qui demanderait le choix de début ou de fin de Tour
  * n'est pas appliqué par cette forme (brouillon rendu tel quel : rien sans le choix de l'utilisateur).
