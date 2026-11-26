@@ -29,6 +29,8 @@ Règles qui en découlent :
 8. **Formats régionaux** : dates, heures, nombres et séparateur décimal suivent les réglages du téléphone, sans réglage dans KODJO.
 9. **Phrase de synthèse** des exercices de la Composition : d'abord normée et simplifiée en français, puis traduite par IA ; la validation des traductions sera définie ultérieurement.
 10. **Glossaire anglais** validé par Hermann le 23/11/2026 (« j'ai validé les termes ») : `docs/preparation/langues/GLOSSAIRE-EN-2026-11-23.md` ; il s'impose à toute traduction anglaise. Termes choisis par Hermann : Movement card, Hold (Point d'arrêt), Body focus (Zone corporelle), Active workout (Exécution), Track (Parcours), Voice guidance.
+11. **Fiches Mouvement en plusieurs langues** (Hermann, 24/11/2026 : « les fiches mouvements auront une version en plusieurs langues » ; « l'utilisateur aura à choisir dans quelles langues il charge la description des fiches ») : une fiche KODJO existe en plusieurs langues ; l'utilisateur choisit les langues dans lesquelles il charge la description des fiches. À préciser à l'étape J4 : champs concernés (description seule ou aussi nom et alias), lieu du choix, langue affichée quand plusieurs sont chargées, valeur par défaut.
+12. **Horloge** (Hermann, 24/11/2026, choix « A » : norme iOS) : les heures affichées et la roulette de l'heure suivent le réglage 12 / 24 heures de l'iPhone, quelle que soit la langue.
 
 <a id="recuperation-exercice-et-defauts-profil"></a>
 
