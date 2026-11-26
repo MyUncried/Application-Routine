@@ -136,6 +136,14 @@ Incident de configuration résolu : « Supabase is not configured » au premier 
 
 **CPT-34 — classe B (évolution validée)** : registre ch07 (CPT-34), ch12 §12.7 (session privée sur iOS), code `SupabaseAccountGateway.signInWithWeb` (`preferEphemeralSession: true`). Pas de test automatisé (passerelle native non testée en Jest) ; vérifié sur iPhone le 25/11 : page Google ouverte sans la fenêtre système, puis refus CPT-32 (confirmation de Hermann). Le succès d'une suppression ne montre aucun message (CE-CPT-03 : retour direct à É1) : conforme, un éventuel message de confirmation serait une nouvelle décision.
 
+**Collision du numéro de migration 40 (26/11/2026)**
+- Constat : Routine BMAD (build antérieure à T1, puis reconstruite depuis `compte/lot-1`) → « no such table: account_link ».
+- Cause **démontrée** : la version 40 de la base locale est aussi prise par `feat/marquage-photos-20261125` (PR #458, colonnes `view_*` de `media_assets`), branche dont la base de BMAD avait déjà reçu la migration ; `pending(39)` étant faux, la migration 040 de T1 n'a pas été appliquée. Mêmes numéros sur `feat/carte-seance-mosaique-20261125` et `recette/agenda-axe-20261124` (même migration que #458). `main` est en version 39.
+- Introduction : T1 a pris le numéro 40 depuis `main` (39), parallèlement à #458. Détection : cette recette. Précédent identique : recette du 20/11 (« no such table: routines »), traité par `repairMissingTables`.
+- Correction (même mécanisme) : `repairMissingTables` crée les tables du compte absentes d'une base en version 40 ou plus (`MIGRATION_040_ACCOUNT`, idempotente) ; test (échoue sans la correction : vérifié).
+- **Hors périmètre, à traiter à l'intégration** : renumérotation lors de la consolidation de T1 et #458 sur `main` (précédent : D-530 renuméroté à la consolidation du 24/11), et cas symétrique d'une base passée en 40 par T1, à laquelle manqueraient les colonnes `view_*` de #458.
+- Classe de synchronisation : D (technique).
+
 ### 5.2 Reste à faire
 
 Cahier de recette de suivi : `_bmad-output/compte/recette-T1.md` (identifiants A-01 à G-01, statuts et preuves).

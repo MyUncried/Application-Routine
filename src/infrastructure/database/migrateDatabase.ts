@@ -40,7 +40,7 @@ import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
 import { applyMigration039 } from "./migrations/migration039";
-import { applyMigration040 } from "./migrations/migration040";
+import { applyMigration040, MIGRATION_040_ACCOUNT } from "./migrations/migration040";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -454,6 +454,10 @@ async function repairMissingTables(database: Database, version: number): Promise
       else if (index && missing(index[2] as string)) statements.push(statement.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS"));
     }
   }
+  // Recette iPhone du 26/11/2026 (Routine BMAD : « no such table: account_link » avec une base en version 40) : la
+  // version 40 a aussi été prise par la branche du marquage des photos (PR #458, colonnes `view_*` de `media_assets`).
+  // Tables du compte absentes d'une base en version 40 ou plus : créées telles que 040 les crée (création idempotente).
+  if (version >= 40 && (missing("account_link") || missing("account_lifecycle"))) statements.push(MIGRATION_040_ACCOUNT);
   if (statements.length === 0) return;
   await database.withExclusiveTransactionAsync(async (transaction) => {
     for (const statement of statements) await transaction.execAsync(statement);
