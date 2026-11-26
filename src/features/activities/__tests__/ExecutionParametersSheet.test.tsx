@@ -184,6 +184,17 @@ const SERIES_TYPE = "execution-sheet-series-type-control";
 /** Chevron intérieur de l'option Variables (remplace le `DisclosureControl` de la ligne Séries). */
 const TABLE_TOGGLE = `${SERIES_TYPE}-VARIABLE-chevron`;
 const anyNode = { includeHiddenElements: true } as const;
+/**
+ * Recette du 26/11/2026 (soir) : chaque champ porte sa barre native rattachée au clavier (`InputAccessoryView`, `nativeID`
+ * « keyboard-bar-… »), affichée par iOS au-dessus du clavier, jamais dans la Feuille : ses nœuds sont exclus des relevés de la Feuille.
+ */
+type TestNode = { readonly parent: TestNode | null; readonly props: Record<string, unknown> };
+const outsideKeyboardBar = (node: TestNode): boolean => {
+  for (let current: TestNode | null = node; current !== null; current = current.parent) {
+    if (typeof current.props.nativeID === "string" && current.props.nativeID.startsWith("keyboard-bar-")) return false;
+  }
+  return true;
+};
 /** Option sélectionnée d'un segmenté interactif, ou `null`. */
 const selectedValue = (control: string, values: readonly string[]) =>
   values.find((value) => screen.queryByTestId(`${control}-${value}`, anyNode)?.props.accessibilityState?.selected === true) ?? null;
@@ -4998,9 +5009,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(screen.getByTestId("execution-sheet-load-control-WITH-invalid-surface", { includeHiddenElements: true })).toBeTruthy();
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     expect(get(input(UNIFORM)).props.keyboardType).toBe("decimal-pad");
-    // Recette du 19/10 : barre rendue par la Feuille (RC-1). Recette du 20/10 (RC-14) : Avec
-    // demande le focus de la charge commune ; le champ est actif quand le focus natif arrive.
-    expect(get(input(UNIFORM)).props.inputAccessoryViewID).toBeUndefined();
+    // Recette du 20/10 (RC-14) : Avec demande le focus de la charge commune ; le champ est actif quand le focus natif arrive.
+    // Recette du 26/11/2026 (soir) : barre native rattachée au champ (`inputAccessoryViewID`). [Attente remplacée : aucun
+    // identifiant, barre rendue par la Feuille (RC-1).]
+    expect(get(input(UNIFORM)).props.inputAccessoryViewID).toEqual(expect.stringMatching(/^keyboard-bar-/u));
     expect(get(UNIFORM).props.accessibilityState).toMatchObject({ selected: false });
     // Recette du 16/11/2026 (mq-charge-rouge, Hermann : « Il doit avoir un fond rouge et sans liseré ») : au focus, fond rouge tant que la
     // charge reste à renseigner ; pas de cadre rouge. [Fond #EAEAFF au focus — remplacé.]
@@ -5229,22 +5241,31 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(ids).toHaveLength(6);
   });
 
-  it("Recette du 19/10, RC-1 — barre rendue par la Feuille (dans son cadre modal, au bas de la Modal) seulement clavier affiché pour un champ Charge ; maintenue d'une cellule à l'autre ; masquée clavier rangé", () => {
+  // [Remplacé le 26/11/2026 (soir) — recette iPhone, Hermann : « La barre d'options du clavier n'est pas synchronisée » : test
+  // « RC-1 — barre rendue par la Feuille (au bas de la Modal, position absolue) seulement clavier affiché » remplacé par la barre
+  // native rattachée à chaque champ, qu'iOS affiche et anime avec le clavier.]
+  it("Recette du 26/11/2026 (soir) — barre native rattachée au champ Charge (`InputAccessoryView`, même identifiant que `inputAccessoryViewID`), désignée pour le seul champ actif ; d'une cellule à l'autre, la barre suit le champ", () => {
     renderSheet(variableLoads([10, 20]));
     expect(query("execution-sheet-keyboard-bar")).toBeNull();
     focus(cell(1));
-    // Clavier pas encore affiché : pas de barre posée sur la Feuille.
-    expect(query("execution-sheet-keyboard-bar")).toBeNull();
     keyboard.show();
-    expect(within(get("execution-sheet")).getByTestId("execution-sheet-keyboard-bar", hidden)).toBeTruthy();
-    expect(styleOf("execution-sheet-keyboard-bar-host")).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0 });
+    const accessoryHost = () => {
+      let node: TestNode | null = get("execution-sheet-keyboard-bar") as unknown as TestNode;
+      while (node !== null && !(typeof node.props.nativeID === "string" && node.props.nativeID.startsWith("keyboard-bar-"))) node = node.parent;
+      return node?.props.nativeID;
+    };
+    expect(accessoryHost()).toBe(get(`${cell(1)}-input`).props.inputAccessoryViewID);
+    // Plus de position absolue ni de translation : iOS place la barre.
+    expect(styleOf("execution-sheet-keyboard-bar-host").position).toBeUndefined();
     // Recette iPhone du 29/10/2026 : marges 8 (barre de 52) et fond du clavier iOS 26 (Figma `9295:43707`).
     expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ minHeight: 52, paddingVertical: 8, backgroundColor: "#E1E4E8" });
-    // Toucher direct d'une autre cellule (sortie puis prise de focus) : la barre reste.
+    // Toucher direct d'une autre cellule (sortie puis prise de focus) : la barre du nouveau champ.
     blur(cell(1));
-    expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
     focus(cell(2));
+    expect(accessoryHost()).toBe(get(`${cell(2)}-input`).props.inputAccessoryViewID);
+    expect(get(`${cell(2)}-input`).props.inputAccessoryViewID).not.toBe(get(`${cell(1)}-input`).props.inputAccessoryViewID);
     expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: false });
+    blur(cell(2));
     keyboard.hide();
     expect(query("execution-sheet-keyboard-bar")).toBeNull();
   });
@@ -6562,11 +6583,13 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     renderSheet(variable([[numberTarget(5), 0], [numberTarget(65), 90], [numberTarget(720), 30]]));
     expect([1, 2, 3].map((row) => shown(target(row)))).toEqual(["5″", "1′05″", "12′00″"]);
     expect([1, 2, 3].map((row) => shown(pause(row)))).toEqual(["0″", "1′30″", "30″"]);
-    const before = screen.UNSAFE_root.findAll((node) => typeof node.type === "string").length;
+    // Recette du 26/11/2026 (soir) : nœuds de la Feuille seulement (la barre native, rattachée au clavier, change avec le champ actif).
+    const sheetNodes = () => screen.UNSAFE_root.findAll((node) => typeof node.type === "string" && outsideKeyboardBar(node)).length;
+    const before = sheetNodes();
     focus(target(2));
     expect(shown(target(2))).toBe("01:05");
     expect(styleOf(target(2)).backgroundColor).toBe("#EAEAFF");
-    expect(screen.UNSAFE_root.findAll((node) => typeof node.type === "string").length).toBe(before);
+    expect(sheetNodes()).toBe(before);
     blur(target(2));
     focus(pause(2));
     expect(shown(pause(2))).toBe("01:30");
@@ -6835,7 +6858,8 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
     // Libellé de l'option Autre, rendu à côté de sa zone de sélection : première option, ou dernière quand elle est
     // sélectionnée (contrôle segmenté du 04/11/2026, option choisie à droite).
     text: (() => {
-      const texts = within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden);
+      // Recette du 26/11/2026 (soir) : textes de l'option seulement (la barre native du champ Autre est affichée au-dessus du clavier).
+      const texts = within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden).filter(outsideKeyboardBar);
       const at = get(OTHER).props.accessibilityState?.selected === true ? texts.length - 1 : 0;
       return texts.slice(at, at + 1).map((node) => String(node.props.children));
     })(),

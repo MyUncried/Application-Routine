@@ -104,7 +104,7 @@ import {
 } from "@/features/activities/FormatSettingsFrame";
 import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf, type CellBounds } from "@/features/activities/cellEntry";
 import type { CircuitRole, FormatSettings } from "@/domain/sessions/formats";
-import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
+import { KeyboardAccessoryBar, KeyboardAccessoryContext, type KeyboardAccessorySource } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField, KeyboardFieldGrowContext } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
 import {
@@ -173,8 +173,12 @@ import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { useHostScreenFocused } from "@/shared/ui/useHostScreenFocused";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
-/** Constat C du 07/11/2026 : hauteur de la barre du clavier (52) et marge de révélation (12), réservées sous le contenu. */
-const KEYBOARD_BAR_SCROLL_RESERVE = 64;
+/**
+ * Constat C du 07/11/2026 : marge de révélation (12) réservée sous le contenu, au-dessus du clavier. Recette du 26/11/2026 (soir) : la
+ * barre est rattachée au clavier natif (`InputAccessoryView`), comprise dans son cadre et dans sa hauteur. [Hauteur de la barre JS
+ * (52) ajoutée à la marge, 64 — remplacée.]
+ */
+const KEYBOARD_BAR_SCROLL_RESERVE = 12;
 /**
  * Recette iPhone du 26/11/2026 (après-midi), point B : course du clavier sur laquelle la part de la barre (`KEYBOARD_BAR_SCROLL_RESERVE`)
  * s'ajoute progressivement à la remontée de la modale — aucun saut au premier instant de l'animation.
@@ -3252,6 +3256,42 @@ export function ExecutionParametersSheet({
     </Modal>
     );
 
+  /**
+   * PRE-5 story 2.2 (FR-25) — barre du clavier de la Feuille (« ← Précédent », « Suivant → », « Fermer », « À l'échec », « ± »).
+   * Recette iPhone du 26/11/2026 (soir), Hermann : « La barre d'options du clavier n'est pas synchronisée » ; « Exercice libre,
+   * cadence : le clavier n'est pas synchronisé » ; « exercice libre : le clavier doit présenter la barre d'option précédent - suivant
+   * - Fermer » — barre RATTACHÉE au clavier natif (iOS) : chaque champ de la Feuille (`KeyboardField`, hors libellés de phase) porte
+   * son `InputAccessoryView`, que le système monte et descend avec le clavier (modale et page « Exercice libre »). Toujours rendue :
+   * sa hauteur est connue d'iOS dès le focus. [Barre en position absolue, remontée en JS (RC-1) — remplacée.]
+   */
+  const sheetKeyboardBar: KeyboardAccessorySource = {
+    withText: false,
+    bar: (
+      <KeyboardAccessoryBar
+        key={barAnimated ? "outside" : "table"}
+        attached
+        reduceMotion={reduceMotion}
+        canPrevious={keyboard.canPrevious}
+        canNext={keyboard.canNext}
+        onPrevious={keyboard.previous}
+        onNext={keyboard.next}
+        onClose={keyboard.close}
+        failure={keyboard.failureAvailable ? { selected: keyboard.failureSelected, onPress: keyboard.toggleFailure } : null}
+        // Recette du 07/11/2026 : Incrément par tour AMRAP signé (complément du 5 novembre, §8) — « ± » de la barre.
+        sign={
+          format?.key === "AMRAP" &&
+          activeKeyboardField !== null &&
+          activeKeyboardField.kind === "scalar" &&
+          activeKeyboardField.field === "formatIncrement"
+            ? { negative: formatIncrement < 0, onPress: () => setFormatSetting("incrementPerRound", -formatIncrement) }
+            : null
+        }
+        // Décision du 06/11/2026 (constat c) : champs hors tableau — barre des Formats (fondu lent).
+        animated={barAnimated}
+      />
+    ),
+  };
+
   return frame(
         // Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée) porte sur un cadre transparent plein
         // écran ; la surface blanche, ancrée en bas à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
@@ -3384,6 +3424,7 @@ export function ExecutionParametersSheet({
                 <FreeLayoutContext.Provider value={freeFormat}>
                 {/* Point B du 26/11/2026 : champ actif agrandi dans la modale (page inchangée). */}
                 <KeyboardFieldGrowContext.Provider value={pageMode ? null : keyboardFieldGrow}>
+                <KeyboardAccessoryContext.Provider value={sheetKeyboardBar}>
                 <Pressable
                   onPress={() => dispatchSurface({ type: "outside" })}
                   accessible={false}
@@ -3889,43 +3930,15 @@ export function ExecutionParametersSheet({
                 {contentRoom > 0 ?<View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {sideOrderDropdown}
                 </Pressable>
+                </KeyboardAccessoryContext.Provider>
                 </KeyboardFieldGrowContext.Provider>
                 </FreeLayoutContext.Provider>
               </SheetMotionScrollView>
             </SheetMotionView>
           </SheetMotionProvider>
-          {/* PRE-5 story 2.2 (FR-25), recette du 19/10 (RC-1) : barre du clavier décimal rendue
-              par la Feuille, juste au-dessus du clavier, pendant la saisie d'un champ Charge
-              (iOS). Dans le cadre de la Feuille (`accessibilityViewIsModal`) : atteinte par
-              VoiceOver ; le cadre couvre la zone de la `Modal`, dont le bas est mesuré. */}
-          {keyboard.accessoryVisible && keyboard.keyboardFrame !== null ? (
-            <KeyboardAccessoryBar
-              key={barAnimated ? "outside" : "table"}
-              keyboardFrame={keyboard.keyboardFrame}
-              containerBottom={scrimBottom ?? windowHeight}
-              reduceMotion={reduceMotion}
-              onHeight={keyboard.setAccessoryHeight}
-              canPrevious={keyboard.canPrevious}
-              canNext={keyboard.canNext}
-              onPrevious={keyboard.previous}
-              onNext={keyboard.next}
-              onClose={keyboard.close}
-              failure={
-                keyboard.failureAvailable ? { selected: keyboard.failureSelected, onPress: keyboard.toggleFailure } : null
-              }
-              // Recette du 07/11/2026 : Incrément par tour AMRAP signé (complément du 5 novembre, §8) — « ± » de la barre.
-              sign={
-                format?.key === "AMRAP" &&
-                activeKeyboardField !== null &&
-                activeKeyboardField.kind === "scalar" &&
-                activeKeyboardField.field === "formatIncrement"
-                  ? { negative: formatIncrement < 0, onPress: () => setFormatSetting("incrementPerRound", -formatIncrement) }
-                  : null
-              }
-              // Décision du 06/11/2026 (constat c) : champs hors tableau — barre des Formats (fondu lent).
-              animated={barAnimated}
-            />
-          ) : null}
+          {/* [PRE-5 story 2.2 (FR-25), recette du 19/10 (RC-1) : barre du clavier rendue par la Feuille en position absolue au bas de
+              la zone de la `Modal` et remontée en JS au-dessus du clavier — remplacée le 26/11/2026 (soir) par la barre native
+              rattachée à chaque champ (`sheetKeyboardBar`, `KeyboardAccessoryContext`).] */}
         </Animated.View>,
   );
 }

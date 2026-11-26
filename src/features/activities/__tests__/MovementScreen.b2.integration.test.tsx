@@ -1137,8 +1137,13 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
         fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
       });
       await settle();
-      expect(screen.getByTestId("movement-keyboard-bar-host", anyNode)).toBeTruthy();
-      expect(screen.getByTestId("execution-sheet-keyboard-bar", anyNode)).toBeTruthy();
+      // Recette du 26/11/2026 (soir) : barre RATTACHÉE au clavier natif — `InputAccessoryView` du champ en saisie (même identifiant
+      // que son `inputAccessoryViewID`). [Hôte plein cadre `movement-keyboard-bar-host` (barre remontée en JS) — remplacé.]
+      const accessoryId = screen.getByTestId("movement-phases-duration-1-input", anyNode).props.inputAccessoryViewID as string;
+      expect(accessoryId).toEqual(expect.any(String));
+      let barHost = screen.getByTestId("execution-sheet-keyboard-bar", anyNode).parent;
+      while (barHost !== null && barHost.props.nativeID !== accessoryId) barHost = barHost.parent;
+      expect(barHost).not.toBeNull();
       // Aucun « À l'échec » : emplacement réservé vide.
       expect(screen.queryByTestId("execution-sheet-keyboard-failure", anyNode)).toBeNull();
       focus.clear();

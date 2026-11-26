@@ -469,10 +469,9 @@ export function useSheetKeyboard({
   function reveal() {
     const wanted = wantedRef.current;
     const shownTop = keyboardTopRef.current;
-    const keyboardTop =
-      shownTop === null || wanted === null
-        ? null
-        : shownTop - (SHEET_KEYBOARD_BAR_ENABLED && wanted.kind !== "phaseLabel" ? accessoryHeightRef.current : 0);
+    // Recette du 26/11/2026 (soir) : la barre est rattachée au clavier natif (`InputAccessoryView`) — le haut du cadre du clavier
+    // (événements `Keyboard`) est déjà celui de la barre. [Hauteur mesurée de la barre JS retirée du haut du clavier (RC-1) — remplacée.]
+    const keyboardTop = shownTop === null || wanted === null ? null : shownTop;
     const scroll = scrollRef.current;
     const entry = wanted === null ? undefined : inputsRef.current.get(fieldKey(wanted));
     if (entry === undefined || keyboardTop === null || scroll === null) return;
