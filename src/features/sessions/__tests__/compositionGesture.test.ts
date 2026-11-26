@@ -9,6 +9,7 @@ import {
   resolveDragShifts,
   resolveDropTarget,
   resolveDropZone,
+  shouldFollowSwipe,
   shouldRevealAfterSwipe,
   SWIPE_REVEAL_DISTANCE,
   TOUCH_SLOP,
@@ -53,6 +54,21 @@ describe("classifyMovement / isTap (arbitrage appui / glissement / défilement)"
  * relâche dépend de la position ATTEINTE, jamais de la distance parcourue
  * depuis l'origine du geste.
  */
+describe("shouldFollowSwipe (remarque c du 26/11/2026 : direction verrouillée une fois le glissement engagé)", () => {
+  it("avant engagement : seulement un mouvement franchement horizontal, au-delà de la tolérance d'appui", () => {
+    expect(shouldFollowSwipe(-TOUCH_SLOP, 0, false)).toBe(false);
+    expect(shouldFollowSwipe(-30, 10, false)).toBe(true);
+    expect(shouldFollowSwipe(-20, 25, false)).toBe(false);
+  });
+
+  it("engagé : la carte suit dx même si le doigt descend ou monte davantage qu'il ne glisse", () => {
+    expect(shouldFollowSwipe(-20, 25, true)).toBe(true);
+    expect(shouldFollowSwipe(-40, -90, true)).toBe(true);
+    // Retour du doigt près de l'origine : la carte suit encore (elle revient avec le doigt, pas d'arrêt sur place).
+    expect(shouldFollowSwipe(-2, 3, true)).toBe(true);
+  });
+});
+
 describe("clampSwipeTranslateX (translation bornée de la carte glissée)", () => {
   it("never lets the card progress beyond its closed position (0), regardless of a rightward dx", () => {
     expect(clampSwipeTranslateX(0, 154)).toBe(0);

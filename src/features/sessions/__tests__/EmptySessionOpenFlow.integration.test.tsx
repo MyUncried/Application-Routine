@@ -227,17 +227,14 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0″");
       expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
 
-      // Action finale « Continuer » (Q54 ; libellé PRE-6 story 2.1) : règle existante — sans Exercice, le
-      // bouton est désactivé ; l'appui ne navigue pas, n'écrit rien et ne lève pas.
-      const continueAction = screen.getByLabelText(composition.saveAction);
-      expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
-      expect(() => fireEvent.press(continueAction)).not.toThrow();
-      await flush();
-      expect(router.getPathname()).toBe("/composition");
-      expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
+      // [Action finale « Continuer » désactivée sans Exercice — remplacée le 26/11/2026, remarque b de Hermann : en Modifier
+      // une séance, « Fermer » tant que rien n'est modifié.] Aucun enregistrement possible : pas d'« Enregistrer ».
+      expect(screen.queryByTestId("composition-save-action")).toBeNull();
+      const closeAction = screen.getByTestId("composition-close-action");
+      expect(closeAction.props.accessibilityLabel).toBe(composition.closeAction);
 
-      // Sortie par le X « Fermer » (PRE-6 story 2.1) : retour propre à la liste, la Séance y figure toujours.
-      fireEvent.press(screen.getByLabelText(composition.closeAccessibilityLabel));
+      // Sortie par « Fermer » (même action que le X, PRE-6 story 2.1) : retour propre à la liste, la Séance y figure toujours.
+      fireEvent.press(closeAction);
       await flush();
       await flush();
       expect(router.getPathname()).toBe("/");

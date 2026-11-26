@@ -390,8 +390,10 @@ async function copySeriesCount(): Promise<number> {
 
 /** Q54 : `Continuer` (PRE-6 story 2.1) depuis la Composition (écran « Catégories de la séance » supprimé). */
 async function continueAndSave() {
+  // Remarque b du 26/11/2026 : en Modifier une séance, « Fermer » (sans enregistrement) tant que rien n'est modifié,
+  // « Enregistrer » sinon — l'action principale présente est celle qui clôt le parcours.
   await act(async () => {
-    fireEvent.press(screen.getByLabelText(composition.saveAction));
+    fireEvent.press(screen.queryByTestId("composition-close-action") ?? screen.getByLabelText(composition.saveAction));
   });
   await settle();
 }

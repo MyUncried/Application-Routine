@@ -958,7 +958,10 @@ export const fr = {
       // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
       // PRE-6 (story 2.1, CE-T03-08, D-388, Figma `8328:28732`) : libellé « Continuer » ; même
       // composant, mêmes règles d'activation et même enregistrement (Q54).
-      saveAction: "Continuer",
+      // [Libellé « Continuer » — remplacé le 26/11/2026, remarques b et g de Hermann : « le bouton d'action doit être
+      // "Enregistrer" et pas continuer ». En Modifier une séance : « Fermer » si rien n'a été modifié (closeAction).]
+      saveAction: "Enregistrer",
+      closeAction: "Fermer",
       // PRE-6 (story 2.1) : durée de séance de l'en-tête (toutes les occurrences, RM-159).
       sessionDurationAccessibilityLabel: "Durée de la séance",
       // PRE-6 (story 4.1, AD-43, Figma `8328:28622`, `8328:29270`, `8328:28733`) : action

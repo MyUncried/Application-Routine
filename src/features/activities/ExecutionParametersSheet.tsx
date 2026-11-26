@@ -162,6 +162,7 @@ import {
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
+import { useHostScreenFocused } from "@/shared/ui/useHostScreenFocused";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /** Constat C du 07/11/2026 : hauteur de la barre du clavier (52) et marge de révélation (12), réservées sous le contenu. */
@@ -753,6 +754,8 @@ export function ExecutionParametersSheet({
   // Recette 1 (A-04) : le voile apparaît en fondu, sur place (Modal `fade`, prototype
   // figé : aucune translation du voile) ; seule la feuille garde sa montée depuis le bas.
   const reduceMotion = useReduceMotion();
+  // Remarque e du 26/11/2026 : écran hôte au premier plan (voir `useHostScreenFocused`).
+  const hostScreenFocused = useHostScreenFocused();
   const [sheetEntry] = useState(() => new Animated.Value(windowHeight));
   // PRE-9, recette iPhone n° 2 (constat d) : carte de la Composition — voile animé par la feuille
   // (Modal sans animation propre) et fermeture animée en cours (une seule).
@@ -2779,7 +2782,9 @@ export function ExecutionParametersSheet({
   return (
     <Modal
       transparent
-      visible
+      // Remarque e du 26/11/2026 : retirée pendant qu'un écran poussé d'ailleurs (rappel touché) recouvre l'écran hôte,
+      // présentée de nouveau au retour — sinon affichée sans toucher actif.
+      visible={hostScreenFocused}
       // Constat d (carte de la Composition) : voile animé ci-dessous, à la durée de la feuille.
       animationType={cardMotion ? "none" : "fade"}
       onRequestClose={handleCancel}

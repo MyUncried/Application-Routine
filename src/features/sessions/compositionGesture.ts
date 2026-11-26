@@ -101,6 +101,18 @@ export function isTap(dx: number, dy: number): boolean {
 }
 
 /**
+ * Le glissement horizontal d'une carte suit-il ce mouvement du doigt ? Avant engagement : seulement un mouvement franchement
+ * horizontal, au-delà de la tolérance d'appui (le geste vertical reste au défilement). Remarque c de Hermann du 26/11/2026
+ * (« le glisser-gauche fait un rebond et revient à sa position initiale si le doigt se déplace aussi à la verticale ») : une
+ * fois engagé, le glissement suit `dx` quelle que soit la composante verticale — direction verrouillée jusqu'au relâchement.
+ * [Avant : chaque mouvement devait rester plus horizontal que vertical ; sinon la carte s'arrêtait et revenait au relâchement.]
+ */
+export function shouldFollowSwipe(dx: number, dy: number, engaged: boolean): boolean {
+  if (engaged) return true;
+  return !isTap(dx, dy) && Math.abs(dx) > Math.abs(dy);
+}
+
+/**
  * Borne la translation horizontale d'une carte de Composition à
  * `[-revealOffset, 0]` (V2-CAT-01, UI-CAT-R-007/010) — `0` carte fermée,
  * `-revealOffset` entièrement ouverte. `revealOffset` reste un paramètre,
