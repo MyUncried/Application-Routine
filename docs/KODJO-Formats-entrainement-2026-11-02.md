@@ -664,7 +664,7 @@ Ces règles décrivent le contenu de la modale « Paramètres d'exécution » al
 - **Death by.** Tableau **Départ | Incrément** : plus de colonne Charge, la charge sous la valeur de « Départ » ; Incrément aligné à droite.
 - **Progression.** Durée totale après la ligne « Exécution ».
 - **À l'échec, AMRAP, EMOM, Superset, For time** : tableaux inchangés.
-- **Écran « Exécution d'un exercice — démarrée ».** « Ajouter la quatrième forme d'angle, en bas à gauche du cadran, symétrique de celle du bas à droite (sans contenu). » [Application : forme vide posée en bas à gauche quand celle du bas à droite est affichée et qu'aucune information (charge) n'occupe ce coin.]
+- **Écran « Exécution d'un exercice — démarrée ».** « Ajouter la quatrième forme d'angle, en bas à gauche du cadran, symétrique de celle du bas à droite (sans contenu). » [Application : forme vide posée en bas à gauche quand celle du bas à droite est affichée et qu'aucune information (charge) n'occupe ce coin.] [Remplacé le 26/11/2026 (soir), décision de Hermann : « ne mettre l’angle que si une information est affichée » (D-529, coins dynamiques, PR #462) — forme vide retirée.]
 
 [Remplace, pour ces formats, au § 9.5 : « Objectif | Pause | Charge » et « charge sous l'Objectif seulement après « +kg » » (Formats à tableau du 15/11/2026 : colonne Charge), et l'ordre « Durée totale, puis Exécution » des paramètres.]
 
