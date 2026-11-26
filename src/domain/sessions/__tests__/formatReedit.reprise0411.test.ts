@@ -125,3 +125,19 @@ describe("Circuit replié : Renommer, Dupliquer, Supprimer (MAJ 04/11 §6 quinqu
     expect(structureCircuits(removed.structure ?? { elements: [], stopPoints: [] })).toHaveLength(0);
   });
 });
+
+// Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : « fond rouge lorsque la donnée n'est pas renseignée, +0 rép.
+// lorsqu'elle a été renseignée ».
+describe("AMRAP — incrément non saisi / 0 saisi à la réouverture (recette du 26/11, D-607)", () => {
+  it("un 0 saisi se relit 0 ; un incrément jamais saisi se relit absent (jamais 0)", () => {
+    const answers: ModelAnswers = { ...initialAnswers("AMRAP"), increasingVolume: true };
+    const movements: ModelMovement[] = ["a", "b"].map((id, index) => {
+      const values = initialMovementValues("AMRAP", answers, base(id));
+      return { exercise: base(id), values: index === 0 ? { ...values, repetitions: 10, increment: 0 } : { ...values, repetitions: 8 } };
+    });
+    const draft = appendModelToDraft({ ...createEmptyDraft(), name: "Séance" }, buildModelElements("AMRAP", answers, movements, newId), newId);
+    const state = modelStateOfCircuit("AMRAP", circuitOf(draft));
+    expect(state.movements.map((movement) => movement.values.increment)).toEqual([0, undefined]);
+    expect(state.movements[1]!.values).not.toHaveProperty("increment");
+  });
+});

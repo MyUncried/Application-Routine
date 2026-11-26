@@ -41,9 +41,11 @@ describe("PRE-9 C.1 — registre des Formats (02/11/2026)", () => {
   });
 
   it("valeurs initiales de chaque rôle : AMRAP 12 min, incrément 0 ; Circuit AMRAP bloc 12 min, repos 2 min ; EMOM et Death by intervalle 1 min ; Death by incrément 1 ; For time sans limite", () => {
-    expect(initialFormatSettings("AMRAP", { kind: "EXERCISE" })).toEqual({ durationSeconds: 720, incrementPerRound: 0 });
+    // Recette du 26/11/2026 (D-607, réponse de Hermann) : incrément AMRAP sans valeur initiale (absent tant qu'il n'est pas saisi).
+    // [`incrementPerRound: 0` — remplacé.]
+    expect(initialFormatSettings("AMRAP", { kind: "EXERCISE" })).toEqual({ durationSeconds: 720 });
     expect(initialFormatSettings("AMRAP", { kind: "CIRCUIT", nature: "TOURS" })).toEqual({ blockSeconds: 720, restBetweenBlocksSeconds: 120 });
-    expect(initialFormatSettings("AMRAP", { kind: "MEMBER", nature: "TOURS" })).toEqual({ incrementPerRound: 0 });
+    expect(initialFormatSettings("AMRAP", { kind: "MEMBER", nature: "TOURS" })).toEqual({});
     expect(initialFormatSettings("EMOM", { kind: "EXERCISE" })).toEqual({ intervalSeconds: 60 });
     expect(initialFormatSettings("EMOM", { kind: "CIRCUIT", nature: "TOURS" })).toEqual({ windowSeconds: 60 });
     expect(initialFormatSettings("DEATH_BY", { kind: "EXERCISE" })).toEqual({ intervalSeconds: 60, incrementPerRound: 1 });

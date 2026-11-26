@@ -74,7 +74,8 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
         mode,
         repetitions: firstNumber(rows),
         max: failure,
-        increment: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 0,
+        // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : un incrément absent (jamais saisi) se relit absent, pas 0.
+        ...(typeof settings.incrementPerRound === "number" ? { increment: settings.incrementPerRound } : {}),
         loadKg: loadOf(loads[0]),
         ...loadOn,
       };

@@ -1035,7 +1035,11 @@ function buildFormatElements(
         return withCommonLoad(base, answers, values);
       };
       // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé ; aucun incrément pour le buy-in ni pour Max (À l'échec).
-      const incrementOf = (values: MovementValues, role: CircuitRole) => (role !== "TOUR" || !increasing || values.max === true ? 0 : (values.increment ?? 0));
+      // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : « fond rouge lorsque la donnée n'est pas renseignée, +0 rép.
+      // lorsqu'elle a été renseignée » — un incrément non saisi reste absent des réglages (jamais 0) ; un 0 saisi reste 0. [0 écrit pour le
+      // buy-in, Max, un volume non croissant ou une case vide — remplacé.]
+      const incrementOf = (values: MovementValues, role: CircuitRole): Record<string, number> =>
+        role !== "TOUR" || !increasing || values.max === true || values.increment == null ? {} : { incrementPerRound: values.increment };
       // §1, §2.2 : Exercice autonome seulement pour un mouvement, un bloc, sans buy-in ni repos de boucle.
       if (!several && blocks === 1 && loopRest === 0) {
         const [{ exercise, values }] = movements as [ModelMovement];
@@ -1044,7 +1048,7 @@ function buildFormatElements(
             kind: "EXERCISE",
             exercise: withParameters(exercise, params(exercise, values), 0, {
               key: "AMRAP",
-              settings: { durationSeconds: duration, incrementPerRound: incrementOf(values, "TOUR") },
+              settings: { durationSeconds: duration, ...incrementOf(values, "TOUR") },
             }),
           },
         ];
@@ -1055,7 +1059,7 @@ function buildFormatElements(
       const members = ordered.map((movement, index) => {
         const role = answers.buyIn === true && movement.buyIn === true ? "BUY_IN" : "TOUR";
         // §2.2 : le repos de boucle initialise la récupération du dernier membre ; les autres, et le buy-in, à 0 s.
-        const format = withCircuitRole({ key: "AMRAP", settings: { incrementPerRound: incrementOf(movement.values, role) } }, role);
+        const format = withCircuitRole({ key: "AMRAP", settings: { ...incrementOf(movement.values, role) } }, role);
         return withParameters(movement.exercise, params(movement.exercise, movement.values), index === lastTour && role === "TOUR" ? loopRest : 0, format);
       });
       return [

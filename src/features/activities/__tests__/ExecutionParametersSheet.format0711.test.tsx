@@ -108,6 +108,33 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     expect(onFormat).toHaveBeenCalledWith({ durationSeconds: 720, incrementPerRound: 0 }, null);
   });
 
+  // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : « fond rouge lorsque la donnée n'est pas renseignée, +0 rép.
+  // lorsqu'elle a été renseignée ».
+  it("recette du 26/11 (D-607) — AMRAP : incrément renseigné à 0 → « + 0 rép. », ✓ disponible ; non renseigné → « — » à renseigner, ✓ indisponible ; grisé (buy-in) non renseigné → « — » sans rien à renseigner", () => {
+    const validateDisabled = () => get("execution-sheet-validate").props.accessibilityState?.disabled === true;
+    const entered = renderSheet("AMRAP", ["duration", "increment"], { durationSeconds: 720, incrementPerRound: 0 });
+    expect(value("execution-sheet-format-increment")).toBe(`+ 0 ${f.repetitionsUnit}`);
+    expect(validateDisabled()).toBe(false);
+    validate();
+    expect(entered.onFormat).toHaveBeenCalledWith({ durationSeconds: 720, incrementPerRound: 0 }, null);
+    screen.unmount();
+
+    const missing = renderSheet("AMRAP", ["duration", "increment"], { durationSeconds: 720 });
+    expect(value("execution-sheet-format-increment")).toBe(strings.executionParameters.sheet.unset);
+    expect(validateDisabled()).toBe(true);
+    enterExecutionSheetValue("execution-sheet-format-increment", 0, "integer");
+    expect(value("execution-sheet-format-increment")).toBe(`+ 0 ${f.repetitionsUnit}`);
+    expect(validateDisabled()).toBe(false);
+    validate();
+    expect(missing.onFormat).toHaveBeenCalledWith({ durationSeconds: 720, incrementPerRound: 0 }, null);
+    screen.unmount();
+
+    renderSheet("AMRAP", ["role", "increment"], {}, { role: { current: "BUY_IN", admitted: ["BUY_IN", "TOUR"], available: ["BUY_IN", "TOUR"] } });
+    expect(query("execution-sheet-format-increment-input")).toBeNull();
+    expect(String(get("execution-sheet-format-increment").props.children)).toBe(strings.executionParameters.sheet.unset);
+    expect(validateDisabled()).toBe(false);
+  });
+
   it("EMOM : Intervalle dans le cadre Séries, saisi au clavier", () => {
     const { onFormat } = renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 });
     expect(within(get("execution-sheet-frame-series")).getByTestId("execution-sheet-format-interval-row", hidden)).toBeTruthy();

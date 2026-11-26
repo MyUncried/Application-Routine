@@ -142,7 +142,22 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
 
   it("un mouvement, un bloc, sans repos de boucle : Exercice autonome AMRAP, Durée 12 min", () => {
     const [element] = build("AMRAP", answers, movementsOf("AMRAP", answers, ["a"]));
-    expect(element!.kind === "EXERCISE" && element!.exercise.format).toEqual({ key: "AMRAP", settings: { durationSeconds: 720, incrementPerRound: 0 } });
+    // Recette du 26/11/2026 (D-607, réponse de Hermann) : incrément non saisi absent (volume non croissant). [`incrementPerRound: 0` — remplacé.]
+    expect(element!.kind === "EXERCISE" && element!.exercise.format).toEqual({ key: "AMRAP", settings: { durationSeconds: 720 } });
+  });
+
+  it("recette du 26/11 (D-607, réponse de Hermann) : volume croissant — incrément saisi (0 compris) écrit tel quel ; case vide : absent, jamais 0", () => {
+    const changed: ModelAnswers = { ...answers, increasingVolume: true };
+    const movements = movementsOf("AMRAP", changed, ["a", "b", "c"]).map((item, index) => ({
+      ...item,
+      values: index === 0 ? { ...item.values, increment: 0 } : index === 1 ? { ...item.values, increment: 2 } : item.values,
+    }));
+    const [element] = build("AMRAP", changed, movements);
+    const exercises = element!.kind === "CIRCUIT" ? element!.circuit.exercises : [];
+    expect(exercises.map((exercise) => exercise.format?.settings.incrementPerRound)).toEqual([0, 2, undefined]);
+    expect(exercises.map((exercise) => "incrementPerRound" in (exercise.format?.settings ?? {}))).toEqual([true, true, false]);
+    // Réglage facultatif : la séance reste valide (aucun incrément appliqué à l'exécution).
+    expect(configurationValidity({ elements: [element!], stopPoints: [] }).status).toBe("valid");
   });
 
   it("un mouvement avec repos après chaque tour > 0 : Circuit d'un membre, récupération du membre = repos de boucle (A3)", () => {
@@ -185,7 +200,8 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
     const [element] = build("AMRAP", changed, movements);
     const [first, second] = element!.kind === "CIRCUIT" ? element!.circuit.exercises : [];
     expect(first!.format?.settings.incrementPerRound).toBe(2);
-    expect(second!.format?.settings.incrementPerRound).toBe(0);
+    // Recette du 26/11/2026 (D-607) : Max, aucun incrément = absent. [`toBe(0)` — remplacé.]
+    expect(second!.format?.settings.incrementPerRound).toBeUndefined();
     expect(seriesRowsOf(second!.executionParameters)[0]!.target).toEqual({ kind: "FAILURE" });
   });
 });

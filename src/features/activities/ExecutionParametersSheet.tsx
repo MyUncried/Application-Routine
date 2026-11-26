@@ -1879,6 +1879,9 @@ export function ExecutionParametersSheet({
     });
   const formatIncrementText = (() => {
     if (formatIncrementMissing) return t.unset;
+    // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : « +0 rép. » seulement pour un incrément renseigné. AMRAP
+    // grisé (buy-in, À l'échec) sans incrément saisi : « — », sans fond rouge (rien à renseigner).
+    if (format?.key === "AMRAP" && typeof formatSettings.incrementPerRound !== "number") return t.unset;
     const magnitude = Math.abs(formatIncrement);
     const unit = formatIncrementInDuration ? formatPhraseDuration(magnitude) : `${magnitude} ${strings.executionParameters.format.repetitionsUnit}`;
     return `${formatIncrement < 0 ? "−" : "+"} ${unit}`;

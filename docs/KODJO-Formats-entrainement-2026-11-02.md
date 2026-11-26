@@ -117,7 +117,7 @@ La ligne n'existe que dans ces deux Circuits, et y est toujours présente ; « T
 
 La modale d'un buy-in n'a ni ligne Séries ni ligne Pause : aucune modale AMRAP n'a de Séries, le tour en tient lieu, et le temps qui suit le buy-in est sa Récupération.
 
-**Incrément par tour (AMRAP).** Ligne toujours présente, +0 par défaut, signe positif/négatif ; calcul borné à 1 dans l’unité, sans fin automatique de boucle. Inactif pour Buy-in et À l’échec.
+**Incrément par tour (AMRAP).** Ligne toujours présente, +0 par défaut, signe positif/négatif ; calcul borné à 1 dans l’unité, sans fin automatique de boucle. Inactif pour Buy-in et À l’échec. [« +0 par défaut » remplacé le 26/11/2026 (recette iPhone, après-midi), réponse de Hermann : « fond rouge lorsque la donnée n'est pas renseignée, +0 rép. lorsqu'elle a été renseignée » — aucune valeur par défaut : un incrément jamais saisi reste absent (« — » sur fond rouge dans la modale, ✓ indisponible ; « — » sans fond rouge sur une ligne inactive), un 0 saisi s'affiche « + 0 rép. » ; absent, aucun incrément n'est appliqué à l'exécution. Registre D-607.]
 - Rôle Buy-in : pas de tour suivant ;
 - Condition d'arrêt À l'échec : pas d'objectif chiffré à augmenter.
 

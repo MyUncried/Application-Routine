@@ -141,7 +141,13 @@ const LEGACY_PASSAGE: FormatParameter = { id: "passageOnce", unit: "FLAG", min: 
  * Incrément par tour : dans l'unité de l'objectif (« + 2 rép. », « + 5 s »), mise à jour du 04/11/2026 §6 bis 2. Complément du 5 novembre 2026 (Hermann), §8 :
  * incrément signé (échelle descendante « − 1 rép. », « − 5 s ») ; objectif calculé borné à 1 (`amrapRoundTarget`). [≥ 0 — remplacé.]
  */
-const AMRAP_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGET", initial: 0, sources: ["§2", "§14.1", "MAJ 04/11 §6 bis 2", "complément du 05/11 §8"] };
+/*
+ * Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : « fond rouge lorsque la donnée n'est pas renseignée, +0 rép.
+ * lorsqu'elle a été renseignée ». L'incrément jamais saisi reste ABSENT des réglages (un 0 saisi reste 0) : réglage facultatif, sans
+ * valeur initiale ; absent, aucun incrément n'est appliqué à l'exécution (comme 0) et la séance reste lançable ; la modale
+ * « Paramètres d'exécution » l'affiche « — » sur fond rouge quand il est requis. [`initial: 0`, non facultatif — remplacé.]
+ */
+const AMRAP_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGET", optional: true, sources: ["§2", "§14.1", "MAJ 04/11 §6 bis 2", "complément du 05/11 §8"] };
 /** Complément du 5 novembre 2026 (Hermann), §13 : incrément ≥ + 1 dans l'unité de l'Exercice (Répétitions ou Durée). [Répétitions seulement — remplacé.] */
 const DEATH_BY_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGET", min: 1, initial: 1, sources: ["§12", "§14.1", "complément du 05/11 §13"] };
 const INTERVAL: FormatParameter = { id: "intervalSeconds", unit: "SECONDS", min: 1, initial: MINUTE, sources: ["§10", "§12", "§14"] };

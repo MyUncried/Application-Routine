@@ -1117,7 +1117,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
 
   // [Remplacé le 26/11/2026 — recette iPhone (après-midi), Hermann : « Nous avions défini une barre d'option au-dessus du clavier,
   // elle n'est plus affichée » : test « cr2-phases : aucune barre du clavier » du 31/10 remplacé par la barre rétablie.]
-  it("recette du 26/11 : barre du clavier rétablie pendant la saisie d'une durée — « Suivant → » ligne suivante, « ← Précédent » libellé de la ligne, « Fermer » ferme le clavier ; aucune barre sur un libellé", async () => {
+  it("recette du 26/11 : barre du clavier rétablie pendant la saisie d'une durée — « Suivant → » ligne suivante, « ← Précédent » libellé de la ligne, « Fermer » ferme le clavier ; barre aussi sur un libellé (réponse de Hermann)", async () => {
     await movements().create(
       movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
@@ -1130,7 +1130,8 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       });
       showExecutionSheetKeyboard();
       await settle();
-      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+      // [Complété le 26/11/2026, réponse de Hermann : barre aussi sur un libellé (« aucune barre sur un libellé » remplacé).]
+      expect(screen.getByTestId("execution-sheet-keyboard-bar", anyNode)).toBeTruthy();
       await act(async () => {
         fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
         fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
@@ -1164,6 +1165,61 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     } finally {
       focus.restore();
       dismiss.mockRestore();
+    }
+  });
+
+  // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann : « précédent, suivant, fermer. Précédent et Suivant permettent
+  // bien de passer d'un champ à l'autre (phase n > durée n > phase n+1 > durée n+1) ».
+  it("recette du 26/11 (réponse de Hermann) : barre sur tous les champs ; Précédent / Suivant parcourent libellé 1 → durée 1 → libellé 2 → durée 2 → invite ; Précédent indisponible sur le premier champ, Suivant sur le dernier (l'invite)", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    const focus = spyFocus();
+    const disabled = (id: string) => screen.getByTestId(id, anyNode).props.accessibilityState?.disabled === true;
+    const order = [
+      "movement-phases-label-1",
+      "movement-phases-duration-1-input",
+      "movement-phases-label-2",
+      "movement-phases-duration-2-input",
+      "movement-phases-invite",
+    ];
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      await act(async () => {
+        fireEvent(screen.getByTestId(order[0], anyNode), "focus");
+      });
+      showExecutionSheetKeyboard();
+      await settle();
+      for (let index = 0; index < order.length; index += 1) {
+        if (index > 0) {
+          await act(async () => {
+            fireEvent(screen.getByTestId(order[index - 1], anyNode), "blur");
+            fireEvent(screen.getByTestId(order[index], anyNode), "focus");
+          });
+          await settle();
+        }
+        // Passer d'un champ à l'autre garde la barre.
+        expect(screen.getByTestId("execution-sheet-keyboard-bar", anyNode)).toBeTruthy();
+        expect(disabled("execution-sheet-keyboard-previous")).toBe(index === 0);
+        expect(disabled("execution-sheet-keyboard-next")).toBe(index === order.length - 1);
+        if (index < order.length - 1) {
+          focus.clear();
+          await act(async () => {
+            fireEvent.press(screen.getByTestId("execution-sheet-keyboard-next", anyNode));
+          });
+          expect(focus.focused()).toEqual([order[index + 1]]);
+        }
+        if (index > 0) {
+          focus.clear();
+          await act(async () => {
+            fireEvent.press(screen.getByTestId("execution-sheet-keyboard-previous", anyNode));
+          });
+          expect(focus.focused()).toEqual([order[index - 1]]);
+        }
+      }
+      hideExecutionSheetKeyboard();
+    } finally {
+      focus.restore();
     }
   });
 

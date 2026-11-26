@@ -590,7 +590,8 @@ export function ActivityEditorForm({
   // entrée de la durée. Nous avions défini une barre d'option au-dessus du clavier, elle n'est plus affichée. » — barre du clavier
   // (« ← Précédent », « Suivant → », « Fermer ») rétablie pendant la saisie d'une durée de phase au pavé numérique iOS, qui n'a pas
   // de touche Entrée — même barre que la Feuille (`KeyboardAccessoryBar`, mécanisme RC-1 : posée au bas de son hôte, remontée
-  // au-dessus du clavier). Sa hauteur s'ajoute à la réserve du clavier.
+  // au-dessus du clavier). Sa hauteur s'ajoute à la réserve du clavier. [Complété le 26/11/2026, réponse de Hermann : la barre
+  // accompagne TOUS les champs des phases — libellé, durée, invite —, `MovementPhasesEditor`.]
   const [phasesKeyboardBar, setPhasesKeyboardBar] = useState<MovementPhasesKeyboardBar | null>(null);
   const [movementKeyboardFrame, setMovementKeyboardFrame] = useState<KeyboardFrame | null>(null);
   const [barHostBottom, setBarHostBottom] = useState(0);
@@ -1415,7 +1416,8 @@ export function ActivityEditorForm({
 
       {/* Recette iPhone du 26/11/2026 (après-midi) : barre du clavier de la durée de phase (iOS) rétablie, au bas de cet hôte qui
           couvre l'Éditeur ; « Suivant → » passe à la ligne suivante, « ← Précédent » au libellé de la même ligne, « Fermer » ferme
-          le clavier. */}
+          le clavier. [Complété le 26/11/2026, réponse de Hermann : barre sur TOUS les champs des phases (libellé, durée, invite) ;
+          Précédent / Suivant parcourent libellé 1 → durée 1 → libellé 2 → …, indisponibles aux extrémités.] */}
       {isMovement && SHEET_KEYBOARD_BAR_ENABLED ? (
         <View
           ref={barHostRef}
@@ -1434,8 +1436,8 @@ export function ActivityEditorForm({
               containerBottom={barHostBottom > 0 ? barHostBottom : windowSize.height}
               reduceMotion={reduceMotion}
               onHeight={setBarHeight}
-              canPrevious
-              canNext
+              canPrevious={phasesKeyboardBar.canPrevious}
+              canNext={phasesKeyboardBar.canNext}
               onPrevious={phasesKeyboardBar.onPrevious}
               onNext={phasesKeyboardBar.onNext}
               onClose={() => Keyboard.dismiss()}

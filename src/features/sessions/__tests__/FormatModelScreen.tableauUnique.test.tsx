@@ -167,7 +167,9 @@ function fillTargets(value: number) {
     enterExecutionSheetValue(`execution-sheet-table-row-${n}-target`, value, "integer");
   // Recette du 16/11/2026 (mp-charge) : Incrément sans valeur par défaut (« — ») — renseigné aussi.
   const increment = screen.queryByTestId("execution-sheet-format-increment", hidden);
-  if (increment !== null && within(increment).queryByText("—") !== null) enterExecutionSheetValue("execution-sheet-format-increment", 1, "integer");
+  // Recette du 26/11/2026 (D-607) : un Incrément grisé (buy-in, Max) non renseigné affiche aussi « — », sans champ : rien à saisir.
+  const editable = screen.queryByTestId("execution-sheet-format-increment-input", hidden) !== null;
+  if (increment !== null && editable && within(increment).queryByText("—") !== null) enterExecutionSheetValue("execution-sheet-format-increment", 1, "integer");
 }
 
 /** Unité choisie dans la modale (Répétitions ou Durée), objectifs renseignés. */
