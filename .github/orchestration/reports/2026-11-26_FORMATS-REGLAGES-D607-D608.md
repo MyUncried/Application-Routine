@@ -49,7 +49,7 @@
 - **PRESERVE** : feuille native des formats, hauteur et ancrage ; séquence d'ouverture et recouvrement (D-603, D-605) ; photo → fiche, déplacer / dupliquer / supprimer sur la carte ; Circuits composés à la main (stepper, menu de nature) ; repli par le nom et le chevron ; tableaux des séries, Charge Avec/Sans ; déroulant de l'Enchainement hors iOS ; comportement du 30/30 et des autres formats ; migrations 001 à 039 ; titres génériques non limités en lignes (T-61, AC7).
 - **CHANGE** : points ci-dessus.
 - **FORBIDDEN** (respecté) : aucune primitive native remplacée (au contraire, menu natif rétabli) ; aucun push sur main ; pas de rebase/reset/force-push ; exécution non modifiée hors signal de son de phase.
-- Démonstration : 400 suites / 6 100 tests verts avant l'intégration des phases ; passe finale ci-dessous.
+- Démonstration : 400 suites / 6 100 tests verts avant l'intégration des phases ; passe finale : 490 suites, 6 845 tests verts.
 
 ## Constats et modèle
 
@@ -63,7 +63,7 @@
 - `npx tsc --noEmit` : OK.
 - Jest (`-w 1`), avant l’intégration de la branche phases / exercice libre / clavier : 400 suites, 6 100 tests, tous verts (séances, activités, domaine, base de données, navigation, i18n).
 - Branche phases / exercice libre / clavier (e2097fd4), sur sa base : 98 suites, 1 906 tests verts (rapport de l’agent).
-- **Passe finale après la dernière fusion (fc1fc23b) : non terminée** — arrêtée par le système faute de mémoire ; à relancer avec l’accord de Hermann. `tsc --noEmit` passe sur l’ensemble.
+- Passe finale après la dernière fusion, relancée le 26/11/2026 sur `67b42a24` (`jest -w 1 --workerIdleMemoryLimit=800MB`) : **490 suites, 6 845 tests verts, 33 ignorés, aucun échec**. `tsc --noEmit` passe sur l’ensemble. [Première tentative arrêtée par le système faute de mémoire.]
 - Aucun test ne remplace la vérification sur iPhone.
 
 ## Hypothèses non démontrées / À CLARIFIER (pour Hermann)
