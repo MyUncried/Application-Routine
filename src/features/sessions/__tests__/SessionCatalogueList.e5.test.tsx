@@ -9,6 +9,7 @@ import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
 import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogueProjection";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+import { expectSwipeRevealRule, fireSwipeReveal } from "@/shared/gestures/testing/fireSwipeReveal";
 
 /**
  * PRE-8 (epic E, story E.5) — actions glissées et cycle de vie dans la liste du segment Séances :
@@ -76,16 +77,20 @@ async function flush() {
   });
 }
 
+// Recette du 26/11/2026 (après-midi) : glisser porté par le `Pan` natif de la règle unique (`nativeGesture`), joué sur le geste
+// rendu ; le toucher de départ arme la rangée comme sur l'appareil. [Avant : touchStart, capture, responderMove / Release du
+// responder system (glissé de 240) — remplacé.]
 const reveal = (id: string) => {
-  const row = screen.getByTestId(`session-card-${id}-swipe`);
-  fireEvent(row, "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-  fireEvent(row, "moveShouldSetResponderCapture", { nativeEvent: { pageX: 100, pageY: 100 } });
-  fireEvent(row, "responderMove", { nativeEvent: { pageX: 60, pageY: 100 } });
-  fireEvent(row, "responderRelease", { nativeEvent: { pageX: 60, pageY: 100 } });
-  fireEvent(row, "touchEnd", { nativeEvent: { pageX: 60, pageY: 100 } });
+  fireEvent(screen.getByTestId(`session-card-${id}-swipe`), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+  fireSwipeReveal(`session-card-${id}-swipe-pan`, -240);
 };
 
 describe("PRE-8 E.5 — actions selon l'état", () => {
+  it("recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options — geste court, lancer, diagonale, sans rebond", () => {
+    renderList([session("a")]);
+    expectSwipeRevealRule("session-card-a-swipe");
+  });
+
   it("active : Planifier grisé, Dupliquer, Archiver ; archivée : Restaurer puis Supprimer", () => {
     renderList([session("a"), session("z", "ARCHIVED")]);
     reveal("a");

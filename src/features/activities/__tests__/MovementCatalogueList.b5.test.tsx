@@ -12,6 +12,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { expectSwipeRevealRule, fireSwipeReveal } from "@/shared/gestures/testing/fireSwipeReveal";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -89,13 +90,11 @@ async function renderList(filters: MovementCatalogueFilters = EMPTY_MOVEMENT_FIL
   return { onOpen, onCreateVariant, view, search };
 }
 
+// Recette du 26/11/2026 (après-midi) : glisser porté par le `Pan` natif de la règle unique (`nativeGesture`), joué sur le geste
+// rendu. [Avant : touchStart / touchMove / touchEnd du responder system (glissé de 240) — remplacé.]
 const swipeOpen = async (movementId: string) => {
-  const row = screen.getByTestId(`movement-card-${movementId}`);
-  await act(async () => {
-    fireEvent(row, "touchStart", { nativeEvent: { pageX: 300, pageY: 10 } });
-    fireEvent(row, "touchMove", { nativeEvent: { pageX: 60, pageY: 12 } });
-    fireEvent(row, "touchEnd", { nativeEvent: { pageX: 60, pageY: 12 } });
-  });
+  fireSwipeReveal(`movement-card-${movementId}-pan`, -240, { translationY: 2 });
+  await act(async () => {});
 };
 
 const names = () => screen.queryAllByTestId(/^movement-card-name-/).map((node) => node.props.children as string);
@@ -174,6 +173,12 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
     await press("movement-card-gainage-harder");
     expect(onCreateVariant).toHaveBeenCalledWith("gainage", "AFTER_ORIGIN");
     expect(screen.queryByTestId("movement-card-gainage-variant-choices")).toBeNull();
+  });
+
+  it("recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options — geste court, lancer, diagonale, sans rebond", async () => {
+    await movements().create(movement("gainage", "Gainage"));
+    await renderList();
+    expectSwipeRevealRule("movement-card-gainage");
   });
 
   it("recette A/B du 27/10 (remarque 4) : au retour dans le Catalogue, la carte ouverte se referme, la pile dépliée reste", async () => {

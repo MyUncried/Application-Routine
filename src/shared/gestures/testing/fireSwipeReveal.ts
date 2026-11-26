@@ -1,3 +1,4 @@
+import { expect } from "@jest/globals";
 import { act, screen } from "@testing-library/react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 
@@ -49,4 +50,45 @@ export function fireSwipeReveal(
   steps.update(translationX / 2, translationY / 2);
   steps.update(translationX, translationY);
   steps.end(translationX, velocityX, translationY);
+}
+
+/**
+ * Rangée `SwipeActionsRow` en mode `nativeGesture` (geste `${rowTestID}-pan`) : options révélées et actives (bloc d'actions
+ * `${rowTestID}-actions` touchable). Une rangée qui se referme garde son bloc monté le temps de l'animation, inactif.
+ */
+export function isSwipeRowOpen(rowTestID: string): boolean {
+  return screen.queryByTestId(`${rowTestID}-actions`)?.props.pointerEvents === "auto";
+}
+
+/**
+ * Règle unique du glisser-pour-options (recette iPhone du 26/11/2026 après-midi), jouée sur une rangée fermée d'un écran :
+ * glisser trop court sans effet ; geste court en diagonale qui ouvre puis ferme ; lancer qui ouvre puis ferme ; glisser dont le
+ * doigt part à la verticale en cours de route, suivi jusqu'au relâchement (aucun retour arrière). `isOpen` lit l'état de l'écran.
+ */
+export function expectSwipeRevealRule(rowTestID: string, isOpen: () => boolean = () => isSwipeRowOpen(rowTestID)) {
+  const pan = `${rowTestID}-pan`;
+  expect(isOpen()).toBe(false);
+  // En deçà de 24 pt, sans lancer : la position de départ est conservée.
+  fireSwipeReveal(pan, -12, { translationY: 6 });
+  expect(isOpen()).toBe(false);
+  // Geste court (30 pt, bien moins que la course des options), doigt en diagonale : ouvre, puis ferme.
+  fireSwipeReveal(pan, -30, { translationY: 20 });
+  expect(isOpen()).toBe(true);
+  fireSwipeReveal(pan, 30, { translationY: -20 });
+  expect(isOpen()).toBe(false);
+  // Lancer : son sens décide, quelle que soit la distance.
+  fireSwipeReveal(pan, -12, { velocityX: -600 });
+  expect(isOpen()).toBe(true);
+  fireSwipeReveal(pan, 12, { velocityX: 600 });
+  expect(isOpen()).toBe(false);
+  // Aucun rebond : le doigt part vers le haut puis vers le bas pendant le glisser ; le geste reste suivi et ouvre au relâchement.
+  const steps = swipeRevealSteps(pan);
+  steps.begin();
+  steps.update(-20, 30);
+  steps.update(-28, -40);
+  steps.update(-40, 60);
+  steps.end(-40, 0, 60);
+  expect(isOpen()).toBe(true);
+  fireSwipeReveal(pan, 40, { translationY: -30 });
+  expect(isOpen()).toBe(false);
 }
