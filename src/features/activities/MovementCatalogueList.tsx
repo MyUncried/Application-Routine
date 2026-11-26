@@ -1040,6 +1040,8 @@ export function MovementCatalogueList({
             options.pileCount !== undefined ? t.pileExpandHint : choosing ? undefined : options.reorderActions ? t.reorderHint : t.openAccessibilityHint
           }
           {...(choosing ? { accessibilityState: { selected } } : {})}
+          // Recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options (`Pan` natif, `@/shared/gestures`).
+          nativeGesture
           testID={`movement-card-${id}`}
         >
           <MovementCatalogueCard

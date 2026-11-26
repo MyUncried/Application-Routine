@@ -534,6 +534,8 @@ export function CalendarWeekScreen({
           // Recette du 19/11/2026 au soir (s19-glisse) : coins arrondis du bloc d'actions standard et marge de 16 avec le bord
           // droit de l'écran.
           actionsRightMargin={layout.screenGutter}
+          // Recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options (`Pan` natif, `@/shared/gestures`).
+          nativeGesture
           testID={`calendar-item-${card.key}-swipe`}
         >
           <RoutineAgendaCard

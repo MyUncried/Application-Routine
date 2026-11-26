@@ -22,6 +22,7 @@ import { SqliteOccurrenceExecutionRepository } from "@/infrastructure/database/r
 import { SqliteProgramRepository } from "@/infrastructure/database/repositories/SqliteProgramRepository";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { expectSwipeRevealRule } from "@/shared/gestures/testing/fireSwipeReveal";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import type { EngineState } from "@/domain/execution/kernel";
 
@@ -202,6 +203,14 @@ describe("CE-PROG-01 — catalogue des programmes", () => {
     expect(card.props.accessibilityActions.map((action: { name: string }) => action.name)).toEqual(["duplicate", "delete"]);
     fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/program-sheet", params: { duplicateOf: program.id } });
+  });
+
+  it("recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options — geste court, lancer, diagonale, sans rebond", async () => {
+    const program = await createProgram();
+    render(withService(<CatalogueHarness />));
+    await flush();
+    expectSwipeRevealRule(`program-item-${program.id}-swipe`);
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("CE-PROG-03 : sans créneau à venir, pas de « Garder les routines » ; Supprimer avec ses routines supprime", async () => {

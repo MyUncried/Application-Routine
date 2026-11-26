@@ -21,6 +21,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { expectSwipeRevealRule } from "@/shared/gestures/testing/fireSwipeReveal";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { initialDraft } from "@/features/planning/planningDraft";
 import { strings } from "@/shared/i18n";
@@ -648,6 +649,14 @@ describe("Calendrier Semaine", () => {
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id, occurrenceKey: `${MONDAY}T08:00` } });
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
+  });
+
+  it("recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options — geste court, lancer, diagonale, sans rebond", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    const routine = await plan({ entries: [entry(created.id)] });
+    await renderCalendar();
+    expectSwipeRevealRule(swipeCard(routine.id, MONDAY).props.testID.replace(/-card$/, ""));
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("supprimer depuis l'Agenda : seule l'occurrence est retirée, la routine reste (recette du 20/11/2026, constat D)", async () => {

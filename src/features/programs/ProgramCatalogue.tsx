@@ -307,6 +307,8 @@ export function ProgramCatalogueBody({
                   accessibilityHint={t.openAccessibility}
                   actionsHeight={CARD_HEIGHT}
                   actionWidth={PROGRAM_ACTION_WIDTH}
+                  // Recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options (`Pan` natif, `@/shared/gestures`).
+                  nativeGesture
                   testID={`program-item-${id}-swipe`}
                 >
                   <ProgramCard summary={summary} today={today} />

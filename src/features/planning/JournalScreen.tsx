@@ -339,6 +339,8 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
                 actionsHeight={JOURNAL_ROW_HEIGHT}
                 actionWidth={JOURNAL_ACTION_WIDTH}
                 actionsRightMargin={layout.screenGutter}
+                // Recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options (`Pan` natif, `@/shared/gestures`).
+                nativeGesture
                 testID={`journal-item-${routine.id}-swipe`}
               >
                 <JournalRoutineCard

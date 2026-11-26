@@ -263,6 +263,8 @@ export function SessionCatalogueList({
                     { name: "toggleComposition", label: toggleLabel, onAction: () => toggle(projection.id) },
                   ]}
                   actionsHeight={SESSION_CARD_HEADER_HEIGHT}
+                  // Recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options (`Pan` natif, `@/shared/gestures`).
+                  nativeGesture
                   testID={`session-card-${projection.id}-swipe`}
                 >
                   <SessionCard

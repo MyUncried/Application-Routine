@@ -19,6 +19,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { expectSwipeRevealRule } from "@/shared/gestures/testing/fireSwipeReveal";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { strings } from "@/shared/i18n";
 
@@ -236,6 +237,14 @@ describe("Journal des routines (D-535)", () => {
     expect(screen.queryByTestId(`journal-item-${routine.id}-info`)).toBeNull();
     fireEvent.press(screen.getByTestId(`journal-card-${routine.id}-toggle`));
     expect(screen.queryByTestId(`journal-item-${routine.id}-expanded`)).toBeNull();
+  });
+
+  it("recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options — geste court, lancer, diagonale, sans rebond", async () => {
+    const a = await sessions.createStructured(input("Alpha"));
+    const routine = await plan({ name: "Genou", entries: [entry(a.id)] });
+    await renderJournal();
+    expectSwipeRevealRule(`journal-item-${routine.id}-swipe`);
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("recette du 19/11 au soir : cadre → planification, récapitulation et occurrences à venir au déployé, couleur, glissé Dupliquer / Supprimer (constats A, B, C, E)", async () => {

@@ -637,6 +637,8 @@ function NameRow({
           ...(first ? [] : [{ name: "moveUp", label: strings.screens.formatModel.moveUp, onAction: () => kit.onMove(index, -1) }]),
           ...(last ? [] : [{ name: "moveDown", label: strings.screens.formatModel.moveDown, onAction: () => kit.onMove(index, 1) }]),
         ]}
+        // Recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options (`Pan` natif, `@/shared/gestures`).
+        nativeGesture
         testID={`format-movement-${index}`}
       >
         <View style={[styles.nameContent, lifted ? styles.nameLifted : null]}>
