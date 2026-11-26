@@ -422,41 +422,40 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     expect(draftRef.current.exercises).toHaveLength(2);
   });
 
-  it("Superset : dès deux mouvements, « + Ajouter » devient « Modifier », actif — le mode catalogue s'ouvre sur les deux mouvements, la sélection les remplace (recette du 16/11/2026)", async () => {
+  // [Recette du 16/11/2026 (fmt-superset) : « Modifier » dès deux mouvements ; constat g : message au-delà de deux — remplacés le
+  // 25/11/2026 par D-572 (« + Modifier » dès un mouvement, cinq mouvements au plus, catalogue en modification avec zone figée ;
+  // FormatModelScreen.d572catalogue.test.tsx).]
+  it("Superset (D-572) : « + Modifier » dès un mouvement ; le catalogue s'ouvre en modification, mouvements choisis figés ; la sélection les remplace", async () => {
     await open("SUPERSET");
-    await pick("Squ", "mv-squats");
     expect(screen.getByTestId("format-movements-link")).toHaveTextContent(t.forTimeTable.add);
+    await pick("Squ", "mv-squats");
+    expect(screen.getByTestId("format-movements-link")).toHaveTextContent(t.editMovements);
     await pick("Fen", "mv-fentes");
     const link = screen.getByTestId("format-movements-link");
-    expect(link).toHaveTextContent(t.supersetEdit);
+    expect(link).toHaveTextContent(t.editMovements);
     expect(link.props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(link);
     expect(screen.getByTestId("format-catalogue-add")).toHaveTextContent(t.applyPicked);
-    // Fentes retirées de la sélection : seul Squats reste.
-    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-fentes"));
+    // Fentes retirées de la sélection (carte figée libérée) : seul Squats reste.
+    fireEvent.press(await screen.findByTestId("format-catalogue-pinned-mv-fentes"));
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-catalogue-add"));
     });
     await waitFor(() => expect(screen.queryByTestId("format-line-1-name-title")).toBeNull());
     expect(screen.getByTestId("format-line-0-name-title")).toHaveTextContent(SQUATS.name);
-    expect(screen.getByTestId("format-movements-link")).toHaveTextContent(t.forTimeTable.add);
+    expect(screen.getByTestId("format-movements-link")).toHaveTextContent(t.editMovements);
   });
 
-  it("Superset : au-delà de deux mouvements, « J'ai compris » laisse le catalogue ouvert, sélection en place (constat g du 16/11/2026)", async () => {
+  it("Superset (D-572) : au-delà de deux mouvements, aucun message (cinq au plus)", async () => {
     await open("SUPERSET");
     await pick("Squ", "mv-squats");
     const alert = jest.spyOn(Alert, "alert");
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Fen");
     fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-fentes"));
-    fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
-    fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
-    expect(alert).toHaveBeenCalledTimes(1);
-    const buttons = alert.mock.calls[0]![2] as { onPress?: () => void }[];
-    act(() => buttons[0]!.onPress?.());
+    expect(alert).not.toHaveBeenCalled();
     alert.mockRestore();
-    expect(screen.getByTestId("format-catalogue-search").props.value).toBe("Squ");
-    expect(screen.getByTestId("format-catalogue-add")).toHaveTextContent(t.addPickedOne);
+    expect(screen.getByTestId("format-catalogue-pinned-mv-fentes")).toBeTruthy();
   });
 
   it("AMRAP : Nombre d'AMRAP (1), Repos entre deux AMRAP au-delà d'un AMRAP, Repos après chaque tour de boucle (0″) dans le cadre des paramètres (décision du 16/11/2026)", async () => {
