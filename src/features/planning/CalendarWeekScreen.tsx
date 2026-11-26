@@ -587,6 +587,62 @@ export function CalendarWeekScreen({
     );
   };
 
+  /**
+   * Recette iPhone du 26/11/2026 (soir), remarque d — Hermann : « Agenda, glissé gauche : doit aussi être actif pour les
+   * planifications de l'agenda » ; arbitrage du 27/11/2026 (option B) : la ligne « Ⓟ nom » d'un parcours glisse (règle unique)
+   * et découvre « Dupliquer » (la routine, comme ses cartes) et « Supprimer » (tout le créneau du jour, même dialogue
+   * « Supprimer ce créneau » ; absent si une Séance du créneau est commencée, D-537 ; trace « Supprimée » par Séance, D-568).
+   * [Ligne Ⓟ sans action ; suppression du parcours Séance par Séance (spécification du 21/11/2026, § 8 point 9) — remplacé.]
+   * [« Supprimer » absent quand toutes les Séances sont déjà « Supprimées » (rien à supprimer) ; bloc d'actions à la hauteur
+   * de la ligne Ⓟ — choix de Claude.]
+   */
+  const renderParcoursHeader = (group: AgendaGroup) => {
+    const occurrence = group.cards.find((card) => card.occurrence !== undefined)?.occurrence;
+    const routine = group.routineId === null ? undefined : routinesById.get(group.routineId);
+    const revealKey = `parcours-${group.key}`;
+    const deletable = occurrence !== undefined && routine !== undefined && !occurrence.started && group.cards.some((card) => card.deleted !== true);
+    const actions: readonly SwipeAction[] =
+      occurrence === undefined || routine === undefined
+        ? []
+        : [
+            { key: "duplicate", label: t.calendar.duplicate, backgroundColor: colors.movementLevelAction, onPress: () => duplicate(routine.id) },
+            ...(deletable
+              ? [
+                  {
+                    key: "delete",
+                    label: t.calendar.delete,
+                    backgroundColor: colors.danger,
+                    onPress: () => {
+                      setRevealed(null);
+                      setDeleteCandidate({ routine, occurrenceKey: occurrence.key, sessionIndex: null });
+                    },
+                  },
+                ]
+              : []),
+          ];
+    return (
+      <SwipeActionsRow
+        actions={actions}
+        revealed={revealed === revealKey}
+        onReveal={() => setRevealed(revealKey)}
+        onHide={() => setRevealed((current) => (current === revealKey ? null : current))}
+        onPress={() => setRevealed(null)}
+        accessibilityLabel={parcoursNameOf(group)}
+        actionWidth={AGENDA_ACTION_WIDTH}
+        actionsRightMargin={layout.screenGutter}
+        nativeGesture
+        testID={`calendar-parcours-${group.key}-swipe`}
+      >
+        <View style={styles.parcoursHeader}>
+          <ParcoursBadge placement="alone" size={18} stroke={1.5} testID={`calendar-parcours-${group.key}-badge`} />
+          <Text style={styles.parcoursName} numberOfLines={1} maxFontSizeMultiplier={1.6} testID={`calendar-parcours-${group.key}-name`}>
+            {parcoursNameOf(group)}
+          </Text>
+        </View>
+      </SwipeActionsRow>
+    );
+  };
+
   // Message « semaine vide » : première semaine de la liste sans occurrence ; les semaines suivantes s'affichent dessous.
   const lastDay = useMemo(() => [...listDays].reverse().find((day) => (groupsByDay.get(day)?.length ?? 0) > 0), [listDays, groupsByDay]);
   /**
@@ -633,12 +689,7 @@ export function CalendarWeekScreen({
                 // compteur ; cartes décalées ; lien noir fin du Ⓟ jusqu'au bas de la dernière carte, sur les traits verticaux.
                 <View key={group.key} style={styles.parcours} testID={`calendar-parcours-${group.key}`}>
                   <View style={styles.parcoursLink} testID={`calendar-parcours-${group.key}-link`} />
-                  <View style={styles.parcoursHeader}>
-                    <ParcoursBadge placement="alone" size={18} stroke={1.5} testID={`calendar-parcours-${group.key}-badge`} />
-                    <Text style={styles.parcoursName} numberOfLines={1} maxFontSizeMultiplier={1.6} testID={`calendar-parcours-${group.key}-name`}>
-                      {parcoursNameOf(group)}
-                    </Text>
-                  </View>
+                  {renderParcoursHeader(group)}
                   {group.cards.map((card) => renderCard(card, true))}
                 </View>
               ) : (
