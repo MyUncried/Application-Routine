@@ -103,10 +103,11 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     durationPerRound: "Duration per round",
     repetitionsUnit: "reps",
     pause: "Rest after each set",
-    columns: { DURATION: "Duration", REPETITIONS: "Reps", pause: "Rest", load: "Weight" },
+    columns: { DURATION: "Duration", REPETITIONS: "Reps", pause: "Rest", interval: "Interval", load: "Weight" },
     row: "Set {n}",
     rowTarget: "Set {n}, {field}",
     rowPause: "Set {n}, rest",
+    rowInterval: "Set {n}, interval",
     // PRE-5 story 2.2 (FR-23 à FR-25, AD-26) : ligne « Charge » (Avec / Sans), cellule de
     // charge d’une ligne du tableau, et barre du clavier décimal (Précédent / Suivant /
     // « Fermer ») ; les flèches ne sont jamais lues (`…Spoken`).

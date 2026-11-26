@@ -97,6 +97,11 @@ export type FormatParameter = {
   readonly initial?: number;
   /** Réglage facultatif (absence = « Aucune », « Sans limite », « À chaque tour »). */
   readonly optional?: true;
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026) : liste d'entiers (une valeur par série ou par tour), chacun au-dessus de `min`
+   * (`emomIntervals.ts`). Absent : un seul entier.
+   */
+  readonly list?: true;
   readonly sources: readonly string[];
 };
 
@@ -140,6 +145,8 @@ const AMRAP_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGE
 /** Complément du 5 novembre 2026 (Hermann), §13 : incrément ≥ + 1 dans l'unité de l'Exercice (Répétitions ou Durée). [Répétitions seulement — remplacé.] */
 const DEATH_BY_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGET", min: 1, initial: 1, sources: ["§12", "§14.1", "complément du 05/11 §13"] };
 const INTERVAL: FormatParameter = { id: "intervalSeconds", unit: "SECONDS", min: 1, initial: MINUTE, sources: ["§10", "§12", "§14"] };
+/** D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM — intervalle de chaque série (ou tour), liste facultative. */
+const EMOM_SERIES_INTERVALS: FormatParameter = { id: "intervalsSeconds", unit: "SECONDS", min: 1, optional: true, list: true, sources: ["§ 9.9", "D-572"] };
 
 export const FORMAT_REGISTRY: Readonly<Record<ElementFormatKey, FormatDescriptor>> = {
   AMRAP: {
@@ -186,9 +193,11 @@ export const FORMAT_REGISTRY: Readonly<Record<ElementFormatKey, FormatDescriptor
   EMOM: {
     key: "EMOM",
     // Intervalle, qui remplace la Pause ; le nombre de séries est celui des paramètres d'exécution (§10).
-    exercise: [INTERVAL],
-    // « Dans chaque intervalle » : Durée de chaque tour = intervalle, porté par le Circuit (§10).
-    circuit: { natures: ["TOURS"], parameters: [{ ...INTERVAL, id: "windowSeconds" }] },
+    // D-607 (D-572 point 6, Hermann, 25/11/2026) : intervalle propre à chaque série (`intervalsSeconds`, facultatif : absent = Intervalle).
+    exercise: [INTERVAL, EMOM_SERIES_INTERVALS],
+    // « Dans chaque intervalle » : Durée de chaque tour = intervalle, porté par le Circuit (§10) ; D-607 : intervalle propre à chaque
+    // tour, partagé par les membres (`windowsSeconds`, facultatif : absent = Durée de chaque tour).
+    circuit: { natures: ["TOURS"], parameters: [{ ...INTERVAL, id: "windowSeconds" }, { ...EMOM_SERIES_INTERVALS, id: "windowsSeconds" }] },
     member: { TOURS: [] },
     openRounds: false,
     inStandardCircuit: {

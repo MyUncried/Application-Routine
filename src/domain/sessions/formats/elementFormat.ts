@@ -33,6 +33,10 @@ export type ElementFormatViolationCode =
 export const FORMAT_SETTINGS_VERSION = 1;
 
 function settingValueValid(parameter: FormatParameter, value: unknown): boolean {
+  // D-607 : réglage en liste (une valeur par série ou par tour), chaque valeur contrôlée comme un réglage simple.
+  if (parameter.list === true) {
+    return Array.isArray(value) && value.length > 0 && value.every((item) => settingValueValid({ ...parameter, list: undefined }, item));
+  }
   return (
     typeof value === "number" &&
     Number.isInteger(value) &&

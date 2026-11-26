@@ -101,10 +101,12 @@ export const executionParameters = {
     durationPerRound: "Durée par tour",
     repetitionsUnit: "rép.",
     pause: "Pause après chaque série",
-    columns: { DURATION: "Durée", REPETITIONS: "Répétitions", pause: "Pause", load: "Charge" },
+    // D-607 (D-572 point 6, Hermann, 25/11/2026) : EMOM — colonne Intervalle du tableau par série.
+    columns: { DURATION: "Durée", REPETITIONS: "Répétitions", pause: "Pause", interval: "Intervalle", load: "Charge" },
     row: "Série {n}",
     rowTarget: "Série {n}, {field}",
     rowPause: "Série {n}, pause",
+    rowInterval: "Série {n}, intervalle",
     // PRE-5 story 2.2 (FR-23 à FR-25, AD-26) : ligne « Charge » (Avec / Sans), cellule de
     // charge d’une ligne du tableau, et barre du clavier décimal (Précédent / Suivant /
     // « Fermer ») ; les flèches ne sont jamais lues (`…Spoken`).

@@ -42,6 +42,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 
 import type { CircuitNature } from "./circuit";
+import { withEmomIntervals } from "./emomIntervals";
 import { withCircuitRole, type CircuitRole, type ElementFormat, type ElementFormatKey, type PreconfigurationKey } from "./formats";
 import { valuesForRounds } from "./forTimeSeries";
 import { currentLayout, withLayout } from "./layoutOperations";
@@ -113,10 +114,16 @@ export type ModelAnswers = {
   /** Récupération entre les mouvements (À la suite, §9, §10, §12) ; Superset : « Récupération après le tour » (dernier Exercice). */
   readonly recoveryBetweenSeconds?: number;
   readonly execution?: ModelExecution;
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM « Dans chaque intervalle » — intervalle de chaque tour, partagé
+   * par les mouvements (réglé dans leur modale) ; absent : `intervalSeconds` pour chaque tour. Remis à zéro quand l'Intervalle du
+   * questionnaire change (`withAnswer`).
+   */
+  readonly intervalsSeconds?: readonly number[];
 };
 
 /** Paramètre de réglage d'un questionnaire, dans l'ordre d'affichage. */
-export type ModelAnswerKey = Exclude<keyof ModelAnswers, "execution">;
+export type ModelAnswerKey = Exclude<keyof ModelAnswers, "execution" | "intervalsSeconds">;
 
 const MINUTE = 60;
 
@@ -233,6 +240,11 @@ export function answerBounds(id: ModelAnswerKey): { readonly min: number; readon
 
 /** Réponse bornée ; `null` (temps limite seulement) : « Sans limite ». */
 export function withAnswer(answers: ModelAnswers, id: ModelAnswerKey, value: number | boolean | null): ModelAnswers {
+  // D-607 : l'Intervalle du questionnaire règle de nouveau tous les tours (les intervalles par tour sont retirés).
+  if (id === "intervalSeconds" && answers.intervalsSeconds !== undefined) {
+    const { intervalsSeconds: _tours, ...rest } = answers;
+    return withAnswer(rest, id, value);
+  }
   if (typeof value === "boolean" || value === null) return { ...answers, [id]: value };
   const { min, max } = ANSWER_BOUNDS[id];
   return { ...answers, [id]: Math.min(max, Math.max(min, Math.round(value))) };
@@ -292,6 +304,11 @@ export type MovementValues = {
   readonly seriesKind?: "UNIFORM" | "VARIABLE";
   /** Progression, EMOM (S1…Sn), Superset (Tour 1…n) : objectif et charge de chaque série (Complément du 5 novembre 2026 (Hermann), §11, §14, §17). */
   readonly cells?: readonly SeriesCell[];
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM seul, À la suite ou En alternance — intervalle de chaque série
+   * du mouvement (S1…Sn), réglé dans sa modale ; absent : l'Intervalle du questionnaire pour chaque série.
+   */
+  readonly intervals?: readonly number[];
   /**
    * Récupération après l'exercice réglée dans la modale des paramètres d'exécution (Décision de Hermann du 16/11/2026 (« la modale des paramètres d’exécution doit être la même qu’on l’ouvre de la composition de séance ou de l’écran d’un format, les effets de changement de rôle sont aussi identiques »)) : elle remplace, pour ce mouvement, la
    * récupération que le Format calcule ; absente : celle du Format.
@@ -567,20 +584,33 @@ export function plannedWorkSeconds(exercise: SessionDraftExercise, values: Movem
  * dépasse l'intervalle commun. Les membres en Répétitions ne reçoivent aucune durée. Rend les cases en cause.
  */
 export function emomDurationOverflow(answers: ModelAnswers, movements: readonly ModelMovement[]): readonly IssueCell[] {
-  const interval = answers.intervalSeconds ?? MINUTE;
   const count = answers.seriesCount ?? 1;
   const eachInterval = movements.length > 1 && (answers.execution ?? "EACH_INTERVAL") === "EACH_INTERVAL";
+  // D-607 (D-572 point 6) : intervalle de chaque tour (partagé) ou de chaque série du mouvement.
+  const tours = emomModelIntervals(answers, undefined, count);
+  const own = movements.map((movement) => emomModelIntervals(answers, movement.values, count));
   const cells: IssueCell[] = [];
   for (let column = 0; column < count; column += 1) {
     const work = movements.map((movement) => plannedWorkSeconds(movement.exercise, movement.values, column));
     if (eachInterval) {
       const sum = work.reduce((total, value) => total + value, 0);
-      if (sum >= interval) work.forEach((value, index) => (value > 0 ? cells.push({ index, column }) : undefined));
+      if (sum >= tours[column]!) work.forEach((value, index) => (value > 0 ? cells.push({ index, column }) : undefined));
     } else {
-      work.forEach((value, index) => (value >= interval ? cells.push({ index, column }) : undefined));
+      work.forEach((value, index) => (value >= own[index]![column]! ? cells.push({ index, column }) : undefined));
     }
   }
   return cells;
+}
+
+/**
+ * D-607 (D-572 point 6, Hermann, 25/11/2026) : intervalle de chaque série (S1…Sn) d'un EMOM du modèle — `values` : intervalles propres
+ * au mouvement (seul, À la suite, En alternance) ; sans `values` : intervalles des tours (« Dans chaque intervalle »). Absents ou
+ * incomplets : l'Intervalle du questionnaire.
+ */
+export function emomModelIntervals(answers: ModelAnswers, values: MovementValues | undefined, count: number): readonly number[] {
+  const single = answers.intervalSeconds ?? MINUTE;
+  const list = values === undefined ? answers.intervalsSeconds : values.intervals;
+  return Array.from({ length: Math.max(1, count) }, (_, rank) => list?.[rank] ?? single);
 }
 
 /**
@@ -939,9 +969,14 @@ function buildFormatElements(
         // §10 : Circuit porteur, tours = N, durée de chaque tour = intervalle ; membres sans Intervalle propre. Chaque membre
         // porte ses N séries : au tour k, il joue sa série k (comme le For time), sans multiplication N × N.
         const members = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: {} }));
-        return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: { windowSeconds: interval } }, members)];
+        // D-607 (D-572 point 6) : intervalle de chaque tour, partagé par les membres (porté par le Circuit).
+        const windows = withEmomIntervals({ windowSeconds: interval }, "windowSeconds", emomModelIntervals(answers, undefined, count));
+        return [carrierCircuit(key, newId(), "TOURS", count, { key: "EMOM", settings: windows }, members)];
       }
-      const exercises = movements.map(({ exercise, values }) => withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: { intervalSeconds: interval } }));
+      // D-607 (D-572 point 6) : intervalle propre à chaque série du mouvement.
+      const exercises = movements.map(({ exercise, values }) =>
+        withParameters(exercise, params(exercise, values), 0, { key: "EMOM", settings: withEmomIntervals({ intervalSeconds: interval }, "intervalSeconds", emomModelIntervals(answers, values, count)) }),
+      );
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, several ? answers.recoveryBetweenSeconds : undefined);
     }
     case "DEATH_BY": {

@@ -95,13 +95,16 @@ import {
 } from "@/features/activities/cadenceOption";
 import {
   emomOverflowRanks,
+  emomSheetIntervals,
   initialFormatSheetValue,
+  withEmomSheetInterval,
+  withEmomSheetIntervals,
   type FormatSheetContext,
   type FormatSheetRow,
   type FormatSheetValue,
 } from "@/features/activities/FormatSettingsFrame";
 import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf, type CellBounds } from "@/features/activities/cellEntry";
-import type { CircuitRole } from "@/domain/sessions/formats";
+import type { CircuitRole, FormatSettings } from "@/domain/sessions/formats";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
@@ -713,6 +716,9 @@ export function ExecutionParametersSheet({
     if (format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
     // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`), A2 : EMOM « À l'objectif » seul — appliqué dès l'ouverture.
     if (format?.rows.includes("stopTarget") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
+    // D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM de plus d'un tour — tableau par série (objectif, intervalle,
+    // charge) dès l'ouverture ; des séries identiques y sont présentées ligne à ligne, valeurs inchangées.
+    if (format?.key === "EMOM" && opened.count > 1 && !opened.variable) return setVariable(opened, true);
     return opened;
   });
   // PRE-7 (A2.1) : verrou de structure lu à l'ouverture, comme N hérité.
@@ -1032,7 +1038,9 @@ export function ExecutionParametersSheet({
   const deathBySeriesRow = quickScope
     ? quickSeriesTable
     : leanFormat
-      ? !deathBySheet && !noSeriesRow && leanSeriesRow
+      ? // D-607 (D-572 point 6) : EMOM — le tableau par série s'affiche sans la ligne Séries (nombre de séries ou de tours réglé par
+        // l'écran du format, D-604).
+        !deathBySheet && !noSeriesRow && leanSeriesRow && format?.key !== "EMOM"
       : // [Hors D-604 : Death by autonome — ligne Séries « Jusqu'à l'échec » (`seriesUntilFailure`) — remplacé : tout Death by est un format.]
         !noSeriesRow;
   // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
@@ -1613,10 +1621,14 @@ export function ExecutionParametersSheet({
         // Précision du 14/11/2026 (soir), For time : séries déjà ajustées au Rôle choisi (`chooseRole`) — le Rôle est enregistré
         // d'abord, pour que ces séries ne soient pas lues comme un nouveau nombre de séries de l'ancien bloc (`withForTimeSeries`).
         const roleFirst = format !== undefined && appliedFormat !== null && roleBase.current !== null && appliedFormat.role !== format.role?.current;
-        if (roleFirst) format.onApply(appliedFormat.settings, appliedFormat.role);
+        // D-607 : intervalles des tours partagés transmis seulement pour un membre de Circuit porteur EMOM.
+        const shared = appliedFormat?.sharedIntervals ?? null;
+        const applyFormat = (settings: FormatSettings, role: CircuitRole | null) =>
+          shared === null ? format?.onApply(settings, role) : format?.onApply(settings, role, shared);
+        if (roleFirst) applyFormat(appliedFormat.settings, appliedFormat.role);
         onApply(value);
         // CE-FMT-04 : réglages de Format appliqués après les paramètres (Rôle : replacement dans sa zone).
-        if (!roleFirst && format !== undefined && appliedFormat !== null) format.onApply(appliedFormat.settings, appliedFormat.role);
+        if (!roleFirst && format !== undefined && appliedFormat !== null) applyFormat(appliedFormat.settings, appliedFormat.role);
       });
     }
   }
@@ -1800,7 +1812,18 @@ export function ExecutionParametersSheet({
   const formatIncrementMissing =
     formatShown("increment") && !formatIncrementLocked && format?.incrementRequired === true && typeof formatSettings.incrementPerRound !== "number";
   const validateDisabled = (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing || loopWithoutRepetitions) && !sheetCommandsAbsorbed(surface);
-  const formatIntervalSeconds = formatNumber("intervalSeconds", 60);
+  /*
+   * D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9, § 9.10) : EMOM — intervalle propre à chaque série (ou
+   * tour). Plus d'un tour : colonne Intervalle du tableau par série, à la place de la ligne Intervalle ; « Dans chaque intervalle »,
+   * intervalles des tours du Circuit, partagés par ses mouvements (reportés au Circuit au ✓). Un tour, ou séries identiques : ligne
+   * Intervalle, qui règle toutes les séries.
+   */
+  const emomIntervals = format !== undefined && formatValue !== null ? emomSheetIntervals(format, formatValue, Math.max(draft.count, 1)) : null;
+  const emomIntervalColumn = emomIntervals !== null && showVariableTable && formatShown("interval");
+  const emomIntervalRow = formatShown("interval") && !emomIntervalColumn;
+  const formatIntervalSeconds = emomIntervals?.[0] ?? formatNumber("intervalSeconds", 60);
+  const setEmomRowInterval = (rank: number, seconds: number) =>
+    setFormatValue((current) => (current === null || format === undefined ? current : withEmomSheetInterval(format, current, Math.max(draft.count, 1), rank, seconds)));
   const formatDurationSeconds = formatNumber("durationSeconds", 12 * 60);
   const formatTimeCapSeconds = typeof formatSettings.timeCapSeconds === "number" ? formatSettings.timeCapSeconds : null;
   const setFormatSetting = (id: string, next: number | null) =>
@@ -1954,7 +1977,12 @@ export function ExecutionParametersSheet({
       }
       if (value === null) return;
       if (field === "formatIncrement") setFormatSetting("incrementPerRound", formatIncrement < 0 ? -value : value);
-      else setFormatSetting(field === "formatInterval" ? "intervalSeconds" : "durationSeconds", value);
+      else if (field === "formatInterval" && emomIntervals !== null) {
+        // D-607 : la ligne Intervalle règle toutes les séries (ou tous les tours, partagés).
+        setFormatValue((current) =>
+          current === null || format === undefined ? current : withEmomSheetIntervals(format, current, emomIntervals.map(() => value)),
+        );
+      } else setFormatSetting(field === "formatInterval" ? "intervalSeconds" : "durationSeconds", value);
       return;
     }
     if (field === "recovery") {
@@ -1975,7 +2003,7 @@ export function ExecutionParametersSheet({
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
     ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
-    ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
+    ...(emomIntervalRow ? [scalarKeyboardField("formatInterval")] : []),
     ...(quickRepetitionsGoal ? [scalarKeyboardField("repetitionsGoal")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
     ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
@@ -2006,6 +2034,7 @@ export function ExecutionParametersSheet({
       openSurface.kind === "keyboard" ? openSurface.field : null,
       outsideFields,
       tablePause && !tablePauseLocked,
+      emomIntervalColumn,
     ),
     scrollRef,
     reduceMotion,
@@ -2024,6 +2053,19 @@ export function ExecutionParametersSheet({
         field === "formatDuration" ||
         field === "formatTimeCap",
       external: applyExternalScalar,
+      // D-607 : intervalle d'une ligne du tableau EMOM (rang de la ligne), état de la feuille jusqu'au ✓.
+      rowInterval: {
+        editText: (row) => {
+          const seconds = emomIntervals?.[draft.rowIds.indexOf(row)];
+          return seconds === undefined ? "" : mmssDigitsOf(seconds);
+        },
+        apply: (row, text) => {
+          const rank = draft.rowIds.indexOf(row);
+          const seconds = cellDurationSeconds(text, scalarEntryOf("formatInterval", draft).bounds);
+          if (rank < 0 || seconds === null || seconds === emomIntervals?.[rank]) return;
+          setEmomRowInterval(rank, seconds);
+        },
+      },
     },
   });
   // Décision du 06/11/2026 : la barre du clavier d'un champ hors tableau suit celle des Formats
@@ -2157,7 +2199,7 @@ export function ExecutionParametersSheet({
           </Row>
         </>
       ) : null}
-      {formatShown("interval") ? (
+      {emomIntervalRow ? (
         <>
           {seriesLeadRows || formatShown("increment") ? <Separator /> : null}
           <Row
@@ -2195,7 +2237,7 @@ export function ExecutionParametersSheet({
             testID="execution-sheet-format-duration-readonly-row"
           >
             <Text style={styles.staticValue} testID="execution-sheet-format-duration-readonly">
-              {formatPhraseDuration(Math.max(draft.count, 1) * formatIntervalSeconds)}
+              {formatPhraseDuration(emomIntervals !== null ? emomIntervals.reduce((total, seconds) => total + seconds, 0) : Math.max(draft.count, 1) * formatIntervalSeconds)}
             </Text>
           </Row>
         </>
@@ -2633,6 +2675,31 @@ export function ExecutionParametersSheet({
         >
           <Text style={[tableCellValueStyle, styles.tableCellUnset]}>{t.unset}</Text>
         </View>
+      );
+    }
+    // D-607 (D-572 point 6, D-573 point 1) : EMOM — la colonne de la Pause porte l'intervalle de la série (ou du tour, partagé).
+    if (kind === "rowPause" && emomIntervalColumn) {
+      const intervalField: KeyboardFieldId = { kind: "rowInterval", row };
+      const seconds = emomIntervals?.[index] ?? null;
+      return (
+        <KeyboardField
+          editText={keyboard.editText(intervalField)}
+          active={isOpen({ kind: "keyboard", field: intervalField })}
+          onFocus={() => focusKeyboardField(intervalField)}
+          onBlur={() => keyboard.onBlur(intervalField)}
+          onChangeText={(text: string) => keyboard.onChangeText(intervalField, text)}
+          inputRef={keyboard.register(intervalField, TABLE_ROW_HEIGHT)}
+          hitSlop={KEYBOARD_CELL_HIT_SLOP}
+          style={[tableCellStyle, styles.keyboardCell]}
+          valueStyle={tableCellValueStyle}
+          entryGeneration={keyboard.entryGeneration}
+          mode="cellDuration"
+          displayValue={pauseLabel(seconds)}
+          // Contrôle EMOM des durées : intervalle d'une série en dépassement en rouge (Formats § 7.6).
+          invalid={emomOverflowRankSet.has(index)}
+          accessibilityLabel={t.rowInterval.replace("{n}", String(number))}
+          testID={`${prefix}-interval`}
+        />
       );
     }
     if (kind === "rowPause" && tablePauseLocked) {
@@ -3172,7 +3239,8 @@ export function ExecutionParametersSheet({
                       <VariableTable
                         draft={draft}
                         mode={effective.mode}
-                        withPause={tablePause}
+                        withPause={tablePause || emomIntervalColumn}
+                        pauseHeader={emomIntervalColumn ? t.columns.interval : undefined}
                         onRemove={handleRemove}
                         removalActive={removalEnabled(surface)}
                         onMove={(from, to) => updateInTable(moveRow(keyboard.flush(draft), from, to))}
@@ -3640,6 +3708,7 @@ function VariableTable({
   draft,
   mode,
   withPause = true,
+  pauseHeader,
   onRemove,
   removalActive,
   onMove,
@@ -3650,6 +3719,8 @@ function VariableTable({
   mode: ExecutionMode | null;
   /** EMOM (y-format-cadres, 07/11/2026) : sans colonne Pause, Cible et Charge réparties sur la largeur. */
   withPause?: boolean;
+  /** D-607 (D-572 point 6) : titre de la deuxième colonne (EMOM : « Intervalle ») ; absent : « Pause ». */
+  pauseHeader?: string;
   onRemove: (row: number) => void;
   /** Story 3.6 (T18, T23) : la croix retire ; sinon son appui range d'abord l'outil ouvert. */
   removalActive: boolean;
@@ -3702,7 +3773,9 @@ function VariableTable({
         {withPause ? (
           <>
             <View style={tableStyles.cellGap} />
-            <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
+            <Text style={tableStyles.columnHeader} testID="execution-sheet-table-header-pause">
+              {pauseHeader ?? t.columns.pause}
+            </Text>
           </>
         ) : null}
         {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. PRE-7 story
