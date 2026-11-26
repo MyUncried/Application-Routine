@@ -318,6 +318,13 @@ export const executionParameters = {
     blockLossMessageMany: "Les autres exercices du {role} passent aussi à {kept} séries : {count} valeurs seront retirées.",
     roleLossCancel: "Annuler",
     roleLossConfirm: "Continuer",
+    // Recette iPhone du 26/11/2026 (soir, Hermann : « Death by : Incrément par tour d'un exercice qui a un mouvement avec des phases :
+    // l'incrément doit être un multiple de la somme des phases (message d'information avec proposition inférieure, supérieure, ou
+    // annuler). Ce n'est pas une obligation. ») : Annuler garde la valeur saisie.
+    incrementCycleTitle: "Arrondir l’incrément ?",
+    incrementCycleMessage: "L’incrément ({increment}) n’est pas un multiple de la durée des phases du mouvement ({cycle}).",
+    incrementCycleRoundTo: "Arrondir à {duration}",
+    incrementCycleKeep: "Annuler",
   },
   media: {
     section: "Médias",
