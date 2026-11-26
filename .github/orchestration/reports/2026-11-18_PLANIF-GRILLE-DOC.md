@@ -282,3 +282,4 @@
 - Tests : non applicables.
 - Complément (suite 11 bis) : première colonne « Séries » du Renforcement, ligne globale « Nombre de séries » supprimée, charge sous Départ (3 pages Death by), dernière colonne des tableaux alignée à droite (Tabata, 30/30, HIIT, Renforcement, Death by). Non traité : tableaux EMOM, AMRAP, Superset, Progression.
 - Complément (suite 12, D-573 point 2) : titre de la modale sur deux lignes au lieu de « … » (composant d'en-tête, Figma) ; Progression : Durée totale après Exécution (Figma). Non traité : durée totale dans la zone de contexte (collision avec l'illustration, en attente d'arbitrage).
+- Complément (suite 13, D-575 point 4) : durée totale de la zone de contexte alignée à droite, en noir, devant l'illustration (132 occurrences dans Figma).

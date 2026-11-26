@@ -649,7 +649,7 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 **Fermeture de la modale « Paramètres d'exécution » (D-574, 26/11/2026).** Pas de poignée au-dessus du titre ; fermeture par la croix (sans valider) ou la coche (valide) ; glissé vers le bas désactivé.
 
-**Pages des formats et modale du Renforcement (D-575, 26/11/2026).** Tabata, 30/30, HIIT : colonne « Intervalle », Durée totale en dernière ligne, charge sous la valeur de l'intervalle (petit, entre parenthèses). Renforcement : Durée totale après Exécution, charge sous l'objectif, première colonne « Séries », pas de ligne globale « Nombre de séries » ; Death by : charge sous Départ ; dernière colonne des tableaux alignée à droite ; modale : cadre [Mode], cadre [Nombre de répétitions, Nombre de séries, Pause, Charge], cadre [De chaque côté, Cadence].
+**Pages des formats et modale du Renforcement (D-575, 26/11/2026).** Tabata, 30/30, HIIT : colonne « Intervalle », Durée totale en dernière ligne, charge sous la valeur de l'intervalle (petit, entre parenthèses). Renforcement : Durée totale après Exécution, charge sous l'objectif, première colonne « Séries », pas de ligne globale « Nombre de séries » ; Death by : charge sous Départ ; dernière colonne des tableaux alignée à droite ; Progression : Durée totale après Exécution ; zone de contexte de la Composition : durée totale à droite, en noir, devant l'illustration ; modale : cadre [Mode], cadre [Nombre de répétitions, Nombre de séries, Pause, Charge], cadre [De chaque côté, Cadence].
 
 ## 10. Application de la règle à l'EMOM
 
