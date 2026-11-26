@@ -61,6 +61,21 @@ const service = {
 } as never;
 const t = strings.screens.formatModel;
 
+/**
+ * D-603 / D-604 (Hermann, 25/11/2026 ; Formats §§ 9.6 et 9.7) : à la première ouverture, le choix des mouvements s'affiche en premier.
+ * Les scénarios qui commencent par les paramètres le quittent d'abord, comme l'utilisateur (« Fermer sans sélectionner »).
+ */
+async function openedFormat() {
+  const title = await screen.findByTestId("format-title");
+  const leave = screen.queryByTestId("format-catalogue-add");
+  if (leave !== null) {
+    await act(async () => {
+      fireEvent.press(leave);
+    });
+  }
+  return title;
+}
+
 function Harness() {
   const [draft, setDraft] = useState<SessionDraft>(createEmptyDraft);
   useEffect(() => undefined, [draft]);
@@ -82,7 +97,7 @@ function Harness() {
 async function open(model: FormatModelKey) {
   mockModel = model;
   render(<Harness />);
-  await screen.findByTestId("format-title");
+  await openedFormat();
 }
 
 async function pick(query: string, id: string, section: string) {

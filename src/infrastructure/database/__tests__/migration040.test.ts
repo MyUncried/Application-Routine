@@ -2,78 +2,30 @@ import { describe, expect, it } from "@jest/globals";
 
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteAccountRepository } from "@/infrastructure/database/repositories/SqliteAccountRepository";
+import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
-type CountRow = { count: number };
-
-const LINK = {
-  authUserId: "00000000-0000-0000-0000-00000000000a",
-  provider: "apple" as const,
-  providerSubject: "sub-x",
-  email: "abc@privaterelay.appleid.com",
-  emailIsPrivateRelay: true,
-  givenName: "Hermann",
-  familyName: null,
-  catalogueId: "cat-1",
-  linkedAt: "2026-11-25T10:00:00.000Z",
-};
-
-describe("migration040 — compte (T1)", () => {
-  it("base neuve : version 40, état NEVER_LINKED, aucun lien", async () => {
-    const database = NodeSqliteDatabase.openInMemory();
-    await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(40);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
-    const accounts = new SqliteAccountRepository(database);
-    expect(await accounts.getLink()).toBeNull();
-    expect(await accounts.getLifecycle()).toEqual({ state: "NEVER_LINKED", deletionReceipt: null, deletedProviderSubjectHash: null });
-    expect(await accounts.hasBusinessData()).toBe(false);
-  });
-
-  it("mise à niveau d'une base peuplée (version 39) : lignes et identifiant local conservés", async () => {
+/** D-600 — migration 040 : vue retenue d'une photo (marquage des photos), colonnes additives nullables de `media_assets`. */
+describe("migration040 — vue retenue des photos", () => {
+  it("depuis la version 39 : assets existants conservés, sans vue (image entière), version courante (41)", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database, undefined, 39);
-    const user = await database.getFirstAsync<{ id: string }>("SELECT id FROM users WHERE singleton_key = 1");
-    await database.runAsync(
-      "INSERT INTO sessions (id, owner_id, name, created_at, updated_at) VALUES ('ses_1', ?, 'Jambes', 't', 't')",
-      [user!.id],
-    );
-    const tables = ["sessions", "users", "routines", "executions", "movements", "categories"];
-    const before: Record<string, number> = {};
-    for (const table of tables) before[table] = (await database.getFirstAsync<CountRow>(`SELECT COUNT(*) AS count FROM ${table}`))!.count;
-
+    await database.runAsync("INSERT INTO media_assets (id, uri, created_at, kind) VALUES ('a1', 'kodjo-media/a1.jpg', 't', 'PHOTO')");
     await migrateDatabase(database);
-
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
-    for (const table of tables) {
-      expect((await database.getFirstAsync<CountRow>(`SELECT COUNT(*) AS count FROM ${table}`))!.count).toBe(before[table]);
-    }
-    const accounts = new SqliteAccountRepository(database);
-    expect(await accounts.getLocalUserId()).toBe(user!.id);
-    expect(await accounts.hasBusinessData()).toBe(true);
+    expect(DATABASE_VERSION).toBe(41);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 41 });
+    expect(await new SqliteMediaRepository(database).findAsset("a1")).toMatchObject({ uri: "kodjo-media/a1.jpg" });
   });
 
-  it("dépôt : lien, suppression en suspens, suppression achevée (lien effacé, empreinte conservée)", async () => {
+  it("vue relue telle qu'écrite ; pourcentages hors de 0–100 refusés par la base", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);
-    const accounts = new SqliteAccountRepository(database);
-    await accounts.saveLink(LINK);
-    expect(await accounts.getLink()).toEqual(LINK);
-    expect((await accounts.getLifecycle()).state).toBe("LINKED");
-
-    await accounts.beginDeletion("receipt-1");
-    expect(await accounts.getLifecycle()).toEqual({ state: "DELETION_PENDING", deletionReceipt: "receipt-1", deletedProviderSubjectHash: null });
-    expect(await accounts.getLink()).toEqual(LINK);
-
-    await accounts.completeDeletion("hash-x");
-    expect(await accounts.getLink()).toBeNull();
-    expect(await accounts.getLifecycle()).toEqual({ state: "DELETED_ON_THIS_DEVICE", deletionReceipt: null, deletedProviderSubjectHash: "hash-x" });
-
-    await accounts.saveLink({ ...LINK, authUserId: "00000000-0000-0000-0000-00000000000b" });
-    expect(await accounts.getLifecycle()).toEqual({ state: "LINKED", deletionReceipt: null, deletedProviderSubjectHash: null });
-
-    await accounts.setState("REAUTH_REQUIRED");
-    expect((await accounts.getLifecycle()).state).toBe("REAUTH_REQUIRED");
+    await database.runAsync(
+      "INSERT INTO media_assets (id, uri, created_at, view_x, view_y, view_width, view_height) VALUES ('a2', 'kodjo-media/a2.webp', 't', 50.5, 0, 49.5, 100)",
+    );
+    expect((await new SqliteMediaRepository(database).findAsset("a2"))?.view).toEqual({ x: 50.5, y: 0, width: 49.5, height: 100 });
+    await expect(
+      database.runAsync("INSERT INTO media_assets (id, uri, created_at, view_x) VALUES ('a3', 'kodjo-media/a3.webp', 't', 120)"),
+    ).rejects.toThrow();
   });
 });

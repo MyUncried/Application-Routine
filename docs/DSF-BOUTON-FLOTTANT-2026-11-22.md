@@ -46,6 +46,7 @@ Le Plan n'a pas de bouton flottant. On y crée en touchant une case ou par « + 
   - le bouton devient une croix ;
   - un voile couvre l'écran ;
   - les options s'empilent au-dessus du bouton, chacune avec son icône ronde alignée sur l'axe du bouton.
+  - le trait bleu vertical relie le bord de la croix à l'icône la plus éloignée ; il ne traverse pas la croix, qui est en verre transparent (recette du 24/11/2026, Hermann : « Elle doit s'arrêter à la bordure du bouton »).
 - **Options**, de haut en bas :
   1. Créer un exercice ;
   2. Créer un circuit ;

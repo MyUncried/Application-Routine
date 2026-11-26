@@ -26,6 +26,7 @@ import {
   type MovementCatalogueFilters,
 } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { catalogueCompositionParams } from "@/features/sessions/compositionRoutePresentation";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
 import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -549,7 +550,8 @@ export function CatalogueScreen() {
                 topInset={LIST_TOP_INSET}
                 bottomInset={navigationBarTotalHeight()}
                 onOpenSession={(sessionId) =>
-                  router.push({ pathname: "/composition", params: { sessionId } })
+                  // D-602 : composition présentée en modale iOS.
+                  router.push({ pathname: "/composition", params: catalogueCompositionParams(sessionId) })
                 }
                 onStartSession={(sessionId) => router.push({ pathname: "/execution", params: { sessionId } })}
                 onPlanSession={(sessionId) => router.push({ pathname: "/planning", params: { sessionId } })}

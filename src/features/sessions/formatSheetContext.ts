@@ -1,8 +1,8 @@
 import { amrapMaxRefused, forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
-import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
+import { isFormatModelKey, plannedWorkOfParameters, type FormatModelKey } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
-import { circuitRoleOf, type CircuitRole, type FormatSettings } from "@/domain/sessions/formats";
+import { circuitRoleOf, PRECONFIGURATION_KEYS, type CircuitRole, type FormatSettings, type PreconfigurationKey } from "@/domain/sessions/formats";
 import type { SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { FormatSheetContext, FormatSheetRow } from "@/features/activities/FormatSettingsFrame";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
@@ -161,4 +161,38 @@ function rolePreserved(settings: FormatSettings): FormatSettings {
   if (settings.circuitRole !== undefined) kept.circuitRole = settings.circuitRole;
   if (settings.passageOnce !== undefined) kept.passageOnce = settings.passageOnce;
   return kept;
+}
+
+/**
+ * D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : exercice d'un format à départ rapide (Tabata, 30/30, Renforcement, Progression, À l'échec,
+ * Superset) — la modale des paramètres d'exécution ne présente que Charge et De chaque côté (nom du format dans le titre), et la ligne
+ * Mode quand le format n'impose pas l'unité (`unitOpen`, interprétation à confirmer : sans elle, Renforcement, Progression, À l'échec et
+ * Superset ne pourraient plus être complétés). Ouvert depuis l'écran du format : son modèle (`model`). Depuis la Composition : membre d'un
+ * Circuit sans format porteur dont le modèle d'origine est un départ rapide. Un exercice seul issu d'un départ rapide ne garde aucune trace
+ * de son modèle : il est traité comme un exercice libre.
+ */
+export function quickFormatOf(draft: SessionDraft, exerciseId: string, model?: string): { readonly name: string; readonly unitOpen: boolean } | undefined {
+  const named = (key: string | null | undefined) =>
+    key !== null && key !== undefined && (PRECONFIGURATION_KEYS as readonly string[]).includes(key)
+      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30" }
+      : undefined;
+  if (model !== undefined) return named(model);
+  const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);
+  if (exercise === undefined || (exercise.format ?? null) !== null) return undefined;
+  const circuit = circuitOfExercise(draft.structure, exerciseId);
+  if (circuit === undefined || (circuit.format ?? null) !== null) return undefined;
+  return named(circuit.originModel);
+}
+
+/**
+ * D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : Exercice issu d'un format — membre d'un Circuit
+ * qui porte son modèle d'origine (`originModel`). L'appui sur sa carte, dans la Composition, ouvre la page unique de ce format (réouverture
+ * « Modifier le format », `circuitId`), et non plus la modale « Paramètres d'exécution ». `undefined` : exercice libre, ou exercice seul
+ * issu d'un format (un seul mouvement, sans Circuit) — la page du format ne se rouvre aujourd'hui que depuis un Circuit (À CLARIFIER :
+ * l'exercice seul garde la modale par contexte de D-604).
+ */
+export function formatOriginOf(draft: SessionDraft, exerciseId: string): { readonly model: FormatModelKey; readonly circuitId: string } | undefined {
+  const circuit = circuitOfExercise(draft.structure, exerciseId);
+  const model = circuit?.originModel ?? null;
+  return circuit !== undefined && isFormatModelKey(model) ? { model, circuitId: circuit.id } : undefined;
 }

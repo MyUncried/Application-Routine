@@ -202,6 +202,13 @@ export type SessionDraftExercise = {
    * restaure l'état enregistré. Conservé à la duplication (même valeur reprise du Profil).
    */
   readonly profileDefaultsPending?: true;
+  /**
+   * D-604 (Hermann, 25/11/2026 ; Formats § 9.7, « Sortie et entrée d'un format ») : valeurs d'un exercice libre entré dans un format
+   * (Circuit porteur, ou Circuit d'un départ rapide) — conservées, masquées et inactives tant qu'il y reste, rendues à sa sortie
+   * (`freeExerciseOf`). Absent : exercice créé dans le format (sa sortie prend les valeurs par défaut d'un exercice libre). État du
+   * brouillon seulement : ni persisté ni comparé.
+   */
+  readonly freeValues?: { readonly executionParameters: ExecutionParametersInput; readonly postActivityRecoverySeconds: number | null };
 };
 
 /**

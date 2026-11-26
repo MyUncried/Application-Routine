@@ -245,6 +245,9 @@ export const colors = {
   catalogueMovementsBackground: "#F1F7FF",
   catalogueSessionsContext: "#EAEAFF",
   catalogueSessionsBackground: "#F7F7FF",
+  // D-600 (25/11/2026) : case « +N » de la mosaïque de la carte de séance (Figma `13169:28168` / `13169:28169`).
+  sessionMosaicCounterSurface: "#E3E6F2",
+  sessionMosaicCounterText: "#404573",
   catalogueProgramsContext: "#EFE8FF",
   catalogueProgramsBackground: "#F9F6FF",
   // D-509 : bandeau de contexte des écrans hors catalogue (Composition, fiche Mouvement…) — #EAEAFF prévu par le
@@ -255,6 +258,30 @@ export const colors = {
   // Recette iPhone du 07/11/2026 (Hermann, constat G) : fond désactivé unique de tous les interrupteurs,
   // gris distinct du fond d'écran blanc et des cadres `surface` (le gris système iOS se confondait avec eux).
   switchTrackOff: "#C2C7CF",
+  // D-599 (24/11/2026, Figma « P-Calendrier — Semaine — Icônes d’état (essai) » `13149:26608` et légende `13149:26915`) :
+  // teintes de cadre de l’Agenda (même contraste, seule la teinte change) et couleurs des icônes d’état.
+  agendaStartFrame: "#E0E4F5",
+  agendaStartBar: "#8F9BCC",
+  agendaLateFrame: "#F5E0E0",
+  agendaLateBar: "#CC8F8F",
+  agendaDoneFrame: "#E0F5E8",
+  agendaDoneBar: "#8FCCA8",
+  // Recette du 24/11/2026 (Hermann : « les couleurs orange des cadres ressemblent à du marron, mieux s'aligner avec le orange
+  // du symbole partielle ») : teinte de #F58C1A, saturée. [#F5EBE0 / #CCAD8F de Figma — remplacés.]
+  agendaPartialFrame: "#FDE9D3",
+  agendaPartialBar: "#F4B571",
+  agendaDeletedFrame: "#F0F0F5",
+  agendaDeletedBar: "#B8BAC9",
+  agendaIconStopped: "#CC3838",
+  agendaIconCompleted: "#1A995C",
+  agendaIconPartial: "#F58C1A",
+  agendaIconPartialTrack: "#D6D6DB",
+  agendaIconMuted: "#8C919E",
+  agendaIconGlyph: "#FFFFFF",
+  agendaIconRaisedTop: "#FFFFFF",
+  agendaIconRaisedBottom: "#E3E5F0",
+  agendaIconRaisedStroke: "#D6D9E3",
+  agendaIconPressed: "#E8EBF5",
 } as const;
 
 /**

@@ -37,6 +37,10 @@ export const executionParameters = {
   sheet: {
     title: "Paramètres d’exécution",
     cancelAccessibilityLabel: "Annuler les paramètres",
+    // D-606 (Hermann, 25/11/2026 ; Figma « Exercice libre — Modale de type format » `13242:26255`) : modale d’un exercice libre de type format.
+    freeTitle: "Exercice libre",
+    freeTagline: "Réglez librement chaque paramètre de l’exercice.",
+    freeSection: "Paramètres d’exécution",
     validateAccessibilityLabel: "Valider les paramètres",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",

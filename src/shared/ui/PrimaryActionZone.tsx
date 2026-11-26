@@ -134,10 +134,12 @@ export type PrimaryActionButtonProps = {
   readonly style?: StyleProp<ViewStyle>;
   readonly testID: string;
   readonly labelTestID?: string;
+  /** Élément posé à droite dans le bouton (Démarrer de la modale de modification, Figma `13204:26037`) ; libellé toujours centré. */
+  readonly trailing?: ReactNode;
 };
 
 /** Bouton d'action principal (format `Terminer`) : seuls libellé, état et action varient. */
-export function PrimaryActionButton({ label, onPress, disabled = false, accessibilityLabel, style, testID, labelTestID }: PrimaryActionButtonProps) {
+export function PrimaryActionButton({ label, onPress, disabled = false, accessibilityLabel, style, testID, labelTestID, trailing }: PrimaryActionButtonProps) {
   return (
     <Pressable
       disabled={disabled}
@@ -151,6 +153,7 @@ export function PrimaryActionButton({ label, onPress, disabled = false, accessib
       <Text style={styles.label} testID={labelTestID}>
         {label}
       </Text>
+      {trailing !== undefined ? <View style={styles.trailing}>{trailing}</View> : null}
     </Pressable>
   );
 }
@@ -180,5 +183,12 @@ const styles = StyleSheet.create({
   label: {
     ...type.button,
     color: colors.background,
+  },
+  trailing: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
   },
 });

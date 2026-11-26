@@ -8,6 +8,8 @@ export const enScreensComposition: Pick<FrResource["screens"], "composition"> = 
   composition: {
     // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
     title: "Build a workout",
+    editTitle: "Edit workout",
+    startAccessibilityLabel: "Start workout",
     backAccessibilityLabel: "Back",
     // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
     closeAccessibilityLabel: "Close",

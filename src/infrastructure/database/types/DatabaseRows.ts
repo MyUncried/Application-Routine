@@ -265,6 +265,11 @@ export type MediaAssetRow = {
   duration_ms: number | null;
   width: number | null;
   height: number | null;
+  /** Vue retenue (`migration040`, D-600) : pourcentages, toutes nulles = image entière. */
+  view_x?: number | null;
+  view_y?: number | null;
+  view_width?: number | null;
+  view_height?: number | null;
 };
 
 /** PRE-3 : colonnes de l'asset jointes à un lien de média (préfixe `asset_`). */
@@ -277,6 +282,10 @@ export type JoinedMediaAssetColumns = {
   asset_size_bytes: number | null;
   asset_duration_ms: number | null;
   asset_width: number | null;
+  asset_view_x?: number | null;
+  asset_view_y?: number | null;
+  asset_view_width?: number | null;
+  asset_view_height?: number | null;
   asset_height: number | null;
 };
 

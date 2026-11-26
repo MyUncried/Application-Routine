@@ -51,6 +51,21 @@ describe("réparation des tables additives manquantes", () => {
     expect(await database.getAllAsync("SELECT * FROM users")).toEqual(users);
   });
 
+  it("base en version 40 migrée par compte/lot-1 (sans colonnes de la vue retenue) : colonnes ajoutées, puis version 41", async () => {
+    const reference = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(reference);
+    const database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+    for (const column of ["view_x", "view_y", "view_width", "view_height"]) await database.execAsync(`ALTER TABLE media_assets DROP COLUMN ${column}`);
+    await database.execAsync("PRAGMA user_version = 40");
+
+    await migrateDatabase(database);
+
+    const columns = async (db: NodeSqliteDatabase) => (await db.getAllAsync<{ name: string }>("PRAGMA table_info(media_assets)")).map((row) => row.name).sort();
+    expect(await columns(database)).toEqual(await columns(reference));
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: DATABASE_VERSION });
+  });
+
   it("base complète : aucune écriture", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);

@@ -14,6 +14,7 @@ import { Animated, StyleSheet, View } from "react-native";
 
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
 import { AccountGate } from "@/features/account/AccountGate";
+import { creationRouteOptions } from "@/features/sessions/compositionRoutePresentation";
 import { ExecutionRecoveryGate } from "@/features/execution/ExecutionRecoveryGate";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
 import { ReminderOpenGate } from "@/features/planning/ReminderOpenGate";
@@ -159,7 +160,8 @@ export default function RootLayout() {
             <CreationDraftProviders>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
+              {/* D-602 (25/11/2026) : Composition ouverte par une carte du catalogue des séances en modale iOS ; autres ouvertures inchangées. */}
+              <Stack.Screen name="(creation)" options={({ route }) => creationRouteOptions(route.params)} />
               {/* `profile-edit` est désormais un écran de l'onglet Profil, sous la barre de navigation (demande de Hermann
                   du 14/11/2026). [Avant : `<Stack.Screen name="profile-edit" />` dans la pile racine — remplacé.] */}
               {/* Demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS (mode d'apparition identique à la fiche

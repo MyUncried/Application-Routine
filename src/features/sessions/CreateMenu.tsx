@@ -246,10 +246,13 @@ export function CreateMenu({
   const downward = upwardTop < insets.top + MENU_TOP_MARGIN;
   const firstTop = downward ? centerY + FLOATING_BUTTON_SIZE / 2 + LAST_ROW_TO_BUTTON : upwardTop;
   const rowTop = (index: number) => firstTop + index * (ROW_HEIGHT + ROW_GAP);
-  // Axe : du centre du bouton à la rangée la plus éloignée.
+  // Axe : du bord de la croix à la rangée la plus éloignée. Recette du 24/11/2026 (Hermann : « le bouton Annuler a la barre
+  // verticale qui le traverse en transparence. Elle doit s'arrêter à la bordure du bouton ») : la croix est en verre
+  // transparent, l'axe ne passe plus dessous. [Axe depuis le centre du bouton — remplacé.]
   const farRowCenter = (downward ? rowTop(options.length - 1) : rowTop(0)) + ROW_HEIGHT / 2;
-  const axisTop = Math.min(centerY, farRowCenter);
-  const axisHeight = Math.abs(centerY - farRowCenter);
+  const buttonEdge = downward ? centerY + FLOATING_BUTTON_SIZE / 2 : centerY - FLOATING_BUTTON_SIZE / 2;
+  const axisTop = Math.min(buttonEdge, farRowCenter);
+  const axisHeight = Math.abs(buttonEdge - farRowCenter);
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
 
   return (

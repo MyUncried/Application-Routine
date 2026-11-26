@@ -13,8 +13,8 @@ describe("migration039 — annonce des tours", () => {
     await migrateDatabase(database, undefined, 38);
     await database.runAsync("INSERT INTO guidance_preferences (singleton_key, announce_sides_enabled, announce_phases_enabled, updated_at) VALUES (1, 0, 0, 't')");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(40);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
+    expect(DATABASE_VERSION).toBe(41);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 41 });
     const profiles = new SqliteProfileRepository(database);
     const profile = await profiles.get();
     expect(profile).toMatchObject({ announceSidesEnabled: false, announcePhasesEnabled: false, announceRoundsEnabled: true });

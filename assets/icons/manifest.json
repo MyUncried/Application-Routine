@@ -989,6 +989,20 @@
       "runtime": "Read-only Figma MCP download_assets of 6214:3572 on 2026-10-28; root attributes removed"
     },
     {
+      "key": "catalogue.sessionCard.movements",
+      "file": "icon-carte-seance-haltere",
+      "figmaNodeId": "13178:28139",
+      "figmaName": "Icône — Exercices — haltère",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "13168:28159",
+      "width": 12,
+      "height": 16,
+      "usage": [
+        "Carte de séance du catalogue — ligne 3, noms des mouvements (D-601, 25/11/2026)"
+      ],
+      "runtime": "Read-only Figma MCP get_design_context of 13168:28159 on 2026-11-25; preserveAspectRatio/overflow/style root attributes removed"
+    },
+    {
       "key": "catalogue.session.duration",
       "file": "icon-catalogue-sablier",
       "figmaNodeId": "6214:3556",
@@ -1846,6 +1860,62 @@
         "Bouton flottant « Créer » — Catalogue des mouvements (silhouette « + »)"
       ],
       "note": "UI-FAB-01 du 24/11/2026 : export MCP Figma en lecture seule ; image débordant du trait (23,96 × 26 dans Figma)."
+    },
+    {
+      "key": "agenda.state.play",
+      "file": "agenda-etat-lecture",
+      "figmaNodeId": "13149:26915",
+      "figmaName": "Icône d’état — Démarrer / Rattraper (triangle)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "13149:26915",
+      "width": 10,
+      "height": 12,
+      "usage": [
+        "Agenda — icône Démarrer / Rattraper (D-599) ; carte de séance du catalogue — Démarrer (D-602)"
+      ],
+      "runtime": "Read-only Figma MCP export of the legend 13149:26915 (columns Option 2 / Appuyé) on 2026-11-24; tinted by token"
+    },
+    {
+      "key": "agenda.state.completed",
+      "file": "agenda-etat-coche",
+      "figmaNodeId": "13149:26915",
+      "figmaName": "Icône d’état — Complétée (coche)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "13149:26915",
+      "width": 14,
+      "height": 11,
+      "usage": [
+        "Agenda — icône Complétée (D-599)"
+      ],
+      "runtime": "Read-only Figma MCP export of the legend 13149:26915 (columns Option 2 / Appuyé) on 2026-11-24; tinted by token"
+    },
+    {
+      "key": "agenda.state.deleted",
+      "file": "agenda-etat-croix",
+      "figmaNodeId": "13149:26915",
+      "figmaName": "Icône d’état — Supprimée (croix)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "13149:26915",
+      "width": 10,
+      "height": 10,
+      "usage": [
+        "Agenda — icône Supprimée (D-599)"
+      ],
+      "runtime": "Read-only Figma MCP export of the legend 13149:26915 (columns Option 2 / Appuyé) on 2026-11-24; tinted by token"
+    },
+    {
+      "key": "agenda.state.expired",
+      "file": "agenda-etat-horloge",
+      "figmaNodeId": "13149:26915",
+      "figmaName": "Icône d’état — Expirée (horloge)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "sourceComponentNodeId": "13149:26915",
+      "width": 16,
+      "height": 16,
+      "usage": [
+        "Agenda — icône Expirée (D-599)"
+      ],
+      "runtime": "Read-only Figma MCP export of the legend 13149:26915 (columns Option 2 / Appuyé) on 2026-11-24; tinted by token"
     }
   ],
   "branding": {

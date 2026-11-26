@@ -235,6 +235,11 @@ export const fr = {
       // PRE-8 (epic E, E.2 et E.3) : carte unique du Catalogue des séances (spécification du 27/10).
       catalogueCard: {
         categoriesOverflow: "+{count}",
+        // D-600 / D-601 (25/11/2026) : carte de séance — séparateur des formats et des mouvements, « +N » des mouvements
+        // (ligne 3) et de la mosaïque (5 images et plus).
+        listSeparator: ", ",
+        movementsOverflow: "+{count}",
+        mosaicOverflow: "+{count}",
         expandAccessibilityLabel: "Afficher la composition de {name}",
         collapseAccessibilityLabel: "Masquer la composition de {name}",
         // CE-T03-01 : destination non livrée, explicitement indisponible.
@@ -589,7 +594,8 @@ export const fr = {
       // sélectionné, puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés »).
       closeWithoutSelecting: "Fermer sans sélectionner",
       // p-coche / p-ajout : « le bouton +Ajouter est remplacé par « revenir aux paramètres » après qu'il ait été sélectionné ».
-      backToParameters: "Revenir aux paramètres",
+      // D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : le lien du haut du choix des mouvements s'intitule « Paramètres ». [« Revenir aux paramètres » — remplacé.]
+      backToParameters: "Paramètres",
       // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
       lastRepetitionsLocked: "Au moins un exercice reste en répétitions : la durée n’est pas disponible pour celui-ci.",
       // D-531 / RM-271 (Hermann, 19/11/2026) : Max interdit dans une boucle de plusieurs mouvements (AMRAP, For time).
@@ -784,7 +790,8 @@ export const fr = {
     sessionModels: {
       // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
       creationTitle: "Créer un exercice",
-      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, puis ses paramètres" },
+      // D-606 (Hermann, 25/11/2026 ; Figma `13245:25982`) : « un mouvement, à régler ». [« un mouvement, puis ses paramètres » (05/11/2026) — remplacé.]
+      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, à régler" },
       title: "Formats d’entraînement",
       closeAccessibilityLabel: "Fermer",
       cards: {
@@ -803,6 +810,11 @@ export const fr = {
     composition: {
       // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
       title: "Composer une séance",
+      // CE-T03-08 (titre « Modification d’une Séance ») ; recette du 25/11/2026 (Hermann : « le titre doit être "Modifier une
+      // séance" et non "Composer une séance" »).
+      editTitle: "Modifier une séance",
+      // Recette du 25/11/2026 (Hermann) et Figma `13181:26130` : Démarrer dans l'action finale de la modale de modification.
+      startAccessibilityLabel: "Démarrer la séance",
       backAccessibilityLabel: "Retour",
       // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
       closeAccessibilityLabel: "Fermer",

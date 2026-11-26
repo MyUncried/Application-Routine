@@ -40,6 +40,10 @@ import {
 import { findInboxCollisions, proposedClassification } from "/domain/src/domain/catalogue/MovementInbox.js";
 import { ACTOR_MENU, actorFor, describeActor, KEPT } from "./actors.js";
 import { mountMediaEditor } from "./media.js";
+import {
+  asStoredView, describeProposal, describeView, isMarkablePhoto, isVerified, proposeForPhoto, sameView, setVerified,
+  viewFields, viewFrame,
+} from "./viewMarking.js";
 
 const $ = (selector) => document.querySelector(selector);
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -79,6 +83,7 @@ const state = {
   files: [], fileName: null, etag: null, original: null, working: null, warnings: [], sourceFormatVersion: null,
   canonical: true, issues: [], tab: "sheets", sheetId: null, libraryId: null, glossaryId: null, query: "",
   libraryFilter: "", inbox: [], status: null, pairing: null, devices: [], poll: null,
+  proposals: new Map(), marking: null, // marquage des photos (D-600) : propositions non acceptées, photo en vérification
   installation: null, // identité « Utilisateur local » de ce PC (/api/status), décision du 12/11/2026
 };
 
@@ -363,6 +368,8 @@ async function openFile(fileName) {
   }
   state.original = data.file;
   state.working = clone(data.file);
+  state.proposals = new Map();
+  state.marking = null;
   state.warnings = data.warnings;
   state.sourceFormatVersion = data.sourceFormatVersion;
   state.canonical = data.canonical;
@@ -413,7 +420,7 @@ function renderTab() {
   const views = $("#views");
   views.replaceChildren();
   const renderers = { sheets: renderSheets, libraries: renderLibraries, references: renderReferences, glossary: renderGlossary,
-    catalogue: renderCatalogue, inbox: renderInbox, phones: renderPhones };
+    catalogue: renderCatalogue, marking: renderMarking, inbox: renderInbox, phones: renderPhones };
   if (!state.working && !["inbox", "phones"].includes(state.tab)) {
     views.append(el("p", "empty", "Aucun fichier catalogue valide ouvert."));
     return;
@@ -1047,7 +1054,162 @@ function renderCatalogue(views) {
           : "Non — au moins une fiche sans autorisation système, ou propriétaire inconnu")),
       labeled("Notes du catalogue (internes, une par ligne)", linesInput(() => header.notes, (x) => { header.notes = x; }, 4),
         "Facultatives, réservées à l'administration : jamais transmises au téléphone ni exportées.")));
+  const photos = markablePhotos();
+  const verified = photos.filter((entry) => entry.status === "VERIFIED").length;
+  panel.append(section("Avant publication : marquage des photos",
+    readonly(photos.length === 0 ? "Aucune photo intégrée dans ce fichier."
+      : verified + " photo(s) vérifiée(s) sur " + photos.length + ". La vue retenue de chaque photo sert à la mosaïque des cartes de séance."),
+    button("Ouvrir le marquage des photos", () => { state.tab = "marking"; renderTab(); }, { primary: true })));
   views.append(panel);
+}
+
+// --- Marquage des photos (D-600 ; DSF Carte de séance § 1) ---
+
+const MARKING_STATUS = { NONE: "sans vue", PROPOSED: "proposée", VERIFIED: "vérifiée" };
+const proposalKey = (sheet, media) => sheet.sheetId + "|" + media.id;
+
+/** Photos intégrées du fichier ouvert, avec leur état de marquage. */
+function markablePhotos() {
+  const catalogueId = state.working.catalogue.id;
+  const photos = [];
+  for (const sheet of state.working.sheets) {
+    for (const media of sheet.media) {
+      if (!isMarkablePhoto(media)) continue;
+      const key = proposalKey(sheet, media);
+      const status = isVerified(catalogueId, sheet.sheetId, media) ? "VERIFIED"
+        : state.proposals.has(key) || media.view ? "PROPOSED" : "NONE";
+      photos.push({ sheet, media, key, status });
+    }
+  }
+  return photos;
+}
+
+/** Écrit la vue dans le média (absente = image entière) ; la proposition éventuelle est consommée. */
+function writeView(entry, view) {
+  const stored = asStoredView(view);
+  if (stored) entry.media.view = stored;
+  else delete entry.media.view;
+  state.proposals.delete(entry.key);
+  changed();
+}
+
+function renderMarking(views) {
+  const panel = el("section", "panel");
+  panel.style.margin = "0 clamp(16px,3.6vw,48px) 36px";
+  views.append(panel);
+  const draw = () => {
+    const photos = markablePhotos();
+    panel.replaceChildren(el("h2", "", "Marquage des photos"));
+    panel.append(el("p", "tip",
+      "Pour chaque photo, la vue retenue est le rectangle utilisé par la mosaïque des cartes de séance : vue la plus à droite, " +
+      "la plus large s'il y en a trois, image entière pour une image simple. La détection propose ; tu vérifies et corriges. " +
+      "Une proposition n'est écrite qu'après acceptation ; le fichier s'enregistre ensuite normalement. " +
+      "L'état « vérifiée » est noté dans ce navigateur."));
+    if (photos.length === 0) {
+      panel.append(el("p", "empty", "Aucune photo intégrée dans ce fichier."));
+      return;
+    }
+    const count = (status) => photos.filter((entry) => entry.status === status).length;
+    const summary = el("div", "marking-summary");
+    summary.append(el("span", "info", photos.length + " photos · " + count("NONE") + " sans vue · " + count("PROPOSED") +
+      " proposée(s) · " + count("VERIFIED") + " vérifiée(s)"));
+    const progress = el("span", "info");
+    const proposeAll = button("Proposer pour toutes les photos sans vue", async () => {
+      const targets = photos.filter((entry) => entry.status === "NONE");
+      proposeAll.disabled = true;
+      let failed = 0;
+      for (const [index, entry] of targets.entries()) {
+        progress.textContent = "Détection " + (index + 1) + " / " + targets.length + "…";
+        try {
+          state.proposals.set(entry.key, await proposeForPhoto(entry.media.url));
+        } catch {
+          failed += 1; // photo illisible : laissée « sans vue »
+        }
+      }
+      notify((targets.length - failed) + " proposition(s) à vérifier" + (failed ? " ; " + failed + " photo(s) illisible(s)" : "") + ".", failed ? "error" : "ok");
+      draw();
+    }, { disabled: count("NONE") === 0 });
+    const next = photos.find((entry) => entry.status !== "VERIFIED");
+    summary.append(proposeAll,
+      button("Vérifier une à une", () => { state.marking = next.key; draw(); }, { primary: true, disabled: !next }), progress);
+    panel.append(summary);
+
+    const current = photos.find((entry) => entry.key === state.marking);
+    if (current) panel.append(markingDetail(current, photos, draw));
+
+    const gallery = el("div", "marking-grid");
+    for (const entry of photos) {
+      const card = el("button", "marking-card" + (entry.key === state.marking ? " active" : ""));
+      card.type = "button";
+      card.append(viewFrame({ src: entry.media.url, alt: entry.sheet.content.name, view: entry.media.view ?? null,
+        proposal: state.proposals.get(entry.key) ?? null }));
+      card.append(el("strong", "", entry.sheet.sheetId + " · " + entry.sheet.content.name),
+        el("small", "marking-status " + entry.status.toLowerCase(), MARKING_STATUS[entry.status]));
+      card.addEventListener("click", () => { state.marking = entry.key; draw(); });
+      gallery.append(card);
+    }
+    panel.append(gallery);
+    if (current) panel.querySelector(".marking-detail")?.scrollIntoView({ block: "nearest" });
+  };
+  draw();
+}
+
+/** Vérification d'une photo : grande image, rectangle ajustable, champs, acceptation ou validation. */
+function markingDetail(entry, photos, draw) {
+  const box = el("div", "marking-detail");
+  const proposal = state.proposals.get(entry.key) ?? null;
+  const view = entry.media.view ?? null;
+  const position = photos.indexOf(entry);
+  const goTo = (target) => { state.marking = target?.key ?? null; draw(); };
+  const nextToCheck = () => photos.slice(position + 1).concat(photos.slice(0, position))
+    .find((other) => other.status !== "VERIFIED");
+  const edit = (nextView) => { writeView(entry, nextView); draw(); };
+  const verify = () => setVerified(state.working.catalogue.id, entry.sheet.sheetId, entry.media);
+  const visual = el("div", "marking-visual");
+  visual.append(viewFrame({ src: entry.media.url, alt: entry.sheet.content.name, view, proposal, onChange: edit, large: true }));
+  const side = el("div", "marking-side");
+  side.append(el("h3", "", entry.sheet.sheetId + " · " + entry.sheet.content.name),
+    el("small", "", "Photo " + (position + 1) + " / " + photos.length + " · " + MARKING_STATUS[entry.status]),
+    el("p", "", "Vue retenue (trait plein) : " + describeView(view)));
+  const pending = proposal && !sameView(asStoredView(proposal.view), view);
+  if (proposal) {
+    side.append(el("p", "view-proposal", "Proposition" + (pending ? " (pointillés)" : "") + " : " + describeView(proposal.view) +
+      " — " + describeProposal(proposal)));
+  }
+  side.append(viewFields(view, edit));
+  const actions = el("div", "split");
+  if (pending) {
+    actions.append(button("Accepter la proposition", () => {
+      writeView(entry, proposal.view);
+      verify();
+      goTo(nextToCheck());
+    }, { primary: true }));
+  } else {
+    actions.append(button("Valider cette vue", () => {
+      state.proposals.delete(entry.key);
+      verify();
+      goTo(nextToCheck());
+    }, { primary: true, disabled: entry.status === "VERIFIED" }));
+  }
+  actions.append(
+    button("Proposer", async () => {
+      try {
+        state.proposals.set(entry.key, await proposeForPhoto(entry.media.url));
+        draw();
+      } catch (error) {
+        notify("Détection impossible : " + error.message, "error");
+      }
+    }),
+    button("Image entière", () => edit(null), { disabled: view === null }));
+  const navigation = el("div", "split");
+  navigation.append(
+    button("Précédente", () => goTo(photos[position - 1]), { disabled: position === 0 }),
+    button("Suivante", () => goTo(photos[position + 1]), { disabled: position === photos.length - 1 }),
+    button("Fermer", () => goTo(null)));
+  side.append(actions, navigation,
+    el("small", "tip", "Glisser le rectangle pour le déplacer, la poignée (coin bas droit) pour le redimensionner. Enregistrer ensuite le fichier."));
+  box.append(visual, side);
+  return box;
 }
 
 // --- Boîte d'arrivée ---

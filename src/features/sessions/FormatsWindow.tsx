@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-na
 
 import type { ElementFormatKey, PreconfigurationKey } from "@/domain/sessions/formats";
 import { strings } from "@/shared/i18n";
-import { OptionIcon } from "@/features/sessions/CreateMenu";
 import { CloseCircleAction } from "@/shared/ui/ScreenShell";
 
 /**
@@ -53,6 +52,9 @@ const TITLE_COLOR = "#14171C";
 const SUBTITLE_COLOR = "#5C636E";
 const WINDOW_TITLE_COLOR = "#3A3A3F";
 const SCRIM = "rgba(31, 33, 41, 0.42)";
+// D-606 (Figma `13245:25982`) : carte « Exercice libre », fond #F0F2F7, bande #E0E3ED.
+const FREE_BACKGROUND = "#F0F2F7";
+const FREE_BAND = "#E0E3ED";
 const WHITE_85 = "rgba(255,255,255,0.85)";
 const WHITE_50 = "rgba(255,255,255,0.5)";
 const WHITE_35 = "rgba(255,255,255,0.35)";
@@ -326,8 +328,8 @@ function ModelCard({ model, width, onPress }: { model: SessionModel; width: numb
 
 /**
  * Modale de création commune — complément du 5 novembre 2026 (Hermann, §1 et §4 ; CE-CREATION-01, Figma `9977:19613`) :
- * titre « Créer un exercice », carte pleine largeur « Exercice libre » (« un mouvement, puis ses paramètres ») au-dessus de
- * la grille, titre de section « Formats d'entraînement ». Ouverte depuis « Créer » du Catalogue des séances et depuis
+ * titre « Créer un exercice », carte « Exercice libre » [D-606, 25/11/2026 : carte de la grille, en première position, « un mouvement, à régler »] ; [au-dessus de
+ * la grille, titre de section « Formats d'entraînement » — remplacé.] Ouverte depuis « Créer » du Catalogue des séances et depuis
  * « Créer un exercice » du menu de la Composition. « Exercice libre » est une entrée de création, pas un Format.
  * [Fenêtre « Formats d'entraînement » seule, ouverte par « Utiliser un format d'entraînement » — remplacée.]
  */
@@ -351,37 +353,40 @@ export function FormatsWindow({
   return (
     <View style={styles.sheetWindow} accessibilityViewIsModal testID="formats-window">
       <View style={styles.header}>
-        <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
-        <Text style={styles.windowTitle} accessibilityRole="header">
+        {/* D-606 : titre centré sur toute la largeur, posé avant la croix pour qu'il ne recouvre pas sa zone de toucher. */}
+        <Text style={styles.windowTitle} accessibilityRole="header" testID="formats-window-title">
           {t().creationTitle}
         </Text>
+        <CloseCircleAction onPress={onClose} accessibilityLabel={t().closeAccessibilityLabel} style={styles.close} testID="formats-window-close" />
       </View>
-      <Pressable
-        onPress={() => {
-          if (chosen) return;
-          setChosen(true);
-          onFreeExercise();
-          setTimeout(() => setChosen(false), 600);
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={`${t().freeExercise.title}, ${t().freeExercise.subtitle}`}
-        style={({ pressed }) => [styles.freeCard, pressed ? styles.cardPressed : null]}
-        testID="formats-window-free-exercise"
-      >
-        <View style={styles.freeTexts}>
+      {/* D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8 ; Figma `9977:19613`, carte `13245:25982`) :
+          titre centré, aucun sous-titre ; carte « Exercice libre » de la taille des autres, en première position, logo en cadre
+          pointillé. [Carte pleine largeur avec l'haltère et titre de section « Formats d'entraînement » (05/11/2026) — remplacés.] */}
+      <View style={styles.grid} testID="formats-window-grid">
+        <Pressable
+          onPress={() => {
+            if (chosen) return;
+            setChosen(true);
+            onFreeExercise();
+            setTimeout(() => setChosen(false), 600);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`${t().freeExercise.title}, ${t().freeExercise.subtitle}`}
+          style={({ pressed }) => [styles.card, { width: cardWidth, backgroundColor: FREE_BACKGROUND }, pressed ? styles.cardPressed : null]}
+          testID="formats-window-free-exercise"
+        >
+          <View style={[styles.band, { backgroundColor: FREE_BAND }]}>
+            <View style={styles.motif}>
+              <View style={styles.freeLogo} testID="formats-window-free-logo" />
+            </View>
+          </View>
           <Text style={styles.title} numberOfLines={1}>
             {t().freeExercise.title}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {t().freeExercise.subtitle}
           </Text>
-        </View>
-        <OptionIcon icon="exercise" />
-      </Pressable>
-      <Text style={styles.sectionTitle} accessibilityRole="header" testID="formats-window-section">
-        {t().title}
-      </Text>
-      <View style={styles.grid} testID="formats-window-grid">
+        </Pressable>
         {[...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => (
           <ModelCard
             key={model.key}
@@ -435,34 +440,29 @@ const styles = StyleSheet.create({
   close: {
     marginTop: -6,
   },
+  // D-606 (Figma `9977:19613`) : titre centré dans la fenêtre, la croix restant à gauche. [Titre à droite de la croix — remplacé.]
   windowTitle: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
     fontFamily: "Inter_500Medium",
     fontWeight: "500",
     fontSize: 17,
     color: WINDOW_TITLE_COLOR,
-    marginLeft: 7,
     marginTop: -6,
-    flexShrink: 1,
   },
-  // Figma `9977:19613` : carte 338 × 64, rayon 20, fond #F0F2F7 ; pictogramme rond bleu de 32 à droite.
-  freeCard: {
-    height: 64,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: "#F0F2F7",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 16,
-  },
-  freeTexts: {
-    flex: 1,
-  },
-  // Figma : « Formats d'entraînement », Inter Regular 13, #5C636E, 16 sous la carte, 8 au-dessus de la grille.
-  sectionTitle: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: SUBTITLE_COLOR,
-    marginTop: 16,
-    marginBottom: 8,
+  // Figma `13245:25994` : logo « Cadre à composer » 34 × 34, rayon 8, trait pointillé 1,5 blanc à 90 %, à 66 / 6 dans la boîte du motif.
+  freeLogo: {
+    position: "absolute",
+    left: 66,
+    top: 6,
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: "rgba(255,255,255,0.9)",
   },
   grid: {
     flexDirection: "row",

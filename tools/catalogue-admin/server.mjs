@@ -68,6 +68,8 @@ const STATIC_ASSETS = {
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/media.js": ["media.js", "text/javascript; charset=utf-8"],
   "/actors.js": ["actors.js", "text/javascript; charset=utf-8"],
+  "/viewDetection.js": ["viewDetection.js", "text/javascript; charset=utf-8"],
+  "/viewMarking.js": ["viewMarking.js", "text/javascript; charset=utf-8"],
   "/styles.css": ["styles.css", "text/css; charset=utf-8"],
 };
 const DOMAIN_ASSETS = new Set(DOMAIN_MODULES.map((name) => "/domain/" + name));

@@ -198,10 +198,16 @@ export const DATABASE_NAME = "kodjo.db";
  * 24/11/2026. 001..038 inchangées.
  */
 /**
- * **Compte (version 40, `migration040`)** : tables additives `account_link` et `account_lifecycle` (T1 Compte, 25/11/2026).
+ * **Vue retenue d'une photo (version 40, `migration040`)** : colonnes additives nullables `media_assets.view_x`, `view_y`,
+ * `view_width`, `view_height` (pourcentages de l'image), venues du marquage des photos du catalogue (D-600, 24-25/11/2026).
  * 001..039 inchangées.
  */
-export const DATABASE_VERSION = 40;
+/**
+ * **Compte (version 41, `migration041`)** : tables additives `account_link` et `account_lifecycle` (T1 Compte, 25/11/2026 ;
+ * développée comme version 40 sur `compte/lot-1`, renumérotée 41 sur la branche de recette d'intégration du 26/11/2026).
+ * 001..040 inchangées.
+ */
+export const DATABASE_VERSION = 41;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

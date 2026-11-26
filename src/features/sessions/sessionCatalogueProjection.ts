@@ -6,6 +6,8 @@ import type { CatalogueSessionRecord, SessionStatus } from "@/domain/sessions/Se
 import { computeStructureDuration, cycleExercises, mapStructure, structureCircuits, structureExercises, type StructureCircuit, type StructureElement } from "@/domain/sessions/structure";
 import type { SessionSnapshot, SessionSnapshotExercise } from "@/domain/sessions/sessionSnapshot";
 import type { CircuitNature } from "@/domain/sessions/circuit";
+import type { FormatModelKey } from "@/domain/sessions/formatModels";
+import type { MediaView } from "@/domain/media/MediaAsset";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
 import { circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
@@ -40,6 +42,17 @@ import { FREE_SESSION_FORMAT, type SessionFormatKey } from "./sessionFormats";
 
 export type CatalogueCategoryRef = { readonly id: string; readonly name: string; readonly color: string };
 
+/**
+ * Image d'un mouvement dans la mosaïque (D-600) : premier média du Mouvement, avec la vue retenue stockée avec l'asset
+ * (marquage des photos ; absente : image entière).
+ */
+export type CatalogueMosaicImage = {
+  readonly key: string;
+  readonly uri: string;
+  readonly isVideo: boolean;
+  readonly view: MediaView | null;
+};
+
 export type CatalogueVisual =
   | { readonly kind: "MEDIA"; readonly source: MediaPreviewSource }
   | { readonly kind: "FORMAT"; readonly format: SessionFormatKey };
@@ -72,7 +85,20 @@ export type SessionCatalogueProjection = {
   readonly categories: readonly CatalogueCategoryRef[];
   readonly bodyZoneIds: readonly string[];
   readonly format: SessionFormatKey;
+  /**
+   * Repli du visuel (fin de l'ancienne cascade, D-600) : sans image de mouvement, vignette du format, sinon Libre.
+   * `MEDIA` : la séance a au moins une image (la carte affiche alors la mosaïque).
+   */
   readonly visual: CatalogueVisual;
+  /**
+   * D-600 (Hermann, 24/11/2026) : images de la mosaïque — mouvements distincts de la séance, dans l'ordre de la composition,
+   * ceux qui n'ont pas d'image étant ignorés ; un mouvement répété compte une fois.
+   */
+  readonly mosaic: readonly CatalogueMosaicImage[];
+  /** D-601 / D-602 : ligne 3 — noms des mouvements distincts, dans l'ordre de la composition. */
+  readonly movementNames: readonly string[];
+  /** D-601 / D-602 : ligne 2 — noms des formats de la séance, distincts, dans l'ordre de la composition (vide : « Libre »). */
+  readonly formatNames: readonly string[];
   /**
    * D-505 (Hermann, 06/11/2026) : nombre de Circuits affiché en ligne 3 (« N circuits · N exercices »),
    * compte structurel (Circuits des Cycles compris, sans multiplier par tours ni passages) ; `null`
@@ -301,6 +327,54 @@ export function sessionCategoryIds(record: Pick<CatalogueSessionRecord, "structu
   return ids;
 }
 
+/** Clé d'un mouvement : son Mouvement source, sinon l'occurrence elle-même (ancienne donnée sans Mouvement). */
+const movementKeyOf = (exercise: Activity) => exercise.sourceMovementId ?? `occurrence:${exercise.id}`;
+
+/**
+ * D-600 / D-601 : mouvements distincts dans l'ordre de la composition — noms (ligne 3) et images (mosaïque ; un mouvement sans
+ * image est ignoré de la mosaïque, pas de la ligne 3).
+ */
+export function distinctMovementsOf(exercises: readonly Activity[]): { mosaic: CatalogueMosaicImage[]; movementNames: string[] } {
+  const seen = new Set<string>();
+  const mosaic: CatalogueMosaicImage[] = [];
+  const movementNames: string[] = [];
+  for (const exercise of exercises) {
+    const key = movementKeyOf(exercise);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (exercise.name.trim().length > 0) movementNames.push(exercise.name);
+    const first = exercise.media?.[0];
+    const source = firstMediaPreviewSource(exercise.media);
+    if (first && source) mosaic.push({ key, uri: source.uri, isVideo: source.isVideo, view: first.asset.view ?? null });
+  }
+  return { mosaic, movementNames };
+}
+
+/**
+ * D-601 / D-602 : noms des formats de la séance — Format porté par un Circuit (ou son modèle d'origine) ou par un Exercice,
+ * distincts, dans l'ordre de la composition.
+ */
+export function formatNamesOf(elements: readonly StructureElement<Activity>[]): string[] {
+  const keys: FormatModelKey[] = [];
+  const add = (key: FormatModelKey | null | undefined) => {
+    if (key && !keys.includes(key)) keys.push(key);
+  };
+  const circuit = (value: StructureCircuit<Activity>) => {
+    add(value.format?.key ?? value.originModel ?? null);
+    for (const exercise of value.exercises) add(exercise.format?.key ?? null);
+  };
+  for (const element of elements) {
+    if (element.kind === "EXERCISE") add(element.exercise.format?.key ?? null);
+    else if (element.kind === "CIRCUIT") circuit(element.circuit);
+    else
+      for (const member of element.cycle.members) {
+        if (member.kind === "CIRCUIT") circuit(member.circuit);
+        else add(member.exercise.format?.key ?? null);
+      }
+  }
+  return keys.map((key) => strings.screens.sessionModels.cards[key].title);
+}
+
 export function projectSessionForCatalogue(
   record: CatalogueSessionRecord,
   categoriesById: ReadonlyMap<string, CatalogueCategoryRef>,
@@ -321,6 +395,8 @@ export function projectSessionForCatalogue(
   const format = FREE_SESSION_FORMAT;
   const media = exercises.map((exercise) => firstMediaPreviewSource(exercise.media)).find((source) => source !== null);
   const visual: CatalogueVisual = media ? { kind: "MEDIA", source: media } : { kind: "FORMAT", format };
+  const { mosaic, movementNames } = distinctMovementsOf(exercises);
+  const formatNames = formatNamesOf(record.structure.elements);
 
   const summaries = exercises.map((exercise) =>
     formatOccurrenceSummary({ executionParameters: exercise.executionParameters, phasesToVerify: exercise.phasesToVerify }),
@@ -340,6 +416,9 @@ export function projectSessionForCatalogue(
     bodyZoneIds,
     format,
     visual,
+    mosaic,
+    movementNames,
+    formatNames,
     shownCircuitCount: shownCircuitCountOf(record.structure),
     duration,
     ...(forTimeBound !== undefined ? { forTimeBound } : {}),
