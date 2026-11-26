@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
+import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent, type TextInputProps } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { WORK_PATTERN_DURATION_BOUNDS, WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
@@ -13,6 +13,7 @@ import {
   type MovementPhaseList,
 } from "@/domain/activities/movementPhaseList";
 import { cellDurationSeconds, mmssDigitsOf } from "@/features/activities/cellEntry";
+import { useAttachedKeyboardBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { codePointLength } from "@/domain/sessions/validation";
 import { strings } from "@/shared/i18n";
@@ -116,6 +117,20 @@ export type MovementPhasesKeyboardBar = {
   readonly onPrevious: () => void;
   readonly onNext: () => void;
 };
+
+/**
+ * Recette iPhone du 26/11/2026 (soir), Hermann : « la barre d'option du clavier n'apparaît pas » — champ texte du bloc (libellé,
+ * invite) portant la barre native rattachée au clavier (`useAttachedKeyboardBar`, `InputAccessoryView` montée juste après le champ).
+ */
+function BarTextInput({ active, inputRef, ...props }: TextInputProps & { readonly active: boolean; readonly inputRef: (node: TextInput | null) => void }) {
+  const bar = useAttachedKeyboardBar(active, true);
+  return (
+    <>
+      <TextInput ref={inputRef} {...props} inputAccessoryViewID={bar.id} />
+      {bar.accessory}
+    </>
+  );
+}
 
 /** Clé d'un champ du bloc : libellé ou durée d'une phase, ou l'invite d'ajout. */
 type PhaseFieldKey = `label:${number}` | `duration:${number}` | "invite";
@@ -357,8 +372,9 @@ export function MovementPhasesEditor({
                 {`${shownRank}.`}
               </Text>
               {editable ? (
-                <TextInput
-                  ref={(node) => {
+                <BarTextInput
+                  active={barField === `label:${phase.id}`}
+                  inputRef={(node) => {
                     if (node) inputs.current.set(phase.id, node);
                     else inputs.current.delete(phase.id);
                   }}
@@ -484,8 +500,9 @@ export function MovementPhasesEditor({
             <Text style={[styles.number, styles.promptNumber]} accessible={false} importantForAccessibility="no-hide-descendants">
               {`${position + 1}.`}
             </Text>
-            <TextInput
-              ref={(node) => {
+            <BarTextInput
+              active={barField === "invite"}
+              inputRef={(node) => {
                 if (node) inputs.current.set("invite", node);
                 else inputs.current.delete("invite");
               }}

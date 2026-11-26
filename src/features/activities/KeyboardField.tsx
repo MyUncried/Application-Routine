@@ -8,6 +8,7 @@ import {
   type CellEntryKind,
   type CellEntryState,
 } from "@/features/activities/cellEntry";
+import { useAttachedKeyboardBar } from "@/features/activities/KeyboardAccessoryBar";
 import { TABLE_CELL_ACTIVE_BACKGROUND } from "@/features/activities/sheetTable";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors } from "@/shared/ui/tokens";
@@ -141,9 +142,13 @@ function NativeEntryField({
 }: NativeProps) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState("");
+  // Recette du 26/11/2026 (soir) : barre native rattachée au clavier, si l'hôte la fournit aux champs texte (`withText`).
+  const bar = useAttachedKeyboardBar(active, true);
   return (
+    <>
     <TextInput
       ref={(input) => inputRef?.(input)}
+      inputAccessoryViewID={bar.id}
       value={focused ? text : displayValue}
       onFocus={() => {
         setText(editText);
@@ -171,6 +176,8 @@ function NativeEntryField({
       style={[style, active ? { backgroundColor: TABLE_CELL_ACTIVE_BACKGROUND } : null]}
       testID={testID}
     />
+    {bar.accessory}
+    </>
   );
 }
 
@@ -222,6 +229,8 @@ function CellEntryField({
   useEffect(() => {
     entryRef.current = entry;
   }, [entry]);
+  // Recette du 26/11/2026 (soir) : barre native rattachée au clavier, si l'hôte la fournit (`KeyboardAccessoryContext`).
+  const bar = useAttachedKeyboardBar(active);
   const shown = focused ? cellEntryDisplay(kind, entry.text) : displayValue;
   const empty = focused && cellEntryEmpty(kind, entry.text);
   // Point B du 26/11/2026 : champ actif agrandi dans la modale « Paramètres d'exécution » (`KeyboardFieldGrowContext`).
@@ -279,6 +288,7 @@ function CellEntryField({
             ownRef.current = input;
             inputRef?.(input);
           }}
+          inputAccessoryViewID={bar.id}
           // Revue D-434 : l'entrée native porte le texte brut de la saisie (chiffres seuls, sans
           // zéros de remplissage ni « : ») ; la composition compare le texte natif reçu à ce
           // texte brut, jamais à l'affichage formaté.
@@ -310,6 +320,8 @@ function CellEntryField({
           testID={`${testID}-input`}
         />
       </View>
+      {/* Barre rattachée : après l'entrée (rattachement à son entrée dans la fenêtre), hors du conteneur sans touchers. */}
+      {bar.accessory}
     </AnimatedPressable>
   );
 }

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { Animated, Easing, InputAccessoryView, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
 import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
@@ -99,6 +99,52 @@ const BAR_BUTTON_HIT_SLOP = {
 
 const labels = strings.executionParameters.sheet.keyboardBar;
 
+/**
+ * Recette iPhone du 26/11/2026 (soir), Hermann : « La barre d'options du clavier n'est pas synchronisée » (modales des paramètres
+ * d'exécution) ; « Exercice libre, cadence : le clavier n'est pas synchronisé » ; « la barre d'option du clavier n'apparaît pas »
+ * (phases de la fiche Mouvement) ; « exercice libre : le clavier doit présenter la barre d'option précédent - suivant - Fermer ».
+ *
+ * Barre RATTACHÉE au clavier natif (iOS) : primitive `InputAccessoryView`, que le système monte et descend AVEC le clavier (même
+ * vue, même animation) — une barre posée en JS au-dessus du clavier (mécanisme RC-1) le suit toujours avec retard.
+ *
+ * Cause de l'échec du 19/10 (RC-1, « `InputAccessoryView` ne s'affiche pas dans la `Modal` »), établie par lecture du code natif de
+ * React Native 0.86 (nouvelle architecture, `RCTInputAccessoryComponentView.mm`) : la vue se rattache UNE SEULE FOIS, à son entrée
+ * dans la fenêtre (`didMoveToWindow`), au PREMIER `TextInput` de la fenêtre portant son `nativeID`, et ne se rattache plus jamais
+ * ensuite. L'essai du 19/10 partageait une seule barre entre tous les champs (même identifiant) et la montait avant le champ Charge
+ * (révélé par « Avec ») : aucun champ, ou un seul, n'était rattaché. Ici, chaque champ porte SA barre, d'identifiant unique
+ * (`useId`), montée et démontée avec lui, juste après son `TextInput` : le rattachement a lieu avant tout focus.
+ *
+ * Contenu : fourni par l'écran hôte (`KeyboardAccessoryContext`, élément `KeyboardAccessoryBar` en mode `attached`), le même pour
+ * tous les champs ; il porte l'état du champ actif. Toujours rendu (jamais vide) : la hauteur de la barre est connue d'iOS dès le
+ * focus et ne change pas ensuite (pas de saut du clavier). Les copies des champs inactifs sont masquées à l'accessibilité et sans
+ * identifiants de test (`KeyboardBarCopyContext`) : seule la barre du champ actif est désignée.
+ * `withText` : la barre accompagne aussi les champs texte (libellés des phases de la fiche Mouvement).
+ */
+export type KeyboardAccessorySource = { readonly bar: ReactNode; readonly withText: boolean };
+export const KeyboardAccessoryContext = createContext<KeyboardAccessorySource | null>(null);
+/** Copie de la barre portée par un champ inactif (non affichée tant que ce champ n'a pas le focus). */
+const KeyboardBarCopyContext = createContext(false);
+
+/**
+ * Identifiant `inputAccessoryViewID` à poser sur le `TextInput` du champ et barre native à rendre JUSTE APRÈS lui (même parent).
+ * Hors iOS, hors hôte (`KeyboardAccessoryContext` absent) ou champ texte sans `withText` : rien (`undefined`, `null`).
+ */
+export function useAttachedKeyboardBar(active: boolean, text = false): { readonly id: string | undefined; readonly accessory: ReactNode } {
+  const source = useContext(KeyboardAccessoryContext);
+  const id = `keyboard-bar-${useId()}`;
+  if (source === null || Platform.OS !== "ios" || (text && !source.withText)) return { id: undefined, accessory: null };
+  return {
+    id,
+    accessory: (
+      <InputAccessoryView key={id} nativeID={id} backgroundColor={BAR_BACKGROUND}>
+        <View accessibilityElementsHidden={!active} importantForAccessibility={active ? "auto" : "no-hide-descendants"}>
+          <KeyboardBarCopyContext.Provider value={!active}>{source.bar}</KeyboardBarCopyContext.Provider>
+        </View>
+      </InputAccessoryView>
+    ),
+  };
+}
+
 /** Décalage de la barre au-dessus du bas de sa zone : hauteur du clavier qui recouvre cette zone. */
 export function keyboardBarLift(frame: KeyboardFrame, containerBottom: number): number {
   return Math.max(0, containerBottom - frame.screenY);
@@ -134,7 +180,13 @@ export function KeyboardAccessoryBar({
   sign = null,
   option = null,
   animated = false,
+  attached = false,
 }: {
+  /**
+   * Recette du 26/11/2026 (soir) : barre rendue dans l'`InputAccessoryView` du champ (`useAttachedKeyboardBar`) — iOS la place et
+   * l'anime avec le clavier ; ni position, ni translation, ni mesure de hauteur ici (`keyboardFrame`, `containerBottom` ignorés).
+   */
+  attached?: boolean;
   /**
    * Barre animée : option placée à gauche de « Précédent » (premier emplacement), par exemple « Sans limite » du temps limite d'un
    * Circuit For time (recette iPhone du 06/11/2026, w-circuit-duree, Hermann : « Il faut ajouter l'option "Sans limite" sur la barre
@@ -145,12 +197,12 @@ export function KeyboardAccessoryBar({
   animated?: boolean;
   /** Hermann, 04/11/2026 : « l'incrément de charge peut être négatif » ; bouton ± dans la barre du clavier ; « Arrêter à 0 — Les séries concernées passent sans charge (0), une simple mention en gris sous la ligne, sans alerte ni blocage : "sans charge à partir de la série X" » : « ± » inverse le signe de la case (incrément de charge EMOM). */
   sign?: { readonly negative: boolean; readonly onPress: () => void } | null;
-  keyboardFrame: KeyboardFrame;
+  keyboardFrame?: KeyboardFrame;
   /** Bas de la zone de la `Modal` qui contient la barre (coordonnées de la fenêtre). */
-  containerBottom: number;
+  containerBottom?: number;
   reduceMotion: boolean;
   /** Hauteur mesurée (texte agrandi : jamais rognée), pour la révélation de la ligne active. */
-  onHeight: (height: number) => void;
+  onHeight?: (height: number) => void;
   canPrevious: boolean;
   canNext: boolean;
   onPrevious: () => void;
@@ -171,14 +223,18 @@ export function KeyboardAccessoryBar({
     readonly onReopen: () => void;
   } | null;
 }) {
-  const lift = keyboardBarLift(keyboardFrame, containerBottom);
+  // Copie d'un champ inactif (barre rattachée) : aucun identifiant de test.
+  const copy = useContext(KeyboardBarCopyContext);
+  const tid = (id: string) => (copy ? undefined : id);
+  const frameDuration = keyboardFrame?.duration ?? 0;
+  const lift = attached || keyboardFrame === undefined ? 0 : keyboardBarLift(keyboardFrame, containerBottom ?? 0);
   // Première montée : la barre part de sous le bas de sa zone, comme une barre native.
-  const [translateY] = useState(() => new Animated.Value(reduceMotion ? -lift : BAR_HEIGHT));
+  const [translateY] = useState(() => new Animated.Value(reduceMotion || attached ? -lift : BAR_HEIGHT));
   const firstRef = useRef(true);
   useEffect(() => {
     const first = firstRef.current;
     firstRef.current = false;
-    const duration = reduceMotion ? 0 : keyboardFrame.duration > 0 ? keyboardFrame.duration : first ? BAR_FALLBACK_DURATION_MS : 0;
+    const duration = reduceMotion || attached ? 0 : frameDuration > 0 ? frameDuration : first ? BAR_FALLBACK_DURATION_MS : 0;
     if (duration === 0) {
       translateY.stopAnimation();
       translateY.setValue(-lift);
@@ -187,7 +243,7 @@ export function KeyboardAccessoryBar({
     const animation = Animated.timing(translateY, { toValue: -lift, duration, easing: BAR_EASING, useNativeDriver: true });
     animation.start();
     return () => animation.stop();
-  }, [translateY, lift, keyboardFrame.duration, reduceMotion]);
+  }, [translateY, lift, frameDuration, reduceMotion, attached]);
   // D-434 ; B9 : largeur de la barre et largeurs naturelles des libellés complets de Précédent et Suivant.
   const [barWidth, setBarWidth] = useState(0);
   const [labelWidths, setLabelWidths] = useState<{ readonly previous: number; readonly next: number }>({ previous: 0, next: 0 });
@@ -262,7 +318,7 @@ export function KeyboardAccessoryBar({
       accessibilityState={options.selected === undefined ? { disabled: !enabled } : { disabled: !enabled, selected: options.selected }}
       hitSlop={BAR_BUTTON_HIT_SLOP}
       style={[styles.slot, styles.button, options.primary ? styles.buttonPrimary : null, enabled ? null : styles.disabled]}
-      testID={testID}
+      testID={tid(testID)}
     >
       <Text style={[styles.label, options.selected ? styles.labelSelected : null, options.primary ? styles.labelPrimary : null]}>
         {label}
@@ -276,16 +332,17 @@ export function KeyboardAccessoryBar({
         const { width } = event.nativeEvent.layout;
         setLabelWidths((current) => (current[key] === width ? current : { ...current, [key]: width }));
       }}
-      testID={`execution-sheet-keyboard-bar-measure-${key}`}
+      testID={tid(`execution-sheet-keyboard-bar-measure-${key}`)}
     >
       <Text style={styles.label}>{label}</Text>
     </View>
   );
   return (
     <Animated.View
-      style={[styles.host, { transform: [{ translateY }] }]}
-      onLayout={(event) => onHeight(event.nativeEvent.layout.height)}
-      testID="execution-sheet-keyboard-bar-host"
+      // Barre rattachée (`attached`) : dans le flux de l'`InputAccessoryView`, sans position ni translation.
+      style={attached ? null : [styles.host, { transform: [{ translateY }] }]}
+      onLayout={(event) => onHeight?.(event.nativeEvent.layout.height)}
+      testID={tid("execution-sheet-keyboard-bar-host")}
     >
       {/* D-434 ; B9 : mesure hors écran des libellés complets de Précédent et Suivant. */}
       <View
@@ -293,7 +350,7 @@ export function KeyboardAccessoryBar({
         pointerEvents="none"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
-        testID="execution-sheet-keyboard-bar-measure"
+        testID={tid("execution-sheet-keyboard-bar-measure")}
       >
         {measureLabel(labels.previous, "previous")}
         {measureLabel(labels.next, "next")}
@@ -304,11 +361,11 @@ export function KeyboardAccessoryBar({
           const { width } = event.nativeEvent.layout;
           setBarWidth((current) => (current === width ? current : width));
         }}
-        testID="execution-sheet-keyboard-bar"
+        testID={tid("execution-sheet-keyboard-bar")}
       >
         {animated ? (
           // Quatre emplacements fixes ; unités, ± et flèches apparaissent, disparaissent et se déplacent en fondu lent.
-          <View style={styles.unitsRow} testID="keyboard-units">
+          <View style={styles.unitsRow} testID={tid("keyboard-units")}>
             <Animated.View pointerEvents={hasUnits ? "box-none" : "none"} style={[styles.layer, { opacity: anim.units }]} accessibilityElementsHidden={!hasUnits} importantForAccessibility={hasUnits ? "auto" : "no-hide-descendants"}>
               {(["REPETITIONS", "DURATION"] as const).map((mode) => {
                 const isCurrent = shownCurrent === mode;
@@ -337,7 +394,7 @@ export function KeyboardAccessoryBar({
                       accessibilityState={{ disabled: !enabled, selected: isCurrent }}
                       hitSlop={BAR_BUTTON_HIT_SLOP}
                       style={[styles.unitButton, styles.button, allowed || units === null ? null : styles.disabled]}
-                      testID={mode === "DURATION" ? "keyboard-unit-duration" : "keyboard-unit-repetitions"}
+                      testID={tid(mode === "DURATION" ? "keyboard-unit-duration" : "keyboard-unit-repetitions")}
                     >
                       <Text style={[styles.label, isCurrent ? styles.labelSelected : null]}>{label}</Text>
                     </Pressable>
@@ -354,7 +411,7 @@ export function KeyboardAccessoryBar({
                 accessibilityState={{ disabled: !hasSign, selected: shownNegative }}
                 hitSlop={BAR_BUTTON_HIT_SLOP}
                 style={[styles.unitButton, styles.button]}
-                testID="keyboard-sign"
+                testID={tid("keyboard-sign")}
               >
                 {/* Recette iPhone du 26/11/2026 (soir, Hermann : « bouton clavier +/- : quand + est activé, le - est bleu clair, et
                     inversement quand - est activé le + est clair ») : « + » au-dessus du « − », le signe inactif en bleu clair (atténué).
@@ -383,7 +440,7 @@ export function KeyboardAccessoryBar({
                 accessibilityState={{ disabled: !canPrevious }}
                 hitSlop={BAR_BUTTON_HIT_SLOP}
                 style={[styles.unitButton, styles.button]}
-                testID="execution-sheet-keyboard-previous"
+                testID={tid("execution-sheet-keyboard-previous")}
               >
                 <Text style={styles.label}>{compact ? labels.previousArrow : labels.previous}</Text>
               </Pressable>
@@ -397,7 +454,7 @@ export function KeyboardAccessoryBar({
                 accessibilityState={{ disabled: !canNext }}
                 hitSlop={BAR_BUTTON_HIT_SLOP}
                 style={[styles.unitButton, styles.button]}
-                testID="execution-sheet-keyboard-next"
+                testID={tid("execution-sheet-keyboard-next")}
               >
                 <Text style={styles.label}>{compact ? labels.nextArrow : labels.next}</Text>
               </Pressable>
@@ -414,7 +471,7 @@ export function KeyboardAccessoryBar({
             accessible={false}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
-            testID="execution-sheet-keyboard-failure-slot"
+            testID={tid("execution-sheet-keyboard-failure-slot")}
           />
         ) : (
           button(labels.failure, labels.failure, true, failure.onPress, "execution-sheet-keyboard-failure", {

@@ -201,9 +201,10 @@ describe("D-607 (D-572 point 1) — le clavier ne masque jamais le champ saisi",
     showExecutionSheetKeyboard();
     expect(query("execution-sheet-keyboard-room")).toBeNull();
     expect(query("execution-sheet-keyboard-bar-room")).toBeNull();
-    // Feuille non mesurée (aucune place libre connue) : tout le clavier (haut à 500), moins la marge de sécurité (34), plus la barre et
-    // sa marge (64), devient marge de défilement.
-    expect(body().contentInset).toEqual({ bottom: Dimensions.get("window").height - 500 - 34 + 64 });
+    // Feuille non mesurée (aucune place libre connue) : tout le clavier (haut à 500), moins la marge de sécurité (34), plus la marge de
+    // révélation (12), devient marge de défilement. Recette du 26/11/2026 (soir) : la barre est rattachée au clavier natif, comprise
+    // dans son cadre. [Attente remplacée : « plus la barre et sa marge (64) ».]
+    expect(body().contentInset).toEqual({ bottom: Dimensions.get("window").height - 500 - 34 + 12 });
     fireEvent(get("execution-sheet-load-input-input"), "blur");
     hideExecutionSheetKeyboard();
     expect(body().contentInset).toEqual({ bottom: 0 });
