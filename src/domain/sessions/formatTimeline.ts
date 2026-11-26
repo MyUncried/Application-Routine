@@ -15,7 +15,7 @@
  */
 
 import { formatPrimeDuration } from "../activities/durationFormat";
-import { amrapRoundTarget, forTimeInSequence, hasChosenBuyIn, movementRole, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
+import { amrapRoundTarget, forTimeInSequence, hasChosenBuyIn, movementRole, strengthSeriesCount, type FormatModelKey, type ModelAnswers, type ModelExecution, type ModelMovement } from "./formatModels";
 
 export type TimelineBlock =
   | {
@@ -198,7 +198,9 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
         const own = movement.values.repetitions !== undefined ? movement.values.repetitions : (movement.values.mode ?? "REPETITIONS") === "REPETITIONS" ? (answers.repetitions ?? null) : null;
         return own === null ? "—" : objectiveLabel(movement, own);
       };
-      const lists = movements.map((item, movement) => Array.from({ length: n }, () => work(movement, count === 1 && label === null ? null : labelOf(item))));
+      // Renforcement (recette du 26/11/2026 après-midi) : nombre de séries propre à chaque mouvement (commun en alternance).
+      const seriesOf = (item: ModelMovement) => (key === "STRENGTH" ? strengthSeriesCount(answers, item.values, execution === "ALTERNATED") : n);
+      const lists = movements.map((item, movement) => Array.from({ length: seriesOf(item) }, () => work(movement, count === 1 && label === null ? null : labelOf(item))));
       if (count === 1 && label === null) return { blocks: generic(n).map((block) => ({ ...block, movement: 0 })), end: duration, legendRecovery: false };
       const recovery = key === "TABATA" && several && execution === "SEQUENCE" && (answers.recoveryBetweenSeconds ?? 0) > 0;
       // Tabata, 30/30 (constat c du 16/11/2026) : hauteur selon l'objectif de chaque mouvement (sa durée de travail, ou ses répétitions).

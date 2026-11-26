@@ -60,6 +60,7 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     // « — » (Mode, Changement de côté, Cible non renseignés) : jamais lue « tiret ».
     unsetSpoken: "no value",
     series: "Sets",
+    seriesCountRow: "Number of sets",
     seriesSingular: "set",
     seriesPlural: "sets",
     // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44) : ligne « Type de série » (Variables à

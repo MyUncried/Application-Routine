@@ -114,15 +114,18 @@ export type CellBinding = (key: string) => {
   readonly sign?: 1 | -1;
 };
 
-/** Clé de cellule : `genre-ligne-colonne` (obj : objectif, inc : par tour, load : charge, start, sinc, pause). */
-export type CellKind = "obj" | "inc" | "load" | "linc" | "start" | "sinc" | "pause";
+/**
+ * Clé de cellule : `genre-ligne-colonne` (obj : objectif, inc : par tour, load : charge, start, sinc, pause ; ser : nombre de séries du
+ * mouvement, Renforcement, recette du 26/11/2026 après-midi).
+ */
+export type CellKind = "obj" | "inc" | "load" | "linc" | "start" | "sinc" | "pause" | "ser";
 
 export function cellKey(kind: CellKind, row: number, column = 0): string {
   return `${kind}-${row}-${column}`;
 }
 
 export function parseCellKey(key: string): { readonly kind: CellKind; readonly row: number; readonly column: number } | null {
-  const match = /^(obj|inc|load|linc|start|sinc|pause)-(\d+)-(\d+)$/u.exec(key);
+  const match = /^(obj|inc|load|linc|start|sinc|pause|ser)-(\d+)-(\d+)$/u.exec(key);
   return match === null ? null : { kind: match[1] as CellKind, row: Number(match[2]), column: Number(match[3]) };
 }
 
@@ -200,6 +203,8 @@ export function tableCellOrder(model: FormatModelKey, movements: readonly ModelM
       case "STRENGTH":
       case "UNTIL_FAILURE":
         // Formats à tableau, écran unique (15/11/2026) : tableau dès un mouvement. [À partir de deux mouvements — remplacé.]
+        // Renforcement (recette du 26/11/2026 après-midi) : la colonne « Séries » vient en premier.
+        if (model === "STRENGTH") order.push(cellKey("ser", row));
         if (model !== "UNTIL_FAILURE") order.push(cellKey("obj", row));
         order.push(cellKey("pause", row));
         if (charged(values)) order.push(cellKey("load", row));
@@ -300,8 +305,14 @@ export function TableCell({
   load = false,
   pending = false,
   fit = false,
+  alignRight = false,
   testID,
 }: {
+  /**
+   * Recette iPhone du 26/11/2026 (après-midi, Hermann : « La dernière colonne du tableau est alignée à droite ») : texte calé à droite
+   * de la case (dernière colonne des tableaux Tabata, 30/30, HIIT, Renforcement, Death by).
+   */
+  readonly alignRight?: boolean;
   /**
    * Charge d'un tableau (recette du 08/11/2026 soir, e-emom-focus et e-tabata-kg, Hermann : « 12,25 kg est rogné ») : style de
    * tableau, largeur du texte. Au repos, texte à sa largeur naturelle, sans cadre (peut dépasser la colonne de part et d'autre) ; en
@@ -398,6 +409,7 @@ export function TableCell({
     (active || focused) && !(pending && !disabled) ? valueFieldStyles.active : null,
     fit && (active || focused) ? styles.tableChargeFocus : null,
     focused && kind === "duration" && entry.text === "" ? styles.cellGuide : null,
+    alignRight ? styles.cellAlignRight : null,
   ];
   const sizerText = shown === "" ? (placeholder ?? t().dash) : shown;
   const input = (
@@ -1367,6 +1379,7 @@ const styles = StyleSheet.create({
   },
   failureText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", color: valueFieldColors.readOnly },
   fieldSlot: { alignItems: "center" },
+  cellAlignRight: { textAlign: "right" },
   // Cellule de tableau : cadre de 44 × 24, rayon 10, marge horizontale 0, sans fond une fois remplie (A §4.5, B §4.5).
   tableField: { height: TABLE_LAYOUT.cellHeight, minHeight: TABLE_LAYOUT.cellHeight, paddingHorizontal: 0, backgroundColor: "transparent" },
   // Charge : « (12 kg) », Inter Regular 11, bleu, hauteur 13, sans cadre (A §4.4, B §4.4).

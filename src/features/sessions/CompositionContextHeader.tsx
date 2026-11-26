@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { spokenDurations } from "@/domain/activities/durationFormat";
 import type { Label } from "@/domain/labels/Label";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
-import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, spacing, type } from "@/shared/ui/tokens";
@@ -273,10 +272,16 @@ const styles = StyleSheet.create({
   },
   // Figma `8328:28618` : Inter Regular 14, `text-tertiary`. Revue 5.1b : s'abrège (ellipse) sur un
   // écran étroit plutôt que de passer sous les commandes.
+  // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Zone de contexte : la durée totale est alignée à droite, en texte noir ») :
+  // poussée au bord droit de la colonne (la rangée dépasse de `CONTEXT_COMMAND_INSET`), `text-primary`. [`text-tertiary`, à la suite
+  // de la puce Étiquette — remplacé.]
   sessionDuration: {
     ...type.body,
-    color: TEXT_TERTIARY,
+    color: colors.textPrimary,
     flexShrink: 1,
     minWidth: 0,
+    marginLeft: "auto",
+    marginRight: CONTEXT_COMMAND_INSET,
+    textAlign: "right",
   },
 });

@@ -1424,6 +1424,16 @@ export function ExecutionScreen({
             </ExecutionCornerBadge>
           </Fade>
         ) : null}
+        {/* Recette iPhone du 26/11/2026 (après-midi, Hermann, « Exécution d'un exercice — démarrée » : « Ajouter la quatrième forme
+            d'angle, en bas à gauche du cadran, symétrique de celle du bas à droite (sans contenu) ») : coin du bas à gauche vide, posé
+            quand celui du bas à droite est affiché et qu'aucune information n'occupe le bas à gauche. */}
+        {ringAreaWidth !== null && corners.BOTTOM_RIGHT !== null && corners.BOTTOM_LEFT === null ? (
+          <View style={styles.badgeLayer} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="execution-corner-empty-bottom-left">
+            <ExecutionCornerBadge {...badgePlacement("BOTTOM_LEFT")} areaWidth={ringAreaWidth}>
+              {null}
+            </ExecutionCornerBadge>
+          </View>
+        ) : null}
         {onDurationZone !== null ? (
           <Pressable
             style={StyleSheet.absoluteFill}
