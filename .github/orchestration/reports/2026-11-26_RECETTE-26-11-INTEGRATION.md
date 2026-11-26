@@ -64,3 +64,11 @@ Voir les rapports de chaque paquet.
 ## Commit final et état Git
 
 Renseignés dans le message de livraison.
+
+## Réponses de Hermann (26/11/2026) aux interprétations du paquet FORMATS
+
+1. Durée totale alignée à droite en noir = durée de la séance dans la zone de contexte de la Composition : **oui** (implémenté tel quel).
+2. Renforcement en alternance, nombre de séries propre à chaque mouvement : **non** — nombre de séries commun (implémenté tel quel).
+3. Accroche du Superset à partir de 3 mouvements « … récupération après le tour » : **oui** (implémenté tel quel).
+4. Forme d'angle vide en bas à gauche seulement quand celle du bas à droite est affichée : **ok** (implémenté tel quel).
+Aucune modification de code ; les compléments du registre (D-607, D-608) restent valables.
