@@ -638,6 +638,11 @@ export const fr = {
       applyPicked: "Valider la sélection",
       supersetLimitMessage: "Le Superset enchaîne deux exercices. Retirez-en un pour en choisir un autre.",
       supersetLimitAcknowledge: "J’ai compris",
+      // D-572 (Hermann, 25/11/2026 ; Formats § 9.9) : « + Ajouter » devient « + Modifier » dès qu’un mouvement est choisi ; cinq
+      // mouvements au plus par format (message sur le modèle de celui du Superset).
+      editMovements: "+ Modifier",
+      formatLimitTitle: "Cinq mouvements au maximum",
+      formatLimitMessage: "Un format compte au plus cinq mouvements. Retirez-en un pour en choisir un autre.",
       noSearchResult: "Aucun résultat",
       variableConfirmCancel: "Annuler",
       // Correction 2 de Hermann du 14/11/2026 (For time) : ligne d'un bloc buy-in ou buy-out, « Sans » ou un nombre de séries.

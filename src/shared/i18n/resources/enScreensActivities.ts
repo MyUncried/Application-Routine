@@ -311,6 +311,10 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
     applyPicked: "Confirm selection",
     supersetLimitMessage: "A Superset links two exercises. Remove one to choose another.",
     supersetLimitAcknowledge: "Got it",
+    // D-572 (25/11/2026; Formats § 9.9): “+ Add” becomes “+ Edit” once a movement is chosen; five movements at most per format.
+    editMovements: "+ Edit",
+    formatLimitTitle: "Five movements max",
+    formatLimitMessage: "A format holds five movements at most. Remove one to choose another.",
     noSearchResult: "No results",
     variableConfirmCancel: "Cancel",
     // Correction 2 de Hermann du 14/11/2026 (For time) : ligne d'un bloc buy-in ou buy-out, « Sans » ou un nombre de séries.
