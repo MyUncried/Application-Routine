@@ -19,7 +19,8 @@
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true
         }
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +29,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.ankusha.kodjo"
     },
     "web": {
       "output": "static",
@@ -69,7 +71,8 @@
           "recordAudioAndroid": false,
           "enableBackgroundPlayback": true
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ],
     "locales": {
       "fr": "./locales/fr.json",

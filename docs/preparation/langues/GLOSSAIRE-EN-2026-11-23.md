@@ -53,3 +53,22 @@
 | Suivi de la douleur | Pain tracking | — | |
 | Créer / Enregistrer / Annuler / Confirmer / Valider | Create / Save / Cancel / Confirm / Done | — | |
 | Vouvoiement (« Appuyez », « Vos résultats ») | « you » neutre, impératif direct (« Tap », « Your results ») | — | |
+
+## Complément validé par Hermann le 24/11/2026 (Programmes, Planification, Confidentialité)
+
+Texte d'origine : « Planification → Schedule. Rattacher → Attach. Hors planification → Unscheduled. Objectif d'un programme → Goal. Pseudo → Username. Relevés → readings. Numéro de semaine S12 → W12. Heures au format « 8:00 ». Il manque AM / PM ».
+
+| Français | Anglais validé |
+|---|---|
+| Planification / Planifier | Schedule |
+| Rattacher | **Attach** (partout ; « Add » écarté) |
+| Hors planification | Unscheduled |
+| Objectif (d'un programme) | Goal |
+| Pseudo | Username |
+| Relevés (douleur) | Readings |
+| Numéro de semaine « S12 » | W12 |
+| Heures | **Horloge de 12 heures avec AM / PM** : « 8:00 AM », « 6:30 PM » ; dans le Plan, heure pleine « 8 AM » |
+
+[Précisé le 24/11/2026 — choix « A » de Hermann (« quelle est la norme ? » ; « A ») : l'horloge suit le **réglage 12 / 24 heures de l'iPhone**, quelle que soit la langue (norme iOS). Sur 12 heures : « 8:00 AM », roulette 1–12 + AM / PM. Sur 24 heures : format de la langue (« 8h30 » en français, « 08:30 » en anglais), roulette 0–23.]
+
+Les autres lignes ajoutées le 24/11 dans la feuille en ligne (catégories, zones, Confidentialité, etc.) restent à valider.

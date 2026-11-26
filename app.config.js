@@ -29,6 +29,8 @@ function variantConfig() {
         ...base.expo.ios,
         bundleIdentifier: 'com.ankusha.kodjo.catalogue',
       },
+      // T1 Compte : identifiant Android identique à l'identifiant iOS (Hermann, 25/11/2026).
+      android: { ...base.expo.android, package: 'com.ankusha.kodjo.catalogue' },
       plugins: [...base.expo.plugins, ['expo-dev-client', { addGeneratedScheme: false }]],
     };
   }
@@ -42,6 +44,7 @@ function variantConfig() {
         icon: './assets/variants/bmad/icon.png',
         bundleIdentifier: 'com.ankusha.kodjo.bmad',
       },
+      android: { ...base.expo.android, package: 'com.ankusha.kodjo.bmad' },
       plugins: [...base.expo.plugins, ['expo-dev-client', { addGeneratedScheme: false }]],
     };
   }
@@ -52,6 +55,7 @@ function variantConfig() {
       ...base.expo.ios,
       bundleIdentifier: isDevelopmentVariant ? 'com.ankusha.kodjo.dev' : 'com.ankusha.kodjo',
     },
+    android: { ...base.expo.android, package: isDevelopmentVariant ? 'com.ankusha.kodjo.dev' : 'com.ankusha.kodjo' },
   };
 }
 

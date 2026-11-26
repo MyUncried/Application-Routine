@@ -65,6 +65,28 @@ function deviceLocales(): readonly DeviceLocale[] {
   }
 }
 
+/**
+ * J1.8 (24/11/2026, choix « A » de Hermann : suivre la norme iOS) : horloge de 24 heures ou de 12 heures (AM / PM)
+ * selon le réglage de l'iPhone (Réglages › Général › Date et heure), quelle que soit la langue. À défaut du module
+ * natif, le format horaire de la région (`Intl`), sinon 24 heures.
+ */
+function deviceUses24HourClock(tag: string): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- chargement à la demande, tolérant à l'absence du module natif
+    const { getCalendars } = require("expo-localization") as typeof import("expo-localization");
+    const value = getCalendars()[0]?.uses24hourClock;
+    if (typeof value === "boolean") return value;
+  } catch {
+    // Module natif absent : repli ci-dessous.
+  }
+  try {
+    const hour12 = new Intl.DateTimeFormat(tag, { hour: "numeric" }).resolvedOptions().hour12;
+    return hour12 !== true;
+  } catch {
+    return true;
+  }
+}
+
 const locales = deviceLocales();
 
 /** Langue de l'interface pour toute la session. */
@@ -72,3 +94,6 @@ export const appLanguage: AppLanguage = resolveLanguage(locales);
 
 /** Balise régionale pour les formats et la voix (`fr-FR`, `en-GB`…). */
 export const appLocaleTag: string = resolveLocaleTag(locales, appLanguage);
+
+/** Horloge de 24 heures (`true`) ou de 12 heures avec AM / PM (`false`), selon le réglage de l'iPhone. */
+export const appUses24HourClock: boolean = deviceUses24HourClock(appLocaleTag);

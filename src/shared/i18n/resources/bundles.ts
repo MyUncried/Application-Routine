@@ -3,6 +3,7 @@
  * sa forme définit les clés. L'anglais est complet (repli, règle 3 de « Gestion des langues », ch. 07) ; une
  * langue ajoutée plus tard peut être partielle, l'anglais complète alors ses clés absentes.
  */
+import { account as enAccount } from "./enAccount";
 import { en as enBase } from "./en";
 import { execution as enExecution, voice as enVoice } from "./enExecution";
 import { executionParameters as enExecutionParameters } from "./enExecutionParameters";
@@ -10,6 +11,7 @@ import { libraries as enLibraries } from "./enLibraries";
 import { planning as enPlanning } from "./enPlanning";
 import { programs as enPrograms } from "./enPrograms";
 import { fr } from "./fr";
+import { account } from "./frAccount";
 import { execution, voice } from "./frExecution";
 import { executionParameters } from "./frExecutionParameters";
 import { libraries } from "./frLibraries";
@@ -19,7 +21,7 @@ import type { Widen } from "./types";
 
 export type { Widen } from "./types";
 
-export const frBundle = { ...fr, executionParameters, execution, voice, libraries, programs, planning };
+export const frBundle = { ...fr, executionParameters, execution, voice, libraries, programs, planning, account };
 
 export type StringBundle = Widen<typeof frBundle>;
 
@@ -40,4 +42,5 @@ export const enBundle: StringBundle = {
   libraries: enLibraries,
   programs: enPrograms,
   planning: enPlanning,
+  account: enAccount,
 };

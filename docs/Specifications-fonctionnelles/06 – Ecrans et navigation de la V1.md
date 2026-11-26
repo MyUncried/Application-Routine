@@ -3618,3 +3618,7 @@ Rendu et gestes : [DSF Plan](../DSF-PLAN-2026-11-21.md). Remplace l'écran « P-
 ### Complément du 22/11/2026 — bouton flottant « Créer » (D-558)
 
 Les écrans des catalogues, du Journal, de l'Agenda et de la composition de séance portent le bouton flottant (composant `13039:49732`) ; leur bouton de création de la zone de contexte est retiré. Écran du menu : « Composition séance — Créer (menu) » `10705:20223`. Voir [DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md).
+
+## Compte — porte d'entrée (T1, 25/11/2026)
+
+Classe B, décisions CPT-02 et CPT-16. Au lancement, tant qu'aucun compte n'est rattaché au téléphone, ou si une nouvelle connexion est requise, l'écran de connexion É1 (CE-CPT-01) remplace la navigation principale. Une fois le compte rattaché, l'application s'ouvre directement, hors ligne compris. La section Compte (CE-CPT-02) se trouve dans l'onglet Compte du Profil, écran « Modifier le profil ».

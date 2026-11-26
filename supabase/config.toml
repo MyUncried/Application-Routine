@@ -1,0 +1,32 @@
+# KODJO — configuration Supabase versionnée (T1 Compte). Aucun secret : voir supabase/README.md.
+project_id = "kodjo"
+
+[auth]
+site_url = "routine://"
+additional_redirect_urls = ["routine://auth/callback", "routine-bmad://auth/callback", "routine-catalogue://auth/callback"]
+
+[auth.external.apple]
+enabled = true
+# Services ID en premier : utilisé par la connexion web (Android) ; puis bundles iOS (connexion native).
+client_id = "com.ankusha.kodjo.signin,com.ankusha.kodjo,com.ankusha.kodjo.dev,com.ankusha.kodjo.bmad,com.ankusha.kodjo.catalogue"
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
+
+[functions.delete-account]
+verify_jwt = true
+
+[functions.apple-token]
+verify_jwt = true
+
+# Appelée sans session (preuve par reçu ou identifiant local).
+[functions.deletion-status]
+verify_jwt = false
+
+# Appelée par Apple (JWS vérifié dans la fonction) et par la planification (clé de service vérifiée).
+[functions.apple-notifications]
+verify_jwt = false

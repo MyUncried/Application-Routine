@@ -6440,3 +6440,45 @@ Sur les catalogues, le Journal, l'Agenda et la composition de séance, la créat
 - en composition, le menu Créer s'ouvre vers le haut, avec quatre options [complété le 24/11/2026, D-594 : vers le bas quand il n'y a pas la place au-dessus].
 
 L'Agenda crée un créneau unique au jour sélectionné ; le Plan n'a pas de bouton flottant.
+
+## Compte — T1 (25/11/2026)
+
+Classe B. Décisions CPT-02, CPT-13 à CPT-16, CPT-29 et CPT-32 (chapitre 07, « Gestion de compte — premier lot »). Plan : `_bmad-output/compte/plan-lot-compte.md`. Aucune frame Figma : les textes sont ceux validés par Hermann.
+
+**CE-CPT-01 — É1, écran de connexion (porte d'entrée)**
+- **Quand** : il s'affiche tant qu'aucun compte n'est rattaché au téléphone, ou si une nouvelle connexion est requise (`REAUTH_REQUIRED`). Un compte rattaché ouvre l'application, hors ligne compris.
+- **Mise en page** : même fond et même logo que l'écran de démarrage.
+  - Titre : « Bienvenue dans KODJO ».
+  - Texte : « Connectez-vous pour créer vos séances et partager vos mouvements. »
+  - Variante pour une installation existante : « Vos séances et votre historique restent sur ce téléphone et seront rattachés à votre compte. »
+- **Boutons** : deux boutons de même taille.
+  - iOS : « Continuer avec Apple », bouton natif d'Apple, puis « Continuer avec Google ».
+  - Android : Google en premier, puis Apple.
+- **Lien** : « Politique de confidentialité ». Il est masqué tant que son adresse n'est pas publiée.
+- **États** :
+  - sans réseau : « Une connexion Internet est nécessaire pour vous connecter la première fois. » ;
+  - annulation : silencieuse ;
+  - erreur : alerte native « La connexion n'a pas abouti. Réessayez. »
+
+**CE-CPT-02 — É2, section Compte de « Modifier le profil »**
+- **Contenu** : « Connecté avec Apple » ou « Connecté avec Google », le nom (ligne absente si aucun nom n'a été fourni), l'e-mail (avec la mention « Adresse masquée par Apple » pour une adresse relais) et « Pseudo public », grisé jusqu'en T2.
+- **Action** : « Supprimer mon compte », en rouge.
+- **Absent** : aucun bouton de déconnexion (CPT-15).
+- **Remplacement** : [Remplacé le 25/11/2026 : carte grisée « Pseudo public » et « Accès au compte et connexion » (PROG-CAT-01, CE-PRF-01).]
+
+**CE-CPT-03 — É3, confirmation de suppression (alerte native)**
+- **Titre** : « Supprimer votre compte ? »
+- **Message** : texte CPT-16, avec le delta de CPT-29.
+- **Boutons** : « Annuler » et « Supprimer » (destructif).
+- **Pendant la suppression** : indicateur d'activité.
+- **Sans réseau** : « La suppression du compte nécessite une connexion Internet. »
+- **Autre échec** : « La suppression du compte n'a pas abouti. Réessayez plus tard. » Ce texte est **à valider**.
+- **Succès** : retour à É1. Les données du téléphone sont conservées.
+
+**CE-CPT-04 — É4, refus d'un autre compte (alerte native)**
+- **Titre** : « Ce téléphone appartient à un autre compte ».
+- **Message** : il nomme le fournisseur et l'e-mail du compte rattaché.
+
+**CE-CPT-05 — É4-R5, refus après suppression du compte (alerte native, CPT-32)**
+- **Titre** : « Ce téléphone contient les données d'un compte supprimé ».
+- **Message** : le texte validé, sans fournisseur ni e-mail.

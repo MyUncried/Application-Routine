@@ -7,13 +7,13 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 
 /** D-600 — migration 040 : vue retenue d'une photo (marquage des photos), colonnes additives nullables de `media_assets`. */
 describe("migration040 — vue retenue des photos", () => {
-  it("depuis la version 39 : assets existants conservés, sans vue (image entière), version 40", async () => {
+  it("depuis la version 39 : assets existants conservés, sans vue (image entière), version courante (41)", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database, undefined, 39);
     await database.runAsync("INSERT INTO media_assets (id, uri, created_at, kind) VALUES ('a1', 'kodjo-media/a1.jpg', 't', 'PHOTO')");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(40);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
+    expect(DATABASE_VERSION).toBe(42);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
     expect(await new SqliteMediaRepository(database).findAsset("a1")).toMatchObject({ uri: "kodjo-media/a1.jpg" });
   });
 

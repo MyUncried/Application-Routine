@@ -4,6 +4,7 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { strings } from "@/shared/i18n";
 import { appLocaleTag } from "@/shared/i18n/locale";
+import { clockTime } from "@/shared/i18n/format";
 
 /**
  * Formats de l'Agenda (D-533, DSF Agenda — Planning du 19/11/2026, CE-UI-15).
@@ -13,7 +14,7 @@ const t = strings.planning;
 /** DSF § 5 : heure « 8h00 », « 14h00 », sans zéro initial. */
 export function formatAgendaTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":");
-  return fillTemplate(t.time.compact, { hours: String(Number(hours)), minutes: minutes ?? "00" });
+  return clockTime(Number(hours), minutes ?? "00", t.time.compact(Number(hours), minutes ?? "00"));
 }
 
 /** DSF § 2, ligne 1 : « Novembre 2026 ». */

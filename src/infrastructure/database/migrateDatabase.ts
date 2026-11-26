@@ -40,8 +40,9 @@ import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
 import { applyMigration039 } from "./migrations/migration039";
-import { applyMigration040 } from "./migrations/migration040";
+import { applyMigration040, MIGRATION_040_MEDIA_VIEW } from "./migrations/migration040";
 import { applyMigration041 } from "./migrations/migration041";
+import { applyMigration042, MIGRATION_042_ACCOUNT } from "./migrations/migration042";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -415,6 +416,13 @@ export async function migrateDatabase(
       version = 41;
     }
 
+    // T1 Compte (25/11/2026, CPT-02, CPT-14, CPT-32) : lien de compte et état du rattachement, tables additives.
+    // Développée comme version 40 sur `compte/lot-1`, renumérotée 42 (intégration du 26/11/2026). Un échec laisse `user_version` à 41.
+    if (pending(41)) {
+      await applyMigration042(transaction);
+      version = 42;
+    }
+
     if (version !== targetVersion) {
       throw new Error(`Database migration stopped at version ${version} instead of ${targetVersion}.`);
     }
@@ -461,9 +469,24 @@ async function repairMissingTables(database: Database, version: number): Promise
       else if (index && missing(index[2] as string)) statements.push(statement.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS"));
     }
   }
-  if (statements.length === 0) return;
+  // Recette iPhone du 26/11/2026 (Routine BMAD : « no such table: account_link » avec une base en version 40) : la
+  // version 40 a aussi été prise par la branche du marquage des photos (PR #458, colonnes `view_*` de `media_assets`).
+  // Tables du compte absentes d'une base en version 40 ou plus : créées telles que 040 les crée (création idempotente).
+  if (version >= 40 && (missing("account_link") || missing("account_lifecycle"))) statements.push(MIGRATION_042_ACCOUNT);
+  // Cas symétrique (intégration du 26/11/2026) : base passée en version 40 par `compte/lot-1` (tables du compte), sans les
+  // colonnes de la vue retenue d'une photo (040 du marquage). Colonnes absentes : ajoutées telles que 040 les ajoute.
+  if (version >= 40 && !missing("media_assets")) {
+    const columns = await database.getAllAsync<{ name: string }>("PRAGMA table_info(media_assets)");
+    if (!columns.some((column) => column.name === "view_x")) statements.push(...MIGRATION_040_MEDIA_VIEW);
+  }
+  // Base passée en version 41 par la branche du compte (avant HIIT) : `CHECK` HIIT absents. La 041 est idempotente
+  // (colonne déjà élargie laissée telle quelle) : elle est rejouée si la clé HIIT manque.
+  const sessionsSql = (await database.getFirstAsync<{ sql: string | null }>("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'sessions'"))?.sql;
+  const hiitMissing = version >= 41 && typeof sessionsSql === "string" && sessionsSql.includes("origin") && !sessionsSql.includes("'HIIT'");
+  if (statements.length === 0 && !hiitMissing) return;
   await database.withExclusiveTransactionAsync(async (transaction) => {
     for (const statement of statements) await transaction.execAsync(statement);
+    if (hiitMissing) await applyMigration041(transaction);
   });
 }
 

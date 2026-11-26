@@ -461,6 +461,18 @@ Facebook n’est pas retenu comme besoin du MVP.
 
 Sans compte ni sauvegarde distante, la suppression de l’application ou la perte de l’appareil peut entraîner la perte de l’identité locale et des données associées.
 
+**Réalisation T1 Compte (25/11/2026, classe D).** Plan : `_bmad-output/compte/plan-lot-compte.md`.
+- **Serveur Supabase**, projet de développement à Paris, dossier `supabase/` :
+  - tables `accounts`, `account_local_users`, `catalogues`, `apple_tokens` (chiffré), `account_deletions` (registre conservé 90 jours) et `apple_notification_events` ;
+  - RLS sur toutes les tables ;
+  - rattachement par `link_account`, idempotent ;
+  - fonctions serveur `delete-account`, `deletion-status` (sans session, sur preuve), `apple-token` et `apple-notifications`.
+- **Application** :
+  - migration locale 040 (`account_link`, `account_lifecycle`) ; `users.id` n'est jamais réécrit, et un compte peut être rattaché à plusieurs Utilisateurs locaux, un par téléphone ;
+  - `AccountService` (domaine) et passerelle `SupabaseAccountGateway` : Apple natif sur iOS ; Apple sur Android et Google partout par page web, en PKCE ; sur iOS, page web en session privée (`preferEphemeralSession`, CPT-34) ;
+  - porte d'entrée `AccountGate` devant la pile d'écrans ;
+  - session persistée par `expo-sqlite/localStorage`.
+
 ## 12.8 Gestion de l’état
 
 Deux catégories d’état sont distinguées.

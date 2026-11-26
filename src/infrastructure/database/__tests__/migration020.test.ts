@@ -175,7 +175,7 @@ const tabataInput = (): StructuredSessionInput => ({
 
 describe("PRE-9 recette n° 3 — migration 020 (modèle d'origine d'un Circuit)", () => {
   it("version courante 20 ; clés figées = les dix modèles de la fenêtre Formats", () => {
-    expect(DATABASE_VERSION).toBe(41);
+    expect(DATABASE_VERSION).toBe(42);
     // D-608 : la 020 reste figée aux dix modèles ; la 041 y ajoute HIIT, égale aux modèles du domaine.
     expect([...MIGRATION_020_MODEL_KEYS, "HIIT"].sort()).toEqual([...FORMAT_MODEL_KEYS].sort());
     expect([...MIGRATION_041_MODEL_KEYS].sort()).toEqual([...FORMAT_MODEL_KEYS].sort());
