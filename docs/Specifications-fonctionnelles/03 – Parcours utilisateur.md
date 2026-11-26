@@ -609,7 +609,7 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 1. L’Exercice s’affiche sur la face Information.
 2. Si au moins un média existe, l’utilisateur touche le bouton de changement de face.
 3. La carte se retourne horizontalement et affiche la face Média.
-4. L’utilisateur parcourt les médias par swipe horizontal, un média par geste, dans l’ordre de la galerie.
+4. L’utilisateur parcourt les médias par swipe horizontal, un média par geste, dans l’ordre de la galerie. [Remplacé le 26/11/2026, D-576 : le glissé horizontal change de vue, jamais de média ; le changement de média se fait avec les flèches gauche/droite.]
 5. Une vidéo reste arrêtée tant que l’utilisateur n’appuie pas sur Lecture ; l’Exécution continue pendant sa lecture.
 6. Un appui sur le média ouvre le plein écran ; le cadre flottant conserve le nom, le côté, le chrono, Série/Tour et les commandes d’Exécution.
 7. Fermer le plein écran revient au même média. Retourner la carte revient à la face Information.

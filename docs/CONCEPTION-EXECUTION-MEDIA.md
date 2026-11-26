@@ -34,7 +34,7 @@ Ces frames matérialisent les états visuels. Les règles fonctionnelles ci-dess
 - Le bouton n’est affiché que si l’Exercice possède au moins un média.
 - L’appui déclenche un **retournement 3D horizontal**.
 - Information → Média et Média → Information utilisent des sens de rotation opposés.
-- Le changement de face s’effectue uniquement avec ce bouton ; le swipe horizontal n’est pas utilisé pour retourner la carte.
+- Le changement de face s’effectue uniquement avec ce bouton ; le swipe horizontal n’est pas utilisé pour retourner la carte. [Remplacé le 26/11/2026, D-576 : un glissé horizontal sur la zone concernée change de vue (cadran ↔ gros chiffres en haut ; infos ↔ média en bas) ; les boutons de bascule restent.]
 - Le bouton reste visible sur la face Média, au même emplacement fonctionnel.
 - Les deux faces occupent la même zone et leur bascule ne doit pas déplacer le reste de l’écran.
 
@@ -52,11 +52,11 @@ Cet état est transitoire et ne constitue pas une préférence utilisateur persi
 
 - Les médias sont présentés dans **l’ordre exact défini dans la galerie de l’Exercice**, sans réordonnancement par type.
 - Un seul média est visible à la fois.
-- Le passage au média précédent ou suivant se fait par **swipe horizontal simple, de type Tinder**.
+- Le passage au média précédent ou suivant se fait par **swipe horizontal simple, de type Tinder**. [Remplacé le 26/11/2026, D-576 : le glissé horizontal change de vue, jamais de média ; le changement de média se fait avec les flèches gauche/droite.]
 - Un geste ne change que d’un seul média.
 - Des indicateurs de pagination discrets signalent le nombre de médias et la position courante.
 - La galerie n’est pas circulaire.
-- Au premier ou au dernier média, un swipe au-delà de la borne produit un léger effet de résistance puis revient sur le même média.
+- Au premier ou au dernier média, un swipe au-delà de la borne produit un léger effet de résistance puis revient sur le même média. [Remplacé le 26/11/2026, D-576 : à la borne, la flèche correspondante est inactive.]
 - Image et vidéo sont affichées intégralement en conservant leur ratio ; aucun recadrage ne doit couper le contenu. Des marges sont admises.
 
 ## 6. Vidéo
@@ -70,7 +70,7 @@ Cet état est transitoire et ne constitue pas une préférence utilisateur persi
 - Lors d’une annonce vocale KODJO, le volume de la vidéo est temporairement abaissé puis restauré après l’annonce.
 - Si l’utilisateur retourne sur la face Information pendant la lecture, la vidéo est mise en pause. Un retour immédiat sur la face Média, sans avoir quitté l’Exercice, permet de reprendre la lecture.
 - Si l’utilisateur quitte l’Exercice puis y revient plus tard dans la même séance, la face et le média sont restaurés mais la vidéo ne redémarre pas automatiquement ; une nouvelle action Lecture est requise.
-- Un swipe vers un autre média met en pause la vidéo en cours ; le média atteint ne démarre pas automatiquement.
+- Un changement de média (flèche ; [swipe remplacé le 26/11/2026, D-576]) met en pause la vidéo en cours ; le média atteint ne démarre pas automatiquement.
 
 ## 7. Plein écran média
 
@@ -155,7 +155,7 @@ La conception est satisfaite lorsque :
 1. aucun bouton de bascule n’apparaît sans média ;
 2. la face Information est l’état initial d’une nouvelle séance ;
 3. face et média courant sont mémorisés uniquement pendant la séance ;
-4. le swipe change exactement d’un média ;
+4. [remplacé le 26/11/2026, D-576] la flèche change exactement d’un média ;
 5. l’ordre de galerie est respecté ;
 6. les bornes ne bouclent pas ;
 7. une vidéo n’autodémarre jamais ;

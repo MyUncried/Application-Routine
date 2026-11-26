@@ -284,3 +284,11 @@
 - Complément (suite 12, D-573 point 2) : titre de la modale sur deux lignes au lieu de « … » (composant d'en-tête, Figma) ; Progression : Durée totale après Exécution (Figma). Non traité : durée totale dans la zone de contexte (collision avec l'illustration, en attente d'arbitrage).
 - Complément (suite 13, D-575 point 4) : durée totale de la zone de contexte alignée à droite, en noir, devant l'illustration (132 occurrences dans Figma).
 - Complément (suite 14, D-575 point 3 bis) : Renforcement, nombre de séries propre à chaque mouvement « À la suite », commun et lié « En alternance » (décision de Hermann, 26/11/2026). Figma inchangé.
+
+## Complément 26/11/2026 (suite 15) — Exécution d'un exercice : permutation des vues et flèches média (D-576, classe B)
+- Décisions explicites de Hermann : glissé horizontal = changement de vue (haut et bas) ; boutons ⇄ conservés ; changement de média par flèches gauche/droite ; galerie à plusieurs médias conservée.
+- Documents : registre ch07 D-576 (D-203 annoté) ; CONCEPTION-EXECUTION-MEDIA §§ 4-5-6 et critère 4 annotés ; docs 03, 08 et PRODUCT annotés (texte d'origine conservé).
+- Figma : boutons ⇄ ajoutés sur « P-Exécution d'un exercice — Démarrée » ; flèches média précédent/suivant ajoutées dans les 12 variantes du composant « Zone d'exécution — retournements » (donc sur les écrans qui l'utilisent). Bouton Réglages (illustration Expo) retiré de 24 écrans.
+- Non traité : boutons ⇄ sur les autres écrans d'exécution (déploiement après validation de « Démarrée »).
+- Vérification sur iPhone à faire : seuil du glissé, absence de conflit avec le défilement.
+- Tests : non applicables.

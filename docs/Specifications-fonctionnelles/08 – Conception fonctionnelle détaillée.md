@@ -406,7 +406,7 @@ La zone d’information d’Exécution possède une face alternative Média lors
 
 ##### Galerie
 
-La Face Média restitue la galerie dans son ordre fonctionnel. Un swipe horizontal change d’un seul média. La galerie est bornée, non circulaire et matérialise ses bornes par un effet de résistance. Des indicateurs de pagination discrets donnent la position. Le média utilise un cadrage de type « contenir » : ratio conservé, contenu complet, marges admises.
+La Face Média restitue la galerie dans son ordre fonctionnel. Un swipe horizontal change d’un seul média. [Remplacé le 26/11/2026, D-576 : le glissé horizontal change de vue, jamais de média ; le changement de média se fait avec les flèches gauche/droite.] La galerie est bornée, non circulaire et matérialise ses bornes par un effet de résistance. Des indicateurs de pagination discrets donnent la position. Le média utilise un cadrage de type « contenir » : ratio conservé, contenu complet, marges admises.
 
 ##### Vidéo et audio
 
