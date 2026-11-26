@@ -158,6 +158,14 @@ Précise D-538 et D-539 :
 
 - Une occurrence prévue par la répétition d'une routine et supprimée depuis l'Agenda reste à son heure prévue : cadre et texte en gris, pastille « Supprimée » (gris) à la place de l'action.
 - Glisser la carte propose « Rétablir » tant que la date n'est pas passée.
+
+## Ligne « Ⓟ nom » d'un parcours glissée — 27/11/2026 (complément de D-553)
+
+- Recette iPhone du 26/11/2026 (soir), remarque d — Hermann : « Agenda, glissé gauche : doit aussi être actif pour les planifications de l'agenda. » Arbitrage du 27/11/2026 (option B).
+- La ligne « Ⓟ nom » se glisse vers la gauche selon la règle unique du glisser-pour-options et découvre « Dupliquer » (gris : duplique la Routine, comme ses cartes) et « Supprimer » (rouge : tout le créneau du jour).
+- « Supprimer » : même dialogue « Supprimer ce créneau » ; absent si une Séance du créneau est commencée (D-537) ; chaque Séance reste affichée « Supprimée », rétablissable une à une (D-568). Absent aussi quand toutes les Séances sont déjà « Supprimées » [choix de Claude].
+- Remplace « Supprimer tout le Parcours d'un jour revient à supprimer chacune de ses Séances » (spécification du 21/11/2026, § 8 point 9). Les actions des cartes de Séance sont inchangées.
+- Bloc d'actions à la hauteur de la ligne Ⓟ, largeur 90 et marge droite des cartes [choix de Claude, sans maquette Figma].
 - Figma : carte « Dos et mobilité » du mardi 17, écran `12906:47`.
 - Cas sans trace et règles : [compléments du 23/11/2026](KODJO-Programme-recette-2026-11-23.md) § 6.
 
