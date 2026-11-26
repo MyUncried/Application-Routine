@@ -234,7 +234,36 @@ const SIDE_ORDER_VALUES = ["BY_SIDE", "BY_SERIES"] as const;
  * Enchainement affiché dans l'option Avec, par son nom accessible (« Un côté après l’autre »,
  * …), lu sur la notation du déclencheur du menu ; « — » si le menu n'est pas rendu.
  */
+/** D-607 (D-572 point 1) : tests du déroulant PRE-7 B.3, qui ne subsiste que hors iOS (menu natif sur iOS). */
+let restorePlatform: (() => void) | null = null;
+function useDropdownPlatform() {
+  const original = Platform.OS;
+  Platform.OS = "android";
+  restorePlatform = () => {
+    Platform.OS = original;
+  };
+}
+afterEach(() => {
+  restorePlatform?.();
+  restorePlatform = null;
+});
+/**
+ * D-607 (D-572 point 1, 25/11/2026) : sur iOS, l'Enchainement passe par le menu natif (`Menu` SwiftUI) — option cochée lue dans ses
+ * boutons (titre et coche) ; ailleurs, déroulant PRE-7 B.3.
+ */
+type NativeOrderButton = { readonly key: string | null; readonly props: { readonly children: readonly unknown[]; readonly onPress: () => void } };
+function nativeOrderButtons(): readonly NativeOrderButton[] | null {
+  const host = screen.queryByTestId(`${ORDER_MENU}-host`, anyNode);
+  if (!host) return null;
+  const menu = host.findByType(Menu);
+  return ([] as NativeOrderButton[]).concat(menu.props.children as NativeOrderButton[]);
+}
 function orderText(): string {
+  const native = nativeOrderButtons();
+  if (native !== null) {
+    const checked = native.find((button) => button.props.children.length === 2);
+    return checked === undefined ? "—" : strings.executionParameters.sheet.sideOrders[checked.key as "BY_SIDE" | "BY_SERIES"];
+  }
   const notation = screen.queryByTestId(`${ORDER_MENU}-notation`, anyNode);
   if (!notation) return "—";
   const order = SIDE_ORDER_VALUES.find((value) => strings.executionParameters.sheet.sideOrderSubtitles[value] === notation.props.children);
@@ -247,6 +276,12 @@ function orderText(): string {
 function chooseOrder(label: string) {
   const order = SIDE_ORDER_VALUES.find((value) => strings.executionParameters.sheet.sideOrders[value] === label);
   if (order === undefined) throw new Error(`Enchainement inconnu « ${label} »`);
+  const native = nativeOrderButtons();
+  if (native !== null) {
+    const button = native.find((candidate) => candidate.key === order);
+    act(() => button!.props.onPress());
+    return;
+  }
   fireEvent.press(screen.getByTestId(ORDER_MENU));
   fireEvent.press(screen.getByTestId(`${ORDER_MENU}-${order}`));
 }
@@ -418,6 +453,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     });
 
     it("PRE4-Q38 (b), RC-6 — N = 2 : menu de l'Enchainement présent dans Avec, choix appliqué", () => {
+      // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+      useDropdownPlatform();
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(within(screen.getByTestId(`${SIDE_CONTROL}`)).getByTestId(ORDER_MENU)).toBeTruthy();
       expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
@@ -427,6 +464,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     });
 
     it("PRE4-Q38 (c) — Ordre choisi à N = 3, N → 1 (masqué, effectif normalisé), N → 2 : réaffiché, ✓ BY_SERIES", () => {
+      // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+      useDropdownPlatform();
       const { onApply } = renderSheet(bilateral());
       chooseOrder("Les deux côtés à chaque série");
       tap("execution-sheet-series-decrement");
@@ -457,6 +496,8 @@ describe("ExecutionParametersSheet — PRE-3", () => {
     // [Stepper de N ouvert, réglé de 2 à 1 sans se fermer (T22) — remplacé le 06/11/2026, décision de
     // Hermann (constat c) : saisie au clavier ; N saisi 1 puis 2 masque puis réaffiche l'Enchainement.]
     it("PRE4-Q38 (c ter), PRE5-2.5/AC2 — Enchainement en ligne : N saisi au clavier de 2 à 1 masque la ligne ; N → 2 la réaffiche", () => {
+      // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+      useDropdownPlatform();
       renderSheet(bilateral({ series: { kind: "UNIFORM", count: 2, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       expect(screen.getByTestId(ORDER_MENU)).toBeTruthy();
       enterExecutionSheetValue("execution-sheet-series", 1, "integer");
@@ -2152,7 +2193,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
   // l'Ordre des côtés (`popover(side | order)` retirées) — segmentés en ligne dans leur ligne,
   // sans panneau, sans Popover ni Modal ; choix appliqué tout de suite, sans cadre D-4.
   it("PRE4-Q41, PRE5-2.5/AC1, AC2, RC-6 — iOS : Changement de côté sans panneau ni Popover, segmenté en ligne dans sa ligne ; Enchainement par le menu natif de l'option Avec ; choix appliqué immédiatement", () =>
-    withPlatform("ios", () => {
+    withPlatform("android", () => {
       renderSheetView(bilateral());
       layoutFrames({ execution: [0, 90], series: [98, 190], sides: [296, 180], cadence: [484, 200] });
       const control = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
@@ -2362,7 +2403,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     }));
 
   it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur 104 × 26 (116 avec « DG → DG → … », largeur adaptée au contenu depuis le 01/11/2026), notation 12 et chevron ; déroulant 104 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
-    withPlatform("ios", () => {
+    withPlatform("android", () => {
       const view = renderSheetView(bilateral());
       const onApply = view.onApply;
       const side = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
@@ -3397,6 +3438,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   });
 
   it("PRE4-3.6/AC9 — Q29 (report de 3.2 clos en 4.2), PRE5-2.5, RC-6 : bilatéral, N ≥ 2 — Enchainement (menu d'Avec) et Avec re-choisis sans changement : `Annuler` reste valable", () => {
+    // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+    useDropdownPlatform();
     renderSheet(variableSheet([[30, 10], [45, 20], [60, 30]], "DURATION", { sideMode: "RIGHT_LEFT", sideRecoverySeconds: 5 }));
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     const undoAvailable = () => screen.queryByTestId("execution-sheet-adjusted-undo", hidden) !== null;
@@ -4198,7 +4241,15 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
     // Formats — saisie par la modale (décision de Hermann du 16/11/2026 : exercice en boucle, « tours identiques / variables ») : le
     // décompte en tours de la ligne « Séries » est la seule exception à « Tour » (libellés `roundCount*`).
     const sheet = strings.executionParameters.sheet;
-    const rounds: readonly string[] = [sheet.roundCountUniform, sheet.roundCountUniformSingular, sheet.roundCountVariable, sheet.roundCountVariableSingular];
+    // D-607 / D-608 (Hermann, 25-26/11/2026) : libellés AMRAP « Nombre de répétitions par tour » et « Durée par tour », mots de Hermann.
+    const rounds: readonly string[] = [
+      sheet.roundCountUniform,
+      sheet.roundCountUniformSingular,
+      sheet.roundCountVariable,
+      sheet.roundCountVariableSingular,
+      sheet.repetitionsPerRound,
+      sheet.durationPerRound,
+    ];
     expect(lexicon.filter((value) => value.includes("'") || (FORBIDDEN.test(value) && !rounds.includes(value)))).toEqual([]);
   });
 
@@ -5549,6 +5600,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
   // Recette du 19/10 (RC-6) : remplace le test « Repli » de la story 2.5 (chevron d'Avec
   // repliant Enchainement et Pause entre les côtés) — la frame `9462:18987` n'a plus ce repli.
   it("RC-6 — Changement de côté porte l'Enchainement : aucune ligne Enchainement ni chevron de repli ; Pause entre les côtés visible sous Avec ; Avec (146) porte la notation, Sans (62) (RC-12) ; choix par le menu, `setSideOrder` seulement si différent", () => {
+    // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+    useDropdownPlatform();
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 12 }), 20);
     expect(query("execution-sheet-row-order")).toBeNull();
     expect(screen.queryByText("Enchainement", hidden)).toBeNull();
@@ -5660,6 +5713,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     }));
 
   it("PRE5-2.5/AC2, RC-6, PRE7-B.3 — Enchainement : déroulant de l'option Avec, rangées BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜ (D-431, rétablies par RC-12), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
+    // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+    useDropdownPlatform();
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
     // PRE-7 B.3 (B5) : rangées du déroulant, dans l'ordre D-431.
     fireEvent.press(get(ORDER_MENU));
@@ -6947,6 +7002,8 @@ describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (po
   });
 
   it("point 5 — « De chaque côté » sur une ligne ; Avec et déroulant : « DD… → GG… » par défaut (104), « DG → DG → … », taille 12 sans réduction ; libellés accessibles ; aucune Droite / Gauche", () => {
+    // D-607 (D-572 point 1) : déroulant PRE-7 B.3 conservé hors iOS (menu natif sur iOS) — vérifié ici sur Android.
+    useDropdownPlatform();
     const { onApply } = renderSheet(bilateral());
     const row = get("execution-sheet-row-side-line");
     expect(within(row).getByText("De chaque côté", hidden)).toBeTruthy();

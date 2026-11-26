@@ -1,5 +1,8 @@
+import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
 import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import {
+  Platform,
   Alert,
   Animated,
   Easing,
@@ -1426,6 +1429,17 @@ export function ExecutionParametersSheet({
    * seulement si différent (même choix : Brouillon inchangé, « Annuler » d'un retrait valable,
    * Q29) ; le déroulant se ferme par sa clé.
    */
+  /**
+   * D-607 (D-572 point 1) : choix dans le menu natif iOS de l'Enchainement — aucun déroulant de la feuille n'est ouvert ; saisie en
+   * cours appliquée d'abord, même règle de « même choix » que le déroulant.
+   */
+  function chooseNativeSideOrder(order: SideOrder) {
+    const base = keyboard.flush(draft);
+    if (base !== draft) commitKeyboard(() => base);
+    if (base.sideOrder === order) setIsTableSelected(false);
+    else update(setSideOrder(base, order));
+  }
+
   function chooseSideOrder(order: SideOrder) {
     if (!isOpen(SIDE_ORDER_SELECTOR)) return;
     if (draft.sideOrder === order) setIsTableSelected(false);
@@ -2451,14 +2465,20 @@ export function ExecutionParametersSheet({
               // PRE-9 (ordre de Hermann du 01/11/2026, point 5) : taille standard des options (plus
               // de `compact`), largeur adaptée au contenu (104 pour « DD… → GG… », Figma `9462:18978`).
               width: sideOrderOptionWidth(sideOrder),
-              selectedContent: (
-                <SideOrderTrigger
-                  value={sideOrder}
-                  expanded={isOpen(SIDE_ORDER_SELECTOR)}
-                  onPress={toggleSideOrderDropdown}
-                  testID="execution-sheet-side-order-menu"
-                />
-              ),
+              // D-607 (D-572 point 1, Hermann, 25/11/2026 : « « De chaque côté » : popover standard iOS ») : sur iOS, menu natif
+              // (`Menu` SwiftUI d'`@expo/ui`, même hôte que la nature du Circuit) ; ailleurs, déroulant PRE-7 B.3 inchangé.
+              // [iOS : déroulant Figma `9462:18987` (PRE-7 B.3) — remplacé le 26/11/2026.]
+              selectedContent:
+                Platform.OS === "ios" ? (
+                  <NativeSideOrderMenu value={sideOrder} onChoose={chooseNativeSideOrder} testID="execution-sheet-side-order-menu" />
+                ) : (
+                  <SideOrderTrigger
+                    value={sideOrder}
+                    expanded={isOpen(SIDE_ORDER_SELECTOR)}
+                    onPress={toggleSideOrderDropdown}
+                    testID="execution-sheet-side-order-menu"
+                  />
+                ),
             }
           : { value: "WITH", label: t.sideModeChoices.WITH },
         { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
@@ -4234,6 +4254,36 @@ function SideOrderTrigger({
  * de l'option Avec (104 avec « DD… → GG… » choisie) au lieu de 146 ; notations en 12 (Semi Bold
  * choisie, Regular sinon) au lieu de 10.]
  */
+/**
+ * D-607 (D-572 point 1) : Enchainement de « De chaque côté » — menu natif iOS (`Menu` SwiftUI d'`@expo/ui`, hôte `Host` /
+ * `RNHostView`, comme `CircuitNatureMenu`) : le déclencheur garde le dessin de `SideOrderTrigger` ; les deux notations, la courante
+ * cochée.
+ */
+function NativeSideOrderMenu({ value, onChoose, testID }: { value: SideOrder; onChoose: (order: SideOrder) => void; testID: string }) {
+  return (
+    <Host matchContents testID={`${testID}-host`}>
+      <Menu
+        label={
+          <RNHostView matchContents>
+            <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              <SideOrderTrigger value={value} expanded={false} onPress={ignorePress} testID={testID} />
+            </View>
+          </RNHostView>
+        }
+        modifiers={[swiftUIAccessibilityLabel(t.sideSequence), swiftUIAccessibilityValue(t.sideOrders[value])]}
+      >
+        {SIDE_ORDERS.map((order) => (
+          <SwiftUIButton key={order} modifiers={[swiftUIAccessibilityLabel(t.sideOrders[order])]} onPress={() => onChoose(order)} testID={`${testID}-${order}`}>
+            {order === value
+              ? [<SwiftUIText key="title">{t.sideOrderSubtitles[order]}</SwiftUIText>, <SwiftUIImage key="check" systemName="checkmark" />]
+              : [<SwiftUIText key="title">{t.sideOrderSubtitles[order]}</SwiftUIText>]}
+          </SwiftUIButton>
+        ))}
+      </Menu>
+    </Host>
+  );
+}
+
 function SideOrderDropdown({
   value,
   onChoose,
