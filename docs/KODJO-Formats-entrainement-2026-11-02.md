@@ -647,6 +647,8 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 **Phases.** Définies dans la fiche du mouvement. Sans phases : pas de ligne. Avec phases : nombre fixé, ligne « n phases » (chevron) pour modifier la valeur de chaque phase ; sons et images de chaque phase désactivables ; la durée des phases compte toujours dans le temps. Remplace l'option Avec / Sans phases. [Figma : seule la modale de l'exercice libre applique cette règle ; les autres écrans « Création activité — Paramètres » restent à aligner.]
 
+**Fermeture de la modale « Paramètres d'exécution » (D-574, 26/11/2026).** Pas de poignée au-dessus du titre ; fermeture par la croix (sans valider) ou la coche (valide) ; glissé vers le bas désactivé.
+
 ## 10. Application de la règle à l'EMOM
 
 Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Répétitions par défaut et Durée possible**, par Exercice et dans toutes les organisations. Un EMOM peut associer 10 burpees et 20 s de gainage dans chaque minute, ou un seul gainage de 40 s par minute. Les objectifs en Durée sont soumis au contrôle strict de l’intervalle du §7.6.

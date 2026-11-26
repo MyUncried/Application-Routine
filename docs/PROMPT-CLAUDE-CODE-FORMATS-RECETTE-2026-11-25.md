@@ -7,6 +7,7 @@ Général
 2. « De chaque côté » : menu natif iOS.
 3. « + Ajouter » devient « + Modifier » dès qu'un mouvement est choisi. 5 mouvements au plus par format.
 4. Catalogue en modification : mouvements sélectionnés figés en haut, en état sélectionné (zone plafonnée à environ 40 % de la hauteur, défilement interne) ; la liste défile dessous et disparaît derrière la zone figée ; marge sous la dernière carte ; aucune carte visible entre les cartes figées ; désélectionner une carte la libère.
+4 bis. Modale « Paramètres d'exécution » : pas de poignée ; fermeture par la croix (sans valider) ou la coche (valide) ; désactiver la fermeture par glissé vers le bas (D-574).
 
 Par format
 5. Cadence rétablie : Tabata, 30/30, Renforcement, Superset, Progression.

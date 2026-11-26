@@ -266,3 +266,10 @@
 - Non traité : intervalle partagé à ajouter dans la modale « Dans chaque intervalle » (Figma) ; application de la règle des phases aux autres écrans « Création activité — Paramètres » ; écran « Séance » HIIT ; doc 13 non revue.
 - Vérification sur iPhone à faire : parcours carte → page → modale et retours ; titre tronqué ; HIIT ; écran des formats.
 - Tests : non applicables.
+
+## Complément 26/11/2026 (suite 10) — Fermeture de la modale des paramètres (D-574, classe B)
+- Décision explicite de Hermann : la poignée (barre au-dessus du titre) est retirée des 47 modales « Paramètres d'exécution » (Figma) ; fermeture par la croix ou la coche ; glissé vers le bas désactivé.
+- Documents : registre ch07 D-574 ; Formats § 9.10 ; prompt de recette (point général 4 bis).
+- Non traité : les 22 autres modales conservent la poignée dans Figma (geste non revu).
+- Vérification sur iPhone à faire : aucun glissé ne ferme la modale.
+- Tests : non applicables.
