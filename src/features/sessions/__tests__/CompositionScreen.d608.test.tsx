@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { useMemo, useState, type ReactNode } from "react";
 import { Platform } from "react-native";
 
@@ -179,9 +179,16 @@ describe("D-608 — carte : modale ; ligne « N tours » du Circuit : page du fo
     // D-608 (Figma `13269:26160`) : zone colorée grise. [#FBF3E4 (D-606) — remplacé.]
     expect(screen.getByTestId("execution-sheet-free-context")).toHaveStyle({ backgroundColor: "#F1F2F5" });
     expect(screen.getByTestId("execution-sheet-free-tagline")).toHaveTextContent("Réglez librement chaque paramètre de l’exercice.");
-    expect(screen.getByTestId("execution-sheet-free-section")).toHaveTextContent("Paramètres d’exécution");
-    for (const id of ["execution-sheet-row-mode", "execution-sheet-row-stop-condition", "execution-sheet-row-load", "execution-sheet-row-side", "execution-sheet-frame-recovery"]) {
+    // [Intitulé « Paramètres d’exécution » (Figma `13242:26255`) — remplacé le 26/11/2026 par D-608 (D-573 point 5, Figma `13269:26160`) :
+    // cadre « Mouvement et phases » en tête ; Récupération dans le dernier cadre, avec De chaque côté et Cadence.]
+    expect(screen.queryByTestId("execution-sheet-free-section")).toBeNull();
+    expect(within(screen.getByTestId("execution-sheet-frame-movement")).getByTestId("execution-sheet-row-movement")).toBeTruthy();
+    expect(screen.queryByTestId("execution-sheet-frame-recovery")).toBeNull();
+    for (const id of ["execution-sheet-row-mode", "execution-sheet-row-stop-condition", "execution-sheet-row-load", "execution-sheet-row-side"]) {
       expect(screen.getByTestId(id)).toBeTruthy();
+    }
+    for (const id of ["execution-sheet-row-side", "execution-sheet-row-beep", "execution-sheet-row-recovery"]) {
+      expect(within(screen.getByTestId("execution-sheet-frame-sides")).getByTestId(id)).toBeTruthy();
     }
   });
 

@@ -4473,7 +4473,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         "execution-sheet-cadence-control:32",
         "execution-sheet-load-control:32",
         "execution-sheet-mode-control:32",
-        "execution-sheet-phases-control:32",
+        // [« execution-sheet-phases-control:32 » — retiré le 26/11/2026 par D-608 (D-573 point 6) : sans phases, aucune ligne.]
         "execution-sheet-series-type-control:32",
         "execution-sheet-side-control:32",
         "execution-sheet-side-order-menu:26",
@@ -4534,7 +4534,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     });
 
   it("PRE5-2.4/AC1, PRE-9 (01/11, point 3) — blocs dans l'ordre Exécution ; Phases du mouvement ; Séries ; Côtés ; Cadence et durée (Récupération : Exercice de Séance seulement, `ExecutionParametersSheet.recovery.test.tsx`), enfants directs de l'hôte des panneaux ; fond #EFF0F2, contour blanc de 1, rayon 12, espacés de 8 ; chaque ligne dans son cadre", () => {
-    renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 }));
+    // D-608 (D-573 point 6, 26/11/2026) : le bloc des phases n'existe qu'avec des phases. [Exercice sans phases — remplacé.]
+    renderSheet({ ...twoPhases(), sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10, cadenceBeepIntervalSeconds: 2 });
     // PRE-5 story 2.5 (AC4) : Compte à rebours et Fin, repliés, sont d'abord dépliés.
     showSignals();
     const host = get("execution-sheet-panel-host");
@@ -6958,7 +6959,22 @@ describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (po
     params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10, ...overrides });
 
   it("point 3 — blocs Exécution → Phases du mouvement → Séries → Côtés → Cadence et durée (Récupération à venir) ; Séries commence par la ligne Séries", () => {
-    renderSheet(params());
+    // D-608 (D-573 point 6, 26/11/2026) : le bloc des phases n'existe qu'avec des phases. [Exercice sans phases — remplacé.]
+    renderSheet(
+      params({
+        series: {
+          kind: "UNIFORM",
+          count: 3,
+          target: numberTarget(9),
+          pauseSeconds: 15,
+          loadKg: 0,
+          workPhases: [
+            { id: 1, label: "A", durationSeconds: 6 },
+            { id: 2, label: "B", durationSeconds: 3 },
+          ],
+        },
+      }),
+    );
     const frames = get("execution-sheet-panel-host")
       .children.filter((child): child is ReturnType<typeof screen.getByTestId> => typeof child !== "string")
       .map((child) => String(child.props.testID))

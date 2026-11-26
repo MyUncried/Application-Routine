@@ -31,6 +31,16 @@ const DESCRIPTION_COLOR = "#5C636E";
 /** Liseré de la carte choisie (mode catalogue). */
 const LEVEL_COLOR = "#0508E5";
 const PHOTO_FILL = "#DEE2EC";
+/** D-608 (Figma `13276:26100`) : variante ligne. */
+const ROW_HEIGHT = 38;
+const ROW_PHOTO = 34;
+
+/**
+ * D-608 (D-573 point 5, Hermann, 26/11/2026 ; Figma « Exercice libre — Modale de type format » `13269:26160`, « Ligne — Mouvement ») :
+ * variante `"row"` — ligne de 38 dans le cadre « Mouvement et phases » de la modale de l'exercice libre : photo de 34 (rayon 10), sans
+ * contour, fond ni ombre ; nom, Niveau et zones inchangés. Défaut `"card"` : carte inchangée.
+ */
+export type SelectedMovementCardVariant = "card" | "row";
 
 export function SelectedMovementCard({
   movement,
@@ -39,9 +49,11 @@ export function SelectedMovementCard({
   onPress,
   onPhotoPress,
   selected = false,
+  variant = "card",
   testID,
 }: {
-  readonly movement: Movement;
+  /** D-608 : l'exercice libre fournit les champs de son mouvement (nom, médias, zones), sans le Mouvement complet. */
+  readonly movement: Pick<Movement, "name" | "media" | "bodyZoneIds">;
   readonly levelRank: number | null;
   /** Mention ajoutée au nom (ex. : « (buy-in) »). */
   readonly suffix?: string;
@@ -50,8 +62,10 @@ export function SelectedMovementCard({
   readonly onPhotoPress?: () => void;
   /** Mode catalogue : carte choisie. */
   readonly selected?: boolean;
+  readonly variant?: SelectedMovementCardVariant;
   readonly testID: string;
 }) {
+  const row = variant === "row";
   const resolveUri = useMediaUriResolver();
   const preview = firstMediaPreviewSource(movement.media);
   const zones = formatExerciseBodyZones(movement.bodyZoneIds, useBodyZonesReferential()) ?? "";
@@ -61,8 +75,8 @@ export function SelectedMovementCard({
     <MediaPreview
       uri={resolveUri(preview.uri)}
       isVideo={preview.isVideo}
-      imageStyle={styles.photoFill}
-      fallbackStyle={styles.photoFill}
+      imageStyle={row ? styles.rowPhotoFill : styles.photoFill}
+      fallbackStyle={row ? styles.rowPhotoFill : styles.photoFill}
       imageTestID={`${testID}-photo`}
       fallbackTestID={`${testID}-photo-fallback`}
     />
@@ -74,13 +88,13 @@ export function SelectedMovementCard({
           onPress={onPhotoPress}
           accessibilityRole="button"
           accessibilityLabel={fillTemplate(strings.screens.formatModel.openMovementSheet, { name: movement.name })}
-          style={styles.photo}
+          style={row ? styles.rowPhoto : styles.photo}
           testID={`${testID}-photo-press`}
         >
           {photo}
         </Pressable>
       ) : (
-        <View style={styles.photo} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View style={row ? styles.rowPhoto : styles.photo} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           {photo}
         </View>
       )}
@@ -113,13 +127,13 @@ export function SelectedMovementCard({
       accessibilityRole="button"
       accessibilityLabel={summary}
       accessibilityState={{ selected }}
-      style={({ pressed }) => [styles.card, selected ? styles.selected : null, pressed ? styles.pressed : null]}
+      style={({ pressed }) => [row ? styles.row : styles.card, selected ? styles.selected : null, pressed ? styles.pressed : null]}
       testID={testID}
     >
       {body}
     </Pressable>
   ) : (
-    <View style={[styles.card, selected ? styles.selected : null]} accessible={onPhotoPress === undefined} accessibilityLabel={summary} testID={testID}>
+    <View style={[row ? styles.row : styles.card, selected ? styles.selected : null]} accessible={onPhotoPress === undefined} accessibilityLabel={summary} testID={testID}>
       {body}
     </View>
   );
@@ -145,6 +159,10 @@ const styles = StyleSheet.create({
   // large et un fond bleu ») : liseré de 2, fond bleu clair ; la marge intérieure compense le liseré (contenu immobile).
   selected: { borderColor: LEVEL_COLOR, borderWidth: 2, padding: INSET - 1, backgroundColor: "#E8E9FF" },
   pressed: { opacity: 0.7 },
+  // D-608 (Figma `13276:26100`) : ligne de 38, photo de 34 à 2 du haut, textes à 12 de la photo.
+  row: { height: ROW_HEIGHT, flexDirection: "row", alignItems: "center", gap: 12 },
+  rowPhoto: { width: ROW_PHOTO, height: ROW_PHOTO, borderRadius: 10, overflow: "hidden", backgroundColor: PHOTO_FILL },
+  rowPhotoFill: { width: ROW_PHOTO, height: ROW_PHOTO },
   photo: { width: PHOTO, height: PHOTO, borderRadius: 8, overflow: "hidden", backgroundColor: PHOTO_FILL },
   photoFill: { width: PHOTO, height: PHOTO },
   texts: { flex: 1, paddingRight: 8, gap: 2 },

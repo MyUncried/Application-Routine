@@ -16,6 +16,7 @@ import {
 import { exitCircuit } from "@/domain/sessions/circuit";
 import { withExerciseRecovery, withoutPhasesToVerify, withProfileDefaultsValidated } from "@/domain/sessions/SessionDraft";
 import type { PreconfigurationKey } from "@/domain/sessions/formats";
+import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
@@ -37,6 +38,8 @@ type ProfileDefaults = {
   readonly sideRecoverySeconds: number;
   /** [PRE-9 (01/11/2026, point 2) : « Récupération après un exercice », reprise par un nouvel Exercice — retiré le 14/11/2026.] */
 };
+
+const NO_LEVEL_POSITIONS: ReadonlyMap<string, MovementLevelPosition> = new Map();
 
 export const DOMAIN_DEFAULTS: ProfileDefaults = {
   countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
@@ -91,7 +94,10 @@ export type MovementExerciseIntake = {
  * défauts du Profil sur fond orange jusqu'au premier ✓ (`profileDefaultsPending`). ✓ applique la
  * Récupération et l'état validé au brouillon ; ✕ ne change rien.
  */
-export function useMovementExerciseIntake(): MovementExerciseIntake {
+export function useMovementExerciseIntake(
+  /** D-608 (D-573 point 5) : rang de Niveau des mouvements (`useMovementLevelPositions`), pour la carte du mouvement de l'exercice libre. */
+  levelPositions: ReadonlyMap<string, MovementLevelPosition> = NO_LEVEL_POSITIONS,
+): MovementExerciseIntake {
   const { draft, updateDraft } = useSessionDraft();
   const profileService = useContext(ProfileServiceContext);
   const sessionService = useContext(SessionServiceContext);
@@ -222,6 +228,11 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
         {...quickFormatProps(quickFormat)}
         // D-606 (25/11/2026 ; Formats § 9.8) : exercice libre — modale de type format (« Exercice libre »).
         freeFormat={formatContext === undefined && quickFormat === undefined}
+        // D-608 (D-573 point 5) : mouvement de l'exercice libre (nom, photo, zones, Niveau), en tête de sa modale.
+        freeMovement={{
+          movement: { name: exercise.name, media: exercise.media ?? [], bodyZoneIds: exercise.bodyZoneIds },
+          levelRank: levelPositions.get(movementId)?.rank ?? null,
+        }}
         // D-608 (D-573 points 2 et 7, Hermann, 26/11/2026) : titre = nom du mouvement ; en-tête à la couleur du format (gris neutre sinon).
         movementName={exercise.name}
         {...(tintModel !== undefined ? { headerTint: formatModelColors(tintModel).background } : {})}

@@ -43,6 +43,7 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     freeTitle: "Free exercise",
     freeTagline: "Set each parameter of the exercise freely.",
     freeSection: "Execution settings",
+    freeMovement: "Movement",
     validateAccessibilityLabel: "Confirm settings",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",
@@ -170,6 +171,7 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     phaseMoveDown: "Move phase {n} down",
     phaseMoveHandle: "Move phase {n}",
     removePhase: "Delete phase {n}",
+    phaseSound: "Phase {n} sound",
     phaseRemoved: "Phase deleted",
     // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série et phases du mouvement.
     phaseCycleBelow: "The set duration is shorter than the movement phases duration ({cycle}).",

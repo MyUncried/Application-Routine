@@ -1,5 +1,5 @@
 import { Fragment, useState, type ReactNode } from "react";
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
 import type { DraftWorkPhase } from "@/domain/activities/ExecutionParametersDraft";
@@ -15,6 +15,7 @@ import {
   type DraggableRowLabels,
 } from "@/features/activities/sheetTable";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -83,6 +84,7 @@ export function WorkPhasesTable({
   cell,
   bleed,
   structureLocked = false,
+  onToggleSound,
   style,
 }: {
   phases: readonly DraftWorkPhase[];
@@ -99,6 +101,12 @@ export function WorkPhasesTable({
   bleed: number;
   /** PRE-7 (A2.1, D-438) : structure verrouillée (occurrence) — ni retrait ni déplacement. */
   structureLocked?: boolean;
+  /**
+   * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : « les sons et images d'une phase peuvent être désactivés » —
+   * présent, la colonne de la croix (nombre de phases fixé) porte l'interrupteur du son de chaque phase (`soundOff`). Rendu CHOISI
+   * (aucun écran Figma) : pictogramme du guidage sonore, plein si le son est actif, clair et atténué sinon. Absent : croix inchangée.
+   */
+  onToggleSound?: (phaseId: number) => void;
   style?: StyleProp<ViewStyle>;
 }) {
   // Repère d'insertion pendant le glisser (T-15), comme le tableau des séries.
@@ -143,6 +151,7 @@ export function WorkPhasesTable({
               }
               clip={!unclipped}
               structureLocked={structureLocked}
+              {...(onToggleSound !== undefined ? { sound: { off: phase.soundOff === true, onToggle: () => onToggleSound(phase.id) } } : {})}
               cell={(kind) => cell(kind, phase.id, index + 1)}
             />
           </Fragment>
@@ -167,6 +176,7 @@ function WorkPhaseRow({
   onLiftedChange,
   clip,
   structureLocked,
+  sound,
   cell,
 }: {
   index: number;
@@ -181,6 +191,8 @@ function WorkPhaseRow({
   onLiftedChange: (lifted: boolean) => void;
   clip: boolean;
   structureLocked: boolean;
+  /** D-608 (D-573 point 6) : interrupteur du son de la phase, à la place de la croix. */
+  sound?: { readonly off: boolean; readonly onToggle: () => void };
   cell: (kind: WorkPhaseCellKind) => ReactNode;
 }) {
   const number = index + 1;
@@ -222,6 +234,23 @@ function WorkPhaseRow({
           {cell("phaseDuration")}
         </View>
         <View style={styles.cellGap} />
+        {sound !== undefined ? (
+          <Pressable
+            onPress={sound.onToggle}
+            accessibilityRole="switch"
+            accessibilityLabel={t.phaseSound.replace("{n}", String(number))}
+            accessibilityState={{ checked: !sound.off }}
+            hitSlop={SOUND_HIT_SLOP}
+            style={[tableStyles.removeColumn, styles.soundToggle]}
+            testID={`${testID}-sound`}
+          >
+            <KodjoIcon
+              name={sound.off ? "guidance-sound-light" : "guidance-sound-fill"}
+              {...(sound.off ? { opacity: SOUND_OFF_OPACITY } : {})}
+              testID={`${testID}-sound-${sound.off ? "off" : "on"}`}
+            />
+          </Pressable>
+        ) : (
         <RemoveRowButton
           accessibilityLabel={t.removePhase.replace("{n}", String(number))}
           closesFieldHint={t.removePhaseClosesFieldHint}
@@ -232,12 +261,22 @@ function WorkPhaseRow({
           onPress={() => onRemove(phaseId)}
           testID={`${testID}-remove`}
         />
+        )}
       </DraggableRow>
     </SheetMotionView>
   );
 }
 
+/** D-608 : cible tactile de l'interrupteur du son, hauteur de la ligne (36) ; pictogramme atténué, son désactivé. */
+const SOUND_HIT_SLOP = 4;
+const SOUND_OFF_OPACITY = 0.45;
+
 const styles = StyleSheet.create({
+  soundToggle: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: TABLE_ROW_HEIGHT,
+  },
   // Colonne Libellé ou Durée, en-tête compris. Recette iPhone du 29/10/2026 (Hermann : « distribuer
   // horizontalement les colonnes Libellé et Durée (là elles sont orientées vers la gauche) ») : les
   // deux colonnes se partagent à parts égales la largeur entre l'amorce et la croix (plus d'espace

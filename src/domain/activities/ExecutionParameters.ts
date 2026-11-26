@@ -195,6 +195,11 @@ export type WorkPhase = {
   readonly id: number;
   readonly label: string;
   readonly durationSeconds: number;
+  /**
+   * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : son de la phase désactivé pour cet Exercice (bip et annonce
+   * du changement de phase). Clé facultative, écrite seulement si le son est désactivé ; absente : son actif.
+   */
+  readonly soundOff?: true;
 };
 
 /**
@@ -871,6 +876,10 @@ function workPhasesProblem(workPhases: unknown): WorkPhasesProblem | null {
     }
     sum += durationSeconds;
   }
+  // D-608 (D-573 point 6) : son désactivé — clé absente, ou `true` seulement.
+  if ((workPhases as Record<string, unknown>[]).some((phase) => phase.soundOff !== undefined && phase.soundOff !== true)) {
+    return invalidPhases("malformed work phase sound");
+  }
   if (missing.length > 0) {
     return { kind: "MISSING", phaseIds: missing };
   }
@@ -1234,6 +1243,7 @@ function encodeResolvedParameters(parameters: ExecutionParameters, version: type
             id: phase.id,
             label: phase.label,
             durationSeconds: phase.durationSeconds,
+            ...(phase.soundOff === true ? { soundOff: true } : {}),
           })),
         }
       : {
@@ -1248,6 +1258,7 @@ function encodeResolvedParameters(parameters: ExecutionParameters, version: type
             id: phase.id,
             label: phase.label,
             durationSeconds: phase.durationSeconds,
+            ...(phase.soundOff === true ? { soundOff: true } : {}),
           })),
         };
   return JSON.stringify({
@@ -1400,6 +1411,7 @@ function readWorkPhases(value: unknown): WorkPhase[] {
     id: phase.id,
     label: phase.label,
     durationSeconds: phase.durationSeconds,
+    ...(phase.soundOff === true ? { soundOff: true as const } : {}),
   }));
 }
 
@@ -1821,7 +1833,10 @@ function workPhasesEqual(a: readonly WorkPhase[], b: readonly WorkPhase[]): bool
     a.length === b.length &&
     a.every(
       (phase, index) =>
-        phase.id === b[index]!.id && phase.label === b[index]!.label && phase.durationSeconds === b[index]!.durationSeconds,
+        phase.id === b[index]!.id &&
+        phase.label === b[index]!.label &&
+        phase.durationSeconds === b[index]!.durationSeconds &&
+        phase.soundOff === b[index]!.soundOff,
     )
   );
 }
@@ -1892,6 +1907,7 @@ export function cloneExecutionParameters<T extends ExecutionParametersInput>(par
               id: phase.id,
               label: phase.label,
               durationSeconds: phase.durationSeconds,
+              ...(phase.soundOff === true ? { soundOff: true as const } : {}),
             })),
           }
         : {
@@ -1905,6 +1921,7 @@ export function cloneExecutionParameters<T extends ExecutionParametersInput>(par
               id: phase.id,
               label: phase.label,
               durationSeconds: phase.durationSeconds,
+              ...(phase.soundOff === true ? { soundOff: true as const } : {}),
             })),
           },
   };

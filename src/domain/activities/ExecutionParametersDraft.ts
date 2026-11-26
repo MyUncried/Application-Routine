@@ -174,6 +174,8 @@ export type DraftWorkPhase = {
   readonly id: number;
   readonly label: string;
   readonly durationSeconds: number | null;
+  /** D-608 (D-573 point 6) : son de la phase désactivé (`WorkPhase.soundOff`) ; absent : son actif. */
+  readonly soundOff?: true;
 };
 
 export type ExecutionSheetDraft = {
@@ -302,6 +304,7 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
       id: phase.id,
       label: phase.label,
       durationSeconds: phase.durationSeconds < WORK_PHASE_LIMITS.durationMin ? null : phase.durationSeconds,
+      ...(phase.soundOff === true ? { soundOff: true as const } : {}),
     })),
     nextPhaseId: openingNextPhaseId(workPhases, options.nextPhaseId),
     disabledWorkPhases: null,
@@ -342,6 +345,7 @@ export function requestedParameters(draft: ExecutionSheetDraft): ExecutionParame
     id: phase.id,
     label: phase.label,
     durationSeconds: phase.durationSeconds ?? 0,
+    ...(phase.soundOff === true ? { soundOff: true as const } : {}),
   }));
   return {
     version: EXECUTION_PARAMETERS_VERSION,
@@ -1152,6 +1156,26 @@ export function setWorkPhaseDuration(
   return withWorkPhases(
     draft,
     draft.workPhases.map((phase, current) => (current === index ? { ...phase, durationSeconds } : phase)),
+  );
+}
+
+/**
+ * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : active ou désactive le son de la phase d'identité `phaseId`
+ * (bip et annonce du changement de phase à l'exécution). Phase inconnue : Brouillon inchangé.
+ */
+export function toggleWorkPhaseSound(draft: ExecutionSheetDraft, phaseId: number): ExecutionSheetDraft {
+  const index = workPhaseIndex(draft, phaseId);
+  if (index < 0) return draft;
+  return withWorkPhases(
+    draft,
+    draft.workPhases.map((phase, current) => {
+      if (current !== index) return phase;
+      if (phase.soundOff === true) {
+        const { soundOff: _soundOff, ...rest } = phase;
+        return rest;
+      }
+      return { ...phase, soundOff: true as const };
+    }),
   );
 }
 
