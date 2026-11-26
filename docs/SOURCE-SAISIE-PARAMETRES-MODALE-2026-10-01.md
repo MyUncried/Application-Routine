@@ -74,7 +74,7 @@ Autre écran modifié : **« Modal — Confirmer la suppression d'une séance ar
 ## 4. Présentation de la modale
 
 - **Voile :** noir à 28 % sur tout l'écran. **Feuille :** blanche, coins supérieurs de 24 px, contenu rogné par les coins, ombre légère vers le haut, collée en bas de l'écran. Sa hauteur dépend des lignes affichées.
-- **En-tête :** composant DSF « En-tête de modale », titre « Paramètres d'exécution », annuler à gauche, valider à droite.
+- **En-tête :** composant DSF « En-tête de modale », titre « Paramètres d'exécution », annuler à gauche, valider à droite. [Titre remplacé le 26/11/2026 par D-608 point 2 : nom du mouvement, terminé par « … » s'il est trop long.]
 - **Champs empilés :** une carte arrondie (`#FCFCFE`, contour blanc) dont les lignes de 42 px sont séparées par un trait (`#DEDEE5`), libellé de 14 px à gauche, contrôle à droite, **comme l'écran des profils**.
 - **Cadre sélectionné** (roulettes et contrôles segmentés uniquement) : contour bleu `#0508E5` de 2 px, fond `#F4F4FF`, rayon de 12 px, **limité à la ligne** ; la roulette ou le contrôle segmenté s'affiche dessous, hors du cadre. **Les steppers n'ont pas de cadre sélectionné.**
 - **Stepper :** largeur uniforme de **137 px** (boutons alignés à gauche et à droite d'un stepper à l'autre), fond blanc, boutons `#F2F2FF`, glyphes et valeur en bleu, valeur centrée. Le bord droit du bouton « + » est aligné sur celui des champs (366 px).

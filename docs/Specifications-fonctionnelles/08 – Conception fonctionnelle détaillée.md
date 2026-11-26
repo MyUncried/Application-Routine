@@ -194,7 +194,7 @@ La création d’une Séance repose sur un écran unique `Composer une séance`,
 
 1. saisir le nom et construire la Composition dans cet écran ;
 2. sélectionner facultativement une Étiquette depuis la modale intégrée ; sa couleur devient celle de la Séance ;
-3. ajouter au moins un Exercice valide, puis choisir `Continuer` pour enregistrer (RM-017) ;
+3. ajouter au moins un Exercice valide, puis choisir `Continuer` pour enregistrer (RM-017) [Libellé remplacé le 26/11/2026 : « Enregistrer » ; en modification, « Fermer » tant que rien n'est modifié — recette de Hermann, remarques b et g ; voir D-123 au registre.] ;
 4. revenir au `Catalogue des séances`, segment `Séances`.
 
 À l'issue de cette création, la séance est immédiatement disponible dans le catalogue.
@@ -497,7 +497,7 @@ Le mode Placement ne porte que sur les Points d’arrêt. Les cartes restent gri
 
 Le bouton de confirmation de Placement compte uniquement les Points d’arrêt ajoutés. Dès qu’un retrait est programmé ou que des ajouts et retraits sont combinés, il indique « Confirmer les modifications ». Sans modification, pas de confirmation active. Annuler restitue le sous-brouillon initial. Les récupérations ne participent ni à la sélection ni au décompte. [30/10/2026, contre-recette PRE-9 n° 1 (Hermann) : « Appuyer de nouveau sur le bouton d'action point d'arrêt referme l'écran de sélection (même comportement sur confirmer) » — un second appui sur « Ajouter un arrêt » applique comme Confirmer ; sans changement, il referme seulement ; voir ch07 « Contre-recette PRE-9 n° 1 ».]
 
-Confirmer applique atomiquement le sous-brouillon au brouillon parent. Continuer seul enregistre la Séance. Quitter/abandonner la Composition restitue la version persistée. Échec de validation, double appui et erreur d’écriture ne produisent pas d’ajout partiel.
+Confirmer applique atomiquement le sous-brouillon au brouillon parent. Continuer seul enregistre la Séance. [Libellé remplacé le 26/11/2026 : « Enregistrer » ; en modification, « Fermer » tant que rien n'est modifié — recette de Hermann, remarques b et g ; voir D-123 au registre.] Quitter/abandonner la Composition restitue la version persistée. Échec de validation, double appui et erreur d’écriture ne produisent pas d’ajout partiel.
 
 La Récupération de l’Exercice reste réglable de 0 à 300 s selon les contrôles existants. À 0 s, elle ne produit aucune phase positive et ne remplace pas la Pause terminale de Série. Régler 0 s dans les paramètres désactive son exécution ; aucun objet à retirer en Placement. La lecture des anciens objets absents ou explicites à zéro reste compatible, sans réécrire les historiques.
 
@@ -1010,7 +1010,7 @@ Elle propose :
 - **Fermer** la modale de création, le questionnaire (croix) ou la fiche de création sans valider : retour au point de départ, aucune Séance enregistrée créée ni modifiée. Le point de départ du parcours est conservé pour revenir au Catalogue ou à la Composition concernée, sans altérer son état antérieur.
 - La modale de création remplace, depuis le catalogue, l'ouverture directe d'une Composition vide.
 
-**Règle.** Dans la Composition, **l'appui sur la carte** d'un Exercice ouvre ses Paramètres d'exécution (inchangé) [Remplacé le 25/11/2026 (D-606) pour les Exercices issus d'un format : l'appui sur la carte ouvre la page unique du format ; les actions propres à l'Exercice (déplacer, dupliquer, supprimer) restent sur la carte ; l'exercice libre se règle dans une modale de type format.] ; **l'appui sur la photo** ouvre la **fiche de l'exercice**, en modale et **en lecture seule** :
+**Règle.** Dans la Composition, **l'appui sur la carte** d'un Exercice ouvre ses Paramètres d'exécution (inchangé) [Remplacé le 25/11/2026 (D-606) pour les Exercices issus d'un format : l'appui sur la carte ouvre la page unique du format ; les actions propres à l'Exercice (déplacer, dupliquer, supprimer) restent sur la carte ; l'exercice libre se règle dans une modale de type format.] [Remplacé le 26/11/2026 par D-608 point 1 : l'appui sur la carte ouvre de nouveau la modale « Paramètres d'exécution » allégée (D-604, D-607) ; la ligne « N tours alternés / groupés » et sa durée ouvrent la page du format ; depuis cette page, l'appui sur un mouvement ouvre la même modale.] ; **l'appui sur la photo** ouvre la **fiche de l'exercice**, en modale et **en lecture seule** :
 - contenu de la fiche du mouvement : média, nom, catégorie, zones corporelles, niveau, description et phases du mouvement si elles existent ;
 - section **« Dans cette séance »** : la synthèse des paramètres de cet Exercice : réutiliser la phrase générée pour les paramètres qu’elle couvre, et présenter la Récupération propre à l’Exercice sans modifier silencieusement les règles de cette phrase ;
 - **aucun bouton Modifier** : la croix ramène à la Composition ; pour modifier, l'utilisateur touche la carte.

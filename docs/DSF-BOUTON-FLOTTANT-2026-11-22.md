@@ -21,7 +21,7 @@ Les actions de création ne sont plus dans la zone de contexte. Un bouton rond f
 - **Ombre** : large et douce (gris, 22 %, décalage 4, flou 24) — recette du 24/11/2026, « assombrir un peu l'ombre », valable pour les deux couleurs. [Gris 14 % — remplacé.]
 - **Liseré** : blanc, fin (1,2), translucide et irrégulier sur le pourtour (plus brillant en haut à gauche et en bas à droite).
 - **Contenu** : bleu `#0508E5`.
-- **Position par défaut** : 16 du bord droit, 12 au-dessus de la barre de navigation, ou au-dessus du bouton « Continuer » en composition.
+- **Position par défaut** : 16 du bord droit, 12 au-dessus de la barre de navigation, ou au-dessus du bouton « Continuer » en composition. [Libellé remplacé le 26/11/2026 : « Enregistrer » ; en modification, « Fermer » tant que rien n'est modifié — recette de Hermann, remarques b et g ; voir D-123 au registre.]
 - **Plan d'affichage** : le bouton passe sous les feuilles modales, et au-dessus de tout le reste de l'écran, zone de contexte comprise (recette du 24/11/2026, fab-partout).
 - **Mode sombre** : hors MVP. Aucune variante sombre n'est dessinée.
 
@@ -71,7 +71,7 @@ Le Plan n'a pas de bouton flottant. On y crée en touchant une case ou par « + 
 Le bouton est flottant : l'utilisateur peut le déplacer.
 - **Geste** : un appui maintenu puis un glissement déplacent le bouton.
 - **Rangement** : au relâchement, le bouton se range contre le bord gauche ou droit le plus proche, à 16 du bord.
-- **Hauteur** : il garde sa hauteur, entre le bas de la zone de contexte et le haut de la barre de navigation (ou du bouton « Continuer »).
+- **Hauteur** : il garde sa hauteur, entre le bas de la zone de contexte et le haut de la barre de navigation (ou du bouton « Continuer »). [Libellé remplacé le 26/11/2026 : « Enregistrer » ; en modification, « Fermer » tant que rien n'est modifié — recette de Hermann, remarques b et g ; voir D-123 au registre.]
 - **Mémoire** : la position choisie est conservée sur l'appareil et vaut pour tous les écrans.
 - **Toucher simple** : il déclenche l'action.
 
