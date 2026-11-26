@@ -71,6 +71,11 @@ Demande de Hermann : intégrer `feat/exercice-libre-page-20261126` (`bdc6ee86`),
 - Assertions de version courante 41 → 42 (aucune autre modification de ces tests) ; `migration020.test.ts` pris de la branche source.
 - `tsc` sans erreur ; `npx jest src/infrastructure/database` : 550 réussis ; suite complète : 6 964 réussis, 33 ignorés, **3 échecs, tous reproduits à l'identique sur `origin/recette/agenda-axe-20261124` seule** (`1bbaea53`) : les deux déjà signalés, plus `CompositionScreen.test.tsx` › « modale : en-tête sans réserve de barre d'état ; Démarrer (brouillon inchangé) lance l'exécution sans enregistrer » (vérifié isolément sur les deux branches). Non introduits par la fusion ; non corrigés (relèvent de la branche source).
 
+## Incident d'environnement : tunnel Expo (26/11/2026)
+
+- `expo start --tunnel` échoue (« The "file" argument must be of type string. Received null ») dans `C:\Dev\Application-routine` : le PC est en Windows ARM (arm64) et `@expo/ngrok-bin-win32-arm64` n'est pas installé par npm. Déjà constaté les 09/11 et 11/11 (rapports `2026-11-09_PRE10_SON_VOIX.md`, `2026-11-11_PRE10_FIN.md`) : le binaire est recopié depuis `C:\Dev\KODJO-BMAD-PRE8\node_modules\@expo\` (hors Git) ; tout `npm install` ou `npm ci` le retire.
+- Erreur de diagnostic de Claude, corrigée : la réinstallation de `@expo/ngrok` et l'installation de `@expo/ngrok-bin-win32-x64` (refusée, `EBADPLATFORM`) ne pouvaient pas résoudre l'incident.
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
