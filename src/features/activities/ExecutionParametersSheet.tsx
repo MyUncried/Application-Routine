@@ -1,6 +1,6 @@
 import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
-import { createContext, Fragment, useContext, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import { createContext, Fragment, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import {
   Platform,
   Alert,
@@ -20,7 +20,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import Reanimated, { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
+import Reanimated, { FadeIn, FadeOut, ReduceMotion, useAnimatedKeyboard, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -105,7 +105,7 @@ import {
 import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf, type CellBounds } from "@/features/activities/cellEntry";
 import type { CircuitRole, FormatSettings } from "@/domain/sessions/formats";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
-import { KeyboardField } from "@/features/activities/KeyboardField";
+import { KeyboardField, KeyboardFieldGrowContext } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
 import {
   SERIES_CHEVRON_GAP,
@@ -151,7 +151,7 @@ import {
 } from "@/features/activities/sheetTable";
 import type { Movement } from "@/domain/activities/Movement";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
-import { keyboardBodyReserve, keyboardFieldOrder, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
+import { keyboardBodyReserve, keyboardFieldOrder, SHEET_KEYBOARD_BAR_ENABLED, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
 import { PHASE_ROW_TEST_ID, WorkPhasesTable, type WorkPhaseCellKind } from "@/features/activities/WorkPhasesTable";
 import { RECOVERY_WHEEL_VALUES, WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -175,6 +175,11 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /** Constat C du 07/11/2026 : hauteur de la barre du clavier (52) et marge de révélation (12), réservées sous le contenu. */
 const KEYBOARD_BAR_SCROLL_RESERVE = 64;
+/**
+ * Recette iPhone du 26/11/2026 (après-midi), point B : course du clavier sur laquelle la part de la barre (`KEYBOARD_BAR_SCROLL_RESERVE`)
+ * s'ajoute progressivement à la remontée de la modale — aucun saut au premier instant de l'animation.
+ */
+const KEYBOARD_BAR_LIFT_RAMP = 120;
 
 /**
  * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13, DSF Séries
@@ -808,7 +813,12 @@ export function ExecutionParametersSheet({
    * Décision du 06/11/2026 (constat c) : champ clavier de la Cadence révélé par Autre — demandé
    * (`requested`, focus à venir), ouvert (`open`, saisie en cours) ; rangé à la sortie du champ.
    */
-  const [beepReveal, setBeepReveal] = useState<"none" | "requested" | "open">("none");
+  // [`beepReveal` (champ révélé sous la ligne : demandé, ouvert) — remplacé le 26/11/2026 : recette iPhone du 26/11/2026 (après-midi),
+  // point C, Hermann : « Cadence « Autre » : même comportement que Charge. Aucun nouveau champ n'apparaît en dessous ; le focus se place
+  // sur le champ « Autre », vide, fond rouge, en attente d'une valeur au clavier. » — `beepPending` : Autre choisi, valeur attendue.]
+  const [beepPending, setBeepPending] = useState(false);
+  // Texte tapé dans le champ « Autre » pendant son focus (une frappe lève l'attente à la sortie du champ).
+  const beepEntryRef = useRef("");
   /**
    * Message d'ajustement existant (D-5, T-58) : Inversion du total (`previous` restauré
    * par Annuler) ou, story 3.6 (AD-8, FR-12-05), « Série supprimée — Annuler »
@@ -847,6 +857,32 @@ export function ExecutionParametersSheet({
   // Recette du 19/10 (RC-1) : bas mesuré de la zone de la `Modal` (fenêtre), sinon la hauteur de la fenêtre.
   const scrimRef = useRef<View>(null);
   const [scrimBottom, setScrimBottom] = useState<number | null>(null);
+  /**
+   * Recette iPhone du 26/11/2026 (après-midi), point B, Hermann : « Le clavier pousse le cadre et la modale vers le haut en un seul
+   * mouvement, parfaitement synchronisé avec les tableaux, à l'apparition comme à la disparition » ; « sans rebond du contenu » ; « Tout
+   * le contenu de la modale reste visible au-dessus du clavier, autant que possible ». Modale (hors page) : la feuille entière est
+   * translatée vers le haut, image par image, sur la position réelle du clavier natif (`useAnimatedKeyboard`, fil UI : même durée,
+   * même courbe que le clavier iOS), de la hauteur du clavier et de sa barre, dans la limite de la place libre au-dessus de la feuille
+   * (`sheetHeadroom`, haut maximal inchangé). Le reste éventuel (feuille déjà haute) devient une marge de défilement du corps
+   * (`contentInset`, sans changement de mise en page), la ligne saisie étant ramenée au-dessus du clavier par la révélation existante.
+   * [Réserve de la hauteur du clavier sous les cadres (D-607, `keyboardRoom`), réserve de la barre et course ajoutée par iOS
+   * (`automaticallyAdjustKeyboardInsets`) — remplacées pour la modale : trois mouvements de durées et de courbes différentes (feuille
+   * qui grandit en 350 ms, clavier, défilement) ; conservées pour la page « Exercice libre ».]
+   */
+  const animatedKeyboard = useAnimatedKeyboard();
+  const sheetHeadroom = useSharedValue(0);
+  const [sheetHeight, setSheetHeight] = useState<number | null>(null);
+  const sheetMaxHeight = windowHeight - insets.top - spacing[24];
+  const keyboardLiftBar = SHEET_KEYBOARD_BAR_ENABLED ? KEYBOARD_BAR_SCROLL_RESERVE : 0;
+  const keyboardLiftBottomInset = insets.bottom;
+  const keyboardLiftStyle = useAnimatedStyle(() => {
+    const height = animatedKeyboard.height.get();
+    if (height <= 0) return { transform: [{ translateY: 0 }] };
+    const wanted = height - keyboardLiftBottomInset + keyboardLiftBar * Math.min(1, height / KEYBOARD_BAR_LIFT_RAMP);
+    return { transform: [{ translateY: -Math.max(0, Math.min(wanted, sheetHeadroom.get())) }] };
+  });
+  // Point B du 26/11/2026 : « Le champ et son cadre grossissent légèrement pendant le focus et la frappe » (`KeyboardFieldGrowContext`).
+  const keyboardFieldGrow = useMemo(() => ({ reduceMotion }), [reduceMotion]);
 
   /**
    * PRE-5 story 2.2 : application d'une saisie au clavier (mise à jour fonctionnelle du
@@ -1100,8 +1136,10 @@ export function ExecutionParametersSheet({
   // tableau est ouverte.
   // PRE-5 story 2.2, D-434 : le clavier d'une cellule (Cible, Pause, Charge) est une surface
   // DU tableau, qui reste sélectionné.
+  // Recette iPhone du 26/11/2026 (après-midi), point B, Hermann : « La ligne n'est pas colorée au focus (contraste trop faible avec le
+  // champ) » — dans la modale, le tableau n'est plus surligné pendant la saisie d'une de ses cellules (page inchangée).
   const rowKeyboardOpen = openSurface.kind === "keyboard" && keyboardFieldRow(openSurface.field) !== null;
-  const tableSelected = isTableSelected && showVariableTable && !isTableFolded && (openSurface.kind === "none" || rowKeyboardOpen);
+  const tableSelected = isTableSelected && showVariableTable && !isTableFolded && (openSurface.kind === "none" || (pageMode && rowKeyboardOpen));
   // PRE-5 story 2.2 (FR-23) : champ de la charge commune, en identiques effectives avec la charge Avec.
   const uniformLoadShown = draft.loadEnabled && !showVariableTable;
   const uniformLoadActive = isOpen({ kind: "keyboard", field: UNIFORM_LOAD_FIELD });
@@ -1465,6 +1503,7 @@ export function ExecutionParametersSheet({
   function chooseCadence(option: CadenceOption) {
     if (option !== "OTHER") {
       const seconds = CADENCE_OPTION_SECONDS[option];
+      setBeepPending(false);
       chooseInline((base) => (base.cadenceBeepIntervalSeconds === seconds ? base : setCadenceBeep(base, seconds)));
       return;
     }
@@ -1479,7 +1518,9 @@ export function ExecutionParametersSheet({
     }
     setIsTableSelected(false);
     foldPhasesTable();
-    setBeepReveal("requested");
+    // Recette iPhone du 26/11/2026 (après-midi), point C (« même comportement que Charge ») : Autre choisi depuis 1″ ou Sans — champ
+    // « Autre » vide (« — »), fond rouge, ✓ indisponible jusqu'à la saisie ; une valeur personnalisée déjà choisie est reprise.
+    if (cadenceOptionOf(draft.cadenceBeepIntervalSeconds) !== "OTHER") setBeepPending(true);
     // PRE-5 story 2.2 (AD-27) : la saisie en cours est appliquée d'abord.
     toggleScalarField("beep");
   }
@@ -1576,7 +1617,8 @@ export function ExecutionParametersSheet({
       askPhaseRounding(pendingRounding, phaseIssues.cycleSeconds, draft.variable);
       return;
     }
-    if (validation.ok && !emomOverflow && !phaseBelow && !formatIncrementMissing) {
+    // Recette iPhone du 26/11/2026 (après-midi), point C : Cadence « Autre » en attente de sa valeur — ✓ indisponible.
+    if (validation.ok && !emomOverflow && !phaseBelow && !formatIncrementMissing && !beepPending) {
       const value = validation.value;
       // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : Récupération absente (alternance, dans chaque intervalle) — 0 s appliqué.
       const appliedRecovery = recoveryShown && !recoveryLocked ? recoverySeconds : 0;
@@ -1755,13 +1797,13 @@ export function ExecutionParametersSheet({
   const sideSettingsShown = bilateral && !forTimeSheet && !(emomSheet && draft.mode === "REPETITIONS") && format === undefined && quickFormatName === undefined;
   const sideOrderShown = !single;
   // AC3 : tant que la saisie de la Cadence est ouverte (Autre touché), l'option affichée est Autre.
-  // Décision du 06/11/2026 : la valeur se saisit au clavier, dans le champ révélé sous la ligne.
+  // [Décision du 06/11/2026 : la valeur se saisit au clavier, dans le champ révélé sous la ligne — remplacé le 26/11/2026 (recette
+  // iPhone, après-midi, point C) : la valeur se saisit dans l'option Autre elle-même, comme la Charge dans Avec.]
   const beepFocused = isOpen(scalarSurface("beep"));
-  // État ajusté pendant le rendu : le champ demandé devient ouvert à son focus, et se range à sa sortie.
-  if (beepReveal === "requested" && beepFocused) setBeepReveal("open");
-  if (beepReveal === "open" && !beepFocused) setBeepReveal("none");
-  const beepOpen = beepFocused || beepReveal !== "none";
+  const beepOpen = beepFocused || beepPending;
   const cadenceOption: CadenceOption | null = beepOpen ? "OTHER" : cadenceOptionOf(draft.cadenceBeepIntervalSeconds);
+  // Point C : champ clavier porté par l'option Autre sélectionnée (attente, saisie ou valeur personnalisée).
+  const beepFieldShown = cadenceOption === "OTHER";
   /**
    * PRE-5 story 2.4 (AD-28) — repère UNIQUE des panneaux, dans les coordonnées du contenu
    * défilant (l'hôte des panneaux, dont les cadres sont les enfants directs) : y du cadre
@@ -1805,8 +1847,16 @@ export function ExecutionParametersSheet({
     !formatDeathBy && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT" || (validation.ok && stopConditionOf(validation.value) === "FAILURE"));
   // Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément à renseigner.
   const formatIncrementMissing =
-    formatShown("increment") && !formatIncrementLocked && format?.incrementRequired === true && typeof formatSettings.incrementPerRound !== "number";
-  const validateDisabled = (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing || loopWithoutRepetitions) && !sheetCommandsAbsorbed(surface);
+    formatShown("increment") &&
+    !formatIncrementLocked &&
+    // Recette iPhone du 26/11/2026 (après-midi), point D, Hermann (AMRAP) : « ne pas mettre "1 rép." ni "0" pour l'incrément, comme valeur
+    // par défaut, mais un trait horizontal et un fond rouge » — AMRAP : Incrément jamais saisi (aucune valeur dans les réglages) à
+    // renseigner, quelle que soit l'ouverture (Composition ou page du format). [Seulement si la page du format le demandait
+    // (`incrementRequired`) — étendu.]
+    (format?.incrementRequired === true || format?.key === "AMRAP") &&
+    typeof formatSettings.incrementPerRound !== "number";
+  const validateDisabled =
+    (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing || loopWithoutRepetitions || beepPending) && !sheetCommandsAbsorbed(surface);
   /*
    * D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9, § 9.10) : EMOM — intervalle propre à chaque série (ou
    * tour). Plus d'un tour : colonne Intervalle du tableau par série, à la place de la ligne Intervalle ; « Dans chaque intervalle »,
@@ -1902,7 +1952,8 @@ export function ExecutionParametersSheet({
       case "sideRecovery":
         return base.sideRecoverySeconds;
       case "beep":
-        return base.cadenceBeepIntervalSeconds;
+        // Point C du 26/11/2026 : Autre en attente — aucune valeur (champ vide), la première saisie est appliquée.
+        return beepPending ? null : base.cadenceBeepIntervalSeconds;
       case "total":
         return totalEntrySeconds ?? null;
       case "countdown":
@@ -2019,7 +2070,7 @@ export function ExecutionParametersSheet({
     // D-608 (D-573 point 5) : exercice libre — cadre de la Durée de l’exercice avant le dernier cadre (côté, cadence, récupération).
     ...(freeFormat ? durationFields : []),
     ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
-    ...(beepOpen && (!leanFormat || quickCadence) && (!quickScope || quickCadence) ? [scalarKeyboardField("beep")] : []),
+    ...(beepFieldShown && (!leanFormat || quickCadence) && (!quickScope || quickCadence) ? [scalarKeyboardField("beep")] : []),
     ...(freeFormat ? [] : durationFields),
     ...(recoveryShown && !recoveryLocked ? [scalarKeyboardField("recovery")] : []),
   ];
@@ -2550,12 +2601,57 @@ export function ExecutionParametersSheet({
     <SegmentedControl<CadenceOption>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
-      options={CADENCE_OPTIONS.map((option) =>
-        option === "OTHER" && cadenceCustomLabel !== null
-          ? { value: option, label: cadenceCustomLabel, accessibilityLabel: spokenDurations(`${t.cadenceOptions.OTHER}, ${cadenceCustomLabel}`) }
-          : // Accessibilité (08/11/2026 au soir) : « 1″ » lu « 1 seconde ».
-            { value: option, label: t.cadenceOptions[option], accessibilityLabel: spokenDurations(t.cadenceOptions[option]) },
-      )}
+      options={CADENCE_OPTIONS.map((option) => {
+        const base =
+          option === "OTHER" && cadenceCustomLabel !== null && !beepPending
+            ? { value: option, label: cadenceCustomLabel, accessibilityLabel: spokenDurations(`${t.cadenceOptions.OTHER}, ${cadenceCustomLabel}`) }
+            : // Accessibilité (08/11/2026 au soir) : « 1″ » lu « 1 seconde ».
+              { value: option, label: t.cadenceOptions[option], accessibilityLabel: spokenDurations(t.cadenceOptions[option]) };
+        if (option !== "OTHER" || !beepFieldShown) return base;
+        // Recette iPhone du 26/11/2026 (après-midi), point C, Hermann : « Cadence « Autre » : même comportement que Charge. Aucun nouveau
+        // champ n'apparaît en dessous ; le focus se place sur le champ « Autre », vide, fond rouge, en attente d'une valeur au clavier. »
+        // Option Autre sélectionnée : champ clavier dans l'option (celui de la charge commune dans Avec) ; « — » sur fond rouge tant que
+        // la valeur est attendue, sinon la valeur personnalisée.
+        const beepField = scalarKeyboardField("beep");
+        const beepText = beepPending ? t.unset : beepLabel(draft.cadenceBeepIntervalSeconds);
+        return {
+          ...base,
+          accessibilityLabel: spokenDurations(`${t.cadenceOptions.OTHER}, ${spokenValue(beepText)}`),
+          invalid: beepPending,
+          invalidWithoutFrame: true,
+          selectedContent: (
+            <KeyboardField
+              mode="cellDuration"
+              displayValue={beepText}
+              spokenDisplayValue={spokenValue(beepText)}
+              invalid={beepPending}
+              invalidWhileEmpty
+              editText={keyboard.editText(beepField)}
+              active={beepFocused}
+              onFocus={() => {
+                beepEntryRef.current = "";
+                focusKeyboardField(beepField);
+              }}
+              onBlur={() => {
+                // Une valeur tapée lève l'attente (appliquée par `applyScalar`) ; sortie sans frappe : l'attente reste.
+                if (beepEntryRef.current !== "") setBeepPending(false);
+                keyboard.onBlur(beepField);
+              }}
+              onChangeText={(text) => {
+                beepEntryRef.current = text;
+                keyboard.onChangeText(beepField, text);
+              }}
+              inputRef={keyboard.register(beepField, SHEET_ROW_MIN_HEIGHT)}
+              accessibilityLabel={t.cadence}
+              hitSlop={LOAD_SEGMENT_HIT_SLOP}
+              style={[styles.loadSegmentInput, { width: INLINE_OPTION_WIDTHS.narrow }]}
+              valueStyle={[inlineSelectedLabelStyle, beepFocused || beepPending ? styles.loadSegmentInputActive : null]}
+              entryGeneration={keyboard.entryGeneration}
+              testID="execution-sheet-beep"
+            />
+          ),
+        };
+      })}
       value={cadenceOption}
       onChange={chooseCadence}
       accessibilityLabel={t.cadence}
@@ -2904,8 +3000,23 @@ export function ExecutionParametersSheet({
   // Cadre Cadence et durée : Cadence, Durée de l'exercice, Compte à rebours, Fin. D-604 : absent dans un format. D-608 (D-573
   // point 5) : exercice libre — cadre de la Durée de l'exercice, placé avant le dernier cadre, sans la Cadence.
   // D-607 (D-572 point 1) : hauteur du clavier sous le corps de la feuille pendant une saisie (voir la réserve sous les cadres).
+  // Point B du 26/11/2026 : réserve sous les cadres pour la page seulement ; la modale est remontée avec le clavier (`keyboardLiftStyle`).
   const keyboardRoom =
-    keyboard.activeField === null ? 0 : keyboardBodyReserve((scrimBottom ?? windowHeight) - insets.bottom, keyboard.keyboardFrame?.screenY ?? null);
+    !pageMode || keyboard.activeField === null
+      ? 0
+      : keyboardBodyReserve((scrimBottom ?? windowHeight) - insets.bottom, keyboard.keyboardFrame?.screenY ?? null);
+  // Point B : part du clavier (et de sa barre) que la remontée ne couvre pas (feuille déjà haute) — marge de défilement du corps.
+  const keyboardScrollInset =
+    pageMode || keyboard.keyboardFrame === null
+      ? 0
+      : Math.max(
+          0,
+          (scrimBottom ?? windowHeight) -
+            keyboard.keyboardFrame.screenY -
+            insets.bottom +
+            keyboardLiftBar -
+            Math.max(0, sheetMaxHeight - (sheetHeight ?? sheetMaxHeight)),
+        );
   const cadenceFrame =
     leanFormat || quickScope || (freeFormat && noCadenceDuration && !signalsShown) ? null : (
     <SheetMotionView
@@ -2920,22 +3031,8 @@ export function ExecutionParametersSheet({
           0..10 s (± — remplacé).] */}
       {/* D-608 (D-573 point 5) : exercice libre — la Cadence est dans le dernier cadre. */}
       {freeFormat ? null : (
-      <Row
-        label={t.cadence}
-        selected={beepOpen}
-        below={
-          beepOpen ? (
-            <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
-              {scalarField("beep", {
-                display: beepLabel(draft.cadenceBeepIntervalSeconds),
-                accessibilityLabel: t.cadence,
-                testID: "execution-sheet-beep",
-              })}
-            </SheetMotionView>
-          ) : null
-        }
-        testID="execution-sheet-row-beep"
-      >
+      // Point C du 26/11/2026 : plus de champ révélé sous la ligne (`below`, `execution-sheet-beep-motion`) — saisie dans l'option Autre.
+      <Row label={t.cadence} testID="execution-sheet-row-beep">
         {cadenceControl}
       </Row>
       )}
@@ -3164,10 +3261,20 @@ export function ExecutionParametersSheet({
           <SheetMotionProvider reduceMotion={reduceMotion}>
             <SheetMotionView
               appear={false}
+              // Point B du 26/11/2026 : place libre au-dessus de la feuille, limite de sa remontée avec le clavier.
+              {...(pageMode
+                ? {}
+                : {
+                    onLayout: (event: LayoutChangeEvent) => {
+                      const { height } = event.nativeEvent.layout;
+                      sheetHeadroom.set(Math.max(0, sheetMaxHeight - height));
+                      setSheetHeight((current) => (current === height ? current : height));
+                    },
+                  })}
               style={
                 pageMode
                   ? [styles.sheet, styles.pageSheet, { paddingBottom: insets.bottom }]
-                  : [styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]
+                  : [styles.sheet, { maxHeight: sheetMaxHeight, paddingBottom: insets.bottom }, keyboardLiftStyle]
               }
               testID="execution-sheet-surface"
             >
@@ -3175,14 +3282,20 @@ export function ExecutionParametersSheet({
                 style={[{ backgroundColor: headerTint }, pageMode ? styles.pageContext : null]}
                 testID={freeFormat ? "execution-sheet-free-context" : "execution-sheet-header-tint"}
               >
-              {pageMode ? <View style={styles.pageHeaderTop} /> : <View style={styles.handle} />}
+              {/* Recette iPhone du 26/11/2026 (après-midi), point A, Hermann : « Pas de barre horizontale au-dessus du titre. Fermeture
+                  uniquement par la croix (sans valider) ou la coche (valide) ; le glissé vers le bas est désactivé. » et « centrer
+                  verticalement le texte avec les bords haut et bas de la zone colorée » : plus de poignée, la zone colorée se réduit à
+                  l'en-tête, dont le titre est centré verticalement. [Poignée `handle` (50 × 4, marge haute 8) — retirée.] */}
+              {pageMode ? <View style={styles.pageHeaderTop} /> : null}
               {/* En-tête « Fermer et valider » partagé (Complément du 5 novembre 2026, §18–§19). Story 3.8 (AC5) : ✓ grisé
                   (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
               <ModalHeader
                 // Recette du 07/11/2026 : nom du Format dans le titre (Figma « Paramètres d'exécution AMRAP »).
                 // D-608 : nom du mouvement sur une ligne, « … » s'il est trop long ; les autres titres restent non limités (T-61, AC7).
-                {...(!freeFormat && movementName !== undefined && movementName.trim() !== "" ? { titleNumberOfLines: 1 } : {})}
+                // [Une ligne — remplacé le 26/11/2026, recette iPhone (après-midi), point A, Hermann : « Mettre le titre de la modale des
+                // paramètres d'exécution sur deux lignes s'il est trop long » : deux lignes au plus, puis « … ».]
+                {...(!freeFormat && movementName !== undefined && movementName.trim() !== "" ? { titleNumberOfLines: 2 } : {})}
                 title={
                   freeFormat
                     ? t.freeTitle
@@ -3198,7 +3311,7 @@ export function ExecutionParametersSheet({
                 cancelLabel={pageMode ? t.freeBackAccessibilityLabel : t.cancelAccessibilityLabel}
                 {...(pageMode ? { cancelIcon: "back" as const } : {})}
                 onValidate={handleValidate}
-                validateEnabled={validation.ok && !loopWithoutRepetitions}
+                validateEnabled={validation.ok && !loopWithoutRepetitions && !beepPending}
                 validateDisabled={validateDisabled}
                 validateLabel={validateLabel}
                 testIDPrefix="execution-sheet"
@@ -3226,11 +3339,23 @@ export function ExecutionParametersSheet({
               <SheetMotionScrollView
                 ref={scrollRef}
                 style={pageMode ? [styles.body, styles.pageBody] : styles.body}
-                contentContainerStyle={styles.bodyContent}
+                // Recette iPhone du 26/11/2026 (après-midi), point A, Hermann : « La hauteur de la modale s'adapte au contenu : aucun espace
+                // superflu entre le dernier cadre et le bord de l'écran. » — modale : sous le dernier cadre, l'écart entre deux cadres
+                // (puis la zone de l'indicateur d'accueil). [Marge basse de 24 — remplacée pour la modale ; page inchangée.]
+                contentContainerStyle={pageMode ? styles.bodyContent : [styles.bodyContent, styles.bodyContentModal]}
                 keyboardShouldPersistTaps="handled"
                 // PRE-5 story 2.2 (FR-24, AD-26) : course de défilement sous le clavier (prop
                 // standard iOS) et offset suivi pour ramener la ligne active au-dessus du clavier.
-                automaticallyAdjustKeyboardInsets
+                // Point B du 26/11/2026 : page seulement ; la modale remonte avec le clavier et reçoit le reste en marge de défilement
+                // (`keyboardScrollInset`), sans second mouvement ni rebond (`bounces`, point A : aucun glissé vers le bas).
+                automaticallyAdjustKeyboardInsets={pageMode}
+                {...(pageMode
+                  ? {}
+                  : {
+                      bounces: false,
+                      contentInset: { bottom: keyboardScrollInset },
+                      scrollIndicatorInsets: { bottom: keyboardScrollInset },
+                    })}
                 onScroll={keyboard.onScroll}
                 scrollEventThrottle={16}
                 scrollEnabled={!isDraggingRow}
@@ -3254,6 +3379,8 @@ export function ExecutionParametersSheet({
                     bouton Annuler ; les valeurs restent dans le Brouillon de la Feuille.
                     Non accessible : n'altère pas le parcours VoiceOver des lignes. */}
                 <FreeLayoutContext.Provider value={freeFormat}>
+                {/* Point B du 26/11/2026 : champ actif agrandi dans la modale (page inchangée). */}
+                <KeyboardFieldGrowContext.Provider value={pageMode ? null : keyboardFieldGrow}>
                 <Pressable
                   onPress={() => dispatchSurface({ type: "outside" })}
                   accessible={false}
@@ -3369,11 +3496,15 @@ export function ExecutionParametersSheet({
                     un glisser. */}
                 {/* D-604 : Phases du mouvement absentes dans un format (valeurs conservées). */}
                 {/* D-608 (D-573 point 6) : sans phases, aucun cadre ; exercice libre : phases dans le cadre du mouvement. */}
-                {leanFormat || quickScope || freeFormat || phasesGroup === null ? null : (
+                {/* Recette iPhone du 26/11/2026 (après-midi), point E, Hermann : « Mouvement avec phases : je ne vois pas le tableau des
+                    phases dans la modale des paramètres d'exécution. » — cause : le cadre était retiré dans toute modale de format
+                    (`leanFormat`, `quickScope`, D-604), alors que D-608 point 6 vaut pour toutes les modales. Avec phases : ligne
+                    « n phases » et tableau, dans la Composition comme dans les formats. [`leanFormat || quickScope ||` — retiré.] */}
+                {freeFormat || phasesGroup === null ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("phases")}
-                  style={[styles.frame, styles.frameSpaced]}
+                  style={[styles.frame, quickScope && !quickFormatUnitOpen ? null : styles.frameSpaced]}
                   testID="execution-sheet-frame-phases"
                 >
                   {phasesGroup}
@@ -3708,22 +3839,8 @@ export function ExecutionParametersSheet({
                   {quickCadence || freeFormat ? (
                     <>
                       <Separator />
-                      <Row
-                        label={t.cadence}
-                        selected={beepOpen}
-                        below={
-                          beepOpen ? (
-                            <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
-                              {scalarField("beep", {
-                                display: beepLabel(draft.cadenceBeepIntervalSeconds),
-                                accessibilityLabel: t.cadence,
-                                testID: "execution-sheet-beep",
-                              })}
-                            </SheetMotionView>
-                          ) : null
-                        }
-                        testID="execution-sheet-row-beep"
-                      >
+                      {/* Point C du 26/11/2026 : saisie de la Cadence dans l'option Autre (plus de champ révélé sous la ligne). */}
+                      <Row label={t.cadence} testID="execution-sheet-row-beep">
                         {cadenceControl}
                       </Row>
                     </>
@@ -3765,10 +3882,11 @@ export function ExecutionParametersSheet({
                     révélation (`revealDelta`). [La course ajoutée par iOS (`automaticallyAdjustKeyboardInsets`) ne couvre qu'un corps
                     défilant plus haut que le clavier : une feuille courte, recouverte, ne pouvait pas montrer le champ.] */}
                 {keyboardRoom > 0 ? <View style={{ height: keyboardRoom }} testID="execution-sheet-keyboard-room" /> : null}
-                {keyboard.accessoryVisible ? <View style={{ height: KEYBOARD_BAR_SCROLL_RESERVE }} testID="execution-sheet-keyboard-bar-room" /> : null}
+                {pageMode && keyboard.accessoryVisible ? <View style={{ height: KEYBOARD_BAR_SCROLL_RESERVE }} testID="execution-sheet-keyboard-bar-room" /> : null}
                 {contentRoom > 0 ?<View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {sideOrderDropdown}
                 </Pressable>
+                </KeyboardFieldGrowContext.Provider>
                 </FreeLayoutContext.Provider>
               </SheetMotionScrollView>
             </SheetMotionView>
@@ -4116,10 +4234,10 @@ function Row({
     <SheetMotionView bleed={GROUP_PADDING} onLayout={onLayout} testID={testID}>
       <View
         pointerEvents="none"
-        style={[
-          styles.selectionBackground,
-          selected ? styles.selectionBackgroundSelected : null,
-        ]}
+        // Recette iPhone du 26/11/2026 (après-midi), point B, Hermann : « La ligne n'est pas colorée au focus (contraste trop faible avec
+        // le champ). » — dans la modale, la ligne d'un champ en saisie garde son fond ; le champ grossit (`KeyboardFieldGrowContext`).
+        // Page « Exercice libre » (`compact`, non citée) : inchangée. [Fond de la ligne sélectionnée dans la modale — retiré.]
+        style={[styles.selectionBackground, selected && compact ? styles.selectionBackgroundSelected : null]}
         testID={`${testID}-selection`}
       />
       {labelAccessory === null ? (
@@ -4837,6 +4955,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing[12],
     paddingBottom: spacing[24],
     gap: spacing[8],
+  },
+  // Point A du 26/11/2026 : modale — aucun espace superflu sous le dernier cadre.
+  bodyContentModal: {
+    paddingBottom: FRAME_GAP,
   },
   // PRE-5 story 2.4 (FR-26, UX-DR1) : cadre gris arrondi, contour blanc.
   frame: {

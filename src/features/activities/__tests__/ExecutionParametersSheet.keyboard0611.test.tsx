@@ -159,16 +159,38 @@ describe("Feuille Paramètres d'exécution — saisie au clavier de toutes les v
     expect(onApply.mock.calls[0]![0].series).toMatchObject({ target: { kind: "NUMBER", value: 12 } });
   });
 
-  it("Cadence : Autre révèle un champ clavier focalisé (0..10 s) ; rangé à la sortie", () => {
+  // [« Autre révèle un champ clavier focalisé ; rangé à la sortie » — remplacé le 26/11/2026 (recette iPhone de l'après-midi, point C :
+  // « même comportement que Charge. Aucun nouveau champ n'apparaît en dessous ; le focus se place sur le champ « Autre », vide, fond
+  // rouge, en attente d'une valeur au clavier »).]
+  it("Cadence (26/11/2026, point C) : Autre porte le champ clavier dans l'option, vide (« — ») sur fond rouge, ✓ indisponible jusqu'à la saisie", () => {
     const { onApply } = renderSheet();
     fireEvent.press(get("execution-sheet-cadence-control-OTHER"));
+    expect(query("execution-sheet-beep-motion")).toBeNull();
     expect(query("execution-sheet-beep-input")).not.toBeNull();
+    expect(text("execution-sheet-beep")).toBe("—");
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent(get("execution-sheet-beep-input"), "focus");
     typeInExecutionSheetCell("execution-sheet-beep", "3");
     closeExecutionSheetField("execution-sheet-beep");
-    expect(query("execution-sheet-beep-input")).toBeNull();
+    // Valeur personnalisée : le champ reste dans l'option Autre, avec la valeur.
+    expect(query("execution-sheet-beep-input")).not.toBeNull();
+    expect(text("execution-sheet-beep")).not.toBe("—");
     validate();
     expect(onApply.mock.calls[0]![0]).toMatchObject({ cadenceBeepIntervalSeconds: 3 });
+  });
+
+  it("Cadence (26/11/2026, point C) : Autre quitté sans saisie — attente conservée, ✓ sans effet ; 1″ lève l'attente", () => {
+    const { onApply } = renderSheet();
+    fireEvent.press(get("execution-sheet-cadence-control-OTHER"));
+    fireEvent(get("execution-sheet-beep-input"), "focus");
+    closeExecutionSheetField("execution-sheet-beep");
+    expect(text("execution-sheet-beep")).toBe("—");
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    fireEvent.press(get("execution-sheet-cadence-control-1"));
+    expect(query("execution-sheet-beep-input")).toBeNull();
+    validate();
+    expect(onApply.mock.calls[0]![0]).toMatchObject({ cadenceBeepIntervalSeconds: 1 });
   });
 
   it("Compte à rebours et Fin au clavier", () => {
