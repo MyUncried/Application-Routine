@@ -61,7 +61,9 @@ Démonstration PRESERVE : `git diff acf3703e8 -- src/features/sessions/sessionMo
 ## Tests et résultats
 
 - `npx jest -w 1 --workerIdleMemoryLimit=800MB src/features/sessions/__tests__/SessionCard.test.tsx src/infrastructure/database/__tests__/sessionMosaic.r26.test.ts src/shared/ui/__tests__/visualAssets.test.ts` : **3 suites, 45 tests, PASS**.
-- Jest ciblé complémentaire, `npx tsc --noEmit`, `npx eslint` sur les fichiers modifiés : résultats en fin de rapport.
+- Jest ciblé complémentaire (`photoThumbnails.test.tsx`, `SessionCatalogueList.e5.test.tsx`, `PlanningSelection.test.tsx`, `CatalogueScreen.test.tsx`) : **4 suites, 42 tests, PASS**.
+- `npx tsc --noEmit` : aucune erreur. `npx eslint` sur les fichiers TS modifiés : aucune erreur.
+- Passe Jest complète non lancée (consigne du brief : le coordinateur s'en charge).
 - Une suite Jest verte ne prouve pas le rendu sur iPhone (épaisseur réelle du trait, chargement réel des photos).
 
 ## Classe documentaire
@@ -91,4 +93,5 @@ Voir « Modifications » ; plus ce rapport.
 
 ## Commit final et état Git
 
-Renseignés dans le message de livraison (hash du commit qui contient ce rapport, branche poussée `origin/fix/recette-26-11-mosaique`).
+- Commit de code et de documentation : `5f540adc1` ; le commit documentaire qui suit ne complète que ce rapport (résultats des tests, état Git).
+- Branche `fix/recette-26-11-mosaique` poussée sur `origin`, suivie ; arbre de travail propre après le commit du rapport (la jonction `node_modules` est ignorée par Git).
