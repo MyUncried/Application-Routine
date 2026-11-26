@@ -1603,6 +1603,20 @@
       "runtime": "Exporté le 2026-11-19 par le MCP Figma depuis l’écran 12580:27335 (identifiant du nœud de l’icône non relevé) ; RoutineAgendaCard"
     },
     {
+      "key": "catalogue.sessionCard.duration",
+      "file": "icon-carte-seance-chronometre",
+      "figmaNodeId": "12580:27335",
+      "figmaName": "Agenda — Planning (proposition) — chronomètre de la carte de routine (trait fin)",
+      "figmaStatus": "MCP_VECTOR_EXPORT",
+      "width": 10.8333,
+      "height": 12.5833,
+      "usage": [
+        "Carte de séance (SessionCard) — ligne 2, durée (D-601 ; recette iPhone du 26/11/2026 : traits aussi fins que ceux de l’haltère)"
+      ],
+      "note": "Même tracé que icon-agenda-chronometre ; seule l’épaisseur de trait change (0,6 au lieu de 1,5, soit ≈ 0,67 pt affiché à 14 ; traits de l’haltère 12 × 16 : ≈ 0,57 à 0,77 pt). La carte de routine de l’Agenda garde l’icône d’origine.",
+      "runtime": "Dérivé le 2026-11-26 de icon-agenda-chronometre (attribut stroke-width seul) ; SessionCard"
+    },
+    {
       "key": "execution.pause",
       "file": "execution-pause",
       "figmaNodeId": "1992:8175",
