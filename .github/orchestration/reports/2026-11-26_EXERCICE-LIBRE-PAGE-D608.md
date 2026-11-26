@@ -108,6 +108,18 @@ fiche de création préremplie → enregistrer → page ; page (cadres, « Chang
 ✓ → Composition avec l'exercice ; carte de l'exercice → modale commune ; depuis le Catalogue « Créer » → Composition ouverte avec
 l'exercice.
 
+## Correction de recette du 26/11/2026 — catalogue par-dessus la zone de contexte
+
+- Demande de Hermann : « le catalogue des mouvements chevauche par dessus la zone de contexte » (écran de choix du mouvement).
+- Cause : la zone de contexte et la recherche n'avaient ni plan d'empilement ni fond ; dans la feuille native, la liste qui défile se
+  peignait au-dessus d'elles.
+- Correction (`FreeExerciseScreen.tsx`, seul fichier applicatif) : même patron que le catalogue des formats — zone de contexte au
+  premier plan (zIndex 3), son fondu (2), recherche figée sur fond blanc (1), liste et écran rognés (`overflow: hidden`) ; la liste
+  passe dessous et disparaît à leur bord. Aucune autre zone touchée (page, formats, Composition).
+- Classe A (rendu conforme à Figma ; aucune règle). Documentation : aucune.
+- Test ajouté (`FreeExerciseScreen.d608`, 15 tests) : ordre d'empilement et rognage. Suites ciblées : 2 suites, 29 tests verts ; tsc et
+  ESLint OK. Le rendu se vérifie sur iPhone.
+
 ## Commit final et état Git
 
 Renseignés dans le message de livraison (commit contenant ce rapport, branche poussée).

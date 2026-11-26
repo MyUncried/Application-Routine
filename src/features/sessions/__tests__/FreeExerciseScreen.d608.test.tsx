@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import { numberTarget, stopConditionOf, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import type { Movement } from "@/domain/activities/Movement";
@@ -155,6 +156,17 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     await screen.findByTestId("free-exercise-card-mv-squats");
     fireEvent.press(screen.getByTestId("free-exercise-choice-cancel"));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("recette 26/11 : le catalogue défile sous la zone de contexte et sous la recherche, jamais par-dessus", async () => {
+    renderScreen();
+    await screen.findByTestId("free-exercise-card-mv-squats");
+    const z = (testID: string) => (StyleSheet.flatten(screen.getByTestId(testID).props.style) as { zIndex?: number }).zIndex ?? 0;
+    const list = StyleSheet.flatten(screen.getByTestId("free-exercise-list").props.style) as { overflow?: string; zIndex?: number };
+    expect(list.overflow).toBe("hidden");
+    expect(z("free-exercise-choice-context")).toBeGreaterThan(z("free-exercise-search-zone"));
+    expect(z("free-exercise-search-zone")).toBeGreaterThan(list.zIndex ?? 0);
+    expect((StyleSheet.flatten(screen.getByTestId("free-exercise-search-zone").props.style) as { backgroundColor?: string }).backgroundColor).toBe("#FFFFFF");
   });
 });
 
