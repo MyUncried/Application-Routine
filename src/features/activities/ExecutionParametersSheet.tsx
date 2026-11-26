@@ -424,6 +424,17 @@ export type ExecutionParametersSheetProps = {
    */
   readonly freeFormat?: boolean;
   /**
+   * D-608 (D-573 point 2, Hermann, 26/11/2026 ; Formats § 9.10) : titre de la modale — nom du mouvement, « … » s'il est trop long
+   * (remplace « Paramètres d'exécution » et « Paramètres d'exécution <format> »). Absent : titre précédent. L'exercice libre garde
+   * « Exercice libre » (Figma « Exercice libre — Modale de type format » `13269:26160`).
+   */
+  readonly movementName?: string;
+  /**
+   * D-608 (D-573 point 7) : couleur de la zone colorée de l'en-tête — couleur du format (`formatModelColors(...).background`).
+   * Absente : gris neutre des modales génériques (#F1F2F5, Figma `13269:26351`).
+   */
+  readonly headerTint?: string;
+  /**
    * D-604, interprétation à confirmer (25/11/2026) : départ rapide dont l'unité n'est pas imposée par le format (Renforcement, Progression,
    * À l'échec, Superset — choisie dans cette modale depuis le 16/11/2026) : la ligne Mode reste, sans quoi l'exercice ne pourrait pas
    * être complété. Tabata et 30/30 (Durée imposée) : absente.
@@ -641,9 +652,14 @@ const pauseLabel = (value: number | null) => (value === null ? t.unset : formatP
 const beepLabel = (value: number | null) => (value === null ? t.unset : value === 0 ? t.cadenceOptions.NONE : formatPhraseDuration(value));
 const repetitionsLabel = (value: number | null) => (value === null ? t.unset : `${value} ${t.repetitionsUnit}`);
 
-/** D-606 (Figma `13242:26255`) : couleur de la zone de contexte de l'exercice libre, et sa part fondue (rampe des questionnaires). */
-const FREE_CONTEXT_COLOR = "#FBF3E4";
-const FREE_FADE_HEIGHT = 22;
+/**
+ * D-608 (D-573 point 7, Hermann, 26/11/2026 ; Figma « En-tête modal — Paramètres d'exécution », 386 × 60) : zone colorée en dégradé du
+ * haut de la modale au bas de l'en-tête, pleine largeur, sans trait de séparation — couleur pleine puis fondue vers la transparence
+ * (rampe des questionnaires, `ContextBand`). Gris neutre des modales génériques et de l'exercice libre.
+ * [D-606 : zone de contexte #FBF3E4 de l'exercice libre, part fondue de 22 — remplacé le 26/11/2026 (Figma `13269:26160` : gris).]
+ */
+const SHEET_HEADER_NEUTRAL = "#F1F2F5";
+const FREE_FADE_HEIGHT = 12;
 const FREE_FADE_LAYERS = Array.from({ length: 12 }, (_, index) => {
   const before = index / 12;
   const after = (index + 1) / 12;
@@ -669,6 +685,8 @@ export function ExecutionParametersSheet({
   quickFormatName,
   quickFormatUnitOpen = false,
   freeFormat = false,
+  movementName,
+  headerTint = SHEET_HEADER_NEUTRAL,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -2819,16 +2837,19 @@ export function ExecutionParametersSheet({
               style={[styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]}
               testID="execution-sheet-surface"
             >
-              <View style={freeFormat ? styles.freeContext : null} testID={freeFormat ? "execution-sheet-free-context" : undefined}>
+              <View style={{ backgroundColor: headerTint }} testID={freeFormat ? "execution-sheet-free-context" : "execution-sheet-header-tint"}>
               <View style={styles.handle} />
               {/* En-tête « Fermer et valider » partagé (Complément du 5 novembre 2026, §18–§19). Story 3.8 (AC5) : ✓ grisé
                   (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
               <ModalHeader
                 // Recette du 07/11/2026 : nom du Format dans le titre (Figma « Paramètres d'exécution AMRAP »).
+                titleNumberOfLines={1}
                 title={
                   freeFormat
                     ? t.freeTitle
+                    : movementName !== undefined && movementName.trim() !== ""
+                      ? movementName
                     : format !== undefined
                       ? `${t.title} ${strings.executionParameters.format.names[format.key]}`
                       : quickFormatName !== undefined
@@ -2849,16 +2870,12 @@ export function ExecutionParametersSheet({
                 </Text>
               ) : null}
               </View>
-              {freeFormat ? (
-                // D-606 : part fondue de la zone de contexte, même rampe que les questionnaires (`ContextBand`, D-224).
-                <View pointerEvents="none" style={styles.freeFade} testID="execution-sheet-free-fade">
-                  {FREE_FADE_LAYERS.map((layer) => (
-                    <View key={layer.height} style={[styles.freeFadeLayer, { height: layer.height, opacity: layer.opacity }]} />
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.headerDivider} />
-              )}
+              {/* D-608 : part fondue de la zone colorée, même rampe que les questionnaires (`ContextBand`, D-224) ; plus de trait. */}
+              <View pointerEvents="none" style={styles.freeFade} testID={freeFormat ? "execution-sheet-free-fade" : "execution-sheet-header-fade"}>
+                {FREE_FADE_LAYERS.map((layer) => (
+                  <View key={layer.height} style={[styles.freeFadeLayer, { height: layer.height, opacity: layer.opacity, backgroundColor: headerTint }]} />
+                ))}
+              </View>
               {/* Recette iPhone du 08/11/2026 (Autres constats, Hermann : « si on met 40 + 30 dans deux exercices différents de la même série
                   de la composition de séance, on ne peut sauvegarder (ok) mais il n'y a pas de message d'explication […] Même chose pour
                   tout type d'EMOM mais quand on met une durée sur un exercice supérieur à la durée de l'intervalle ») — cause : le message
@@ -4440,9 +4457,6 @@ const styles = StyleSheet.create({
   },
   // D-606 (Figma `13242:26255`) : zone de contexte #FBF3E4 sous l'en-tête, accroche Mali Medium Italic 14/20 #5C636E centrée,
   // intitulé « Paramètres d’exécution » Inter 11 #595E66.
-  freeContext: {
-    backgroundColor: FREE_CONTEXT_COLOR,
-  },
   freeTagline: {
     fontFamily: "Mali_500Medium_Italic",
     fontSize: 14,
@@ -4462,7 +4476,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: FREE_CONTEXT_COLOR,
   },
   freeSection: {
     fontFamily: "Inter_400Regular",

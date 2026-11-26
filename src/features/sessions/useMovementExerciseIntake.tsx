@@ -26,7 +26,8 @@ import {
   withMovementExercises,
 } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
-import { formatSheetContextOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { formatSheetContextOf, formatTintModelOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { formatModelColors } from "@/features/sessions/FormatsWindow";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 
 type ProfileDefaults = {
@@ -186,6 +187,7 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
   const close = () => setOpened(null);
   const formatContext = formatSheetContextOf(draft, exercise.id, (change) => updateDraft((current) => change(current)));
   const quickFormat = quickFormatOf(draft, exercise.id);
+  const tintModel = formatTintModelOf(draft, exercise.id);
   const movementId = (exercise.sourceMovementId ?? "").trim();
   const nextPhaseId = opened.nextPhaseId ?? draft.movements?.[movementId]?.nextPhaseId;
   return {
@@ -219,6 +221,9 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
         {...quickFormatProps(quickFormat)}
         // D-606 (25/11/2026 ; Formats § 9.8) : exercice libre — modale de type format (« Exercice libre »).
         freeFormat={formatContext === undefined && quickFormat === undefined}
+        // D-608 (D-573 points 2 et 7, Hermann, 26/11/2026) : titre = nom du mouvement ; en-tête à la couleur du format (gris neutre sinon).
+        movementName={exercise.name}
+        {...(tintModel !== undefined ? { headerTint: formatModelColors(tintModel).background } : {})}
         onApply={(parameters) => {
           const validated = validateForSave(parameters, opening.baseline);
           const applied = validated.ok ? validated.value : parameters;

@@ -229,7 +229,6 @@ import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
 import { carrierDurationSetting, carrierHeaderOf, circuitDisplayTitle } from "@/features/sessions/carrierPresentation";
 import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
-import { formatOriginOf } from "@/features/sessions/formatSheetContext";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -4739,14 +4738,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // l'Exercice (`handleOpenMovement`). Une autre Activité (sans paramètres d'exécution) ouvre son
       // éditeur, comme avant.
       const touched = draft.exercises.find((exercise) => exercise.id === activityId);
-      // D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : la carte d'un Exercice issu d'un format
-      // ouvre la page unique de ce format (réouverture sur ses paramètres, comme « Modifier le format ») ; la modale « Paramètres
-      // d'exécution » n'est plus ouverte pour ces Exercices. Photo, déplacer, dupliquer et supprimer : inchangés.
-      const origin = touched === undefined ? undefined : formatOriginOf(draft, activityId);
-      if (origin !== undefined) {
-        router.push({ pathname: "/format-summary", params: { model: origin.model, circuitId: origin.circuitId } });
-        return;
-      }
+      // [D-606 (25/11/2026) : la carte d'un Exercice issu d'un format ouvrait la page unique du format — remplacé le 26/11/2026 par
+      // D-608 (D-573 point 1, Hermann ; Formats § 9.10) : la carte ouvre de nouveau la modale « Paramètres d'exécution » allégée ;
+      // la page du format s'ouvre par la ligne « N tours · alternées / groupées » de l'en-tête du Circuit (`onOpenFormat`).]
       if (touched !== undefined && (touched.type === "EXERCISE" || isExerciseParametersIncomplete(touched))) {
         openExerciseParameters(activityId);
         return;
@@ -9645,6 +9639,11 @@ function LayoutCircuitBlock({
         carrier={withCarrierEditor(carrierHeaderOf(circuit, () => context.onEditCarrierDuration(circuit), (circuit.format?.key === "EMOM") && hasEmomOverflow), context.carrierDurationEditor(circuit.id))}
         // Recette iPhone n° 3 du 03/11/2026 (autres constats) : nom du modèle d'origine à la place de « Circuit ».
         originTitle={circuitDisplayTitle(circuit)}
+        // D-608 (D-573 point 1, Hermann, 26/11/2026 ; Formats § 9.10) : Circuit issu d'un format — la ligne « N tours · alternées /
+        // groupées » et sa durée ouvrent la page globale du format (récapitulatif), dont la fermeture ramène à la Composition.
+        {...((circuit.originModel ?? null) !== null && !ghost && !inPlacement && context.circuitActions.renamingId !== circuit.id
+          ? { onOpenFormat: () => context.circuitActions.onEditFormat(circuit) }
+          : {})}
         isNatureMenuOpen={openOverlay === natureKind}
         onOpenNatureMenu={() => onToggleOverlay(natureKind)}
         onCloseNatureMenu={() => context.onDismissNature(circuit.id)}

@@ -479,6 +479,13 @@ export type CircuitHeaderProps = {
   /** PRE-9 C.4 : Circuit porteur d'un Format (voir `CarrierHeader`) ; absent : Circuit standard. */
   readonly carrier?: CarrierHeader;
   /**
+   * D-608 (D-573 point 1 de la branche de documentation, Hermann, 26/11/2026 ; Formats § 9.10) : Circuit issu d'un format —
+   * l'appui sur la ligne « N tours · alternées / groupées » et sur sa durée ouvre la page globale du format (récapitulatif).
+   * Défini, il remplace le stepper, le menu de nature et l'éditeur de durée du porteur ; le nom et le chevron (repli),
+   * l'appui long (saisie) et les actions glissées sont inchangés. Aucun indice visuel ajouté.
+   */
+  readonly onOpenFormat?: () => void;
+  /**
    * Recette iPhone n° 3 du 03/11/2026 (autres constats, Hermann : « remplacer le nom mot "Circuit" par
    * le nom du format ») : nom du modèle d'origine d'un Circuit standard créé par la fenêtre Formats
    * (« Tabata », « Renforcement »…), affiché à la place de « Circuit » [lettre conservée — retirée le 03/11/2026,
@@ -589,6 +596,7 @@ export function CircuitHeader({
   onLongPress,
   moveActions,
   carrier,
+  onOpenFormat,
   originTitle,
   customTitle,
   rename,
@@ -649,8 +657,9 @@ export function CircuitHeader({
             nature={nature}
             count={count}
             isOpen={isCounterOpen}
-            onToggle={onToggleCounter}
+            onToggle={onOpenFormat ?? onToggleCounter}
             onChange={onChangeCount}
+            onOpenFormat={onOpenFormat}
             isInterrupted={isAttenuated || isChoicePending || !isCounterOpen}
             isNatureMenuOpen={isNatureMenuOpen}
             onOpenNatureMenu={onOpenNatureMenu}
@@ -671,8 +680,8 @@ export function CircuitHeader({
             <View style={[styles.duration, columns.duration]} testID={`${testID}-duration`} />
           ) : (
             <Pressable
-              onPress={carrier.onPressDuration}
-              disabled={carrier.onPressDuration === undefined}
+              onPress={onOpenFormat ?? carrier.onPressDuration}
+              disabled={(onOpenFormat ?? carrier.onPressDuration) === undefined}
               accessibilityRole="button"
               accessibilityLabel={spokenDurations(carrier.durationAccessibilityLabel ?? carrier.duration.text)}
               hitSlop={8}
@@ -684,6 +693,21 @@ export function CircuitHeader({
               </Text>
             </Pressable>
           )
+        ) : onOpenFormat !== undefined ? (
+          // D-608 : durée d'un Circuit issu d'un format — ouvre la page du format (appui long : saisie, inchangé).
+          <Pressable
+            onPress={onOpenFormat}
+            onLongPress={onLongPress}
+            delayLongPress={LONG_PRESS_DELAY_MS}
+            accessible={false}
+            importantForAccessibility="no"
+            style={columns.duration}
+            testID={`${testID}-duration-open-format`}
+          >
+            <Text style={styles.duration} numberOfLines={1} testID={`${testID}-duration`}>
+              {duration}
+            </Text>
+          </Pressable>
         ) : (
           /* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */
           <Text
@@ -1082,9 +1106,11 @@ function CircuitCounter({
   natureFocusRequest,
   externalRef,
   carrier,
+  onOpenFormat,
   testID,
 }: {
   carrier?: CarrierHeader;
+  onOpenFormat?: (() => void) | undefined;
   nature: CircuitNature;
   count: number;
   isOpen: boolean;
@@ -1147,7 +1173,19 @@ function CircuitCounter({
         onLayout={isAdjectiveSlotLaidOut ? undefined : () => setAdjectiveSlotLaidOut(true)}
         testID={`${testID}-adjective-slot`}
       >
-        {carrier !== undefined ? (
+        {onOpenFormat !== undefined ? (
+          // D-608 : Circuit issu d'un format — l'adjectif ouvre la page du format (pas de menu de nature).
+          <Pressable
+            onPress={onOpenFormat}
+            accessibilityRole="button"
+            style={styles.adjectiveTarget}
+            testID={`${testID}-adjective-target`}
+          >
+            <Text style={[styles.adjective, carrier !== undefined ? styles.carrierNature : null]} numberOfLines={1} testID={`${testID}-adjective`}>
+              {carrier?.adjective ?? circuitNatureAdjective(nature)}
+            </Text>
+          </Pressable>
+        ) : carrier !== undefined ? (
           // Nature fixée par le Format d'origine (§1) : texte, sans menu. Recette iPhone n° 3 du 03/11/2026
           // (autres constats, Hermann : « le texte "groupé" n'est plus aligné verticalement avec les autres
           // champs de la ligne ») : posé dans la même boîte de 44 que l'adjectif du menu (`adjectiveTarget` :

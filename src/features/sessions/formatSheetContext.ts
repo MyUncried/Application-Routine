@@ -196,3 +196,15 @@ export function formatOriginOf(draft: SessionDraft, exerciseId: string): { reado
   const model = circuit?.originModel ?? null;
   return circuit !== undefined && isFormatModelKey(model) ? { model, circuitId: circuit.id } : undefined;
 }
+
+/**
+ * D-608 (D-573 point 7, Hermann, 26/11/2026 ; Formats § 9.10) : format dont la modale « Paramètres d'exécution » d'un Exercice prend la
+ * couleur d'en-tête — modèle d'origine de son Circuit, sinon Format porteur de son Circuit ou de l'Exercice. `undefined` : exercice libre
+ * ou membre d'un Circuit composé à la main (gris neutre).
+ */
+export function formatTintModelOf(draft: SessionDraft, exerciseId: string): FormatModelKey | undefined {
+  const circuit = circuitOfExercise(draft.structure, exerciseId);
+  const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);
+  const key = circuit?.originModel ?? circuit?.format?.key ?? exercise?.format?.key ?? null;
+  return isFormatModelKey(key) ? key : undefined;
+}
