@@ -72,3 +72,17 @@ Renseignés dans le message de livraison.
 3. Accroche du Superset à partir de 3 mouvements « … récupération après le tour » : **oui** (implémenté tel quel).
 4. Forme d'angle vide en bas à gauche seulement quand celle du bas à droite est affichée : **ok** (implémenté tel quel).
 Aucune modification de code ; les compléments du registre (D-607, D-608) restent valables.
+
+## Livraison en recette (26/11/2026, soir)
+
+- Recette `recette/agenda-axe-20261124` : fusion de `integration/recette-26-11` (d46fc41fa ; un conflit de code dans
+  `CompositionScreen.tsx`, deux styles ajoutés au même endroit, les deux conservés), de `fix/recette-26-11-mosaique` (b58276ddb) et de
+  `feat/d529-coins-dynamiques-20261126` (8af584ac7, PR #463) → **202570906**, poussée.
+- `npx tsc --noEmit` : OK. Passe complète Jest (`-w 1`) sur 202570906 : **501 suites / 7 025 tests réussis, 33 ignorés, 3 échecs**, tous
+  préexistants (relevés à l'identique sur la recette 1bbaea53 par le rapport `2026-11-26_RECETTE-COMPTE-INTEGRATION.md`) :
+  `CompositionScreen.test.tsx` › « modale : en-tête sans réserve de barre d'état ; Démarrer (brouillon inchangé)… » ;
+  `pre4Story11Controls.test.ts` › empreinte de `tokens.ts` ; `CatalogueLifecycle.e7.integration` › « carte → Composition en
+  modification ; Créer → Composition ». Non introduits par ce lot ; non corrigés.
+- Metro 8085 relancé sur 202570906 ; bundle vérifié par le tunnel (marqueurs page Exercice libre, Compte ; aucun angle vide).
+- Cahier : version 45 (lignes KO en version suivante ; nouvelle section « Recette 26/11 après-midi », lignes 185 à 199).
+- Fusion dans main : aucune (accord de Hermann requis).
