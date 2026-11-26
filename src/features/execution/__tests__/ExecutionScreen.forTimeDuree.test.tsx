@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { exerciseActivity, structuredSession } from "@/domain/execution/testing/simulation";
 import type { ForTimeResult } from "@/domain/execution/policies/forTime";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -34,7 +34,7 @@ jest.mock("expo-haptics", () => ({ impactAsync: jest.fn(() => Promise.resolve())
 const S = 1000;
 const T0 = Date.UTC(2026, 10, 17, 9, 0, 0);
 
-async function setup(capSeconds: number | null = null) {
+async function setup(capSeconds: number | null = null, plancheLoadKg: number | null = null) {
   jest.spyOn(AppState, "addEventListener").mockImplementation(((_type: string, _listener: (state: AppStateStatus) => void) => ({ remove: () => undefined })) as never);
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
@@ -49,7 +49,16 @@ async function setup(capSeconds: number | null = null) {
             repeatCount: 3,
             nature: "SERIES",
             format: { key: "FOR_TIME", settings: { restBetweenRoundsSeconds: 0, ...(capSeconds === null ? {} : { timeCapSeconds: capSeconds }) } },
-            exercises: [member("squat", repetitionParameters(15, 3, 0)), member("planche", durationParameters(120, 3, 0)), member("pompes", repetitionParameters(10, 3, 0))],
+            exercises: [
+              member("squat", repetitionParameters(15, 3, 0)),
+              member(
+                "planche",
+                plancheLoadKg === null
+                  ? durationParameters(120, 3, 0)
+                  : uniformParameters({ mode: "DURATION", count: 3, target: 120, pauseSeconds: 0, loadKg: plancheLoadKg, loadEnabled: true }),
+              ),
+              member("pompes", repetitionParameters(10, 3, 0)),
+            ],
           },
         },
       ],
@@ -248,6 +257,42 @@ describe("For time — exercices en durée à l'écran (16/11/2026)", () => {
     expect(screen.getByTestId("execution-title").props.children).toBe("Mouvement planche");
     await press("execution-partial-cancel");
     expect(screen.getByTestId("execution-end")).toBeTruthy();
+  });
+
+  // Complément D-529 / CE-UI-14 validé par Hermann le 26/11/2026 : le décompte d'une Série en Durée passe en bas à droite, la charge
+  // reste en bas à gauche. [Décompte en bas à gauche, à la place de la charge — remplacé.]
+  it("complément D-529 : planche chargée — décompte en bas à droite, charge en bas à gauche, objectif et temps max inchangés ; retenue figée", async () => {
+    const { at } = await setup(600, 20);
+    const placement = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node !== null && node.props.side === undefined) node = node.parent;
+      return { side: node?.props.side, vertical: node?.props.vertical, color: node?.props.color };
+    };
+    expect(placement("execution-cap")).toMatchObject({ side: "right", vertical: "top" });
+    await at(20);
+    await press("execution-for-time-next"); // planche lancée
+    expect(screen.getByTestId("execution-duration-countdown")).toHaveTextContent("02:00");
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom", color: "#BDEBC9" });
+    expect(screen.getByTestId("execution-load")).toHaveTextContent("20kg");
+    expect(placement("execution-load")).toMatchObject({ side: "left", vertical: "bottom" });
+    expect(placement("execution-objective")).toMatchObject({ side: "left", vertical: "top" });
+    expect(placement("execution-cap")).toMatchObject({ side: "right", vertical: "top" });
+    // Un seul cadre dynamique en bas à droite.
+    expect(screen.queryByTestId("execution-auto-count")).toBeNull();
+    expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-amrap-score")).toBeNull();
+    await at(50);
+    await press("execution-duration-zone"); // retenue : décompte figé, couleur de retenue, même coin
+    const heldColor = "#FFD194";
+    await at(70);
+    expect(screen.getByTestId("execution-duration-countdown")).toHaveTextContent("01:30");
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom", color: heldColor });
+    expect(placement("execution-load")).toMatchObject({ side: "left", vertical: "bottom" });
+    await press("execution-duration-zone"); // reprise
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom", color: "#BDEBC9" });
+    await at(160); // fin de la planche : pompes, plus de décompte ni de charge (pompes sans charge)
+    expect(screen.queryByTestId("execution-duration-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-load")).toBeNull();
   });
 
 
