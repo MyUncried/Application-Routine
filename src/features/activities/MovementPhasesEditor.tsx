@@ -68,6 +68,12 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * ligne suivante sont retirés. Lecture appliquée : Entrée sur le libellé place toujours le curseur
  * sur la durée de la MÊME ligne (demande du 31/10 non retirée ; ce n'est pas l'« étape suivante ») ;
  * depuis la durée, l'utilisateur touche lui-même le libellé de la phase suivante ou l'invite.]
+ *
+ * [Recette iPhone du 26/11/2026 (après-midi), Hermann : « Régression : création d'une fiche de mouvement, création de phases et
+ * entrée de la durée. Nous avions défini une barre d'option au-dessus du clavier, elle n'est plus affichée. » — la barre du
+ * clavier de la durée (« ← Précédent » : libellé de la même ligne ; « Suivant → » : ligne suivante ; « Fermer ») est rétablie
+ * telle qu'elle existait avant son retrait du 31/10 (`onKeyboardBarChange`). La touche Entrée du libellé garde son libellé par
+ * défaut et la durée ne passe toujours pas d'elle-même à la ligne suivante (cr2-phases) : seul un toucher de la barre le fait.]
  */
 
 const t = strings.screens.movement.phases;
@@ -90,6 +96,15 @@ const DURATION_HIT_SLOP = {
   bottom: (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2,
 };
 
+/**
+ * Recette iPhone du 26/11/2026 (après-midi) : actions de la barre du clavier pendant la saisie d'une durée (« ← Précédent » :
+ * libellé de la même ligne ; « Suivant → » : ligne suivante), rétablies.
+ */
+export type MovementPhasesKeyboardBar = {
+  readonly onPrevious: () => void;
+  readonly onNext: () => void;
+};
+
 /** Libellé admis (F06) : au plus `WORK_PHASE_LIMITS.labelMaxLength` points de code. */
 export function isPhaseLabelWithinLimit(label: string): boolean {
   return codePointLength(label) <= WORK_PHASE_LIMITS.labelMaxLength;
@@ -110,6 +125,11 @@ export type MovementPhasesEditorProps = {
    * changement de ligne ou de mesure (recadrage au-dessus du clavier, comme la Description).
    */
   readonly onActiveRowBottomChange?: (bottom: number) => void;
+  /**
+   * Recette iPhone du 26/11/2026 (après-midi) : durée en saisie (actions de la barre du clavier) ou `null`. L'écran affiche la
+   * barre (`KeyboardAccessoryBar`) tant qu'elle est fournie.
+   */
+  readonly onKeyboardBarChange?: (bar: MovementPhasesKeyboardBar | null) => void;
   readonly testID?: string;
 };
 
@@ -119,14 +139,17 @@ export function MovementPhasesEditor({
   editable,
   onFocusChange,
   onActiveRowBottomChange,
+  onKeyboardBarChange,
   testID = "movement-phases",
 }: MovementPhasesEditorProps) {
   const [active, setActiveState] = useState(false);
   const onFocusChangeRef = useRef(onFocusChange);
   const onActiveRowBottomRef = useRef(onActiveRowBottomChange);
+  const onKeyboardBarRef = useRef(onKeyboardBarChange);
   useEffect(() => {
     onFocusChangeRef.current = onFocusChange;
     onActiveRowBottomRef.current = onActiveRowBottomChange;
+    onKeyboardBarRef.current = onKeyboardBarChange;
   });
   // Ligne en saisie et cadres des lignes (dans la liste), pour le recadrage au-dessus du clavier.
   const focusedKey = useRef<number | "invite" | null>(null);
@@ -176,6 +199,22 @@ export function MovementPhasesEditor({
   // PRE-9, recette iPhone n° 2 : champs de durée (focus programmé) et durée en saisie.
   const durationInputs = useRef(new Map<number, TextInput>());
   const [activeDuration, setActiveDuration] = useState<number | null>(null);
+  // Recette iPhone du 26/11/2026 (après-midi) : actions courantes (phases du dernier rendu), relues par la barre du clavier.
+  const lineActions = useRef({
+    previous: (_phaseId: number): void => undefined,
+    next: (_phaseId: number): void => undefined,
+  });
+  useEffect(() => {
+    onKeyboardBarRef.current?.(
+      activeDuration === null
+        ? null
+        : {
+            onPrevious: () => lineActions.current.previous(activeDuration),
+            onNext: () => lineActions.current.next(activeDuration),
+          },
+    );
+  }, [activeDuration]);
+  useEffect(() => () => onKeyboardBarRef.current?.(null), []);
   useEffect(() => {
     if (pendingFocus.current === null) return;
     inputs.current.get(pendingFocus.current)?.focus();
@@ -185,6 +224,30 @@ export function MovementPhasesEditor({
   const showInvite = editable && (phases.length === 0 || active);
   // Place de l'invite : sous la phase `inviteAfter` si elle existe encore, sinon en fin de liste.
   const inviteIndex = inviteAfter !== null && inviteAfter < phases.length - 1 ? inviteAfter : null;
+
+  /**
+   * « Suivant → » de la barre du clavier depuis la durée de la phase `phaseId` : l'invite si elle est juste sous la phase, sinon
+   * le libellé de la phase suivante, sinon l'invite en fin de liste. Le focus passe d'un champ à l'autre sans fermer le clavier.
+   */
+  function focusNextLine(phaseId: number) {
+    const index = phases.findIndex((phase) => phase.id === phaseId);
+    if (index < 0) return;
+    const next = phases[index + 1];
+    if (next !== undefined && !(showInvite && inviteIndex === index)) {
+      inputs.current.get(next.id)?.focus();
+      return;
+    }
+    if (next === undefined) setInviteAfter(null);
+    const invite = inputs.current.get("invite");
+    if (invite) invite.focus();
+    else pendingFocus.current = "invite";
+  }
+  useEffect(() => {
+    lineActions.current = {
+      previous: (phaseId) => inputs.current.get(phaseId)?.focus(),
+      next: focusNextLine,
+    };
+  });
 
   function removeAt(index: number) {
     const phase = phases[index];
