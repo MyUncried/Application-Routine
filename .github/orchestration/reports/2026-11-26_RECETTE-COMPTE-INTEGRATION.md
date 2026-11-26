@@ -69,7 +69,7 @@ Demande de Hermann : intégrer `feat/exercice-libre-page-20261126` (`bdc6ee86`),
 - **Nouvelle collision** : cette lignée ajoute une migration **041** (HIIT : `CHECK` de `sessions.origin` et `tours.origin_model` élargis), alors que le compte venait d'être renuméroté 041 ici. Résolution : 040 marquage, 041 HIIT (numérotation de la branche de recette d'origine conservée), **042 compte** (`migration042.ts`, `MIGRATION_042_ACCOUNT`), `DATABASE_VERSION = 42`.
 - **Réparation** supplémentaire (`repairMissingTables`) : base en version ≥ 41 dont `sessions` n'admet pas `HIIT` (passée en 41 par la branche du compte) → `applyMigration041` rejouée (idempotente par conception : colonne déjà élargie laissée telle quelle). Test associé.
 - Assertions de version courante 41 → 42 (aucune autre modification de ces tests) ; `migration020.test.ts` pris de la branche source.
-- `tsc` sans erreur ; `npx jest src/infrastructure/database` : 550 réussis ; suite complète : voir ci-dessous.
+- `tsc` sans erreur ; `npx jest src/infrastructure/database` : 550 réussis ; suite complète : 6 964 réussis, 33 ignorés, **3 échecs, tous reproduits à l'identique sur `origin/recette/agenda-axe-20261124` seule** (`1bbaea53`) : les deux déjà signalés, plus `CompositionScreen.test.tsx` › « modale : en-tête sans réserve de barre d'état ; Démarrer (brouillon inchangé) lance l'exécution sans enregistrer » (vérifié isolément sur les deux branches). Non introduits par la fusion ; non corrigés (relèvent de la branche source).
 
 ## Commit et état Git
 
