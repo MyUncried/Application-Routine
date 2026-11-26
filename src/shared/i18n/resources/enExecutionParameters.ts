@@ -96,6 +96,9 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
     // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
     repetitionsTarget: "Number of reps",
+    // D-607 / D-608 (Hermann, 25-26/11/2026) : AMRAP à l’échec — ligne grisée, valeur « — ».
+    repetitionsPerRound: "Repetitions per round",
+    durationPerRound: "Duration per round",
     repetitionsUnit: "reps",
     pause: "Rest after each set",
     columns: { DURATION: "Duration", REPETITIONS: "Reps", pause: "Rest", load: "Weight" },

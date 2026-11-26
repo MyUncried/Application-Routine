@@ -143,9 +143,11 @@ describe("D-604 — modale d'un exercice d'un format à départ rapide, ouverte 
     ["PROGRESSION", strings.screens.sessionModels.cards.PROGRESSION.title, true],
     ["UNTIL_FAILURE", strings.screens.sessionModels.cards.UNTIL_FAILURE.title, true],
     ["SUPERSET", strings.screens.sessionModels.cards.SUPERSET.title, true],
-  ] as [FormatModelKey, string, boolean][])("%s : Charge et De chaque côté (Mode si l'unité est libre : %s) ; nom du format dans le titre", async (model, name, unitOpen) => {
+  ] as [FormatModelKey, string, boolean][])("%s : Charge et De chaque côté (Mode si l'unité est libre : %s) ; titre : nom du mouvement (D-608)", async (model, name, unitOpen) => {
     await sheetOf(model);
-    expect(screen.getByText(`${sheet.title} ${strings.screens.sessionModels.cards[model].title}`, hidden)).toBeTruthy();
+    // [Nom du format dans le titre (D-604) — remplacé le 26/11/2026 par D-608 (D-573 point 2) : nom du mouvement.]
+    expect(screen.getByTestId("execution-sheet-title", hidden)).toHaveTextContent("Squats sautés");
+    void name;
     void name;
     expect(screen.getByTestId("execution-sheet-row-load", hidden)).toBeTruthy();
     expect(screen.getByTestId("execution-sheet-row-side", hidden)).toBeTruthy();

@@ -962,9 +962,17 @@ export function ExecutionParametersSheet({
   // (objectif de départ) visible à l'échec.
   const deathBySheet = format?.key === "DEATH_BY";
   const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet) && quickFormatName === undefined;
+  /*
+   * D-607 (D-572 point 7) et D-608 (D-573 point 9), Hermann, 25-26/11/2026 ; Figma « AMRAP — Modale exercice simple, à l’échec »
+   * `11260:19348` et « …, durée à l’échec » `11275:19598` : AMRAP à l'échec — la ligne « Nombre de répétitions par tour » (Répétitions)
+   * ou « Durée par tour » (Durée) reste affichée, grisée, valeur « — ».
+   */
+  const amrapFailureTargetShown =
+    format?.key === "AMRAP" && !showVariableTable && stopCondition === "FAILURE" && (effective.mode === "DURATION" || effective.mode === "REPETITIONS");
   // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
-  const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
+  // D-608 : un AMRAP seul porte aussi la ligne Rôle (« duration » : durée de l'AMRAP seul) — il n'est pas un membre de Circuit.
+  const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role") && !format.rows.includes("duration");
   /*
    * Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : • Pause après chaque série. • Pause de changement de
    * côté. • Repos entre les tours. • Repos entre les séries (mode « À la suite »). • Récupération après un exercice. […] Ces lignes
@@ -2079,7 +2087,10 @@ export function ExecutionParametersSheet({
     ) : null;
   // D-604 : lignes au-dessus des lignes de format dans le cadre Séries (sinon, pas de séparateur de tête).
   const seriesLeadRows =
-    deathBySeriesRow || (uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS")) || (!showVariableTable && !noPauseRow && !formatShown("interval"));
+    deathBySeriesRow ||
+    (uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS")) ||
+    amrapFailureTargetShown ||
+    (!showVariableTable && !noPauseRow && !formatShown("interval"));
   const formatSeriesRows = (
     <>
       {formatShown("increment") ? (
@@ -2844,7 +2855,8 @@ export function ExecutionParametersSheet({
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
               <ModalHeader
                 // Recette du 07/11/2026 : nom du Format dans le titre (Figma « Paramètres d'exécution AMRAP »).
-                titleNumberOfLines={1}
+                // D-608 : nom du mouvement sur une ligne, « … » s'il est trop long ; les autres titres restent non limités (T-61, AC7).
+                {...(!freeFormat && movementName !== undefined && movementName.trim() !== "" ? { titleNumberOfLines: 1 } : {})}
                 title={
                   freeFormat
                     ? t.freeTitle
@@ -2949,7 +2961,8 @@ export function ExecutionParametersSheet({
                   <Row label={t.mode} testID="execution-sheet-row-mode">
                     {modeControl}
                   </Row>
-                  {quickScope ? null : (
+                  {/* D-607 (D-572 point 7, Hermann, 25/11/2026 ; Formats § 9.9) : For time toujours à l'objectif — ligne non affichée. */}
+                  {quickScope || forTimeSheet ? null : (
                     <>
                       <Separator />
                       <Row label={t.stopCondition} testID="execution-sheet-row-stop-condition">
@@ -3157,6 +3170,27 @@ export function ExecutionParametersSheet({
                             Décision du 06/11/2026 (constat c) : saisie au clavier dans la pastille
                             (roue de la Cible commune et son panneau — remplacés). */}
                         {uniformTargetField}
+                      </Row>
+                    </>
+                  ) : null}
+                  {amrapFailureTargetShown ? (
+                    <>
+                      {deathBySeriesRow ? <Separator /> : null}
+                      <Row
+                        label={effective.mode === "DURATION" ? t.durationPerRound : t.repetitionsPerRound}
+                        labelNode={
+                          <Text style={[styles.label, styles.formatLockedLabel]}>
+                            {effective.mode === "DURATION" ? t.durationPerRound : t.repetitionsPerRound}
+                          </Text>
+                        }
+                        accessibilityLabel={`${effective.mode === "DURATION" ? t.durationPerRound : t.repetitionsPerRound}, ${t.unsetSpoken}`}
+                        testID="execution-sheet-row-target-failure"
+                      >
+                        <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
+                          <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-target-failure-value">
+                            {t.unset}
+                          </Text>
+                        </View>
                       </Row>
                     </>
                   ) : null}
@@ -4639,6 +4673,10 @@ const styles = StyleSheet.create({
   formatLockedValue: {
     color: colors.disabled,
     textAlign: "center",
+  },
+  // D-607 / D-608 : titre grisé d'une ligne affichée sans saisie (AMRAP à l'échec).
+  formatLockedLabel: {
+    color: colors.disabled,
   },
   formatHint: {
     ...type.caption,

@@ -474,7 +474,9 @@ export function withMovementMode(values: MovementValues, mode: ExecutionMode): M
  */
 export function maxLocked(key: FormatModelKey, movements: readonly ModelMovement[], index: number): boolean {
   const current = movements[index];
-  if (current === undefined || (key !== "AMRAP" && key !== "FOR_TIME") || movementRole(current) !== "TOUR") return false;
+  // [AMRAP — remplacé le 25/11/2026 par D-607 (D-572 point 7, Hermann : « corriger […] la case « Max » inactive dans le tableau ») : en
+  // AMRAP, « À l'échec » reste au choix dans la boucle. For time : inchangé.]
+  if (current === undefined || key !== "FOR_TIME" || movementRole(current) !== "TOUR") return false;
   return movements.filter((movement) => movementRole(movement) === "TOUR").length > 1;
 }
 

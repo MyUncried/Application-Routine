@@ -1,4 +1,4 @@
-import { amrapMaxRefused, forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
+import { forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { isFormatModelKey, plannedWorkOfParameters, type FormatModelKey } from "@/domain/sessions/formatModels";
 import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
@@ -34,8 +34,12 @@ export function formatSheetContextOf(
   const durationRefused = forTimeDurationRefused(draft, draft.structure, exerciseId);
   switch (format.key) {
     case "AMRAP":
-      if (carrier === undefined) rows.push("duration", "increment");
-      else {
+      // D-608 (D-573 point 9, Hermann, 26/11/2026) : la ligne « Rôle » (Buy-in | Tour) figure dans toutes les modales AMRAP ; un AMRAP seul
+      // est son unique tour (Tour, Buy-in indisponible).
+      if (carrier === undefined) {
+        role = { admitted: ["BUY_IN", "TOUR"], available: ["TOUR"], current: "TOUR" };
+        rows.push("role", "duration", "increment");
+      } else {
         const choices = roleChoices(draft, draft.structure, exerciseId);
         if (choices !== null) role = choices;
         rows.push("role", "increment");
@@ -109,8 +113,9 @@ export function formatSheetContextOf(
     ...(roleChangeLoss !== undefined ? { roleChangeLoss } : {}),
     ...(seriesForRole !== undefined ? { seriesForRole } : {}),
     ...(durationRefused ? { durationRefused } : {}),
-    // D-531 / RM-271 (19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements.
-    ...(format.key === "AMRAP" && amrapMaxRefused(draft, draft.structure, exerciseId) ? { failureRefused: true } : {}),
+    // [D-531 / RM-271 (19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements — remplacé le
+    // 25/11/2026 par D-607 (D-572 point 7, Hermann : « Condition d'arrêt « À l'échec » ou « À l'objectif » ; corriger « À l'échec » inactif
+    // dans la modale ») : le choix est libre.]
     onApply: (next: FormatSettings, nextRole: CircuitRole | null) =>
       update((current) => {
         const withSettings: SessionDraft = {

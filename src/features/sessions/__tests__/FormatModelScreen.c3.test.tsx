@@ -968,7 +968,8 @@ describe("FormatModelScreen", () => {
         // 16/11/2026 — nombre de séries du buy-in réglé dans la modale, « Variables » dès deux séries, tableau des séries — remplacé.]
         expect(screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeNull();
         enterExecutionSheetValue("execution-sheet-target", 50, "integer");
-        expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.TARGET).props.accessibilityState).toMatchObject({ selected: true });
+        // D-607 (D-572 point 7) : For time toujours à l’objectif — ligne Condition d’arrêt non affichée.
+        expect(screen.queryByTestId("execution-sheet-row-stop-condition", { includeHiddenElements: true })).toBeNull();
       });
       expect(screen.queryByTestId("format-buy-in-head-1")).toBeNull();
       expect(shown("for-time-0-0")).toBe("50");

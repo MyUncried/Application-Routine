@@ -94,6 +94,9 @@ export const executionParameters = {
     // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
     // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
     repetitionsTarget: "Nombre de répétitions",
+    // D-607 / D-608 (Hermann, 25-26/11/2026) : AMRAP à l’échec — ligne grisée, valeur « — ».
+    repetitionsPerRound: "Nombre de répétitions par tour",
+    durationPerRound: "Durée par tour",
     repetitionsUnit: "rép.",
     pause: "Pause après chaque série",
     columns: { DURATION: "Durée", REPETITIONS: "Répétitions", pause: "Pause", load: "Charge" },

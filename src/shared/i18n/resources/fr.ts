@@ -697,7 +697,8 @@ export const fr = {
         // Recette du 16/11/2026 (fmt-entree, Hermann : « Changer "Par tour" par "+/- / tour" (plus au dessus du moins) ») : titre de la
         // colonne de l'AMRAP, comme « ± / série ». « Par tour » reste le nom lu par VoiceOver.
         perRoundHead: "± / tour",
-        max: "Max",
+        // [« Max » — remplacé le 25/11/2026 par D-607 (D-572 point 7, Hermann : « un seul terme, « À l'échec » ; « Max » disparaît »).]
+        max: "À l’échec",
         round: "Tour {n}",
         series: "S{n}",
         // Constat a) de la recette du 18/11/2026 (Hermann, EMOM à plusieurs mouvements, « Dans chaque intervalle » et « En

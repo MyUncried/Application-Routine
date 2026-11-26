@@ -19,6 +19,9 @@ import { SessionDraftContext, type SessionDraftContextValue, type SessionDraftUp
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
+ * D-608 (D-573 de la branche de documentation, Hermann, 26/11/2026 ; Formats § 9.10) : l'appui sur la carte d'un Exercice ouvre la
+ * modale « Paramètres d'exécution » allégée, titrée du nom du mouvement, en-tête à la couleur du format ; la ligne « N tours · alternées /
+ * groupées » et sa durée ouvrent la page globale du format. [Remplace D-606 point 1, décrit ci-dessous :]
  * D-606 (D-571 de la branche de documentation, Hermann, 25/11/2026 ; Formats § 9.8) : dans la Composition, l'appui sur la carte d'un
  * Exercice issu d'un format ouvre la page unique du format (réouverture sur ses paramètres, `circuitId`) ; la modale « Paramètres
  * d'exécution » ne s'ouvre plus pour lui. Photo (fiche en lecture seule) et actions de la carte (déplacer, dupliquer, supprimer) :
@@ -112,14 +115,47 @@ beforeEach(() => {
   mockPush.mockReset();
 });
 
-describe("D-606 — appui sur la carte d'un Exercice issu d'un format : page du format", () => {
-  it("membre d'un Circuit issu d'un format : la carte ouvre la page du format, sans modale", async () => {
+describe("D-608 — carte : modale ; ligne « N tours » du Circuit : page du format", () => {
+  it("membre d'un Circuit issu d'un format : la carte ouvre la modale, titrée du nom du mouvement, en-tête à la couleur du format", async () => {
     await renderComposition(draftOf());
     await act(async () => {
       fireEvent.press(screen.getByTestId("composition-exercise-row-a1"));
     });
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/format-summary", params: { model: "TABATA", circuitId: "ca" } });
-    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(await screen.findByTestId("execution-sheet")).toBeTruthy();
+    expect(screen.getByTestId("execution-sheet-title")).toHaveTextContent("Exercice a1");
+    expect(screen.getByTestId("execution-sheet-title").props.numberOfLines).toBe(1);
+    expect(screen.getByTestId("execution-sheet-header-tint")).toHaveStyle({ backgroundColor: "#FDECEC" });
+    expect(screen.queryByTestId("execution-sheet-free-context")).toBeNull();
+  });
+
+  it("Circuit issu d'un format : nombre de tours, nature et durée ouvrent la page du format ; le nom replie toujours", async () => {
+    await renderComposition(draftOf());
+    for (const id of [
+      "composition-layout-circuit-ca-header-counter",
+      "composition-layout-circuit-ca-header-counter-adjective-target",
+      "composition-layout-circuit-ca-header-duration-open-format",
+    ]) {
+      mockPush.mockReset();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(id));
+      });
+      expect(mockPush).toHaveBeenCalledWith({ pathname: "/format-summary", params: { model: "TABATA", circuitId: "ca" } });
+    }
+    mockPush.mockReset();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    });
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("Circuit composé à la main : la ligne garde le stepper et le menu de nature", async () => {
+    await renderComposition(draftOf());
+    expect(screen.queryByTestId("composition-layout-circuit-cb-header-duration-open-format")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("composition-layout-circuit-cb-header-counter"));
+    });
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("photo : fiche en lecture seule ; actions de la carte (déplacer, dupliquer, supprimer) inchangées", async () => {
@@ -140,7 +176,8 @@ describe("D-606 — appui sur la carte d'un Exercice issu d'un format : page du 
     expect(await screen.findByTestId("execution-sheet")).toBeTruthy();
     // Figma `13242:26255` : titre « Exercice libre », zone de contexte, accroche, intitulé des paramètres.
     expect(screen.getByText("Exercice libre")).toBeTruthy();
-    expect(screen.getByTestId("execution-sheet-free-context")).toHaveStyle({ backgroundColor: "#FBF3E4" });
+    // D-608 (Figma `13269:26160`) : zone colorée grise. [#FBF3E4 (D-606) — remplacé.]
+    expect(screen.getByTestId("execution-sheet-free-context")).toHaveStyle({ backgroundColor: "#F1F2F5" });
     expect(screen.getByTestId("execution-sheet-free-tagline")).toHaveTextContent("Réglez librement chaque paramètre de l’exercice.");
     expect(screen.getByTestId("execution-sheet-free-section")).toHaveTextContent("Paramètres d’exécution");
     for (const id of ["execution-sheet-row-mode", "execution-sheet-row-stop-condition", "execution-sheet-row-load", "execution-sheet-row-side", "execution-sheet-frame-recovery"]) {

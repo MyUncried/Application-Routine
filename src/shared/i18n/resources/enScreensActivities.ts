@@ -370,7 +370,7 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
       // Recette du 16/11/2026 (fmt-entree, Hermann : « Changer "Par tour" par "+/- / tour" (plus au dessus du moins) ») : titre de la
       // colonne de l'AMRAP, comme « ± / série ». « Par tour » reste le nom lu par VoiceOver.
       perRoundHead: "± / round",
-      max: "Max",
+      max: "To failure",
       round: "Round {n}",
       series: "S{n}",
       roundShort: "R{n}",
