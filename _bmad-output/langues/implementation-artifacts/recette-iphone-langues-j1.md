@@ -1,5 +1,7 @@
 # Langues J1 — Recette iPhone (KODJO en anglais)
 
+**Version en ligne, avec les résultats** (T1, J1 et heures, 50 points) : https://claude.ai/artifact/DuHe2KXyGdgFJBGtaYsgLs
+
 Branche `claude/exciting-lovelace-iyn2wf` ; plan `docs/preparation/langues/J1-PLAN-KODJO-EN-ANGLAIS-2026-11-23.md` ; suivi `docs/preparation/langues/SUIVI.md`.
 
 **Nouvelle installation nécessaire** (module natif de langue) : build EAS de la branche, à installer comme pour les Programmes. Aucune migration de base : aucune donnée ne doit changer.

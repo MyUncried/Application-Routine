@@ -8,7 +8,7 @@ Branche : `claude/exciting-lovelace-iyn2wf`. J1 (sauf la section « Langue et un
 |---|---|---|---|
 | Définition (D0) | ✅ Fait (`5117ee0`) | — | — |
 | T1 — Textes sortis du code | ✅ Développé (`d07e434`) ; recette reportée à J1 (option A) | Recette avec J1 | Hermann |
-| **J1 — KODJO en anglais** | 🟢 Développé, ligne Langue comprise (24/11) | 1) Revoir les choix de traduction à valider (rapport J1) ; 2) build EAS + recette `recette-iphone-langues-j1.md` ; 3) ✅ ligne Langue faite le 24/11 (Préférences, D-569) ; Unité de charge avec J3 | Hermann, puis Claude |
+| **J1 — KODJO en anglais** | 🟢 Développé, ligne Langue comprise (24/11) | 1) Revoir les choix de traduction à valider (rapport J1) ; 2) recette en ligne https://claude.ai/artifact/DuHe2KXyGdgFJBGtaYsgLs (build EAS fait le 24/11) ; 3) ✅ ligne Langue faite le 24/11 (Préférences, D-569) ; Unité de charge avec J3 | Hermann, puis Claude |
 | J1.8 — Écrans de la fusion (Programmes, Planification, Confidentialité, rappels, catégories) | 🟢 Développé le 24/11 | Recette cas 19–25 du cahier J1 | Hermann |
 | J2 — Phrase de synthèse simplifiée | ⏳ À faire | Proposer la phrase simplifiée | Claude |
 | J3 — Unité kg / lb | ⏳ À faire | Figma de la ligne Unité | Hermann |
