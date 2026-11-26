@@ -2,6 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
+import { MIGRATION_042_ACCOUNT } from "@/infrastructure/database/migrations/migration042";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -63,6 +64,21 @@ describe("réparation des tables additives manquantes", () => {
 
     const columns = async (db: NodeSqliteDatabase) => (await db.getAllAsync<{ name: string }>("PRAGMA table_info(media_assets)")).map((row) => row.name).sort();
     expect(await columns(database)).toEqual(await columns(reference));
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: DATABASE_VERSION });
+  });
+
+  it("base en version 41 migrée par la branche du compte (sans HIIT) : clé HIIT admise, puis version 42", async () => {
+    const database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database, undefined, 40);
+    await database.execAsync(MIGRATION_042_ACCOUNT);
+    await database.execAsync("PRAGMA user_version = 41");
+    const sql = async (table: string) => (await database.getFirstAsync<{ sql: string }>("SELECT sql FROM sqlite_master WHERE name = ?", [table]))!.sql;
+    expect(await sql("sessions")).not.toContain("'HIIT'");
+
+    await migrateDatabase(database);
+
+    expect(await sql("sessions")).toContain("'HIIT'");
+    expect(await sql("tours")).toContain("'HIIT'");
     expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: DATABASE_VERSION });
   });
 

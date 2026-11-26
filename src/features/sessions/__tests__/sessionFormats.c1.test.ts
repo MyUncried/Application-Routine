@@ -14,9 +14,11 @@ import { SESSION_FORMATS } from "@/features/sessions/sessionFormats";
 describe("PRE-9 C.1 — vignettes et registre des Formats", () => {
   it("une vignette par origine de modèle du registre, Libre en plus ; chaque Format et chaque préconfiguration a la sienne ; seul Libre est disponible", () => {
     const keys = SESSION_FORMATS.map((format) => format.key);
-    const modelOrigins = SESSION_ORIGINS.filter((origin) => origin !== "EXERCISE_CARD" && origin !== "SESSION_CARD");
+    // D-608 (26/11/2026) : HIIT n'a pas de vignette dans le panneau de filtres de Figma (`4168:11149`) — À CLARIFIER, aucune vignette
+    // inventée ; le panneau ne propose de toute façon que Libre (Q-E5).
+    const modelOrigins = SESSION_ORIGINS.filter((origin) => origin !== "EXERCISE_CARD" && origin !== "SESSION_CARD" && origin !== "HIIT");
     expect([...keys].sort()).toEqual([...modelOrigins, "FREE"].sort());
-    expect(keys).toEqual(expect.arrayContaining([...ELEMENT_FORMAT_KEYS, ...PRECONFIGURATION_KEYS, "FREE"]));
+    expect(keys).toEqual(expect.arrayContaining([...ELEMENT_FORMAT_KEYS, ...PRECONFIGURATION_KEYS.filter((key) => key !== "HIIT"), "FREE"]));
     // Seule vignette hors de la grille du 02/11 : l'origine conservée en lecture (D-25).
     const grid: readonly string[] = [...ELEMENT_FORMAT_KEYS, ...PRECONFIGURATION_KEYS, "FREE"];
     expect(keys.filter((key) => !grid.includes(key))).toEqual(["CORE_MOBILITY"]);

@@ -62,6 +62,15 @@ Classe D (technique : numérotation et réparation des migrations). Aucune règl
 
 À la demande de Hermann (« Oui »), fusion de `origin/claude/exciting-lovelace-iyn2wf` (`13589f8d`, `b8b82027` : horloge selon le réglage 12/24 h de l'iPhone, heures anglaises AM/PM, « Attach »). Sans conflit, sans migration ni module natif nouveau (`package.json` inchangé). `tsc` sans erreur ; tests `src/features/planning`, `src/features/programs`, `src/shared/i18n` : 376 réussis.
 
+## Ajout du 26/11/2026 : exercice libre (D-608) et formats D-607
+
+Demande de Hermann : intégrer `feat/exercice-libre-page-20261126` (`bdc6ee86`), déjà fusionnée dans `recette/agenda-axe-20261124` (`1bbaea53`), avec les formats D-607 / D-608 et les remarques de Composition du 26/11. Nouvelle fusion de `origin/recette/agenda-axe-20261124`.
+
+- **Nouvelle collision** : cette lignée ajoute une migration **041** (HIIT : `CHECK` de `sessions.origin` et `tours.origin_model` élargis), alors que le compte venait d'être renuméroté 041 ici. Résolution : 040 marquage, 041 HIIT (numérotation de la branche de recette d'origine conservée), **042 compte** (`migration042.ts`, `MIGRATION_042_ACCOUNT`), `DATABASE_VERSION = 42`.
+- **Réparation** supplémentaire (`repairMissingTables`) : base en version ≥ 41 dont `sessions` n'admet pas `HIIT` (passée en 41 par la branche du compte) → `applyMigration041` rejouée (idempotente par conception : colonne déjà élargie laissée telle quelle). Test associé.
+- Assertions de version courante 41 → 42 (aucune autre modification de ces tests) ; `migration020.test.ts` pris de la branche source.
+- `tsc` sans erreur ; `npx jest src/infrastructure/database` : 550 réussis ; suite complète : voir ci-dessous.
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.

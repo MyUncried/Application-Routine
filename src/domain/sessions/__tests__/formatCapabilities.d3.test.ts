@@ -23,8 +23,9 @@ import {
 const MODELS: readonly CapabilityModelKey[] = [...ELEMENT_FORMAT_KEYS, ...PRECONFIGURATION_KEYS, "FREE"];
 
 describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
-  it("un descripteur par modèle (4 Formats, 6 préconfigurations, Libre : 11) ; moteur disponible pour les seuls éléments libres depuis PRE-10", () => {
-    expect(MODELS).toHaveLength(11);
+  // D-608 (26/11/2026) : HIIT, septième préconfiguration. [6 préconfigurations, 11 descripteurs — remplacé.]
+  it("un descripteur par modèle (4 Formats, 7 préconfigurations, Libre : 12) ; moteur disponible pour les seuls éléments libres depuis PRE-10", () => {
+    expect(MODELS).toHaveLength(12);
     expect(Object.keys(FORMAT_CAPABILITIES).sort()).toEqual([...MODELS].sort());
     expect(FORMAT_CAPABILITIES).not.toHaveProperty("CORE_MOBILITY");
     for (const model of MODELS) {

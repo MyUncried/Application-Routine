@@ -246,7 +246,8 @@ describe("tableau « paramètres en colonnes » (B) — AMRAP", () => {
   it("colonnes Objectif | Par tour | Max de 44, écart de 12, plus de colonne Charge ; titres centrés", () => {
     renderAmrap(true);
     expect(screen.queryByText("Charge")).toBeNull();
-    for (const head of ["Objectif", "Par tour", "Max"]) {
+    // D-607 (D-572 point 7) : « Max » devient « À l’échec ».
+    for (const head of ["Objectif", "Par tour", "À l’échec"]) {
       expect(StyleSheet.flatten(screen.getByText(head).props.style)).toMatchObject({ textAlign: "center", top: 6.5, fontFamily: "Inter_500Medium", fontSize: 12 });
     }
     for (const id of ["format-amrap-0-obj", "format-amrap-0-inc", "format-amrap-max-0"]) expect(style(id)).toMatchObject({ width: 44 });

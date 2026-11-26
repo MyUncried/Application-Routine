@@ -43,6 +43,12 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     freeTitle: "Free exercise",
     freeTagline: "Set each parameter of the exercise freely.",
     freeSection: "Execution settings",
+    freeMovement: "Movement",
+    freeChange: "Change",
+    freeChangeAccessibilityLabel: "Change movement",
+    freeBackAccessibilityLabel: "Back to movement choice",
+    freeChooseCloseAccessibilityLabel: "Close free exercise",
+    freeChooseValidateAccessibilityLabel: "Confirm chosen movement",
     validateAccessibilityLabel: "Confirm settings",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",
@@ -96,12 +102,18 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     // ligne de la Cible commune, symétrique de « Durée d’une série ». Seule la Feuille
     // l’emploie ; l’en-tête de colonne du tableau reste `columns.REPETITIONS`.
     repetitionsTarget: "Number of reps",
+    // D-607 / D-608 (Hermann, 25-26/11/2026) : AMRAP à l’échec — ligne grisée, valeur « — ».
+    repetitionsPerRound: "Repetitions per round",
+    // D-607 / D-608 : Tabata, 30/30, HIIT — objectif de répétitions facultatif.
+    repetitionsGoal: "Repetitions goal",
+    durationPerRound: "Duration per round",
     repetitionsUnit: "reps",
     pause: "Rest after each set",
-    columns: { DURATION: "Duration", REPETITIONS: "Reps", pause: "Rest", load: "Weight" },
+    columns: { DURATION: "Duration", REPETITIONS: "Reps", pause: "Rest", interval: "Interval", load: "Weight" },
     row: "Set {n}",
     rowTarget: "Set {n}, {field}",
     rowPause: "Set {n}, rest",
+    rowInterval: "Set {n}, interval",
     // PRE-5 story 2.2 (FR-23 à FR-25, AD-26) : ligne « Charge » (Avec / Sans), cellule de
     // charge d’une ligne du tableau, et barre du clavier décimal (Précédent / Suivant /
     // « Fermer ») ; les flèches ne sont jamais lues (`…Spoken`).
@@ -164,6 +176,7 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     phaseMoveDown: "Move phase {n} down",
     phaseMoveHandle: "Move phase {n}",
     removePhase: "Delete phase {n}",
+    phaseSound: "Phase {n} sound",
     phaseRemoved: "Phase deleted",
     // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série et phases du mouvement.
     phaseCycleBelow: "The set duration is shorter than the movement phases duration ({cycle}).",

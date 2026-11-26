@@ -81,6 +81,8 @@ export type KeyboardFieldId =
   | { readonly kind: "load"; readonly row: number | "uniform" }
   | { readonly kind: "rowTarget"; readonly row: number }
   | { readonly kind: "rowPause"; readonly row: number }
+  /** D-607 (D-572 point 6, Hermann, 25/11/2026) : EMOM — intervalle de la série (ou du tour) de la ligne d'identité `row`. */
+  | { readonly kind: "rowInterval"; readonly row: number }
   | { readonly kind: "phaseLabel"; readonly phase: number }
   | { readonly kind: "phaseDuration"; readonly phase: number }
   | { readonly kind: "scalar"; readonly field: SheetScalarField };
@@ -113,7 +115,9 @@ export type SheetScalarField =
   | "formatIncrement"
   | "formatInterval"
   | "formatDuration"
-  | "formatTimeCap";
+  | "formatTimeCap"
+  /** D-607 (Tabata, 30/30, HIIT) : objectif de répétitions facultatif. */
+  | "repetitionsGoal";
 
 /** Décision du 06/11/2026 : champ clavier d'une valeur hors tableau. */
 export const scalarKeyboardField = (field: SheetScalarField): KeyboardFieldId => ({ kind: "scalar", field });

@@ -1484,9 +1484,12 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
     expect(screen.getByTestId("execution-sheet-phases-table")).toBeTruthy();
   };
+  // [Croix et option Sans indisponibles — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans) : ni croix, ni option Sans ; poignée et libellé indisponibles.]
   const isStructureLocked = () =>
-    screen.getByTestId("execution-sheet-phase-row-1-remove").props.accessibilityState?.disabled === true &&
-    screen.getByTestId("execution-sheet-phases-control-WITHOUT").props.accessibilityState?.disabled === true;
+    screen.queryByTestId("execution-sheet-phase-row-1-remove") === null &&
+    screen.queryByTestId("execution-sheet-phases-control-WITHOUT") === null &&
+    screen.getByTestId("execution-sheet-phase-row-1-handle").props.accessibilityState?.disabled === true &&
+    screen.getByTestId("execution-sheet-phase-row-1-label").props.editable === false;
 
   it("occurrence copiée d'un geste (filiation persistée) : structure verrouillée, durées modifiables", () => {
     const { updateDraft } = renderRoute({
@@ -1538,8 +1541,8 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     openSheet();
     unfoldPhases();
-    expect(isStructureLocked()).toBe(false);
-    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).not.toBe(false);
+    // [Structure modifiable dans la Feuille (copie d'une occurrence locale) — remplacé le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
+    expect(isStructureLocked()).toBe(true);
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes lentes");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
@@ -1552,20 +1555,21 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(patch.exercises![1]).not.toHaveProperty("pendingLocalMovement");
   });
 
-  it("création locale (nouvelle occurrence, ou occurrence sans filiation non encore enregistrée) : structure modifiable (exception MFN-09)", () => {
+  // [« structure modifiable (exception MFN-09) » ; option Avec disponible sans phase — remplacés le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
+  it("création locale (nouvelle occurrence, ou occurrence sans filiation non encore enregistrée) : structure fixée (D-608) ; sans phase, aucune ligne", () => {
     renderRoute({ params: { exerciseId: "occ-1" }, exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL" })] });
     // Contre-recette iPhone du 30/10 (r1-exo) : occurrence existante au gabarit Mouvement, sans bloc
     // Phases — structure modifiable dans la Feuille des paramètres.
     expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     openSheet();
     unfoldPhases();
-    expect(isStructureLocked()).toBe(false);
-    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).not.toBe(false);
+    expect(isStructureLocked()).toBe(true);
     screen.unmount();
     renderRoute({});
     openSheet();
     chooseExecutionMode("Durée");
-    expect(screen.getByTestId("execution-sheet-phases-control-WITH").props.accessibilityState?.disabled).toBe(false);
+    expect(screen.queryByTestId("execution-sheet-phases-control-WITH")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-row-phases")).toBeNull();
   });
 
   // [PRE-9 A.3 du 04/11/2026 : Feuille ouverte au Catalogue (compteur de phase, frères incomplets) retirée avec les anciennes définitions du Catalogue.]

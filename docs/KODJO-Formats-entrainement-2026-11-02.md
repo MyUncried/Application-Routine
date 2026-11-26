@@ -68,7 +68,7 @@ Le Format est porté selon le partage temporel décrit ci-dessus. L’état du c
 | Nombre de blocs AMRAP | Circuit | Nombre de blocs ; au-delà de 1, un Circuit est créé, même avec un seul mouvement |
 | Repos entre deux blocs AMRAP | Circuit | Repos entre les blocs |
 | Objectif par tour | Exercice | Nombre de répétitions (lu « par tour ») |
-| Max | Exercice | Condition d'arrêt = À l'échec ; l’objectif et l’incrément sont grisés et inactifs, sans masquer ; Charge reste modifiable |
+| Max | Exercice | Condition d'arrêt = À l'échec ; l’objectif et l’incrément sont grisés et inactifs, sans masquer ; Charge reste modifiable [Remplacé le 26/11/2026 par D-607 point 7 pour l'AMRAP : la Condition d'arrêt se choisit librement, « À l'échec » ou « À l'objectif », l'option n'est plus grisée dans une boucle de plusieurs mouvements ; le terme « Max » disparaît au profit du terme unique « À l'échec ». For time inchangé : toujours à l'objectif, ligne non affichée.] |
 | Incrément | Exercice | Nouveau champ **Incrément par tour**, ≥ 0, mode Répétitions uniquement |
 | Repos après chaque tour de boucle | Dernier Exercice de la boucle à l’enregistrement | Initialise sa Récupération ; les autres Exercices de boucle sont initialisés à 0 s ; buy-in fixé à 0 s |
 | Buy-in | Exercice | **Rôle dans le circuit** : Buy-in, sinon Tour par défaut ; plusieurs buy-in possibles |
@@ -169,7 +169,7 @@ Tout Exercice ajouté ou déplacé dans un Circuit porteur d’un Format suit le
 |---|---|---|
 | AMRAP | Mode Répétitions ou Durée ; cible par passage ou À l’échec ; Incrément par tour signé en Répétitions ou Durée ; Rôle ; Récupération ; autres paramètres standards compatibles | Séries et durée globale ; l’Objectif de durée d’un passage reste local en mode Durée |
 | For time | Mode Répétitions ou Durée sous la garde du §3, Condition d’arrêt À l’objectif ; Séries identiques ou variables, nombre = nombre de tours ; Cadence facultative sans incidence sur les durées ; Rôle ; Récupération initiale 0 s ; Durée de l’exercice héritée, grisée | Borne temporelle et compte du Circuit ; la borne reste rappelée en lecture seule, exception explicite au retrait (§11) |
-| EMOM dans chaque intervalle | Mode Répétitions par défaut ou Durée, Condition d’arrêt, cible chiffrée propre au mode, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice |
+| EMOM dans chaque intervalle | Mode Répétitions par défaut ou Durée, Condition d’arrêt, cible chiffrée propre au mode, Charge, Récupération initiale 0 s ; autres paramètres standards compatibles | Séries, Intervalle, Durée de l’exercice [Remplacé en partie le 26/11/2026 par D-607 point 6 et D-608 point 1 : l'intervalle de chaque tour, porté par le circuit, est affiché dans la modale et modifiable ; le modifier pour un mouvement le modifie pour les autres ; il peut différer d'un tour à l'autre.] |
 | Death by dans chaque intervalle | Mode Répétitions ou Durée, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, Cadence Sans, Récupération initiale 0 s | Compte ouvert et intervalle commun du Circuit ; durée globale non portée localement |
 | Death by en alternance | Mode Répétitions ou Durée, Condition d’arrêt À l’échec, objectif de départ, Incrément par intervalle ≥ 1, **Intervalle propre modifiable dans la modale**, Cadence Sans, Récupération initiale 0 s | Identité Death by et compte ouvert au Circuit ; aucune durée dans son en-tête |
 
@@ -206,14 +206,14 @@ Une seule **modale de création** est ouverte depuis deux endroits :
 - l'option **Créer un exercice** du menu Créer de la **Composition**.
 
 Elle propose :
-- **Exercice libre** : la fiche de création d'un exercice vierge, mouvement puis paramètres d'exécution (parcours existant « Ajouter un exercice ») ;
+- **Exercice libre** : la fiche de création d'un exercice vierge, mouvement puis paramètres d'exécution (parcours existant « Ajouter un exercice ») [Remplacé le 26/11/2026 (D-608 point 5, § 9.10) : écran « Exercice libre — Choix du mouvement », puis page « Exercice libre », dans la même modale ; arrivées inchangées] ;
 - **les Formats**, dans la grille à deux colonnes existante : chaque Format ouvre son questionnaire, puis son récapitulatif.
 
 | Départ | Choix | Suite | Arrivée |
 |---|---|---|---|
-| Catalogue des séances, Créer | Exercice libre | Fiche de création : mouvement, puis paramètres | Composition d'une **nouvelle** Séance, contenant cet Exercice |
+| Catalogue des séances, Créer | Exercice libre | Fiche de création : mouvement, puis paramètres [26/11/2026 : choix du mouvement, puis page « Exercice libre » — § 9.10] | Composition d'une **nouvelle** Séance, contenant cet Exercice |
 | Catalogue des séances, Créer | Un Format | Questionnaire, récapitulatif, « Enregistrer dans la séance » | Composition d'une **nouvelle** Séance, contenant la structure du Format [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.] |
-| Composition, Créer un exercice | Exercice libre | Fiche de création | Retour à la Composition, Exercice ajouté |
+| Composition, Créer un exercice | Exercice libre | Fiche de création [26/11/2026 : choix du mouvement, puis page « Exercice libre » — § 9.10] | Retour à la Composition, Exercice ajouté |
 | Composition, Créer un exercice | Un Format | Questionnaire, récapitulatif | Retour à la Composition, structure ajoutée |
 
 *(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
@@ -278,7 +278,7 @@ Affiché seulement si l’interrupteur Buy-in est activé. Mode catalogue dans l
 - **Paramètres d’exécution du récapitulatif** : Durée de chaque bloc (ou Durée de l’exercice si autonome), déjà prévue par la base. Nombre de blocs, Repos entre les blocs et Repos après chaque tour de boucle sont les réglages repris du questionnaire ; cette révision n’ajoute pas silencieusement des contrôles d’édition au récapitulatif. Aucun nouveau contrôle d’édition de ces autres réglages n’est ajouté ici ; le bouton Retour permet de les modifier au questionnaire, avec réponses conservées.
 - **Tableau des mouvements** : colonnes Mouvement | Objectif | Par tour | Charge (si activée) | Max. [Remplacé le 08/11/2026 (spécification de Hermann, B, §9.5) : Mouvement | Objectif | Par tour | Max — plus de colonne Charge, la charge « (12 kg) » s'affiche sous l'Objectif, sans cadre ; étiquette « (rép., +kg) » sous le nom.]
   - Par tour : affichée seulement si le Volume croissant est activé.
-  - Max : grise et désactive Objectif et Par tour, sans les masquer ; Charge reste modifiable. Condition d’arrêt À l’échec.
+  - Max : grise et désactive Objectif et Par tour, sans les masquer ; Charge reste modifiable. Condition d’arrêt À l’échec. [Terme remplacé le 26/11/2026 par D-607 point 7 : la colonne s'intitule « À l'échec » ; au choix, y compris dans une boucle de plusieurs mouvements.]
   - Lignes des buy-in : Objectif en Répétitions ou Durée, À l’échec possible ; Par tour inactif, Charge facultative. Le résultat à l’échec est saisi à la clôture du premier bloc.
 - **Déroulé** : bloc continu AMRAP avec tours illustratifs de durée variable (buy-in, boucle, valeurs croissantes, « max »), calé en bas de l'écran dans l’espace libéré par l’ancien bouton d’enregistrement. Si le contenu dépasse, le contenu de la modale défile ; l’enregistrement est porté par la coche de l’en-tête (D-499).
   - [Contre-recette n° 3 ter du 03/11/2026, Hermann, toujours applicable : « on ne doit pas pouvoir "Ajouter à la séance" si toutes les valeurs des paramètres ne sont pas renseignées » ; « Les champs de valeur du tableau encore à renseigner doivent être avec un fond rouge » ; « Les cellules d'incrément doivent être rouges et avec "+" uniquement (sans le 0). Au focus, il ne doit pas y avoir de 0 déjà renseigné ». Recette n° 3 et contre-recette n° 3 bis : clavier avec Précédent / Suivant / Fermer, « Supprimer le bouton "Next" du clavier ». « Max (bouton radio) : exclusif avec Rép. ; activé, il grise Rép. et Par tour » et « Ligne du buy-in : volume seul, ni Par tour ni Max » — remplacés le 04/11/2026 par les deux lignes ci-dessus. Fusion du 04/11/2026 de `main` 560f87bd dans `pre9-bmad/dev`.]
@@ -502,14 +502,14 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 
 *(Annotations de recette PRE-9 conservées à la fusion de `main` aab49948 le 05/11/2026 : elles restent applicables tant que le complément du 5 novembre ne les remplace pas.)*
 
-[précisé le 03/11/2026, recette iPhone n° 3 (f3-depart), Hermann : « Il manque le champ de la Pause » — ligne Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base]
+[précisé le 03/11/2026, recette iPhone n° 3 (f3-depart), Hermann : « Il manque le champ de la Pause » — ligne Pause toujours affichée au questionnaire, valeur initiale = pause des Exercices de base] [Remplacé le 26/11/2026 par D-607 point 2 pour la Progression : plus de pause globale ; la pause se règle par série dans le tableau.]
 
 [précisé le 03/11/2026 (f3-depart), Hermann : « A l'échec : ne pas mettre le champ de la durée totale, retirer la ligne »]
 
 
 ### 9.3 Progression — tableau des séries et saisie au clavier
 
-**Règle.** Le questionnaire Progression comporte un interrupteur **« Avec charge »**, entre Pause et Durée totale. Il n'existe que dans le questionnaire.
+**Règle.** Le questionnaire Progression comporte un interrupteur **« Avec charge »**, entre Pause et Durée totale. Il n'existe que dans le questionnaire. [Précisé le 26/11/2026 (D-607 point 2) : plus de ligne Pause globale dans la Progression.]
 - **Activé** : le tableau des séries du récapitulatif affiche, sous les répétitions de chaque série, une **charge par série** pour chaque mouvement. La charge est facultative par mouvement : laissée vide, ce mouvement est fait sans charge, par exemple un mouvement au poids du corps dans la même Progression. Une charge vide ne bloque donc pas « Enregistrer dans la séance ». [06/11/2026 : action portée par la coche de l’en-tête de la modale, sans bouton en bas — D-499.]
 - **Désactivé** : le tableau n'affiche que les répétitions, et aucune charge n'est créée sur les Exercices.
 - **Après l'enregistrement**, la charge se modifie dans la modale de l'Exercice, comme pour tout Exercice standard. L'interrupteur n'est pas reporté dans le récapitulatif ni dans la Séance.
@@ -583,7 +583,7 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 ### 9.6 Séquence d'ouverture et modale « Paramètres d'exécution » allégée (25/11/2026, D-603)
 
 - **Séquence.** À l'ouverture du format Tabata, l'écran de choix des mouvements s'affiche en premier ; le questionnaire reste accessible depuis cet écran. Aucun nouvel écran.
-- **Modale « Paramètres d'exécution Tabata »** (ouverte en touchant un mouvement du questionnaire, ou depuis la Composition) : seuls **Charge** et **De chaque côté** sont présentés. Mode, Condition d'arrêt, Phases du mouvement, Séries, Objectif de durée, Pause, Cadence, Durée de l'exercice et Récupération n'y figurent plus ; le nombre de séries, la durée de travail, la pause et la récupération se règlent sur l'écran principal du format. Les exercices du Tabata gardent Durée, À l'objectif, sans phases et sans cadence.
+- **Modale « Paramètres d'exécution Tabata »** (ouverte en touchant un mouvement du questionnaire, ou depuis la Composition) : seuls **Charge** et **De chaque côté** sont présentés. Mode, Condition d'arrêt, Phases du mouvement, Séries, Objectif de durée, Pause, Cadence, Durée de l'exercice et Récupération n'y figurent plus ; le nombre de séries, la durée de travail, la pause et la récupération se règlent sur l'écran principal du format. Les exercices du Tabata gardent Durée, À l'objectif, sans phases et sans cadence. [Remplacé le 26/11/2026 par D-607 et D-608 : titre de la modale = nom du mouvement (D-608 point 2) ; Cadence rétablie et objectif de répétitions facultatif (D-607 points 2 et 3) ; cadres « Objectif de répétitions » + « Charge », puis « De chaque côté » + « Cadence » (D-608 point 8).]
 - [Précisé le 25/11/2026 (D-603) : la règle « Règles des Exercices standards » du § 9 n'ouvre plus, dans cette modale, la modification individuelle de Mode, Phases, Séries, Objectif, Pause, Cadence, Durée de l'exercice et Récupération pour un exercice du Tabata.]
 - Figma : « Tabata — Modale exercice, standard » et « Tabata — Modale exercice, en alternance » (modale allégée). L'intégration de la modale sera revue ultérieurement.
 - [Précisé le 25/11/2026 (D-604) : règle générale au § 9.7 ; elle remplace la liste fermée « Charge et De chaque côté » pour les formats autres que les départs rapides.]
@@ -594,17 +594,19 @@ Les réglages et structures initiales déjà définis pour ces départs sont rep
 
 [Précisé le 25/11/2026 (D-606) : pour un Exercice issu d'un format, l'appui sur la carte dans la Composition ouvre la page du format (§ 9.8) ; la modale par contexte ci-dessous n'est plus ouverte depuis la Composition pour ces Exercices. La liste des champs reste la référence de ce que la page du format doit proposer.]
 
+[Remplacé en partie le 26/11/2026 par D-607 (§ 9.9) et D-608 (§ 9.10) : l'appui sur la carte ouvre de nouveau cette modale ; titre = nom du mouvement ; Cadence rétablie pour Tabata, 30/30, Renforcement, Superset et Progression (et HIIT) ; objectif de répétitions facultatif pour Tabata, 30/30 et HIIT ; Renforcement : champ valeur ; Superset : tableau standard par tour ; EMOM : intervalle propre à chaque série et à chaque tour, affiché et partagé « Dans chaque intervalle » ; AMRAP : « À l'échec » au choix et ligne Rôle dans toutes les modales ; For time : ligne Condition d'arrêt non affichée.]
+
 **Règle.** La modale « Paramètres d'exécution » d'un exercice déjà dans la séance n'affiche que les champs dont l'utilisateur a besoin dans son contexte. Un champ déjà réglé par le questionnaire, le récapitulatif ou le circuit du format n'y figure pas ; pour le changer, on rouvre le circuit sur l'écran principal du format (§ 7.9).
 
 | Contexte de l'exercice | Champs affichés |
 |---|---|
-| Tabata, 30/30, Renforcement, Progression, À l'échec, Superset | Charge, De chaque côté |
+| Tabata, 30/30, Renforcement, Progression, À l'échec, Superset | Charge, De chaque côté [Complété le 26/11/2026 par D-607 : Cadence (Tabata, 30/30, Renforcement, Superset, Progression) ; Tabata, 30/30 (et HIIT) : objectif de répétitions facultatif ; Renforcement : valeur ; Superset : tableau par tour] |
 | EMOM (standard, en alternance) | Mode, Condition d'arrêt, Nombre de répétitions, Intervalle, Charge, De chaque côté |
-| EMOM dans chaque intervalle | Mode, Condition d'arrêt, Nombre de répétitions, Charge, De chaque côté |
-| AMRAP | Mode, Condition d'arrêt, Rôle (en circuit), Nombre de répétitions, Incrément par tour, Charge, De chaque côté |
+| EMOM dans chaque intervalle | Mode, Condition d'arrêt, Nombre de répétitions, Charge, De chaque côté [Complété le 26/11/2026 par D-608 point 1 : Intervalle du tour, partagé par les mouvements] |
+| AMRAP | Mode, Condition d'arrêt, Rôle (en circuit), Nombre de répétitions, Incrément par tour, Charge, De chaque côté [Remplacé en partie le 26/11/2026 : Rôle dans toutes les modales (D-608 point 9) ; « À l'échec » au choix (D-607 point 7)] |
 | Death by (standard) | Mode, Condition d'arrêt, Nombre de répétitions, Incrément par intervalle, Intervalle, Charge, De chaque côté |
 | Death by dans chaque intervalle | Les mêmes, sans Intervalle |
-| For time | Mode, Condition d'arrêt, Rôle (en circuit), Séries (tableau des répétitions et pauses), Charge, De chaque côté ; en buy-in ou buy-out : Nombre de répétitions à la place de Séries |
+| For time | Mode, Condition d'arrêt, Rôle (en circuit), Séries (tableau des répétitions et pauses), Charge, De chaque côté ; en buy-in ou buy-out : Nombre de répétitions à la place de Séries [Remplacé le 26/11/2026 par D-607 point 7 : Condition d'arrêt non affichée] |
 | Exercice libre | Tous les champs d'un exercice libre |
 
 Retirés dans les quatre derniers formats : Phases du mouvement, Cadence, Durée de l'exercice (ou durée maximum), Récupération, Pause.
@@ -623,11 +625,70 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 [Report du 25/11/2026 depuis la branche de documentation `docs/planification-grille-creneaux` (non fusionnée), où cette décision porte le numéro D-571, déjà pris sur main : renumérotée D-606.]
 
-- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la **page unique du format** (il n'y a plus de page de récapitulatif distincte du questionnaire) ; la modale « Paramètres d'exécution » n'existe plus pour ces Exercices. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule (inchangé). La Charge et « De chaque côté » doivent être réglables dans la page du format. [Remplace, pour les Exercices issus d'un format, la modale par contexte du § 9.7 ; la liste des champs du § 9.7 reste la référence de ce que la page doit proposer.]
-- **Exercice libre.** Il se règle dans une modale de type format (Figma « Exercice libre — Modale de type format »), mêmes composants que les questionnaires : Mode (Répétitions par défaut), objectif « À l'objectif », Charge par « (+ kg) » dans le tableau, « De chaque côté » en ligne.
-- **Écran des formats (« Créer un exercice »).** Titre centré, aucun sous-titre ; carte **Libre** de la même taille que les autres, en première position, logo en cadre pointillé, sous-titre « un mouvement, à régler ».
+- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la **page unique du format** (il n'y a plus de page de récapitulatif distincte du questionnaire) ; la modale « Paramètres d'exécution » n'existe plus pour ces Exercices. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule (inchangé). La Charge et « De chaque côté » doivent être réglables dans la page du format. [Remplace, pour les Exercices issus d'un format, la modale par contexte du § 9.7 ; la liste des champs du § 9.7 reste la référence de ce que la page doit proposer.] [Remplacé le 26/11/2026 par D-608 point 1 (§ 9.10) : l'appui sur la carte ouvre de nouveau la modale « Paramètres d'exécution » allégée (§ 9.7, § 9.9) ; la ligne « N tours alternés / groupés » et sa durée ouvrent la page du format ; depuis cette page, l'appui sur un mouvement ouvre la même modale.]
+- **Exercice libre.** Il se règle dans une modale de type format (Figma « Exercice libre — Modale de type format »), mêmes composants que les questionnaires : Mode (Répétitions par défaut), objectif « À l'objectif », Charge par « (+ kg) » dans le tableau, « De chaque côté » en ligne. [Remplacé le 26/11/2026 (§ 9.10) : Charge en ligne Avec | Sans comme les autres écrans de paramètres, et page décrite au § 9.10.]
+- **Écran des formats (« Créer un exercice »).** Titre centré, aucun sous-titre ; carte **Libre** de la même taille que les autres, en première position, logo en cadre pointillé, sous-titre « un mouvement, à régler ». [Remplacé le 26/11/2026 par D-608 point 4 (§ 9.10) : 12 formats, sous-titre « Construire son propre exercice ».]
 - Figma (Prototype MVP) : écran des formats `9977:19613` ; modale libre `13242:26255`. À valider sur iPhone.
 - [Application du 25/11/2026, à confirmer par Hermann : (1) « Exercice issu d'un format » = membre d'un Circuit qui porte son modèle d'origine ; un exercice seul issu d'un format (un seul mouvement, sans Circuit) n'a pas de page de format à rouvrir et garde la modale par contexte du § 9.7 (À CLARIFIER). (2) Charge : déjà réglable dans la page du format (ligne « Charge » d'un seul mouvement, « (+ kg) » dans les tableaux) ; « De chaque côté » : aucun écran Figma de page de format ne le montre — il reste réglable dans la modale du mouvement ouverte depuis la page (§ 9.7), sans nouvelle ligne inventée (À CLARIFIER). (3) Exercice libre : titre « Exercice libre », zone de contexte, accroche et valeurs par défaut (Répétitions, « À l'objectif ») appliqués ; le tableau « Exercice | S1 … Sn » avec « (+ kg) », « Nombre de séries » et une Pause commune, à la place de la ligne Charge et du tableau des séries variables, retirerait la Pause propre à chaque série, le déplacement et la suppression d'une série : en attente de l'accord de Hermann (À CLARIFIER), la saisie des séries reste celle de la feuille.]
+
+### 9.9 Réglages d'exercice par format, catalogue en modification, nom du Superset (25/11/2026, D-607)
+
+[Report du 26/11/2026 depuis la branche de documentation `docs/planification-grille-creneaux` (non fusionnée), où cette décision porte le numéro D-572, déjà pris sur main : renumérotée D-607.]
+
+Ces règles décrivent le contenu de la modale « Paramètres d'exécution » allégée.
+
+**Général.** Le clavier ne masque jamais le champ saisi ; « De chaque côté » : menu natif iOS ; « + Ajouter » devient « + Modifier » dès qu'un mouvement est choisi ; 5 mouvements au plus par format. Catalogue en modification : sélectionnés figés en haut (zone plafonnée à environ 40 % de la hauteur, défilement interne), liste qui défile dessous et disparaît derrière la zone figée, marge sous la dernière carte ; désélectionner une carte la libère.
+
+| Format | Réglages d'exercice (ajouts à D-604) |
+|---|---|
+| Tabata, 30/30 | Cadence ; objectif de répétitions facultatif ; s'il est renseigné, résultat (total de répétitions par exercice) saisi après l'exécution, facultatif ; sinon aucun résultat |
+| Renforcement | Valeur (répétitions ou durée selon le Mode, validation possible en Durée) ; Cadence |
+| Superset | Tableau standard par tour (identiques ou variables), charge si besoin ; Cadence ; « Récupération après le tour » vide : « — » ; validation possible en Durée |
+| Progression | Cadence ; pas de pause globale |
+| EMOM | Intervalle propre à chaque mouvement et à chaque tour ; plus d'un tour : tableau par série (objectif, intervalle, charge) ; « Dans chaque intervalle » : intervalle de chaque tour partagé, la modification se répercute sur les autres mouvements |
+| AMRAP | Condition d'arrêt « À l'échec » ou « À l'objectif » (le terme « Max » disparaît) |
+| For time | Condition d'arrêt toujours « À l'objectif » : ligne non affichée |
+
+**Paramètre global « Nombre de Tabata / de 30/30 / d'EMOM / de For time ».** Nombre de tours du circuit en « À la suite », nombre de cycles en « En alternance ». « Repos entre les cycles » n'apparaît que si le nombre est supérieur à 1.
+
+**Nom du Superset.** 2 mouvements : Superset ; 3 : Tri-set ; 4 et plus : Giant set. Le nom de la modale, la proposition de préfixe du nom de séance et le nom du format sur la carte du catalogue suivent la sélection.
+
+[Application du 26/11/2026 (branche `feat/formats-reglages-d607-d608-20261126`), interprétations à confirmer par Hermann : (1) « De chaque côté » : sur iOS, l'Enchaînement se choisit dans le menu natif iOS ; hors iOS, le déroulant Figma de PRE-7 (D-447, B5) est conservé. (2) Catalogue en modification : 5 mouvements au plus pour l'ensemble du format, buy-in et buy-out compris ; zone figée plafonnée à 40 % de la hauteur ; au-delà, message « Cinq mouvements au maximum ». (3) Tabata, 30/30, HIIT : l'objectif de répétitions est une donnée facultative des paramètres d'exécution de l'exercice, enregistrée seulement si elle est renseignée ; la cible de durée n'est ni réutilisée ni modifiée. Le résultat (total de répétitions saisi après l'exécution) n'est pas réalisé : l'exécution est hors du périmètre de cette livraison (À CLARIFIER : écran et moment de la saisie). (4) Progression : la ligne de pause globale est retirée du questionnaire ; la pause de chaque série reste dans le tableau. (5) Superset : la modale retrouve la ligne des séries (identiques ou variables), son tableau et la pause ; le nom Superset / Tri-set / Giant set suit le nombre de mouvements. (6) EMOM : un intervalle par série, enregistré seulement quand les séries diffèrent, et, « Dans chaque intervalle », un intervalle par tour porté par le circuit, enregistré seulement quand les tours diffèrent. L'exécution applique encore à tous les tours l'intervalle du tour 1 (À CLARIFIER ; exécution hors périmètre). (7) AMRAP : « À l'échec » au choix dans la modale et dans la colonne du tableau (ancienne colonne « Max »), y compris pour un mouvement de la boucle ; For time : ligne Condition d'arrêt non affichée. (8) Point 4 (« Nombre de Tabata / de 30/30 / d'EMOM / de For time » et « Repos entre les cycles ») : non réalisé — À CLARIFIER : où enregistrer le repos entre les cycles ; structure produite en « À la suite » et en « En alternance » ; lien avec les nombres de tours ou de séries déjà présents pour le For time et l'EMOM ; valeur par défaut ; le HIIT est-il concerné ?]
+
+### 9.10 Navigation vers les réglages, titre des modales, HIIT, écran des formats, phases (26/11/2026, D-608)
+
+[Report du 26/11/2026 depuis la branche de documentation `docs/planification-grille-creneaux` (non fusionnée), où cette décision porte le numéro D-573, déjà pris sur main : renumérotée D-608.]
+
+**Navigation.** Appui sur la carte d'un Exercice : modale « Paramètres d'exécution » allégée (§ 9.7, § 9.9) ; fermée (✕ ou ✓), retour à la Composition. Appui sur la ligne « N tours alternés / groupés » et sa durée : page globale du format (récapitulatif), mêmes paramètres, modifiables ; fermée, retour à la Composition ; depuis cette page, l'appui sur un mouvement ouvre la modale allégée, dont la fermeture ramène à la page ; la modale est la même, qu'elle soit ouverte depuis la Composition ou depuis la page. Un Exercice hors circuit (exercice libre, format à un seul mouvement) n'a que la modale. Dans la modale « Dans chaque intervalle », l'intervalle partagé du circuit est affiché et modifiable ; la modification se répercute sur les autres mouvements. Photo (fiche), déplacer, dupliquer, supprimer : inchangés sur la carte. Aucun indice visuel ajouté (la ligne a déjà son chevron) ; à juger au test iPhone.
+
+**Présentation des modales « Paramètres d'exécution ».** En-tête sans trait de séparation ; zone colorée en dégradé (couleur du format ; gris neutre pour les modales génériques) du haut de la modale jusqu'au bas de l'en-tête, sur toute la largeur (386 pt) ; titre à 18. Tabata, 30/30, HIIT : cadre « Objectif de répétitions » + « Charge », cadre « De chaque côté » + « Cadence » (Cadence en dernier). AMRAP : ligne « Rôle » dans toutes les modales ; en « À l'échec », ligne « Nombre de répétitions par tour » ou « Durée par tour » affichée grisée, valeur « — ».
+
+**Titre de la modale.** Nom du mouvement, « … » s'il est trop long (Figma : composant d'en-tête de modale et toutes les modales de paramètres).
+
+**HIIT.** Format préconfiguré modifiable, sur le modèle du 30/30 : Mode Durée ; 6 séries identiques ; objectif 40 s ; pause 20 s ; Durée de l'exercice 6 min ; Récupération 0 s. Vert lime, logo de deux éclairs, sous-titre « Booster sa dépense énergétique ». Écrans Figma : « HIIT — Récapitulatif » (2 mouvements, 12 min) et « HIIT — Modale exercice » ; les autres écrans (choix des mouvements, exécution) sont ceux du 30/30. Les modales HIIT, 30/30 et Tabata (standard et en alternance) portent les réglages de D-607 en deux cadres : « Objectif de répétitions (facultatif) » et « Charge », puis « De chaque côté » et « Cadence » (Cadence toujours en dernier, comme sur les écrans de paramètres).
+
+**Écran « Créer un exercice ».**
+
+| # | Format | Sous-titre |
+|---|---|---|
+| 1 | Exercice libre | Construire son propre exercice |
+| 2 | Renforcement | Construire et tonifier ses muscles |
+| 3 | Superset | Intensifier le travail musculaire |
+| 4 | Progression | Développer sa force maximale |
+| 5 | À l'échec | Stimuler le muscle et tester ses limites |
+| 6 | Death by | Repousser son seuil de fatigue |
+| 7 | HIIT | Booster sa dépense énergétique |
+| 8 | Tabata | Améliorer son explosivité en quatre minutes |
+| 9 | 30/30 | Améliorer son souffle et sa résistance |
+| 10 | EMOM | Mieux récupérer entre les efforts |
+| 11 | AMRAP | Développer son endurance globale |
+| 12 | For time | Gagner en vitesse sous la fatigue |
+
+**Page « Exercice libre »** (Figma « Exercice libre — Modale de type format »). Parcours : Créer un exercice → carte Libre → écran « Exercice libre — Choix du mouvement » (recherche, filtre, tri, catalogue, un seul mouvement ; ✓ inactif tant qu'aucun mouvement n'est choisi) → page. Coque du format : zone colorée grise, titre centré « Exercice libre », sous-titre sur deux lignes « Réglez librement chaque paramètre de l'exercice. ». Lignes, dans l'ordre : cadre Mouvement (titre « Mouvement » avec lien « Changer » qui ramène au choix du mouvement ; ligne mouvement : photo, nom, famille, niveau ; ligne « Phases du mouvement » avec « n phases » et chevron, seulement si le mouvement a des phases) ; cadre Mode (Durée | Répétitions, Répétitions par défaut) et Condition d'arrêt (À l'échec | À l'objectif, À l'objectif par défaut) ; cadre Séries (Identiques | n séries variables) avec son tableau, puis Charge (Avec | Sans) ; cadre De chaque côté (Avec | Sans), Cadence (Autre | 1 s | Sans) et Récupération (30'' par défaut). Pas de bouton « + Créer un mouvement » : un nom inexistant validé crée le mouvement. Une fois créé, l'exercice se modifie depuis la Composition par la modale « Paramètres d'exécution » allégée, comme tout exercice. Un exercice sorti d'un format prend les champs et valeurs par défaut d'un exercice libre ; un exercice libre qui entre dans un format garde ses autres valeurs masquées et inactives (elles réapparaissent à la sortie). [Texte reporté le 26/11/2026 depuis la branche de documentation (3524f351). Remplace : « **Modale de l'exercice libre (mise en page).** Coque du format : zone colorée grise, titre centré « Exercice libre », sous-titre sur deux lignes, bandes pleine largeur. Mouvement et phases dans un même cadre ; option sélectionnée à droite ; lignes de 38 pt ; trois dernières lignes dans un même cadre ; pas de « + Créer un mouvement » (valider un nom inexistant crée le mouvement). »] [Application du 26/11/2026 : écran de choix et page dans la feuille native de « Créer un exercice » ; un nom inexistant validé (touche Entrée) ouvre la fiche de création d'un mouvement avec ce nom ; l'enregistrement ouvre la page. Récupération 30'' propre à l'exercice créé par la page ; la sortie d'un format sans valeurs libres garde « sans Récupération » (À CLARIFIER).]
+
+**Phases.** Définies dans la fiche du mouvement. Sans phases : pas de ligne. Avec phases : nombre fixé, ligne « n phases » (chevron) pour modifier la valeur de chaque phase ; sons et images de chaque phase désactivables ; la durée des phases compte toujours dans le temps. Remplace l'option Avec / Sans phases. [Figma : seule la modale de l'exercice libre applique cette règle ; les autres écrans « Création activité — Paramètres » restent à aligner.]
+
+[Application du 26/11/2026 (branche `feat/formats-reglages-d607-d608-20261126`), interprétations à confirmer par Hermann : (1) Navigation : dans l'en-tête d'un circuit issu d'un format, le nombre, l'adjectif de nature (« alternés », « groupés ») et la durée ouvrent la page du format ; le chevron et le nom replient toujours le circuit ; un circuit construit à la main est inchangé. (2) En-tête des modales : la zone colorée prend la couleur de fond du format ; gris neutre #F1F2F5 sinon, et pour l'exercice libre. Titre : nom du mouvement sur une ligne, terminé par « … » s'il est trop long ; les titres génériques (sans mouvement) sont inchangés. (3) AMRAP : ligne Rôle dans toutes les modales (AMRAP à un seul mouvement : Tour, Buy-in indisponible) ; en « À l'échec », ligne grisée « Nombre de répétitions par tour » ou « Durée par tour », valeur « — ». (4) HIIT : nouveau format préconfiguré (clés propres, fond #F5F9E2, bande #EAF3C8, logo de deux éclairs) ; ses clés s'enregistrent comme celles des autres formats, ce qui demande une migration de la base (ch. 12).]
 
 ## 10. Application de la règle à l'EMOM
 
@@ -642,11 +703,11 @@ Exemple chiffré ci-dessous : 2 mouvements, 6 séries, intervalle 1 min, 10 rép
 | Un seul mouvement | Une série par intervalle | 1 exercice EMOM | Mode Répétitions ; Condition d’arrêt À l’objectif ; Séries « 6 séries identiques » ; Nombre de répétitions 10 ; Intervalle 1 min ; Durée de l'exercice 6 min ; Récupération 0 s | 6 min |
 | **À la suite** | EMOM de A, récupération, EMOM de B | Circuit standard groupé, 1 tour ; Formats locaux EMOM | Comme ci-dessus ; Récupération entre les mouvements (1 min) sur le premier | 13 min |
 | **En alternance** | Intervalle 1 : A, intervalle 2 : B… chacun fait ses 6 séries | Circuit standard : 6 tours, « alternées » | Comme pour un seul mouvement [Précisé le 07/11/2026, Hermann : « Le cas 3 suit la logique du cas 4 : une récupération décalerait le top de la minute suivante. » — Récupération absente ; Séries « N = tours du circuit, non modifiable dans la modale » ; Intervalle propre modifiable ; Durée de l’exercice en lecture seule ; voir ch07 « EMOM — champs de la modale … (Hermann, 07/11/2026) »] | 12 min |
-| **Dans chaque intervalle** | A puis B dans le même intervalle, repos jusqu'à l'intervalle suivant | Circuit **porteur du format** (Format d'origine = EMOM) : 6 tours, nature fixée « groupées », **Durée de chaque tour** = intervalle (1 min), modifiable | Mode Répétitions ; Nombre de répétitions 10 ; ni Séries, ni Intervalle, ni Durée de l'exercice (portés par le circuit) ; Récupération 0 s | 6 min |
+| **Dans chaque intervalle** | A puis B dans le même intervalle, repos jusqu'à l'intervalle suivant | Circuit **porteur du format** (Format d'origine = EMOM) : 6 tours, nature fixée « groupées », **Durée de chaque tour** = intervalle (1 min), modifiable | Mode Répétitions ; Nombre de répétitions 10 ; ni Séries, ni Intervalle, ni Durée de l'exercice (portés par le circuit) ; Récupération 0 s [Remplacé en partie le 26/11/2026 par D-607 point 6 et D-608 point 1 : l'intervalle du tour, porté par le circuit, est affiché dans la modale et modifiable ; le modifier pour un mouvement le modifie pour les autres ; il peut différer d'un tour à l'autre] | 6 min |
 
 [07/11/2026, Hermann : « Condition d'arrêt : « À l'objectif » seul. « À l'échec » est affiché mais désactivé (grisé, non sélectionnable) dans tous les cas EMOM. » ; « Jamais de ligne Pause » ; Durée de l’exercice en lecture seule (N × intervalle) placée sous l’Intervalle (cas 1 à 3), absente dans chaque intervalle ; Récupération retirée en alternance et dans chaque intervalle — ch07 du même jour.] [07/11/2026, Hermann, réponses aux points ouverts : en alternance, « la confirmation ne s'affiche que s'il y a plus de séries que de tours. S'il y en a moins, les séries ajoutées sont à renseigner, sans confirmation » ; « Quand un exercice entre dans un circuit alterné ou « dans chaque intervalle », sa Récupération passe à 0 s dans les données » (données existantes normalisées, migration 023) ; dans la Composition, un dépassement d’intervalle teinte le Circuit replié comme ses cartes, et la durée de tour d’un Circuit « dans chaque intervalle » est marquée en rouge. Texte complet : ch07, section EMOM du 07/11/2026.]
 
-[Précisé le 25/11/2026 (D-604, § 9.7) : modale EMOM — Mode, Condition d'arrêt, Nombre de répétitions, Intervalle (absent dans chaque intervalle), Charge, De chaque côté ; Durée de l'exercice en lecture seule et Récupération n'y figurent plus (valeurs inchangées).]
+[Précisé le 25/11/2026 (D-604, § 9.7) : modale EMOM — Mode, Condition d'arrêt, Nombre de répétitions, Intervalle (absent dans chaque intervalle), Charge, De chaque côté ; Durée de l'exercice en lecture seule et Récupération n'y figurent plus (valeurs inchangées).] [Remplacé en partie le 26/11/2026 par D-607 point 6 et D-608 point 1 : intervalle propre à chaque série ; dès qu'il y a plus d'un tour, tableau par série (objectif, intervalle, charge) ; « Dans chaque intervalle », l'intervalle du tour est affiché et partagé.]
 
 « Dans chaque intervalle » est le seul cas EMOM où le circuit porte le format : l'intervalle englobe plusieurs exercices. Il réutilise le champ « Durée de chaque tour » du circuit, introduit pour l'AMRAP.
 

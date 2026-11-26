@@ -41,6 +41,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
+import { emomIntervalsOf, emomIntervalsTotal } from "./emomIntervals";
 import type { ElementFormat } from "./formats";
 import type { Activity, ActivityType, Session } from "./Session";
 import type { SideMode } from "./sideMode";
@@ -109,7 +110,8 @@ export function progressiveFormatDuration(activity: ActivityDurationFacts): Exer
       const window = intervalSeconds(format);
       const rounds = seriesCountOf(activity.executionParameters);
       if (window === null || rounds < 1) return null;
-      const seconds = rounds * window + recovery;
+      // D-607 (D-572 point 6) : intervalle propre à chaque série — somme des fenêtres (liste absente : N × Intervalle).
+      const seconds = emomIntervalsTotal(format.settings, "intervalSeconds", rounds) + recovery;
       return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
     }
     default:
@@ -154,7 +156,8 @@ export function carrierCircuitDuration(circuit: {
     case "EMOM": {
       const window = circuitSetting(format, "windowSeconds");
       if (window === null || window === 0) return null;
-      const seconds = Math.max(1, circuit.repeatCount) * window;
+      // D-607 (D-572 point 6) : intervalle propre à chaque tour — somme des tours (liste absente : tours × durée de chaque tour).
+      const seconds = emomIntervalsTotal(format.settings, "windowSeconds", Math.max(1, circuit.repeatCount));
       return { kind: "exact", knownSeconds: seconds, seconds, events: [] };
     }
     case "DEATH_BY":
@@ -310,6 +313,12 @@ export function seriesCircuitContribution(
   const format = activity.format ?? null;
   if (format !== null && format.key === "EMOM") {
     const window = intervalSeconds(format);
+    // D-607 (D-572 point 6) : intervalles différents selon le tour — somme des fenêtres des passages, comptée une fois.
+    const windows = window === null ? [] : emomIntervalsOf(format.settings, "intervalSeconds", passages);
+    if (window !== null && windows.some((value) => value !== window)) {
+      const total = windows.reduce((sum, value) => sum + value, 0);
+      return { result: { kind: "exact", knownSeconds: total, seconds: total, events: [] }, multiplicity: 1 };
+    }
     if (window !== null) return { result: { kind: "exact", knownSeconds: window, seconds: window, events: [] }, multiplicity: passages };
   }
   // PRE-9 B.7 : un membre progressif (Death by alterné, D-16) joue un segment à chaque tour (D.1).

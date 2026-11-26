@@ -19,21 +19,21 @@ const LINK = {
   linkedAt: "2026-11-25T10:00:00.000Z",
 };
 
-describe("migration041 — compte (T1)", () => {
-  it("base neuve : version 41, état NEVER_LINKED, aucun lien", async () => {
+describe("migration042 — compte (T1)", () => {
+  it("base neuve : version 42, état NEVER_LINKED, aucun lien", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(41);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 41 });
+    expect(DATABASE_VERSION).toBe(42);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
     const accounts = new SqliteAccountRepository(database);
     expect(await accounts.getLink()).toBeNull();
     expect(await accounts.getLifecycle()).toEqual({ state: "NEVER_LINKED", deletionReceipt: null, deletedProviderSubjectHash: null });
     expect(await accounts.hasBusinessData()).toBe(false);
   });
 
-  it("mise à niveau d'une base peuplée (version 40) : lignes et identifiant local conservés", async () => {
+  it("mise à niveau d'une base peuplée (version 41) : lignes et identifiant local conservés", async () => {
     const database = NodeSqliteDatabase.openInMemory();
-    await migrateDatabase(database, undefined, 40);
+    await migrateDatabase(database, undefined, 41);
     const user = await database.getFirstAsync<{ id: string }>("SELECT id FROM users WHERE singleton_key = 1");
     await database.runAsync(
       "INSERT INTO sessions (id, owner_id, name, created_at, updated_at) VALUES ('ses_1', ?, 'Jambes', 't', 't')",
@@ -45,7 +45,7 @@ describe("migration041 — compte (T1)", () => {
 
     await migrateDatabase(database);
 
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 41 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
     for (const table of tables) {
       expect((await database.getFirstAsync<CountRow>(`SELECT COUNT(*) AS count FROM ${table}`))!.count).toBe(before[table]);
     }

@@ -47,6 +47,7 @@ import {
   type ElementFormat,
   type FormatRole,
 } from "./formats";
+import { emomIntervalsOf } from "./emomIntervals";
 import { plannedWorkOfParameters } from "./formatModels";
 import type { ActivityType } from "./Session";
 import {
@@ -163,9 +164,11 @@ export function configurationValidity<E extends ValidityExercise>(
     // série/fenêtre est vérifiée, aussi après modification depuis la Composition).
     const window = carried.settings.windowSeconds;
     if (carried.key === "EMOM" && typeof window === "number") {
+      // D-607 (D-572 point 6) : intervalle de chaque tour.
+      const windows = emomIntervalsOf(carried.settings, "windowSeconds", circuit.repeatCount);
       for (let rank = 0; rank < circuit.repeatCount; rank += 1) {
         const sum = circuit.exercises.reduce((total, exercise) => total + plannedWorkOfParameters(exercise.executionParameters, rank), 0);
-        if (sum > 0 && sum >= window) {
+        if (sum > 0 && sum >= (windows[rank] ?? window)) {
           add(circuit.id, "EMOM_DURATION");
           break;
         }
@@ -195,9 +198,11 @@ export function configurationValidity<E extends ValidityExercise>(
         const interval = format.settings.intervalSeconds;
         if (format.key === "EMOM" && typeof interval === "number") {
           const count = seriesRowsOf(exercise.executionParameters).length;
+          // D-607 (D-572 point 6) : intervalle de chaque série.
+          const intervals = emomIntervalsOf(format.settings, "intervalSeconds", count);
           for (let rank = 0; rank < count; rank += 1) {
             const work = plannedWorkOfParameters(exercise.executionParameters, rank);
-            if (work > 0 && work >= interval) {
+            if (work > 0 && work >= (intervals[rank] ?? interval)) {
               add(exercise.id, "EMOM_DURATION");
               break;
             }

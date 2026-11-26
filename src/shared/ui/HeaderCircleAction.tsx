@@ -36,17 +36,22 @@ export const headerCircleStyles = StyleSheet.create({
   },
 });
 
-/** Action circulaire « Fermer » standard : le même rond que le ✕ de `FixedHeader`. */
+/**
+ * Action circulaire « Fermer » standard : le même rond que le ✕ de `FixedHeader`. `icon="back"` (D-608, Figma « Exercice libre —
+ * Modale de type format » `13269:26160`) : même rond, chevron Retour.
+ */
 export function CloseCircleAction({
   onPress,
   accessibilityLabel,
   style,
   testID,
+  icon = "close",
 }: {
   onPress: () => void;
   accessibilityLabel: string;
   style?: StyleProp<ViewStyle>;
   testID: string;
+  icon?: "close" | "back";
 }) {
   return (
     <Pressable
@@ -57,7 +62,7 @@ export function CloseCircleAction({
       style={[headerCircleStyles.circle, style]}
       testID={testID}
     >
-      <KodjoIcon name="control-close" size={dimensions.backAction.icon} tintColor={HEADER_ICON_TINT} testID={`${testID}-icon`} />
+      <KodjoIcon name={icon === "back" ? "control-back" : "control-close"} size={dimensions.backAction.icon} tintColor={HEADER_ICON_TINT} testID={`${testID}-icon`} />
     </Pressable>
   );
 }

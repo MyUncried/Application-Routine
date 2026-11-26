@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
 import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -74,6 +74,14 @@ export type ModalHeaderProps = {
   /** Identifiants : `${prefix}-header`, `${prefix}-cancel`, `${prefix}-validate`, `${prefix}-title`. */
   readonly testIDPrefix: string;
   readonly style?: StyleProp<ViewStyle>;
+  /**
+   * D-608 (D-573 points 2 et 7, Hermann, 26/11/2026) : titre des modales « Paramètres d'exécution » — corps 18, une seule ligne,
+   * « … » s'il est trop long. Absents : rendu inchangé.
+   */
+  readonly titleStyle?: StyleProp<TextStyle>;
+  readonly titleNumberOfLines?: number;
+  /** D-608 (Figma `13269:26160`) : chevron Retour à la place de la croix. Absent : croix. */
+  readonly cancelIcon?: "close" | "back";
 };
 
 /** Ligne d'en-tête complète : croix, titre centré, coche. */
@@ -87,11 +95,23 @@ export function ModalHeader({
   validateLabel,
   testIDPrefix,
   style,
+  titleStyle,
+  titleNumberOfLines,
+  cancelIcon = "close",
 }: ModalHeaderProps) {
   return (
     <View style={[styles.header, style]} testID={`${testIDPrefix}-header`}>
-      <ModalCancelAction onPress={onCancel} accessibilityLabel={cancelLabel} testID={`${testIDPrefix}-cancel`} />
-      <Text style={styles.title} accessibilityRole="header" testID={`${testIDPrefix}-title`}>
+      {cancelIcon === "back" ? (
+        <CloseCircleAction onPress={onCancel} accessibilityLabel={cancelLabel} icon="back" testID={`${testIDPrefix}-cancel`} />
+      ) : (
+        <ModalCancelAction onPress={onCancel} accessibilityLabel={cancelLabel} testID={`${testIDPrefix}-cancel`} />
+      )}
+      <Text
+        style={[styles.title, titleStyle]}
+        {...(titleNumberOfLines !== undefined ? { numberOfLines: titleNumberOfLines, ellipsizeMode: "tail" as const } : {})}
+        accessibilityRole="header"
+        testID={`${testIDPrefix}-title`}
+      >
         {title}
       </Text>
       <ModalValidateAction

@@ -78,10 +78,24 @@ export function circuitDisplayTitle(circuit: {
   readonly format?: ElementFormat | null;
   readonly originModel?: FormatModelKey | null;
   readonly name?: string | null;
+  readonly exercises?: readonly unknown[];
 }): string | undefined {
   // MAJ 04/11/2026 §6 quinquies : nom choisi par Renommer, sinon nom du modèle d'origine, sinon « Circuit ».
   const named = circuit.name?.trim() ?? "";
   if (named.length > 0) return named;
   const key = circuit.format?.key ?? circuit.originModel ?? null;
-  return key === null ? undefined : strings.screens.sessionModels.cards[key].title;
+  return key === null ? undefined : formatModelName(key, circuit.exercises?.length ?? 0);
+}
+
+/**
+ * Nom affiché d'un modèle de la fenêtre Formats pour un nombre de mouvements. D-607 (D-572 de la branche de documentation, point 8,
+ * Hermann, 25/11/2026 ; Formats § 9.9) : Superset selon le nombre de mouvements — 2 (ou moins, avant la sélection) : Superset ;
+ * 3 : Tri-set ; 4 et plus : Giant set. Le nom de la modale du format, la proposition de préfixe du nom de séance et le nom du format
+ * sur la carte du catalogue suivent la sélection. Les autres modèles : nom de leur carte.
+ */
+export function formatModelName(key: FormatModelKey, movementCount: number): string {
+  const models = strings.screens.sessionModels;
+  if (key === "SUPERSET" && movementCount >= 4) return models.supersetNames.more;
+  if (key === "SUPERSET" && movementCount === 3) return models.supersetNames.three;
+  return models.cards[key].title;
 }

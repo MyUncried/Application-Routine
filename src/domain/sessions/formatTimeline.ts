@@ -186,6 +186,7 @@ export function modelTimeline(key: FormatModelKey, answers: ModelAnswers, moveme
   switch (key) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "UNTIL_FAILURE": {
       const n = answers.seriesCount ?? 1;

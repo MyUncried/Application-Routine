@@ -262,7 +262,7 @@ describe("PRE-9 — Exercice d'une Séance ouvert au gabarit Mouvement (CE-MVT-0
     expect(currentDraft.movements).toBeUndefined();
   });
 
-  it("Mouvement encore NOUVEAU du brouillon (non enregistré) : contenu modifiable au gabarit ; Terminer le partage avec ses occurrences", async () => {
+  it("Mouvement encore NOUVEAU du brouillon (non enregistré) : contenu modifiable au gabarit ; Terminer le partage avec ses occurrences (D-608 : libellés de phase non modifiables dans la Feuille)", async () => {
     const occurrence: SessionDraftExercise = {
       ...createExerciseDraft("occ-local", null),
       name: "Gainage",
@@ -291,22 +291,20 @@ describe("PRE-9 — Exercice d'une Séance ouvert au gabarit Mouvement (CE-MVT-0
     // Hermann, 01/11/2026 : durée complète, tableau des phases replié à l'ouverture — chevron d'abord.
     expect(screen.queryByTestId("execution-sheet-phases-table")).toBeNull();
     fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH-chevron"));
-    const phaseLabel = screen.getByTestId("execution-sheet-phase-row-1-label");
-    expect(phaseLabel.props.editable).not.toBe(false);
-    fireEvent(phaseLabel, "focus");
-    fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-label"), "Gainer");
-    fireEvent(screen.getByTestId("execution-sheet-phase-row-1-label"), "blur");
+    // [Libellé renommé dans la Feuille (structure modifiable d'un Mouvement NOUVEAU) — remplacé le 26/11/2026 par D-608 (D-573 point 6 :
+    // phases définies dans la fiche du mouvement, nombre fixé) : le libellé n'est plus modifiable dans la Feuille.]
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     await press("exercise-finish-action");
 
     expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     expect(occurrenceOf("occ-local").instruction).toBe("Dos bien plat");
-    expect(occurrenceOf("occ-local").executionParameters.series.workPhases).toEqual([{ id: 1, label: "Gainer", durationSeconds: 5 }]);
+    expect(occurrenceOf("occ-local").executionParameters.series.workPhases).toEqual([{ id: 1, label: "Tenir", durationSeconds: 5 }]);
     expect(currentDraft.movements?.["mov-local"]).toMatchObject({
       change: "NEW",
       description: "Dos bien plat",
-      phases: [{ id: 1, label: "Gainer" }],
+      phases: [{ id: 1, label: "Tenir" }],
       nextPhaseId: 2,
     });
   });

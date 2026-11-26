@@ -1,40 +1,51 @@
 import type { Database } from "../Database";
 
+import { MIGRATION_017_SESSION_ORIGINS } from "./migration017";
+import { MIGRATION_020_MODEL_KEYS } from "./migration020";
+
 /**
- * Compte (version 41, `migration041`) — T1 Compte (plan `_bmad-output/compte/plan-lot-compte.md`, CPT-02, CPT-10, CPT-13,
- * CPT-14, CPT-32). Tables additives et singletons : aucune donnée métier modifiée ; `users.id` n'est jamais réécrit.
- * - `account_link` : lien avec le Compte (fournisseur, sujet, e-mail, nom, catalogue), lu hors ligne (É2).
- * - `account_lifecycle` : état du rattachement, reçu de suppression en cours, empreinte de l'identifiant du compte supprimé.
- * 001..040 inchangées. Un échec laisse `user_version` à 40.
- * [Branche de recette d'intégration du 26/11/2026 : développée comme version 40 sur `compte/lot-1`, renumérotée 41 après la
- * migration 040 du marquage des photos (PR #458).]
+ * Migration 041 — HIIT (D-608, D-573 de la branche de documentation, point 3, Hermann, 26/11/2026 ; Formats § 9.10) : nouveau
+ * modèle de la fenêtre Formats, préconfiguration sur le modèle du 30/30. Ses clés sont persistées comme celles des autres
+ * modèles : `sessions.origin` (migration 017) et `tours.origin_model` (migration 020), deux colonnes bornées par un `CHECK` à des
+ * listes FIGÉES (« un modèle ajouté plus tard demandera sa propre migration », migration 020). Cette migration élargit ces deux
+ * listes à `HIIT`.
+ *
+ * SQLite ne modifie pas un `CHECK` : chaque colonne est remplacée par une colonne de même nom et de même type, nullable, au `CHECK`
+ * élargi (ajout d'une colonne temporaire, copie des valeurs, suppression de l'ancienne, renommage). Aucune reconstruction de table :
+ * pas de `DROP TABLE` (qui déclencherait les cascades des tables filles), aucune ligne supprimée ni réécrite hors de la valeur
+ * copiée à l'identique. Les deux colonnes ne portent ni index, ni clé étrangère, ni déclencheur. Seule leur position dans la table
+ * change (dernière colonne) ; le dépôt nomme toujours ses colonnes.
+ *
+ * Développée comme version 41 : la version 40 est réservée à la migration 040 des branches parallèles (marquage des photos,
+ * `feat/marquage-photos-20261125` ; compte, `compte/lot-1`), absente de cette branche — passage sans effet ici, à réconcilier à
+ * l'intégration. Idempotente : une colonne dont le `CHECK` admet déjà `HIIT` n'est pas retouchée (base passée par un autre numéro).
+ * Exécutée dans la transaction exclusive unique de `migrateDatabase.ts` : un échec annule tout et laisse `user_version` à 40.
  */
-export const MIGRATION_041_ACCOUNT = `
-CREATE TABLE IF NOT EXISTS account_link (
-  singleton_key INTEGER PRIMARY KEY CHECK (singleton_key = 1),
-  auth_user_id TEXT NOT NULL,
-  provider TEXT NOT NULL CHECK (provider IN ('apple', 'google')),
-  provider_subject TEXT NOT NULL,
-  email TEXT,
-  email_is_private_relay INTEGER NOT NULL DEFAULT 0 CHECK (email_is_private_relay IN (0, 1)),
-  given_name TEXT,
-  family_name TEXT,
-  catalogue_id TEXT,
-  linked_at TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS account_lifecycle (
-  singleton_key INTEGER PRIMARY KEY CHECK (singleton_key = 1),
-  state TEXT NOT NULL DEFAULT 'NEVER_LINKED'
-    CHECK (state IN ('NEVER_LINKED', 'LINKED', 'REAUTH_REQUIRED', 'DELETION_PENDING', 'DELETED_ON_THIS_DEVICE')),
-  deletion_requested_at TEXT,
-  deletion_receipt TEXT,
-  deleted_provider_subject_hash TEXT,
-  updated_at TEXT NOT NULL
-);
-INSERT OR IGNORE INTO account_lifecycle (singleton_key, state, updated_at)
-VALUES (1, 'NEVER_LINKED', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
-`;
+export const MIGRATION_041_SESSION_ORIGINS = [...MIGRATION_017_SESSION_ORIGINS, "HIIT"] as const;
+export const MIGRATION_041_MODEL_KEYS = [...MIGRATION_020_MODEL_KEYS, "HIIT"] as const;
+
+const quoted = (values: readonly string[]) => values.map((value) => `'${value}'`).join(", ");
+
+type TableRow = { readonly sql: string | null };
+
+async function widenCheckedColumn(transaction: Database, table: string, column: string, keys: readonly string[]): Promise<void> {
+  const columns = await transaction.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+  if (!columns.some((row) => row.name === column)) return;
+  const definition = await transaction.getFirstAsync<TableRow>("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", [table]);
+  // Déjà élargie (même liste sous un autre numéro de migration) : rien à faire.
+  if (definition?.sql?.includes("'HIIT'") === true) return;
+  const temporary = `${column}_v41`;
+  if (!columns.some((row) => row.name === temporary)) {
+    await transaction.execAsync(
+      `ALTER TABLE ${table} ADD COLUMN ${temporary} TEXT CHECK ((${temporary} IS NULL) OR (${temporary} IN (${quoted(keys)})))`,
+    );
+  }
+  await transaction.execAsync(`UPDATE ${table} SET ${temporary} = ${column}`);
+  await transaction.execAsync(`ALTER TABLE ${table} DROP COLUMN ${column}`);
+  await transaction.execAsync(`ALTER TABLE ${table} RENAME COLUMN ${temporary} TO ${column}`);
+}
 
 export async function applyMigration041(transaction: Database): Promise<void> {
-  await transaction.execAsync(MIGRATION_041_ACCOUNT);
+  await widenCheckedColumn(transaction, "sessions", "origin", MIGRATION_041_SESSION_ORIGINS);
+  await widenCheckedColumn(transaction, "tours", "origin_model", MIGRATION_041_MODEL_KEYS);
 }

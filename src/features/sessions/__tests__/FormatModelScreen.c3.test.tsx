@@ -701,9 +701,11 @@ describe("FormatModelScreen", () => {
     mockModel = "FOR_TIME";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
     await openedFormat();
+    // D-572 (25/11/2026) : cinq mouvements au plus par format — une boucle d'un mouvement, deux buy-in, deux buy-out. [Boucle de deux
+    // mouvements (six au total) — remplacée.]
     await pick("Squ", "mv-squats", "format-loop");
-    await pick("Fen", "mv-fentes", "format-loop");
-    // Sélection multiple dans le bloc Buy-in, puis dans le bloc Buy-out ; « + Ajouter » reste affiché.
+    // Sélection multiple dans le bloc Buy-in, puis dans le bloc Buy-out ; le lien devient « + Modifier » (D-572). [« + Ajouter » reste
+    // affiché — remplacé.]
     for (const section of ["format-buy-in", "format-buy-out"]) {
       fireEvent.press(screen.getByTestId(`${section}-link`));
       fireEvent.press(await screen.findByTestId("format-catalogue-card-mv-squats"));
@@ -711,21 +713,22 @@ describe("FormatModelScreen", () => {
       await act(async () => {
         fireEvent.press(screen.getByTestId("format-catalogue-add"));
       });
-      expect(screen.getByTestId(`${section}-link`)).toHaveTextContent(t.forTimeTable.add);
+      expect(screen.getByTestId(`${section}-link`)).toHaveTextContent(t.editMovements);
     }
     const named = /^(Squats sautés|Fentes avant)$/;
-    for (const block of ["format-buy-in", "format-loop", "format-buy-out"]) expect(within(screen.getByTestId(block)).getAllByText(named)).toHaveLength(2);
-    // Ordre : buy-in (0, 1), boucle (2, 3), buy-out (4, 5).
+    for (const block of ["format-buy-in", "format-buy-out"]) expect(within(screen.getByTestId(block)).getAllByText(named)).toHaveLength(2);
+    expect(within(screen.getByTestId("format-loop")).getAllByText(named)).toHaveLength(1);
+    // Ordre : buy-in (0, 1), boucle (2), buy-out (3, 4).
     const text = (index: number) => String(screen.getByTestId(`format-for-time-${index}-name-title`).props.children);
-    const [in0, in1, out0, out1] = [text(0), text(1), text(4), text(5)];
+    const [in0, in1, out0, out1] = [text(0), text(1), text(3), text(4)];
     expect(in0).not.toBe(in1);
     expect(out0).not.toBe(out1);
-    expect([text(2), text(3)]).toEqual(["Squats sautés", "Fentes avant"]);
+    expect(text(2)).toBe("Squats sautés");
     // VoiceOver : Monter sur le premier buy-out ne le fait pas entrer dans la boucle ; Descendre l'échange avec le second.
-    fireEvent(screen.getByTestId("format-movement-4-card"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
-    expect([text(3), text(4)]).toEqual(["Fentes avant", out0]);
-    fireEvent(screen.getByTestId("format-movement-4-card"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
-    expect([text(4), text(5)]).toEqual([out1, out0]);
+    fireEvent(screen.getByTestId("format-movement-3-card"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    expect([text(2), text(3)]).toEqual(["Squats sautés", out0]);
+    fireEvent(screen.getByTestId("format-movement-3-card"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+    expect([text(3), text(4)]).toEqual([out1, out0]);
     // Retrait d'un buy-in (action Supprimer du glissement) : l'autre reste.
     fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     expect(within(screen.getByTestId("format-buy-in")).getAllByText(named)).toHaveLength(1);
@@ -968,7 +971,8 @@ describe("FormatModelScreen", () => {
         // 16/11/2026 — nombre de séries du buy-in réglé dans la modale, « Variables » dès deux séries, tableau des séries — remplacé.]
         expect(screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeNull();
         enterExecutionSheetValue("execution-sheet-target", 50, "integer");
-        expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.TARGET).props.accessibilityState).toMatchObject({ selected: true });
+        // D-607 (D-572 point 7) : For time toujours à l’objectif — ligne Condition d’arrêt non affichée.
+        expect(screen.queryByTestId("execution-sheet-row-stop-condition", { includeHiddenElements: true })).toBeNull();
       });
       expect(screen.queryByTestId("format-buy-in-head-1")).toBeNull();
       expect(shown("for-time-0-0")).toBe("50");

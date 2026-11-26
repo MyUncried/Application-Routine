@@ -60,6 +60,9 @@ const WHITE_50 = "rgba(255,255,255,0.5)";
 const WHITE_35 = "rgba(255,255,255,0.35)";
 
 const FOR_TIME_MOTIF = require("../../../assets/models/modele-for-time-motif.svg");
+// D-608 (Figma « Carte — HIIT » `13283:26093`, vecteurs `13283:26103` et `13285:1359`) : logo de deux éclairs, blanc à 85 %.
+const HIIT_BOLT_SMALL = require("../../../assets/models/modele-hiit-eclair-petit.svg");
+const HIIT_BOLT_LARGE = require("../../../assets/models/modele-hiit-eclair-grand.svg");
 
 /**
  * Teinte des formes : blanc translucide sur la bande des cartes ; teinte du modèle pour l'illustration de
@@ -200,6 +203,19 @@ const MODELS_FORMATS: readonly SessionModel[] = [
 
 const MODELS_QUICK_STARTS: readonly SessionModel[] = [
   {
+    // D-608 (D-573 de la branche de documentation, point 3, Hermann, 26/11/2026 ; Figma `13283:26093`) : vert lime, fond #F5F9E2, bande
+    // #EAF3C8 ; éclairs posés à 93 / 10 et 121,7 / 1 dans la bande de 163 (boîte du motif de 110 alignée à droite : 40 / 10 et 68,7 / 1).
+    key: "HIIT",
+    background: "#F5F9E2",
+    band: "#EAF3C8",
+    Motif: () => (
+      <>
+        <Image source={HIIT_BOLT_SMALL} style={[styles.shape, { left: 40, top: 10, width: 18.7, height: 34 }]} accessible={false} />
+        <Image source={HIIT_BOLT_LARGE} style={[styles.shape, { left: 68.7, top: 1, width: 22, height: 40 }]} accessible={false} />
+      </>
+    ),
+  },
+  {
     key: "STRENGTH",
     background: "#F3E9FA",
     band: "#E7D4F5",
@@ -266,6 +282,8 @@ const MODELS_QUICK_STARTS: readonly SessionModel[] = [
 const ILLUSTRATION_TINTS: Readonly<Record<FormatModelKey, string>> = {
   TABATA: "rgba(243, 195, 195, ALPHA)",
   INTERVALS_30_30: "rgba(170, 214, 196, ALPHA)",
+  // HIIT : motif en images (éclairs blancs, Figma « HIIT — Récapitulatif »), sans teinte ; valeur requise par le type.
+  HIIT: "rgba(255, 255, 255, ALPHA)",
   EMOM: "rgba(176, 208, 236, ALPHA)",
   AMRAP: "rgba(178, 192, 238, ALPHA)",
   FOR_TIME: "rgba(186, 222, 166, ALPHA)",
@@ -297,8 +315,27 @@ export function FormatModelIllustration({ model: key }: { readonly model: Format
   );
 }
 
-/** Cartes de la fenêtre, dans l'ordre de Figma (deux colonnes, lecture par rangée). */
-export const FORMAT_MODEL_ORDER: readonly FormatModelKey[] = [...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => model.key);
+/**
+ * Cartes de la fenêtre, dans l'ordre de Figma (deux colonnes, lecture par rangée), après la carte « Exercice libre ». D-608 (D-573 de la
+ * branche de documentation, point 4, Hermann, 26/11/2026 ; Formats § 9.10 ; Figma `9977:19613`) : Renforcement, Superset, Progression,
+ * À l'échec, Death by, HIIT, Tabata, 30/30, EMOM, AMRAP, For time. [Formats spécialisés puis départs rapides (Tabata, 30/30, EMOM, AMRAP,
+ * For time, Death by, Renforcement, Superset, Progression, À l'échec) — remplacé.]
+ */
+export const FORMAT_MODEL_ORDER: readonly FormatModelKey[] = [
+  "STRENGTH",
+  "SUPERSET",
+  "PROGRESSION",
+  "UNTIL_FAILURE",
+  "DEATH_BY",
+  "HIIT",
+  "TABATA",
+  "INTERVALS_30_30",
+  "EMOM",
+  "AMRAP",
+  "FOR_TIME",
+];
+
+const ORDERED_MODELS: readonly SessionModel[] = FORMAT_MODEL_ORDER.map((key) => [...MODELS_FORMATS, ...MODELS_QUICK_STARTS].find((model) => model.key === key)!);
 
 function ModelCard({ model, width, onPress }: { model: SessionModel; width: number; onPress: () => void }) {
   const texts = t().cards[model.key];
@@ -319,7 +356,8 @@ function ModelCard({ model, width, onPress }: { model: SessionModel; width: numb
       <Text style={styles.title} numberOfLines={1}>
         {texts.title}
       </Text>
-      <Text style={styles.subtitle} numberOfLines={1}>
+      {/* D-608 (Figma `9977:19613`) : sous-titre de bénéfice sur deux lignes au plus. [Une ligne — remplacé.] */}
+      <Text style={styles.subtitle} numberOfLines={2}>
         {texts.subtitle}
       </Text>
     </Pressable>
@@ -383,11 +421,11 @@ export function FormatsWindow({
           <Text style={styles.title} numberOfLines={1}>
             {t().freeExercise.title}
           </Text>
-          <Text style={styles.subtitle} numberOfLines={1}>
+          <Text style={styles.subtitle} numberOfLines={2}>
             {t().freeExercise.subtitle}
           </Text>
         </Pressable>
-        {[...MODELS_FORMATS, ...MODELS_QUICK_STARTS].map((model) => (
+        {ORDERED_MODELS.map((model) => (
           <ModelCard
             key={model.key}
             model={model}
@@ -470,11 +508,13 @@ const styles = StyleSheet.create({
     columnGap: COLUMN_GAP,
     rowGap: ROW_GAP,
   },
+  // D-608 (Figma `9977:19613`) : carte de 105 avec un sous-titre de deux lignes (titre à 50, sous-titre à 67, lignes de 16). [Marge basse de
+  // 10 — remplacée par 6.]
   card: {
     minHeight: CARD_HEIGHT,
     borderRadius: CARD_RADIUS,
     overflow: "hidden",
-    paddingBottom: 10,
+    paddingBottom: 6,
   },
   cardPressed: {
     opacity: 0.7,
@@ -525,7 +565,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 1.5,
   },
-  // Titre à 50, sous-titre à 70 (ligne de 16), marge gauche de 16.
+  // Titre à 50, sous-titre à 67 (ligne de 16 ; Figma `13283:26102`), marge gauche de 16. [Sous-titre à 70 — remplacé.]
   title: {
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
@@ -540,7 +580,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: SUBTITLE_COLOR,
-    marginTop: 4,
+    marginTop: 1,
     marginHorizontal: 16,
   },
 });

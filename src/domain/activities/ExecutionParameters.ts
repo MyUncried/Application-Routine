@@ -195,6 +195,11 @@ export type WorkPhase = {
   readonly id: number;
   readonly label: string;
   readonly durationSeconds: number;
+  /**
+   * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : son de la phase désactivé pour cet Exercice (bip et annonce
+   * du changement de phase). Clé facultative, écrite seulement si le son est désactivé ; absente : son actif.
+   */
+  readonly soundOff?: true;
 };
 
 /**
@@ -251,6 +256,12 @@ export type ExecutionParameters = {
   readonly endSeconds: number;
   /** Charge Avec / Sans (AD-19, FR-10) : distincte des valeurs, qui restent conservées sous Sans. */
   readonly loadEnabled: boolean;
+  /**
+   * D-607 (D-572 point 3, Hermann, 25/11/2026 ; Formats § 9.9) : Tabata, 30/30 et HIIT — objectif de répétitions facultatif, distinct de
+   * la Cible de durée (qui reste la durée de la série). Absent : aucun objectif (et aucun résultat à saisir après l'exécution). Écrit
+   * seulement s'il est renseigné : les paramètres existants sont relus et réécrits à l'identique.
+   */
+  readonly repetitionsGoal?: number;
 };
 
 /**
@@ -865,6 +876,10 @@ function workPhasesProblem(workPhases: unknown): WorkPhasesProblem | null {
     }
     sum += durationSeconds;
   }
+  // D-608 (D-573 point 6) : son désactivé — clé absente, ou `true` seulement.
+  if ((workPhases as Record<string, unknown>[]).some((phase) => phase.soundOff !== undefined && phase.soundOff !== true)) {
+    return invalidPhases("malformed work phase sound");
+  }
   if (missing.length > 0) {
     return { kind: "MISSING", phaseIds: missing };
   }
@@ -1228,6 +1243,7 @@ function encodeResolvedParameters(parameters: ExecutionParameters, version: type
             id: phase.id,
             label: phase.label,
             durationSeconds: phase.durationSeconds,
+            ...(phase.soundOff === true ? { soundOff: true } : {}),
           })),
         }
       : {
@@ -1242,6 +1258,7 @@ function encodeResolvedParameters(parameters: ExecutionParameters, version: type
             id: phase.id,
             label: phase.label,
             durationSeconds: phase.durationSeconds,
+            ...(phase.soundOff === true ? { soundOff: true } : {}),
           })),
         };
   return JSON.stringify({
@@ -1255,7 +1272,18 @@ function encodeResolvedParameters(parameters: ExecutionParameters, version: type
     countdownSeconds: parameters.countdownSeconds,
     endSeconds: parameters.endSeconds,
     loadEnabled: parameters.loadEnabled,
+    // D-607 : clé facultative, après `loadEnabled`, écrite seulement si l'objectif est renseigné.
+    ...(parameters.repetitionsGoal !== undefined ? { repetitionsGoal: parameters.repetitionsGoal } : {}),
   });
+}
+
+/** D-607 : objectif de répétitions facultatif — absent ; présent, entier strictement positif (sinon erreur). */
+function readRepetitionsGoal(value: Record<string, unknown>): { readonly repetitionsGoal?: number } {
+  if (value.repetitionsGoal === undefined) return {};
+  if (typeof value.repetitionsGoal !== "number" || !Number.isInteger(value.repetitionsGoal) || value.repetitionsGoal < 1) {
+    throw new ExecutionParametersDataError("Malformed repetitionsGoal.");
+  }
+  return { repetitionsGoal: value.repetitionsGoal };
 }
 
 function isNonNegativeInteger(value: unknown): value is number {
@@ -1383,6 +1411,7 @@ function readWorkPhases(value: unknown): WorkPhase[] {
     id: phase.id,
     label: phase.label,
     durationSeconds: phase.durationSeconds,
+    ...(phase.soundOff === true ? { soundOff: true as const } : {}),
   }));
 }
 
@@ -1415,7 +1444,7 @@ function readResolvedObject(value: Record<string, unknown>, variablePhases: bool
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
   }
-  return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled };
+  return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled, ...readRepetitionsGoal(value) };
 }
 
 /**
@@ -1804,7 +1833,10 @@ function workPhasesEqual(a: readonly WorkPhase[], b: readonly WorkPhase[]): bool
     a.length === b.length &&
     a.every(
       (phase, index) =>
-        phase.id === b[index]!.id && phase.label === b[index]!.label && phase.durationSeconds === b[index]!.durationSeconds,
+        phase.id === b[index]!.id &&
+        phase.label === b[index]!.label &&
+        phase.durationSeconds === b[index]!.durationSeconds &&
+        phase.soundOff === b[index]!.soundOff,
     )
   );
 }
@@ -1830,6 +1862,7 @@ export function executionParametersEqual(
     a.countdownSeconds !== b.countdownSeconds ||
     a.endSeconds !== b.endSeconds ||
     a.loadEnabled !== b.loadEnabled ||
+    a.repetitionsGoal !== b.repetitionsGoal ||
     a.series.kind !== b.series.kind
   ) {
     return false;
@@ -1874,6 +1907,7 @@ export function cloneExecutionParameters<T extends ExecutionParametersInput>(par
               id: phase.id,
               label: phase.label,
               durationSeconds: phase.durationSeconds,
+              ...(phase.soundOff === true ? { soundOff: true as const } : {}),
             })),
           }
         : {
@@ -1887,6 +1921,7 @@ export function cloneExecutionParameters<T extends ExecutionParametersInput>(par
               id: phase.id,
               label: phase.label,
               durationSeconds: phase.durationSeconds,
+              ...(phase.soundOff === true ? { soundOff: true as const } : {}),
             })),
           },
   };

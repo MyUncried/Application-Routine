@@ -1,5 +1,8 @@
-import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
+import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
+import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
+import { createContext, Fragment, useContext, useEffect, useReducer, useRef, useState, type ReactNode } from "react";
 import {
+  Platform,
   Alert,
   Animated,
   Easing,
@@ -39,13 +42,13 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import {
   applyRequestedTotal,
-  canEnableWorkPhases,
   commitSheetDraft,
   effectiveParameters,
   isRequestedTotalEditable,
   isSingleSeries,
   moveRow,
   moveWorkPhase,
+  toggleWorkPhaseSound,
   openSheetDraft,
   removeRow,
   removeWorkPhase,
@@ -57,6 +60,7 @@ import {
   setSeriesCount,
   setSideMode,
   setSideOrder,
+  setRepetitionsGoal,
   setSideRecovery,
   setStopCondition,
   setRowTarget,
@@ -64,7 +68,6 @@ import {
   setUniformTarget,
   setVariable,
   setWorkPhaseCount,
-  setWorkPhasesEnabled,
   undoRemoval,
   type DefaultWorkPhaseLabel,
   type ExecutionSheetDraft,
@@ -91,13 +94,16 @@ import {
 } from "@/features/activities/cadenceOption";
 import {
   emomOverflowRanks,
+  emomSheetIntervals,
   initialFormatSheetValue,
+  withEmomSheetInterval,
+  withEmomSheetIntervals,
   type FormatSheetContext,
   type FormatSheetRow,
   type FormatSheetValue,
 } from "@/features/activities/FormatSettingsFrame";
 import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf, type CellBounds } from "@/features/activities/cellEntry";
-import type { CircuitRole } from "@/domain/sessions/formats";
+import type { CircuitRole, FormatSettings } from "@/domain/sessions/formats";
 import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { loadOptionWidth } from "@/features/activities/loadOptionWidth";
@@ -143,7 +149,9 @@ import {
   UndoMessage,
   type DraggableRowLabels,
 } from "@/features/activities/sheetTable";
-import { keyboardFieldOrder, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
+import type { Movement } from "@/domain/activities/Movement";
+import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
+import { keyboardBodyReserve, keyboardFieldOrder, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
 import { PHASE_ROW_TEST_ID, WorkPhasesTable, type WorkPhaseCellKind } from "@/features/activities/WorkPhasesTable";
 import { RECOVERY_WHEEL_VALUES, WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -162,6 +170,7 @@ import {
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
+import { useHostScreenFocused } from "@/shared/ui/useHostScreenFocused";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /** Constat C du 07/11/2026 : hauteur de la barre du clavier (52) et marge de révélation (12), réservées sous le contenu. */
@@ -362,8 +371,16 @@ export type ExecutionParametersSheetProps = {
    * mouvement inverse — la feuille redescend jusqu'à disparaître, voile en fondu, même durée — avant
    * `onApply` / `onCancel`. « Réduire les animations » : ni montée ni descente (D-7). Absent
    * (`"default"`) : prototype figé inchangé (montée 0,25 s, Modal en fondu, fermeture immédiate).
+   * `"page"` (D-608, D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10, Figma « Exercice libre — Modale de type format »
+   * `13269:26160`) : page « Exercice libre » de la création — contenu de la feuille rendu dans l'écran qui l'accueille (la feuille
+   * native de « Créer un exercice »), sans `Modal`, voile ni poignée ; Retour (chevron) à la place de la croix.
    */
-  readonly presentation?: "default" | "compositionCard";
+  readonly presentation?: "default" | "compositionCard" | "page";
+  /**
+   * D-608 (D-573 point 5) : lien « Changer » du cadre Mouvement de l'exercice libre — retour au choix du mouvement. Absent : lien
+   * non rendu. Ignoré hors `freeFormat`.
+   */
+  readonly onChangeMovement?: () => void;
   /**
    * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « que les champs (et l'ensemble
    * de la ligne de couleur) soient identifiés en orange ») : phases « à vérifier » de l'Exercice, lues
@@ -424,6 +441,30 @@ export type ExecutionParametersSheetProps = {
    */
   readonly freeFormat?: boolean;
   /**
+   * D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10 ; Figma « Exercice libre — Modale de type format » `13269:26160`) :
+   * mouvement de l'exercice libre (nom, médias, zones, rang de Niveau), présenté avec ses phases dans le premier cadre de la modale.
+   * Absent : ligne « Mouvement » seule. Ignoré hors `freeFormat`.
+   */
+  readonly freeMovement?: { readonly movement: Pick<Movement, "name" | "media" | "bodyZoneIds">; readonly levelRank: number | null };
+  /**
+   * D-608 (D-573 point 2, Hermann, 26/11/2026 ; Formats § 9.10) : titre de la modale — nom du mouvement, « … » s'il est trop long
+   * (remplace « Paramètres d'exécution » et « Paramètres d'exécution <format> »). Absent : titre précédent. L'exercice libre garde
+   * « Exercice libre » (Figma « Exercice libre — Modale de type format » `13269:26160`).
+   */
+  readonly movementName?: string;
+  /**
+   * D-607 (D-572 points 2, 3 et 5, Hermann, 25/11/2026 ; Formats § 9.9) et D-608 (D-573 point 8) : format à départ rapide de l'exercice —
+   * Cadence rétablie (Tabata, 30/30, HIIT, Renforcement, Superset, Progression) ; objectif de répétitions facultatif (Tabata, 30/30, HIIT),
+   * cadres « Objectif de répétitions » + « Charge » puis « De chaque côté » + « Cadence » ; champ valeur du Renforcement ; tableau des
+   * séries du Superset. Absent : règles de D-604 seules.
+   */
+  readonly quickFormatKey?: string;
+  /**
+   * D-608 (D-573 point 7) : couleur de la zone colorée de l'en-tête — couleur du format (`formatModelColors(...).background`).
+   * Absente : gris neutre des modales génériques (#F1F2F5, Figma `13269:26351`).
+   */
+  readonly headerTint?: string;
+  /**
    * D-604, interprétation à confirmer (25/11/2026) : départ rapide dont l'unité n'est pas imposée par le format (Renforcement, Progression,
    * À l'échec, Superset — choisie dans cette modale depuis le 16/11/2026) : la ligne Mode reste, sans quoi l'exercice ne pourrait pas
    * être complété. Tabata et 30/30 (Durée imposée) : absente.
@@ -469,6 +510,14 @@ const phaseCountLabel = (count: number | null) =>
  * ouvert garde sa géométrie (150).
  */
 const PHASE_OPTION_CLOSED_WIDTH = 110;
+/**
+ * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : « elles sont définies dans la fiche du mouvement, elles existent ou
+ * non ; […] leur nombre est fixé » — la structure des phases (nombre, ordre, libellés) n'est jamais modifiée dans la feuille.
+ */
+const PHASE_STRUCTURE_FIXED = true;
+/** D-608 (D-573 point 5, Figma `13269:26160`) : lignes de 38 dans la modale de l'exercice libre (44 ailleurs, Q42). */
+export const FREE_ROW_HEIGHT = 38;
+const FreeLayoutContext = createContext(false);
 // [`PHASE_OPTION_OPEN_WIDTH` (150, réglage − | n phases | chevron | + ouvert) — retiré le 06/11/2026 :
 // la saisie au clavier garde la largeur de repos.]
 
@@ -641,10 +690,16 @@ const pauseLabel = (value: number | null) => (value === null ? t.unset : formatP
 const beepLabel = (value: number | null) => (value === null ? t.unset : value === 0 ? t.cadenceOptions.NONE : formatPhraseDuration(value));
 const repetitionsLabel = (value: number | null) => (value === null ? t.unset : `${value} ${t.repetitionsUnit}`);
 
-/** D-606 (Figma `13242:26255`) : couleur de la zone de contexte de l'exercice libre, et sa part fondue (rampe des questionnaires). */
-const FREE_CONTEXT_COLOR = "#FBF3E4";
-const FREE_FADE_HEIGHT = 22;
-const FREE_FADE_LAYERS = Array.from({ length: 12 }, (_, index) => {
+/**
+ * D-608 (D-573 point 7, Hermann, 26/11/2026 ; Figma « En-tête modal — Paramètres d'exécution », 386 × 60) : zone colorée en dégradé du
+ * haut de la modale au bas de l'en-tête, pleine largeur, sans trait de séparation — couleur pleine puis fondue vers la transparence
+ * (rampe des questionnaires, `ContextBand`). Gris neutre des modales génériques et de l'exercice libre.
+ * [D-606 : zone de contexte #FBF3E4 de l'exercice libre, part fondue de 22 — remplacé le 26/11/2026 (Figma `13269:26160` : gris).]
+ */
+export const SHEET_HEADER_NEUTRAL = "#F1F2F5";
+const FREE_FADE_HEIGHT = 12;
+/** Part fondue de la zone colorée (partagée avec l'écran « Exercice libre — Choix du mouvement », D-608). */
+export const FREE_FADE_LAYERS =Array.from({ length: 12 }, (_, index) => {
   const before = index / 12;
   const after = (index + 1) / 12;
   return { height: Number((FREE_FADE_HEIGHT * (1 - before)).toFixed(4)), opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)) };
@@ -669,6 +724,11 @@ export function ExecutionParametersSheet({
   quickFormatName,
   quickFormatUnitOpen = false,
   freeFormat = false,
+  freeMovement,
+  onChangeMovement,
+  movementName,
+  quickFormatKey,
+  headerTint = SHEET_HEADER_NEUTRAL,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -682,10 +742,16 @@ export function ExecutionParametersSheet({
     if (format?.rows.includes("stopImposed") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
     // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`), A2 : EMOM « À l'objectif » seul — appliqué dès l'ouverture.
     if (format?.rows.includes("stopTarget") && stopConditionOf(effectiveParameters(opened)) === "FAILURE") return setStopCondition(opened, "TARGET");
+    // D-607 (D-572 point 6, Hermann, 25/11/2026 ; Formats § 9.9) : EMOM de plus d'un tour — tableau par série (objectif, intervalle,
+    // charge) dès l'ouverture ; des séries identiques y sont présentées ligne à ligne, valeurs inchangées.
+    if (format?.key === "EMOM" && opened.count > 1 && !opened.variable) return setVariable(opened, true);
     return opened;
   });
   // PRE-7 (A2.1) : verrou de structure lu à l'ouverture, comme N hérité.
-  const [structureLocked] = useState(phaseStructureLocked);
+  // D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) : les phases sont définies dans la fiche du mouvement — leur nombre
+  // est fixé ; seule la valeur (durée) de chaque phase se modifie ici. [Structure modifiable hors occurrence d'un Mouvement enregistré
+  // (PRE-7 A2.1 : ajout, retrait, déplacement, libellés) — remplacé le 26/11/2026 par D-608 (D-573 point 6).]
+  const [structureLocked] = useState(phaseStructureLocked || PHASE_STRUCTURE_FIXED);
   /**
    * PRE-9 (01/11/2026, point 2) : Récupération de l'Exercice dans la feuille, lue à l'ouverture
    * (0 s sans récupération antérieure) ; transmise au parent par le ✓ seulement.
@@ -753,10 +819,14 @@ export function ExecutionParametersSheet({
   // Recette 1 (A-04) : le voile apparaît en fondu, sur place (Modal `fade`, prototype
   // figé : aucune translation du voile) ; seule la feuille garde sa montée depuis le bas.
   const reduceMotion = useReduceMotion();
+  // Remarque e du 26/11/2026 : écran hôte au premier plan (voir `useHostScreenFocused`).
+  const hostScreenFocused = useHostScreenFocused();
   const [sheetEntry] = useState(() => new Animated.Value(windowHeight));
   // PRE-9, recette iPhone n° 2 (constat d) : carte de la Composition — voile animé par la feuille
   // (Modal sans animation propre) et fermeture animée en cours (une seule).
   const cardMotion = presentation === "compositionCard";
+  // D-608 (D-573 point 5) : page « Exercice libre » de la création, rendue dans l'écran hôte (sans `Modal`).
+  const pageMode = presentation === "page";
   const [scrimOpacity] = useState(() => new Animated.Value(cardMotion ? 0 : 1));
   const closingRef = useRef(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -943,10 +1013,22 @@ export function ExecutionParametersSheet({
   // Death by (Formats §12, « Condition d'arrêt Death by ») : ne pas appliquer ce masquage — Nombre de répétitions
   // (objectif de départ) visible à l'échec.
   const deathBySheet = format?.key === "DEATH_BY";
-  const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet) && quickFormatName === undefined;
+  // D-607 : le Renforcement et le Superset (départ rapide) retrouvent la valeur de la série (répétitions ou durée selon le Mode).
+  const uniformTargetShown =
+    !showVariableTable &&
+    (stopCondition !== "FAILURE" || deathBySheet) &&
+    (quickFormatName === undefined || quickFormatKey === "STRENGTH" || quickFormatKey === "SUPERSET");
+  /*
+   * D-607 (D-572 point 7) et D-608 (D-573 point 9), Hermann, 25-26/11/2026 ; Figma « AMRAP — Modale exercice simple, à l’échec »
+   * `11260:19348` et « …, durée à l’échec » `11275:19598` : AMRAP à l'échec — la ligne « Nombre de répétitions par tour » (Répétitions)
+   * ou « Durée par tour » (Durée) reste affichée, grisée, valeur « — ».
+   */
+  const amrapFailureTargetShown =
+    format?.key === "AMRAP" && !showVariableTable && stopCondition === "FAILURE" && (effective.mode === "DURATION" || effective.mode === "REPETITIONS");
   // Recette iPhone du 07/11/2026 (Figma « Death by — Modale exercice, standard » `8598:31210` et « …, dans chaque intervalle » `11373:20396` ; référence Formats §12 et §14) : ni Pause après chaque série (remplacée par l'Intervalle), ni Durée de l'exercice (mesurée à
   // l'exécution) ; ligne Séries « Jusqu'à l'échec » pour l'Exercice autonome, absente dans un Circuit porteur.
-  const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role");
+  // D-608 : un AMRAP seul porte aussi la ligne Rôle (« duration » : durée de l'AMRAP seul) — il n'est pas un membre de Circuit.
+  const amrapMemberSheet = format?.key === "AMRAP" && format.rows.includes("role") && !format.rows.includes("duration");
   /*
    * Recette du 17/11/2026 (Hermann : « Temps de repos supprimés en For time : • Pause après chaque série. • Pause de changement de
    * côté. • Repos entre les tours. • Repos entre les séries (mode « À la suite »). • Récupération après un exercice. […] Ces lignes
@@ -976,13 +1058,20 @@ export function ExecutionParametersSheet({
    */
   const leanFormat = format !== undefined;
   const quickScope = quickFormatName !== undefined;
+  // D-607 / D-608 : réglages rétablis ou ajoutés par format à départ rapide (voir `quickFormatKey`).
+  const quickRepetitionsGoal = quickScope && quickFormatKey !== undefined && ["TABATA", "INTERVALS_30_30", "HIIT"].includes(quickFormatKey);
+  const quickCadence = quickScope && quickFormatKey !== undefined && quickFormatKey !== "UNTIL_FAILURE";
+  const quickValueRow = quickScope && quickFormatKey === "STRENGTH";
+  const quickSeriesTable = quickScope && quickFormatKey === "SUPERSET";
   const forTimeOnce = forTimeSheet && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
   // Séries variables déjà saisies (séance antérieure) : la ligne et son tableau restent, pour ne pas cacher les répétitions.
   const leanSeriesRow = (forTimeSheet && !forTimeOnce) || showVariableTable;
   const deathBySeriesRow = quickScope
-    ? false
+    ? quickSeriesTable
     : leanFormat
-      ? !deathBySheet && !noSeriesRow && leanSeriesRow
+      ? // D-607 (D-572 point 6) : EMOM — le tableau par série s'affiche sans la ligne Séries (nombre de séries ou de tours réglé par
+        // l'écran du format, D-604).
+        !deathBySheet && !noSeriesRow && leanSeriesRow && format?.key !== "EMOM"
       : // [Hors D-604 : Death by autonome — ligne Séries « Jusqu'à l'échec » (`seriesUntilFailure`) — remplacé : tout Death by est un format.]
         !noSeriesRow;
   // Décisions de Hermann du 07/11/2026 (EMOM, points A2, A3, A5, A8, B, B9 ; Figma `8795:14588` et `8598:30515`) : EMOM — jamais de Pause (A8 : le repos est le temps restant de l'intervalle) ; Durée de l'exercice hors du
@@ -993,7 +1082,7 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || quickScope;
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || (quickScope && !quickSeriesTable);
   const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet || leanFormat || quickScope;
   // Recette du 17/11/2026 (For time) : Récupération absente, sa valeur n'est pas réappliquée au ✓ (voir `handleValidate`).
   const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false) && !forTimeSheet && !leanFormat && !quickScope;
@@ -1230,46 +1319,8 @@ export function ExecutionParametersSheet({
     setAdjustment({ message: t.phaseRemoved, kind: "phaseRemoval" });
   }
 
-  /**
-   * PRE-5 story 2.8 (FR-4, FR-5, FR-8, D-432) : segmenté « Phases de l'exercice ».
-   * - Sans → Avec : `setWorkPhasesEnabled(true)` (deux phases), tableau déployé ;
-   * - Avec → Sans : `setWorkPhasesEnabled(false)` (la somme devient la durée unique de série) ;
-   * - Avec re-choisi (des phases existent) : ouvre ou ferme le réglage du nombre, comme le
-   *   toucher de « n phases ».
-   * PRE-7 (A2.1, D-438, MFN-09) : sous structure verrouillée, aucun passage ni réglage ; le geste
-   * range seulement la surface ouverte (saisie appliquée), comme le Type de série sous N hérité.
-   */
-  function choosePhases(choice: PhaseChoice) {
-    // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
-    if (openSurface.kind === "selector") {
-      dispatchSurface({ type: "closeAll" });
-      return;
-    }
-    if (structureLocked) {
-      const base = keyboard.flush(draft);
-      if (base !== draft) commitKeyboard(() => base);
-      dispatchSurface({ type: "closeAll" });
-      return;
-    }
-    if (choice === "WITH" && draft.workPhases.length > 0) {
-      togglePhaseCount();
-      return;
-    }
-    const enabled = choice === "WITH";
-    if (enabled) setIsPhasesFolded(false);
-    chooseInline((base) => setWorkPhasesEnabled(base, enabled), { keepPhasesTable: enabled });
-  }
-
-  /**
-   * PRE-5 story 2.8 (D-432, RC-4) : ouvre ou referme la saisie du nombre de phases (saisie en cours
-   * appliquée d'abord). Décision du 06/11/2026 (constat c) : le clavier numérique s'ouvre sur le champ
-   * « n phases » ; ouvert, il se referme (valeur appliquée). [Stepper du nombre de phases
-   * (`stepper(phaseCount)`, − et + appliqués par `setWorkPhaseCount`) — remplacé ; la sortie du champ
-   * passe par la même transition, une phase à la fois (`stepWorkPhaseCount`).]
-   */
-  function togglePhaseCount() {
-    toggleScalarField("phaseCount");
-  }
+  // [PRE-5 story 2.8 (FR-4, FR-5, FR-8, D-432) à PRE-7 (A2.1) : `choosePhases` (Sans → Avec, Avec → Sans, réglage du nombre) et
+  // `togglePhaseCount` — retirés le 26/11/2026 par D-608 (D-573 point 6) : plus d’option Avec / Sans, nombre de phases fixé.]
 
   /**
    * Décision du 06/11/2026 : toucher l'option qui porte une valeur saisie au clavier (« n phases »,
@@ -1382,6 +1433,17 @@ export function ExecutionParametersSheet({
    * seulement si différent (même choix : Brouillon inchangé, « Annuler » d'un retrait valable,
    * Q29) ; le déroulant se ferme par sa clé.
    */
+  /**
+   * D-607 (D-572 point 1) : choix dans le menu natif iOS de l'Enchainement — aucun déroulant de la feuille n'est ouvert ; saisie en
+   * cours appliquée d'abord, même règle de « même choix » que le déroulant.
+   */
+  function chooseNativeSideOrder(order: SideOrder) {
+    const base = keyboard.flush(draft);
+    if (base !== draft) commitKeyboard(() => base);
+    if (base.sideOrder === order) setIsTableSelected(false);
+    else update(setSideOrder(base, order));
+  }
+
   function chooseSideOrder(order: SideOrder) {
     if (!isOpen(SIDE_ORDER_SELECTOR)) return;
     if (draft.sideOrder === order) setIsTableSelected(false);
@@ -1552,10 +1614,14 @@ export function ExecutionParametersSheet({
         // Précision du 14/11/2026 (soir), For time : séries déjà ajustées au Rôle choisi (`chooseRole`) — le Rôle est enregistré
         // d'abord, pour que ces séries ne soient pas lues comme un nouveau nombre de séries de l'ancien bloc (`withForTimeSeries`).
         const roleFirst = format !== undefined && appliedFormat !== null && roleBase.current !== null && appliedFormat.role !== format.role?.current;
-        if (roleFirst) format.onApply(appliedFormat.settings, appliedFormat.role);
+        // D-607 : intervalles des tours partagés transmis seulement pour un membre de Circuit porteur EMOM.
+        const shared = appliedFormat?.sharedIntervals ?? null;
+        const applyFormat = (settings: FormatSettings, role: CircuitRole | null) =>
+          shared === null ? format?.onApply(settings, role) : format?.onApply(settings, role, shared);
+        if (roleFirst) applyFormat(appliedFormat.settings, appliedFormat.role);
         onApply(value);
         // CE-FMT-04 : réglages de Format appliqués après les paramètres (Rôle : replacement dans sa zone).
-        if (!roleFirst && format !== undefined && appliedFormat !== null) format.onApply(appliedFormat.settings, appliedFormat.role);
+        if (!roleFirst && format !== undefined && appliedFormat !== null) applyFormat(appliedFormat.settings, appliedFormat.role);
       });
     }
   }
@@ -1739,7 +1805,18 @@ export function ExecutionParametersSheet({
   const formatIncrementMissing =
     formatShown("increment") && !formatIncrementLocked && format?.incrementRequired === true && typeof formatSettings.incrementPerRound !== "number";
   const validateDisabled = (!validation.ok || emomOverflow || phaseBelow || formatIncrementMissing || loopWithoutRepetitions) && !sheetCommandsAbsorbed(surface);
-  const formatIntervalSeconds = formatNumber("intervalSeconds", 60);
+  /*
+   * D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9, § 9.10) : EMOM — intervalle propre à chaque série (ou
+   * tour). Plus d'un tour : colonne Intervalle du tableau par série, à la place de la ligne Intervalle ; « Dans chaque intervalle »,
+   * intervalles des tours du Circuit, partagés par ses mouvements (reportés au Circuit au ✓). Un tour, ou séries identiques : ligne
+   * Intervalle, qui règle toutes les séries.
+   */
+  const emomIntervals = format !== undefined && formatValue !== null ? emomSheetIntervals(format, formatValue, Math.max(draft.count, 1)) : null;
+  const emomIntervalColumn = emomIntervals !== null && showVariableTable && formatShown("interval");
+  const emomIntervalRow = formatShown("interval") && !emomIntervalColumn;
+  const formatIntervalSeconds = emomIntervals?.[0] ?? formatNumber("intervalSeconds", 60);
+  const setEmomRowInterval = (rank: number, seconds: number) =>
+    setFormatValue((current) => (current === null || format === undefined ? current : withEmomSheetInterval(format, current, Math.max(draft.count, 1), rank, seconds)));
   const formatDurationSeconds = formatNumber("durationSeconds", 12 * 60);
   const formatTimeCapSeconds = typeof formatSettings.timeCapSeconds === "number" ? formatSettings.timeCapSeconds : null;
   const setFormatSetting = (id: string, next: number | null) =>
@@ -1764,6 +1841,8 @@ export function ExecutionParametersSheet({
           : { kind: "integer", bounds: { min: formatDeathBy ? 1 : 0, max: 999 } };
       case "formatInterval":
         return { kind: "duration", bounds: { min: 5, max: 3600 } };
+      case "repetitionsGoal":
+        return { kind: "integer", bounds: { min: 1, max: 999 } };
       case "formatDuration":
         // Recette du 18/11/2026 (Hermann, amrap-1 : « Durée de l'exercice : la solution refuse une durée inférieure à 1 minute ») : aucune
         // règle n'impose 1 min (FMT-26, registre des Formats : minimum 1 s) — durée strictement positive. [Minimum 60 s — remplacé.]
@@ -1804,6 +1883,8 @@ export function ExecutionParametersSheet({
         return formatIncrementMissing ? null : Math.abs(formatIncrement);
       case "formatInterval":
         return formatIntervalSeconds;
+      case "repetitionsGoal":
+        return base.repetitionsGoal ?? null;
       case "formatDuration":
         return formatDurationSeconds;
       case "formatTimeCap":
@@ -1848,6 +1929,8 @@ export function ExecutionParametersSheet({
       if (value === null) return current === undefined || current.kind === "UNSET" ? base : setUniformTarget(base, unsetTarget());
       return current?.kind === "NUMBER" && current.value === value ? base : setUniformTarget(base, numberTarget(value));
     }
+    // D-607 : objectif de répétitions facultatif — champ vidé : aucun objectif.
+    if (field === "repetitionsGoal") return value === (base.repetitionsGoal ?? null) ? base : setRepetitionsGoal(base, value);
     if (value === null || value === scalarValueOf(field, base)) return base;
     switch (field) {
       case "phaseCount":
@@ -1887,7 +1970,12 @@ export function ExecutionParametersSheet({
       }
       if (value === null) return;
       if (field === "formatIncrement") setFormatSetting("incrementPerRound", formatIncrement < 0 ? -value : value);
-      else setFormatSetting(field === "formatInterval" ? "intervalSeconds" : "durationSeconds", value);
+      else if (field === "formatInterval" && emomIntervals !== null) {
+        // D-607 : la ligne Intervalle règle toutes les séries (ou tous les tours, partagés).
+        setFormatValue((current) =>
+          current === null || format === undefined ? current : withEmomSheetIntervals(format, current, emomIntervals.map(() => value)),
+        );
+      } else setFormatSetting(field === "formatInterval" ? "intervalSeconds" : "durationSeconds", value);
       return;
     }
     if (field === "recovery") {
@@ -1900,18 +1988,8 @@ export function ExecutionParametersSheet({
     applyRequestedTotalSeconds(seconds);
   }
 
-  // Décision du 06/11/2026 : champs hors tableau dans l'ordre de la Feuille, parcourus par Précédent /
-  // Suivant (`keyboardFieldOrder`) ; la charge commune y garde sa place (cadre Séries).
-  const outsideFields: readonly KeyboardFieldId[] = [
-    ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
-    ...(draft.inheritedSeriesCount || !deathBySeriesRow ? [] : [scalarKeyboardField("count")]),
-    ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
-    ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
-    ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
-    ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
-    ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
-    ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
-    ...(beepOpen && !leanFormat && !quickScope ? [scalarKeyboardField("beep")] : []),
+  // D-608 (D-573 point 5) : champs du cadre Durée de l’exercice (Durée, Compte à rebours, Fin), placés selon la présentation.
+  const durationFields: readonly KeyboardFieldId[] = [
     ...(leanFormat || quickScope
       ? []
       : formatShown("duration")
@@ -1922,6 +2000,23 @@ export function ExecutionParametersSheet({
           ? [scalarKeyboardField("total")]
           : []),
     ...(signalsShown && !noCadenceDuration ? [scalarKeyboardField("countdown"), scalarKeyboardField("end")] : []),
+  ];
+  // Décision du 06/11/2026 : champs hors tableau dans l'ordre de la Feuille, parcourus par Précédent /
+  // Suivant (`keyboardFieldOrder`) ; la charge commune y garde sa place (cadre Séries).
+  const outsideFields: readonly KeyboardFieldId[] = [
+    ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
+    ...(draft.inheritedSeriesCount || !deathBySeriesRow ? [] : [scalarKeyboardField("count")]),
+    ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
+    ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
+    ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
+    ...(emomIntervalRow ? [scalarKeyboardField("formatInterval")] : []),
+    ...(quickRepetitionsGoal ? [scalarKeyboardField("repetitionsGoal")] : []),
+    ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
+    // D-608 (D-573 point 5) : exercice libre — cadre de la Durée de l’exercice avant le dernier cadre (côté, cadence, récupération).
+    ...(freeFormat ? durationFields : []),
+    ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
+    ...(beepOpen && (!leanFormat || quickCadence) && (!quickScope || quickCadence) ? [scalarKeyboardField("beep")] : []),
+    ...(freeFormat ? [] : durationFields),
     ...(recoveryShown && !recoveryLocked ? [scalarKeyboardField("recovery")] : []),
   ];
   // PRE-5 story 2.2 (AD-26, AD-27) : hook unique focus / surface / application de la saisie.
@@ -1938,6 +2033,7 @@ export function ExecutionParametersSheet({
       openSurface.kind === "keyboard" ? openSurface.field : null,
       outsideFields,
       tablePause && !tablePauseLocked,
+      emomIntervalColumn,
     ),
     scrollRef,
     reduceMotion,
@@ -1956,6 +2052,19 @@ export function ExecutionParametersSheet({
         field === "formatDuration" ||
         field === "formatTimeCap",
       external: applyExternalScalar,
+      // D-607 : intervalle d'une ligne du tableau EMOM (rang de la ligne), état de la feuille jusqu'au ✓.
+      rowInterval: {
+        editText: (row) => {
+          const seconds = emomIntervals?.[draft.rowIds.indexOf(row)];
+          return seconds === undefined ? "" : mmssDigitsOf(seconds);
+        },
+        apply: (row, text) => {
+          const rank = draft.rowIds.indexOf(row);
+          const seconds = cellDurationSeconds(text, scalarEntryOf("formatInterval", draft).bounds);
+          if (rank < 0 || seconds === null || seconds === emomIntervals?.[rank]) return;
+          setEmomRowInterval(rank, seconds);
+        },
+      },
     },
   });
   // Décision du 06/11/2026 : la barre du clavier d'un champ hors tableau suit celle des Formats
@@ -2061,7 +2170,10 @@ export function ExecutionParametersSheet({
     ) : null;
   // D-604 : lignes au-dessus des lignes de format dans le cadre Séries (sinon, pas de séparateur de tête).
   const seriesLeadRows =
-    deathBySeriesRow || (uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS")) || (!showVariableTable && !noPauseRow && !formatShown("interval"));
+    deathBySeriesRow ||
+    (uniformTargetShown && (effective.mode === "DURATION" || effective.mode === "REPETITIONS")) ||
+    amrapFailureTargetShown ||
+    (!showVariableTable && !noPauseRow && !formatShown("interval"));
   const formatSeriesRows = (
     <>
       {formatShown("increment") ? (
@@ -2086,7 +2198,7 @@ export function ExecutionParametersSheet({
           </Row>
         </>
       ) : null}
-      {formatShown("interval") ? (
+      {emomIntervalRow ? (
         <>
           {seriesLeadRows || formatShown("increment") ? <Separator /> : null}
           <Row
@@ -2124,7 +2236,7 @@ export function ExecutionParametersSheet({
             testID="execution-sheet-format-duration-readonly-row"
           >
             <Text style={styles.staticValue} testID="execution-sheet-format-duration-readonly">
-              {formatPhraseDuration(Math.max(draft.count, 1) * formatIntervalSeconds)}
+              {formatPhraseDuration(emomIntervals !== null ? emomIntervals.reduce((total, seconds) => total + seconds, 0) : Math.max(draft.count, 1) * formatIntervalSeconds)}
             </Text>
           </Row>
         </>
@@ -2397,14 +2509,20 @@ export function ExecutionParametersSheet({
               // PRE-9 (ordre de Hermann du 01/11/2026, point 5) : taille standard des options (plus
               // de `compact`), largeur adaptée au contenu (104 pour « DD… → GG… », Figma `9462:18978`).
               width: sideOrderOptionWidth(sideOrder),
-              selectedContent: (
-                <SideOrderTrigger
-                  value={sideOrder}
-                  expanded={isOpen(SIDE_ORDER_SELECTOR)}
-                  onPress={toggleSideOrderDropdown}
-                  testID="execution-sheet-side-order-menu"
-                />
-              ),
+              // D-607 (D-572 point 1, Hermann, 25/11/2026 : « « De chaque côté » : popover standard iOS ») : sur iOS, menu natif
+              // (`Menu` SwiftUI d'`@expo/ui`, même hôte que la nature du Circuit) ; ailleurs, déroulant PRE-7 B.3 inchangé.
+              // [iOS : déroulant Figma `9462:18987` (PRE-7 B.3) — remplacé le 26/11/2026.]
+              selectedContent:
+                Platform.OS === "ios" ? (
+                  <NativeSideOrderMenu value={sideOrder} onChoose={chooseNativeSideOrder} testID="execution-sheet-side-order-menu" />
+                ) : (
+                  <SideOrderTrigger
+                    value={sideOrder}
+                    expanded={isOpen(SIDE_ORDER_SELECTOR)}
+                    onPress={toggleSideOrderDropdown}
+                    testID="execution-sheet-side-order-menu"
+                  />
+                ),
             }
           : { value: "WITH", label: t.sideModeChoices.WITH },
         { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
@@ -2556,6 +2674,31 @@ export function ExecutionParametersSheet({
         >
           <Text style={[tableCellValueStyle, styles.tableCellUnset]}>{t.unset}</Text>
         </View>
+      );
+    }
+    // D-607 (D-572 point 6, D-573 point 1) : EMOM — la colonne de la Pause porte l'intervalle de la série (ou du tour, partagé).
+    if (kind === "rowPause" && emomIntervalColumn) {
+      const intervalField: KeyboardFieldId = { kind: "rowInterval", row };
+      const seconds = emomIntervals?.[index] ?? null;
+      return (
+        <KeyboardField
+          editText={keyboard.editText(intervalField)}
+          active={isOpen({ kind: "keyboard", field: intervalField })}
+          onFocus={() => focusKeyboardField(intervalField)}
+          onBlur={() => keyboard.onBlur(intervalField)}
+          onChangeText={(text: string) => keyboard.onChangeText(intervalField, text)}
+          inputRef={keyboard.register(intervalField, TABLE_ROW_HEIGHT)}
+          hitSlop={KEYBOARD_CELL_HIT_SLOP}
+          style={[tableCellStyle, styles.keyboardCell]}
+          valueStyle={tableCellValueStyle}
+          entryGeneration={keyboard.entryGeneration}
+          mode="cellDuration"
+          displayValue={pauseLabel(seconds)}
+          // Contrôle EMOM des durées : intervalle d'une série en dépassement en rouge (Formats § 7.6).
+          invalid={emomOverflowRankSet.has(index)}
+          accessibilityLabel={t.rowInterval.replace("{n}", String(number))}
+          testID={`${prefix}-interval`}
+        />
       );
     }
     if (kind === "rowPause" && tablePauseLocked) {
@@ -2717,48 +2860,230 @@ export function ExecutionParametersSheet({
   // par la saisie au clavier numérique du nombre dans l'option (« 3 phases » au repos, chiffres tapés
   // en saisie, fond `#EAEAFF`), bornes 2..6 ; l'option garde sa largeur de repos.]
   const phaseCountOpen = !structureLocked && isOpen(scalarSurface("phaseCount"));
+  // D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10 ; Figma `13278:26093` « Valeur — n phases (chevron) ») : avec des
+  // phases, la ligne porte « n phases » (nombre fixé par la fiche du mouvement) et le chevron du tableau, qui permet de modifier la
+  // valeur de chaque phase ; sans phases, aucune ligne. [Segmenté Avec / Sans, saisie du nombre de phases au clavier (PRE-5 story
+  // 2.8, RC-16, décision du 06/11/2026) et option indisponible sous structure verrouillée (PRE-7 A2.1) — remplacés le 26/11/2026 par
+  // D-608 (D-573 point 6, remplace l’option Avec / Sans de D-413 et D-448).]
   const phasesControl = (
     <SegmentedControl<PhaseChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
       options={[
-        hasWorkPhases
-          ? {
-              value: "WITH",
-              label: t.workPhaseChoices.WITH,
-              width: PHASE_OPTION_CLOSED_WIDTH,
-              // RC-16 : réglage ouvert, l'option dessine son fond clair (`#EAEAFF`, comme la charge active).
-              ownSurface: phaseCountOpen,
-              // Contrôle de la recette n° 2 (cr2-phases-rouge) : seul le cadre du champ « n phases » est rouge.
-              // Contre-recette n° 3 (cr4-rouge, cr4-verifier) : tableau replié ou déplié, sans le fond
-              // violet ; « à vérifier » en orange, le rouge prime.
-              invalid: isPhaseCountIncomplete,
-              toVerify: isPhaseCountToVerify,
-              selectedContent: (
-                <PhaseCountField
-                  isOpen={phaseCountOpen}
-                  entry={segmentEntry("phaseCount")}
-                  count={draft.workPhases.length}
-                  folded={isPhasesFolded}
-                  onChevronPress={togglePhasesTable}
-                  onCloseEntry={keyboard.close}
-                  disabled={structureLocked}
-                  flagged={isPhaseCountIncomplete || isPhaseCountToVerify}
-                />
-              ),
-            }
-          : { value: "WITH", label: t.workPhaseChoices.WITH, disabled: structureLocked || !canEnableWorkPhases(draft) },
-        hasWorkPhases && structureLocked
-          ? { value: "WITHOUT", label: t.workPhaseChoices.WITHOUT, disabled: true }
-          : { value: "WITHOUT", label: t.workPhaseChoices.WITHOUT },
+        {
+          value: "WITH",
+          label: phaseCountLabel(draft.workPhases.length),
+          width: PHASE_OPTION_CLOSED_WIDTH,
+          // Contrôle de la recette n° 2 (cr2-phases-rouge) et contre-recette n° 3 (cr4-rouge, cr4-verifier) : seul le cadre du champ
+          // « n phases » est rouge (durée manquante) ou orange (à vérifier), le rouge prime.
+          invalid: isPhaseCountIncomplete,
+          toVerify: isPhaseCountToVerify,
+          selectedContent: (
+            <FixedPhaseCount
+              count={draft.workPhases.length}
+              folded={isPhasesFolded}
+              onPress={togglePhasesTable}
+              flagged={isPhaseCountIncomplete || isPhaseCountToVerify}
+            />
+          ),
+        },
       ]}
-      value={hasWorkPhases ? "WITH" : "WITHOUT"}
-      onChange={choosePhases}
+      value="WITH"
+      onChange={togglePhasesTable}
       accessibilityLabel={t.workPhases}
       testID="execution-sheet-phases-control"
     />
   );
   const activePhase = openSurface.kind === "keyboard" ? keyboardFieldPhase(openSurface.field) : null;
+  // D-608 (D-573 point 6) : ligne « n phases » et tableau des phases — cadre « Phases du mouvement » (feuille générique) ou cadre
+  // « Mouvement et phases » de l'exercice libre (D-573 point 5). Sans phases : aucune ligne.
+  // Cadre Cadence et durée : Cadence, Durée de l'exercice, Compte à rebours, Fin. D-604 : absent dans un format. D-608 (D-573
+  // point 5) : exercice libre — cadre de la Durée de l'exercice, placé avant le dernier cadre, sans la Cadence.
+  // D-607 (D-572 point 1) : hauteur du clavier sous le corps de la feuille pendant une saisie (voir la réserve sous les cadres).
+  const keyboardRoom =
+    keyboard.activeField === null ? 0 : keyboardBodyReserve((scrimBottom ?? windowHeight) - insets.bottom, keyboard.keyboardFrame?.screenY ?? null);
+  const cadenceFrame =
+    leanFormat || quickScope || (freeFormat && noCadenceDuration && !signalsShown) ? null : (
+    <SheetMotionView
+      appear={false}
+      onLayout={trackFrame("cadence")}
+      style={[styles.frame, styles.frameSpaced, freeFormat ? styles.freeFrame : null]}
+      testID="execution-sheet-frame-cadence"
+    >
+      {/* PRE-5 story 2.5 (AC3) : Cadence ; Autre révèle sous la ligne, aligné à
+          droite, le ± existant (0..10, pas 1, sans accélération). [Décision du
+          06/11/2026 (constat c) : champ clavier « MM:SS » révélé et focalisé, bornes
+          0..10 s (± — remplacé).] */}
+      {/* D-608 (D-573 point 5) : exercice libre — la Cadence est dans le dernier cadre. */}
+      {freeFormat ? null : (
+      <Row
+        label={t.cadence}
+        selected={beepOpen}
+        below={
+          beepOpen ? (
+            <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
+              {scalarField("beep", {
+                display: beepLabel(draft.cadenceBeepIntervalSeconds),
+                accessibilityLabel: t.cadence,
+                testID: "execution-sheet-beep",
+              })}
+            </SheetMotionView>
+          ) : null
+        }
+        testID="execution-sheet-row-beep"
+      >
+        {cadenceControl}
+      </Row>
+      )}
+
+      {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. [Sauf Death by : absente,
+          mesurée à l'exécution — Formats §12, recette iPhone du 07/11/2026.] */}
+      {noCadenceDuration ? null : (
+      <>
+        {freeFormat ? null : <Separator />}
+        {formatDurationRow ?? (
+        <Row
+          label={t.exerciseDuration}
+          // PRE-5 story 2.5 (AC4, AD-28) : chevron à 12 du libellé, cible distincte
+          // de la pastille ; absent pour un Exercice ouvert depuis une Séance.
+          labelAccessory={
+            durationDisclosure ? (
+              <DisclosureControl
+                expanded={isDurationExpanded}
+                onPress={toggleDuration}
+                // PRE-7 B.1 (D-447, B7) : chevron sans cadre (Disclosure, Cadre Non).
+                framed={false}
+                accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
+                testID="execution-sheet-duration-disclosure"
+              />
+            ) : null
+          }
+          accessibilityLabel={totalSpokenLabel}
+          selected={isOpen(scalarSurface("total"))}
+          testID="execution-sheet-row-total"
+        >
+          {/* Décision du 06/11/2026 (constat c) : Durée de l'exercice saisie au clavier
+              « MM:SS » (roue et panneau — remplacés) ; Inversion à la sortie du champ. */}
+          {totalEntrySeconds !== undefined ? (
+            scalarField("total", {
+              display: totalText,
+              accessibilityLabel: t.exerciseDurationEditAccessibilityLabel,
+              testID: "execution-sheet-total",
+            })
+          ) : (
+            <Text style={styles.staticValue} testID="execution-sheet-total-text">
+              {totalText}
+            </Text>
+          )}
+        </Row>
+        )}
+      </>
+      )}
+
+      {/* PRE-5 story 2.5 (AC4) : repliés, Compte à rebours et Fin ne sont pas rendus ;
+          leurs valeurs restent dans le Brouillon. */}
+      {signalsShown ? (
+        <>
+          {freeFormat && noCadenceDuration ? null : <Separator />}
+          <Row label={t.countdown} selected={isOpen(scalarSurface("countdown"))} testID="execution-sheet-row-countdown">
+            {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS » (± — remplacé). */}
+            {scalarField("countdown", {
+              display: pauseLabel(draft.countdownSeconds),
+              accessibilityLabel: t.countdown,
+              testID: "execution-sheet-countdown",
+              // PRE-9 (01/11/2026, point 2) : défaut du Profil repris à la création.
+              profileDefault: openedPendingDefaults,
+            })}
+          </Row>
+          <Separator />
+          <Row
+            label={t.end}
+            selected={isOpen(scalarSurface("end"))}
+            onLayout={revealSignals}
+            testID="execution-sheet-row-end"
+          >
+            {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS » (± — remplacé). */}
+            {scalarField("end", {
+              display: pauseLabel(draft.endSeconds),
+              accessibilityLabel: t.end,
+              testID: "execution-sheet-end",
+              // PRE-9 (01/11/2026, point 2) : défaut du Profil repris à la création.
+              profileDefault: openedPendingDefaults,
+            })}
+          </Row>
+        </>
+      ) : null}
+    </SheetMotionView>
+    );
+  // PRE-9 — ligne « Récupération » (bloc 6) ; D-608 (D-573 point 5) : exercice libre — dans le dernier cadre.
+  const recoveryRow = !recoveryShown ? null : (
+    <Row
+      label={t.recovery}
+      selected={isOpen(scalarSurface("recovery"))}
+      testID="execution-sheet-row-recovery"
+    >
+      {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS », 0..300 s
+          (roulette et panneau — remplacés). */}
+      {recoveryLocked ? (
+        <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
+          <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-recovery">
+            {pauseLabel(0)}
+          </Text>
+        </View>
+      ) : (
+        scalarField("recovery", {
+          display: recoveryText,
+          accessibilityLabel: t.recovery,
+          // [Fond orange « défaut du Profil » — retiré le 14/11/2026 : plus de Récupération par défaut.]
+          testID: "execution-sheet-recovery",
+        })
+      )}
+    </Row>
+  );
+  const phasesGroup = !hasWorkPhases ? null : (
+    <SheetMotionView
+      appear={false}
+      style={[styles.variableGroup, isDraggingRow ? null : styles.variableGroupClip]}
+      testID="execution-sheet-phases-group"
+    >
+      <Row
+        label={t.workPhases}
+        selected={phaseCountOpen}
+        testID="execution-sheet-row-phases"
+      >
+        {phasesControl}
+      </Row>
+      {/* Contre-recette iPhone du 30/10 (Hermann : « il ne faut pas de trait de
+          séparation entre la ligne de paramètres et son tableau ») : le tableau
+          déployé suit sa ligne sans séparateur. */}
+      {hasWorkPhases && !isPhasesFolded ? (
+        <WorkPhasesTable
+          phases={draft.workPhases}
+          activePhase={activePhase}
+          onRemove={handleRemovePhase}
+          removalActive={removalEnabled(surface)}
+          onMove={(from, to) => update(moveWorkPhase(keyboard.flush(draft), from, to))}
+          onDraggingChange={(dragging) => {
+            setIsDraggingRow(dragging);
+            if (dragging) {
+              // AD-27 : saisie appliquée avant le glisser ; la surface ouverte est rangée.
+              const base = keyboard.flush(draft);
+              if (base !== draft) commitKeyboard(() => base);
+              setIsTableSelected(false);
+              dispatchSurface({ type: "closeAll" });
+            }
+          }}
+          cell={phaseCell}
+          bleed={TABLE_BLOCK_BLEED}
+          structureLocked={structureLocked}
+          // D-608 (D-573 point 6) : son de chaque phase désactivable.
+          onToggleSound={(phaseId) => update(toggleWorkPhaseSound(keyboard.flush(draft), phaseId))}
+          style={styles.tableBlock}
+        />
+      ) : null}
+      {adjustment?.kind === "phaseRemoval" ? adjustmentMessage : null}
+    </SheetMotionView>
+  );
 
   // PRE-7 story B.3 (B5, D-447, arbitrages A1 à A3) : déroulant de l'Enchainement sur
   // `AnchoredPanel`, toutes plates-formes, recouvrant exactement l'option Avec (bord haut, bord
@@ -2776,10 +3101,24 @@ export function ExecutionParametersSheet({
     </AnchoredPanel>
   ) : null;
 
-  return (
+  // RC-1 : bas réel de la zone de la `Modal` (coordonnées de la fenêtre), repère de la barre du clavier. Page : bas de l'écran hôte.
+  const measureContainerBottom = () => {
+    scrimRef.current?.measureInWindow((_x, y, _width, height) => {
+      if (height > 0) setScrimBottom((current) => (current === y + height ? current : y + height));
+    });
+  };
+  // D-608 (D-573 point 5) : page « Exercice libre » — contenu posé dans l'écran hôte, sans `Modal` ni voile.
+  const frame = (content: ReactNode) =>
+    pageMode ? (
+      <View ref={scrimRef} style={styles.pageRoot} onLayout={measureContainerBottom} testID="execution-sheet-page">
+        {content}
+      </View>
+    ) : (
     <Modal
       transparent
-      visible
+      // Remarque e du 26/11/2026 : retirée pendant qu'un écran poussé d'ailleurs (rappel touché) recouvre l'écran hôte,
+      // présentée de nouveau au retour — sinon affichée sans toucher actif.
+      visible={hostScreenFocused}
       // Constat d (carte de la Composition) : voile animé ci-dessous, à la durée de la feuille.
       animationType={cardMotion ? "none" : "fade"}
       onRequestClose={handleCancel}
@@ -2789,12 +3128,7 @@ export function ExecutionParametersSheet({
         ref={scrimRef}
         style={[styles.scrim, cardMotion ? styles.scrimTransparent : null]}
         pointerEvents={isClosing ? "none" : "auto"}
-        // RC-1 : bas réel de la zone de la `Modal` (coordonnées de la fenêtre), repère de la barre du clavier.
-        onLayout={() => {
-          scrimRef.current?.measureInWindow((_x, y, _width, height) => {
-            if (height > 0) setScrimBottom((current) => (current === y + height ? current : y + height));
-          });
-        }}
+        onLayout={measureContainerBottom}
         testID="execution-sheet-scrim"
       >
         {cardMotion ? (
@@ -2804,31 +3138,44 @@ export function ExecutionParametersSheet({
             testID="execution-sheet-scrim-shade"
           />
         ) : null}
-        {/* Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée)
-            porte sur un cadre transparent plein écran ; la surface blanche, ancrée en bas
-            à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
-            ligne apparaît ou disparaît, au lieu de sauter. */}
+        {content}
+      </View>
+    </Modal>
+    );
+
+  return frame(
+        // Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée) porte sur un cadre transparent plein
+        // écran ; la surface blanche, ancrée en bas à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
+        // ligne apparaît ou disparaît, au lieu de sauter. Page : ni montée ni ancrage en bas, la surface occupe l'écran hôte.
         <Animated.View
-          style={[styles.sheetFrame, { transform: [{ translateY: sheetEntry }] }]}
-          accessibilityViewIsModal
+          style={pageMode ? styles.pageRoot : [styles.sheetFrame, { transform: [{ translateY: sheetEntry }] }]}
+          accessibilityViewIsModal={!pageMode}
           testID="execution-sheet"
         >
           <SheetMotionProvider reduceMotion={reduceMotion}>
             <SheetMotionView
               appear={false}
-              style={[styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]}
+              style={
+                pageMode
+                  ? [styles.sheet, styles.pageSheet, { paddingBottom: insets.bottom }]
+                  : [styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]
+              }
               testID="execution-sheet-surface"
             >
-              <View style={freeFormat ? styles.freeContext : null} testID={freeFormat ? "execution-sheet-free-context" : undefined}>
-              <View style={styles.handle} />
+              <View style={{ backgroundColor: headerTint }} testID={freeFormat ? "execution-sheet-free-context" : "execution-sheet-header-tint"}>
+              {pageMode ? <View style={styles.pageHeaderTop} /> : <View style={styles.handle} />}
               {/* En-tête « Fermer et valider » partagé (Complément du 5 novembre 2026, §18–§19). Story 3.8 (AC5) : ✓ grisé
                   (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
               <ModalHeader
                 // Recette du 07/11/2026 : nom du Format dans le titre (Figma « Paramètres d'exécution AMRAP »).
+                // D-608 : nom du mouvement sur une ligne, « … » s'il est trop long ; les autres titres restent non limités (T-61, AC7).
+                {...(!freeFormat && movementName !== undefined && movementName.trim() !== "" ? { titleNumberOfLines: 1 } : {})}
                 title={
                   freeFormat
                     ? t.freeTitle
+                    : movementName !== undefined && movementName.trim() !== ""
+                      ? movementName
                     : format !== undefined
                       ? `${t.title} ${strings.executionParameters.format.names[format.key]}`
                       : quickFormatName !== undefined
@@ -2836,7 +3183,8 @@ export function ExecutionParametersSheet({
                         : t.title
                 }
                 onCancel={handleCancel}
-                cancelLabel={t.cancelAccessibilityLabel}
+                cancelLabel={pageMode ? t.freeBackAccessibilityLabel : t.cancelAccessibilityLabel}
+                {...(pageMode ? { cancelIcon: "back" as const } : {})}
                 onValidate={handleValidate}
                 validateEnabled={validation.ok && !loopWithoutRepetitions}
                 validateDisabled={validateDisabled}
@@ -2849,16 +3197,12 @@ export function ExecutionParametersSheet({
                 </Text>
               ) : null}
               </View>
-              {freeFormat ? (
-                // D-606 : part fondue de la zone de contexte, même rampe que les questionnaires (`ContextBand`, D-224).
-                <View pointerEvents="none" style={styles.freeFade} testID="execution-sheet-free-fade">
-                  {FREE_FADE_LAYERS.map((layer) => (
-                    <View key={layer.height} style={[styles.freeFadeLayer, { height: layer.height, opacity: layer.opacity }]} />
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.headerDivider} />
-              )}
+              {/* D-608 : part fondue de la zone colorée, même rampe que les questionnaires (`ContextBand`, D-224) ; plus de trait. */}
+              <View pointerEvents="none" style={styles.freeFade} testID={freeFormat ? "execution-sheet-free-fade" : "execution-sheet-header-fade"}>
+                {FREE_FADE_LAYERS.map((layer) => (
+                  <View key={layer.height} style={[styles.freeFadeLayer, { height: layer.height, opacity: layer.opacity, backgroundColor: headerTint }]} />
+                ))}
+              </View>
               {/* Recette iPhone du 08/11/2026 (Autres constats, Hermann : « si on met 40 + 30 dans deux exercices différents de la même série
                   de la composition de séance, on ne peut sauvegarder (ok) mais il n'y a pas de message d'explication […] Même chose pour
                   tout type d'EMOM mais quand on met une durée sur un exercice supérieur à la durée de l'intervalle ») — cause : le message
@@ -2897,6 +3241,7 @@ export function ExecutionParametersSheet({
                     contrôle (libellé, fond du groupe, marge) range un champ ± ouvert, sans
                     bouton Annuler ; les valeurs restent dans le Brouillon de la Feuille.
                     Non accessible : n'altère pas le parcours VoiceOver des lignes. */}
+                <FreeLayoutContext.Provider value={freeFormat}>
                 <Pressable
                   onPress={() => dispatchSurface({ type: "outside" })}
                   accessible={false}
@@ -2916,23 +3261,66 @@ export function ExecutionParametersSheet({
                     lignes d'un même cadre. */}
                 {/* PRE-9 (CE-FMT-04) : réglages de Format de l'Exercice, dans les cadres existants (recette du 07/11/2026).
                     [Cadre séparé « {format} » — remplacé.] */}
+                {/* D-608 (D-573 point 5, Hermann, 26/11/2026 ; Figma « Exercice libre — Modale de type format » `13269:26160`, « Cadre —
+                    Mouvement et phases ») : le mouvement et ses phases dans un même cadre, en tête. « Changer » : aucun parcours de
+                    changement du mouvement d'un exercice existant — action non rendue, À CLARIFIER. [Intitulé « Paramètres d'exécution »
+                    au-dessus des cadres (D-606, Figma `13242:26255`) — remplacé le 26/11/2026 par D-608 (Figma `13269:26160`).] */}
                 {freeFormat ? (
-                  <Text style={styles.freeSection} accessibilityRole="header" testID="execution-sheet-free-section">
-                    {t.freeSection}
-                  </Text>
+                  <SheetMotionView
+                    appear={false}
+                    onLayout={trackFrame("phases")}
+                    style={[styles.frame, styles.freeFrame]}
+                    testID="execution-sheet-frame-movement"
+                  >
+                    <Row label={t.freeMovement} labelNode={<Text style={styles.freeMovementLabel}>{t.freeMovement}</Text>} testID="execution-sheet-row-movement">
+                      {/* D-608 (D-573 point 5, 26/11/2026) : « Changer » ramène au choix du mouvement (page de création). */}
+                      {onChangeMovement !== undefined ? (
+                        <Pressable
+                          onPress={() => {
+                            if (absorbSheetCommand()) return;
+                            onChangeMovement();
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t.freeChangeAccessibilityLabel}
+                          hitSlop={8}
+                          testID="execution-sheet-change-movement"
+                        >
+                          <Text style={styles.freeChangeLink}>{t.freeChange}</Text>
+                        </Pressable>
+                      ) : null}
+                    </Row>
+                    {freeMovement !== undefined ? (
+                      <>
+                        <Separator />
+                        <SelectedMovementCard
+                          movement={freeMovement.movement}
+                          levelRank={freeMovement.levelRank}
+                          variant="row"
+                          testID="execution-sheet-movement-card"
+                        />
+                      </>
+                    ) : null}
+                    {phasesGroup === null ? null : (
+                      <>
+                        <Separator />
+                        {phasesGroup}
+                      </>
+                    )}
+                  </SheetMotionView>
                 ) : null}
                 {/* Cadre Exécution : Mode, Condition d'arrêt. D-604 : absent en départ rapide (Charge et De chaque côté seulement). */}
                 {quickScope && !quickFormatUnitOpen ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("execution")}
-                  style={styles.frame}
+                  style={freeFormat ? [styles.frame, styles.frameSpaced, styles.freeFrame] : styles.frame}
                   testID="execution-sheet-frame-execution"
                 >
                   <Row label={t.mode} testID="execution-sheet-row-mode">
                     {modeControl}
                   </Row>
-                  {quickScope ? null : (
+                  {/* D-607 (D-572 point 7, Hermann, 25/11/2026 ; Formats § 9.9) : For time toujours à l'objectif — ligne non affichée. */}
+                  {quickScope || forTimeSheet ? null : (
                     <>
                       <Separator />
                       <Row label={t.stopCondition} testID="execution-sheet-row-stop-condition">
@@ -2967,53 +3355,15 @@ export function ExecutionParametersSheet({
                     (E-20 : une seule animation à l'apparition du tableau), découpe levée pendant
                     un glisser. */}
                 {/* D-604 : Phases du mouvement absentes dans un format (valeurs conservées). */}
-                {leanFormat || quickScope ? null : (
+                {/* D-608 (D-573 point 6) : sans phases, aucun cadre ; exercice libre : phases dans le cadre du mouvement. */}
+                {leanFormat || quickScope || freeFormat || phasesGroup === null ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("phases")}
                   style={[styles.frame, styles.frameSpaced]}
                   testID="execution-sheet-frame-phases"
                 >
-                  <SheetMotionView
-                    appear={false}
-                    style={[styles.variableGroup, isDraggingRow ? null : styles.variableGroupClip]}
-                    testID="execution-sheet-phases-group"
-                  >
-                    <Row
-                      label={t.workPhases}
-                      selected={phaseCountOpen}
-                      testID="execution-sheet-row-phases"
-                    >
-                      {phasesControl}
-                    </Row>
-                    {/* Contre-recette iPhone du 30/10 (Hermann : « il ne faut pas de trait de
-                        séparation entre la ligne de paramètres et son tableau ») : le tableau
-                        déployé suit sa ligne sans séparateur. */}
-                    {hasWorkPhases && !isPhasesFolded ? (
-                      <WorkPhasesTable
-                        phases={draft.workPhases}
-                        activePhase={activePhase}
-                        onRemove={handleRemovePhase}
-                        removalActive={removalEnabled(surface)}
-                        onMove={(from, to) => update(moveWorkPhase(keyboard.flush(draft), from, to))}
-                        onDraggingChange={(dragging) => {
-                          setIsDraggingRow(dragging);
-                          if (dragging) {
-                            // AD-27 : saisie appliquée avant le glisser ; la surface ouverte est rangée.
-                            const base = keyboard.flush(draft);
-                            if (base !== draft) commitKeyboard(() => base);
-                            setIsTableSelected(false);
-                            dispatchSurface({ type: "closeAll" });
-                          }
-                        }}
-                        cell={phaseCell}
-                        bleed={TABLE_BLOCK_BLEED}
-                        structureLocked={structureLocked}
-                        style={styles.tableBlock}
-                      />
-                    ) : null}
-                    {adjustment?.kind === "phaseRemoval" ? adjustmentMessage : null}
-                  </SheetMotionView>
+                  {phasesGroup}
                 </SheetMotionView>
                 )}
                 {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
@@ -3029,7 +3379,7 @@ export function ExecutionParametersSheet({
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("series")}
-                  style={[styles.frame, styles.frameSpaced]}
+                  style={[styles.frame, styles.frameSpaced, freeFormat ? styles.freeFrame : null]}
                   testID="execution-sheet-frame-series"
                 >
                   {/* Recette du 20/10 (RC-15) : plus de ligne « Nombre de séries » ; le nombre est
@@ -3092,7 +3442,8 @@ export function ExecutionParametersSheet({
                       <VariableTable
                         draft={draft}
                         mode={effective.mode}
-                        withPause={tablePause}
+                        withPause={tablePause || emomIntervalColumn}
+                        pauseHeader={emomIntervalColumn ? t.columns.interval : undefined}
                         onRemove={handleRemove}
                         removalActive={removalEnabled(surface)}
                         onMove={(from, to) => updateInTable(moveRow(keyboard.flush(draft), from, to))}
@@ -3143,6 +3494,27 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
+                  {amrapFailureTargetShown ? (
+                    <>
+                      {deathBySeriesRow ? <Separator /> : null}
+                      <Row
+                        label={effective.mode === "DURATION" ? t.durationPerRound : t.repetitionsPerRound}
+                        labelNode={
+                          <Text style={[styles.label, styles.formatLockedLabel]}>
+                            {effective.mode === "DURATION" ? t.durationPerRound : t.repetitionsPerRound}
+                          </Text>
+                        }
+                        accessibilityLabel={`${effective.mode === "DURATION" ? t.durationPerRound : t.repetitionsPerRound}, ${t.unsetSpoken}`}
+                        testID="execution-sheet-row-target-failure"
+                      >
+                        <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
+                          <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-target-failure-value">
+                            {t.unset}
+                          </Text>
+                        </View>
+                      </Row>
+                    </>
+                  ) : null}
                   {/* Recette iPhone du 07/11/2026 (Hermann : « il n'y a pas de ligne « Pause après chaque série » » ; Figma
                       « EMOM — Modale exercice, standard » `8795:14588` ; Formats §14 : l'Intervalle « remplace la Pause ») :
                       pas de Pause quand l'Exercice porte son Intervalle (EMOM, Death by). */}
@@ -3168,7 +3540,18 @@ export function ExecutionParametersSheet({
                       saisie que les cellules (D-434, `cellDecimal`) ; Avec ouvre le clavier dans
                       l'option, élargie au strict nécessaire si la valeur ne tient pas dans 62. */}
                   {formatSeriesRows}
-                  {seriesLeadRows || formatShown("increment") || formatShown("interval") ? <Separator /> : null}
+                  {/* D-607 (D-572 point 3) et D-608 (D-573 point 8 ; Figma « HIIT — Modale exercice » `13300:26522`) : Tabata, 30/30, HIIT —
+                      « Objectif de répétitions » (facultatif, « — » sans valeur) puis « Charge », dans un même cadre. */}
+                  {quickRepetitionsGoal ? (
+                    <Row label={t.repetitionsGoal} selected={isOpen(scalarSurface("repetitionsGoal"))} testID="execution-sheet-row-repetitions-goal">
+                      {scalarField("repetitionsGoal", {
+                        display: draft.repetitionsGoal === undefined ? t.unset : `${draft.repetitionsGoal} ${t.repetitionsUnit}`,
+                        accessibilityLabel: t.repetitionsGoal,
+                        testID: "execution-sheet-repetitions-goal",
+                      })}
+                    </Row>
+                  ) : null}
+                  {seriesLeadRows || formatShown("increment") || formatShown("interval") || quickRepetitionsGoal ? <Separator /> : null}
                   <Row label={t.load} testID="execution-sheet-row-load">
                     <SegmentedControl<LoadChoice>
                       variant="inline"
@@ -3240,13 +3623,15 @@ export function ExecutionParametersSheet({
                   </Text>
                 ) : null}
 
+                {/* D-608 (D-573 point 5) : exercice libre — Durée de l'exercice avant le dernier cadre. */}
+                {freeFormat ? cadenceFrame : null}
                 {/* Cadre Côtés : Changement de côté (portant l'Enchainement, RC-6), Pause entre
                     les côtés. PRE-5 story 2.5 (AC1, AC2 ; Figma `9230:19534`) : lignes non
                     indentées (marge 12, comme le cadre Séries), libellés Regular 12, lignes de 44. */}
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("sides")}
-                  style={[styles.frame, styles.frameSpaced]}
+                  style={[styles.frame, styles.frameSpaced, freeFormat ? styles.freeFrame : null]}
                   testID="execution-sheet-frame-sides"
                 >
                   <Row
@@ -3289,119 +3674,42 @@ export function ExecutionParametersSheet({
                       </Row>
                     </>
                   ) : null}
-                </SheetMotionView>
-
-                {/* Cadre Cadence et durée : Cadence, Durée de l'exercice, Compte à rebours, Fin. */}
-                {/* D-604 : Cadence et Durée de l'exercice (ou durée maximum) absentes dans un format. */}
-                {leanFormat || quickScope ? null : (
-                <SheetMotionView
-                  appear={false}
-                  onLayout={trackFrame("cadence")}
-                  style={[styles.frame, styles.frameSpaced]}
-                  testID="execution-sheet-frame-cadence"
-                >
-                  {/* PRE-5 story 2.5 (AC3) : Cadence ; Autre révèle sous la ligne, aligné à
-                      droite, le ± existant (0..10, pas 1, sans accélération). [Décision du
-                      06/11/2026 (constat c) : champ clavier « MM:SS » révélé et focalisé, bornes
-                      0..10 s (± — remplacé).] */}
-                  <Row
-                    label={t.cadence}
-                    selected={beepOpen}
-                    below={
-                      beepOpen ? (
-                        <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
-                          {scalarField("beep", {
-                            display: beepLabel(draft.cadenceBeepIntervalSeconds),
-                            accessibilityLabel: t.cadence,
-                            testID: "execution-sheet-beep",
-                          })}
-                        </SheetMotionView>
-                      ) : null
-                    }
-                    testID="execution-sheet-row-beep"
-                  >
-                    {cadenceControl}
-                  </Row>
-
-                  {/* D-433 : ligne « Durée de l'exercice » toujours présente, même place. [Sauf Death by : absente,
-                      mesurée à l'exécution — Formats §12, recette iPhone du 07/11/2026.] */}
-                  {noCadenceDuration ? null : (
-                  <>
-                    <Separator />
-                    {formatDurationRow ?? (
-                    <Row
-                      label={t.exerciseDuration}
-                      // PRE-5 story 2.5 (AC4, AD-28) : chevron à 12 du libellé, cible distincte
-                      // de la pastille ; absent pour un Exercice ouvert depuis une Séance.
-                      labelAccessory={
-                        durationDisclosure ? (
-                          <DisclosureControl
-                            expanded={isDurationExpanded}
-                            onPress={toggleDuration}
-                            // PRE-7 B.1 (D-447, B7) : chevron sans cadre (Disclosure, Cadre Non).
-                            framed={false}
-                            accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
-                            testID="execution-sheet-duration-disclosure"
-                          />
-                        ) : null
-                      }
-                      accessibilityLabel={totalSpokenLabel}
-                      selected={isOpen(scalarSurface("total"))}
-                      testID="execution-sheet-row-total"
-                    >
-                      {/* Décision du 06/11/2026 (constat c) : Durée de l'exercice saisie au clavier
-                          « MM:SS » (roue et panneau — remplacés) ; Inversion à la sortie du champ. */}
-                      {totalEntrySeconds !== undefined ? (
-                        scalarField("total", {
-                          display: totalText,
-                          accessibilityLabel: t.exerciseDurationEditAccessibilityLabel,
-                          testID: "execution-sheet-total",
-                        })
-                      ) : (
-                        <Text style={styles.staticValue} testID="execution-sheet-total-text">
-                          {totalText}
-                        </Text>
-                      )}
-                    </Row>
-                    )}
-                  </>
-                  )}
-
-                  {/* PRE-5 story 2.5 (AC4) : repliés, Compte à rebours et Fin ne sont pas rendus ;
-                      leurs valeurs restent dans le Brouillon. */}
-                  {signalsShown ? (
+                  {/* D-607 (D-572 point 2) et D-608 (D-573 point 8 ; Figma « HIIT — Modale exercice » `13300:26522`) : format à départ
+                      rapide — Cadence rétablie, en dernier, dans le cadre de « De chaque côté » (hors À l'échec). */}
+                  {/* D-608 (D-573 point 5, Figma `13269:26419` « Cadre — Côté, cadence et récupération ») : exercice libre — les trois
+                      dernières lignes (De chaque côté, Cadence, Récupération) dans ce même cadre. */}
+                  {quickCadence || freeFormat ? (
                     <>
                       <Separator />
-                      <Row label={t.countdown} selected={isOpen(scalarSurface("countdown"))} testID="execution-sheet-row-countdown">
-                        {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS » (± — remplacé). */}
-                        {scalarField("countdown", {
-                          display: pauseLabel(draft.countdownSeconds),
-                          accessibilityLabel: t.countdown,
-                          testID: "execution-sheet-countdown",
-                          // PRE-9 (01/11/2026, point 2) : défaut du Profil repris à la création.
-                          profileDefault: openedPendingDefaults,
-                        })}
-                      </Row>
-                      <Separator />
                       <Row
-                        label={t.end}
-                        selected={isOpen(scalarSurface("end"))}
-                        onLayout={revealSignals}
-                        testID="execution-sheet-row-end"
+                        label={t.cadence}
+                        selected={beepOpen}
+                        below={
+                          beepOpen ? (
+                            <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
+                              {scalarField("beep", {
+                                display: beepLabel(draft.cadenceBeepIntervalSeconds),
+                                accessibilityLabel: t.cadence,
+                                testID: "execution-sheet-beep",
+                              })}
+                            </SheetMotionView>
+                          ) : null
+                        }
+                        testID="execution-sheet-row-beep"
                       >
-                        {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS » (± — remplacé). */}
-                        {scalarField("end", {
-                          display: pauseLabel(draft.endSeconds),
-                          accessibilityLabel: t.end,
-                          testID: "execution-sheet-end",
-                          // PRE-9 (01/11/2026, point 2) : défaut du Profil repris à la création.
-                          profileDefault: openedPendingDefaults,
-                        })}
+                        {cadenceControl}
                       </Row>
                     </>
                   ) : null}
+                  {freeFormat && recoveryRow !== null ? (
+                    <>
+                      <Separator />
+                      {recoveryRow}
+                    </>
+                  ) : null}
                 </SheetMotionView>
-                )}
+
+                {freeFormat ? null : cadenceFrame}
 
                 {/* PRE-9 — bloc 6 « Récupération » (ordre de Hermann du 01/11/2026, point 2 ; CE-UI-10
                     ligne 14 ; ch07 « Récupération de l'Exercice et défauts du Profil ») : seule ligne
@@ -3409,45 +3717,32 @@ export function ExecutionParametersSheet({
                     la ligne sur iOS, en ligne ailleurs, comme Durée de l'exercice). Exercice de
                     Séance seulement. `revealSignals` défile jusqu'au bas du contenu : ce cadre suit
                     Cadence et durée, dont Compte à rebours et Fin restent au-dessus de lui. */}
-                {recoveryShown ? (
+                {recoveryShown && !freeFormat ? (
                   <SheetMotionView
                     appear={false}
                     onLayout={trackFrame("recovery")}
                     style={[styles.frame, styles.frameSpaced]}
                     testID="execution-sheet-frame-recovery"
                   >
-                    <Row
-                      label={t.recovery}
-                      selected={isOpen(scalarSurface("recovery"))}
-                      testID="execution-sheet-row-recovery"
-                    >
-                      {/* Décision du 06/11/2026 (constat c) : saisie au clavier « MM:SS », 0..300 s
-                          (roulette et panneau — remplacés). */}
-                      {recoveryLocked ? (
-                        <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
-                          <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-recovery">
-                            {pauseLabel(0)}
-                          </Text>
-                        </View>
-                      ) : (
-                        scalarField("recovery", {
-                          display: recoveryText,
-                          accessibilityLabel: t.recovery,
-                          // [Fond orange « défaut du Profil » — retiré le 14/11/2026 : plus de Récupération par défaut.]
-                          testID: "execution-sheet-recovery",
-                        })
-                      )}
-                    </Row>
+                    {recoveryRow}
                   </SheetMotionView>
                 ) : null}
                 {/* Recette iPhone du 07/11/2026 (constat C, Hermann : « Paramètre d’exécution : la dernière ligne Récupération ne s’affiche
                     pas entièrement au dessus de la barre d’option du clavier ») : la course ajoutée par iOS sous le clavier
                     (`automaticallyAdjustKeyboardInsets`) ne compte pas la barre du clavier ; une réserve de sa hauteur (plus la marge de
                     révélation) permet de remonter la dernière ligne au-dessus de la barre. */}
+                {/* D-607 (D-572 point 1, Hermann, 25/11/2026 : « le clavier ne doit jamais masquer le champ saisi (Charge notamment) : la
+                    feuille se remonte ou défile au-dessus du clavier ») : réserve de la hauteur du clavier sous les cadres pendant une saisie.
+                    Une feuille plus courte que sa hauteur maximale (départ rapide : Charge et De chaque côté seulement) grandit d'autant et
+                    remonte ses lignes au-dessus du clavier ; à sa hauteur maximale, la réserve donne la course de défilement nécessaire à la
+                    révélation (`revealDelta`). [La course ajoutée par iOS (`automaticallyAdjustKeyboardInsets`) ne couvre qu'un corps
+                    défilant plus haut que le clavier : une feuille courte, recouverte, ne pouvait pas montrer le champ.] */}
+                {keyboardRoom > 0 ? <View style={{ height: keyboardRoom }} testID="execution-sheet-keyboard-room" /> : null}
                 {keyboard.accessoryVisible ? <View style={{ height: KEYBOARD_BAR_SCROLL_RESERVE }} testID="execution-sheet-keyboard-bar-room" /> : null}
                 {contentRoom > 0 ?<View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {sideOrderDropdown}
                 </Pressable>
+                </FreeLayoutContext.Provider>
               </SheetMotionScrollView>
             </SheetMotionView>
           </SheetMotionProvider>
@@ -3483,9 +3778,7 @@ export function ExecutionParametersSheet({
               animated={barAnimated}
             />
           ) : null}
-        </Animated.View>
-      </View>
-    </Modal>
+        </Animated.View>,
   );
 }
 
@@ -3503,6 +3796,7 @@ function VariableTable({
   draft,
   mode,
   withPause = true,
+  pauseHeader,
   onRemove,
   removalActive,
   onMove,
@@ -3513,6 +3807,8 @@ function VariableTable({
   mode: ExecutionMode | null;
   /** EMOM (y-format-cadres, 07/11/2026) : sans colonne Pause, Cible et Charge réparties sur la largeur. */
   withPause?: boolean;
+  /** D-607 (D-572 point 6) : titre de la deuxième colonne (EMOM : « Intervalle ») ; absent : « Pause ». */
+  pauseHeader?: string;
   onRemove: (row: number) => void;
   /** Story 3.6 (T18, T23) : la croix retire ; sinon son appui range d'abord l'outil ouvert. */
   removalActive: boolean;
@@ -3565,7 +3861,9 @@ function VariableTable({
         {withPause ? (
           <>
             <View style={tableStyles.cellGap} />
-            <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
+            <Text style={tableStyles.columnHeader} testID="execution-sheet-table-header-pause">
+              {pauseHeader ?? t.columns.pause}
+            </Text>
           </>
         ) : null}
         {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. PRE-7 story
@@ -3774,6 +4072,9 @@ function Row({
   testID: string;
 }) {
   const grouped = accessibilityLabel === undefined ? null : { accessible: true, accessibilityRole: "text" as const, accessibilityLabel };
+  // D-608 (D-573 point 5) : lignes de 38 dans la modale de l'exercice libre.
+  const compact = useContext(FreeLayoutContext);
+  const rowStyle = compact ? [styles.row, styles.rowFree] : styles.row;
   const labelText = labelNode ?? (
     <Text
       style={[styles.label, longLabel ? styles.longLabel : null]}
@@ -3795,12 +4096,12 @@ function Row({
         testID={`${testID}-selection`}
       />
       {labelAccessory === null ? (
-        <View style={styles.row} {...grouped} testID={`${testID}-line`}>
+        <View style={rowStyle} {...grouped} testID={`${testID}-line`}>
           {labelText}
           {children}
         </View>
       ) : (
-        <View style={styles.row} testID={`${testID}-line`}>
+        <View style={rowStyle} testID={`${testID}-line`}>
           <View style={styles.labelGroup}>
             {labelText}
             {labelAccessory}
@@ -3965,80 +4266,50 @@ function SegmentCountField({
 }
 
 /**
- * PRE-5 story 2.8 ; recette du 20/10 (RC-16) — nombre de phases (2..6) dans l'option Avec
- * sélectionnée, chevron du tableau rendu par le contenu (place toujours réservée) :
- * « n phases » puis le chevron, actif (replie / déploie le tableau sans ouvrir la saisie).
- * [Ouvert : « − | n phases | chevron | + », chevron indisponible — remplacé le 06/11/2026 (décision
- * de Hermann, constat c) : « n phases » se saisit au clavier (`SegmentCountField`) ; pendant la
- * saisie, toucher le chevron ferme le clavier (valeur appliquée) sans toucher au tableau.]
+ * D-608 (D-573 point 6, Hermann, 26/11/2026 ; Figma `13278:26093` « Valeur — n phases (chevron) ») : contenu de l’option « n phases »
+ * — nombre fixé par la fiche du mouvement, suivi du chevron du tableau ; tout le contenu replie ou déploie le tableau des phases.
+ * [PRE-5 story 2.8, RC-16 : `PhaseCountField`, nombre saisi au clavier (2..6) et chevron distinct — remplacé le 26/11/2026 par D-608.]
  */
-function PhaseCountField({
-  isOpen,
-  entry,
+function FixedPhaseCount({
   count,
   folded,
-  onChevronPress,
-  onCloseEntry,
-  disabled = false,
-  flagged = false,
+  onPress,
+  flagged,
 }: {
-  isOpen: boolean;
-  entry: SegmentCountEntry;
   count: number;
   folded: boolean;
-  onChevronPress: () => void;
-  /** Décision du 06/11/2026 : fermeture du clavier par le chevron pendant la saisie. */
-  onCloseEntry: () => void;
-  /**
-   * PRE-9, contre-recette n° 3 du 31/10/2026 (cr4-rouge, cr4-verifier) : option signalée (à compléter
-   * ou à vérifier), dessinée sur un fond clair au lieu du violet — libellé et chevron en couleur
-   * primaire pour rester lisibles.
-   */
-  flagged?: boolean;
-  /**
-   * PRE-7 (A2.1, D-438, MFN-09) : nombre verrouillé (occurrence) — « n phases » affiché avec
-   * l'état indisponible existant (`unselected`, sans saisie) ; le chevron reste actif.
-   */
-  disabled?: boolean;
+  onPress: () => void;
+  /** Contre-recette n° 3 (cr4-rouge, cr4-verifier) : option signalée, libellé et chevron en couleur primaire sur fond clair. */
+  flagged: boolean;
 }) {
   const chevronTestID = "execution-sheet-phases-control-WITH-chevron";
-  const chevronLabel = folded ? t.showPhases : t.hidePhases;
-  const icon = (
-    <KodjoIcon
-      name={folded ? "control-chevron-down" : "control-chevron-up"}
-      size={dimensions.catalogueDisclosure.chevronDisplaySize}
-      tintColor={isOpen ? colors.disabled : flagged ? colors.primary : colors.background}
-      testID={`${chevronTestID}-icon`}
-    />
-  );
-  const chevron = (
-    <Pressable
-      onPress={isOpen ? onCloseEntry : onChevronPress}
-      accessibilityRole="button"
-      accessibilityLabel={chevronLabel}
-      // RC-16 : saisie ouverte, chevron annoncé indisponible (son toucher ferme le clavier).
-      accessibilityState={{ expanded: !folded, disabled: isOpen }}
-      accessibilityHint={isOpen ? t.phasesTableToggleUnavailableHint : undefined}
-      hitSlop={PHASE_CHEVRON_CLOSED_HIT_SLOP}
-      style={[inlineChevronFrameStyle, styles.phaseChevronClosed]}
-      testID={chevronTestID}
-    >
-      {icon}
-    </Pressable>
-  );
   return (
-    <SegmentCountField
-      entry={entry}
-      closedLabel={phaseCountLabel(count)}
-      accessibilityLabel={t.workPhaseCountLabel}
-      activeStyle={styles.segmentCountActiveField}
-      closedHitSlop={PHASE_COUNT_CLOSED_HIT_SLOP}
-      closedAccessory={chevron}
-      disabled={disabled}
-      closedLabelStyle={flagged ? [inlineSelectedLabelStyle, styles.phaseCountFlaggedLabel] : undefined}
-      testID="execution-sheet-phase-count"
-      textTestID="execution-sheet-phase-count-text"
-    />
+    // Le nombre (non modifiable) et le chevron replient ou déploient le tableau ; le chevron porte l’annonce VoiceOver.
+    <Pressable onPress={onPress} accessible={false} hitSlop={PHASE_COUNT_CLOSED_HIT_SLOP} style={styles.phaseCountClosed} testID="execution-sheet-phase-count-toggle">
+      <Text
+        style={flagged ? [inlineSelectedLabelStyle, styles.phaseCountFlaggedLabel] : inlineSelectedLabelStyle}
+        accessibilityLabel={`${t.workPhaseCountLabel}, ${phaseCountLabel(count)}`}
+        testID="execution-sheet-phase-count-value"
+      >
+        {phaseCountLabel(count)}
+      </Text>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={folded ? t.showPhases : t.hidePhases}
+        accessibilityState={{ expanded: !folded }}
+        hitSlop={PHASE_CHEVRON_HIT_SLOP}
+        style={[inlineChevronFrameStyle, styles.phaseChevronClosed]}
+        testID={chevronTestID}
+      >
+        <KodjoIcon
+          name={folded ? "control-chevron-down" : "control-chevron-up"}
+          size={dimensions.catalogueDisclosure.chevronDisplaySize}
+          tintColor={flagged ? colors.primary : colors.background}
+          testID={`${chevronTestID}-icon`}
+        />
+      </Pressable>
+    </Pressable>
   );
 }
 
@@ -4122,6 +4393,36 @@ function SideOrderTrigger({
  * de l'option Avec (104 avec « DD… → GG… » choisie) au lieu de 146 ; notations en 12 (Semi Bold
  * choisie, Regular sinon) au lieu de 10.]
  */
+/**
+ * D-607 (D-572 point 1) : Enchainement de « De chaque côté » — menu natif iOS (`Menu` SwiftUI d'`@expo/ui`, hôte `Host` /
+ * `RNHostView`, comme `CircuitNatureMenu`) : le déclencheur garde le dessin de `SideOrderTrigger` ; les deux notations, la courante
+ * cochée.
+ */
+function NativeSideOrderMenu({ value, onChoose, testID }: { value: SideOrder; onChoose: (order: SideOrder) => void; testID: string }) {
+  return (
+    <Host matchContents testID={`${testID}-host`}>
+      <Menu
+        label={
+          <RNHostView matchContents>
+            <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              <SideOrderTrigger value={value} expanded={false} onPress={ignorePress} testID={testID} />
+            </View>
+          </RNHostView>
+        }
+        modifiers={[swiftUIAccessibilityLabel(t.sideSequence), swiftUIAccessibilityValue(t.sideOrders[value])]}
+      >
+        {SIDE_ORDERS.map((order) => (
+          <SwiftUIButton key={order} modifiers={[swiftUIAccessibilityLabel(t.sideOrders[order])]} onPress={() => onChoose(order)} testID={`${testID}-${order}`}>
+            {order === value
+              ? [<SwiftUIText key="title">{t.sideOrderSubtitles[order]}</SwiftUIText>, <SwiftUIImage key="check" systemName="checkmark" />]
+              : [<SwiftUIText key="title">{t.sideOrderSubtitles[order]}</SwiftUIText>]}
+          </SwiftUIButton>
+        ))}
+      </Menu>
+    </Host>
+  );
+}
+
 function SideOrderDropdown({
   value,
   onChoose,
@@ -4204,6 +4505,9 @@ const FRAME_BACKGROUND = "#EFF0F2";
 const FRAME_BORDER_WIDTH = 1;
 const FRAME_RADIUS = 12;
 const FRAME_GAP = 8;
+/** D-608 (Figma `13278:26097`) : fond des bandes de la modale de l'exercice libre. */
+const FREE_BAND_BACKGROUND = "#F9FAFC";
+const FREE_BAND_GAP = 10;
 const ROW_LABEL_FONT_SIZE = 12;
 /** Bord des lignes depuis le bord extérieur d'un cadre (contour + marge) : alignement des panneaux. */
 const FRAME_INSET = FRAME_BORDER_WIDTH + GROUP_PADDING;
@@ -4296,7 +4600,7 @@ const PHASE_OPTION_INSET = 17;
 // réglage ouvert (`PHASE_CHEVRON_GAP`) — retiré avec ce réglage le 06/11/2026 (saisie au clavier).]
 const PHASE_CHEVRON_CLOSED_GAP = 12;
 const PHASE_COUNT_CLOSED_HIT_SLOP = { top: 14, bottom: 14, left: PHASE_OPTION_INSET, right: PHASE_CHEVRON_CLOSED_GAP / 2 };
-const PHASE_CHEVRON_CLOSED_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_CLOSED_GAP / 2, right: PHASE_OPTION_INSET };
+const PHASE_CHEVRON_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_CLOSED_GAP / 2, right: PHASE_OPTION_INSET };
 /**
  * Recette du 20/10 (RC-15, Figma `9436:18348`) : segmenté du Type de série de 34 (32 depuis PRE-7 B.1, B3) quand le stepper du
  * nombre de séries (28) est ouvert, 32 au repos ; stepper sur fond `#F2F2FF` (`colors.stepperSurface`),
@@ -4417,6 +4721,25 @@ const styles = StyleSheet.create({
   scrimShade: {
     backgroundColor: colors.overlayScrim,
   },
+  // D-608 (D-573 point 5) : page « Exercice libre » — la surface occupe l'écran hôte (feuille native, coins portés par elle).
+  pageRoot: {
+    flex: 1,
+  },
+  pageSheet: {
+    flex: 1,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
+  // Place de la poignée, absente en page (la feuille native n'en a pas) : l'en-tête reste à la hauteur des écrans de format.
+  pageHeaderTop: {
+    height: spacing[12],
+  },
+  // Figma `13269:26160` : « Changer », Inter Semi Bold 12, bleu de marque.
+  freeChangeLink: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    color: colors.primary,
+  },
   // Q39 : cadre transparent de la montée ; la surface reste ancrée en bas à l'intérieur.
   sheetFrame: {
     flex: 1,
@@ -4440,9 +4763,6 @@ const styles = StyleSheet.create({
   },
   // D-606 (Figma `13242:26255`) : zone de contexte #FBF3E4 sous l'en-tête, accroche Mali Medium Italic 14/20 #5C636E centrée,
   // intitulé « Paramètres d’exécution » Inter 11 #595E66.
-  freeContext: {
-    backgroundColor: FREE_CONTEXT_COLOR,
-  },
   freeTagline: {
     fontFamily: "Mali_500Medium_Italic",
     fontSize: 14,
@@ -4462,7 +4782,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: FREE_CONTEXT_COLOR,
   },
   freeSection: {
     fontFamily: "Inter_400Regular",
@@ -4497,6 +4816,23 @@ const styles = StyleSheet.create({
   frameSpaced: {
     marginTop: FRAME_GAP,
   },
+  // D-608 (D-573 point 5, Figma `13269:26362` « Quatre groupes de paramètres ») : exercice libre — bandes pleine largeur (#F9FAFC),
+  // sans contour ni arrondi, écart de 10 ; lignes à 12 du bord.
+  freeFrame: {
+    marginHorizontal: -spacing[24],
+    borderRadius: 0,
+    borderWidth: 0,
+    backgroundColor: FREE_BAND_BACKGROUND,
+    paddingVertical: 0,
+    marginTop: FREE_BAND_GAP,
+  },
+  // Figma `13272:26095` : « Mouvement », Inter Medium 12, texte primaire.
+  freeMovementLabel: {
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 12,
+    color: colors.textPrimary,
+  },
   // DSF Séries variables : ligne « Type de série » (ex-« Séries », story 3.3) + tableau. Q40 (Hermann, 2026-10-17, E-14)
   // remplace le cadre fixe X-3 (contour 1,5 + fond 6665:24616) : état normal sans
   // fond ni contour ; marges négatives compensées, aucun texte ne bouge.
@@ -4518,6 +4854,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     minHeight: SHEET_ROW_MIN_HEIGHT,
     gap: spacing[8],
+  },
+  rowFree: {
+    minHeight: FREE_ROW_HEIGHT,
   },
   // DSF : ligne sélectionnée (roulette ou segmenté), rayon 12. Q40 (Hermann,
   // 2026-10-17, E-14) : liseré foncé retiré ; le fond reste. Q41 (E-15) : le fond
@@ -4626,6 +4965,10 @@ const styles = StyleSheet.create({
   formatLockedValue: {
     color: colors.disabled,
     textAlign: "center",
+  },
+  // D-607 / D-608 : titre grisé d'une ligne affichée sans saisie (AMRAP à l'échec).
+  formatLockedLabel: {
+    color: colors.disabled,
   },
   formatHint: {
     ...type.caption,
