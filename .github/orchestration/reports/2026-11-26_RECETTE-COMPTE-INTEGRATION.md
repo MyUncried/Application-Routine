@@ -58,6 +58,10 @@ Classe D (technique : numérotation et réparation des migrations). Aucune règl
 - `src/infrastructure/database/migrations/migration041.ts` (nouveau)
 - `src/infrastructure/database/__tests__/migration040.test.ts`, `migration041.test.ts`, `repairMissingTables.test.ts`, et les assertions de version courante des tests de migration.
 
+## Ajout du 26/11/2026 : horloge 12/24 h
+
+À la demande de Hermann (« Oui »), fusion de `origin/claude/exciting-lovelace-iyn2wf` (`13589f8d`, `b8b82027` : horloge selon le réglage 12/24 h de l'iPhone, heures anglaises AM/PM, « Attach »). Sans conflit, sans migration ni module natif nouveau (`package.json` inchangé). `tsc` sans erreur ; tests `src/features/planning`, `src/features/programs`, `src/shared/i18n` : 376 réussis.
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
