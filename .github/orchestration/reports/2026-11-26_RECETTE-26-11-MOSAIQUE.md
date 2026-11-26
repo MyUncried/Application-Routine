@@ -95,3 +95,43 @@ Voir « Modifications » ; plus ce rapport.
 
 - Commit de code et de documentation : `5f540adc1` ; le commit documentaire qui suit ne complète que ce rapport (résultats des tests, état Git).
 - Branche `fix/recette-26-11-mosaique` poussée sur `origin`, suivie ; arbre de travail propre après le commit du rapport (la jonction `node_modules` est ignorée par Git).
+
+## Complément du 26/11/2026 — réponses de Hermann et reprise du point 1a
+
+### Réponses reçues (par le coordinateur)
+
+1. La séance Tabata contenait un mouvement sans photo (et peut-être un mouvement répété) : le « 4 » sur 5 exercices peut être conforme à D-600.
+2. « 3+2 » = 3 images + case « +2 » : conforme, rien à faire (point 1b clos).
+3. « L'image est ignorée dans la mosaïque » : séance de plusieurs exercices, dont certains dans un circuit ; les photos des mouvements du circuit étaient ignorées (de mémoire de test).
+
+### Vérification demandée : origines réelles des circuits, enregistrement puis relecture du Catalogue
+
+Le premier test SQLite saisissait directement une structure (`createStructured`) et ne passait pas par les parcours de l'application. Il a été remplacé par des parcours réels, sur SQLite réelle, chacun jusqu'à la relecture du Catalogue des séances : brouillon → `toStructuredSessionInput` → `createStructured` ou `updateStructured` → `listCatalogue` → `projectSessionForCatalogue`. Cinq mouvements différents, tous photographiés (`movement_media` + `media_assets`). Le test se trouve dans `src/infrastructure/database/__tests__/sessionMosaic.r26.test.ts`.
+
+| Cas | Construction | Images relues |
+|---|---|---|
+| Structure saisie directement (test initial) | `createStructured` | 5 / 5 |
+| (a) Format Tabata « À la suite » | fenêtre « Créer un exercice » → format : `buildModelElements` + `appendModelToDraft` | 5 / 5 |
+| (a) Format Tabata « En alternance » | idem | 5 / 5 |
+| (a) Format EMOM « Dans chaque intervalle » (circuit porteur, `format` au circuit et aux membres) | idem | 5 / 5 |
+| (b) Circuit composé à la main | Créer → circuit (`wrapInContainer` sur un exercice), puis entrée d'un second exercice (`moveExerciseToCircuit`) | 5 / 5 |
+| Modification d'une séance enregistrée | séance de 3 libres relue (`toSessionDraft`), Tabata ajouté, `updateStructured` | 5 / 5 |
+| Cycle autour d'un circuit | Tabata « En alternance » enveloppé dans un cycle (`wrapInContainer`, conteneur CYCLE) | 5 / 5 |
+
+Résultat : **7 tests, PASS.** Dans aucun cas les mouvements d'un circuit ou d'un cycle ne manquent après enregistrement et relecture. La collecte à la source est correcte, donc **aucune correction du code applicatif**. Seul ce test a été modifié. Le Catalogue se recharge à chaque retour au premier plan (`CatalogueScreen`, `useFocusEffect` → `reloadSessions`) : la fermeture de la feuille de Composition relit donc la base. Ce mécanisme a été lu dans le code ; il n'a pas été testé sur iPhone.
+
+### Conclusion sur 1a / « photos du circuit ignorées »
+
+- **Démontré** : quelle que soit l'origine du circuit (format, porteur, main, cycle, création ou modification), ses mouvements photographiés figurent dans la mosaïque après relecture.
+- **Plausible** (réponse 1 de Hermann) : le mouvement manquant est le mouvement sans photo du Tabata. Un mouvement répété compte une fois (D-600, comportement conforme).
+- **Plausible, à vérifier sur iPhone** : une photo qui n'apparaît pas (fichier absent ou illisible) s'affichait en cadre gris avant `5f540adc1`. Elle est désormais ignorée, comme une absence de photo. Si une photo **visible ailleurs** (fiche du mouvement, Composition) manque encore dans la mosaïque d'une séance à circuit, il faut le nom du mouvement et de la séance : la cause ne serait alors ni dans la collecte ni dans l'enregistrement.
+- **Indéterminé** : la séance exacte du test de Hermann (« de mémoire »).
+
+### Vérification iPhone ajoutée
+
+- Séance de 3 exercices libres + Tabata de 2 (5 mouvements différents, **tous avec photo visible dans le catalogue des mouvements**), enregistrée puis catalogue rouvert : 3 images + « +2 ». Même contrôle avec un circuit composé à la main et avec un cycle autour du circuit.
+
+### Tests du complément
+
+- `npx jest -w 1 --workerIdleMemoryLimit=800MB src/infrastructure/database/__tests__/sessionMosaic.r26.test.ts` : 7/7 PASS.
+- `npx tsc --noEmit` : aucune erreur ; `npx eslint` sur le test : aucune erreur.
