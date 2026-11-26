@@ -156,7 +156,7 @@ describe("D-604 — modale d'un exercice d'un format à départ rapide, ouverte 
     // D-607 (D-572 points 2, 3, 5) : Cadence rétablie (hors À l'échec), dans le cadre de « De chaque côté » ; objectif de répétitions
     // facultatif (Tabata, 30/30) ; valeur de la série (Renforcement, Superset) ; tableau des séries et Pause (Superset).
     const cadence = model !== "UNTIL_FAILURE";
-    const goal = model === "TABATA" || model === "INTERVALS_30_30";
+    const goal = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT";
     const value = model === "STRENGTH" || model === "SUPERSET";
     const table = model === "SUPERSET";
     if (cadence) expect(within(screen.getByTestId("execution-sheet-frame-sides", hidden)).getByTestId("execution-sheet-row-beep", hidden)).toBeTruthy();
