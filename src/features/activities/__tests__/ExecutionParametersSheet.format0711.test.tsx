@@ -92,22 +92,20 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     expect(onFormat).toHaveBeenCalledWith({ incrementPerRound: 2 }, "BUY_IN");
   });
 
-  it("AMRAP seul : Durée de l'exercice du Format à la place de la durée calculée, saisie au clavier", () => {
+  // D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : la Durée de l'exercice AMRAP ne figure plus dans la modale (réglée par l'écran du
+  // format) ; sa valeur est réappliquée telle quelle. [AMRAP seul : Durée de l'exercice du Format saisie au clavier ; amrap-1 (18/11/2026) :
+  // durée inférieure à 1 minute — remplacés.]
+  it("D-604 — AMRAP seul : ni Durée de l'exercice ni cadre Cadence ; Nombre de répétitions et Incrément par tour ; durée gardée au ✓", () => {
     const { onFormat } = renderSheet("AMRAP", ["duration", "increment"], { durationSeconds: 720, incrementPerRound: 0 });
-    expect(within(get("execution-sheet-frame-cadence")).getByTestId("execution-sheet-format-duration-row", hidden)).toBeTruthy();
+    expect(query("execution-sheet-frame-cadence")).toBeNull();
+    expect(query("execution-sheet-format-duration-row")).toBeNull();
     expect(query("execution-sheet-row-total")).toBeNull();
-    expect(value("execution-sheet-format-duration")).toBe(formatPhraseDuration(720));
-    enterExecutionSheetValue("execution-sheet-format-duration", 600);
+    expect(query("execution-sheet-frame-phases")).toBeNull();
+    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(query("execution-sheet-row-target")).not.toBeNull();
+    expect(query("execution-sheet-format-increment-row")).not.toBeNull();
     validate();
-    expect(onFormat).toHaveBeenCalledWith({ durationSeconds: 600, incrementPerRound: 0 }, null);
-  });
-
-  it("amrap-1 (18/11/2026) : Durée de l'exercice AMRAP inférieure à 1 minute acceptée", () => {
-    const { onFormat } = renderSheet("AMRAP", ["duration", "increment"], { durationSeconds: 720, incrementPerRound: 0 });
-    enterExecutionSheetValue("execution-sheet-format-duration", 45);
-    expect(value("execution-sheet-format-duration")).toBe(formatPhraseDuration(45));
-    validate();
-    expect(onFormat).toHaveBeenCalledWith({ durationSeconds: 45, incrementPerRound: 0 }, null);
+    expect(onFormat).toHaveBeenCalledWith({ durationSeconds: 720, incrementPerRound: 0 }, null);
   });
 
   it("EMOM : Intervalle dans le cadre Séries, saisi au clavier", () => {
@@ -147,15 +145,22 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
       const parent = params({
         series: { kind: "UNIFORM", count: 3, target: failureTarget(), pauseSeconds: 20, loadKg: 0, workPhases: [] },
       });
-      renderEmom(["stopTarget", "interval", "durationReadOnly"], parent);
+      const { onRecovery } = renderEmom(["stopTarget", "interval", "durationReadOnly"], parent);
       expect(failure().props.accessibilityState).toMatchObject({ disabled: true });
       expect(target().props.accessibilityState).toMatchObject({ selected: true });
       expect(query("execution-sheet-row-pause")).toBeNull();
       expect(query("execution-sheet-row-total")).toBeNull();
-      const series = get("execution-sheet-frame-series");
-      expect(within(series).getByTestId("execution-sheet-format-duration-readonly-row", hidden)).toBeTruthy();
-      expect(String(get("execution-sheet-format-duration-readonly").props.children)).toBe(formatPhraseDuration(180));
-      expect(query("execution-sheet-frame-recovery")).not.toBeNull();
+      // D-604 (Hermann, 25/11/2026 ; Figma `8795:14588`) : Mode, Condition d'arrêt, Nombre de répétitions, Intervalle, Charge, De chaque côté.
+      // [Durée en lecture seule sous l'Intervalle et Récupération (07/11/2026) — remplacées ; Récupération gardée telle quelle.]
+      expect(query("execution-sheet-format-duration-readonly-row")).toBeNull();
+      expect(query("execution-sheet-frame-recovery")).toBeNull();
+      expect(query("execution-sheet-row-series-type")).toBeNull();
+      expect(query("execution-sheet-row-target")).not.toBeNull();
+      expect(query("execution-sheet-format-interval-row")).not.toBeNull();
+      expect(query("execution-sheet-row-load")).not.toBeNull();
+      expect(query("execution-sheet-row-side")).not.toBeNull();
+      validate();
+      expect(onRecovery).not.toHaveBeenCalled();
     });
 
     it("en alternance : Intervalle et Durée en lecture seule, Récupération absente et appliquée à 0 s", () => {
@@ -163,7 +168,8 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
       expect(query("execution-sheet-format-interval-row")).not.toBeNull();
       expect(query("execution-sheet-frame-recovery")).toBeNull();
       validate();
-      expect(onRecovery).toHaveBeenCalledWith(0);
+      // D-604 (25/11/2026) : Récupération ni affichée ni réappliquée. [Appliquée à 0 s (07/11/2026) — remplacé.]
+      expect(onRecovery).not.toHaveBeenCalled();
     });
 
     it("dans chaque intervalle : ni Intervalle, ni Durée de l'exercice, ni Pause, ni Récupération", () => {
@@ -189,12 +195,14 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
   it("Death by autonome (Figma `8598:31210`) : À l'échec imposé dès l'ouverture, Séries « Jusqu'à l'échec », Nombre de répétitions, ni Pause ni Durée de l'exercice", () => {
     renderSheet("DEATH_BY", ["seriesUntilFailure", "interval", "increment", "stopImposed"], { intervalSeconds: 60, incrementPerRound: 1 });
     expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.FAILURE).props.accessibilityState).toMatchObject({ selected: true });
-    const series = get("execution-sheet-frame-series");
-    expect(within(series).getByText(f.seriesUntilFailure, hidden)).toBeTruthy();
+    // D-604 (Hermann, 25/11/2026 ; Figma `8598:31210`) : plus de ligne Séries « Jusqu'à l'échec ». [Recette du 07/11/2026 — remplacé.]
+    expect(query("execution-sheet-row-series-type")).toBeNull();
     expect(query("execution-sheet-row-target")).not.toBeNull();
+    expect(query("execution-sheet-format-increment-row")).not.toBeNull();
+    expect(query("execution-sheet-format-interval-row")).not.toBeNull();
     expect(query("execution-sheet-row-pause")).toBeNull();
     expect(query("execution-sheet-row-total")).toBeNull();
-    expect(within(get("execution-sheet-frame-cadence")).queryByText(strings.executionParameters.sheet.exerciseDuration, hidden)).toBeNull();
+    expect(query("execution-sheet-frame-cadence")).toBeNull();
   });
 
   it("Death by dans chaque intervalle (Figma `11373:20396`) : ni ligne Séries ni Intervalle ; Nombre de répétitions et Incrément par intervalle", () => {
@@ -213,17 +221,20 @@ describe("Recette du 07/11/2026 — réglages de Format dans les cadres existant
     });
     expect(within(get("execution-sheet-frame-execution")).getByText(f.roles.BUY_OUT, hidden)).toBeTruthy();
     expect(query("execution-sheet-row-total")).toBeNull();
-    expect(String(get("execution-sheet-format-inherited-cap").props.children)).toBe(f.noLimit);
-    expect(within(get("execution-sheet-frame-cadence")).getAllByText(strings.executionParameters.sheet.exerciseDuration, hidden)).toHaveLength(1);
+    // D-604 (Hermann, 25/11/2026 ; Figma `11312:19699`) : Durée de l'exercice héritée retirée de la modale. [07/11/2026 — remplacé.]
+    expect(query("execution-sheet-format-inherited-cap")).toBeNull();
+    expect(query("execution-sheet-frame-cadence")).toBeNull();
+    expect(query("execution-sheet-row-series-type")).not.toBeNull();
   });
 
-  it("For time seul : Durée maximum du For time ; vidée → « Aucune »", () => {
+  // D-604 : durée maximum retirée de la modale, gardée telle quelle. [For time seul : Durée maximum saisie, vidée → « Aucune » — remplacé.]
+  it("D-604 — For time seul : ni Durée maximum ni cadre Cadence ; Séries ; durée maximum gardée au ✓", () => {
     const { onFormat } = renderSheet("FOR_TIME", ["timeCap"], { timeCapSeconds: 600 });
-    expect(value("execution-sheet-format-time-cap")).toBe(formatPhraseDuration(600));
-    enterExecutionSheetValue("execution-sheet-format-time-cap", "");
-    expect(value("execution-sheet-format-time-cap")).toBe(f.noCap);
+    expect(query("execution-sheet-format-time-cap-row")).toBeNull();
+    expect(query("execution-sheet-frame-cadence")).toBeNull();
+    expect(query("execution-sheet-row-series-type")).not.toBeNull();
     validate();
-    expect(onFormat).toHaveBeenCalledWith({}, null);
+    expect(onFormat).toHaveBeenCalledWith({ timeCapSeconds: 600 }, null);
   });
 });
 
@@ -253,21 +264,24 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
   const amrapRole = (current: CircuitRole) => ({ role: { current, admitted: ["BUY_IN", "TOUR"] as CircuitRole[], available: ["BUY_IN", "TOUR"] as CircuitRole[] } });
 
   it("AMRAP, rôle Tour : ni Séries, ni Pause, ni Durée de l'exercice ; Nombre de répétitions et Récupération modifiable", () => {
-    renderWithRecovery("AMRAP", ["role", "increment"], amrapRole("TOUR"));
+    const { onRecovery } = renderWithRecovery("AMRAP", ["role", "increment"], amrapRole("TOUR"));
     expect(query("execution-sheet-row-series-type")).toBeNull();
     expect(query("execution-sheet-row-pause")).toBeNull();
     expect(query("execution-sheet-row-total")).toBeNull();
     expect(query("execution-sheet-row-target")).not.toBeNull();
-    expect(value("execution-sheet-recovery")).toBe(formatPhraseDuration(30));
+    // D-604 (25/11/2026) : Récupération retirée de la modale, gardée telle quelle. [Récupération modifiable — remplacé.]
+    expect(query("execution-sheet-recovery")).toBeNull();
+    validate();
+    expect(onRecovery).not.toHaveBeenCalled();
   });
 
   it("AMRAP, rôle Buy-in : Récupération grisée à 0 s, non modifiable, appliquée à 0 s", () => {
     const { onRecovery } = renderWithRecovery("AMRAP", ["role", "increment"], amrapRole("BUY_IN"));
     expect(query("execution-sheet-row-series-type")).toBeNull();
-    expect(String(get("execution-sheet-recovery").props.children)).toBe(formatPhraseDuration(0));
-    expect(query("execution-sheet-recovery-value")).toBeNull();
+    // D-604 (25/11/2026) : Récupération retirée de la modale, valeur enregistrée inchangée. [Grisée à 0 s, appliquée à 0 s — remplacé.]
+    expect(query("execution-sheet-recovery")).toBeNull();
     validate();
-    expect(onRecovery).toHaveBeenCalledWith(0);
+    expect(onRecovery).not.toHaveBeenCalled();
   });
 
   // Règles de Hermann du 14/11/2026 (FT-3, FT-4) : buy-in et buy-out, nombre de séries libre — la ligne Séries revient ; la ligne
@@ -280,7 +294,10 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
       inheritedCapText: f.noLimit,
     });
     renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("BUY_OUT"));
-    expect(query("execution-sheet-row-series-type")).not.toBeNull();
+    // D-604 (Hermann, 25/11/2026 ; Figma `11312:19895`) : en buy-in ou buy-out, Nombre de répétitions à la place de Séries.
+    // [Buy-in et Buy-out avec Séries (FT-4) — remplacé.]
+    expect(query("execution-sheet-row-series-type")).toBeNull();
+    expect(query("execution-sheet-row-target")).not.toBeNull();
     expect(query("execution-sheet-row-pause")).toBeNull();
     screen.unmount();
     renderWithRecovery("FOR_TIME", ["role", "inheritedCap"], forTime("TOUR"));
@@ -352,19 +369,24 @@ describe("Recette du 07/11/2026 (y-format-cadres) — lignes propres aux rôles 
     validate();
     expect(onApply).toHaveBeenCalledWith(expect.objectContaining({ sideRecoverySeconds: 20 }));
     unmount();
+    // D-604 (25/11/2026) : en Durée aussi, la Pause entre les côtés est retirée de la modale (valeur gardée). [En Durée, la ligne reste — remplacé.]
     renderSheet("EMOM", ["stopTarget", "interval", "durationReadOnly"], { intervalSeconds: 60 }, {}, params({
       mode: "DURATION",
       sideMode: "RIGHT_LEFT",
       sideRecoverySeconds: 20,
       series: { kind: "UNIFORM", count: 1, target: numberTarget(20), pauseSeconds: 0, loadKg: 0, workPhases: [] },
     }));
-    expect(query("execution-sheet-row-side-recovery")).not.toBeNull();
+    expect(query("execution-sheet-row-side-recovery")).toBeNull();
   });
 
-  it("AMRAP autonome (autre Format) : Pause entre les côtés et Récupération inchangées", () => {
-    renderWithRecovery("AMRAP", ["duration", "increment"], {}, params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 }));
-    expect(query("execution-sheet-row-side-recovery")).not.toBeNull();
-    expect(value("execution-sheet-recovery")).toBe(formatPhraseDuration(30));
+  // D-604 (25/11/2026) : tout exercice d'un format perd Pause entre les côtés et Récupération dans la modale (valeurs gardées).
+  // [AMRAP autonome : Pause entre les côtés et Récupération inchangées — remplacé.]
+  it("D-604 — AMRAP autonome : ni Pause entre les côtés ni Récupération ; valeurs gardées au ✓", () => {
+    const { onRecovery } = renderWithRecovery("AMRAP", ["duration", "increment"], {}, params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 20 }));
+    expect(query("execution-sheet-row-side-recovery")).toBeNull();
+    expect(query("execution-sheet-recovery")).toBeNull();
+    validate();
+    expect(onRecovery).not.toHaveBeenCalled();
   });
 
   it("EMOM, séries variables : tableau sans colonne Pause", () => {

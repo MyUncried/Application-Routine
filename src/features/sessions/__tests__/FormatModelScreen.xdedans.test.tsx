@@ -65,6 +65,21 @@ function RelayProbe() {
   return null;
 }
 
+/**
+ * D-603 / D-604 (Hermann, 25/11/2026 ; Formats §§ 9.6 et 9.7) : à la première ouverture, le choix des mouvements s'affiche en premier.
+ * Les scénarios qui commencent par les paramètres le quittent d'abord, comme l'utilisateur (« Fermer sans sélectionner »).
+ */
+async function openedFormat() {
+  const title = await screen.findByTestId("format-title");
+  const leave = screen.queryByTestId("format-catalogue-add");
+  if (leave !== null) {
+    await act(async () => {
+      fireEvent.press(leave);
+    });
+  }
+  return title;
+}
+
 function Harness() {
   const [draft] = useState<SessionDraft>(createEmptyDraft());
   const value = { draft, updateDraft: jest.fn(), suggestDraftName: jest.fn(), resetDraft: jest.fn(), hydrateFromSession: jest.fn() } as unknown as SessionDraftContextValue;
@@ -90,7 +105,7 @@ describe("x-dedans — Filtrer du mode catalogue d'un Format : feuille native ar
 
   it("« Filtrer » ouvre la feuille native `catalogue-filters` (aucune feuille dessinée), haut à y = 144 ; ✓ applique les filtres au mode catalogue", async () => {
     render(<Harness />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.press(await screen.findByTestId("format-catalogue-filter"));
 

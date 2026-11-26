@@ -63,6 +63,21 @@ const service = {
 } as never;
 const t = strings.screens.formatModel;
 
+/**
+ * D-603 / D-604 (Hermann, 25/11/2026 ; Formats §§ 9.6 et 9.7) : à la première ouverture, le choix des mouvements s'affiche en premier.
+ * Les scénarios qui commencent par les paramètres le quittent d'abord, comme l'utilisateur (« Fermer sans sélectionner »).
+ */
+async function openedFormat() {
+  const title = await screen.findByTestId("format-title");
+  const leave = screen.queryByTestId("format-catalogue-add");
+  if (leave !== null) {
+    await act(async () => {
+      fireEvent.press(leave);
+    });
+  }
+  return title;
+}
+
 function Harness() {
   const [draft, setDraft] = useState<SessionDraft>(createEmptyDraft);
   const update = (patch: Partial<SessionDraft>) => setDraft((current) => ({ ...current, ...patch }));
@@ -100,19 +115,23 @@ const heads = () => screen.getAllByTestId(/^format-movements-head-\d+$/).map((he
 /** EMOM à trois mouvements, N = 3. */
 async function openThree() {
   render(<Harness />);
-  await screen.findByTestId("format-title");
+  await openedFormat();
   await pick("Squ", "mv-squats");
   await pick("Fen", "mv-fentes");
   await pick("Bur", "mv-burpees");
   setCount("3");
 }
 
-/** Nombre de la modale du premier mouvement (unité choisie). */
-async function sheetCount() {
+/**
+ * Modale du premier mouvement (unité choisie). D-604 (Hermann, 25/11/2026 ; Formats § 9.7, Figma `8795:14588`, `8598:30515`) : la
+ * modale d'un exercice EMOM n'a plus de ligne Séries (nombre de séries ou de tours réglé sur l'écran du format). [Libellé « N tours /
+ * séries identiques » de la modale (constat a du 18/11/2026) — remplacé.]
+ */
+async function sheetSeriesRow() {
   fireEvent.press(screen.getByTestId("format-line-0-name-open"));
   await screen.findByTestId("execution-sheet");
   fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
-  return screen.getByTestId("execution-sheet-series-value", { includeHiddenElements: true });
+  return screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true });
 }
 
 describe("Constat a) du 18/11/2026 — EMOM à plusieurs mouvements, libellés série / tour selon le mode", () => {
@@ -130,7 +149,9 @@ describe("Constat a) du 18/11/2026 — EMOM à plusieurs mouvements, libellés s
     fireEvent.press(screen.getByTestId(`format-execution-${mode}`));
     expect(screen.getByTestId("format-row-seriesCount")).toHaveTextContent(question, { exact: false });
     expect(heads()).toEqual([...columns]);
-    expect(await sheetCount()).toHaveTextContent(sheet);
+    void sheet;
+    expect(await sheetSeriesRow()).toBeNull();
+    expect(screen.getByTestId("execution-sheet-row-target", { includeHiddenElements: true })).toBeTruthy();
   });
 
   it("le libellé du questionnaire et les colonnes suivent le mode dès qu'il change", async () => {
@@ -147,7 +168,7 @@ describe("Constat a) du 18/11/2026 — EMOM à plusieurs mouvements, libellés s
 
   it("EMOM à un seul mouvement : « Nombre de séries » et S1 … SN, inchangés", async () => {
     render(<Harness />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     setCount("3");
     expect(screen.getByTestId("format-row-seriesCount")).toHaveTextContent(t.rows.seriesCount, { exact: false });

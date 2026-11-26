@@ -6241,7 +6241,7 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 
 **Documentation :** référence Formats (Progression §9.2–9.3, For time §11), ch13 (tableaux des récapitulatifs).
 
-**Règle.** Dans la Composition, **l'appui sur la carte** d'un Exercice ouvre ses Paramètres d'exécution (inchangé) ; **l'appui sur la photo** ouvre la **fiche de l'exercice**, en modale et **en lecture seule** :
+**Règle.** Dans la Composition, **l'appui sur la carte** d'un Exercice ouvre ses Paramètres d'exécution (inchangé) [Remplacé le 25/11/2026 (D-606) pour les Exercices issus d'un format : l'appui sur la carte ouvre la page unique du format ; les actions propres à l'Exercice (déplacer, dupliquer, supprimer) restent sur la carte ; l'exercice libre se règle dans une modale de type format.] ; **l'appui sur la photo** ouvre la **fiche de l'exercice**, en modale et **en lecture seule** :
 - contenu de la fiche du mouvement : média, nom, catégorie, zones corporelles, niveau, description et phases du mouvement si elles existent ;
 - section **« Dans cette séance »** : la synthèse des paramètres de cet Exercice : réutiliser la phrase générée pour les paramètres qu’elle couvre, et présenter la Récupération propre à l’Exercice sans modifier silencieusement les règles de cette phrase ;
 - **aucun bouton Modifier** : la croix ramène à la Composition ; pour modifier, l'utilisateur touche la carte.

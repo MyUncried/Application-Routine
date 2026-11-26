@@ -100,6 +100,21 @@ const service = {
 
 const t = strings.screens.formatModel;
 
+/**
+ * D-603 / D-604 (Hermann, 25/11/2026 ; Formats §§ 9.6 et 9.7) : à la première ouverture, le choix des mouvements s'affiche en premier.
+ * Les scénarios qui commencent par les paramètres le quittent d'abord, comme l'utilisateur (« Fermer sans sélectionner »).
+ */
+async function openedFormat() {
+  const title = await screen.findByTestId("format-title");
+  const leave = screen.queryByTestId("format-catalogue-add");
+  if (leave !== null) {
+    await act(async () => {
+      fireEvent.press(leave);
+    });
+  }
+  return title;
+}
+
 function Harness({ draftRef, initialStage = "questionnaire" }: { draftRef: { current: SessionDraft }; initialStage?: "questionnaire" | "summary" }) {
   const [stage, setStage] = useState<"questionnaire" | "summary">(initialStage);
   void setStage;
@@ -160,7 +175,7 @@ describe("FormatModelScreen", () => {
   it.skip("questionnaire Tabata en modale : croix, nom du Format, aucun nom de Séance ; paramètres 8 / 20″ / 10″, durée 4′00″ ; « Enregistrer dans la séance » (recette du 04/11) indisponible sans mouvement", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    expect(await screen.findByTestId("format-title")).toHaveTextContent("Tabata");
+    expect(await openedFormat()).toHaveTextContent("Tabata");
     expect(screen.getByTestId("format-sheet")).toBeTruthy();
     expect(screen.queryByTestId("format-name")).toBeNull();
     // Recette du 04/11/2026 (Hermann : « Tabata : après sélection des mouvements, le bouton d'action doit directement être
@@ -188,7 +203,7 @@ describe("FormatModelScreen", () => {
     mockModel = "PROGRESSION";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     // Réglage modifié avant d'ajouter un mouvement : 1 série.
     typeValue("seriesCount", "1");
     // Complément du 5 novembre 2026 (Hermann), §19 : « + Ajouter » ouvre directement le mode catalogue (champ actif, clavier ouvert) ; [saisie intermédiaire avec suggestions et lien « Ouvrir / Fermer le mode catalogue » — remplacés].
@@ -233,7 +248,7 @@ describe("FormatModelScreen", () => {
   it.each(["TABATA", "INTERVALS_30_30", "STRENGTH", "UNTIL_FAILURE"] as const)("recette du 04/11 : %s (sans tableau) — « Enregistrer dans la séance » dès le questionnaire, sans récapitulatif", async (model) => {
     mockModel = model;
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     expect(screen.queryByTestId("format-validate")).toBeNull();
     expect(screen.getByTestId("format-save").props.accessibilityLabel).toBe(t.save); // Complément du 5 novembre 2026 (§18–§19) : coche de l’en-tête, libellé d’accessibilité.
   });
@@ -245,7 +260,7 @@ describe("FormatModelScreen", () => {
   it.skip.each(["AMRAP", "PROGRESSION", "EMOM", "DEATH_BY"] as const)("recette n° 3 du 03/11, MAJ 04/11 : %s — les choix restent sur le questionnaire ; « Valider les paramètres » ouvre le récapitulatif", async (model) => {
     mockModel = model;
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
     // Réponse de Hermann du 06/11/2026 (Q1) : valeurs à saisir au récapitulatif — la coche du questionnaire reste grise.
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: true });
@@ -265,7 +280,7 @@ describe("FormatModelScreen", () => {
     mockModel = "AMRAP";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     toSummary();
@@ -304,7 +319,7 @@ describe("FormatModelScreen", () => {
   it.skip("complément du 05/11 : Superset — « Récupération après le tour », 3 tours ; « + Ajouter » désactivé à deux ; récapitulatif par tour", async () => {
     mockModel = "SUPERSET";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     expect(screen.getByTestId("format-row-recoveryBetweenSeconds")).toHaveTextContent(t.rows.recoveryAfterPair, { exact: false });
     expect(t.rows.recoveryAfterPair).toBe("Récupération après le tour");
     expect(shown("roundCount")).toBe("3 tours");
@@ -332,13 +347,13 @@ describe("FormatModelScreen", () => {
     for (const model of ["TABATA", "INTERVALS_30_30", "SUPERSET", "STRENGTH", "UNTIL_FAILURE", "DEATH_BY", "AMRAP", "EMOM", "PROGRESSION"]) {
       mockModel = model;
       const view = render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       expect(screen.getByTestId("format-withLoad").props.value).toBe(false);
       view.unmount();
     }
     mockModel = "PROGRESSION";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent(screen.getByTestId("format-withLoad"), "valueChange", true);
     await pick("Squ", "mv-squats");
     toSummary();
@@ -366,7 +381,7 @@ describe("FormatModelScreen", () => {
   it("Hermann, 05/11 : valeurs au clavier, plus de stepper — bornes à la saisie, Temps limite vidé = « Sans limite »", async () => {
     mockModel = "FOR_TIME";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     expect(screen.queryByTestId("format-roundCount-increase")).toBeNull();
     expect(screen.getByTestId("format-roundCount").props.keyboardType).toBe("number-pad");
     typeValue("roundCount", "5");
@@ -391,7 +406,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette du 05/11 (k-aucun-resultat) : un texte sans résultat affiche « Aucun résultat » en mode catalogue", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "zzzz");
     expect(screen.getByTestId("format-catalogue-empty")).toHaveTextContent(t.noSearchResult);
@@ -405,7 +420,7 @@ describe("FormatModelScreen", () => {
     mockModel = "AMRAP";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
     expect(screen.getByText(t.buyInSection)).toBeTruthy();
     expect(screen.getByText(t.loopSection)).toBeTruthy();
@@ -457,7 +472,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 du 03/11 (autres constats) : Buy-in désactivé — la section disparaît avec son mouvement", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent(screen.getByTestId("format-buyIn"), "valueChange", true);
     await pick("Squ", "mv-squats", "format-buy-in");
     await pick("Fen", "mv-fentes", "format-loop");
@@ -473,7 +488,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 du 03/11 (autres constats) : appui court sur un mouvement choisi — fiche en lecture seule", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     fireEvent.press(screen.getByTestId("format-movement-0"));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement-sheet", params: { movementId: "mv-squats" } });
@@ -489,7 +504,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 du 03/11 (f3-depart) : Renforcement — la Pause est affichée et réglable", async () => {
     mockModel = "STRENGTH";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     expect(screen.getByTestId("format-row-pauseSeconds")).toBeTruthy();
     expect(shown("pauseSeconds")).toBe("0″");
     typeValue("pauseSeconds", "5");
@@ -500,7 +515,7 @@ describe("FormatModelScreen", () => {
   it("complément du 05/11 (§19) : « + Ajouter » ouvre le mode catalogue — recherche sans focus (Hermann, 05/11 soir), filtres, tri et piles à côté ; plus de lien Ouvrir / Fermer", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent.press(screen.getByTestId("format-movements-link"));
     expect(screen.queryByTestId("format-search")).toBeNull();
     // Demande de Hermann du 05/11/2026 (soir) : « on ne met pas le focus dans la barre de recherche par défaut ».
@@ -509,7 +524,8 @@ describe("FormatModelScreen", () => {
     expect(screen.getByTestId("format-catalogue-sort")).toBeTruthy();
     expect(screen.getByTestId("format-catalogue-piles")).toBeTruthy();
     // p-ajout / p-coche (05/11 au soir) : « + Ajouter » devient « Revenir aux paramètres ».
-    expect(screen.getByTestId("format-movements-link").props.accessibilityLabel).toBe("Revenir aux paramètres");
+    // D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : le lien du haut s'intitule « Paramètres ». [« Revenir aux paramètres » — remplacé.]
+    expect(screen.getByTestId("format-movements-link").props.accessibilityLabel).toBe("Paramètres");
     expect(screen.queryByText("Ouvrir le mode catalogue")).toBeNull();
     expect(screen.queryByText("Fermer le mode catalogue")).toBeNull();
   });
@@ -520,7 +536,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 bis du 03/11 (f3s-clavier) : cellules des tableaux sans touche « Next » — navigation par la barre", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     toSummary();
@@ -536,7 +552,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 du 03/11 (f3-depart) : À l'échec — aucune ligne de durée totale", async () => {
     mockModel = "UNTIL_FAILURE";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     expect(screen.getByTestId("format-row-target")).toBeTruthy();
     expect(screen.queryByTestId("format-row-total")).toBeNull();
   });
@@ -547,7 +563,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 du 03/11 (f3-depart) : Progression — Pause affichée, pas de durée au questionnaire, Exécution en dernier ; tableau à noms fixes et séries défilantes", async () => {
     mockModel = "PROGRESSION";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     const rowsOf = () => within(screen.getByTestId("format-parameters")).getAllByTestId(/^format-row-/).map((row) => row.props.testID);
     // MAJ 04/11 §6 quater : « Avec charge » après Pause, au questionnaire seulement.
     expect(rowsOf()).toEqual(["format-row-seriesCount", "format-row-pauseSeconds", "format-row-withLoad"]);
@@ -580,7 +596,7 @@ describe("FormatModelScreen", () => {
   it("recette n° 3 (f3-tabata) : Tabata À la suite à deux mouvements — durée exacte « 8′50″ », sans arrondi", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     expect(screen.getByTestId("format-total")).toHaveTextContent("8′50″");
@@ -594,7 +610,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette n° 3 (f3-emom) : EMOM dans chaque intervalle — un cadre par intervalle avec les deux mouvements", async () => {
     mockModel = "EMOM";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     toSummary();
@@ -611,7 +627,7 @@ describe("FormatModelScreen", () => {
   it.skip("spécification du 08/11 (A) : récapitulatif EMOM — durées M′SS″, lignes de paramètres de 40, cadre du tableau sans marge", async () => {
     mockModel = "EMOM";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     toSummary();
@@ -634,7 +650,7 @@ describe("FormatModelScreen", () => {
   it.skip("constat du 06/11 : appui long puis glisser — la carte suit le doigt et prend la place atteinte", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     expect(screen.getByTestId("format-movement-card-0")).toHaveTextContent(/Squats sautés/);
@@ -661,7 +677,7 @@ describe("FormatModelScreen", () => {
   it.skip("constat du 06/11 : geste interrompu (annulé) — l'ordre reste inchangé", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     act(() => {
@@ -684,7 +700,7 @@ describe("FormatModelScreen", () => {
   it("recette du 08/11 au soir, décision du 15/11 : For time — plusieurs buy-in et buy-out (sélection multiple) ; Monter / Descendre et Supprimer dans le bloc", async () => {
     mockModel = "FOR_TIME";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats", "format-loop");
     await pick("Fen", "mv-fentes", "format-loop");
     // Sélection multiple dans le bloc Buy-in, puis dans le bloc Buy-out ; « + Ajouter » reste affiché.
@@ -719,7 +735,7 @@ describe("FormatModelScreen", () => {
   it("recette du 16/11/2026 (Déroulé, légende) : la pastille d'un buy-in ou d'un buy-out a la couleur de ses cadres ; celle d'un tour garde sa nuance", async () => {
     mockModel = "FOR_TIME";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats", "format-loop");
     for (const [section, card] of [["format-buy-in", "mv-fentes"], ["format-buy-out", "mv-squats"]] as const) {
       fireEvent.press(screen.getByTestId(`${section}-link`));
@@ -738,7 +754,7 @@ describe("FormatModelScreen", () => {
   it("recette n° 3 (f3-questionnaire) : le dernier mouvement se supprime, l'enregistrement devient indisponible", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     expect(screen.getByTestId("format-save").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
@@ -750,12 +766,14 @@ describe("FormatModelScreen", () => {
     mockModel = "TABATA";
     const draftRef = { current: createEmptyDraft() };
     render(<Harness draftRef={draftRef} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await act(async () => {
       fireEvent.press(screen.getByTestId("format-save"));
     });
     fireEvent.press(screen.getByTestId("harness-reopen"));
+    // D-603 / D-604 : nouvelle ouverture — choix des mouvements d'abord.
+    await openedFormat();
     await waitFor(() => expect(screen.queryByTestId("format-movement-card-0")).toBeNull());
     expect(shown("seriesCount")).toBe("8");
     await pick("Squ", "mv-squats");
@@ -773,7 +791,7 @@ describe("FormatModelScreen", () => {
   it.skip("MAJ 04/11 §3 ; recette du 05/11 au soir (p-coche, p-ajout) : mode catalogue — recherche, effacement, Filtrer / Trier / Replier, sélection, « Ajouter X mouvements » en bas ; « Revenir aux paramètres » sans ajout ; la croix quitte le Format", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent.press(screen.getByTestId("format-movements-link"));
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "Squ");
     expect(mockPush).not.toHaveBeenCalled();
@@ -834,7 +852,7 @@ describe("FormatModelScreen", () => {
     jest.spyOn(ScrollView.prototype as unknown as { scrollTo: (options: { y: number; animated: boolean }) => void }, "scrollTo").mockImplementation(scrollTo);
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     fireEvent.press(screen.getByTestId("format-movements-link"));
     scrollTo.mockClear();
     fireEvent.changeText(screen.getByTestId("format-catalogue-search"), "po");
@@ -888,7 +906,7 @@ describe("FormatModelScreen", () => {
       const draftRef = { current: createEmptyDraft() };
       // Même ouvert par la route du questionnaire, le For time s'affiche en récapitulatif.
       render(<Harness draftRef={draftRef} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       expect(screen.getByTestId("format-summary")).toBeTruthy();
       expect(screen.queryByTestId("format-validate")).toBeNull();
       for (const id of ["format-withLoad", "format-buyIn", "format-buyOut"]) expect(screen.queryByTestId(id)).toBeNull();
@@ -918,11 +936,11 @@ describe("FormatModelScreen", () => {
       expect(mockDismiss).not.toHaveBeenCalled();
     });
 
-    it("premier mouvement : S1 à droite, ni « − » ni « + » ; « Paramètres à compléter » en rouge, cases désactivées ; buy-in : séries réglées dans la modale, Variables dès deux séries (écart a) ; boucle : « tours » (écart b), nombre de tours imposé ; charge activée dans la modale ; enregistrement", async () => {
+    it("premier mouvement : S1 à droite, ni « − » ni « + » ; « Paramètres à compléter » en rouge, cases désactivées ; buy-in : Nombre de répétitions dans la modale (D-604) ; boucle : « tours » (écart b), nombre de tours imposé ; charge activée dans la modale ; enregistrement", async () => {
       mockModel = "FOR_TIME";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-buy-in");
       expect(screen.getByTestId("format-buy-in-head-0")).toHaveTextContent("S1");
       expect(screen.queryByTestId("format-buy-in-head-1")).toBeNull();
@@ -946,23 +964,14 @@ describe("FormatModelScreen", () => {
         expect(screen.getByTestId("execution-sheet-format-role-row")).toBeTruthy();
         expect(screen.queryByTestId("execution-sheet-recovery", { includeHiddenElements: true })).toBeNull();
         fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
-        expect(screen.getByTestId("execution-sheet-series-type-control-VARIABLE").props.accessibilityState).toMatchObject({ disabled: true });
-        enterExecutionSheetValue("execution-sheet-series", 2, "integer");
-        expect(screen.getByTestId("execution-sheet-series-type-control-VARIABLE").props.accessibilityState).not.toMatchObject({ disabled: true });
-        enterExecutionSheetValue("execution-sheet-table-row-1-target", 50, "integer");
-        enterExecutionSheetValue("execution-sheet-table-row-2-target", 40, "integer");
-        // Recette du 16/11/2026 (Autres constats a) : colonne Pause désactivée, tiret gris comme la Charge sans charge ; condition
-        // d'arrêt « À l'objectif ».
-        for (const n of [1, 2]) {
-          expect(screen.getByTestId(`execution-sheet-table-row-${n}-pause-unset`, { includeHiddenElements: true })).toHaveTextContent("—");
-          expect(screen.queryByTestId(`execution-sheet-table-row-${n}-pause`, { includeHiddenElements: true })).toBeNull();
-        }
-        expect(screen.getByTestId("execution-sheet-stop-condition-control", { includeHiddenElements: true }).props.accessibilityLabel).toBe(
-          "Condition d’arrêt, À l’objectif",
-        );
+        // D-604 (Hermann, 25/11/2026 ; Figma `11312:19895`) : en buy-in, Nombre de répétitions à la place de Séries. [Écart (a) du
+        // 16/11/2026 — nombre de séries du buy-in réglé dans la modale, « Variables » dès deux séries, tableau des séries — remplacé.]
+        expect(screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeNull();
+        enterExecutionSheetValue("execution-sheet-target", 50, "integer");
+        expect(screen.getByLabelText(strings.executionParameters.sheet.stopConditions.TARGET).props.accessibilityState).toMatchObject({ selected: true });
       });
-      expect(screen.getByTestId("format-buy-in-head-1")).toHaveTextContent("S2");
-      expect([shown("for-time-0-0"), shown("for-time-0-1")]).toEqual(["50", "40"]);
+      expect(screen.queryByTestId("format-buy-in-head-1")).toBeNull();
+      expect(shown("for-time-0-0")).toBe("50");
       // Règle 2 : l'unité, en bleu.
       expect(parametersLine(0)).toHaveTextContent(/^rép\.$/);
       expect(StyleSheet.flatten(parametersLine(0).props.style).color).toBe(valueFieldColors.editable);
@@ -1001,7 +1010,7 @@ describe("FormatModelScreen", () => {
         ["Fentes avant", 0],
       ]);
       const rows = (index: number) => seriesRowsOf(draftRef.current.exercises[index]!.executionParameters);
-      expect(rows(0).map((row) => (row.target.kind === "NUMBER" ? row.target.value : null))).toEqual([50, 40]);
+      expect(rows(0).map((row) => (row.target.kind === "NUMBER" ? row.target.value : null))).toEqual([50]);
       expect(rows(1).map((row) => (row.target.kind === "NUMBER" ? row.target.value : null))).toEqual([21, 15, 9]);
       expect(rows(1)[0]!.loadKg).toBe(40);
       await waitFor(() => expect(mockDismiss).toHaveBeenCalledWith(2));
@@ -1010,7 +1019,7 @@ describe("FormatModelScreen", () => {
     it("unité dans la modale : Durée possible tant qu'un autre exercice reste en Répétitions ; le dernier en Répétitions garde son unité, avec le message court", async () => {
       mockModel = "FOR_TIME";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-loop");
       await pick("Fen", "mv-fentes", "format-loop");
       await fillForTime(0, ["30", "30", "30"], "DURATION");
@@ -1034,7 +1043,7 @@ describe("FormatModelScreen", () => {
     it("recette du 15/11 : buy-in seul — Répétitions et Durée admises ; l'exercice en tour ajouté ensuite porte les Répétitions ; la ligne des paramètres est dans la ligne glissable, « + Ajouter » reste actif après le choix", async () => {
       mockModel = "FOR_TIME";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-buy-in");
       // Ligne des paramètres : texte de la ligne (plus de menu natif au-dessus de la ligne glissable).
       expect(within(screen.getByTestId("format-movement-0")).getByTestId("format-for-time-0-parameters")).toBeTruthy();
@@ -1058,7 +1067,7 @@ describe("FormatModelScreen", () => {
       mockModel = "FOR_TIME";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-loop");
       await pick("Fen", "mv-fentes", "format-loop");
       await fillForTime(0, ["21", "15", "9"]);
@@ -1092,7 +1101,7 @@ describe("FormatModelScreen", () => {
       mockModel = "FOR_TIME";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-buy-in");
       await pick("Fen", "mv-fentes", "format-loop");
       expect(screen.queryByTestId("format-row-execution")).toBeNull();
@@ -1110,7 +1119,7 @@ describe("FormatModelScreen", () => {
       mockModel = "FOR_TIME";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-loop");
       await pick("Fen", "mv-fentes", "format-loop");
       expect(rowIds()).toEqual(["roundCount", "timeCapSeconds", "execution"]);
@@ -1144,7 +1153,7 @@ describe("FormatModelScreen", () => {
       mockModel = "FOR_TIME";
       const first = { current: createEmptyDraft() };
       const view = render(<Harness draftRef={first} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-loop");
       await pick("Fen", "mv-fentes", "format-loop");
       await fillForTime(0, ["10", "10", "10"]);
@@ -1179,11 +1188,39 @@ describe("FormatModelScreen", () => {
     // [« Sans » à la ligne Buy-in retirant le bloc après confirmation (correction 2 du 14/11/2026 ; i7, 15/11/2026) — remplacé le
     // 15/11/2026 : plus de ligne Buy-in / Buy-out, le nombre de séries est le nombre de colonnes (− / +) ; un mouvement se retire par
     // le glissement de sa ligne.]
-    it("(e) buy-in à 2 séries, buy-out à 3 (dans la modale, 16/11/2026) : S1-S2 et S1-S3, valeurs conservées et retrouvées à la réouverture", async () => {
+    // D-604 (Hermann, 25/11/2026 ; Formats § 9.7) : en buy-in ou buy-out, la modale présente Nombre de répétitions à la place de Séries.
+    it("(e) D-604 — buy-in et buy-out : Nombre de répétitions dans la modale (une série), valeurs conservées et retrouvées à la réouverture", async () => {
       mockModel = "FOR_TIME";
       const first = { current: createEmptyDraft() };
       const view = render(<Harness draftRef={first} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
+      await pick("Squ", "mv-squats", "format-buy-in");
+      await pick("Fen", "mv-fentes", "format-loop");
+      await pick("Squ", "mv-squats", "format-buy-out");
+      await fillForTime(0, ["30"]);
+      await fillForTime(1, ["21", "15", "9"]);
+      await fillForTime(2, ["5"]);
+      expect(screen.queryByTestId("format-buy-in-head-1")).toBeNull();
+      expect(screen.queryByTestId("format-buy-out-head-1")).toBeNull();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("format-save"));
+      });
+      expect(targetsOf(first.current, 0)).toEqual([30]);
+      expect(targetsOf(first.current, 2)).toEqual([5]);
+      view.unmount();
+      const [circuit] = structureCircuits(first.current.structure!);
+      mockCircuitId = circuit!.id;
+      render(<Harness draftRef={{ current: first.current }} initialStage="summary" />);
+      expect(await screen.findByTestId("format-summary")).toBeTruthy();
+      expect([shown("for-time-0-0"), shown("for-time-2-0")]).toEqual(["30", "5"]);
+    });
+
+    // [Remplacé le 25/11/2026 — D-604 : plus de Séries dans la modale d'un buy-in ou d'un buy-out. Test d'origine conservé, désactivé.]
+    it.skip("(e) buy-in à 2 séries, buy-out à 3 (dans la modale, 16/11/2026) : S1-S2 et S1-S3, valeurs conservées et retrouvées à la réouverture", async () => {
+      mockModel = "FOR_TIME";
+      const first = { current: createEmptyDraft() };
+      const view = render(<Harness draftRef={first} />);
+      await openedFormat();
       await pick("Squ", "mv-squats", "format-buy-in");
       await pick("Fen", "mv-fentes", "format-loop");
       await pick("Squ", "mv-squats", "format-buy-out");
@@ -1215,7 +1252,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette du 04/11 (e-emom-mode, e-emom-trait) : EMOM — aucune unité par défaut, objectif vide en rouge (trait), enregistrement indisponible", async () => {
     mockModel = "EMOM";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     toSummary();
     // Complément du 5 novembre 2026 (§14) : tableau par série (S1…S6).
@@ -1242,7 +1279,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette du 04/11 (e-amrap-trait) : AMRAP — objectif vide affiché par un trait", async () => {
     mockModel = "AMRAP";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     toSummary();
     fireEvent.changeText(screen.getByTestId("format-amrap-reps-0"), "");
@@ -1255,7 +1292,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette du 04/11 (e-deathby) : Death by — le tableau Départ | Incrément apparaît au questionnaire dès le deuxième mouvement", async () => {
     mockModel = "DEATH_BY";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     expect(screen.queryByTestId("format-death-by-table")).toBeNull();
     expect(screen.getByTestId("format-row-startRepetitions")).toBeTruthy();
@@ -1276,7 +1313,7 @@ describe("FormatModelScreen", () => {
   it("recette du 06/11 (n-deathby) : Death by à deux mouvements — « Récupération entre les mouvements » avant « Condition d'arrêt »", async () => {
     mockModel = "DEATH_BY";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     const order = screen.UNSAFE_root.findAll((node) => typeof node.props.testID === "string" && /^format-row-/.test(node.props.testID) && typeof node.type !== "string")
@@ -1292,7 +1329,7 @@ describe("FormatModelScreen", () => {
   it.skip("recette du 04/11 (e-contexte-fixe, e-cat-fixe, e-cat-recherche) : zone de contexte figée ; en mode catalogue elle porte l'en-tête et la recherche (même champ, croix intérieure)", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     const band = screen.getByTestId("format-context-band");
     expect(within(band).getByTestId("format-title")).toBeTruthy();
     expect(within(band).getByTestId("format-context-fade", { includeHiddenElements: true })).toBeTruthy();
@@ -1320,7 +1357,7 @@ describe("FormatModelScreen", () => {
     // Séance avec un Circuit Tabata en alternance (créé par le parcours).
     const first = { current: createEmptyDraft() };
     const view = render(<Harness draftRef={first} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     await pick("Squ", "mv-squats");
     await pick("Fen", "mv-fentes");
     // Décision de Hermann du 05/11/2026 (« Récap si tableau ») : Tabata à deux mouvements → récapitulatif (tableau par mouvement).
@@ -1367,7 +1404,7 @@ describe("FormatModelScreen", () => {
     it.skip("questionnaire à récapitulatif : « Valider les paramètres » en bas (gris sans mouvement, actif ensuite), coche toujours grise ; récapitulatif sans bouton en bas", async () => {
       mockModel = "PROGRESSION";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       expect(within(screen.getByTestId("format-bottom-action")).getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
       expect(screen.getByText(t.validate)).toBeTruthy();
       expect(isBlue("format-save")).toBe(false);
@@ -1386,7 +1423,7 @@ describe("FormatModelScreen", () => {
     it("questionnaire sans récapitulatif (Tabata à un mouvement) : pas de bouton en bas ; coche grise sans mouvement, bleue ensuite", async () => {
       mockModel = "TABATA";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       expect(screen.queryByTestId("format-bottom-action")).toBeNull();
       expect(isBlue("format-save")).toBe(false);
       await pick("Squ", "mv-squats");
@@ -1400,7 +1437,7 @@ describe("FormatModelScreen", () => {
     it.skip("Superset (toujours un récapitulatif) : « Valider les paramètres » actif avec deux mouvements, coche grise au questionnaire", async () => {
       mockModel = "SUPERSET";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats");
       expect(screen.getByTestId("format-validate").props.accessibilityState).toMatchObject({ disabled: true });
       await pick("Fen", "mv-fentes");
@@ -1415,7 +1452,7 @@ describe("FormatModelScreen", () => {
       mockModel = "AMRAP";
       const draftRef = { current: createEmptyDraft() };
       render(<Harness draftRef={draftRef} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats");
       toSummary();
       expect(screen.queryByText(t.save)).toBeNull();
@@ -1433,7 +1470,7 @@ describe("FormatModelScreen", () => {
     it.skip("EMOM : récapitulatif incomplet ou incohérent (contrôle des fenêtres, même condition) — coche grise", async () => {
       mockModel = "EMOM";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       await pick("Squ", "mv-squats");
       toSummary();
       expect(isBlue("format-save")).toBe(false);
@@ -1449,7 +1486,7 @@ describe("FormatModelScreen", () => {
   it.skip("complément du 05/11 (§19) : « Mouvements » descendue de 8 ; cartes espacées de 6 ; « Paramètres d’exécution » à 16 de la dernière carte", async () => {
     mockModel = "TABATA";
     render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-    await screen.findByTestId("format-title");
+    await openedFormat();
     const content = () => StyleSheet.flatten(screen.getByTestId("format-questionnaire").props.contentContainerStyle) as { paddingTop: number };
     const withOffset = content().paddingTop;
     await pick("Squ", "mv-squats");
@@ -1485,7 +1522,7 @@ describe("FormatModelScreen", () => {
     try {
       mockModel = "TABATA";
       render(<Harness draftRef={{ current: createEmptyDraft() }} />);
-      await screen.findByTestId("format-title");
+      await openedFormat();
       fireEvent.press(screen.getByTestId("screen-header-back"));
       await waitFor(() => expect(mockBack).toHaveBeenCalled());
       expect(mockDismiss).not.toHaveBeenCalled();

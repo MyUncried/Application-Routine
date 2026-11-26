@@ -264,7 +264,7 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
     // sélectionné, puis devien "Ajouter X mouvements" lorsque des mouvements sont sélectionnés »).
     closeWithoutSelecting: "Close without selecting",
     // p-coche / p-ajout : « le bouton +Ajouter est remplacé par « revenir aux paramètres » après qu'il ait été sélectionné ».
-    backToParameters: "Back to settings",
+    backToParameters: "Settings",
     // Recette du 05/11/2026 (n-charge-colonne) : seul exercice restant en Répétitions (AMRAP, For time).
     lastRepetitionsLocked: "At least one exercise stays in reps: duration isn’t available for this one.",
     maxLocked: "Max isn’t available in a loop of several movements.",
@@ -456,7 +456,7 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
   sessionModels: {
     // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
     creationTitle: "Create an exercise",
-    freeExercise: { title: "Free exercise", subtitle: "one movement, then its settings" },
+    freeExercise: { title: "Free exercise", subtitle: "one movement, to set up" },
     title: "Workout formats",
     closeAccessibilityLabel: "Close",
     cards: {
