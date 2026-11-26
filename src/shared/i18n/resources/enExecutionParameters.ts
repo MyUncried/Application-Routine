@@ -98,6 +98,8 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     repetitionsTarget: "Number of reps",
     // D-607 / D-608 (Hermann, 25-26/11/2026) : AMRAP à l’échec — ligne grisée, valeur « — ».
     repetitionsPerRound: "Repetitions per round",
+    // D-607 / D-608 : Tabata, 30/30, HIIT — objectif de répétitions facultatif.
+    repetitionsGoal: "Repetitions goal",
     durationPerRound: "Duration per round",
     repetitionsUnit: "reps",
     pause: "Rest after each set",

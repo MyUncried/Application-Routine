@@ -57,6 +57,7 @@ import {
   setSeriesCount,
   setSideMode,
   setSideOrder,
+  setRepetitionsGoal,
   setSideRecovery,
   setStopCondition,
   setRowTarget,
@@ -430,6 +431,13 @@ export type ExecutionParametersSheetProps = {
    */
   readonly movementName?: string;
   /**
+   * D-607 (D-572 points 2, 3 et 5, Hermann, 25/11/2026 ; Formats § 9.9) et D-608 (D-573 point 8) : format à départ rapide de l'exercice —
+   * Cadence rétablie (Tabata, 30/30, HIIT, Renforcement, Superset, Progression) ; objectif de répétitions facultatif (Tabata, 30/30, HIIT),
+   * cadres « Objectif de répétitions » + « Charge » puis « De chaque côté » + « Cadence » ; champ valeur du Renforcement ; tableau des
+   * séries du Superset. Absent : règles de D-604 seules.
+   */
+  readonly quickFormatKey?: string;
+  /**
    * D-608 (D-573 point 7) : couleur de la zone colorée de l'en-tête — couleur du format (`formatModelColors(...).background`).
    * Absente : gris neutre des modales génériques (#F1F2F5, Figma `13269:26351`).
    */
@@ -686,6 +694,7 @@ export function ExecutionParametersSheet({
   quickFormatUnitOpen = false,
   freeFormat = false,
   movementName,
+  quickFormatKey,
   headerTint = SHEET_HEADER_NEUTRAL,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
@@ -961,7 +970,11 @@ export function ExecutionParametersSheet({
   // Death by (Formats §12, « Condition d'arrêt Death by ») : ne pas appliquer ce masquage — Nombre de répétitions
   // (objectif de départ) visible à l'échec.
   const deathBySheet = format?.key === "DEATH_BY";
-  const uniformTargetShown = !showVariableTable && (stopCondition !== "FAILURE" || deathBySheet) && quickFormatName === undefined;
+  // D-607 : le Renforcement et le Superset (départ rapide) retrouvent la valeur de la série (répétitions ou durée selon le Mode).
+  const uniformTargetShown =
+    !showVariableTable &&
+    (stopCondition !== "FAILURE" || deathBySheet) &&
+    (quickFormatName === undefined || quickFormatKey === "STRENGTH" || quickFormatKey === "SUPERSET");
   /*
    * D-607 (D-572 point 7) et D-608 (D-573 point 9), Hermann, 25-26/11/2026 ; Figma « AMRAP — Modale exercice simple, à l’échec »
    * `11260:19348` et « …, durée à l’échec » `11275:19598` : AMRAP à l'échec — la ligne « Nombre de répétitions par tour » (Répétitions)
@@ -1002,11 +1015,16 @@ export function ExecutionParametersSheet({
    */
   const leanFormat = format !== undefined;
   const quickScope = quickFormatName !== undefined;
+  // D-607 / D-608 : réglages rétablis ou ajoutés par format à départ rapide (voir `quickFormatKey`).
+  const quickRepetitionsGoal = quickScope && quickFormatKey !== undefined && ["TABATA", "INTERVALS_30_30", "HIIT"].includes(quickFormatKey);
+  const quickCadence = quickScope && quickFormatKey !== undefined && quickFormatKey !== "UNTIL_FAILURE";
+  const quickValueRow = quickScope && quickFormatKey === "STRENGTH";
+  const quickSeriesTable = quickScope && quickFormatKey === "SUPERSET";
   const forTimeOnce = forTimeSheet && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT");
   // Séries variables déjà saisies (séance antérieure) : la ligne et son tableau restent, pour ne pas cacher les répétitions.
   const leanSeriesRow = (forTimeSheet && !forTimeOnce) || showVariableTable;
   const deathBySeriesRow = quickScope
-    ? false
+    ? quickSeriesTable
     : leanFormat
       ? !deathBySheet && !noSeriesRow && leanSeriesRow
       : // [Hors D-604 : Death by autonome — ligne Séries « Jusqu'à l'échec » (`seriesUntilFailure`) — remplacé : tout Death by est un format.]
@@ -1019,7 +1037,7 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || quickScope;
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || (quickScope && !quickSeriesTable);
   const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet || leanFormat || quickScope;
   // Recette du 17/11/2026 (For time) : Récupération absente, sa valeur n'est pas réappliquée au ✓ (voir `handleValidate`).
   const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false) && !forTimeSheet && !leanFormat && !quickScope;
@@ -1790,6 +1808,8 @@ export function ExecutionParametersSheet({
           : { kind: "integer", bounds: { min: formatDeathBy ? 1 : 0, max: 999 } };
       case "formatInterval":
         return { kind: "duration", bounds: { min: 5, max: 3600 } };
+      case "repetitionsGoal":
+        return { kind: "integer", bounds: { min: 1, max: 999 } };
       case "formatDuration":
         // Recette du 18/11/2026 (Hermann, amrap-1 : « Durée de l'exercice : la solution refuse une durée inférieure à 1 minute ») : aucune
         // règle n'impose 1 min (FMT-26, registre des Formats : minimum 1 s) — durée strictement positive. [Minimum 60 s — remplacé.]
@@ -1830,6 +1850,8 @@ export function ExecutionParametersSheet({
         return formatIncrementMissing ? null : Math.abs(formatIncrement);
       case "formatInterval":
         return formatIntervalSeconds;
+      case "repetitionsGoal":
+        return base.repetitionsGoal ?? null;
       case "formatDuration":
         return formatDurationSeconds;
       case "formatTimeCap":
@@ -1874,6 +1896,8 @@ export function ExecutionParametersSheet({
       if (value === null) return current === undefined || current.kind === "UNSET" ? base : setUniformTarget(base, unsetTarget());
       return current?.kind === "NUMBER" && current.value === value ? base : setUniformTarget(base, numberTarget(value));
     }
+    // D-607 : objectif de répétitions facultatif — champ vidé : aucun objectif.
+    if (field === "repetitionsGoal") return value === (base.repetitionsGoal ?? null) ? base : setRepetitionsGoal(base, value);
     if (value === null || value === scalarValueOf(field, base)) return base;
     switch (field) {
       case "phaseCount":
@@ -1935,9 +1959,10 @@ export function ExecutionParametersSheet({
     ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(formatShown("interval") ? [scalarKeyboardField("formatInterval")] : []),
+    ...(quickRepetitionsGoal ? [scalarKeyboardField("repetitionsGoal")] : []),
     ...(uniformLoadShown ? [UNIFORM_LOAD_FIELD] : []),
     ...(sideSettingsShown ? [scalarKeyboardField("sideRecovery")] : []),
-    ...(beepOpen && !leanFormat && !quickScope ? [scalarKeyboardField("beep")] : []),
+    ...(beepOpen && (!leanFormat || quickCadence) && (!quickScope || quickCadence) ? [scalarKeyboardField("beep")] : []),
     ...(leanFormat || quickScope
       ? []
       : formatShown("duration")
@@ -3219,7 +3244,18 @@ export function ExecutionParametersSheet({
                       saisie que les cellules (D-434, `cellDecimal`) ; Avec ouvre le clavier dans
                       l'option, élargie au strict nécessaire si la valeur ne tient pas dans 62. */}
                   {formatSeriesRows}
-                  {seriesLeadRows || formatShown("increment") || formatShown("interval") ? <Separator /> : null}
+                  {/* D-607 (D-572 point 3) et D-608 (D-573 point 8 ; Figma « HIIT — Modale exercice » `13300:26522`) : Tabata, 30/30, HIIT —
+                      « Objectif de répétitions » (facultatif, « — » sans valeur) puis « Charge », dans un même cadre. */}
+                  {quickRepetitionsGoal ? (
+                    <Row label={t.repetitionsGoal} selected={isOpen(scalarSurface("repetitionsGoal"))} testID="execution-sheet-row-repetitions-goal">
+                      {scalarField("repetitionsGoal", {
+                        display: draft.repetitionsGoal === undefined ? t.unset : `${draft.repetitionsGoal} ${t.repetitionsUnit}`,
+                        accessibilityLabel: t.repetitionsGoal,
+                        testID: "execution-sheet-repetitions-goal",
+                      })}
+                    </Row>
+                  ) : null}
+                  {seriesLeadRows || formatShown("increment") || formatShown("interval") || quickRepetitionsGoal ? <Separator /> : null}
                   <Row label={t.load} testID="execution-sheet-row-load">
                     <SegmentedControl<LoadChoice>
                       variant="inline"
@@ -3337,6 +3373,31 @@ export function ExecutionParametersSheet({
                           // cette ouverture, avant le premier ✓ de l'Exercice.
                           profileDefault: openedPendingDefaults && !openedBilateral,
                         })}
+                      </Row>
+                    </>
+                  ) : null}
+                  {/* D-607 (D-572 point 2) et D-608 (D-573 point 8 ; Figma « HIIT — Modale exercice » `13300:26522`) : format à départ
+                      rapide — Cadence rétablie, en dernier, dans le cadre de « De chaque côté » (hors À l'échec). */}
+                  {quickCadence ? (
+                    <>
+                      <Separator />
+                      <Row
+                        label={t.cadence}
+                        selected={beepOpen}
+                        below={
+                          beepOpen ? (
+                            <SheetMotionView style={styles.revealedStepperLine} testID="execution-sheet-beep-motion">
+                              {scalarField("beep", {
+                                display: beepLabel(draft.cadenceBeepIntervalSeconds),
+                                accessibilityLabel: t.cadence,
+                                testID: "execution-sheet-beep",
+                              })}
+                            </SheetMotionView>
+                          ) : null
+                        }
+                        testID="execution-sheet-row-beep"
+                      >
+                        {cadenceControl}
                       </Row>
                     </>
                   ) : null}

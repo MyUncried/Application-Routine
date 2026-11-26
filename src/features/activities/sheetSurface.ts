@@ -113,7 +113,9 @@ export type SheetScalarField =
   | "formatIncrement"
   | "formatInterval"
   | "formatDuration"
-  | "formatTimeCap";
+  | "formatTimeCap"
+  /** D-607 (Tabata, 30/30, HIIT) : objectif de répétitions facultatif. */
+  | "repetitionsGoal";
 
 /** Décision du 06/11/2026 : champ clavier d'une valeur hors tableau. */
 export const scalarKeyboardField = (field: SheetScalarField): KeyboardFieldId => ({ kind: "scalar", field });

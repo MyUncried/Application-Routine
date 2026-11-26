@@ -251,6 +251,12 @@ export type ExecutionParameters = {
   readonly endSeconds: number;
   /** Charge Avec / Sans (AD-19, FR-10) : distincte des valeurs, qui restent conservées sous Sans. */
   readonly loadEnabled: boolean;
+  /**
+   * D-607 (D-572 point 3, Hermann, 25/11/2026 ; Formats § 9.9) : Tabata, 30/30 et HIIT — objectif de répétitions facultatif, distinct de
+   * la Cible de durée (qui reste la durée de la série). Absent : aucun objectif (et aucun résultat à saisir après l'exécution). Écrit
+   * seulement s'il est renseigné : les paramètres existants sont relus et réécrits à l'identique.
+   */
+  readonly repetitionsGoal?: number;
 };
 
 /**
@@ -1255,7 +1261,18 @@ function encodeResolvedParameters(parameters: ExecutionParameters, version: type
     countdownSeconds: parameters.countdownSeconds,
     endSeconds: parameters.endSeconds,
     loadEnabled: parameters.loadEnabled,
+    // D-607 : clé facultative, après `loadEnabled`, écrite seulement si l'objectif est renseigné.
+    ...(parameters.repetitionsGoal !== undefined ? { repetitionsGoal: parameters.repetitionsGoal } : {}),
   });
+}
+
+/** D-607 : objectif de répétitions facultatif — absent ; présent, entier strictement positif (sinon erreur). */
+function readRepetitionsGoal(value: Record<string, unknown>): { readonly repetitionsGoal?: number } {
+  if (value.repetitionsGoal === undefined) return {};
+  if (typeof value.repetitionsGoal !== "number" || !Number.isInteger(value.repetitionsGoal) || value.repetitionsGoal < 1) {
+    throw new ExecutionParametersDataError("Malformed repetitionsGoal.");
+  }
+  return { repetitionsGoal: value.repetitionsGoal };
 }
 
 function isNonNegativeInteger(value: unknown): value is number {
@@ -1415,7 +1432,7 @@ function readResolvedObject(value: Record<string, unknown>, variablePhases: bool
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
   }
-  return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled };
+  return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled, ...readRepetitionsGoal(value) };
 }
 
 /**
@@ -1830,6 +1847,7 @@ export function executionParametersEqual(
     a.countdownSeconds !== b.countdownSeconds ||
     a.endSeconds !== b.endSeconds ||
     a.loadEnabled !== b.loadEnabled ||
+    a.repetitionsGoal !== b.repetitionsGoal ||
     a.series.kind !== b.series.kind
   ) {
     return false;

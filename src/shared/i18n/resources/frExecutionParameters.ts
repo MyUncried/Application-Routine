@@ -96,6 +96,8 @@ export const executionParameters = {
     repetitionsTarget: "Nombre de répétitions",
     // D-607 / D-608 (Hermann, 25-26/11/2026) : AMRAP à l’échec — ligne grisée, valeur « — ».
     repetitionsPerRound: "Nombre de répétitions par tour",
+    // D-607 / D-608 : Tabata, 30/30, HIIT — objectif de répétitions facultatif.
+    repetitionsGoal: "Objectif de répétitions",
     durationPerRound: "Durée par tour",
     repetitionsUnit: "rép.",
     pause: "Pause après chaque série",

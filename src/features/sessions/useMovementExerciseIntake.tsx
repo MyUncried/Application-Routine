@@ -15,6 +15,7 @@ import {
 } from "@/domain/preferences/Profile";
 import { exitCircuit } from "@/domain/sessions/circuit";
 import { withExerciseRecovery, withoutPhasesToVerify, withProfileDefaultsValidated } from "@/domain/sessions/SessionDraft";
+import type { PreconfigurationKey } from "@/domain/sessions/formats";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
@@ -260,11 +261,12 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
 }
 
 
-function quickFormatProps(quick: { readonly name: string; readonly unitOpen: boolean } | undefined): {
+function quickFormatProps(quick: { readonly name: string; readonly unitOpen: boolean; readonly key: PreconfigurationKey } | undefined): {
   readonly quickFormatName?: string;
   readonly quickFormatUnitOpen?: boolean;
+  readonly quickFormatKey?: PreconfigurationKey;
 } {
-  return quick === undefined ? {} : { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen };
+  return quick === undefined ? {} : { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen, quickFormatKey: quick.key };
 }
 
 function withFormat<T>(context: T | undefined): { readonly format?: T } {

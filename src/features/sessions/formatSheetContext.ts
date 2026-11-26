@@ -176,10 +176,14 @@ function rolePreserved(settings: FormatSettings): FormatSettings {
  * Circuit sans format porteur dont le modèle d'origine est un départ rapide. Un exercice seul issu d'un départ rapide ne garde aucune trace
  * de son modèle : il est traité comme un exercice libre.
  */
-export function quickFormatOf(draft: SessionDraft, exerciseId: string, model?: string): { readonly name: string; readonly unitOpen: boolean } | undefined {
+export function quickFormatOf(
+  draft: SessionDraft,
+  exerciseId: string,
+  model?: string,
+): { readonly name: string; readonly unitOpen: boolean; readonly key: PreconfigurationKey } | undefined {
   const named = (key: string | null | undefined) =>
     key !== null && key !== undefined && (PRECONFIGURATION_KEYS as readonly string[]).includes(key)
-      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30" }
+      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30", key: key as PreconfigurationKey }
       : undefined;
   if (model !== undefined) return named(model);
   const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);

@@ -2737,7 +2737,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         }}
         {...(context !== undefined ? { format: context } : {})}
         // D-604 (25/11/2026) : exercice d'un format à départ rapide — Charge et De chaque côté seulement.
-        {...(context === undefined && quick !== undefined ? { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen } : {})}
+        {...(context === undefined && quick !== undefined ? { quickFormatName: quick.name, quickFormatUnitOpen: quick.unitOpen, quickFormatKey: quick.key } : {})}
         // D-608 (D-573 points 2 et 7, Hermann, 26/11/2026) : même modale que depuis la Composition — titre = nom du mouvement, en-tête à la
         // couleur du format.
         movementName={exercise.name}

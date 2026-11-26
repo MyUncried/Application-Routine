@@ -238,6 +238,8 @@ export type ExecutionSheetDraft = {
   readonly disabledWorkPhases: readonly DraftWorkPhase[] | null;
   /** Charge Avec / Sans (AD-19) ; les `loadKg` restent portés sous Sans. */
   readonly loadEnabled: boolean;
+  /** D-607 (Tabata, 30/30, HIIT) : objectif de répétitions facultatif, distinct de la Cible ; absent : aucun. */
+  readonly repetitionsGoal?: number;
 };
 
 /** Copie des paramètres du parent à l'ouverture — aucune réserve héritée. */
@@ -304,6 +306,7 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
     nextPhaseId: openingNextPhaseId(workPhases, options.nextPhaseId),
     disabledWorkPhases: null,
     loadEnabled: parameters.loadEnabled,
+    ...(parameters.repetitionsGoal !== undefined ? { repetitionsGoal: parameters.repetitionsGoal } : {}),
   };
   // PRE-7 (D-446, remplace l'ouverture de D à renseigner d'A2.1) : la Cible est lue telle quelle,
   // liste de phases complète ou non (`requestedParameters(openSheetDraft(p))` = `p`).
@@ -360,7 +363,14 @@ export function requestedParameters(draft: ExecutionSheetDraft): ExecutionParame
     countdownSeconds: draft.countdownSeconds,
     endSeconds: draft.endSeconds,
     loadEnabled: draft.loadEnabled,
+    ...(draft.repetitionsGoal !== undefined ? { repetitionsGoal: draft.repetitionsGoal } : {}),
   };
+}
+
+/** D-607 : objectif de répétitions facultatif — `null` le retire (aucun objectif). */
+export function setRepetitionsGoal(draft: ExecutionSheetDraft, value: number | null): ExecutionSheetDraft {
+  const { repetitionsGoal: _previous, ...rest } = draft;
+  return value === null || value < 1 ? rest : { ...rest, repetitionsGoal: Math.round(value) };
 }
 
 /**
