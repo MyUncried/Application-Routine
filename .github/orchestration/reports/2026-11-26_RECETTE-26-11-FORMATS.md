@@ -62,9 +62,14 @@ Démonstration PRESERVE : test `UNTIL_FAILURE` des colonnes inchangé et vert ; 
 ## Tests et résultats
 
 - `npx tsc --noEmit` : OK.
-- `npx eslint <fichiers modifiés>` : 0 erreur (1 avertissement préexistant, `openGeneric` dans `formatTimeline.ts`).
+- `npx eslint <fichiers modifiés>` : 0 erreur (3 avertissements préexistants : `openGeneric` dans `formatTimeline.ts`, `sessionDraftsEqual` dans `CompositionScreen.test.tsx`, `sheet` dans `FormatModelScreen.d603.test.tsx`).
 - Jest ciblé (première passe, avant mise à jour des tests) : `FormatModelScreen*`, `formatModels*`, `formatTimeline*`, `formatReedit*` — 15 suites, 7 échecs attendus (anciennes colonnes Charge, ancienne modale du Renforcement), tous mis à jour.
-- Jest ciblé après mise à jour : voir la section « Résultats finaux » ci-dessous.
+- Jest ciblé après mise à jour (`-w 1 --workerIdleMemoryLimit=800MB`) : `FormatModelScreen.tableauUnique` 46/46 ; `FormatModelScreen.d603` + `ExecutionScreen.amrapMax.d531` + `executionCorners` + `ExecutionScreen.pre10` : verts ; `CompositionScreen.test.tsx` filtré (« story 5.1b », « recette du 26/11 ») : 8/8. Les autres suites `FormatModelScreen*`, `formatModels*`, `formatTimeline*`, `formatReedit*` étaient vertes à la première passe. Passe complète non lancée (consigne).
+- Nouveaux tests : ordre des lignes (Tabata à la suite / en alternance, 30/30, HIIT, Progression), Renforcement (colonne Séries, durée totale, enregistrement 5 / 3 séries), accroche du Superset (2 mouvements seulement : le jeu d'essai n'a que deux mouvements), charge « (8 kg) » sous la première colonne et alignement à droite (Tabata, Death by), modale Renforcement en trois cadres, durée de séance à droite, coin vide en bas à gauche.
+
+## État Git
+
+Commit de livraison du code : `38a9fa4ea` ; ce rapport complété dans le commit documentaire suivant (même branche, poussée sur `origin/fix/recette-26-11-formats`). Arbre propre après push (hors jonction `node_modules`, non suivie).
 - Une suite Jest verte ne prouve pas le rendu iPhone.
 
 ## Classe documentaire
