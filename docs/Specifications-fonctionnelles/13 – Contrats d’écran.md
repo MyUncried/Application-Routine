@@ -4495,37 +4495,40 @@ Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’ann
 
 Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
 
-### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026)
+### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026 ; complément validé le 26/11/2026)
 
 #### 1. Règle
 
-Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas.
+Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas. **Complément du 26/11/2026 :** le compte à rebours d’une Série en Durée d’un Format est une information dynamique, placée **en bas à droite** ; il ne remplace jamais la charge du bas à gauche. Les informations dynamiques possibles en bas à droite ne se cumulent pas : l’écran montre celle qui correspond à l’étape active.
 
 #### 2. Emplacements par scénario
 
 | Scénario | Haut gauche | Haut droite | Bas gauche | Bas droite |
 |---|---|---|---|---|
-| Exercice en répétitions | objectif répétitions | — | charge | — |
-| Exercice en durée avec phases | objectif durée | — | charge | nombre de mouvements |
+| Exercice en répétitions (sans guidage de phases) | objectif répétitions | — | charge | — |
+| Exercice en répétitions guidées par phases | objectif répétitions | — | charge | compteur automatique de mouvements |
+| Exercice en durée avec phases, hors décompte propre à un Format | objectif durée | — | charge | — |
 | Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
-| For time | objectif du tour | temps max | charge | — |
-| AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| For time | objectif du tour | temps max si défini | charge | compte à rebours de Série en Durée actif ; sinon compteur guidé de mouvements si disponible ; sinon — |
+| AMRAP | objectif du mouvement | temps limite du bloc | charge | compte à rebours de Série en Durée actif ; sinon compteur guidé de mouvements si disponible ; sinon — |
 | AMRAP à un seul mouvement en Max | — | temps limite du bloc | charge | score cumulé |
-| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
-| EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
-| Death by | objectif du rang | intervalle | charge | — |
+| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos pendant le repos ; sinon compteur guidé de mouvements si disponible ; sinon — |
+| EMOM en durée | objectif durée | intervalle | charge | compte à rebours de Série en Durée actif ; sinon — |
+| Death by | objectif du rang | intervalle | charge | compte à rebours de Série en Durée si effectivement disponible ; sinon compteur guidé de mouvements si disponible ; sinon — |
 | Tabata / 30-30 | durée de la phase | — | charge | — |
 
 #### 3. Précisions
 
-- Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
+- **Décompte de Série en Durée :** placé exclusivement en bas à droite lorsqu'il est actif, y compris avec une charge affichée en bas à gauche. Ne pas déplacer la charge ni afficher simultanément deux informations dynamiques. Au lancement, pendant le décompte, la retenue et la fin de Série, conserver les comportements de couleur, figement et clignotement déjà définis ; seul l'emplacement change.
+- **Compteur « mouv. » :** il n’est produit que pour une Série en **Répétitions guidées par phases** ; aucune création de compteur en mode Durée. En EMOM en Durée, le repos est montré en secondaire sous le chiffre central (D-528) et n'est pas répété en bas à droite ; en absence de décompte actif, le coin reste vide.
+- **Exclusivités du bas droit :** compte à rebours de Série en Durée, compteur « mouv. », décompte du repos EMOM en Répétitions, score AMRAP Max : une seule valeur suivant le contexte. Le passage entre étapes réévalue les informations ; aucune valeur n'est décalée vers un autre coin. L'absence de compteur en EMOM en Durée n'est pas une anomalie.
 - Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
 - Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). À chaque début de tour, annonce vocale ou bip selon D-530 (18/11/2026). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
 - Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
 
 #### 4. Limites
 
-Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
+Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau. Toute extension du décompte en Durée à un autre Format doit respecter l'affectation bas droite et conserver la charge en bas gauche. Le rendu exact reste à vérifier sur iPhone.
 
 ### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
 
