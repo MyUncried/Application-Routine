@@ -6187,7 +6187,7 @@ Une seule **modale de création** est ouverte depuis deux endroits :
 - l'option **Créer un exercice** du menu Créer de la **Composition**.
 
 Elle propose :
-- **Exercice libre** : la fiche de création d'un exercice vierge, mouvement puis paramètres d'exécution (parcours existant « Ajouter un exercice ») ;
+- **Exercice libre** : la fiche de création d'un exercice vierge, mouvement puis paramètres d'exécution (parcours existant « Ajouter un exercice ») [Remplacé le 26/11/2026 (D-608 point 5 ; Formats § 9.10) : écran « Exercice libre — Choix du mouvement », puis page « Exercice libre », dans la même modale] ;
 - **les Formats**, dans la grille à deux colonnes existante : chaque Format ouvre son questionnaire, puis son récapitulatif.
 
 | Départ | Choix | Suite | Arrivée |

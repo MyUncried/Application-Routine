@@ -43,6 +43,13 @@ export const executionParameters = {
     freeSection: "Paramètres d’exécution",
     // D-608 (D-573 point 5, Figma « Exercice libre — Modale de type format » `13269:26160`) : ligne « Mouvement » du cadre du mouvement.
     freeMovement: "Mouvement",
+    // D-608 (D-573 point 5, 26/11/2026) : page « Exercice libre » de la création — lien « Changer » et Retour vers le choix du mouvement ;
+    // écran « Exercice libre — Choix du mouvement » (Figma `13259:25991`).
+    freeChange: "Changer",
+    freeChangeAccessibilityLabel: "Changer de mouvement",
+    freeBackAccessibilityLabel: "Retour au choix du mouvement",
+    freeChooseCloseAccessibilityLabel: "Fermer l’exercice libre",
+    freeChooseValidateAccessibilityLabel: "Valider le mouvement choisi",
     validateAccessibilityLabel: "Valider les paramètres",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",

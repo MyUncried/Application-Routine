@@ -371,8 +371,16 @@ export type ExecutionParametersSheetProps = {
    * mouvement inverse — la feuille redescend jusqu'à disparaître, voile en fondu, même durée — avant
    * `onApply` / `onCancel`. « Réduire les animations » : ni montée ni descente (D-7). Absent
    * (`"default"`) : prototype figé inchangé (montée 0,25 s, Modal en fondu, fermeture immédiate).
+   * `"page"` (D-608, D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10, Figma « Exercice libre — Modale de type format »
+   * `13269:26160`) : page « Exercice libre » de la création — contenu de la feuille rendu dans l'écran qui l'accueille (la feuille
+   * native de « Créer un exercice »), sans `Modal`, voile ni poignée ; Retour (chevron) à la place de la croix.
    */
-  readonly presentation?: "default" | "compositionCard";
+  readonly presentation?: "default" | "compositionCard" | "page";
+  /**
+   * D-608 (D-573 point 5) : lien « Changer » du cadre Mouvement de l'exercice libre — retour au choix du mouvement. Absent : lien
+   * non rendu. Ignoré hors `freeFormat`.
+   */
+  readonly onChangeMovement?: () => void;
   /**
    * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « que les champs (et l'ensemble
    * de la ligne de couleur) soient identifiés en orange ») : phases « à vérifier » de l'Exercice, lues
@@ -688,9 +696,10 @@ const repetitionsLabel = (value: number | null) => (value === null ? t.unset : `
  * (rampe des questionnaires, `ContextBand`). Gris neutre des modales génériques et de l'exercice libre.
  * [D-606 : zone de contexte #FBF3E4 de l'exercice libre, part fondue de 22 — remplacé le 26/11/2026 (Figma `13269:26160` : gris).]
  */
-const SHEET_HEADER_NEUTRAL = "#F1F2F5";
+export const SHEET_HEADER_NEUTRAL = "#F1F2F5";
 const FREE_FADE_HEIGHT = 12;
-const FREE_FADE_LAYERS = Array.from({ length: 12 }, (_, index) => {
+/** Part fondue de la zone colorée (partagée avec l'écran « Exercice libre — Choix du mouvement », D-608). */
+export const FREE_FADE_LAYERS =Array.from({ length: 12 }, (_, index) => {
   const before = index / 12;
   const after = (index + 1) / 12;
   return { height: Number((FREE_FADE_HEIGHT * (1 - before)).toFixed(4)), opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)) };
@@ -716,6 +725,7 @@ export function ExecutionParametersSheet({
   quickFormatUnitOpen = false,
   freeFormat = false,
   freeMovement,
+  onChangeMovement,
   movementName,
   quickFormatKey,
   headerTint = SHEET_HEADER_NEUTRAL,
@@ -815,6 +825,8 @@ export function ExecutionParametersSheet({
   // PRE-9, recette iPhone n° 2 (constat d) : carte de la Composition — voile animé par la feuille
   // (Modal sans animation propre) et fermeture animée en cours (une seule).
   const cardMotion = presentation === "compositionCard";
+  // D-608 (D-573 point 5) : page « Exercice libre » de la création, rendue dans l'écran hôte (sans `Modal`).
+  const pageMode = presentation === "page";
   const [scrimOpacity] = useState(() => new Animated.Value(cardMotion ? 0 : 1));
   const closingRef = useRef(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -3089,7 +3101,19 @@ export function ExecutionParametersSheet({
     </AnchoredPanel>
   ) : null;
 
-  return (
+  // RC-1 : bas réel de la zone de la `Modal` (coordonnées de la fenêtre), repère de la barre du clavier. Page : bas de l'écran hôte.
+  const measureContainerBottom = () => {
+    scrimRef.current?.measureInWindow((_x, y, _width, height) => {
+      if (height > 0) setScrimBottom((current) => (current === y + height ? current : y + height));
+    });
+  };
+  // D-608 (D-573 point 5) : page « Exercice libre » — contenu posé dans l'écran hôte, sans `Modal` ni voile.
+  const frame = (content: ReactNode) =>
+    pageMode ? (
+      <View ref={scrimRef} style={styles.pageRoot} onLayout={measureContainerBottom} testID="execution-sheet-page">
+        {content}
+      </View>
+    ) : (
     <Modal
       transparent
       // Remarque e du 26/11/2026 : retirée pendant qu'un écran poussé d'ailleurs (rappel touché) recouvre l'écran hôte,
@@ -3104,12 +3128,7 @@ export function ExecutionParametersSheet({
         ref={scrimRef}
         style={[styles.scrim, cardMotion ? styles.scrimTransparent : null]}
         pointerEvents={isClosing ? "none" : "auto"}
-        // RC-1 : bas réel de la zone de la `Modal` (coordonnées de la fenêtre), repère de la barre du clavier.
-        onLayout={() => {
-          scrimRef.current?.measureInWindow((_x, y, _width, height) => {
-            if (height > 0) setScrimBottom((current) => (current === y + height ? current : y + height));
-          });
-        }}
+        onLayout={measureContainerBottom}
         testID="execution-sheet-scrim"
       >
         {cardMotion ? (
@@ -3119,23 +3138,32 @@ export function ExecutionParametersSheet({
             testID="execution-sheet-scrim-shade"
           />
         ) : null}
-        {/* Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée)
-            porte sur un cadre transparent plein écran ; la surface blanche, ancrée en bas
-            à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
-            ligne apparaît ou disparaît, au lieu de sauter. */}
+        {content}
+      </View>
+    </Modal>
+    );
+
+  return frame(
+        // Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée) porte sur un cadre transparent plein
+        // écran ; la surface blanche, ancrée en bas à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
+        // ligne apparaît ou disparaît, au lieu de sauter. Page : ni montée ni ancrage en bas, la surface occupe l'écran hôte.
         <Animated.View
-          style={[styles.sheetFrame, { transform: [{ translateY: sheetEntry }] }]}
-          accessibilityViewIsModal
+          style={pageMode ? styles.pageRoot : [styles.sheetFrame, { transform: [{ translateY: sheetEntry }] }]}
+          accessibilityViewIsModal={!pageMode}
           testID="execution-sheet"
         >
           <SheetMotionProvider reduceMotion={reduceMotion}>
             <SheetMotionView
               appear={false}
-              style={[styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]}
+              style={
+                pageMode
+                  ? [styles.sheet, styles.pageSheet, { paddingBottom: insets.bottom }]
+                  : [styles.sheet, { maxHeight: windowHeight - insets.top - spacing[24], paddingBottom: insets.bottom }]
+              }
               testID="execution-sheet-surface"
             >
               <View style={{ backgroundColor: headerTint }} testID={freeFormat ? "execution-sheet-free-context" : "execution-sheet-header-tint"}>
-              <View style={styles.handle} />
+              {pageMode ? <View style={styles.pageHeaderTop} /> : <View style={styles.handle} />}
               {/* En-tête « Fermer et valider » partagé (Complément du 5 novembre 2026, §18–§19). Story 3.8 (AC5) : ✓ grisé
                   (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
                   l'état d'accessibilité suit l'activabilité réelle, le libellé garde « indisponible… » et le rendu reste grisé. */}
@@ -3155,7 +3183,8 @@ export function ExecutionParametersSheet({
                         : t.title
                 }
                 onCancel={handleCancel}
-                cancelLabel={t.cancelAccessibilityLabel}
+                cancelLabel={pageMode ? t.freeBackAccessibilityLabel : t.cancelAccessibilityLabel}
+                {...(pageMode ? { cancelIcon: "back" as const } : {})}
                 onValidate={handleValidate}
                 validateEnabled={validation.ok && !loopWithoutRepetitions}
                 validateDisabled={validateDisabled}
@@ -3244,7 +3273,21 @@ export function ExecutionParametersSheet({
                     testID="execution-sheet-frame-movement"
                   >
                     <Row label={t.freeMovement} labelNode={<Text style={styles.freeMovementLabel}>{t.freeMovement}</Text>} testID="execution-sheet-row-movement">
-                      {null}
+                      {/* D-608 (D-573 point 5, 26/11/2026) : « Changer » ramène au choix du mouvement (page de création). */}
+                      {onChangeMovement !== undefined ? (
+                        <Pressable
+                          onPress={() => {
+                            if (absorbSheetCommand()) return;
+                            onChangeMovement();
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t.freeChangeAccessibilityLabel}
+                          hitSlop={8}
+                          testID="execution-sheet-change-movement"
+                        >
+                          <Text style={styles.freeChangeLink}>{t.freeChange}</Text>
+                        </Pressable>
+                      ) : null}
                     </Row>
                     {freeMovement !== undefined ? (
                       <>
@@ -3735,9 +3778,7 @@ export function ExecutionParametersSheet({
               animated={barAnimated}
             />
           ) : null}
-        </Animated.View>
-      </View>
-    </Modal>
+        </Animated.View>,
   );
 }
 
@@ -4679,6 +4720,25 @@ const styles = StyleSheet.create({
   },
   scrimShade: {
     backgroundColor: colors.overlayScrim,
+  },
+  // D-608 (D-573 point 5) : page « Exercice libre » — la surface occupe l'écran hôte (feuille native, coins portés par elle).
+  pageRoot: {
+    flex: 1,
+  },
+  pageSheet: {
+    flex: 1,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
+  // Place de la poignée, absente en page (la feuille native n'en a pas) : l'en-tête reste à la hauteur des écrans de format.
+  pageHeaderTop: {
+    height: spacing[12],
+  },
+  // Figma `13269:26160` : « Changer », Inter Semi Bold 12, bleu de marque.
+  freeChangeLink: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    color: colors.primary,
   },
   // Q39 : cadre transparent de la montée ; la surface reste ancrée en bas à l'intérieur.
   sheetFrame: {

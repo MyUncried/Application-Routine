@@ -35,7 +35,7 @@ import { useReferentialService } from "@/features/reference-data/ReferentialServ
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { EditMovementAction, EditorHeader } from "@/features/sessions/ExerciseScreen";
-import { handMovementsToComposition, requestFormatsWindowClose } from "@/features/sessions/movementExercises";
+import { handMovementsToComposition, handMovementToFreeExercise, requestFormatsWindowClose } from "@/features/sessions/movementExercises";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
@@ -161,11 +161,19 @@ function toEditorCategory(categoryId: string | null, categories: readonly Catego
 export const MOVEMENT_SESSION_CONTEXT = "session";
 
 /**
+ * D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10) : « Pas de bouton « + Créer un mouvement » : un nom inexistant validé crée
+ * le mouvement » — sur l'écran « Exercice libre — Choix du mouvement », la fiche de création s'ouvre avec le nom saisi
+ * (`/movement?context=free&name=…`), même fiche et mêmes règles qu'en contexte Séance ; le mouvement enregistré (ou choisi) revient à
+ * cet écran, qui ouvre la page de l'exercice libre. Annulée : retour à l'écran de choix.
+ */
+export const MOVEMENT_FREE_EXERCISE_CONTEXT = "free";
+
+/**
  * `inSheet` — demande de Hermann du 04/11/2026 (« Afficher en mode modale iOS […] Catalogue des mouvements : Créer un
  * mouvement ») : création présentée en feuille native iOS (route `/movement`), en-tête sans marge de zone sûre haute.
  */
 export function MovementScreen({ inSheet = false }: { readonly inSheet?: boolean } = {}) {
-  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string; context?: string; returnDepth?: string }>();
+  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string; context?: string; returnDepth?: string; name?: string }>();
   const placement: VariantPlacement = params.placement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
   const openInEdit = params.mode === MOVEMENT_EDIT_MODE_PARAM;
   // PRE-9 A.2 : création seulement (ni fiche existante ni variante dans ce contexte, CE-MVT-01 §3).
@@ -178,6 +186,20 @@ export function MovementScreen({ inSheet = false }: { readonly inSheet?: boolean
         variantPlacement="AFTER_ORIGIN"
         inSheet={inSheet}
         onMovementChosen={(movement) => handMovementsToComposition([movement])}
+      />
+    );
+  }
+  if (params.context === MOVEMENT_FREE_EXERCISE_CONTEXT) {
+    return (
+      <MovementSheet
+        key="free"
+        movementId={null}
+        variantOf={null}
+        variantPlacement="AFTER_ORIGIN"
+        inSheet={inSheet}
+        initialName={params.name ?? ""}
+        closesFormatsWindow={false}
+        onMovementChosen={handMovementToFreeExercise}
       />
     );
   }
@@ -220,7 +242,16 @@ export function MovementSheet({
   onMovementChosen,
   overlay,
   returnDepth = 1,
+  initialName = "",
+  closesFormatsWindow = true,
 }: {
+  /** D-608 (D-573 point 5) : nom de départ de la création (nom inexistant validé sur le choix du mouvement de l'exercice libre). */
+  readonly initialName?: string;
+  /**
+   * D-608 : la fin (enregistrée ou mouvement choisi) retire la modale « Créer un exercice » (contexte Séance, r-creer). `false` :
+   * retour à l'écran appelant seulement (choix du mouvement de l'exercice libre, qui ouvre ensuite sa page).
+   */
+  readonly closesFormatsWindow?: boolean;
   /**
    * m-carte (recette du 05/11/2026 au soir) : nombre de fiches de mouvement retirées à l'enregistrement — 2 pour un niveau ajouté
    * depuis le menu Niveau d'une fiche (retour au Catalogue des mouvements, pas à la fiche précédente).
@@ -275,8 +306,9 @@ export function MovementSheet({
 
   const [mode, setMode] = useState<Mode>(movementId !== null ? "consult" : "create");
   const [origin, setOrigin] = useState<Movement | null>(null);
-  const [initial, setInitial] = useState<Draft>(EMPTY_DRAFT);
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  // D-608 : nom saisi sur l'écran « Exercice libre — Choix du mouvement », repris tel quel (fiche non modifiée tant qu'il reste).
+  const [initial, setInitial] = useState<Draft>(() => (initialName.trim() === "" ? EMPTY_DRAFT : { ...EMPTY_DRAFT, name: initialName }));
+  const [draft, setDraft] = useState<Draft>(initial);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
     catalogue === null ? "error" : movementId !== null || variantOf !== null ? "loading" : "ready",
   );
@@ -389,7 +421,7 @@ export function MovementSheet({
       return;
     }
     // r-creer : enregistrée, la fiche ouverte par Exercice libre revient directement à la Composition, avec l'exercice.
-    if (isSessionContext) requestFormatsWindowClose();
+    if (isSessionContext && closesFormatsWindow) requestFormatsWindowClose();
     // m-carte : « Après Appui sur ajouter un niveau et validation d’un nouveau niveau, ne pas revenir sur la fiche précédente mais
     // sur le catalogue des mouvements » — toutes les fiches de mouvement empilées se retirent.
     if (returnDepth > 1 && typeof router.dismiss === "function") {
@@ -426,7 +458,7 @@ export function MovementSheet({
         ? () => {
             // r-creer : coche → Composition avec l'exercice.
             onMovementChosen?.(movement);
-            requestFormatsWindowClose();
+            if (closesFormatsWindow) requestFormatsWindowClose();
             setLeaving(true);
           }
         : // t-cat-choix : coche → Catalogue des mouvements (fermeture de la fiche de création, sans enregistrement).

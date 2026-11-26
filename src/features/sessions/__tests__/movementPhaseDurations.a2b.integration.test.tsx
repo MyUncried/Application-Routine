@@ -164,14 +164,6 @@ async function useExistingMovement(name: string, id: string) {
   await settle(300);
 }
 
-/** Carte d'Exercice de la Composition, par son nom. */
-const card = (name: string) => screen.getByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, ${name},`));
-
-/** Toucher d'une carte (feuille ouverte après lecture du Profil). */
-async function tapCard(name: string) {
-  fireEvent.press(card(name));
-  await settle(300);
-}
 
 /** Durées affichées du tableau des phases de la feuille de paramètres, dans l'ordre des phases. */
 function sheetPhaseDurations(): unknown[] {
@@ -183,11 +175,19 @@ function sheetPhaseDurations(): unknown[] {
 }
 
 describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel Exercice de Séance", () => {
-  it("« Créer un nouveau mouvement » : durée saisie sur la fiche → enregistrée sur le Mouvement et reprise dans l'Exercice ; phase sans durée à renseigner", async () => {
+  // D-608 (26/11/2026) : la fiche de création s'ouvre par un nom inexistant validé sur le choix du mouvement de l'exercice libre ;
+  // enregistrée, elle ouvre la page « Exercice libre », où les durées des phases sont reprises. [Fiche ouverte par la carte Libre ;
+  // Exercice posé « à compléter » dans la Composition — remplacé.]
+  it("« Créer un nouveau mouvement » : durée saisie sur la fiche → enregistrée sur le Mouvement et reprise dans la page de l'exercice ; phase sans durée à renseigner (✓ indisponible)", async () => {
     renderApp();
     await settle();
     await openMenuAction(addToSession.newActivity);
-    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
+    fireEvent.changeText(screen.getByTestId("free-exercise-search"), "Squat");
+    await act(async () => {
+      fireEvent(screen.getByTestId("free-exercise-search"), "submitEditing");
+    });
+    await settle(300);
+    expect(screen.getByTestId("exercise-name-input").props.value).toBe("Squat");
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
     const [firstCategory] = await screen.findAllByTestId(/^category-picker-tag-(?!row$)/);
     fireEvent.press(firstCategory!);
@@ -233,11 +233,15 @@ describe("PRE-9 A.2b — durées des phases du Mouvement reprises dans un nouvel
       { label: "Descente", duration_seconds: 30 },
       { label: "Montée", duration_seconds: null },
     ]);
-    expect(cardNames()).toEqual(["Squat"]);
-    // Montée reste à renseigner (et la durée de série, règle existante) : carte « à compléter ».
-    expect(screen.getByText(strings.executionParameters.card.incomplete)).toBeTruthy();
-    await tapCard("Squat");
+    // Page « Exercice libre » du mouvement créé : durées des phases reprises ; Montée reste à renseigner, ✓ indisponible.
+    expect(screen.getByTestId("execution-sheet-page")).toBeTruthy();
+    if (!screen.queryByTestId("execution-sheet-phases-table")) {
+      fireEvent.press(screen.getByTestId("execution-sheet-phases-control-WITH"));
+      await settle(300);
+    }
     expect(sheetPhaseDurations()).toEqual(["30″", "—"]);
+    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(cardNames()).toEqual([]);
   }, 40000);
 
   // [Test retiré — Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer ; la reprise d'un mouvement existant passe par la fiche de création (suggestions, `useExistingMovement`).]

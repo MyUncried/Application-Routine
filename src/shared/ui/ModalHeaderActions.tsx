@@ -80,6 +80,8 @@ export type ModalHeaderProps = {
    */
   readonly titleStyle?: StyleProp<TextStyle>;
   readonly titleNumberOfLines?: number;
+  /** D-608 (Figma `13269:26160`) : chevron Retour à la place de la croix. Absent : croix. */
+  readonly cancelIcon?: "close" | "back";
 };
 
 /** Ligne d'en-tête complète : croix, titre centré, coche. */
@@ -95,10 +97,15 @@ export function ModalHeader({
   style,
   titleStyle,
   titleNumberOfLines,
+  cancelIcon = "close",
 }: ModalHeaderProps) {
   return (
     <View style={[styles.header, style]} testID={`${testIDPrefix}-header`}>
-      <ModalCancelAction onPress={onCancel} accessibilityLabel={cancelLabel} testID={`${testIDPrefix}-cancel`} />
+      {cancelIcon === "back" ? (
+        <CloseCircleAction onPress={onCancel} accessibilityLabel={cancelLabel} icon="back" testID={`${testIDPrefix}-cancel`} />
+      ) : (
+        <ModalCancelAction onPress={onCancel} accessibilityLabel={cancelLabel} testID={`${testIDPrefix}-cancel`} />
+      )}
       <Text
         style={[styles.title, titleStyle]}
         {...(titleNumberOfLines !== undefined ? { numberOfLines: titleNumberOfLines, ellipsizeMode: "tail" as const } : {})}

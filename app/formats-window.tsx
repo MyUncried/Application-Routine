@@ -3,10 +3,10 @@ import { useCallback, useState } from "react";
 
 import type { FormatModelKey } from "@/domain/sessions/formatModels";
 
-import { MOVEMENT_SESSION_CONTEXT } from "@/features/activities/MovementScreen";
 import { closeCreationModals } from "@/features/sessions/creationNavigation";
 import { FormatModelScreen, useFormatSheetDetent } from "@/features/sessions/FormatModelScreen";
 import { FormatsWindow } from "@/features/sessions/FormatsWindow";
+import { FreeExerciseScreen } from "@/features/sessions/FreeExerciseScreen";
 import { takeFormatsWindowCloseRequest } from "@/features/sessions/movementExercises";
 
 /**
@@ -26,6 +26,10 @@ export default function FormatsWindowRoute() {
   const router = useRouter();
   const navigation = useNavigation();
   const [chosen, setChosen] = useState<FormatModelKey | null>(null);
+  // D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10) : la carte « Libre » ouvre l'écran « Exercice libre — Choix du
+  // mouvement » puis la page de l'exercice libre, dans cette même feuille (comme un format, D-605). [Fiche de création d'un mouvement
+  // (`/movement?context=session`) ouverte par-dessus — remplacée.]
+  const [free, setFree] = useState(false);
   const detent = useFormatSheetDetent();
   // Fiche ouverte par Exercice libre, validée (n-cat-libre : « Validée > Composition de séance ») : elle a remis le Mouvement à la
   // Composition et revient ici — la modale se retire (signal consommé une seule fois) ; ouverte depuis le Catalogue, la
@@ -35,6 +39,14 @@ export default function FormatsWindowRoute() {
       if (takeFormatsWindowCloseRequest()) closeCreationModals(router, navigation);
     }, [navigation, router]),
   );
+  if (free) {
+    return (
+      <>
+        <Stack.Screen options={{ sheetAllowedDetents: [detent] }} />
+        <FreeExerciseScreen onClose={() => setFree(false)} onDone={() => closeCreationModals(router, navigation)} />
+      </>
+    );
+  }
   if (chosen !== null) {
     return (
       <>
@@ -52,7 +64,7 @@ export default function FormatsWindowRoute() {
       // écran unique, sans redondance ») : chaque Format ouvre directement son écran unique. [Questionnaire des autres Formats
       // (`/format-questionnaire`) — remplacé.]
       onSelect={(model) => setChosen(model)}
-      onFreeExercise={() => router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } })}
+      onFreeExercise={() => setFree(true)}
     />
     </>
   );
