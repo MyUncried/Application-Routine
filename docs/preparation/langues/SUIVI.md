@@ -12,7 +12,7 @@ Branche : `claude/exciting-lovelace-iyn2wf`. J1 (sauf la section « Langue et un
 | J1.8 — Écrans de la fusion (Programmes, Planification, Confidentialité, rappels, catégories) | 🟢 Développé le 24/11 | Recette cas 19–25 du cahier J1 | Hermann |
 | J2 — Phrase de synthèse simplifiée | ⏳ À faire | Proposer la phrase simplifiée | Claude |
 | J3 — Unité kg / lb | ⏳ À faire | Figma de la ligne Unité | Hermann |
-| J4 — Contenus KODJO traduits | ⏳ Bloqué | Répondre à A3 | Hermann |
+| J4 — Contenus KODJO traduits | ⏳ Bloqué | Répondre à A3 ; préciser les fiches multilingues (règle 11, ch. 07) | Hermann |
 | J5 — ES, IT, PT-BR, DE | ⏳ À faire | Organiser la relecture native | Hermann |
 
 ## Questions ouvertes

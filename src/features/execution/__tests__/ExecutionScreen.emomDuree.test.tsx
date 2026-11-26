@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { exerciseActivity, structuredSession } from "@/domain/execution/testing/simulation";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteExecutionRepository } from "@/infrastructure/database/repositories/SqliteExecutionRepository";
@@ -22,7 +22,8 @@ import { ExecutionTimerRing } from "../ExecutionTimerRing";
 /**
  * Recette du 18/11/2026 (emom-6, spec PRE-11 §5 point 32) puis précision de Hermann du 18/11/2026 (point 33) — EMOM en durée : un seul
  * anneau, celui de l'intervalle (portions bleues d'effort, orange de retenue) ; au centre, le chrono de l'intervalle, sans valeur fixe ;
- * dans le coin du bas à gauche, le compte à rebours de la Série, figé pendant la retenue ; appui au centre partagé avec le For time ;
+ * dans le coin du décompte (bas à droite depuis le complément D-529 du 26/11/2026 ; [bas à gauche — remplacé]), le compte à rebours de
+ * la Série, figé pendant la retenue ; appui au centre partagé avec le For time ;
  * repos à l'objectif (appui sans effet), sans dérive de l'intervalle.
  */
 
@@ -223,5 +224,40 @@ describe("Recette du 18/11/2026 (emom-6, précision du 18/11) — EMOM en durée
     await setup();
     // Un seul Pressable « execution-duration-zone » dans l'écran : celui du For time, ouvert à l'EMOM en durée.
     expect(screen.getAllByTestId("execution-duration-zone")).toHaveLength(1);
+  });
+
+  // Complément D-529 / CE-UI-14 validé par Hermann le 26/11/2026 : intervalle en haut à droite, objectif en haut à gauche, charge en bas
+  // à gauche, décompte actif de la Série en bas à droite ; jamais de compteur « mouv. » en Durée. [Décompte en bas à gauche — remplacé.]
+  it("complément D-529 : EMOM en Durée chargé — quatre coins ; décompte en bas à droite, aucun compteur « mouv. » ; coin vide au repos", async () => {
+    const { at } = await setup(uniformParameters({ mode: "DURATION", count: 2, target: 40, pauseSeconds: 0, loadKg: 20, loadEnabled: true }));
+    const placement = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node !== null && node.props.side === undefined) node = node.parent;
+      return { side: node?.props.side, vertical: node?.props.vertical, color: node?.props.color };
+    };
+    expect(placement("execution-objective")).toMatchObject({ side: "left", vertical: "top" });
+    expect(screen.getByTestId("execution-cap")).toHaveTextContent(/^01:00$/);
+    expect(placement("execution-cap")).toMatchObject({ side: "right", vertical: "top" });
+    expect(screen.getByTestId("execution-load")).toHaveTextContent("20kg");
+    expect(placement("execution-load")).toMatchObject({ side: "left", vertical: "bottom" });
+    expect(screen.getByTestId("execution-duration-countdown")).toHaveTextContent("00:40");
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom", color: "#BDEBC9" });
+    expect(screen.queryByTestId("execution-auto-count")).toBeNull();
+    expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+    await at(10);
+    await press("execution-duration-zone"); // retenue : décompte figé, orange, même coin ; charge conservée
+    await at(15);
+    expect(screen.getByTestId("execution-duration-countdown")).toHaveTextContent("00:30");
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom", color: "#FFD194" });
+    expect(placement("execution-load")).toMatchObject({ side: "left", vertical: "bottom" });
+    await press("execution-duration-zone"); // reprise
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom", color: "#BDEBC9" });
+    await at(45); // objectif atteint : repos de la fenêtre, plus de décompte, coin bas droite vide (repos au centre, D-528)
+    expect(screen.getByTestId("execution-title")).toHaveTextContent("Repos");
+    expect(screen.queryByTestId("execution-duration-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-auto-count")).toBeNull();
+    await at(60); // fenêtre suivante : le décompte revient en bas à droite
+    expect(placement("execution-duration-countdown")).toMatchObject({ side: "right", vertical: "bottom" });
   });
 });

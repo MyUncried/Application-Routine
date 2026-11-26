@@ -2772,7 +2772,7 @@ Réemploi du shell Exécution ; cadran de fenêtre et contexte exercice. Positio
 
 [Complété le 18/11/2026 pour l'AMRAP — PRE-11 T3, registre ch07 « AMRAP — exécution (18/11/2026) » : écran et barre du For time (Arrêt, Pause désactivée, « Suivant » / « + Tour », exercices en durée en temps cumulé) ; grand chrono = temps restant du bloc ; compteur Tour sans total ; à l'échéance, écran figé et feuille « Fin du bloc » (exercice en cours, puis buy-in À l'échec) ; feuille « Arrêt de l'AMRAP ».]
 
-[Complété le 18/11/2026 pour l'EMOM — PRE-11 T2, registre ch07 « EMOM — exécution (18/11/2026) » : disposition du Figma `8982:15709` (grand chrono = temps restant de la fenêtre, « Repos » orange dans le cercle, portion travaillée de l'anneau dans la couleur du travail) ; barre du For time (Arrêt, Pause désactivée, « Suivant » 72) ; feuille « Arrêt de l'EMOM » ; bandeau non bloquant Q1 au-dessus de la barre ; feuille « Fin de l'EMOM » par fenêtre restant à saisir. L'appui sur le cadran est porté par « Suivant » (À CLARIFIER).] [Remplacé en partie le 18/11/2026, recette iPhone (registre ch07 « EMOM — recette iPhone (18/11/2026) ») : plus de bandeau ; « Repos » en titre, plus dans le cercle ; coin d'objectif conservé sur fond vert pendant le repos, clignotant aux 3 dernières secondes de chaque fenêtre ; barre du Format dès le Compte à rebours initial ; feuille « Fin de l'EMOM » sur écran figé, nom « Mouvement · série k » ; synthèse : une ligne par Série.] [Complété le 18/11/2026, recette emom-6 (registre ch07 « EMOM en durée — recette du 18/11/2026 ») : Série en Durée d'un EMOM — un seul anneau (la minute) ; effort cumulé / objectif au centre ; minute restante dans le coin du bas à gauche ; appui au centre partagé avec le For time (retenue de l'effort seul) ; repos tout seul à l'objectif (fond et anneau du repos, appui sans effet).] [Remplacé le 18/11/2026 — précision de Hermann, registre ch07 « EMOM en durée — précision du 18/11/2026 » : au centre, le chrono de l'intervalle en noir, sans valeur fixe ; anneau unique de l'intervalle, portions bleues (effort) et orange (retenue) ; compte à rebours de la Série dans le coin du bas à gauche, figé en retenue ; fond blanc au repos.]
+[Complété le 18/11/2026 pour l'EMOM — PRE-11 T2, registre ch07 « EMOM — exécution (18/11/2026) » : disposition du Figma `8982:15709` (grand chrono = temps restant de la fenêtre, « Repos » orange dans le cercle, portion travaillée de l'anneau dans la couleur du travail) ; barre du For time (Arrêt, Pause désactivée, « Suivant » 72) ; feuille « Arrêt de l'EMOM » ; bandeau non bloquant Q1 au-dessus de la barre ; feuille « Fin de l'EMOM » par fenêtre restant à saisir. L'appui sur le cadran est porté par « Suivant » (À CLARIFIER).] [Remplacé en partie le 18/11/2026, recette iPhone (registre ch07 « EMOM — recette iPhone (18/11/2026) ») : plus de bandeau ; « Repos » en titre, plus dans le cercle ; coin d'objectif conservé sur fond vert pendant le repos, clignotant aux 3 dernières secondes de chaque fenêtre ; barre du Format dès le Compte à rebours initial ; feuille « Fin de l'EMOM » sur écran figé, nom « Mouvement · série k » ; synthèse : une ligne par Série.] [Complété le 18/11/2026, recette emom-6 (registre ch07 « EMOM en durée — recette du 18/11/2026 ») : Série en Durée d'un EMOM — un seul anneau (la minute) ; effort cumulé / objectif au centre ; minute restante dans le coin du bas à gauche ; appui au centre partagé avec le For time (retenue de l'effort seul) ; repos tout seul à l'objectif (fond et anneau du repos, appui sans effet).] [Remplacé le 18/11/2026 — précision de Hermann, registre ch07 « EMOM en durée — précision du 18/11/2026 » : au centre, le chrono de l'intervalle en noir, sans valeur fixe ; anneau unique de l'intervalle, portions bleues (effort) et orange (retenue) ; compte à rebours de la Série dans le coin du bas à gauche, figé en retenue ; fond blanc au repos.] [**Emplacement historique supersédé le 26/11/2026 par le complément D-529 / CE-UI-14 : compte à rebours de Série en bas à droite ; charge conservée en bas à gauche.**]
 
 [Complété le 18/11/2026 — D-532 (registre ch07, constat a de la recette : « Un tour est un passage de tous les mouvements. Une série est une fenêtre d'un mouvement ») : EMOM à M mouvements, compteurs Série | Tour. « À la suite » : Série k / N, Tour = rang du mouvement / M. « Dans chaque intervalle » et « En alternance » : Série = position du mouvement dans le tour / M (remise à 1 à chaque tour, avance à chaque « Suivant »), Tour k / N (avance après le dernier mouvement). EMOM à un seul mouvement inchangé. Côté Format : « Nombre de tours » et colonnes T1 … TN en « Dans chaque intervalle » / « En alternance », modale « X tours identiques / variables ».]
 
@@ -4495,37 +4495,40 @@ Appui au centre en Effort : pause / reprise du compteur d’effort seul (l’ann
 
 Flash et couleurs identiques au For time ; bips et signal de passage en Repos ; pause répétée sans dérive de la durée totale.
 
-### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026)
+### CE-UI-14 — Exécution — quatre coins du chronomètre (D-529, 18/11/2026 ; complément validé le 26/11/2026)
 
 #### 1. Règle
 
-Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas.
+Une information, un coin, dans tous les formats. Au plus quatre informations, une par coin ; un coin sans information reste vide, les autres ne se décalent pas. **Complément du 26/11/2026 :** le compte à rebours d’une Série en Durée d’un Format est une information dynamique, placée **en bas à droite** ; il ne remplace jamais la charge du bas à gauche. Les informations dynamiques possibles en bas à droite ne se cumulent pas : l’écran montre celle qui correspond à l’étape active.
 
 #### 2. Emplacements par scénario
 
 | Scénario | Haut gauche | Haut droite | Bas gauche | Bas droite |
 |---|---|---|---|---|
-| Exercice en répétitions | objectif répétitions | — | charge | — |
-| Exercice en durée avec phases | objectif durée | — | charge | nombre de mouvements |
+| Exercice en répétitions (sans guidage de phases) | objectif répétitions | — | charge | — |
+| Exercice en répétitions guidées par phases | objectif répétitions | — | charge | compteur automatique de mouvements |
+| Exercice en durée avec phases, hors décompte propre à un Format | objectif durée | — | charge | — |
 | Pause ou récupération | durée de la pause | — | charge de la série suivante | — |
-| For time | objectif du tour | temps max | charge | — |
-| AMRAP | objectif du mouvement | temps limite du bloc | charge | — |
+| For time | objectif du tour | temps max si défini | charge | compte à rebours de Série en Durée actif ; sinon compteur guidé de mouvements si disponible ; sinon — |
+| AMRAP | objectif du mouvement | temps limite du bloc | charge | compte à rebours de Série en Durée actif ; sinon compteur guidé de mouvements si disponible ; sinon — |
 | AMRAP à un seul mouvement en Max | — | temps limite du bloc | charge | score cumulé |
-| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos |
-| EMOM en durée | objectif durée | intervalle | charge | nombre de mouvements (effort) |
-| Death by | objectif du rang | intervalle | charge | — |
+| EMOM en répétitions | objectif répétitions | intervalle | charge | compte à rebours du repos pendant le repos ; sinon compteur guidé de mouvements si disponible ; sinon — |
+| EMOM en durée | objectif durée | intervalle | charge | compte à rebours de Série en Durée actif ; sinon — |
+| Death by | objectif du rang | intervalle | charge | compte à rebours de Série en Durée si effectivement disponible ; sinon compteur guidé de mouvements si disponible ; sinon — |
 | Tabata / 30-30 | durée de la phase | — | charge | — |
 
 #### 3. Précisions
 
-- Dans l’EMOM en durée, le repos est montré en secondaire sous le chiffre central (D-528) ; le coin bas droite ne le répète pas.
+- **Décompte de Série en Durée :** placé exclusivement en bas à droite lorsqu'il est actif, y compris avec une charge affichée en bas à gauche. Ne pas déplacer la charge ni afficher simultanément deux informations dynamiques. Au lancement, pendant le décompte, la retenue et la fin de Série, conserver les comportements de couleur, figement et clignotement déjà définis ; seul l'emplacement change.
+- **Compteur « mouv. » :** il n’est produit que pour une Série en **Répétitions guidées par phases** ; aucune création de compteur en mode Durée. En EMOM en Durée, le repos est montré en secondaire sous le chiffre central (D-528) et n'est pas répété en bas à droite ; en absence de décompte actif, le coin reste vide.
+- **Exclusivités du bas droit :** compte à rebours de Série en Durée, compteur « mouv. », décompte du repos EMOM en Répétitions, score AMRAP Max : une seule valeur suivant le contexte. Le passage entre étapes réévalue les informations ; aucune valeur n'est décalée vers un autre coin. L'absence de compteur en EMOM en Durée n'est pas une anomalie.
 - Ni le rang de la fenêtre, ni l’incrément ne sont affichés : en Death by, le changement de l’objectif signale le rang.
 - Les tours acquis (For time, AMRAP) figurent dans le bouton « +Tour » (par exemple « +Tour · 3 », nombre de tours déjà acquis). À chaque début de tour, annonce vocale ou bip selon D-530 (18/11/2026). Série, tour et côté restent sur la ligne de contexte sous le nom du mouvement.
 - Toute nouvelle information déclare avec laquelle elle est exclusive, ou prend un coin libre.
 
 #### 4. Limites
 
-Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau.
+Scénarios relevés pour les formats connus de la documentation ; les autres modèles et les écrans Figma de l’exécution sont à rapprocher de ce tableau. Toute extension du décompte en Durée à un autre Format doit respecter l'affectation bas droite et conserver la charge en bas gauche. Le rendu exact reste à vérifier sur iPhone.
 
 ### CE-UI-15 — Agenda — Planning (proposition) (D-533, 19/11/2026)
 

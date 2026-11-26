@@ -883,7 +883,7 @@ export function ExecutionScreen({
   // PRE-11 (T3) : un bloc AMRAP a l'écran du For time (barre, + Tour / Suivant, exercices en durée), son grand chrono décompte le bloc.
   const forTimeWork = forTimeLike(projection.format?.kind) && projection.format?.phase === "WORK";
   // PRE-11 (T2) — EMOM (Figma `8982:15709`) : grand chrono = temps restant de la fenêtre ; une Série en Durée a son compte à rebours
-  // dans le coin du bas à gauche, comme le For time.
+  // dans le coin du décompte, comme le For time (bas à droite, complément D-529 du 26/11/2026 ; [bas à gauche — remplacé]).
   // PRE-11 (T4) : le Death by a l'écran de l'EMOM (fenêtre du rang, repos révélé, barre Arrêt / Suivant), sans bandeau.
   const emomView = windowed(projection.format?.kind) ? (projection.format?.emom ?? null) : null;
   const emomWork = emomView !== null && projection.format?.phase === "WORK";
@@ -898,8 +898,8 @@ export function ExecutionScreen({
   const emomTimedWork = emomTimed && emomWork && durationActive !== null;
   // Précision de Hermann du 18/11/2026 (« le chronomètre principal, au centre, c'est l'objectif de l'intervalle […] Il est en noir, l'anneau
   // bleu tourne autour du cercle et fait un tour complet en un intervalle » ; « Un compte à rebours secondaire est dans le triangle, celui
-  // de la série ») : le coin du bas à gauche porte le compte à rebours de la Série, comme le For time ; le centre, le chrono de
-  // l'intervalle. [Effort cumulé / objectif au centre, temps restant de la minute dans le coin, repos sur fond orange pâle (18f575f3) —
+  // de la série ») : le coin du décompte (bas à droite depuis le complément D-529 du 26/11/2026 ; [bas à gauche — remplacé]) porte le
+  // compte à rebours de la Série, comme le For time ; le centre, le chrono de l'intervalle. [Effort cumulé / objectif au centre, temps restant de la minute dans le coin, repos sur fond orange pâle (18f575f3) —
   // remplacé.]
   const cornerCountdownMs = durationActive === null ? null : durationActive.remainingMs;
   // Anneau de l'EMOM en durée : portions de l'intervalle où la Série a été retenue (orange), le reste en bleu. Le noyau ne garde que
@@ -1309,10 +1309,11 @@ export function ExecutionScreen({
           // Formats §11.1 : compte à rebours de l’exercice dans une forme d’angle, vert en cours, orange retenu (Figma « Décompte —
           // durée »). Recette du 17/11/2026 (ft-borne : « laisser la durée max en haut à gauche, et positionner la durée des comptes
           // à rebours en bas à gauche (tout le temps, avec un temps max ou sans) »). [Coin du haut à gauche, à la place de
-          // l’objectif et de la borne — remplacé.]
+          // l’objectif et de la borne — remplacé.] Complément D-529 / CE-UI-14 (Hermann, 26/11/2026) : décompte en bas à droite,
+          // la charge reste en bas à gauche. [Bas à gauche, à la place de la charge — remplacé.]
           <View style={styles.badgeLayer}>
             <ExecutionCornerBadge
-              {...badgePlacement(slotOf("SERIES_COUNTDOWN") ?? "BOTTOM_LEFT")}
+              {...badgePlacement(slotOf("SERIES_COUNTDOWN") ?? "BOTTOM_RIGHT")}
               areaWidth={ringAreaWidth}
               color={durationActive.state === "RUNNING" ? DURATION_BADGE.running : DURATION_BADGE.held}
               // Troisième recette du 17/11/2026 (Hermann, autres remarques, d : « pendant le compte à rebours du For Time en durée (3 secondes), faire clignoter le triangle du compte à rebours à chaque seconde (vert actuel > vert plus foncé > vert actuel) »).
