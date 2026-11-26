@@ -273,3 +273,10 @@
 - Non traité : les 22 autres modales conservent la poignée dans Figma (geste non revu).
 - Vérification sur iPhone à faire : aucun glissé ne ferme la modale.
 - Tests : non applicables.
+
+## Complément 26/11/2026 (suite 11) — Pages Tabata/30-30/HIIT/Renforcement et modale du Renforcement (D-575, classe B)
+- Décisions explicites de Hermann (Figma, 26/11/2026) ; registre ch07 D-575 ; Formats § 9.10 ; prompt de recette (point 4 ter).
+- Figma : 5 pages Récapitulatif modifiées ; écran « Renforcement — Modale exercice » créé (aucune modale Renforcement n'existait) ; ligne Pause ajoutée par moi pour porter la colonne Pause.
+- À arbitrer : « Nombre de séries » global de la page Renforcement conservé en plus du nombre par mouvement ; Superset et Progression sans modale.
+- Vérification sur iPhone à faire : lecture de la charge sous l'intervalle.
+- Tests : non applicables.

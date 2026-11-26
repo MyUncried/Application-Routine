@@ -649,6 +649,8 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 **Fermeture de la modale « Paramètres d'exécution » (D-574, 26/11/2026).** Pas de poignée au-dessus du titre ; fermeture par la croix (sans valider) ou la coche (valide) ; glissé vers le bas désactivé.
 
+**Pages des formats et modale du Renforcement (D-575, 26/11/2026).** Tabata, 30/30, HIIT : colonne « Intervalle », Durée totale en dernière ligne, charge sous la valeur de l'intervalle (petit, entre parenthèses). Renforcement : Durée totale après Exécution, charge sous l'objectif, nombre de séries dans la première colonne ; modale : cadre [Mode, Nombre de répétitions, Nombre de séries, Charge], cadre [De chaque côté, Cadence], cadre [Pause].
+
 ## 10. Application de la règle à l'EMOM
 
 Champ propre au format, porté par l'exercice (Type d'exercice = EMOM) : **Intervalle** (1 min par défaut), qui remplace la Pause. Chaque série démarre au début d'un intervalle ; le repos est le temps restant jusqu'à l'intervalle suivant. Les paramètres standards compatibles restent applicables ; **Répétitions par défaut et Durée possible**, par Exercice et dans toutes les organisations. Un EMOM peut associer 10 burpees et 20 s de gainage dans chaque minute, ou un seul gainage de 40 s par minute. Les objectifs en Durée sont soumis au contrôle strict de l’intervalle du §7.6.
