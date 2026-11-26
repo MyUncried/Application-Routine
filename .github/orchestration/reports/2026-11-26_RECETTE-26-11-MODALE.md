@@ -72,7 +72,8 @@ La durée et la courbe de l'animation du clavier iOS sont imposées par le syst�
 
 - `npx tsc --noEmit` : OK.
 - `npx eslint` (fichiers modifiés) : 0 erreur ; 1 avertissement préexistant (`quickValueRow` inutilisé, présent au commit de départ).
-- Jest ciblé (`-w 1 --workerIdleMemoryLimit=800MB`) : voir section « Résultats Jest » ci-dessous.
+- Jest ciblé (`-w 1 --workerIdleMemoryLimit=800MB`) — 1er passage : 31 échecs, tous liés aux comportements remplacés (champ de Cadence révélé sous la ligne, fond de sélection au focus, cible initiale 1, réserve clavier) ; tests mis à jour (attentes remplacées annotées). 2e passage : `ExecutionParametersSheet*` (13 suites), `ExecutionParametersDraft*`, `KeyboardField`, `ActivityEditorForm`, `MovementScreen.b2`, `CarrierDurationSheet`, `Composition*`, `Exercise*`, `formatKeyboard`, `FormatModelScreen*`, `FreeExerciseScreen*`, `movementPhaseDurations*` : 1743 réussis, 33 ignorés (préexistants), 2 échecs (`CompositionSaveFlow` : cible 1 en Répétitions ; `CompositionScreen.d608` : titre sur une ligne), corrigés puis relancés : 11/11 réussis.
+- Passe complète non lancée (consigne : faite par le coordinateur).
 - Une suite Jest verte ne prouve pas le rendu iPhone : animations, clavier réel, géométrie et toucher ne sont pas joués sous Jest.
 
 ## Classe documentaire et documents touchés
@@ -104,4 +105,6 @@ Voir la liste « Modifications » ; plus ce rapport.
 
 ## Commit final et état Git
 
-Renseignés dans le message de livraison (commit de ce rapport sur `fix/recette-26-11-modale`, poussé sur `origin`).
+- Commit de code et documentation : `84e27b320` (branche `fix/recette-26-11-modale`, poussée sur `origin`) ; ce rapport y est inclus, complété (résultats Jest, commit) par le commit documentaire suivant, rattaché à `84e27b320`.
+- État Git attendu : arbre propre, branche à jour avec `origin/fix/recette-26-11-modale`.
+- Tests modifiés en plus : `src/features/sessions/__tests__/CompositionSaveFlow.integration.test.tsx`, `src/features/sessions/__tests__/CompositionScreen.d608.test.tsx`.
