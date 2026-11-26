@@ -909,8 +909,9 @@ export type CompositionScreenProps = {
    */
   readonly sessionId?: string | null;
   /**
-   * D-602 (25/11/2026) : Composition ouverte depuis une carte du catalogue des séances, présentée en modale iOS (feuille
-   * native). Recette du 25/11/2026 (Hermann) : en-tête sans la réserve de la barre d'état ; Démarrer dans l'action finale.
+   * D-602 (25/11/2026) : Composition ouverte depuis une carte du catalogue des séances, présentée en modale iOS — plein écran
+   * depuis la décision de Hermann du 27/11/2026 [feuille native, en-tête sans réserve de barre d'état — remplacé]. Recette du
+   * 25/11/2026 (Hermann) : Démarrer dans l'action finale.
    */
   readonly modal?: boolean;
 };
@@ -4947,9 +4948,8 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
         // CE-T03-08 ; recette du 25/11/2026 (Hermann : « le titre doit être "Modifier une séance" et non "Composer une séance" ») :
         // une Séance existante s'ouvre en modification. [« Composer une séance » en modification — remplacé.]
         title={readOnly ? composition.consultation.title : sessionId !== null ? composition.editTitle : composition.title}
-        // Recette du 25/11/2026 (Hermann : « il y a un espace très grand entre le haut de la modale, et la première ligne ») :
-        // en modale (feuille native), pas de réserve de barre d'état — comme les autres feuilles (`NativeSheetTop`).
-        {...(modal ? { topInset: 0 } : {})}
+        // Décision de Hermann du 27/11/2026 (D-602, modale plein écran) : la modale couvre tout l'écran, l'en-tête garde la
+        // réserve de la barre d'état comme un écran plein. [Recette du 25/11/2026 : en feuille native, `topInset: 0` — remplacé.]
         // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
         // PRE-9 B.2 : de même, en mode enveloppe, le X l'annule d'abord.
         onBack={() => (placement !== null ? cancelPlacement() : envelope !== null ? cancelEnvelope() : router.back())}

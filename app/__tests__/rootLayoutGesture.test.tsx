@@ -81,13 +81,13 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
 
     const creation = screenCalls.find((call) => call.name === "(creation)");
     expect(creation).toBeDefined();
-    // D-602 (25/11/2026) : options calculées selon la route — geste toujours désactivé, feuille native depuis une carte du
-    // catalogue des séances.
+    // D-602 (25/11/2026) : options calculées selon la route — geste toujours désactivé ; depuis une carte du catalogue des
+    // séances, modale plein écran (décision de Hermann du 27/11/2026) [feuille native `formSheet` — remplacée].
     const options = creation?.options as unknown;
     const resolve = (params: object | undefined) =>
       typeof options === "function" ? (options as (arg: { route: { params?: object } }) => object)({ route: { params } }) : options;
     expect(resolve(undefined)).toMatchObject({ gestureEnabled: false });
-    expect(resolve({ screen: "composition", params: { sessionId: "s1", presentation: "modal" } })).toMatchObject({ gestureEnabled: false, presentation: "formSheet" });
+    expect(resolve({ screen: "composition", params: { sessionId: "s1", presentation: "modal" } })).toMatchObject({ gestureEnabled: false, presentation: "fullScreenModal" });
   });
 
   it("leaves the (tabs) group's own navigation behaviour untouched — only the creation flow is concerned", () => {
