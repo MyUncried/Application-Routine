@@ -16,6 +16,8 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 
 ## Vision post-MVP — Bibliothèques et diffusion contrôlée des Mouvements
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 Les Bibliothèques se composent de **références**, non de copies : composition personnelle modifiable, reçue en lecture seule, visibilité personnelle/partagée/publique et droits d'accès gratuits ou payants indépendants. La fiche Mouvement possède une identité source stable indépendante du nom ; des fiches de sources différentes peuvent s'appeler « Squat », sans fusion. Une seule **révision active par fiche source** existe sur l'appareil (**F4-G**). Une mise à jour choisie dans une Bibliothèque actualise cette fiche dans toutes les autres Bibliothèques qui la référencent ; leurs compositions ne changent pas.
 
 Le propriétaire habilité peut **publier initialement** son propre Mouvement, sans autoriser sa redistribution par les destinataires. La **redistribution** d'une fiche tierce requiert une autorisation distincte. Une fiche reçue/importée n'est **ni modifiable, ni copiable, ni duplicable**, même pour un usage personnel (MOUV-D3, A-2 du 11/11/2026) ; elle peut seulement être **redistribuée à l'identique** lorsque ce droit est explicitement accordé par la source (lot futur). Les anciennes permissions destinataires à quatre modes sont supersédées. La fiche originale reste modifiable par son créateur/propriétaire habilité et non redistribuable par des tiers par défaut jusqu'au choix des droits de partage ; les paramètres d'Exercice restent indépendants. L'archivage n'interrompt pas la distribution ; l'arrêt du partage ne retire pas les installations reçues.
@@ -59,7 +61,7 @@ Le MVP est conçu pour un utilisateur individuel qui :
 - crée et réutilise des Exercices persistants à partir de T03 ;
 - les exécute immédiatement ou planifie directement ses Séances et Exercices persistants ;
 - consulte l’historique détaillé de ses exécutions ;
-- utilise l’application sans compte et sans synchronisation cloud.
+- utilise l’application sans compte et sans synchronisation cloud. [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 
 Le fitness constitue le premier cas d’usage ; le produit reste généraliste et couvre aussi la rééducation (D-436).
 
@@ -330,7 +332,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — 5 onglets`
 
 ## 6. Hors périmètre du MVP
 
-- compte utilisateur distant ;
+- compte utilisateur distant ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 - synchronisation cloud ou multi-appareils ;
 - partage de Séances ;
 - relation avec un professionnel ;

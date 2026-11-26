@@ -5389,7 +5389,7 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 
-Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
+Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système. [Complément du 24/11/2026, D-595 : effet lentille sur la pilule et sur le cadre actif, avec le verre natif d'iOS 26 ; voir [DSF Navigation](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md), contrat commun.]
 
 #### 4.4 Conservation d’état Catalogue
 
@@ -6324,6 +6324,8 @@ Le menu passe de cinq à **trois** options, dans cet ordre :
 
 ## Parcours UX à concevoir — Bibliothèques et partage (post-MVP)
 
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
+
 Écrans et états **fonctionnels à concevoir**, sans contrat visuel Figma validé à cette date [11/11/2026 : écrans existants listés par A-4, sans validation UX complète ; « Mes bibliothèques » et désinstallation reportées hors du premier lot] : **Mes Bibliothèques**, **Bibliothèque personnelle (composition modifiable)**, **Bibliothèque reçue (composition non modifiable)**, **Partage d'une fiche ou Bibliothèque**, **Mise à jour disponible / détail des changements**, **Espace en étoile / transmission individuelle** et **Signalement / contenu suspendu**.
 
 L'écran **« Mise à jour disponible »** doit signaler, avant « Mettre à jour », la nouvelle composition éventuelle et les fiches révisées, **dont celles référencées dans d'autres Bibliothèques**. Une seule validation actualise ces fiches dans toutes leurs références, sans changer les compositions des autres Bibliothèques. Les homonymes de sources différentes doivent rester identifiables par leur provenance, sans suffixes arbitraires imposés. Le propriétaire habilité peut publier initialement sa fiche sans accorder la redistribution à ses destinataires. [Texte d'origine : « Le mode « Protégé » n'empêche pas la première publication d'une fiche par son propriétaire. » — remplacé le 11/11/2026, les quatre modes étant supersédés par MOUV-D3/A-2.]
@@ -6433,8 +6435,8 @@ Les prescriptions précédentes « carte par occurrence de Routine » et « nom 
 Sur les catalogues, le Journal, l'Agenda et la composition de séance, la création passe par le bouton flottant ([DSF Bouton flottant](../DSF-BOUTON-FLOTTANT-2026-11-22.md)). Contrat :
 - le contenu du bouton dépend de l'écran ;
 - toucher le bouton déclenche l'action ;
-- glisser déplace le bouton, qui se range contre le bord le plus proche ; la position est conservée ;
+- [glisser déplace le bouton, qui se range contre le bord le plus proche ; la position est conservée — remplacé le 24/11/2026 par D-594 :] dès 10 pt de glissement, le bouton suit le doigt avec un retard ; relâché, il garde son élan et se range contre le bord gauche ou droit vers lequel l'élan le porte, à la hauteur où il s'arrête, sur tout l'écran (barre de navigation comprise) ; la position est conservée ;
 - le bouton passe sous les feuilles modales ;
-- en composition, le menu Créer s'ouvre vers le haut, avec quatre options.
+- en composition, le menu Créer s'ouvre vers le haut, avec quatre options [complété le 24/11/2026, D-594 : vers le bas quand il n'y a pas la place au-dessus].
 
 L'Agenda crée un créneau unique au jour sélectionné ; le Plan n'a pas de bouton flottant.

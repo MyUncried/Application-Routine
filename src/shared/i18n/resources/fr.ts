@@ -103,6 +103,16 @@ export const fr = {
     // d'une durée affichée hors du domaine — `estimated` (≈) et `lowerBound`
     // (≥), suivis d'une espace simple (rendu PRE-3 inchangé).
     // La Phrase et les formateurs du domaine en sont exemptés (AD-11).
+    // UI-FAB-01 (D-558, D-559, 24/11/2026) : nom VoiceOver du bouton flottant « Créer », propre à chaque écran.
+    floatingCreate: {
+      createRoutine: "Créer une routine",
+      createSlot: "Créer un créneau unique",
+      createMovement: "Créer un mouvement",
+      createSession: "Créer une séance",
+      createProgram: "Créer un programme",
+      openCreateMenu: "Ouvrir le menu Créer",
+      closeCreateMenu: "Fermer le menu Créer",
+    },
     durationNature: {
       estimatedPrefix: "≈ ",
       lowerBoundPrefix: "≥ ",
@@ -187,7 +197,7 @@ export const fr = {
         scheduled: "Planifiées",
         archived: "Archivées",
       },
-      createAction: "Créer",
+      // [Créer (bouton de la zone de contexte) — retiré le 24/11/2026, UI-FAB-01 : bouton flottant]
       loading: {
         accessibilityLabel: "Chargement des séances en cours",
       },
@@ -536,7 +546,9 @@ export const fr = {
         // Complément du 5 novembre 2026 (§3) : « Créer un circuit », « Créer un cycle ». [« Ajouter un … » — remplacé.]
         addCircuit: "Créer un circuit",
         addCycle: "Créer un cycle",
-        cancel: "Annuler",
+        // UI-FAB-01 (D-558) : quatrième option du menu Créer, ouvert depuis le bouton flottant (Figma `13057:49`).
+        addStopPoint: "Ajouter un point d’arrêt",
+        // [Annuler du menu Créer — remplacé le 24/11/2026, UI-FAB-01 : croix du bouton flottant (shared.floatingCreate.closeCreateMenu)]
         // Action indisponible : même traitement que « Un circuit » du menu du Catalogue (atténuée,
         // nom suivi de « indisponible »). Formulation à valider.
         unavailableAccessibilityLabel: "{action} — indisponible",
@@ -939,7 +951,7 @@ export const fr = {
         validateAccessibilityLabel: "Valider",
       },
       // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
-      addActivity: "Ajouter un exercice",
+      // [« + » Ajouter un exercice de la zone de contexte — retiré le 24/11/2026, UI-FAB-01 : bouton flottant (shared.floatingCreate.openCreateMenu)]
       // PRE-4, décision Q54 : l'action finale de la Composition enregistre la Séance (repris de
       // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
       // PRE-6 (story 2.1, CE-T03-08, D-388, Figma `8328:28732`) : libellé « Continuer » ; même
@@ -951,7 +963,7 @@ export const fr = {
       // « Ajouter un arrêt » et mode placement — puces des emplacements, barre « Confirmer N
       // pauses ajoutées » / « Annuler » et roulette « Durée de récupération ».
       placement: {
-        addStopAccessibilityLabel: "Ajouter un arrêt",
+        // [sablier « Ajouter un arrêt » de la zone de contexte — retiré le 24/11/2026, UI-FAB-01 : option du menu Créer (addToSession.addStopPoint)]
         recovery: "Récupération",
         stopPoint: "Point d’arrêt",
         addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",

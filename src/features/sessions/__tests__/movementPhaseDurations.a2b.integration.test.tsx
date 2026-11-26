@@ -136,7 +136,7 @@ function cardNames(): string[] {
 }
 
 async function openMenuAction(label: string) {
-  fireEvent.press(screen.getByLabelText(composition.addActivity));
+  fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
   fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(label));
   await settle(300);
   // Complément du 5 novembre 2026 (§1, §3) : « Créer un exercice » ouvre la modale de création ; « Exercice libre » ouvre la

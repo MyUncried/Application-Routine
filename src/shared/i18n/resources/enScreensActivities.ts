@@ -221,7 +221,9 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
       // Complément du 5 novembre 2026 (§3) : « Créer un circuit », « Créer un cycle ». [« Ajouter un … » — remplacé.]
       addCircuit: "Create a circuit",
       addCycle: "Create a cycle",
-      cancel: "Cancel",
+      // UI-FAB-01 (D-558) : quatrième option du menu Créer, ouvert depuis le bouton flottant.
+      addStopPoint: "Add a hold",
+      // [Annuler du menu Créer — remplacé le 24/11/2026, UI-FAB-01]
       // Action indisponible : même traitement que « Un circuit » du menu du Catalogue (atténuée,
       // nom suivi de « indisponible »). Formulation à valider.
       unavailableAccessibilityLabel: "{action} — unavailable",

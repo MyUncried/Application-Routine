@@ -1,9 +1,12 @@
 import { Image } from "expo-image";
-import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useContext } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions, type StyleProp, type ViewStyle } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 
 import { strings } from "@/shared/i18n";
+import { FloatingCreateFace, type FloatingCreateAnchor } from "@/shared/ui/FloatingCreateButton";
+import { FLOATING_BUTTON_SIZE, FLOATING_EDGE_INSET } from "@/shared/ui/floatingCreatePosition";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, type } from "@/shared/ui/tokens";
 
@@ -84,17 +87,11 @@ const ROW_GAP = 10;
 const PILL_WIDTH = 243;
 const PILL_TO_ICON = 10;
 const ICON_SIZE = 32;
-/** Centre du « + » depuis le bord droit de l'écran (Figma : 402 − 361). */
-const PLUS_CENTER_FROM_RIGHT = 41;
-/** Centre vertical du « + » au-dessus de la première rangée (Figma `11059:18868` : 212 − 165). */
-const PLUS_CENTER_ABOVE_FIRST_ROW = 47;
-/** Cible tactile d'Annuler (44), centrée sur le « + ». */
-const PLUS_TARGET = 44;
 /** Annuler (Figma `11059:18868`, « Action / Fermer — Annuler ») : cercle de 34, croix de 24. */
 const CANCEL_SIZE = 34;
 const CANCEL_GLYPH = 24;
 
-export type CreateMenuIcon = "exercise" | "movement" | "session" | "format" | "circuit" | "cycle";
+export type CreateMenuIcon = "exercise" | "movement" | "session" | "format" | "circuit" | "cycle" | "stopPoint";
 
 export type CreateMenuOption = {
   readonly key: string;
@@ -102,6 +99,8 @@ export type CreateMenuOption = {
   readonly icon: CreateMenuIcon;
   /** Absent : action indisponible. */
   readonly onPress?: () => void;
+  /** Indication VoiceOver (reprise de l'action d'origine, ex. « Ajouter un arrêt »). */
+  readonly accessibilityHint?: string;
   readonly testID: string;
 };
 
@@ -109,6 +108,8 @@ const SVG_ICONS = {
   movement: require("../../../assets/composition/menu-mouvement.svg"),
   circuit: require("../../../assets/composition/menu-circuit.svg"),
   cycle: require("../../../assets/composition/menu-cycle.svg"),
+  // UI-FAB-01 : « Ajouter un point d'arrêt », sablier et pastille (Figma `13057:53`).
+  stopPoint: require("../../../assets/composition/menu-point-arret.svg"),
 } as const;
 
 /**
@@ -186,6 +187,13 @@ export function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
     case "cycle":
       // Figma `10774:20144` : icône complète de 32 (fond rond compris).
       return <Image source={SVG_ICONS.cycle} style={styles.iconImage} contentFit="contain" />;
+    case "stopPoint":
+      // UI-FAB-01, Figma `13057:51` : fond rond bleu, pictogramme posé à 5 (image de 22,92 × 22,92).
+      return (
+        <View style={[styles.iconCircle, styles.iconBlue]} testID="create-menu-icon-stop-point">
+          <Image source={SVG_ICONS.stopPoint} style={styles.stopPointGlyph} contentFit="contain" />
+        </View>
+      );
     default: {
       const unreachable: never = icon;
       return unreachable;
@@ -193,82 +201,55 @@ export function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
   }
 }
 
-/** Boîte du « + » d'origine, dans le repère du menu. */
-type PlusAnchor = { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
-
 /**
- * Contre-recette iPhone du 30/10 (Hermann : « Le bouton "+" est dupliqué et décalé, on en voit deux.
- * Il ne faut qu'un seul bouton, l'original, qui apparaît activé. Les autres boutons restent alignés
- * dessous ») : le « + » du premier plan était posé aux cotes de Figma (402 − 41, 40 au-dessus de la
- * première rangée), alors que le « + » d'origine de la zone de contexte, visible sous le voile, est
- * placé par la mise en page réelle — deux « + » décalés. Le menu mesure désormais la boîte du « + »
- * d'origine (`measureInWindow`, rapportée à son propre repère) et y repose le sien, qui le recouvre
- * exactement : un seul « + » visible, au-dessus du voile ; l'axe et les boutons ronds s'alignent sur
- * son centre. Sans mesure (avant la première, ou en test), les cotes de Figma.
+ * UI-FAB-01 (D-558, DSF Bouton flottant § 4 ; Figma `10705:20223`, mis à jour le 22/11/2026) : le menu s'ouvre vers le haut
+ * depuis le bouton flottant. Le bouton devient une croix (variante « Fermer », même rond de verre, même place) ; un voile
+ * couvre l'écran ; les options s'empilent au-dessus, la dernière à 14 du bouton (Figma : 704 → 718), écart 10, icônes rondes
+ * sur l'axe du bouton, pilules de 263 à 10 des icônes. L'axe bleu (recette du 29/10, cre-figma) relie la croix à la première
+ * icône. Toucher la croix ou le voile ferme le menu sans action.
+ * Bouton rangé à gauche (déplacement, DSF § 5) : même pile, pilules à droite des icônes (miroir ; choix de Claude, Figma ne
+ * dessine que le bouton à droite — à valider sur iPhone).
+ * [Ouverture vers le bas depuis le « + » de la zone de contexte (`top`, mesure du « + » d'origine, `usePlusAnchor`, croix
+ * grise de 34) — remplacée le 24/11/2026.]
  */
-function usePlusAnchor(
-  menuRef: RefObject<View | null>,
-  plusRef: RefObject<View | null> | undefined,
-): { readonly anchor: PlusAnchor | null; readonly remeasure: () => void } {
-  const [anchor, setAnchor] = useState<PlusAnchor | null>(null);
-  const activeRef = useRef(true);
-  // Recette du 01/11/2026 (m11-annuler) : mesure reprise à chaque mise en page du repère (une mesure
-  // faite avant la mise en page native peut être absente ou périmée).
-  const remeasure = useCallback(() => {
-    const menu = menuRef.current;
-    const plus = plusRef?.current;
-    if (!menu || !plus) return;
-    menu.measureInWindow((menuX, menuY) => {
-      plus.measureInWindow((x, y, width, height) => {
-        if (!activeRef.current || !(width > 0 && height > 0)) return;
-        if (![x, y, menuX, menuY].every(Number.isFinite)) return;
-        const next = { x: x - menuX, y: y - menuY, width, height };
-        setAnchor((current) =>
-          current !== null && current.x === next.x && current.y === next.y && current.width === next.width && current.height === next.height
-            ? current
-            : next,
-        );
-      });
-    });
-  }, [menuRef, plusRef]);
-  useLayoutEffect(() => {
-    activeRef.current = true;
-    remeasure();
-    return () => {
-      activeRef.current = false;
-    };
-  }, [remeasure]);
-  return { anchor, remeasure };
-}
+const FLOATING_PILL_WIDTH = 263;
+/** Marge minimale entre la barre d'état et la première rangée d'un menu ouvert vers le haut. Valeur de conception. */
+const MENU_TOP_MARGIN = 8;
+const LAST_ROW_TO_BUTTON = 14;
 
 export function CreateMenu({
-  top,
+  anchor,
   options,
   onCancel,
   cancelLabel,
   cancelTestID,
-  plusAnchorRef,
 }: {
-  /** Ordonnée de la première rangée (8 sous la zone de contexte). */
-  readonly top: number;
+  /** Centre du bouton flottant dans le repère de l'écran ; `null` avant sa première mise en page. */
+  readonly anchor: FloatingCreateAnchor | null;
   readonly options: readonly CreateMenuOption[];
-  /** Annuler (le « + » transformé) et le voile : ferment le menu sans action. */
+  /** La croix (le bouton transformé) et le voile : ferment le menu sans action. */
   readonly onCancel: () => void;
   readonly cancelLabel: string;
   readonly cancelTestID: string;
-  /** Contre-recette du 30/10 : boîte du « + » d'origine, recouverte par Annuler. */
-  readonly plusAnchorRef?: RefObject<View | null>;
 }) {
-  const { width } = useWindowDimensions();
-  const menuRef = useRef<View>(null);
-  const { anchor, remeasure } = usePlusAnchor(menuRef, plusAnchorRef);
-  const plusCenterX = anchor ? anchor.x + anchor.width / 2 : width - PLUS_CENTER_FROM_RIGHT;
-  const plusCenterY = anchor ? anchor.y + anchor.height / 2 : top - PLUS_CENTER_ABOVE_FIRST_ROW;
-  const iconLeft = plusCenterX - ICON_SIZE / 2;
-  const pillLeft = iconLeft - PILL_TO_ICON - PILL_WIDTH;
-  // L'axe part du centre d'Annuler (recouvert par son cercle opaque) : il le relie aux icônes.
-  const axisTop = plusCenterY;
-  const lastRowCenter = top + (options.length - 1) * (ROW_HEIGHT + ROW_GAP) + ROW_HEIGHT / 2;
+  const { width, height } = useWindowDimensions();
+  const insets = useContext(SafeAreaInsetsContext) ?? { top: 0 };
+  const centerX = anchor?.centerX ?? width - FLOATING_EDGE_INSET - FLOATING_BUTTON_SIZE / 2;
+  const centerY = anchor?.centerY ?? height - FLOATING_BUTTON_SIZE;
+  const mirrored = anchor?.side === "LEFT";
+  const iconLeft = centerX - ICON_SIZE / 2;
+  const rowLeft = mirrored ? iconLeft : iconLeft - PILL_TO_ICON - FLOATING_PILL_WIDTH;
+  // D-594 (Hermann, 24/11/2026 : « Oui ») : vers le haut s'il y a la place sous la barre d'état, sinon vers le bas ; même
+  // ordre de haut en bas, même écart (14) entre le bouton et la rangée la plus proche.
+  const stack = options.length * ROW_HEIGHT + (options.length - 1) * ROW_GAP;
+  const upwardTop = centerY - FLOATING_BUTTON_SIZE / 2 - LAST_ROW_TO_BUTTON - stack;
+  const downward = upwardTop < insets.top + MENU_TOP_MARGIN;
+  const firstTop = downward ? centerY + FLOATING_BUTTON_SIZE / 2 + LAST_ROW_TO_BUTTON : upwardTop;
+  const rowTop = (index: number) => firstTop + index * (ROW_HEIGHT + ROW_GAP);
+  // Axe : du centre du bouton à la rangée la plus éloignée.
+  const farRowCenter = (downward ? rowTop(options.length - 1) : rowTop(0)) + ROW_HEIGHT / 2;
+  const axisTop = Math.min(centerY, farRowCenter);
+  const axisHeight = Math.abs(centerY - farRowCenter);
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
 
   return (
@@ -279,23 +260,13 @@ export function CreateMenu({
       testID="composition-add-activity-tree"
     >
       <Pressable onPress={onCancel} accessible={false} testID="composition-add-activity-tree-backdrop" style={[StyleSheet.absoluteFill, styles.scrim]} />
-      {/* Repère du menu pour la mesure du « + » d'origine (sans dessin, sans toucher). */}
-      <View
-        ref={menuRef}
-        collapsable={false}
-        pointerEvents="none"
-        onLayout={remeasure}
-        style={StyleSheet.absoluteFill}
-        testID="composition-add-activity-tree-frame"
-      />
       <View
         pointerEvents="none"
-        style={[styles.axis, { left: plusCenterX - 1, top: axisTop, height: Math.max(0, lastRowCenter - axisTop) }]}
+        style={[styles.axis, { left: centerX - 1, top: axisTop, height: axisHeight }]}
         testID="composition-add-activity-tree-axis"
       />
       {options.map((option, index) => {
         const disabled = option.onPress === undefined;
-        const rowTop = top + index * (ROW_HEIGHT + ROW_GAP);
         return (
           <Pressable
             key={option.key}
@@ -303,11 +274,12 @@ export function CreateMenu({
             disabled={disabled}
             accessibilityRole="button"
             accessibilityLabel={disabled ? unavailable.replace("{action}", option.label) : option.label}
+            {...(option.accessibilityHint !== undefined && !disabled ? { accessibilityHint: option.accessibilityHint } : {})}
             accessibilityState={{ disabled }}
-            style={[styles.row, { top: rowTop, left: pillLeft }]}
+            style={[styles.row, mirrored ? styles.rowMirrored : null, { top: rowTop(index), left: rowLeft }]}
             testID={option.testID}
           >
-            <View style={[styles.pill, disabled ? styles.pillDisabled : styles.pillOption]} testID={`${option.testID}-pill`}>
+            <View style={[styles.pill, styles.floatingPill, disabled ? styles.pillDisabled : styles.pillOption]} testID={`${option.testID}-pill`}>
               <Text style={[styles.label, disabled ? styles.labelDisabled : styles.labelOption]} numberOfLines={1} testID={`${option.testID}-label`}>
                 {option.label}
               </Text>
@@ -319,20 +291,23 @@ export function CreateMenu({
           </Pressable>
         );
       })}
-      {/* Annuler : le « + » transformé, à son emplacement exact, au-dessus du voile et de l'axe. */}
-      <CloseCircleButton
+      {/* La croix : le bouton flottant transformé, à sa place exacte, au-dessus du voile et de l'axe. */}
+      <Pressable
         onPress={onCancel}
-        label={cancelLabel}
-        style={[styles.cancelTarget, { left: plusCenterX - PLUS_TARGET / 2, top: plusCenterY - PLUS_TARGET / 2 }]}
+        accessibilityRole="button"
+        accessibilityLabel={cancelLabel}
+        style={[styles.floatingClose, { left: centerX - FLOATING_BUTTON_SIZE / 2, top: centerY - FLOATING_BUTTON_SIZE / 2 }]}
         testID={cancelTestID}
-      />
+      >
+        <FloatingCreateFace variant="close" testID={`${cancelTestID}-face`} />
+      </Pressable>
     </Reanimated.View>
   );
 }
 
 /**
- * Croix standard sur fond gris, 34 px, cible de 44 (Figma « Action / Fermer — Annuler ») : Annuler du menu
- * Créer, et fermeture de la fenêtre Formats (référence Formats du 02/11/2026, `9977:19613`).
+ * Croix standard sur fond gris, 34 px, cible de 44 (Figma « Action / Fermer — Annuler ») : [Annuler du menu
+ * Créer — remplacé le 24/11/2026 par la croix du bouton flottant ;] fermeture de la fenêtre Formats (référence Formats du 02/11/2026, `9977:19613`).
  */
 export function CloseCircleButton({
   onPress,
@@ -367,7 +342,9 @@ const styles = StyleSheet.create({
   layer: { zIndex: CREATE_MENU_LAYER, elevation: CREATE_MENU_LAYER },
   scrim: { backgroundColor: SCRIM },
   axis: { position: "absolute", width: 2, borderRadius: 1, backgroundColor: AXIS_COLOR },
-  cancelTarget: { position: "absolute", width: PLUS_TARGET, height: PLUS_TARGET, alignItems: "center", justifyContent: "center" },
+  floatingClose: { position: "absolute", width: FLOATING_BUTTON_SIZE, height: FLOATING_BUTTON_SIZE },
+  rowMirrored: { flexDirection: "row-reverse" },
+  floatingPill: { width: 263 },
   formatFrame: { position: "absolute", left: 5, top: 5, width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: "#FFFFFF" },
   formatLine: { position: "absolute", left: 9, width: 12, height: 1.6, borderRadius: 0.8, backgroundColor: "#FFFFFF" },
   cancelCircle: {
@@ -412,5 +389,6 @@ const styles = StyleSheet.create({
   iconImage: { width: ICON_SIZE, height: ICON_SIZE },
   glyph: { position: "absolute", backgroundColor: "#FFFFFF", borderRadius: 1 },
   movementGlyph: { width: 20, height: 20 },
+  stopPointGlyph: { position: "absolute", left: 4, top: 4, width: 22.9167, height: 22.9167 },
   circuitGlyph: { position: "absolute", left: 4, top: 4, width: 23, height: 22 },
 });

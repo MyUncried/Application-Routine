@@ -177,7 +177,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition | Exemple |
 | --- | --- | --- |
-| **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
+| **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).] | Utilisateur de l’appareil |
 | **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices organisés avant, dans ou après un Circuit répété en Tours, et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
 | **Exercice** | Association d’un Mouvement à des paramètres d’exécution ; plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Elle peut porter une **Charge** facultative et informative (RM-235 à RM-241). Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
@@ -475,6 +475,8 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 Exercice libre : entrée de création d’un Exercice sans préconfiguration de modèle ; distinct d’un Format nommé Libre. Rang Death by : fenêtre à tenter, distincte des rangs acquis. « Limite de l’intervalle atteinte » décrit l’arrêt avant un rang impossible, sans tentative fictive.
 
 ## Glossaire cible — Bibliothèques et Mouvements distribués (post-MVP)
+
+[Précisé le 19/11/2026 — CPT-01 révisée, CPT-07, CPT-20 : partage, relations, espaces et modération minimale entrent dans le MVP par le lot Compte et Communauté ; paiements et commerce restent post-MVP.]
 
 Ces termes décrivent la **diffusion entre utilisateurs** et ne changent pas le modèle opérationnel actuel avant migration. [Conception fonctionnelle](../KODJO-Conception-Bibliotheques-Mouvements-Partage-2026-11-10.md).
 

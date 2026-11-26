@@ -1,5 +1,4 @@
-import { type RefObject, useEffect, useRef } from "react";
-import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { spokenDurations } from "@/domain/activities/durationFormat";
 import type { Label } from "@/domain/labels/Label";
@@ -7,8 +6,7 @@ import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
-import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
+import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Cible tactile des actions de la bande de contexte (Figma `8328:28619`,
@@ -36,15 +34,7 @@ const INFO_ROW_HEIGHT = 32;
 /** Bouton « + » (Figma `8328:28630`) : cercle 34, croix 20 × 2,5, rayon des barres 1. */
 const ADD_BUTTON = { size: 34, glyphLength: 20, glyphThickness: 2.5, glyphRadius: 1 } as const;
 
-/**
- * Bouton « Ajouter un arrêt » (PRE-6 story 4.1, Figma `8328:28622` / `8328:29287`) : cercle 34,
- * contour 1 `primary`, icône posée à 5 du bord (contour compris) ; « + » à 44 de son origine
- * (écart 10, groupe `8328:28621`). Standard : fond blanc et ombre portée (0, 2, flou 4, noir à
- * 14 %) ; actif (placement) : fond lavande `#F1F1FF`, sans ombre — valeurs Figma sans jeton.
- */
-const ADD_STOP_BUTTON = { size: 34, iconInset: 5 - 1, actionsGap: spacing[10] } as const;
-const ADD_STOP_ACTIVE_SURFACE = "#F1F1FF";
-const ADD_STOP_SHADOW = { color: "#000000", opacity: 0.14, offsetY: 2, radius: 2 } as const;
+// [Bouton « Ajouter un arrêt » (cercle 34, PRE-6 story 4.1) — retiré de la zone de contexte le 24/11/2026 (UI-FAB-01, D-558).]
 
 /**
  * PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : œil des Volumes du circuit dans les
@@ -100,36 +90,9 @@ export type CompositionContextHeaderProps = {
   readonly onOpenLabelPicker: () => void;
   /** Durée de séance déjà formatée (`formatCompositionSessionDuration`). */
   readonly sessionDuration: string;
-  /** Ouvre l'arbre d'ajout existant (V2-CAT-01). */
-  readonly onAdd: () => void;
-  /**
-   * PRE-6 story 4.1 : entre en mode placement (« Ajouter un arrêt »). Contre-recette iPhone du 30/10
-   * (Hermann : « Appuyer de nouveau sur le bouton d'action point d'arrêt referme l'écran de
-   * sélection (même comportement sur confirmer) ») : en placement, le bouton reste actif et l'écran
-   * referme la sélection comme « Confirmer ».
-   */
-  readonly onAddStop: () => void;
-  /**
-   * Contre-recette du 30/10 (menu Créer) : boîte réelle du « + », mesurée par le menu pour reposer
-   * l'unique « + » du premier plan exactement à sa place.
-   */
-  readonly addActionRef?: RefObject<View | null>;
-  /** PRE-6 story 4.1 : mode placement en cours — bouton « Ajouter un arrêt » actif, « + » atténué et inactif. */
-  readonly isPlacementActive?: boolean;
-  /**
-   * Recette iPhone du 01/11/2026 (m11-annuler) : menu Créer ouvert — le « + » est devenu Annuler, posé
-   * par le menu à sa place exacte, au-dessus du voile ; l'original s'efface (une seule commande visible).
-   */
-  readonly isCreateMenuOpen?: boolean;
-  /** PRE-6 story 4.1 : aucun emplacement où ajouter une pause (Composition vide, tout est déjà présent). */
-  readonly isAddStopDisabled?: boolean;
-  /** PRE-6 story 4.1 : demande de focus d'accessibilité sur « Ajouter un arrêt » (sortie du placement), jamais au montage. */
-  readonly addStopFocusRequest?: number;
-  /**
-   * PRE-6 story 6.3 (revue) : indice d'accessibilité de « Ajouter un arrêt » — quand le placement
-   * n'offre qu'un retrait (aucun ajout possible, des points existants).
-   */
-  readonly addStopAccessibilityHint?: string;
+  // [UI-FAB-01 (D-558, 24/11/2026) : « + Ajouter une activité » (`onAdd`, `addActionRef`, `isCreateMenuOpen`) et « Ajouter un
+  // arrêt » (`onAddStop`, `isPlacementActive`, `isAddStopDisabled`, `addStopFocusRequest`, `addStopAccessibilityHint`) quittent
+  // la zone de contexte : bouton flottant « Créer » et menu Créer de la Composition.]
   // Complément du 5 novembre 2026 (Hermann, §3 et §6, CE-T03-08, CE-CIR-03 retiré) : bouton œil « Voir les volumes » et feuille « Volumes du circuit » retirés. [PRE-6 story 5.1b / 3.4 — remplacé.]
   readonly testID?: string;
 };
@@ -159,25 +122,9 @@ export function CompositionContextHeader({
   sessionColor,
   onOpenLabelPicker,
   sessionDuration,
-  onAdd,
-  onAddStop,
-  isPlacementActive = false,
-  isCreateMenuOpen = false,
-  isAddStopDisabled = false,
-  addStopFocusRequest = 0,
-  addStopAccessibilityHint,
-  addActionRef,
   testID = "composition-context-header",
 }: CompositionContextHeaderProps) {
   const composition = strings.screens.composition;
-  const addStopRef = useRef<View>(null);
-  const lastAddStopFocusRequestRef = useRef(addStopFocusRequest);
-  useEffect(() => {
-    if (addStopFocusRequest === lastAddStopFocusRequestRef.current) return;
-    lastAddStopFocusRequestRef.current = addStopFocusRequest;
-    if (addStopRef.current) AccessibilityInfo.sendAccessibilityEvent(addStopRef.current, "focus");
-  }, [addStopFocusRequest]);
-  const addStopUnavailable = !isPlacementActive && isAddStopDisabled;
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.nameRow} testID="composition-name-color-field">
@@ -248,74 +195,13 @@ export function CompositionContextHeader({
             {sessionDuration}
           </Text>
         </View>
-        {/* Revue 5.1b : trois boîtes tactiles réelles de 44, sans écart, cercles de 34 centrés. */}
-        <View style={styles.actions} testID="composition-context-actions">
-          <Pressable
-            ref={addStopRef}
-            onPress={onAddStop}
-            // Contre-recette du 30/10 : actif en placement (second appui = « Confirmer »).
-            disabled={addStopUnavailable}
-            accessibilityRole="button"
-            accessibilityLabel={composition.placement.addStopAccessibilityLabel}
-            accessibilityHint={isPlacementActive ? undefined : addStopAccessibilityHint}
-            accessibilityState={{ selected: isPlacementActive, disabled: addStopUnavailable }}
-            style={[styles.commandTarget, addStopUnavailable ? styles.attenuated : null]}
-            testID="composition-add-stop-action"
-          >
-            <View
-              style={[
-                styles.commandCircle,
-                styles.addStopButton,
-                isPlacementActive ? styles.addStopButtonActive : styles.addStopButtonStandard,
-              ]}
-              testID="composition-add-stop-action-circle"
-            >
-              <View style={styles.addStopIcon}>
-                <KodjoIcon
-                  name={isPlacementActive ? "add-stop-active" : "add-stop"}
-                  testID={isPlacementActive ? "composition-add-stop-icon-active" : "composition-add-stop-icon"}
-                />
-              </View>
-            </View>
-          </Pressable>
-          <Pressable
-            ref={addActionRef}
-            onPress={onAdd}
-            disabled={isPlacementActive}
-            accessibilityRole="button"
-            accessibilityLabel={composition.addActivity}
-            accessibilityState={{ disabled: isPlacementActive }}
-            style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null, isCreateMenuOpen ? styles.replaced : null]}
-            accessibilityElementsHidden={isCreateMenuOpen}
-            importantForAccessibility={isCreateMenuOpen ? "no-hide-descendants" : "auto"}
-            testID="composition-add-activity-action"
-          >
-            <AddActivityCircle testID="composition-add-activity-action-circle" iconTestID="composition-add-activity-icon" />
-          </Pressable>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/**
- * Cercle « + » de l'action « Ajouter une activité » (cercle 34, contour `primary`, croix de 20).
- * PRE-9 (B.2) : exporté pour être reposé au premier plan du menu Créer (Figma `10705:20340`).
- */
-export function AddActivityCircle({ testID, iconTestID }: { readonly testID?: string; readonly iconTestID?: string }) {
-  return (
-    <View style={[styles.commandCircle, styles.plainCircle]} testID={testID}>
-      <View style={styles.addGlyph} testID={iconTestID}>
-        <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID={iconTestID === undefined ? undefined : `${iconTestID}-bar`} />
-        <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID={iconTestID === undefined ? undefined : `${iconTestID}-bar`} />
+        {/* [Revue 5.1b : commandes « Ajouter un arrêt » et « + » (cibles de 44) — retirées le 24/11/2026 (UI-FAB-01, D-558).] */}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Recette du 01/11/2026 (m11-annuler) : « + » remplacé par Annuler pendant le menu Créer.
-  replaced: { opacity: 0 },
   // Figma `8328:28608` : colonne, écart 10, posée à 20 du haut de la zone de
   // contexte (padding haut de `ContextBand` 12 + 8). Revue 5.1b : l'en-tête s'étend de 5 à droite et
   // de 6 en bas (marges négatives compensées) pour CONTENIR les cibles de 44 des commandes ; le nom
@@ -392,77 +278,5 @@ const styles = StyleSheet.create({
     color: TEXT_TERTIARY,
     flexShrink: 1,
     minWidth: 0,
-  },
-  // Revue 5.1b : boîtes jointives de 44 (l'écart de 10 entre cercles vient de leurs marges).
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexShrink: 0,
-    height: CONTEXT_TOUCH_TARGET,
-  },
-  commandTarget: {
-    width: CONTEXT_TOUCH_TARGET,
-    height: CONTEXT_TOUCH_TARGET,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  commandCircle: {
-    width: ADD_BUTTON.size,
-    height: ADD_BUTTON.size,
-    borderRadius: fixedRadii[17],
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  addStopButton: {
-    width: ADD_STOP_BUTTON.size,
-    height: ADD_STOP_BUTTON.size,
-  },
-  addStopButtonStandard: {
-    backgroundColor: colors.background,
-    shadowColor: ADD_STOP_SHADOW.color,
-    shadowOpacity: ADD_STOP_SHADOW.opacity,
-    shadowOffset: { width: 0, height: ADD_STOP_SHADOW.offsetY },
-    shadowRadius: ADD_STOP_SHADOW.radius,
-    elevation: 2,
-  },
-  addStopButtonActive: {
-    backgroundColor: ADD_STOP_ACTIVE_SURFACE,
-  },
-  // Boîte 25 × 25 de l'export, posée à 5 du bord extérieur (4 dans le contour de 1).
-  addStopIcon: {
-    position: "absolute",
-    left: ADD_STOP_BUTTON.iconInset,
-    top: ADD_STOP_BUTTON.iconInset,
-  },
-  // Mode placement : le reste de l'en-tête d'actions est atténué et inactif.
-  attenuated: {
-    opacity: UNSELECTED_OPACITY,
-  },
-  // Cercle du « + » et de l'œil (story 5.1b : même gabarit) : fond blanc, contenu centré.
-  plainCircle: {
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addGlyph: {
-    width: ADD_BUTTON.glyphLength,
-    height: ADD_BUTTON.glyphLength,
-  },
-  addGlyphBar: {
-    position: "absolute",
-    backgroundColor: colors.primary,
-    borderRadius: ADD_BUTTON.glyphRadius,
-  },
-  addGlyphHorizontal: {
-    left: 0,
-    top: (ADD_BUTTON.glyphLength - ADD_BUTTON.glyphThickness) / 2,
-    width: ADD_BUTTON.glyphLength,
-    height: ADD_BUTTON.glyphThickness,
-  },
-  addGlyphVertical: {
-    top: 0,
-    left: (ADD_BUTTON.glyphLength - ADD_BUTTON.glyphThickness) / 2,
-    width: ADD_BUTTON.glyphThickness,
-    height: ADD_BUTTON.glyphLength,
   },
 });

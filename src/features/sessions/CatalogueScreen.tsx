@@ -400,6 +400,19 @@ export function CatalogueScreen() {
     <TabbedScreen
       title={title}
       palette={{ context: palette.context, background: palette.background }}
+      // UI-FAB-01 (D-558, DSF Bouton flottant § 3) : bouton flottant « Créer » selon le segment — silhouette « + » (créer un
+      // mouvement), liste « + » (créer une séance), carnet « + » (créer un programme) ; même action que l'ancien bouton
+      // Créer de la zone de contexte (`handleCreatePress`).
+      floatingCreate={{
+        variant: activeSegment === "movements" ? "movement" : activeSegment === "programs" ? "program" : "session",
+        label:
+          activeSegment === "movements"
+            ? strings.shared.floatingCreate.createMovement
+            : activeSegment === "programs"
+              ? strings.shared.floatingCreate.createProgram
+              : strings.shared.floatingCreate.createSession,
+        onPress: handleCreatePress,
+      }}
       tabs={{
         options: [
           { value: "movements", label: strings.screens.movement.catalogue.segment },
@@ -448,7 +461,6 @@ export function CatalogueScreen() {
                 />
               ),
               sortLabel: t.sortAction,
-              action: { label: t.createAction, icon: "create", onPress: handleCreatePress },
               summaryAccessory: (
                 <ListGridToggle
                   value={movementView ?? "LIST"}
@@ -479,7 +491,7 @@ export function CatalogueScreen() {
                       setSessionFilters(EMPTY_SESSION_FILTERS);
                       setSessionFilterLabels([]);
                     }}
-                    onCreate={handleCreatePress}
+                    widenSearch
                   />
                 ) : activeSegment === "programs" ? (
                   <ProgramContext
@@ -488,7 +500,7 @@ export function CatalogueScreen() {
                     counts={programCountsValue}
                     query={programQuery}
                     onChangeQuery={setProgramQuery}
-                    onCreate={handleCreatePress}
+                    widenSearch
                   />
                 ) : null,
             }
@@ -519,7 +531,7 @@ export function CatalogueScreen() {
           styles.body,
           activeSegment === "movements" || activeSegment === "programs" || (activeSegment === "sessions" && sessionCatalogue.state.status === "ready")
             ? styles.bodyFlush
-            : null, { paddingBottom: navigationBarTotalHeight() }]}
+            : { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
       >
         {activeSegment === "sessions" ? (
@@ -535,6 +547,7 @@ export function CatalogueScreen() {
                 searching={sessionQuery.trim().length > 0}
                 resetToken={movementsReloadToken}
                 topInset={LIST_TOP_INSET}
+                bottomInset={navigationBarTotalHeight()}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
@@ -553,7 +566,7 @@ export function CatalogueScreen() {
             failed={programCatalogue.failed}
             today={today}
             topInset={LIST_TOP_INSET}
-            bottomInset={0}
+            bottomInset={navigationBarTotalHeight()}
             onOpen={(programId) => openProgram({ programId })}
             onDuplicate={(programId) => openProgram({ duplicateOf: programId })}
             onChanged={reloadPrograms}
@@ -564,6 +577,7 @@ export function CatalogueScreen() {
           <MovementCatalogueGrid
             reloadToken={movementsReloadToken}
             topInset={LIST_TOP_INSET}
+            bottomInset={navigationBarTotalHeight()}
             query={movementQuery}
             filters={movementFilters}
             counter={movementCounter}
@@ -578,6 +592,7 @@ export function CatalogueScreen() {
           <MovementCatalogueList
             reloadToken={movementsReloadToken}
             topInset={LIST_TOP_INSET}
+            bottomInset={navigationBarTotalHeight()}
             query={movementQuery}
             filters={movementFilters}
             counter={movementCounter}
@@ -594,38 +609,16 @@ export function CatalogueScreen() {
           />
         ) : null}
       </View>
-      <NavigationFade background={palette.background} />
+      {/* [Fondu et fond protégé au-dessus de la barre (D-501, `NavigationFade`) — retirés le 24/11/2026 (D-595, Hermann :
+          choix « Liste sous la barre ») : la liste défile sous la barre en verre, comme dans le Calendrier et le Profil.] */}
       <PlanningNoticeHost message={planningNotice} onDismiss={() => setPlanningNotice(null)} testID="catalogue-notice" />
     </TabbedScreen>
   );
 }
 
-/**
- * D-501 (Hermann, 06/11/2026 ; KODJO-Catalogues-cartes-modales-2026-11-06 §3 ; Figma `10266:20578`/`10266:20579`,
- * `5867:5070`/`5867:5069`) : fondu au-dessus de la navigation basse, à la couleur `background` du Catalogue —
- * dégradé de 40 pt de la transparence vers `background`, puis fond protégé jusqu'au haut de la barre (16 pt dans
- * Figma, plus les 8 pt entre ce fond et la barre, où la liste s'arrête). Décor, sans interaction ni VoiceOver.
- */
-function NavigationFade({ background }: { readonly background: string }) {
-  return (
-    <View
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={[styles.navigationFade, { bottom: navigationBarTotalHeight() }]}
-      testID="catalogue-navigation-fade"
-    >
-      <View
-        style={[styles.navigationFadeGradient, { experimental_backgroundImage: `linear-gradient(to bottom, ${background}00 0%, ${background} 100%)` }]}
-        testID="catalogue-navigation-fade-gradient"
-      />
-      <View style={[styles.navigationFadeSolid, { backgroundColor: background }]} testID="catalogue-navigation-fade-solid" />
-    </View>
-  );
-}
+// [D-501 : `NavigationFade` (fondu de 40 et fond protégé au-dessus de la barre) — retiré le 24/11/2026, D-595.]
 
 /** Figma : dégradé de 40, fond protégé de 16 puis 8 jusqu'au haut de la barre (`y = 732..796` à 874). */
-const NAVIGATION_FADE = { gradient: 40, solid: spacing[16] + spacing[8] } as const;
 
 function LoadingBody() {
   return (
@@ -696,6 +689,7 @@ function ReadyBody({
   searching,
   resetToken,
   topInset,
+  bottomInset,
   onOpenSession,
   onStartSession,
   onPlanSession,
@@ -708,6 +702,7 @@ function ReadyBody({
   searching: boolean;
   resetToken: number;
   topInset: number;
+  bottomInset: number;
   onOpenSession: (sessionId: string) => void;
   /** PRE-10 : Démarrer exécute la Séance (D-504). */
   onStartSession: (sessionId: string) => void;
@@ -722,6 +717,7 @@ function ReadyBody({
       emptyMessage={searching ? strings.screens.sessions.noResult : strings.screens.sessions.noMatch}
       resetToken={resetToken}
       topInset={topInset}
+      bottomInset={bottomInset}
       onOpenSession={onOpenSession}
       onStartSession={onStartSession}
       onPlanSession={onPlanSession}
@@ -741,18 +737,6 @@ const LIST_TOP_INSET = spacing[8] + CONTEXT_BAND_FADE_HEIGHT;
 const CATALOGUE_TAB_ROUTE = "index";
 
 const styles = StyleSheet.create({
-  navigationFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    height: NAVIGATION_FADE.gradient + NAVIGATION_FADE.solid,
-  },
-  navigationFadeGradient: {
-    height: NAVIGATION_FADE.gradient,
-  },
-  navigationFadeSolid: {
-    height: NAVIGATION_FADE.solid,
-  },
   // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
   // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).
   body: {

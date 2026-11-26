@@ -1818,6 +1818,34 @@
         "Exécution For time — ✓ inactif en Pause"
       ],
       "note": "PRE-11, correction 3 du 14/11/2026 : absent du Figma (l’écran « En pause » 12283:26364 montre « Activité suivante ») ; contour et symbole #B4B9C4."
+    },
+    {
+      "key": "floatingCreate.calendar",
+      "file": "fab-calendrier",
+      "figmaNodeId": "13039:49713",
+      "figmaName": "icon/calendrier (bouton flottant — Créer, Contenu=Calendrier)",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "13039:49732",
+      "width": 28,
+      "height": 28,
+      "usage": [
+        "Bouton flottant « Créer » — Journal et Agenda (calendrier « + »)"
+      ],
+      "note": "UI-FAB-01 du 24/11/2026 : export MCP Figma en lecture seule ; le « + » est dessiné par le composant."
+    },
+    {
+      "key": "floatingCreate.movement",
+      "file": "fab-mouvement",
+      "figmaNodeId": "13039:49724",
+      "figmaName": "Pictogramme — mouvement (bouton flottant — Créer, Contenu=Mouvement)",
+      "figmaStatus": "EXPORTED",
+      "sourceComponentNodeId": "13039:49732",
+      "width": 25.7608,
+      "height": 27.8,
+      "usage": [
+        "Bouton flottant « Créer » — Catalogue des mouvements (silhouette « + »)"
+      ],
+      "note": "UI-FAB-01 du 24/11/2026 : export MCP Figma en lecture seule ; image débordant du trait (23,96 × 26 dans Figma)."
     }
   ],
   "branding": {

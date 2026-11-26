@@ -163,6 +163,9 @@ const sessionsShown = () =>
 const movementsShown = () => screen.queryAllByTestId(/^movement-card-name-/).map((node) => node.props.children as string);
 const text = (testID: string) => screen.getByTestId(testID).props.children as string;
 const searchWidth = (testID: string) => StyleSheet.flatten(screen.getByTestId(`${testID}-field`).props.style).width;
+/** UI-FAB-01 (D-558) : sans Créer dans la zone, le champ Rechercher s'élargit jusqu'aux commandes. [216 — remplacé.] */
+const expectWidenedSearch = (testID: string) =>
+  expect(StyleSheet.flatten(screen.getByTestId(`${testID}-field`).props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0 });
 /**
  * Recette iPhone du 30/10/2026 (Hermann, cat-commandes : « le champ de la zone de recherche est trop
  * raccourci, il faut qu'il conserve le même espace qu'entre deux boutons d'action ») : en état filtré
@@ -210,10 +213,10 @@ describe("PRE-9 CAT.1 — géométrie de la zone de contexte (référence 402 ×
     expect(within(screen.getByTestId("screen-header")).getByTestId("catalogue-content-type-row")).toBeTruthy();
   });
 
-  it("champ Rechercher 216 × 44, placeholder « Rechercher » 15 pt #7A7A80 ; Filtre, Tri, Créer 34 avec cibles 44 × 44", async () => {
+  it("champ Rechercher élargi (UI-FAB-01) × 44, placeholder « Rechercher » 15 pt #7A7A80 ; Filtre, Tri 34 avec cibles 44 × 44", async () => {
     renderScreen();
     await focus();
-    expect(searchWidth("session-catalogue-search")).toBe(216);
+    expectWidenedSearch("session-catalogue-search");
     const field = screen.getByTestId("session-catalogue-search");
     expect(field.props.placeholder).toBe("Rechercher");
     expect(field.props.placeholderTextColor).toBe("#7A7A80");
@@ -226,7 +229,7 @@ describe("PRE-9 CAT.1 — géométrie de la zone de contexte (référence 402 ×
       height: 34,
       borderRadius: 12,
     });
-    for (const testID of ["catalogue-filter-action", "catalogue-sort-action", "catalogue-create-action"]) {
+    for (const testID of ["catalogue-filter-action", "catalogue-sort-action"]) {
       const action = screen.getByTestId(testID);
       const style = StyleSheet.flatten(action.props.style);
       expect(style).toMatchObject({ width: 34, height: 34 });
@@ -307,7 +310,7 @@ describe("PRE-9 CAT.1 — Catalogue des Séances", () => {
     // Réinitialiser les filtres : champ pleine largeur, plus de « N résultats » ; recherche et vue conservées.
     await press("catalogue-filter-action-clear");
     expect(screen.queryByTestId("catalogue-results")).toBeNull();
-    expect(searchWidth("session-catalogue-search")).toBe(216);
+    expectWidenedSearch("session-catalogue-search");
     expect(screen.getByTestId("session-catalogue-search").props.value).toBe("zzz");
   });
 
@@ -393,7 +396,7 @@ describe("PRE-9 CAT.1 — Catalogue des Mouvements", () => {
     expect(movementsShown()).toEqual(["Fentes avant"]);
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("fentes");
     expect(screen.queryByTestId("catalogue-results")).toBeNull();
-    expect(searchWidth("movement-catalogue-search")).toBe(216);
+    expectWidenedSearch("movement-catalogue-search");
   });
 
   it("filtre du panneau actif : champ étendu jusqu'à Filtre (≥ 107), « N résultats » = cartes affichées, recalculé avec compteur et recherche", async () => {

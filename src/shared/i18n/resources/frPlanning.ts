@@ -69,7 +69,7 @@ export const planning = {
     // D-554 (21/11/2026) : troisième onglet « Plan ».
     views: { day: "Journal", week: "Agenda", plan: "Plan" },
     today: "Aujourd’hui",
-    plan: "Planifier",
+    // [plan : « Planifier » (bouton de la zone de contexte du Journal, de l'Agenda et du Plan) — retiré le 24/11/2026, UI-FAB-01.]
     previousWeek: "Semaine précédente",
     nextWeek: "Semaine suivante",
     planned: { one: "{count} prévue", other: "{count} prévues" },

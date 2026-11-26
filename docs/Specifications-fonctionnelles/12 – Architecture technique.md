@@ -224,7 +224,7 @@ L’architecture doit permettre :
 
 Le MVP ne nécessite pas :
 - de backend applicatif ;
-- de compte utilisateur ;
+- de compte utilisateur ; [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 - de connexion Internet pour les fonctions principales ;
 - de synchronisation multi-appareils ;
 - d’API réseau interne ;
@@ -238,7 +238,7 @@ Les principes suivants sont retenus :
 |---|---|
 | Plateformes | iOS et Android |
 | Fonctionnement hors ligne | Toutes les fonctions principales du MVP fonctionnent hors connexion |
-| Compte utilisateur | Aucun compte obligatoire dans le MVP |
+| Compte utilisateur | Aucun compte obligatoire dans le MVP [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).] |
 | Identité locale | Chaque installation dispose d’un identifiant Utilisateur interne unique et stable |
 | Stockage | Données métier stockées localement sur l’appareil |
 | Backend | Aucun backend requis pour le MVP |
@@ -427,7 +427,7 @@ L’impact est transversal mais additif : éditeur, calcul, données et moteur c
 
 ### MVP
 
-Le MVP ne nécessite pas de création de compte ni de connexion.
+Le MVP ne nécessite pas de création de compte ni de connexion. [Remplacé le 17/11/2026 pour la cible Compte — décisions CPT-01 à CPT-06 de Hermann (chapitre 07, « Gestion de compte — premier lot ») : le compte, livré par le premier lot (compte et trois partages, CPT-01 révisée le 19/11/2026), est **obligatoire** ; connexion **Apple ou Google uniquement** ; backend **Supabase** sous réserve de vérification. Ce lot fait partie du MVP (CPT-07, 17/11/2026).]
 
 Lors du premier lancement, l’application génère automatiquement un **identifiant Utilisateur interne unique et stable**, de type UUID ou équivalent.
 
@@ -455,7 +455,7 @@ Une entité Profil distincte ne sera introduite ultérieurement que si un besoin
 
 Cette séparation doit permettre ultérieurement d’associer un Utilisateur local existant à un compte authentifié sans recréer ses données métier.
 
-Apple et Google sont les fournisseurs d’identité envisagés en priorité.
+Apple et Google sont les fournisseurs d’identité envisagés en priorité. [Précisé le 17/11/2026 — CPT-03 : Apple et Google sont les **seuls** fournisseurs du premier lot, sans e-mail ; la connexion Apple doit aussi fonctionner sur Android (changement de plateforme).]
 
 Facebook n’est pas retenu comme besoin du MVP.
 
@@ -828,8 +828,8 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 | Tests end-to-end | **Maestro** | Automatisation des parcours mobiles critiques après stabilisation |
 | Builds / distribution | **Expo EAS** | Builds et distribution privée iOS/Android, adaptés à un environnement de développement Windows |
 | Crash reporting | **Sentry** | Diagnostic des crashs et erreurs lors des tests distribués |
-| Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
-| Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
+| Backend | **Aucun dans le MVP** [Remplacé le 17/11/2026 pour la cible Compte — CPT-05 : **Supabase** retenu, sous réserve d’une vérification courte : région UE, coût, connexion Apple et Google avec Expo 57 ; réserve levée le 17/11/2026, projet de développement à Paris `eu-west-3`] | Architecture local-first et réduction de la complexité |
+| Authentification | **Aucune dans le MVP ; Apple/Google préparés** [Remplacé le 17/11/2026 pour la cible Compte — CPT-02/CPT-03 : compte obligatoire, Apple et Google uniquement] | Évite la complexité des comptes tout en préservant l’évolution future |
 
 ### Contraintes techniques propres à T04
 
@@ -1103,7 +1103,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | --- | --- | --- |
 | `color.primary` | `#0508E5` | Actions principales, navigation active, texte ou contour d’action secondaire |
 | `color.selection` | `#5F60EE` | Fond d’un contrôle de sélection actif portant un texte blanc ; contraste texte/fond de `4,78:1` |
-| `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné [06/11/2026 : ne plus l’utiliser pour la zone de contexte des catalogues (`ScreenShell.ContextBand`) ; écart du code à corriger — D-509.] |
+| `color.selectionSurface` | `#E5F0FF` | Fond de destination ou d’élément sélectionné [06/11/2026 : ne plus l’utiliser pour la zone de contexte des catalogues (`ScreenShell.ContextBand`) ; écart du code à corriger — D-509.] [24/11/2026 : ne plus l’utiliser non plus pour le cercle Retour / Annuler de l’en-tête (`FixedHeader`) : cercle blanc `#FCFCFE`, liseré blanc 1, ombre `#1A1A26` 8 %, icône `#14141A`, unique pour tous les écrans ; surcharges locales `backCircleStyle` / `backIconTintColor` supprimées — D-593.] |
 | `color.background` | `#FFFFFF` | Fond principal |
 | `color.catalogue.mouvements.context` | `#E5F0FF` | Zone de contexte et onglet sélectionné du catalogue Mouvements — D-501 (06/11/2026) ; Figma `color/catalogue/mouvements/context` [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #DDEBFF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
 | `color.catalogue.mouvements.background` | `#F7FAFF` | Fond d’écran, barre d’état, en-tête et fondu du catalogue Mouvements — D-501 [08/11/2026, D-501 révisée (Hermann, note d-couleurs) : #F1F7FF — fond = 40 % de la couleur de contexte sur blanc ; variable Figma non modifiée.] |
@@ -1667,7 +1667,7 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 
 ### Référence DSF V2 détaillée — clôture
 
-- **Navigation basse** : set `6513:20151`, cinq destinations. Au gabarit 402 pt, pilule `354 × 62`, marges latérales 24 ; icônes `24 × 24` dans boîtes `32 × 32`. Cadre actif `66 × 50` (`78 × 50` pour Communauté). Actif `#0508E5`, inactif `#595E66` ; fond `color/navigation/pill #F9FAFC`. Répartition responsive et inset bas natif. Les captures et mesures courantes sont dans DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md ; les anciennes coordonnées à quatre onglets ne sont plus applicables.
+- **Navigation basse** : set `6513:20151`, cinq destinations. Au gabarit 402 pt, pilule `354 × 62`, marges latérales 24 ; icônes `24 × 24` dans boîtes `32 × 32`. Cadre actif `66 × 50` (`78 × 50` pour Communauté). Actif `#0508E5`, inactif `#595E66` ; fond `color/navigation/pill #F9FAFC`. Répartition responsive et inset bas natif. Effet lentille (D-595, 24/11/2026) : `GlassView` `glassEffectStyle="clear"` sous la pilule (voile `LENS_VEIL` 22 %) et dans le cadre actif (`tintColor` bleu à 20 %, recette du 24/11/2026), seulement si `liquidGlassAvailable()` (`src/shared/ui/liquidGlass.ts`) ; fonds rendus transparents dans ce cas ; sinon rendu d’origine. Catalogues : `NavigationFade` retiré ; le corps n’a plus de `paddingBottom` pour les listes, qui reçoivent `bottomInset = navigationBarTotalHeight()` (Séances, Mouvements grille et liste, Programmes) ; les états chargement, vide et erreur gardent la réserve du corps pour leur centrage. Les captures et mesures courantes sont dans DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md ; les anciennes coordonnées à quatre onglets ne sont plus applicables.
 - *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
 - *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
@@ -2006,6 +2006,7 @@ Séparer la provenance du modèle et le Format d’exécution ; projeter l’ét
 - **Badge « New » (D-510)** : état d'affichage en mémoire commun à l'application, `src/features/activities/newMovementMarks.ts` (magasin externe lu par `useSyncExternalStore`), jamais écrit en base ni en stockage durable ; perdu à la fermeture de l'application. Les créations sont marquées à leur point de passage unique : `MovementCatalogueService.createIndependent` (bouton +, Exercice libre, duplication `createAsNew`) et `createVariant` (Ajouter un niveau) après écriture réussie ; `SessionService.createSession` / `updateSession` après enregistrement réussi, pour les Mouvements `NEW` du brouillon (création depuis la Composition, qui n'existe qu'à l'enregistrement de la Séance). Une réutilisation ou une correction (`EDITED`) ne marque rien. Le catalogue des mouvements déclare les marques qu'il affiche (écran au premier plan, vue Mouvements) ; quitter la vue (onglets du haut, barre du bas) retire seulement les marques déjà affichées, si bien qu'une fiche créée depuis la Composition reste marquée jusqu'à la visite suivante. La dernière création sert de cible de défilement (position mesurée de l'entrée ou de la pile repliée), abandonnée si la fiche est exclue par la recherche ou les filtres. [Remplace l'état propre à `CatalogueScreen` de la recette du 06/11 (t-niveau), qui comparait deux lectures du Catalogue.]
 - **Badge — rendu** : forme d'onglet exportée de Figma (`catalogue-badge-nouveau.svg` 55 × 32, `catalogue-badge-nouveau-pile.svg` 69 × 32, couleur portée par le tracé) dans une découpe propre au badge (rayon 12, `overflow: hidden`) afin de suivre l'arrondi de la carte sans couper son ombre.
 - **Carte Mouvement (D-508)** : composant unique `MovementCatalogueCard` à trois états « Nouveau » et trois états de sélection ; `CARD_HEIGHT` 72 (pile, actions glissées et commandes de niveau en dérivent) ; case de sélection par les vecteurs Figma `radio-selectionne.svg` / `radio-non-selectionne.svg` à la place du fond de sélection ; liseré `#CCD1E0` à 50 % écrit en valeur locale (`rgba(204, 209, 224, 0.5)`), faute de jeton d'opacité.
+- **Bouton flottant « Créer » (D-558, D-594)** : `src/shared/ui/FloatingCreateButton.tsx` (rendu, geste) et `src/shared/ui/floatingCreatePosition.ts` (physique, mémoire). Geste `Gesture.Pan().minDistance(10)` (react-native-gesture-handler 2.32) ; position animée sur le fil d’interface par Reanimated 4.5 : ressort de suivi `withSpring` (masse 1, raideur 632, amortissement 42,7), cible de relâchement = position + 0,175 s × vitesse, côté selon le centre projeté, hauteur bornée à la zone sûre, ressort de pose (raideur 110, amortissement 14,7) parti de la vitesse du doigt ; `cancelAnimation` au toucher (rattrapage) ; « Réduire les animations » lu par `useReduceMotion` (suivi en direct) et passé aux ressorts (`ReduceMotion.Always` / `Never`) [`ReduceMotion.System` remplacé le 24/11/2026 : Reanimated ne lit le réglage qu’au lancement]. Couche `zIndex`/`elevation` 9 (`FLOATING_CREATE_LAYER`) : au-dessus des bandes élevées de `ScreenShell` (zone de contexte, 1), sous le menu Créer (10) ; bouton à 70 % d’opacité (`FLOATING_CREATE_OPACITY`), ombre à 22 %. Effet lentille (24/11/2026, validé par Hermann) : avec le verre natif, `GlassView` `glassEffectStyle="clear"` (bleu : `tintColor` à 70 %), voile à 22 %, aucune opacité sur les parents du verre (un `UIVisualEffectView` sous un parent d’opacité inférieure à 1 est mal rendu par iOS). Placement : prop `faded`, calque intérieur animé `withTiming` 600 ms (`FLOATING_FADE_MS`, sans animation si « Réduire les animations »), sans toucher ni VoiceOver. Couleurs : `onLongPress` du `Pressable` (500 ms ; un glissement de 10 pt l’annule) ; champ `tone` (`BLUE`) dans `kodjo-floating-create.json`, écrit seulement pour le bleu ; couleur du symbole portée par un contexte (`tintColor` des SVG, fond des barres). Sur les écrans à onglets, le bouton est rendu par `FloatingCreateHost` dans `app/(tabs)/_layout.tsx`, après la barre de navigation (dessinée par-dessus les écrans) ; l’écran affiché le déclare par `FloatingCreateSlot` (focus). Position : fichier `kodjo-floating-create.json` (côté, haut absolu). Constantes issues du bouton d’outils d’Expo (`expo-dev-menu` 57.0.15) ; calibration sur iPhone (rapport AUDIT-FAB-PHYSIQUE).
 - **Couleurs des catalogues (D-501, D-509)** : jetons `color.catalogue{Movements,Sessions,Programs}{Context,Background}` et `color.contextBand` ; `catalogueColors(kind)` (`src/shared/ui/catalogueContext.ts`) ; `ScreenShell` reçoit `backgroundColor`, `ContextBand` une `color` (par défaut `contextBand`) ; `selectionSurface` reste réservé aux sélections. Onglet sélectionné dessiné en vues (coins arrondis et évasements par anneaux masqués), `react-native-svg` n'étant pas une dépendance du projet.
 - **Carte Séance (D-504 à D-507)** : `SessionCard` réécrit ; la projection du catalogue remplace `summary` par le nombre de circuits affiché (`shownCircuitCount`, à partir de `structureCircuits`). Démarrer reçoit `onStart` (absent tant qu'aucun écran d'Exécution n'existe : pilule désactivée) et `context="planning"` le masque.
 
@@ -2043,7 +2044,7 @@ Le premier lot est limité aux Bibliothèques génériques éditées par KODJO :
 
 **Droits et médias (MOUV-D3, A-2) :** pour une fiche reçue/importée, aucun droit de modification, de copie ni de duplication, dans l'application comme dans les services (garde de lecture seule au niveau service). Seul un droit de redistribution à l'identique, lié à la révision et soumis à autorisation de la source, peut être accordé ; il est vérifié localement et côté serveur futur. Les fiches originales restent éditables par leur propriétaire habilité. Droits des médias vérifiés séparément. Blocage local d'une fiche ou d'un média reçu comme décision de modération, prioritaire sur les révisions volontaires. Notifications silencieuses iOS facultatives sans garantie de révocation immédiate d'une installation hors ligne.
 
-**Prestataires non décidés :** PostgreSQL/Supabase, stockage privé, traitement vidéo ou API texte/image, interface d'administration. L'administration Node/OVH du pilote de 60 fiches demeure un outil de recette, sans contournement des contrôles de diffusion du futur produit.
+**Prestataires non décidés :** [Précisé le 17/11/2026 — CPT-05 : **Supabase** retenu pour le compte, l’authentification et la base (réserve levée le 17/11/2026 ; projet de développement à Paris, `eu-west-3`). Restent ouverts : prestataires vidéo, modération automatique, choix de stockage des médias.] PostgreSQL/Supabase, stockage privé, traitement vidéo ou API texte/image, interface d'administration. L'administration Node/OVH du pilote de 60 fiches demeure un outil de recette, sans contournement des contrôles de diffusion du futur produit.
 
 **Périmètre :** ne pas modifier le moteur d'Exécution au titre de la distribution. Vérifier toutefois sa compatibilité avec la neutralisation d'une fiche sur la branche `pre10-bmad/dev` ; ce moteur y existe en développement, ce qui rend obsolète l'affirmation selon laquelle PRE-10 ne serait pas développé. [Analyse de simplification](../KODJO-Bibliotheques-Conception-fonctionnelle-technique-donnees-Revue-Claude-2026-11-10.md).
 

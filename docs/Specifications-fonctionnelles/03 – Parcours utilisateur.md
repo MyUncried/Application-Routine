@@ -570,7 +570,7 @@ Les parcours suivants sont identifiés dès la conception mais ne font pas parti
 - recevoir une séance partagée ;
 - créer et administrer une séance collaborative ;
 - gérer les droits de consultation et de modification ;
-- conserver des copies personnelles indépendantes des séances partagées.
+- conserver des copies personnelles indépendantes des séances partagées. [Précisé le 19/11/2026 — CPT-17 : une séance reçue est conservée hors relation payante ; les fiches Mouvement qu’elle contient restent non modifiables et non copiables (MOUV-D3). Aucun droit général d’édition ou de duplication n’est créé.]
 
 #### Accompagnement et transmission génériques — évolution ultérieure
 

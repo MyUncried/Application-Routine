@@ -479,7 +479,7 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     expect(router.getPathname()).toBe("/composition");
     const before = await dump();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
     const tree = screen.getByTestId("composition-add-activity-tree");
     expect(within(tree).getByLabelText(activities.addToSession.newActivity)).toBeTruthy();
     // [« Utiliser un mouvement existant » et rangée « Annuler » — remplacés le 01/11/2026 (ordre de
@@ -489,8 +489,8 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     // existant » est de nouveau une option, 2e après « Créer un exercice ».]
     // [Complément du 5 novembre 2026 (§3) : « Utiliser des mouvements existants » retiré du menu Créer.]
     expect(within(tree).queryByLabelText(activities.addToSession.existingActivity)).toBeNull();
-    expect(within(tree).getByLabelText(activities.addToSession.cancel)).toBeTruthy();
-    fireEvent.press(within(tree).getByLabelText(activities.addToSession.cancel));
+    expect(within(tree).getByLabelText(strings.shared.floatingCreate.closeCreateMenu)).toBeTruthy();
+    fireEvent.press(within(tree).getByLabelText(strings.shared.floatingCreate.closeCreateMenu));
     await settle();
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     expect(router.getPathname()).toBe("/composition");

@@ -156,7 +156,7 @@ export const enScreensComposition: Pick<FrResource["screens"], "composition"> = 
       validateAccessibilityLabel: "Done",
     },
     // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
-    addActivity: "Add an exercise",
+    // [retiré le 24/11/2026, UI-FAB-01]
     // PRE-4, décision Q54 : l'action finale de la Composition enregistre la Séance (repris de
     // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
     // PRE-6 (story 2.1, CE-T03-08, D-388, Figma `8328:28732`) : libellé « Continuer » ; même
@@ -168,7 +168,7 @@ export const enScreensComposition: Pick<FrResource["screens"], "composition"> = 
     // « Ajouter un arrêt » et mode placement — puces des emplacements, barre « Confirmer N
     // pauses ajoutées » / « Annuler » et roulette « Durée de récupération ».
     placement: {
-      addStopAccessibilityLabel: "Add a hold",
+      // [retiré le 24/11/2026, UI-FAB-01]
       recovery: "Recovery",
       stopPoint: "Hold",
       addRecoveryAccessibilityLabel: "Add recovery after {exercise}",

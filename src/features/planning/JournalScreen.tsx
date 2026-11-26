@@ -253,12 +253,13 @@ export function JournalScreen({ onChangeView }: { readonly onChangeView: (view: 
           />
         ),
         sortLabel: t.sort,
-        action: {
-          label: strings.planning.calendar.plan,
-          icon: "plan",
-          onPress: () => router.push({ pathname: "/planning", params: { date: today } }),
-          testID: "journal-plan",
-        },
+      }}
+      // UI-FAB-01 (D-558, D-559) : bouton flottant calendrier « + » — créer une routine (planification habituelle, même action
+      // que l'ancien bouton Planifier de la zone de contexte, retiré).
+      floatingCreate={{
+        variant: "calendar",
+        label: strings.shared.floatingCreate.createRoutine,
+        onPress: () => router.push({ pathname: "/planning", params: { date: today } }),
       }}
     >
 

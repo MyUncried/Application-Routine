@@ -142,7 +142,8 @@ describe("PRE-8 E.7 — raccordements sur SQLite réelle", () => {
     // Recette iPhone n° 3 du 03/11/2026 : le visuel ouvre la Séance (le reste de la carte déploie).
     fireEvent.press(screen.getByTestId(`session-card-${cardFor("Gainage").id}-visual-open`));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { sessionId: created.id } });
-    fireEvent.press(screen.getByTestId("catalogue-create-action"));
+    // UI-FAB-01 (D-558) : bouton flottant « Créer une séance ».
+    fireEvent.press(screen.getByTestId("floating-create"));
     // Référence Formats du 02/11/2026 (§7) : Créer ouvre la Composition.
     // Complément du 5 novembre 2026 (§1–§2) : Créer ouvre la modale de création sur un nouveau brouillon ; règle du 06/11/2026 :
     // directement au-dessus du Catalogue. [Composition `create=1` ouverte d'avance — remplacée.]

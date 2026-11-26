@@ -319,7 +319,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     // une activité` reste utilisable (complétion REWORK12, COMP-03 —
     // abroge l'ancien masquage), la ligne Exercice existe, avec le nom
     // saisi.
-    expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
+    expect(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu)).toBeTruthy();
     expect(screen.getByText("Pompes")).toBeTruthy();
     // REWORK12 (COMP-01) : la ligne Exercice reprend l'anatomie de
     // `BoundaryActivityRow` — son testID porte désormais l'identifiant réel

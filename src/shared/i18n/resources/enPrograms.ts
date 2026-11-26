@@ -29,7 +29,7 @@ export const programs: Widen<typeof frPrograms> = {
     searchClear: "Clear search",
     filter: "Filter",
     sort: "Sort",
-    create: "Create program",
+    // [create — retiré le 24/11/2026, UI-FAB-01 : bouton flottant.]
     empty: "Your programs will appear here once you create one. A program groups schedules over a period and tracks how they’re done.",
     noMatch: "No programs.",
     loadError: "Programs couldn’t be loaded.",

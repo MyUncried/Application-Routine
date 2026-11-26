@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, minTouchTarget } from "@/shared/ui/tokens";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -52,7 +53,7 @@ describe("FixedHeader", () => {
    * antérieur à cette décision. La cible tactile, elle, est INCHANGÉE —
    * elle reste portée par `hitSlop`, jamais par la boîte visuelle.
    */
-  it("renders a Retour circle (pale-fill, 38×38 visual, D-142) with a 48×48 touch target via hitSlop, calling it on press", () => {
+  it("renders a Retour circle (white, 38×38 visual, D-142) with a 48×48 touch target via hitSlop, calling it on press", () => {
     const onBack = jest.fn();
     renderWithSafeArea(
       <FixedHeader title="Composition" onBack={onBack} backAccessibilityLabel="Retour" />,
@@ -65,7 +66,9 @@ describe("FixedHeader", () => {
     expect(flattened.borderRadius).toBe(19);
     expect(flattened.width + back.props.hitSlop * 2).toBe(minTouchTarget);
     expect(minTouchTarget).toBe(48);
-    expect(flattened.backgroundColor).toBe(colors.selectionSurface);
+    // Décision de Hermann du 24/11/2026 : un seul cercle, blanc, pour tous les écrans. [colors.selectionSurface — remplacé.]
+    expect(flattened).toMatchObject({ backgroundColor: "#FCFCFE", borderWidth: 1, borderColor: colors.background, shadowColor: "#1A1A26", shadowOpacity: 0.08 });
+    expect(screen.UNSAFE_getByType(KodjoIcon).props.tintColor).toBe("#14141A");
     expect(back.props.accessibilityLabel).toBe("Retour");
 
     fireEvent.press(back);

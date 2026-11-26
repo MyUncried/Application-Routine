@@ -56,7 +56,7 @@ export const planning: Widen<typeof frPlanning> = {
     title: "Calendar",
     views: { day: "Log", week: "Agenda", plan: "Plan" },
     today: "Today",
-    plan: "Schedule",
+    // [plan — retiré le 24/11/2026, UI-FAB-01.]
     previousWeek: "Previous week",
     nextWeek: "Next week",
     planned: { one: "{count} planned", other: "{count} planned" },

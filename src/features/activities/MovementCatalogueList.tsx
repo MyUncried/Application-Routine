@@ -239,6 +239,7 @@ export function MovementCatalogueList({
   onCreateVariant,
   selection,
   topInset,
+  bottomInset = 0,
   counter,
   onSummaryChange,
   newMovementIds,
@@ -272,6 +273,8 @@ export function MovementCatalogueList({
   readonly onScrollTargetHandled?: (id: string) => void;
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
+  /** D-595 complément (Hermann, 24/11/2026, choix « Liste sous la barre ») : réserve sous la dernière carte quand la liste défile sous la barre de navigation. */
+  readonly bottomInset?: number;
   /** PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur actif de la zone de contexte ; absent : aucun. */
   readonly counter?: MovementCounter | null;
   /** PRE-9 CAT.1 : compteurs de la liste affichée (`null` tant qu’elle n’est pas prête). */
@@ -1297,7 +1300,7 @@ export function MovementCatalogueList({
                   ref={scrollRef}
                   contentContainerStyle={[
                     styles.list,
-                    selection !== undefined ? { paddingBottom: selection.bottomInset } : null,
+                    selection !== undefined ? { paddingBottom: selection.bottomInset } : bottomInset > 0 ? { paddingBottom: spacing[24] + bottomInset } : null,
                     topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
                   ]}
                   keyboardShouldPersistTaps="handled"
