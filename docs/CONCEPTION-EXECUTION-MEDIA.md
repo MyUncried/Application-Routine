@@ -91,7 +91,7 @@ Le plein écran affiche un cadre flottant superposé au média afin de conserver
 
 Il présente au minimum :
 - nom de l’Exercice ;
-- côté courant lorsqu’il est applicable ;
+- côté courant lorsqu’il est applicable, suivi de la phase courante séparée par un point centré (ex. « Côté droit · Contracter ») ;
 - chrono courant ;
 - Série courante / total ;
 - Tour courant / total ;

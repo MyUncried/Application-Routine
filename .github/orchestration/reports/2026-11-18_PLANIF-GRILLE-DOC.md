@@ -299,3 +299,9 @@
 - Figma : 76 boutons ⇄ retirés (variantes du composant « Zone d'exécution — retournements » et écrans) ; vérifié sur 4968:8188 et 4997:6113.
 - Vérification sur iPhone à faire : découvrabilité du glissé.
 - Tests : non applicables.
+
+## Complément 26/11/2026 (suite 17) — Média plein écran : phase dans le cadre flottant (classe B)
+- Décision explicite de Hermann : la phase s'affiche à côté du côté, séparée par un point centré.
+- Document : CONCEPTION-EXECUTION-MEDIA § 8 (contenu du cadre flottant).
+- Figma : « Côté droit · Contracter » sur « Média plein écran » ; icône de rétrécissement recentrée dans son cercle (correction de conformité, rien à documenter).
+- Tests : non applicables.
