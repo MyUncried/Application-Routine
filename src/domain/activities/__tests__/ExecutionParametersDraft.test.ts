@@ -119,9 +119,9 @@ describe("P3-04/mode-targets", () => {
     expect(commitSheetDraft(draft).ok).toBe(false);
   });
 
-  it("création : première sélection Répétitions uniforme initialise la cible à 1", () => {
+  it("création : première sélection Répétitions uniforme laisse la cible à renseigner (recette du 26/11/2026, point D ; cible 1 remplacée)", () => {
     const empty = openSheetDraft(parameters(uniform(1, null, 0), { mode: null }));
-    expect(setMode(empty, "REPETITIONS").uniform.target).toEqual(numberTarget(1));
+    expect(setMode(empty, "REPETITIONS").uniform.target).toEqual(unsetTarget());
     expect(setMode(empty, "DURATION").uniform.target).toEqual(unsetTarget());
   });
 });
@@ -566,7 +566,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     }
   });
 
-  it("PRE4-3.2/AC2 — valeurs initiales en création ; Répétitions d'abord → NUMBER 1 ; Durée à renseigner puis Répétitions → NUMBER 1 ; côté → Sans changement au ✓ ; jamais retour à « — »", () => {
+  it("PRE4-3.2/AC2 — valeurs initiales en création ; Répétitions d'abord → UNSET ; Durée à renseigner puis Répétitions → UNSET (26/11/2026, point D) ; côté → Sans changement au ✓ ; jamais retour à « — »", () => {
     // Recette du 29/10/2026 : création en Durée, côté Sans, présélectionnés ; les règles de Mode non
     // renseigné restent vérifiées sur un brouillon sans Mode ni côté (données antérieures).
     const fresh = openSheetDraft(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }));
@@ -585,11 +585,11 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       endSeconds: 5,
       loadEnabled: false,
     });
-    expect(setMode(created, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
-    // Recette PRE-9 n° 1 : une Durée encore à renseigner vaut création (Durée présélectionnée) —
-    // Répétitions reçoit alors la cible initiale 1. [Avant : « Durée puis Répétitions → UNSET ».]
-    expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
-    expect(setMode(fresh, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
+    expect(setMode(created, "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
+    // Recette iPhone du 26/11/2026 (après-midi), point D : aucune cible initiale en Répétitions (« — » à renseigner). [Cible 1 de la
+    // recette PRE-9 n° 1 — remplacée.]
+    expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
+    expect(setMode(fresh, "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
     // Une Durée renseignée puis Répétitions : aucune cible inventée.
     expect(setMode(setUniformTarget(fresh, numberTarget(30)), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
 

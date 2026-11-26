@@ -176,7 +176,10 @@ describe("D-607 (D-572 point 1) — le clavier ne masque jamais le champ saisi",
     expect(revealDelta(760 - reserve, 804 - reserve, 720 - reserve, 500)).toBe(0);
   });
 
-  it("feuille à départ rapide, Charge au clavier : réserve de la hauteur du clavier sous les cadres, retirée à la fermeture", () => {
+  // [Réserve de la hauteur du clavier sous les cadres (`execution-sheet-keyboard-room`) — remplacée pour la modale le 26/11/2026 (recette
+  // iPhone de l'après-midi, point B : un seul mouvement synchronisé avec le clavier) : la feuille est translatée sur la position du clavier
+  // natif (`useAnimatedKeyboard`, non joué sous Jest) ; le reste non couvert par la place libre devient une marge de défilement du corps.]
+  it("feuille à départ rapide, Charge au clavier : aucune réserve sous les cadres ; marge de défilement du corps, retirée à la fermeture (26/11/2026, point B)", () => {
     const onApply = jest.fn<(value: ExecutionParameters) => void>();
     render(
       <TestSafeAreaProvider>
@@ -190,17 +193,19 @@ describe("D-607 (D-572 point 1) — le clavier ne masque jamais le champ saisi",
         />
       </TestSafeAreaProvider>,
     );
-    expect(query("execution-sheet-keyboard-room")).toBeNull();
+    const body = () => get("execution-sheet-body").props as { contentInset?: { bottom: number }; automaticallyAdjustKeyboardInsets?: boolean; bounces?: boolean };
+    expect(body().automaticallyAdjustKeyboardInsets).toBe(false);
+    expect(body().bounces).toBe(false);
+    expect(body().contentInset).toEqual({ bottom: 0 });
     fireEvent(get("execution-sheet-load-input-input"), "focus");
     showExecutionSheetKeyboard();
-    // Bas du corps = bas de la fenêtre − marge de sécurité (34) ; clavier simulé à 500.
-    const expected = Math.ceil(Dimensions.get("window").height - 34 - 500);
-    expect(styleOf("execution-sheet-keyboard-room").height).toBe(expected);
-    // La réserve suit les cadres (la Charge, dernier champ, peut passer au-dessus du clavier).
-    const host = get("execution-sheet-panel-host").children.map((child) => (typeof child === "string" ? "" : String(child.props.testID)));
-    expect(host.indexOf("execution-sheet-keyboard-room")).toBeGreaterThan(host.indexOf("execution-sheet-frame-series"));
+    expect(query("execution-sheet-keyboard-room")).toBeNull();
+    expect(query("execution-sheet-keyboard-bar-room")).toBeNull();
+    // Feuille non mesurée (aucune place libre connue) : tout le clavier (haut à 500), moins la marge de sécurité (34), plus la barre et
+    // sa marge (64), devient marge de défilement.
+    expect(body().contentInset).toEqual({ bottom: Dimensions.get("window").height - 500 - 34 + 64 });
     fireEvent(get("execution-sheet-load-input-input"), "blur");
     hideExecutionSheetKeyboard();
-    expect(query("execution-sheet-keyboard-room")).toBeNull();
+    expect(body().contentInset).toEqual({ bottom: 0 });
   });
 });

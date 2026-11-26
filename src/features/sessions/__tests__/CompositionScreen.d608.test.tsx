@@ -124,7 +124,8 @@ describe("D-608 — carte : modale ; ligne « N tours » du Circuit : page du fo
     expect(mockPush).not.toHaveBeenCalled();
     expect(await screen.findByTestId("execution-sheet")).toBeTruthy();
     expect(screen.getByTestId("execution-sheet-title")).toHaveTextContent("Exercice a1");
-    expect(screen.getByTestId("execution-sheet-title").props.numberOfLines).toBe(1);
+    // Recette iPhone du 26/11/2026 (après-midi), point A : titre sur deux lignes au plus, puis « … ». [Une ligne — remplacé.]
+    expect(screen.getByTestId("execution-sheet-title").props.numberOfLines).toBe(2);
     expect(screen.getByTestId("execution-sheet-header-tint")).toHaveStyle({ backgroundColor: "#FDECEC" });
     expect(screen.queryByTestId("execution-sheet-free-context")).toBeNull();
   });
