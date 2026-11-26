@@ -259,9 +259,9 @@
 - Tests : non applicables.
 
 ## Complément 26/11/2026 (suite 9) — Navigation, titre des modales, HIIT, écran des formats, phases (D-573, classe B)
-- Décisions explicites de Hermann (25-26/11/2026) : appui sur la carte = page de l'exercice, mouvement = modale, fermeture en deux temps ; titre de modale = nom du mouvement ; format HIIT ; ordre et sous-titres des formats ; règle des phases. Parcours sans raccourci direct et exercice libre sans seconde modale : formulés par Claude, à juger à la recette.
+- Décisions explicites de Hermann (25-26/11/2026) : appui sur la carte = modale allégée, appui sur la ligne « N tours alternés / groupés » = page globale du format ; titre de modale = nom du mouvement ; format HIIT ; ordre et sous-titres des formats ; règle des phases. Exercice hors circuit sans page : formulé par Claude ; aucun indice visuel ajouté, à juger au test.
 - Figma (Prototype MVP) : 47 titres de modales (composant d'en-tête et instances) ; 2 écrans HIIT conservés (Récapitulatif, Modale exercice ; valeurs 40 s / 20 s, 12 min) ; modales HIIT, 30/30 et Tabata (×2) complétées : Cadence et Objectif de répétitions facultatif (D-572) ; écran des formats (HIIT, ordre, sous-titres) ; modale libre finalisée.
 - Documents : registre ch07 D-573 (D-571 point 1, D-572 point 9, Constat c annotés) ; Formats § 9.10 (§ 9.8 annoté) ; docs 08, 10 et PRODUCT annotés ; deux prompts mis à jour.
-- Non traité : application de la règle des phases aux autres écrans « Création activité — Paramètres » ; écran « Séance » HIIT ; doc 13 non revue.
+- Non traité : intervalle partagé à ajouter dans la modale « Dans chaque intervalle » (Figma) ; application de la règle des phases aux autres écrans « Création activité — Paramètres » ; écran « Séance » HIIT ; doc 13 non revue.
 - Vérification sur iPhone à faire : parcours carte → page → modale et retours ; titre tronqué ; HIIT ; écran des formats.
 - Tests : non applicables.
