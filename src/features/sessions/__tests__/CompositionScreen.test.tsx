@@ -1080,7 +1080,9 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const duration = screen.getByTestId("composition-session-duration");
     // Story 7.8 (D-443) : séance vide → « 0 s ».
     expect(duration.props.children).toBe("0″");
-    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: TEXT_TERTIARY });
+    // [Durée en tertiaire (TEXT_TERTIARY) — remplacé le 26/11/2026 : recette iPhone (Hermann, confirmé) « la durée totale est
+    // alignée à droite, en texte noir ».]
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: colors.textPrimary });
     // Revue 5.1b : la bande de 32 est une boîte de 44 (cibles contenues) aux marges verticales de −6 :
     // encombrement 32 inchangé.
     const infoRow = StyleSheet.flatten(screen.getByTestId("composition-info-row").props.style);
