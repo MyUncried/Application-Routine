@@ -611,10 +611,39 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 ### 9.8 Appui sur un Exercice, exercice libre et écran des formats (25/11/2026, D-571)
 
-- **Appui sur la carte (Composition).** Pour un Exercice issu d'un format, l'appui sur la carte ouvre la modale « Paramètres d'exécution » allégée selon le format (§ 9.7 et § 9.9), présentée comme la modale de l'exercice libre. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule. [Une page unique du format intégrant ces réglages n'est pas retenue en l'état : sa faisabilité n'est pas établie.]
+- **Appui sur la carte (Composition).** [Remplacé le 26/11/2026 (D-573, § 9.10) : l'appui sur la carte ouvre la page de l'exercice ; la modale allégée s'ouvre depuis cette page.] Pour un Exercice issu d'un format, l'appui sur la carte ouvre la modale « Paramètres d'exécution » allégée selon le format (§ 9.7 et § 9.9), présentée comme la modale de l'exercice libre. Déplacer, dupliquer et supprimer restent des actions de la carte ; l'appui sur la photo ouvre la fiche en lecture seule. [Une page unique du format intégrant ces réglages n'est pas retenue en l'état : sa faisabilité n'est pas établie.]
 - **Exercice libre.** Il se règle dans une modale de type format (Figma « Exercice libre — Modale de type format »), mêmes composants que les questionnaires : Mode (Répétitions par défaut), objectif « À l'objectif », Charge par « (+ kg) » dans le tableau, « De chaque côté » en ligne.
 - **Écran des formats (« Créer un exercice »).** Titre centré, aucun sous-titre ; carte **Libre** de la même taille que les autres, en première position, logo en cadre pointillé, sous-titre « un mouvement, à régler ».
 - Figma (Prototype MVP) : écran des formats `9977:19613` ; modale libre `13242:26255`. À valider sur iPhone.
+
+### 9.10 Navigation vers les réglages, titre des modales, HIIT, écran des formats, phases (26/11/2026, D-573)
+
+**Navigation.** Carte de la Composition → page de l'exercice (page du format ; pour l'exercice libre, la modale de type format qui porte déjà ses réglages) → appui sur un mouvement → modale « Paramètres d'exécution » allégée (§ 9.7, § 9.9). ✕ ou ✓ de la modale : retour à la page. ✓ de la page valide, ✕ annule : retour à la Composition. Photo (fiche), déplacer, dupliquer, supprimer : inchangés sur la carte. Pas de raccourci direct vers la modale (aucun geste simple pour rouvrir la page du format) ; parcours à juger à la recette iPhone.
+
+**Titre de la modale.** Nom du mouvement, « … » s'il est trop long (Figma : composant d'en-tête de modale et toutes les modales de paramètres).
+
+**HIIT.** Format préconfiguré modifiable, sur le modèle du 30/30 : Mode Durée ; 6 séries identiques ; objectif 40 s ; pause 20 s ; Durée de l'exercice 6 min ; Récupération 0 s. Vert lime, logo de deux éclairs, sous-titre « Booster sa dépense énergétique ». Écrans Figma : « HIIT — Choix des mouvements », « HIIT — Récapitulatif », « HIIT — Modale exercice », « Exécution d'une séance — Intervalles HIIT — Par alternance » et « — Par exercice » (2 mouvements, 12 min).
+
+**Écran « Créer un exercice ».**
+
+| # | Format | Sous-titre |
+|---|---|---|
+| 1 | Exercice libre | Construire son propre exercice |
+| 2 | Renforcement | Construire et tonifier ses muscles |
+| 3 | Superset | Intensifier le travail musculaire |
+| 4 | Progression | Développer sa force maximale |
+| 5 | À l'échec | Stimuler le muscle et tester ses limites |
+| 6 | Death by | Repousser son seuil de fatigue |
+| 7 | HIIT | Booster sa dépense énergétique |
+| 8 | Tabata | Améliorer son explosivité en quatre minutes |
+| 9 | 30/30 | Améliorer son souffle et sa résistance |
+| 10 | EMOM | Mieux récupérer entre les efforts |
+| 11 | AMRAP | Développer son endurance globale |
+| 12 | For time | Gagner en vitesse sous la fatigue |
+
+**Modale de l'exercice libre (mise en page).** Coque du format : zone colorée grise, titre centré « Exercice libre », sous-titre sur deux lignes, bandes pleine largeur. Mouvement et phases dans un même cadre ; option sélectionnée à droite ; lignes de 38 pt ; trois dernières lignes dans un même cadre ; pas de « + Créer un mouvement » (valider un nom inexistant crée le mouvement).
+
+**Phases.** Définies dans la fiche du mouvement. Sans phases : pas de ligne. Avec phases : nombre fixé, ligne « n phases » (chevron) pour modifier la valeur de chaque phase ; sons et images de chaque phase désactivables ; la durée des phases compte toujours dans le temps. Remplace l'option Avec / Sans phases. [Figma : seule la modale de l'exercice libre applique cette règle ; les autres écrans « Création activité — Paramètres » restent à aligner.]
 
 ## 10. Application de la règle à l'EMOM
 

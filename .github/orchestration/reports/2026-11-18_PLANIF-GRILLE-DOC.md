@@ -257,3 +257,11 @@
 - Décision de Hermann (25/11/2026) : la faisabilité d'une page unique intégrant les réglages d'exercice n'est pas établie ; des modales allégées, au format commun avec l'exercice libre, constituent déjà une amélioration.
 - Documents : registre ch07 D-571 (point 1) et D-572 (point 9), annotations de la ligne « Constat c » et des documents 08 et 10 ; Formats §§ 9.8 et 9.9 ; deux prompts ajustés.
 - Tests : non applicables.
+
+## Complément 26/11/2026 (suite 9) — Navigation, titre des modales, HIIT, écran des formats, phases (D-573, classe B)
+- Décisions explicites de Hermann (25-26/11/2026) : appui sur la carte = page de l'exercice, mouvement = modale, fermeture en deux temps ; titre de modale = nom du mouvement ; format HIIT ; ordre et sous-titres des formats ; règle des phases. Parcours sans raccourci direct et exercice libre sans seconde modale : formulés par Claude, à juger à la recette.
+- Figma (Prototype MVP) : 47 titres de modales (composant d'en-tête et instances) ; 5 écrans HIIT (valeurs 40 s / 20 s, 12 min) ; écran des formats (HIIT, ordre, sous-titres) ; modale libre finalisée.
+- Documents : registre ch07 D-573 (D-571 point 1, D-572 point 9, Constat c annotés) ; Formats § 9.10 (§ 9.8 annoté) ; docs 08, 10 et PRODUCT annotés ; deux prompts mis à jour.
+- Non traité : application de la règle des phases aux autres écrans « Création activité — Paramètres » ; écran « Séance » HIIT ; doc 13 non revue.
+- Vérification sur iPhone à faire : parcours carte → page → modale et retours ; titre tronqué ; HIIT ; écran des formats.
+- Tests : non applicables.
