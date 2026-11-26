@@ -47,6 +47,12 @@ export type SegmentedControlOption<T extends string> = {
    */
   readonly selectedContent?: ReactNode;
   /**
+   * Variante `inline` seulement (recette iPhone du 26/11/2026 au soir, Hermann : « l'appui sur l'option Avec de "de chaque côté"
+   * doit ouvrir directement le popover sans mettre de valeur par défaut ») : contenu rendu à la place du libellé quand l'option
+   * n'est PAS sélectionnée (déclencheur d'un menu natif qui couvre l'option et reçoit son toucher). Absent : libellé inchangé.
+   */
+  readonly idleContent?: ReactNode;
+  /**
    * Variante `inline` seulement (recette du 19/10, RC-6, Figma `9462:18986`) :
    * largeur propre de l'option, à la place de `optionWidth` (Avec du
    * Changement de côté, qui porte la notation de l'Enchainement). Le cadre
@@ -463,6 +469,8 @@ export function SegmentedControl<T extends string>({
               <View pointerEvents="box-none" style={styles.inlineContent}>
                 {showSelectedContent ? (
                   option.selectedContent
+                ) : !selected && option.idleContent !== undefined && !readOnly ? (
+                  option.idleContent
                 ) : (
                   // Le nom est porté par la zone de sélection (ou par le
                   // conteneur en lecture seule) : le texte n'est pas annoncé
@@ -777,6 +785,8 @@ export const inlineSelectedCompactLabelStyle = [styles.inlineLabel, styles.inlin
  */
 export const inlineSelectedLabelStyle = [styles.inlineLabel, styles.inlineLabelSelected];
 export const inlineChevronFrameStyle = styles.inlineChevron;
+/** Recette iPhone du 26/11/2026 (soir) : libellé d'une option `inline` NON sélectionnée, repris par un `idleContent`. */
+export const inlineLabelStyle = styles.inlineLabel;
 /** Hauteur d'une option `inline` (RC-6, même usage). */
 export const INLINE_OPTION_CONTENT_HEIGHT = INLINE_OPTION_HEIGHT;
 /** Rayon d’une option `inline` (PRE-5 story 2.7 : champ de la charge commune dans l’option Avec). */

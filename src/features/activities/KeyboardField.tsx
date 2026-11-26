@@ -50,8 +50,12 @@ import { colors } from "@/shared/ui/tokens";
  * `reduceMotion` : agrandissement immédiat, sans animation (D-7).
  */
 export const KeyboardFieldGrowContext = createContext<{ readonly reduceMotion: boolean } | null>(null);
-/** Point B du 26/11/2026 : agrandissement « léger » du champ actif et durée de son animation. */
-export const FIELD_GROW_SCALE = 1.08;
+/**
+ * Point B du 26/11/2026 : agrandissement du champ actif et durée de son animation. Recette iPhone du 26/11/2026 (soir), Hermann :
+ * « Augmenter encore la taille et mettre un liseré bleu au champ du focus » — 1,15 et liseré `colors.primary` (`styles.grownFrame`).
+ * [1,08 (« légèrement », 26/11/2026 après-midi) — remplacé.]
+ */
+export const FIELD_GROW_SCALE = 1.15;
 const FIELD_GROW_MS = 160;
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -255,6 +259,15 @@ function CellEntryField({
       ]}
       testID={testID}
     >
+      {/* Recette iPhone du 26/11/2026 (soir) : liseré bleu du champ en saisie (modale seulement, `KeyboardFieldGrowContext`) — calque
+          superposé au gabarit, de son rayon, pour ne déplacer aucune mise en page. */}
+      {grown ? (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, styles.grownFrame, { borderRadius: StyleSheet.flatten(style)?.borderRadius }]}
+          testID={`${testID}-focus-frame`}
+        />
+      ) : null}
       <Text style={[valueStyle, empty ? styles.emptyValue : null]} testID={`${testID}-value`}>
         {shown}
       </Text>
@@ -312,6 +325,12 @@ const styles = StyleSheet.create({
   // PRE-9, recette iPhone n° 2 (constat e) : valeur « à vérifier », fond orange pâle (rendu choisi).
   toVerify: {
     backgroundColor: toVerifyColors.surface,
+  },
+  // Recette iPhone du 26/11/2026 (soir), Hermann : « mettre un liseré bleu au champ du focus » — trait de 1 en couleur primaire,
+  // calque posé sur le gabarit de la cellule (aucune mise en page déplacée ; le rayon est celui du gabarit).
+  grownFrame: {
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   // « 00:00 » ou « 0 » d'une saisie vide (Cible à l'échec ou à renseigner, cellule vidée).
   emptyValue: {

@@ -1211,9 +1211,11 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
 
       // PRE-5 story 2.5 (AC1) ; RC-6 (Figma `9462:18986`), RC-11 puis RC-12 : Changement de côté
       // Avec / Sans, Avec de 146 et Sans de 62 [remplacé le 01/11/2026 : Avec de 104, Figma `9462:18978` ; 104 + 2 + 62 + 2 × 3 = 174].
-      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 104 });
+      // [Remplacé le 27/11/2026 — recette iPhone du 26/11 (soir), « le cadre de l'option DD..-> GG.. est trop étroit » : 104 → 116,
+      // 174 → 186.]
+      expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITH`, anyNode).props.style)).toMatchObject({ width: 116 });
       const side = screen.getByTestId(SIDE_CONTROL);
-      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 174 });
+      expect(StyleSheet.flatten(side.props.style)).toMatchObject({ height: 32, width: 186 });
       expect(StyleSheet.flatten(screen.getByTestId(`${SIDE_CONTROL}-tile-WITHOUT`, anyNode).props.style)).toMatchObject({ width: 62 });
       expect(StyleSheet.flatten(within(side).getByText("Sans", anyNode).props.style)).toMatchObject({ fontSize: 12, lineHeight: 16, fontWeight: "400" });
       expect(within(side).queryByText(/Droite|Gauche|changement/u, anyNode)).toBeNull();
@@ -2404,7 +2406,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
       expect(screen.UNSAFE_root.findAllByType(Menu)).toHaveLength(0);
-      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 104, height: 26 });
+      // [104 — remplacé le 27/11/2026 (recette iPhone du 26/11 au soir) : 116, comme « DG → DG → … ».]
+      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 116, height: 26 });
       expect(trigger.props.accessibilityRole).toBe("button");
       expect(trigger.props.accessibilityLabel).toBe("Enchainement");
       expect(trigger.props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
@@ -2425,7 +2428,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       const menu = within(panel).getByTestId(`${ORDER_MENU}-menu`, hidden);
       expect(menu.props.accessibilityRole).toBe("menu");
       expect(menu.props.accessibilityLabel).toBe("Enchainement");
-      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 104, height: 88 });
+      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 116, height: 88 });
       const rows = within(menu).getAllByRole("menuitem");
       expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Chaque série d’un côté, puis chaque série de l’autre", "Les deux côtés à chaque série"]);
       expect(rows.map((row) => row.props.accessibilityState)).toEqual([{ selected: true }, { selected: false }]);
@@ -5612,7 +5615,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(query(sideChevron)).toBeNull();
     expect(sideRows()).toEqual({ order: true, recovery: true });
     const side = get(SIDE_CONTROL);
-    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 174 }); // 216 avant le 01/11/2026 (Avec de 104)
+    // 216 avant le 01/11/2026 ; 174 (Avec de 104) avant le 27/11/2026 (recette iPhone du 26/11 au soir : Avec de 116).
+    expect(StyleSheet.flatten(side.props.style)).toMatchObject({ width: 186 });
     expect(within(side).getByTestId(ORDER_MENU)).toBeTruthy();
     expect(within(get(ORDER_MENU)).getByText("DD… → GG…", hidden)).toBeTruthy();
     expect(get(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
@@ -5647,8 +5651,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     // La ligne réserve la place du segmenté le plus large, segmenté aligné à droite.
     expect(flat("execution-sheet-side-control-slot")).toMatchObject({ minWidth: 186, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" });
     chooseSide("Avec");
-    // Depuis le 01/11/2026 (ordre de Hermann, point 5) : Avec adapté au contenu, 104 pour « DD… → GG… ».
-    expect(widths()).toEqual({ control: 174, with: 104, without: 62 });
+    // Depuis le 01/11/2026 (ordre de Hermann, point 5) : Avec adapté au contenu, 104 pour « DD… → GG… » [116 depuis le 27/11/2026,
+    // recette iPhone du 26/11 au soir : « le cadre de l'option DD..-> GG.. est trop étroit »].
+    expect(widths()).toEqual({ control: 186, with: 116, without: 62 });
     expect(within(get(ORDER_MENU)).getByText("DD… → GG…", hidden)).toBeTruthy();
     expect(within(get(SIDE_CONTROL)).queryByText("Avec", hidden)).toBeNull();
     chooseSide("Sans");
@@ -6566,7 +6571,9 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     focus(target(2));
     expect(shown(target(2))).toBe("01:05");
     expect(styleOf(target(2)).backgroundColor).toBe("#EAEAFF");
-    expect(screen.UNSAFE_root.findAll((node) => typeof node.type === "string").length).toBe(before);
+    // Recette iPhone du 26/11/2026 (soir) : seul le calque du liseré bleu du champ en saisie s'ajoute (aucun champ). [`before` — remplacé.]
+    expect(screen.getByTestId(`${target(2)}-focus-frame`)).toBeTruthy();
+    expect(screen.UNSAFE_root.findAll((node) => typeof node.type === "string").length).toBe(before + 1);
     blur(target(2));
     focus(pause(2));
     expect(shown(pause(2))).toBe("01:30");
@@ -7038,8 +7045,9 @@ describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (po
     // Défaut BY_SIDE : notation dans l'option Avec, largeur adaptée au contenu (104, Figma `9462:18978`).
     expect(get(`${MENU}-notation`).props.children).toBe("DD… → GG…");
     expect(flat(`${MENU}-notation`)).toMatchObject({ fontSize: 12, fontWeight: "600" });
-    expect(flat(`${SIDE}-tile-WITH`).width).toBe(104);
-    expect(flat(MENU)).toMatchObject({ width: 104, height: 26 });
+    // [104 — remplacé le 27/11/2026 (recette iPhone du 26/11 au soir, « cadre trop étroit ») : 116.]
+    expect(flat(`${SIDE}-tile-WITH`).width).toBe(116);
+    expect(flat(MENU)).toMatchObject({ width: 116, height: 26 });
     expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec, Chaque série d’un côté, puis chaque série de l’autre");
     expect(get(MENU).props.accessibilityValue).toEqual({ text: "Chaque série d’un côté, puis chaque série de l’autre" });
     // Déroulant : mêmes notations, même taille, libellés accessibles.
@@ -7051,11 +7059,11 @@ describe("ExecutionParametersSheet — PRE-9, ordre de Hermann du 01/11/2026 (po
     ]);
     expect(["BY_SIDE", "BY_SERIES"].map((order) => get(`${MENU}-${order}-notation`).props.children)).toEqual(["DD… → GG…", "DG → DG → …"]);
     expect(["BY_SIDE", "BY_SERIES"].map((order) => flat(`${MENU}-${order}-notation`).fontSize)).toEqual([12, 12]);
-    expect(flat(`${MENU}-menu`).width).toBe(104);
+    expect(flat(`${MENU}-menu`).width).toBe(116);
     fireEvent.press(get(`${MENU}-BY_SERIES`));
     expect(get(`${MENU}-notation`).props.children).toBe("DG → DG → …");
     expect(get(`${SIDE}-WITH`).props.accessibilityLabel).toBe("Avec, Les deux côtés à chaque série");
-    // Le contenu plus long élargit l'option ; la place réservée de la ligne ne change pas.
+    // Le contenu plus long élargit l'option [même largeur depuis le 27/11/2026] ; la place réservée de la ligne ne change pas.
     expect(flat(`${SIDE}-tile-WITH`).width).toBe(116);
     expect(flat("execution-sheet-side-control-slot").minWidth).toBe(186);
     expect(screen.queryByText(/Droite|Gauche/u, hidden)).toBeNull();

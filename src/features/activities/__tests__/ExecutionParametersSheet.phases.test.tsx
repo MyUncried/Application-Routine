@@ -901,8 +901,15 @@ describe("D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) — phase
     fireEvent.press(get(WITH));
     expect(query(TABLE)).toBeNull();
     fireEvent.press(get(CHEVRON));
-    expect(query(remove(1))).toBeNull();
+    // Recette iPhone du 26/11/2026 (soir), ligne d607-phases, Hermann : « Remettre les symboles de croix inactifs à chaque ligne » —
+    // croix indisponible à chaque ligne. [`query(remove(1))` nul (interrupteur du son à sa place) — remplacé.]
+    for (const n of [1, 2]) {
+      expect(get(remove(n)).props.accessibilityState).toMatchObject({ disabled: true });
+      expect(query(`${row(n)}-sound`)).toBeNull();
+    }
     expect(get(label(1)).props.editable).toBe(false);
+    // Même ligne : « Les textes du libellé doivent être noirs, pas en gras. »
+    expect(StyleSheet.flatten(get(label(1)).props.style)).toMatchObject({ color: "#141414", fontWeight: "400", fontFamily: "Inter_400Regular" });
     expect(query(`${STEPPER}-input`)).toBeNull();
     enterDuration(1, "8");
     expect(shownDuration(1)).toBe("8″");
@@ -916,23 +923,11 @@ describe("D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) — phase
     ]);
   });
 
-  it("son de chaque phase désactivable : l'interrupteur remplace la croix ; ✓ écrit `soundOff` sur la seule phase coupée ; réactivé, la clé disparaît", () => {
-    const { onApply } = renderSheet(withPhases([["Descente", 6], ["Maintien", 3]]));
-    unfoldPhases();
-    expect(get(`${row(2)}-sound`).props.accessibilityLabel).toBe("Son de la phase 2");
-    expect(get(`${row(2)}-sound`).props.accessibilityState).toMatchObject({ checked: true });
-    expect(get(`${row(2)}-sound-on`)).toBeTruthy();
-    fireEvent.press(get(`${row(2)}-sound`));
-    expect(get(`${row(2)}-sound`).props.accessibilityState).toMatchObject({ checked: false });
-    expect(get(`${row(2)}-sound-off`)).toBeTruthy();
-    validate();
-    expect(applied(onApply).series.workPhases).toEqual([
-      { id: 1, label: "Descente", durationSeconds: 6 },
-      { id: 2, label: "Maintien", durationSeconds: 3, soundOff: true },
-    ]);
-  });
-
-  it("son coupé relu : interrupteur éteint ; le réactiver retire `soundOff`", () => {
+  // [Tests « son de chaque phase désactivable : l'interrupteur remplace la croix » et « son coupé relu : interrupteur éteint » —
+  // remplacés le 27/11/2026 : recette iPhone du 26/11 (soir), ligne d607-phases, Hermann : « Remettre les symboles de croix inactifs à
+  // chaque ligne, ils ont été remplacés par des symboles paramétrage ». L'interrupteur n'est plus dans la modale (emplacement À
+  // CLARIFIER) ; un son coupé relu est conservé tel quel par le ✓.]
+  it("son coupé relu : aucun interrupteur, croix inactive ; ✓ conserve `soundOff`", () => {
     const parent = withPhases([["Descente", 6], ["Maintien", 3]]);
     const series = parent.series as { readonly workPhases: readonly WorkPhase[] };
     const { onApply } = renderSheet({
@@ -940,9 +935,9 @@ describe("D-608 (D-573 point 6, Hermann, 26/11/2026 ; Formats § 9.10) — phase
       series: { ...parent.series, workPhases: [{ ...series.workPhases[0]!, soundOff: true }, series.workPhases[1]!] },
     } as ExecutionParametersInput);
     unfoldPhases();
-    expect(get(`${row(1)}-sound`).props.accessibilityState).toMatchObject({ checked: false });
-    fireEvent.press(get(`${row(1)}-sound`));
+    expect(query(`${row(1)}-sound`)).toBeNull();
+    expect(get(remove(1)).props.accessibilityState).toMatchObject({ disabled: true });
     validate();
-    expect(applied(onApply).series.workPhases[0]).toEqual({ id: 1, label: "Descente", durationSeconds: 6 });
+    expect(applied(onApply).series.workPhases[0]).toEqual({ id: 1, label: "Descente", durationSeconds: 6, soundOff: true });
   });
 });

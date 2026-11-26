@@ -48,7 +48,6 @@ import {
   isSingleSeries,
   moveRow,
   moveWorkPhase,
-  toggleWorkPhaseSound,
   openSheetDraft,
   removeRow,
   removeWorkPhase,
@@ -165,6 +164,7 @@ import {
   INLINE_OPTION_WIDTHS,
   SegmentedControl,
   inlineChevronFrameStyle,
+  inlineLabelStyle,
   inlineSelectedLabelStyle,
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
@@ -1509,6 +1509,17 @@ export function ExecutionParametersSheet({
     else update(setSideOrder(base, order));
   }
 
+  /**
+   * Recette iPhone du 26/11/2026 (soir) : notation choisie dans le menu natif ouvert depuis « Avec » non sélectionné — Avec est
+   * activé (`setSideMode`, Pause entre les côtés du Profil, P3-10) avec cette notation ; menu fermé sans choix : rien n'est écrit.
+   */
+  function chooseNativeSide(order: SideOrder) {
+    chooseInline((base) => {
+      const withSides = isBilateral(base.sideMode) ? base : setSideMode(base, "RIGHT_LEFT", profileSideRecoverySecondsDefault);
+      return withSides.sideOrder === order ? withSides : setSideOrder(withSides, order);
+    });
+  }
+
   function chooseSideOrder(order: SideOrder) {
     if (!isOpen(SIDE_ORDER_SELECTOR)) return;
     if (draft.sideOrder === order) setIsTableSelected(false);
@@ -2625,7 +2636,17 @@ export function ExecutionParametersSheet({
                   />
                 ),
             }
-          : { value: "WITH", label: t.sideModeChoices.WITH },
+          : {
+              value: "WITH",
+              label: t.sideModeChoices.WITH,
+              // Recette iPhone du 26/11/2026 (soir), Hermann : « l'appui sur l'option Avec de "de chaque côté" doit ouvrir directement
+              // le popover sans mettre de valeur par défaut » — iOS, Avec non sélectionné (N > 1) : l'option est le déclencheur du menu
+              // natif ; rien n'est écrit avant le choix d'une notation (`chooseNativeSide`). [Avec écrivait `RIGHT_LEFT` et l'Enchainement
+              // courant, le menu ne s'ouvrant qu'au second toucher — remplacé sur iOS.]
+              ...(Platform.OS === "ios" && sideOrderShown
+                ? { idleContent: <NativeSideOrderMenu value={null} onChoose={chooseNativeSide} testID="execution-sheet-side-with-menu" /> }
+                : {}),
+            },
         { value: "WITHOUT", label: t.sideModeChoices.WITHOUT },
       ]}
       value={sideChoice}
@@ -2953,7 +2974,9 @@ export function ExecutionParametersSheet({
           editable={false}
           accessibilityLabel={t.phaseLabel.replace("{n}", String(number))}
           accessibilityState={{ disabled: true }}
-          style={[tableCellValueStyle, styles.phaseLabelInput]}
+          // Recette iPhone du 26/11/2026 (soir), ligne d607-phases, Hermann : « Les textes du libellé doivent être noirs, pas en
+          // gras. » [Semi Bold primaire des valeurs de cellule — remplacé pour le libellé non modifiable.]
+          style={[tableCellValueStyle, styles.phaseLabelInput, styles.phaseLabelFixed]}
           testID={`${prefix}-label`}
         />
       );
@@ -3223,8 +3246,10 @@ export function ExecutionParametersSheet({
           cell={phaseCell}
           bleed={TABLE_BLOCK_BLEED}
           structureLocked={structureLocked}
-          // D-608 (D-573 point 6) : son de chaque phase désactivable.
-          onToggleSound={(phaseId) => update(toggleWorkPhaseSound(keyboard.flush(draft), phaseId))}
+          // Recette iPhone du 26/11/2026 (soir), ligne d607-phases, Hermann : « Remettre les symboles de croix inactifs à chaque ligne,
+          // ils ont été remplacés par des symboles paramétrage » — croix indisponible (structure fixée, D-608) à chaque ligne.
+          // [Interrupteur du son de chaque phase à la place de la croix (D-608, D-573 point 6, `onToggleSound` →
+          // `toggleWorkPhaseSound`) — retiré de la modale ; son emplacement est À CLARIFIER.]
           style={styles.tableBlock}
         />
       ) : null}
@@ -4589,18 +4614,37 @@ function SideOrderTrigger({
  * `RNHostView`, comme `CircuitNatureMenu`) : le déclencheur garde le dessin de `SideOrderTrigger` ; les deux notations, la courante
  * cochée.
  */
-function NativeSideOrderMenu({ value, onChoose, testID }: { value: SideOrder; onChoose: (order: SideOrder) => void; testID: string }) {
+/*
+ * Recette iPhone du 26/11/2026 (soir), Hermann : « l'appui sur l'option Avec de "de chaque côté" doit ouvrir directement le popover
+ * sans mettre de valeur par défaut » — `value` `null` : Avec non sélectionné, le déclencheur est l'option « Avec » elle-même
+ * (`SideWithIdleTrigger`, taille fixe de l'option) ; aucune notation cochée ; le choix d'une notation active Avec avec elle
+ * (`chooseNativeSide`). Constat « l'appui sur Avec n'ouvre plus le popover iOS » et « le cadre de l'option DD..-> GG.. est trop
+ * étroit, le texte est affiché avec une ligne vide » : l'hôte `Host matchContents` / `RNHostView matchContents` se dimensionne sur
+ * son contenu (boucle décrite par `CircuitNatureMenu`, story 7.9, et par le défaut B5 de PRE-7 B.3) — un contenu qui change de
+ * largeur est mis en page dans l'ancienne taille. L'hôte est remonté à chaque changement de déclencheur (`key`), comme
+ * `CircuitNatureMenu`, et la largeur de « DD… → GG… » est élargie (aucun `numberOfLines` : PRE-4 story 3.8 AC7). Cause du toucher
+ * perdu : hypothèse (hôte mal dimensionné, le toucher tombant sur la zone de sélection de l'option), à vérifier sur iPhone.
+ */
+function NativeSideOrderMenu({ value, onChoose, testID }: { value: SideOrder | null; onChoose: (order: SideOrder) => void; testID: string }) {
   return (
-    <Host matchContents testID={`${testID}-host`}>
+    <Host key={value ?? "idle"} matchContents testID={`${testID}-host`}>
       <Menu
         label={
           <RNHostView matchContents>
             <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-              <SideOrderTrigger value={value} expanded={false} onPress={ignorePress} testID={testID} />
+              {value === null ? (
+                <SideWithIdleTrigger testID={testID} />
+              ) : (
+                <SideOrderTrigger value={value} expanded={false} onPress={ignorePress} testID={testID} />
+              )}
             </View>
           </RNHostView>
         }
-        modifiers={[swiftUIAccessibilityLabel(t.sideSequence), swiftUIAccessibilityValue(t.sideOrders[value])]}
+        modifiers={
+          value === null
+            ? [swiftUIAccessibilityLabel(`${t.sideModeRow}, ${t.sideModeChoices.WITH}`)]
+            : [swiftUIAccessibilityLabel(t.sideSequence), swiftUIAccessibilityValue(t.sideOrders[value])]
+        }
       >
         {SIDE_ORDERS.map((order) => (
           <SwiftUIButton key={order} modifiers={[swiftUIAccessibilityLabel(t.sideOrders[order])]} onPress={() => onChoose(order)} testID={`${testID}-${order}`}>
@@ -4611,6 +4655,20 @@ function NativeSideOrderMenu({ value, onChoose, testID }: { value: SideOrder; on
         ))}
       </Menu>
     </Host>
+  );
+}
+
+/**
+ * Recette iPhone du 26/11/2026 (soir) : option « Avec » non sélectionnée, dessinée comme le libellé de l'option du segmenté
+ * (`inlineLabelStyle`), sur toute l'option (62 × 26) pour que l'hôte du menu natif en reçoive tout le toucher.
+ */
+function SideWithIdleTrigger({ testID }: { testID: string }) {
+  return (
+    <View style={[styles.sideOrderTrigger, { width: INLINE_OPTION_WIDTHS.narrow }]} testID={`${testID}-idle`}>
+      <Text style={inlineLabelStyle}>
+        {t.sideModeChoices.WITH}
+      </Text>
+    </View>
   );
 }
 
@@ -4742,7 +4800,10 @@ const SIDE_ORDER_LABEL_SIZE = 12;
  */
 const SIDE_ORDER_OPTION_INSET = 8;
 const SIDE_ORDER_CHEVRON_FRAME = 10;
-const SIDE_ORDER_NOTATION_WIDTH: Readonly<Record<SideOrder, number>> = { BY_SIDE: 72, BY_SERIES: 84 };
+// Recette iPhone du 26/11/2026 (soir), Hermann : « le cadre de l'option DD..-> GG.. est trop étroit, le texte est affiché avec une
+// ligne vide » — « DD… → GG… » porté à 84 (option de 116), comme « DG → DG → … » ; la place réservée de la ligne (la plus large)
+// est inchangée. [72 (relevé Figma `9462:18978`, option de 104) — remplacé.]
+const SIDE_ORDER_NOTATION_WIDTH: Readonly<Record<SideOrder, number>> = { BY_SIDE: 84, BY_SERIES: 84 };
 function sideOrderOptionWidth(order: SideOrder): number {
   return SIDE_ORDER_OPTION_INSET * 2 + SIDE_ORDER_NOTATION_WIDTH[order] + SIDE_ORDER_CHEVRON_GAP + SIDE_ORDER_CHEVRON_FRAME;
 }
@@ -5160,8 +5221,13 @@ const styles = StyleSheet.create({
     ...type.editableValue,
     color: colors.primary,
   },
+  // Recette iPhone du 26/11/2026 (soir), remarque c, Hermann : « Durée de l'exercice, toutes les modales : la taille du texte est
+  // supérieure aux autres de la modale, réaligner. » — taille et interligne des valeurs de la modale (`type.editableValue`, 13/16),
+  // graisse et couleur inchangées. [`type.body` (14/17) — remplacé.]
   staticValue: {
     ...type.body,
+    fontSize: type.editableValue.fontSize,
+    lineHeight: type.editableValue.lineHeight,
     color: colors.textPrimary,
   },
   // Recette du 07/11/2026 : valeur de Format non modifiable (Incrément grisé, durée héritée du Circuit), même pastille, gris.
@@ -5226,6 +5292,12 @@ const styles = StyleSheet.create({
   // visible de 76 × 24 (largeur de sa colonne), rayon 8, valeur Semi Bold 13 primaire centrée ;
   // fond `#EAEAFF` en saisie (posé par `KeyboardField`). iOS : la hauteur de ligne du texte est
   // retirée (texte et curseur décentrés sinon), comme le champ de la charge commune.
+  // Recette iPhone du 26/11/2026 (soir), ligne d607-phases : libellé de phase (non modifiable, D-608) en noir, Regular.
+  phaseLabelFixed: {
+    fontFamily: type.body.fontFamily,
+    fontWeight: type.body.fontWeight,
+    color: colors.textPrimary,
+  },
   phaseLabelInput: {
     width: "100%",
     height: TABLE_CELL_HEIGHT,
