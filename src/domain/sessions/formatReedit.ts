@@ -248,7 +248,10 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       }
       answers.loopRestSeconds = tours.at(-1)?.postActivityRecoverySeconds ?? 0;
       answers.buyIn = roles.includes("BUY_IN");
-      answers.increasingVolume = tours.some((exercise) => (exercise.format?.settings.incrementPerRound ?? 0) !== 0);
+      // Recette du 26/11/2026 (D-607, complément ; Hermann : « il n'y a pas d'interrupteur développé, on les a tous abandonnés pour les
+      // formats et les paramètres ») : l'AMRAP est toujours à volume croissant, réouverture comprise (colonne « Par tour »).
+      // [Déduit des incréments non nuls — remplacé : un AMRAP rouvert dont les incréments valent 0 repassait « non croissant ».]
+      answers.increasingVolume = true;
       answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled);
       break;
     case "FOR_TIME":

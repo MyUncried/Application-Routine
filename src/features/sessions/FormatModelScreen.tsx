@@ -1479,10 +1479,12 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           stepRow("durationSeconds", r.durationSeconds),
           stepRow("blockCount", r.blockCount),
           ...((answers.blockCount ?? 1) > 1 ? [stepRow("restBetweenBlocksSeconds", r.restBetweenBlocksSeconds)] : []),
-          stepRow("loopRestSeconds", r.loopRestSeconds),
-          switchRow("buyIn", r.buyIn),
-          switchRow("increasingVolume", r.increasingVolume),
-          switchRow("withLoad", r.withLoad),
+          // Recette du 26/11/2026 (Hermann : « il n'y a pas d'interrupteur développé, on les a tous abandonnés pour les formats et les
+          // paramètres » ; retrait demandé : « oui ») : interrupteurs Buy-in, Volume croissant et Avec charge retirés. Buy-in : présence
+          // d'un mouvement dans le bloc Buy-in (`forTimeBlockState`) ; Avec charge : charge réglée mouvement par mouvement (`withLoad`
+          // toujours vrai à l'ouverture) ; Volume croissant : toujours vrai (colonne « Par tour »). [`switchRow("buyIn")`,
+          // `switchRow("increasingVolume")`, `switchRow("withLoad")` — remplacés.]
+          stepRow("loopRestSeconds", r.loopRestSeconds, { last: true }),
         ];
       }
       case "FOR_TIME":
