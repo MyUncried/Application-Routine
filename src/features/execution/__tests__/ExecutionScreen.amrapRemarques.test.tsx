@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { exerciseActivity, structuredSession } from "@/domain/execution/testing/simulation";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -205,5 +205,51 @@ describe("amrap-1 — AMRAP : Série grisée et synthèse par tour", () => {
     const tour2 = textOf(block[1]!.props.testID as string);
     expect(tour2).toContain("Tour 2");
     expect(tour2).toContain("Mouvement A · 4 rép. · 01:30");
+  });
+});
+
+// Complément D-529 / CE-UI-14 validé par Hermann le 26/11/2026 : dans l'AMRAP, le décompte d'une Série en Durée active est en bas à
+// droite, la charge reste en bas à gauche, le temps limite du bloc en haut à droite.
+describe("complément D-529 — AMRAP : Série en Durée chargée", () => {
+  it("décompte en bas à droite, charge en bas à gauche, temps limite du bloc en haut à droite, objectif en haut à gauche", async () => {
+    const session = structuredSession(
+      {
+        elements: [
+          {
+            kind: "CIRCUIT",
+            circuit: {
+              id: "c",
+              repeatCount: 1,
+              nature: "TOURS",
+              format: { key: "AMRAP", settings: { blockSeconds: 300, restBetweenBlocksSeconds: 0 } },
+              exercises: [
+                loopMember("A", repetitionParameters(10, 1, 0)),
+                loopMember("P", uniformParameters({ mode: "DURATION", count: 1, target: 60, pauseSeconds: 0, loadKg: 20, loadEnabled: true })),
+              ],
+            },
+          },
+        ],
+        stopPoints: [],
+      },
+      { name: "AMRAP durée chargée" },
+    );
+    const { at, service } = await setup(session);
+    act(() => {
+      fireEvent(screen.getByTestId("execution-ring-area"), "layout", { nativeEvent: { layout: { width: 398, height: 340, x: 0, y: 0 } } });
+    });
+    const placement = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node !== null && node.props.side === undefined) node = node.parent;
+      return { side: node?.props.side, vertical: node?.props.vertical };
+    };
+    await at(20);
+    await press("execution-for-time-next"); // Série en Durée lancée
+    expect(service.project()?.format?.duration?.state).toBe("RUNNING");
+    expect(placement("execution-duration-countdown")).toEqual({ side: "right", vertical: "bottom" });
+    expect(screen.getByTestId("execution-load")).toHaveTextContent("20kg");
+    expect(placement("execution-load")).toEqual({ side: "left", vertical: "bottom" });
+    expect(placement("execution-cap")).toEqual({ side: "right", vertical: "top" });
+    expect(placement("execution-objective")).toEqual({ side: "left", vertical: "top" });
+    expect(screen.queryByTestId("execution-auto-count")).toBeNull();
   });
 });

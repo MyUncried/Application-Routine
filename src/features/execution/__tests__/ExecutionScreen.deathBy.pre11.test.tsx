@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { exerciseActivity, structuredSession } from "@/domain/execution/testing/simulation";
 import type { DeathByResult } from "@/domain/execution/policies/deathBy";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -35,14 +35,14 @@ const S = 1000;
 const T0 = Date.UTC(2026, 10, 18, 19, 0, 0);
 
 
-async function setup() {
+async function setup(parameters = repetitionParameters(3, 1, 0)) {
   jest.spyOn(AppState, "addEventListener").mockImplementation(((_type: string, _listener: (state: AppStateStatus) => void) => ({ remove: () => undefined })) as never);
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const session = structuredSession(
     {
       elements: [
-        { kind: "EXERCISE", exercise: exerciseActivity("E", repetitionParameters(3, 1, 0), { format: { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 2 } } }) },
+        { kind: "EXERCISE", exercise: exerciseActivity("E", parameters, { format: { key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 2 } } }) },
         { kind: "EXERCISE", exercise: exerciseActivity("B", durationParameters(30, 1, 0)) },
       ],
       stopPoints: [],
@@ -109,8 +109,8 @@ async function press(testID: string) {
 }
 
 describe("PRE-11 T4 — Death by à l'écran", () => {
-  async function started() {
-    const context = await setup();
+  async function started(parameters?: Parameters<typeof setup>[0]) {
+    const context = await setup(parameters);
     await act(async () => {
       await new Promise((resolve) => setImmediate(resolve));
     });
@@ -168,5 +168,27 @@ describe("PRE-11 T4 — Death by à l'écran", () => {
     await press("execution-partial-validate");
     expect(service.project()?.status).toBe("FINISHED");
     expect(deathByResults(await repository.listResults("exec-deathby"))[0]).toMatchObject({ acquiredRanks: 0, rankReached: 1, reason: "ABANDONED", partialRepetitions: 2 });
+  });
+
+  // Complément D-529 / CE-UI-14 du 26/11/2026 : « compte à rebours de Série en Durée si effectivement disponible ». La projection du Death
+  // by expose ce décompte pour une Série en Durée : il prend le bas à droite, la charge reste en bas à gauche. Comportement réellement
+  // supporté, sans extension : aucune retenue en Death by (pas de zone d'appui).
+  it("complément D-529 : Série en Durée chargée — décompte en bas à droite, charge en bas à gauche, intervalle en haut à droite", async () => {
+    const { service } = await started(uniformParameters({ mode: "DURATION", count: 1, target: 20, pauseSeconds: 0, loadKg: 20, loadEnabled: true }));
+    act(() => {
+      fireEvent(screen.getByTestId("execution-ring-area"), "layout", { nativeEvent: { layout: { width: 398, height: 340, x: 0, y: 0 } } });
+    });
+    const placement = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node !== null && node.props.side === undefined) node = node.parent;
+      return { side: node?.props.side, vertical: node?.props.vertical };
+    };
+    expect(service.project()?.format?.duration?.state).toBe("RUNNING");
+    expect(placement("execution-duration-countdown")).toEqual({ side: "right", vertical: "bottom" });
+    expect(screen.getByTestId("execution-load")).toHaveTextContent("20kg");
+    expect(placement("execution-load")).toEqual({ side: "left", vertical: "bottom" });
+    expect(placement("execution-cap")).toEqual({ side: "right", vertical: "top" });
+    expect(screen.queryByTestId("execution-auto-count")).toBeNull();
+    expect(screen.queryByTestId("execution-duration-zone")).toBeNull();
   });
 });

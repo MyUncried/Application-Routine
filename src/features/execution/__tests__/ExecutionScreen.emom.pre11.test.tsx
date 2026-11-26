@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import type { ReactNode } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
-import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { exerciseActivity, structuredSession } from "@/domain/execution/testing/simulation";
 import type { EmomWindowResult } from "@/domain/execution/policies/emom";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -37,14 +37,14 @@ const S = 1000;
 const T0 = Date.UTC(2026, 10, 18, 19, 0, 0);
 
 
-async function setup(options: { readonly initialCountdownSeconds?: number } = {}) {
+async function setup(options: { readonly initialCountdownSeconds?: number } = {}, parameters = repetitionParameters(10, 3, 0)) {
   jest.spyOn(AppState, "addEventListener").mockImplementation(((_type: string, _listener: (state: AppStateStatus) => void) => ({ remove: () => undefined })) as never);
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const session = structuredSession(
     {
       elements: [
-        { kind: "EXERCISE", exercise: exerciseActivity("E", repetitionParameters(10, 3, 0), { format: { key: "EMOM", settings: { intervalSeconds: 60 } } }) },
+        { kind: "EXERCISE", exercise: exerciseActivity("E", parameters, { format: { key: "EMOM", settings: { intervalSeconds: 60 } } }) },
         { kind: "EXERCISE", exercise: exerciseActivity("B", durationParameters(30, 1, 0)) },
       ],
       stopPoints: [],
@@ -111,8 +111,8 @@ async function press(testID: string) {
 }
 
 describe("PRE-11 T2 — EMOM à l'écran", () => {
-  async function started(options: { readonly initialCountdownSeconds?: number } = {}) {
-    const context = await setup(options);
+  async function started(options: { readonly initialCountdownSeconds?: number } = {}, parameters?: Parameters<typeof setup>[1]) {
+    const context = await setup(options, parameters);
     await act(async () => {
       await new Promise((resolve) => setImmediate(resolve));
     });
@@ -203,6 +203,35 @@ describe("PRE-11 T2 — EMOM à l'écran", () => {
     expect(placement("execution-rest-countdown")).toEqual({ side: "right", vertical: "bottom" });
     await at(60); // fenêtre suivante : plus de repos en coin
     expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+  });
+
+  // Complément D-529 / CE-UI-14 du 26/11/2026 : en EMOM en Répétitions, le décompte du repos occupe le bas à droite pendant le repos
+  // seulement ; aucun décompte de Série en Durée ; la charge reste en bas à gauche pendant le travail.
+  it("complément D-529 : EMOM en Répétitions chargé — charge en bas à gauche ; bas à droite vide au travail, décompte du repos au repos", async () => {
+    const { at } = await started({}, uniformParameters({ mode: "REPETITIONS", count: 3, target: 10, pauseSeconds: 0, loadKg: 20, loadEnabled: true }));
+    act(() => {
+      fireEvent(screen.getByTestId("execution-ring-area"), "layout", { nativeEvent: { layout: { width: 398, height: 340, x: 0, y: 0 } } });
+    });
+    const placement = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node !== null && node.props.side === undefined) node = node.parent;
+      return { side: node?.props.side, vertical: node?.props.vertical };
+    };
+    expect(screen.getByTestId("execution-load")).toHaveTextContent("20kg");
+    expect(placement("execution-load")).toEqual({ side: "left", vertical: "bottom" });
+    expect(screen.queryByTestId("execution-rest-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-duration-countdown")).toBeNull();
+    expect(screen.queryByTestId("execution-auto-count")).toBeNull();
+    await at(20);
+    await press("execution-emom-next"); // repos
+    expect(placement("execution-rest-countdown")).toEqual({ side: "right", vertical: "bottom" });
+    expect(screen.queryByTestId("execution-duration-countdown")).toBeNull();
+    // Aucune autre information n'est déplacée vers un autre coin.
+    expect(placement("execution-objective")).toEqual({ side: "left", vertical: "top" });
+    expect(placement("execution-cap")).toEqual({ side: "right", vertical: "top" });
+    // Charge pendant le repos de la fenêtre : aujourd'hui absente (étape de repos sans charge), point À CLARIFIER (rapport
+    // 2026-11-26_D529-COINS-DYNAMIQUES). Test neutre sur ce point : si elle est affichée, ce n'est qu'en bas à gauche.
+    if (screen.queryByTestId("execution-load") !== null) expect(placement("execution-load")).toEqual({ side: "left", vertical: "bottom" });
   });
 
   it("Arrêt pendant une Série : feuille « Arrêt de l'EMOM », répétitions saisies, séance arrêtée", async () => {
