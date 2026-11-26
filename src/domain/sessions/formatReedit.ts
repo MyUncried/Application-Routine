@@ -20,6 +20,7 @@
 
 import { seriesRowsOf, type ExecutionParametersInput, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
+import { emomIntervalsOf } from "./emomIntervals";
 import { circuitRoleOf } from "./formats";
 import {
   buildModelElements,
@@ -213,6 +214,11 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       );
       answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled);
       if (answers.execution === "SEQUENCE" && exercises.length > 1) set("recoveryBetweenSeconds", common(recovery.slice(0, -1)));
+      // D-607 (D-572 point 6) : intervalles différents selon le tour (« Dans chaque intervalle »), repris tels quels.
+      if (format !== null) {
+        const windows = emomIntervalsOf(format.settings, "windowSeconds", circuit.repeatCount);
+        if (windows.some((value) => value !== windows[0])) answers.intervalsSeconds = windows;
+      }
       break;
     case "DEATH_BY":
       set(
@@ -261,6 +267,12 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
   }
   const movements = exercises.map((exercise, index): ModelMovement => {
     let values = valuesOf(model, exercise);
+    // D-607 (D-572 point 6) : intervalle propre à chaque série du mouvement (seul, À la suite, En alternance), repris dès qu'il diffère
+    // de l'Intervalle du questionnaire.
+    if (model === "EMOM" && format === null && exercise.format?.key === "EMOM") {
+      const own = emomIntervalsOf(exercise.format.settings, "intervalSeconds", rowsOf(exercise).length);
+      if (own.some((value) => value !== answers.intervalSeconds)) values = { ...values, intervals: own };
+    }
     // EMOM « dans chaque intervalle » d'avant le 05/11/2026 : membres à une série jouée à chaque tour — la série est reprise
     // pour chacun des N tours (même prescription), sans valeur inventée.
     if (model === "EMOM" && format !== null && values.cells !== undefined && values.cells.length === 1 && circuit.repeatCount > 1) {

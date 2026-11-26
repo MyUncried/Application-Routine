@@ -120,6 +120,8 @@ export function keyboardFieldOrder(
   outside: readonly KeyboardFieldId[] = [],
   /** EMOM (y-format-cadres, 07/11/2026) : tableau sans colonne Pause. */
   withPause = true,
+  /** D-607 (D-572 point 6) : EMOM — colonne Intervalle, à la place de la Pause. */
+  withInterval = false,
 ): readonly KeyboardFieldId[] {
   // PRE-5 story 2.8 (D-434) : durée de phase active — seules les durées des phases, dans
   // l'ordre du tableau déployé (jamais un libellé ni une charge).
@@ -136,7 +138,7 @@ export function keyboardFieldOrder(
   const withTarget = effectiveParameters(draft).mode !== null;
   return draft.rowIds.slice(0, draft.rows.length).flatMap((row): KeyboardFieldId[] => [
     ...(withTarget ? [{ kind: "rowTarget", row } as const] : []),
-    ...(withPause ? [{ kind: "rowPause", row } as const] : []),
+    ...(withInterval ? [{ kind: "rowInterval", row } as const] : withPause ? [{ kind: "rowPause", row } as const] : []),
     ...(draft.loadEnabled ? [{ kind: "load", row } as const] : []),
   ]);
 }
@@ -302,6 +304,11 @@ export type ScalarKeyboardFields = {
   readonly apply: (draft: ExecutionSheetDraft, field: SheetScalarField, text: string) => ExecutionSheetDraft;
   readonly isExternal: (field: SheetScalarField) => boolean;
   readonly external: (field: SheetScalarField, text: string) => void;
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026) : EMOM — intervalle d'une ligne du tableau (`rowInterval`), valeur hors Brouillon
+   * (réglage de Format de la feuille) : texte d'édition et application à la sortie du champ, comme les valeurs externes.
+   */
+  readonly rowInterval?: { readonly editText: (row: number) => string; readonly apply: (row: number, text: string) => void };
 };
 
 const NO_SCALARS: ScalarKeyboardFields = {
@@ -327,6 +334,9 @@ function applyEdit(
       return applyRowTargetEdit(draft, edit.field.row, edit.text);
     case "rowPause":
       return applyRowPauseEdit(draft, edit.field.row, edit.text);
+    case "rowInterval":
+      // D-607 : hors Brouillon (`takeExternal`).
+      return draft;
     case "phaseLabel":
       return applyPhaseLabelEdit(draft, edit.field.phase, edit.text);
     case "phaseDuration":
@@ -405,7 +415,12 @@ export function useSheetKeyboard({
    * des mises à jour fonctionnelles, seulement si la saisie a changé.
    */
   const takeExternal = (edit: Pick<Edit, "field" | "text" | "initial"> | null) => {
-    if (edit === null || edit.text === edit.initial || edit.field.kind !== "scalar" || !scalars.isExternal(edit.field.field)) return;
+    if (edit === null || edit.text === edit.initial) return;
+    if (edit.field.kind === "rowInterval") {
+      scalars.rowInterval?.apply(edit.field.row, edit.text);
+      return;
+    }
+    if (edit.field.kind !== "scalar" || !scalars.isExternal(edit.field.field)) return;
     scalars.external(edit.field.field, edit.text);
   };
   const inputsRef = useRef(new Map<string, Registered>());
@@ -495,6 +510,8 @@ export function useSheetKeyboard({
         return rowTargetEditText(draft, field.row);
       case "rowPause":
         return rowPauseEditText(draft, field.row);
+      case "rowInterval":
+        return scalars.rowInterval?.editText(field.row) ?? "";
       case "phaseLabel":
         return phaseLabelEditText(draft, field.phase);
       case "phaseDuration":
@@ -582,7 +599,7 @@ export function useSheetKeyboard({
     if (edit === null) return base;
     // Décision du 06/11/2026 : une valeur hors Brouillon (Récupération, Durée de l'exercice) n'est pas
     // prise ici ; elle l'est à la sortie du champ, qui suit (focus retiré par la surface).
-    if (edit.field.kind === "scalar" && scalars.isExternal(edit.field.field)) return base;
+    if ((edit.field.kind === "scalar" && scalars.isExternal(edit.field.field)) || edit.field.kind === "rowInterval") return base;
     const next = applyEdit(base, edit, scalars);
     edit.initial = edit.text;
     return next;

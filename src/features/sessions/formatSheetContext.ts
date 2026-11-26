@@ -1,7 +1,8 @@
 import { amrapMaxRefused, forTimeDurationRefused, roleChoices, setMemberRole } from "@/domain/sessions/circuitRoles";
 import { forTimeRoleChangeLoss, seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { isFormatModelKey, plannedWorkOfParameters, type FormatModelKey } from "@/domain/sessions/formatModels";
-import { circuitOfExercise } from "@/domain/sessions/layoutOperations";
+import { emomIntervalsOf, withEmomIntervals } from "@/domain/sessions/emomIntervals";
+import { circuitOfExercise, replaceLayoutCircuitFormatSettings } from "@/domain/sessions/layoutOperations";
 import { circuitRoleOf, PRECONFIGURATION_KEYS, type CircuitRole, type FormatSettings, type PreconfigurationKey } from "@/domain/sessions/formats";
 import type { SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { FormatSheetContext, FormatSheetRow } from "@/features/activities/FormatSettingsFrame";
@@ -75,7 +76,10 @@ export function formatSheetContextOf(
         if (circuit !== undefined && circuit.nature === "SERIES") rows.push("noRecovery");
         emom = { windowSeconds: null, othersWorkByRank: [] };
       } else {
-        rows.push("noRecovery");
+        // D-607 (D-573 point 1, D-572 point 6, Hermann, 25-26/11/2026 ; Formats § 9.9, § 9.10) : dans la modale « Dans chaque
+        // intervalle », l'intervalle partagé du Circuit est affiché et modifiable (par tour) ; la modification se répercute sur les
+        // autres mouvements. [Ni Intervalle ni Durée de l'exercice dans cette modale (07/11/2026) — Intervalle remplacé.]
+        rows.push("interval", "noRecovery");
         // Dans chaque intervalle : intervalle commun du Circuit, somme du travail prévu des membres.
         const window = carrier.format?.settings.windowSeconds;
         // Complément du 5 novembre 2026 (Hermann), §14 : somme des autres membres rang par rang.
@@ -85,7 +89,11 @@ export function formatSheetContextOf(
           .filter((member) => member !== undefined);
         const ranks = Math.max(carrier.repeatCount, 1);
         const othersWorkByRank = Array.from({ length: ranks }, (_, rank) => members.reduce((sum, member) => sum + plannedWorkOfParameters(member.executionParameters, rank), 0));
-        emom = { windowSeconds: typeof window === "number" ? window : 60, othersWorkByRank };
+        emom = {
+          windowSeconds: typeof window === "number" ? window : 60,
+          othersWorkByRank,
+          sharedIntervals: emomIntervalsOf(carrier.format?.settings, "windowSeconds", ranks),
+        };
       }
       break;
     }
@@ -111,11 +119,17 @@ export function formatSheetContextOf(
     ...(durationRefused ? { durationRefused } : {}),
     // D-531 / RM-271 (19/11/2026) : À l'échec (Max) grisé pour un membre de la boucle d'un AMRAP de plusieurs mouvements.
     ...(format.key === "AMRAP" && amrapMaxRefused(draft, draft.structure, exerciseId) ? { failureRefused: true } : {}),
-    onApply: (next: FormatSettings, nextRole: CircuitRole | null) =>
+    onApply: (next: FormatSettings, nextRole: CircuitRole | null, sharedIntervals?: readonly number[] | null) =>
       update((current) => {
+        // D-607 : intervalles des tours partagés, reportés au Circuit porteur (donc à tous ses mouvements).
+        const sharedCircuit = carrier === undefined ? undefined : circuitOfExercise(current.structure, exerciseId);
+        const shared =
+          sharedIntervals !== undefined && sharedIntervals !== null && sharedIntervals.length > 0 && sharedCircuit?.format?.key === "EMOM"
+            ? replaceLayoutCircuitFormatSettings(current, sharedCircuit.id, withEmomIntervals(sharedCircuit.format.settings, "windowSeconds", sharedIntervals))
+            : current;
         const withSettings: SessionDraft = {
-          ...current,
-          exercises: current.exercises.map((candidate) =>
+          ...shared,
+          exercises: shared.exercises.map((candidate) =>
             candidate.id === exerciseId && candidate.format !== undefined && candidate.format !== null
               ? { ...candidate, format: { key: candidate.format.key, settings: { ...next, ...rolePreserved(candidate.format.settings) } } }
               : candidate,

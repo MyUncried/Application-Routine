@@ -81,6 +81,8 @@ export type KeyboardFieldId =
   | { readonly kind: "load"; readonly row: number | "uniform" }
   | { readonly kind: "rowTarget"; readonly row: number }
   | { readonly kind: "rowPause"; readonly row: number }
+  /** D-607 (D-572 point 6, Hermann, 25/11/2026) : EMOM — intervalle de la série (ou du tour) de la ligne d'identité `row`. */
+  | { readonly kind: "rowInterval"; readonly row: number }
   | { readonly kind: "phaseLabel"; readonly phase: number }
   | { readonly kind: "phaseDuration"; readonly phase: number }
   | { readonly kind: "scalar"; readonly field: SheetScalarField };

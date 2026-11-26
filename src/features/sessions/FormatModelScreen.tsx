@@ -78,7 +78,8 @@ import type { ExecutionMode, ExecutionParametersInput } from "@/domain/activitie
 import { formatSheetContextOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
-import { currentLayout } from "@/domain/sessions/layoutOperations";
+import { emomIntervalsOf } from "@/domain/sessions/emomIntervals";
+import { circuitOfExercise, currentLayout } from "@/domain/sessions/layoutOperations";
 import { structureCircuits } from "@/domain/sessions/structure";
 import type { MovementChoice } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
@@ -1143,6 +1144,22 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     active: focusedCell === key,
   });
 
+  /**
+   * D-607 (D-572 point 6, Hermann, 25/11/2026) : l'Intervalle du questionnaire règle de nouveau toutes les séries de chaque mouvement
+   * (intervalles propres réglés dans la modale retirés ; ceux des tours le sont par `withAnswer`).
+   */
+  const resetEmomIntervals = () => {
+    if (model !== "EMOM") return;
+    setMovements((current) =>
+      current.some((item) => item.values.intervals !== undefined)
+        ? current.map((item) => {
+            if (item.values.intervals === undefined) return item;
+            const { intervals: _intervals, ...values } = item.values;
+            return { ...item, values };
+          })
+        : current,
+    );
+  };
   // Lignes de paramètres du modèle.
   // `fallback` : valeur héritée affichée tant que la réponse n'est pas fixée (Pause du Renforcement : pause des Exercices).
   const stepRow = (
@@ -1174,6 +1191,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           onPress: () => {
             setVariable((current) => new Set([...current].filter((item) => item !== id)));
             setAnswers((current) => withAnswer(current, id, (initialAnswers(model)[id] as number | undefined) ?? bounds.min));
+            if (id === "intervalSeconds") resetEmomIntervals();
           },
         },
       ]);
@@ -1193,6 +1211,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               return;
             }
             setAnswers((current) => withAnswer(current, id, entered));
+            if (id === "intervalSeconds") resetEmomIntervals();
           }}
           {...binding}
           onFocus={() => {
@@ -2673,7 +2692,26 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       const initial = exercise!.format?.settings ?? {};
       const changed = (key: string) =>
         typeof settings[key] === "number" && (settings[key] !== initial[key] || (key === "incrementPerRound" && incrementMissing)) ? (settings[key] as number) : null;
-      const interval = changed("intervalSeconds");
+      // D-607 (D-572 point 6, D-573 point 1, Hermann, 25-26/11/2026 ; Formats § 9.9) : EMOM — intervalles de chaque série du mouvement
+      // (seul, À la suite, En alternance) ou de chaque tour, partagés (« Dans chaque intervalle », portés par le Circuit provisoire).
+      // L'Intervalle du questionnaire n'est repris que pour un mouvement seul ou pour les tours partagés.
+      const emomCarrier = model === "EMOM" ? circuitOfExercise(working.structure, exercise!.id) : undefined;
+      const sharedBefore = model === "EMOM" ? circuitOfExercise(opening.structure, exercise!.id)?.format?.settings : undefined;
+      const emomTours =
+        emomCarrier?.format?.key === "EMOM" && sharedBefore !== undefined
+          ? (() => {
+              const after = emomIntervalsOf(emomCarrier.format!.settings, "windowSeconds", count);
+              return after.join() === emomIntervalsOf(sharedBefore, "windowSeconds", count).join() ? null : after;
+            })()
+          : null;
+      const emomOwn =
+        model === "EMOM" && emomCarrier?.format == null
+          ? (() => {
+              const after = emomIntervalsOf(settings, "intervalSeconds", count);
+              return after.join() === emomIntervalsOf(initial, "intervalSeconds", count).join() ? null : after;
+            })()
+          : null;
+      const interval = model === "EMOM" ? (emomTours?.[0] ?? (!several ? (emomOwn?.[0] ?? null) : null)) : changed("intervalSeconds");
       const duration = changed("durationSeconds");
       const increment = changed("incrementPerRound");
       const cap = changed("timeCapSeconds");
@@ -2685,6 +2723,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         ...(recoverySeconds !== null && recoverySeconds !== initialRecovery ? { recovery: recoverySeconds } : {}),
         ...(increment !== null && model === "AMRAP" ? { increment } : {}),
         ...(increment !== null && model === "DEATH_BY" && several ? { startIncrement: increment } : {}),
+        ...(emomOwn !== null ? { intervals: emomOwn } : {}),
       };
       setMovements((current) =>
         current.map((item, at) => {
@@ -2710,6 +2749,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           }
         }
         if (interval !== null) updated = withAnswer(updated, "intervalSeconds", interval);
+        // D-607 : intervalles des tours partagés (« Dans chaque intervalle ») ; tous égaux : l'Intervalle seul.
+        if (emomTours !== null && emomTours.some((seconds) => seconds !== emomTours[0])) updated = { ...updated, intervalsSeconds: emomTours };
         if (duration !== null) updated = withAnswer(updated, "durationSeconds", duration);
         if (cap !== null) updated = withAnswer(updated, "timeCapSeconds", cap);
         if (increment !== null && model === "DEATH_BY" && !several) updated = withAnswer(updated, "increment", increment);
