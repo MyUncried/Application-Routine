@@ -183,7 +183,7 @@ export function quickFormatOf(
 ): { readonly name: string; readonly unitOpen: boolean; readonly key: PreconfigurationKey } | undefined {
   const named = (key: string | null | undefined) =>
     key !== null && key !== undefined && (PRECONFIGURATION_KEYS as readonly string[]).includes(key)
-      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30", key: key as PreconfigurationKey }
+      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30" && key !== "HIIT", key: key as PreconfigurationKey }
       : undefined;
   if (model !== undefined) return named(model);
   const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);

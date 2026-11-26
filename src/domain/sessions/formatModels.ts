@@ -54,6 +54,8 @@ export type FormatModelKey = ElementFormatKey | PreconfigurationKey;
 export const FORMAT_MODEL_KEYS: readonly FormatModelKey[] = [
   "TABATA",
   "INTERVALS_30_30",
+  // D-608 (D-573 de la branche de documentation, point 3, Hermann, 26/11/2026 ; Formats § 9.10) : HIIT, sur le modèle du 30/30.
+  "HIIT",
   "EMOM",
   "AMRAP",
   "FOR_TIME",
@@ -146,6 +148,9 @@ export function initialAnswers(key: FormatModelKey): ModelAnswers {
       return { seriesCount: 8, workSeconds: 20, pauseSeconds: 10, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "SEQUENCE" };
     case "INTERVALS_30_30":
       return { seriesCount: 6, workSeconds: 30, pauseSeconds: 30, withLoad: false, execution: "SEQUENCE" };
+    case "HIIT":
+      // D-608 (Formats § 9.10) : Mode Durée, 6 séries identiques, objectif 40 s, pause 20 s (Durée de l'exercice 6 min), Récupération 0 s.
+      return { seriesCount: 6, workSeconds: 40, pauseSeconds: 20, withLoad: false, execution: "SEQUENCE" };
     case "EMOM":
       return { seriesCount: 6, intervalSeconds: MINUTE, recoveryBetweenSeconds: MINUTE, withLoad: false, execution: "EACH_INTERVAL" };
     case "AMRAP":
@@ -187,6 +192,7 @@ export function executionOptions(key: FormatModelKey): readonly ModelExecution[]
       return ["SEQUENCE", "ALTERNATED", "EACH_INTERVAL"];
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "PROGRESSION":
     case "UNTIL_FAILURE":
@@ -503,7 +509,8 @@ export function allowedModes(key: FormatModelKey, movements: readonly ModelMovem
   const both: readonly ExecutionMode[] = ["REPETITIONS", "DURATION"];
   // Recette du 05/11/2026 (n-tabata ; décision de Hermann du 05/11/2026, « Durée seule, sans choix ») : objectif du Tabata et du
   // 30/30 toujours en Durée. [Complément du 5 novembre 2026, §15 : « modifiable au clavier, Répétitions ou Durée » — remplacé.]
-  if (key === "TABATA" || key === "INTERVALS_30_30") return ["DURATION"];
+  // D-608 : HIIT comme le 30/30.
+  if (key === "TABATA" || key === "INTERVALS_30_30" || key === "HIIT") return ["DURATION"];
   // AMRAP : au moins un Exercice de la boucle en Répétitions (n-charge-colonne) ; buy-in libre. [Un seul mouvement en Répétitions,
   // plusieurs en Répétitions ou Durée — précisé.] For time : au moins un Exercice de l'ensemble du Circuit (buy-in et buy-out compris).
   if (key === "AMRAP" || key === "FOR_TIME") return lastRepetitionsLocked(key, movements, index) ? ["REPETITIONS"] : both;
@@ -624,6 +631,7 @@ export function summaryIssues(key: FormatModelKey, answers: ModelAnswers, moveme
           return !several || (values.start != null && values.start >= 1 && values.startIncrement != null && values.startIncrement >= 1);
         case "TABATA":
         case "INTERVALS_30_30":
+        case "HIIT":
         case "STRENGTH":
           // Objectif propre au mouvement (tableau) : `null` après un changement d'unité.
           return values.repetitions !== null;
@@ -872,7 +880,8 @@ function buildFormatElements(
   const execution = several ? (answers.execution ?? executionOptions(key)[0] ?? "SEQUENCE") : "SEQUENCE";
   switch (key) {
     case "TABATA":
-    case "INTERVALS_30_30": {
+    case "INTERVALS_30_30":
+    case "HIIT": {
       // §9, §9.2 : Exercices standards (N séries identiques, travail, pause) ; aucune constante. Complément du 5 novembre 2026 (Hermann), §15, §17 : objectif
       // (Durée ou Répétitions), pause et charge commune propres à chaque mouvement ; réglages du questionnaire par défaut.
       const count = answers.seriesCount ?? 1;

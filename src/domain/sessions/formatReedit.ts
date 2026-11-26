@@ -89,6 +89,7 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
       return { mode, cells: cells(), ...loadOn };
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "UNTIL_FAILURE":
       // Complément du 5 novembre 2026 (Hermann), §15–§17 : objectif, pause et charge commune propres à l'Exercice.
@@ -138,6 +139,7 @@ export function sheetValuesOf(
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
     case "STRENGTH":
     case "UNTIL_FAILURE": {
       const objective = firstNumber(rows);
@@ -183,6 +185,7 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
       set("seriesCount", circuit.nature === "SERIES" ? circuit.repeatCount : common(exercises.map((exercise) => rowsOf(exercise).length)));
       set("workSeconds", common(exercises.map((exercise) => firstNumber(rowsOf(exercise)))));
       set("pauseSeconds", common(exercises.map((exercise) => rowsOf(exercise)[0]?.pauseSeconds ?? 0)));
@@ -268,7 +271,7 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
     }
     // Complément du 5 novembre 2026 (§15–§17) : un réglage commun hétérogène (« variable ») est repris par Exercice dans le
     // tableau ; un réglage commun reste porté par le questionnaire, qui modifie ainsi les mêmes prescriptions effectives.
-    if (model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE") {
+    if (model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" || model === "STRENGTH" || model === "UNTIL_FAILURE") {
       const objectiveKey = model === "STRENGTH" ? "repetitions" : "workSeconds";
       const firstRow = rowsOf(exercise)[0];
       if (variable.has("pauseSeconds")) values = { ...values, pause: firstRow?.pauseSeconds ?? 0 };

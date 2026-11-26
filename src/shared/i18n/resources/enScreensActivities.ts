@@ -239,6 +239,7 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
     titles: {
       TABATA: "Set up Tabata",
       INTERVALS_30_30: "Set up 30/30",
+      HIIT: "Set up HIIT",
       EMOM: "Set up EMOM",
       AMRAP: "Set up AMRAP",
       FOR_TIME: "Set up For time",
@@ -444,6 +445,7 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
     taglines: {
       TABATA: "Four minutes, eight 20-second sprints.\nBreath and power, all-out to the end.",
       INTERVALS_30_30: "30 seconds of effort, 30 seconds of recovery.\nOne to one, longer than Tabata.",
+      HIIT: "40’’ of effort, 20’’ of recovery.\nThe intense format, fully adjustable.",
       EMOM: "One minute, one effort, rest is what’s left.\nEvery minute starts a round, no matter what.",
       AMRAP: "Twelve minutes, as many rounds as you can.\nNo set rest, rounds are counted.",
       FOR_TIME: "The work is fixed, time is what counts.\nKeep going with no set rest.",
@@ -460,20 +462,24 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
   sessionModels: {
     // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
     creationTitle: "Create an exercise",
-    freeExercise: { title: "Free exercise", subtitle: "one movement, to set up" },
+    // D-608 (Formats § 9.10) : sous-titres de bénéfice.
+    freeExercise: { title: "Free exercise", subtitle: "Build your own exercise" },
     title: "Workout formats",
     closeAccessibilityLabel: "Close",
     cards: {
-      TABATA: { title: "Tabata", subtitle: "anaerobic capacity" },
-      INTERVALS_30_30: { title: "30/30", subtitle: "VO2 max and MAS" },
-      EMOM: { title: "EMOM", subtitle: "hold a pace" },
-      AMRAP: { title: "AMRAP", subtitle: "max volume" },
-      FOR_TIME: { title: "For time", subtitle: "execution speed" },
-      DEATH_BY: { title: "Death by", subtitle: "to failure" },
-      STRENGTH: { title: "Strength", subtitle: "muscle strength" },
-      SUPERSET: { title: "Superset", subtitle: "intensity without rest" },
-      PROGRESSION: { title: "Progression", subtitle: "progressive loading" },
-      UNTIL_FAILURE: { title: "To failure", subtitle: "max recruitment" },
+      TABATA: { title: "Tabata", subtitle: "Improve explosiveness in four minutes" },
+      INTERVALS_30_30: { title: "30/30", subtitle: "Improve breathing and endurance" },
+      HIIT: { title: "HIIT", subtitle: "Boost energy expenditure" },
+      EMOM: { title: "EMOM", subtitle: "Recover better between efforts" },
+      AMRAP: { title: "AMRAP", subtitle: "Build overall endurance" },
+      FOR_TIME: { title: "For time", subtitle: "Gain speed under fatigue" },
+      DEATH_BY: { title: "Death by", subtitle: "Push back the fatigue threshold" },
+      STRENGTH: { title: "Strength", subtitle: "Build and tone muscles" },
+      SUPERSET: { title: "Superset", subtitle: "Intensify muscle work" },
+      PROGRESSION: { title: "Progression", subtitle: "Develop maximal strength" },
+      UNTIL_FAILURE: { title: "To failure", subtitle: "Stimulate the muscle and test your limits" },
     },
+    // D-607 (Formats § 9.9) : Superset name by number of movements.
+    supersetNames: { three: "Tri-set", more: "Giant set" },
   },
 };

@@ -44,8 +44,11 @@ export const LEGACY_PRECONFIGURATION_FORMAT_KEYS = ["TABATA", "INTERVALS_30_30"]
 /** Toutes les clés admises par le stockage (migration 017, inchangée). */
 export const STORABLE_FORMAT_KEYS = ["TABATA", "INTERVALS_30_30", "EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"] as const;
 
-/** Départs rapides (§9.2) : préconfigurations standards librement modifiables. */
-export const QUICK_START_KEYS = ["INTERVALS_30_30", "STRENGTH", "SUPERSET", "PROGRESSION", "UNTIL_FAILURE"] as const;
+/**
+ * Départs rapides (§9.2) : préconfigurations standards librement modifiables. D-608 (D-573 de la branche de documentation, point 3,
+ * Hermann, 26/11/2026 ; Formats § 9.10) : HIIT, préconfiguration sur le modèle du 30/30.
+ */
+export const QUICK_START_KEYS = ["INTERVALS_30_30", "HIIT", "STRENGTH", "SUPERSET", "PROGRESSION", "UNTIL_FAILURE"] as const;
 
 export type QuickStartKey = (typeof QUICK_START_KEYS)[number];
 
@@ -73,6 +76,8 @@ export const SESSION_ORIGINS = [
   "SUPERSET",
   "PROGRESSION",
   "UNTIL_FAILURE",
+  // D-608 (HIIT) : origine admise par le stockage depuis la migration 041.
+  "HIIT",
 ] as const;
 
 export type SessionOrigin = (typeof SESSION_ORIGINS)[number];

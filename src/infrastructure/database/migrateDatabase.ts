@@ -40,6 +40,7 @@ import { applyMigration036 } from "./migrations/migration036";
 import { applyMigration037 } from "./migrations/migration037";
 import { applyMigration038 } from "./migrations/migration038";
 import { applyMigration039 } from "./migrations/migration039";
+import { applyMigration041 } from "./migrations/migration041";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -398,6 +399,18 @@ export async function migrateDatabase(
     if (pending(38)) {
       await applyMigration039(transaction);
       version = 39;
+    }
+
+    // Version 40 : réservée à la migration 040 des branches parallèles (marquage des photos ; compte), absente de cette branche. Elle
+    // s'insère ici à l'intégration ; passage sans effet sur cette branche seule.
+    if (pending(39)) {
+      version = 40;
+    }
+
+    // D-608 (26/11/2026) : HIIT, clé admise par `sessions.origin` et `tours.origin_model`. Un échec laisse `user_version` à 40.
+    if (pending(40)) {
+      await applyMigration041(transaction);
+      version = 41;
     }
 
     if (version !== targetVersion) {

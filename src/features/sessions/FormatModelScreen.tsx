@@ -76,6 +76,7 @@ import { seriesCountOf } from "@/domain/sessions/forTimeSeries";
 import { createEmptyDraft } from "@/domain/sessions/SessionDraft";
 import type { ExecutionMode, ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import { formatSheetContextOf, quickFormatOf, seriesWordingOf } from "@/features/sessions/formatSheetContext";
+import { formatModelName } from "@/features/sessions/carrierPresentation";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { modelTimeline, type Timeline, type TimelineBlock } from "@/domain/sessions/formatTimeline";
 import { currentLayout } from "@/domain/sessions/layoutOperations";
@@ -541,7 +542,7 @@ export function useFormatSheetDetent(): number {
  * s'enregistre depuis le questionnaire. [Superset sans récapitulatif — remplacé.]
  */
 function savesFromQuestionnaire(model: FormatModelKey, movementCount: number): boolean {
-  if (model === "TABATA" || model === "INTERVALS_30_30" || model === "STRENGTH" || model === "UNTIL_FAILURE") return movementCount < 2;
+  if (model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" || model === "STRENGTH" || model === "UNTIL_FAILURE") return movementCount < 2;
   return false;
 }
 
@@ -627,7 +628,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   const model = modelDraft?.model ?? routeModel;
   const answers = useMemo(() => (fresh ? modelDraft?.answers : undefined) ?? initialAnswers(routeModel), [fresh, modelDraft, routeModel]);
   const movements = useMemo(() => (fresh ? modelDraft?.movements : undefined) ?? [], [fresh, modelDraft]);
-  const modelName = strings.screens.sessionModels.cards[model].title;
+  // D-607 (Formats § 9.9) : le nom du Superset suit le nombre de mouvements choisis (Superset, Tri-set, Giant set).
+  const modelName = formatModelName(model, movements.length);
   const colors = formatModelColors(model);
 
   // Valeurs du Profil pour les Exercices de base (§14.3 : valeurs initialisées depuis le Profil).
@@ -1399,6 +1401,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     switch (model) {
       case "TABATA":
       case "INTERVALS_30_30":
+      case "HIIT":
         return withExecution([
           stepRow("seriesCount", r.seriesCount),
           ...(byMovement ? [] : [stepRow("workSeconds", r.workSeconds), stepRow("pauseSeconds", r.pauseSeconds)]),
@@ -1595,7 +1598,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           },
           onReopen: () => setUnitPicking(true),
         }
-      : unitRow === null || movements[unitRow] === undefined || model === "TABATA" || model === "INTERVALS_30_30"
+      : unitRow === null || movements[unitRow] === undefined || model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT"
       ? null
       : {
           current: movements[unitRow]!.values.mode ?? ("REPETITIONS" as const),
@@ -2282,7 +2285,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   function formatBlocks() {
     const tt = t().table;
     const unitChoice = UNIT_CHOICE_AT_ADD.has(model);
-    const defaultMode: "REPETITIONS" | "DURATION" = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+    const defaultMode: "REPETITIONS" | "DURATION" = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" ? "DURATION" : "REPETITIONS";
     const shownMode = (item: ModelMovement) => item.values.mode ?? (unitChoice ? undefined : defaultMode);
     const single = movements.length === 1;
     const kit: RowKit = {
@@ -2395,6 +2398,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     switch (model) {
       case "TABATA":
       case "INTERVALS_30_30":
+      case "HIIT":
       case "STRENGTH":
       case "UNTIL_FAILURE": {
         const objectiveFallback = model === "STRENGTH" ? answers.repetitions : answers.workSeconds;
@@ -2729,7 +2733,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       queueMicrotask(commit);
     };
     // Valeurs affichées des tableaux à dimensions : un Objectif ou une Pause inchangés restent communs.
-    const defaultMode: ExecutionMode = model === "TABATA" || model === "INTERVALS_30_30" ? "DURATION" : "REPETITIONS";
+    const defaultMode: ExecutionMode = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT" ? "DURATION" : "REPETITIONS";
     const shownObjective =
       movement.values.repetitions !== undefined
         ? movement.values.repetitions
@@ -2910,6 +2914,7 @@ function genericDuration(model: FormatModelKey, answers: ModelAnswers, format: (
   switch (model) {
     case "TABATA":
     case "INTERVALS_30_30":
+    case "HIIT":
       return format((answers.seriesCount ?? 0) * ((answers.workSeconds ?? 0) + (answers.pauseSeconds ?? 0)));
     case "EMOM":
       return format((answers.seriesCount ?? 0) * (answers.intervalSeconds ?? 0));
