@@ -250,7 +250,8 @@ describe("PRE-9 C.1 — Format porté par l'Exercice ou le Circuit porteur, en b
       ["intervalle nul", input(single({ key: "EMOM", settings: { intervalSeconds: 0 } })), "OUT_OF_RANGE", "element.formatSettings"],
       ["incrément du Death by nul", input(single({ key: "DEATH_BY", settings: { intervalSeconds: 60, incrementPerRound: 0 } })), "OUT_OF_RANGE", "element.formatSettings"],
       ["Passage hors drapeau", input(carrier(FOR_TIME_CIRCUIT, "SERIES", [exercise("x", FOR_TIME_MEMBER), exercise("y", { key: "FOR_TIME", settings: { passageOnce: 2 } })])), "OUT_OF_RANGE", "element.formatSettings"],
-      ["origine inconnue", input(single(EMOM), "HIIT" as never), "UNRECOGNIZED", "session.origin"],
+      // D-608 : HIIT est désormais une origine connue (migration 041) ; exemple d'origine inconnue remplacé.
+      ["origine inconnue", input(single(EMOM), "CROSS_TRAINING" as never), "UNRECOGNIZED", "session.origin"],
     ];
     for (const [label, candidate, code, field] of cases) {
       await expect(repository().createStructured(candidate).then(() => label)).rejects.toMatchObject({
@@ -269,7 +270,8 @@ describe("PRE-9 C.1 — Format porté par l'Exercice ou le Circuit porteur, en b
     await expect(database.runAsync("UPDATE activities SET format_key = 'HIIT' WHERE id = 'e1'")).rejects.toThrow();
     await expect(database.runAsync("UPDATE activities SET format_key = NULL WHERE id = 'e1'")).rejects.toThrow();
     await expect(database.runAsync("UPDATE activities SET format_settings = NULL WHERE id = 'db'")).rejects.toThrow();
-    await expect(database.runAsync("UPDATE sessions SET origin = 'HIIT' WHERE id = ?", [created.id])).rejects.toThrow();
+    // D-608 : HIIT admis comme origine depuis la migration 041 ; une origine hors liste reste refusée.
+    await expect(database.runAsync("UPDATE sessions SET origin = 'CROSS_TRAINING' WHERE id = ?", [created.id])).rejects.toThrow();
     // Rien n'a été modifié par les écritures refusées.
     expect(await database.getAllAsync("SELECT id, format_key, format_settings FROM tours ORDER BY id")).toEqual(TOURS_ROWS);
   });

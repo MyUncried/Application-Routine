@@ -74,7 +74,8 @@ function Harness() {
   );
 }
 
-const ALL_FORMATS: readonly FormatModelKey[] = ["TABATA", "INTERVALS_30_30", "STRENGTH", "PROGRESSION", "UNTIL_FAILURE", "SUPERSET", "EMOM", "AMRAP", "DEATH_BY", "FOR_TIME"];
+// D-608 : HIIT, nouveau format, compris dans « tous les formats ».
+const ALL_FORMATS: readonly FormatModelKey[] = ["TABATA", "INTERVALS_30_30", "HIIT", "STRENGTH", "PROGRESSION", "UNTIL_FAILURE", "SUPERSET", "EMOM", "AMRAP", "DEATH_BY", "FOR_TIME"];
 
 describe("D-603 — séquence d'ouverture : choix des mouvements en premier, lien « Paramètres »", () => {
   it.each(ALL_FORMATS)("%s : première ouverture sur le choix des mouvements ; « Paramètres » rend les paramètres, sans ajout", async (model) => {
@@ -139,6 +140,8 @@ describe("D-604 — modale d'un exercice d'un format à départ rapide, ouverte 
   it.each([
     ["TABATA", "Tabata", false],
     ["INTERVALS_30_30", "30/30", false],
+    // D-608 : HIIT, comme le 30/30 (Durée imposée).
+    ["HIIT", "HIIT", false],
     ["STRENGTH", strings.screens.sessionModels.cards.STRENGTH.title, true],
     ["PROGRESSION", strings.screens.sessionModels.cards.PROGRESSION.title, true],
     ["UNTIL_FAILURE", strings.screens.sessionModels.cards.UNTIL_FAILURE.title, true],

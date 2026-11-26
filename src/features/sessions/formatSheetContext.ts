@@ -174,7 +174,7 @@ function rolePreserved(settings: FormatSettings): FormatSettings {
 export function quickFormatOf(draft: SessionDraft, exerciseId: string, model?: string): { readonly name: string; readonly unitOpen: boolean } | undefined {
   const named = (key: string | null | undefined) =>
     key !== null && key !== undefined && (PRECONFIGURATION_KEYS as readonly string[]).includes(key)
-      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30" }
+      ? { name: strings.screens.sessionModels.cards[key as PreconfigurationKey].title, unitOpen: key !== "TABATA" && key !== "INTERVALS_30_30" && key !== "HIIT" }
       : undefined;
   if (model !== undefined) return named(model);
   const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId);

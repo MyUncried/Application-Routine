@@ -141,6 +141,8 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   // Préconfigurations standards (référence du 02/11, §9, FMT-10, FMT-19) : éléments libres.
   TABATA: freeModel("TABATA"),
   INTERVALS_30_30: freeModel("INTERVALS_30_30"),
+  // D-608 : HIIT, préconfiguration standard comme le 30/30.
+  HIIT: freeModel("HIIT"),
   EMOM: {
     model: "EMOM",
     carrier: "EXERCISE_OR_CIRCUIT",

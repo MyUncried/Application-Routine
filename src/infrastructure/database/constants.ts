@@ -197,7 +197,12 @@ export const DATABASE_NAME = "kodjo.db";
  * défaut (D-530, 18/11/2026). Développée comme version 31 sur la branche Formats ; renumérotée 39 à la consolidation du
  * 24/11/2026. 001..038 inchangées.
  */
-export const DATABASE_VERSION = 39;
+/**
+ * **HIIT (version 41, `migration041`)** : `CHECK` de `sessions.origin` et `tours.origin_model` élargis à la clé `HIIT` (D-608,
+ * 26/11/2026), colonnes remplacées sans reconstruction de table. Version 40 réservée (migration 040 des branches parallèles), passage
+ * sans effet sur cette branche. 001..039 inchangées.
+ */
+export const DATABASE_VERSION = 41;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

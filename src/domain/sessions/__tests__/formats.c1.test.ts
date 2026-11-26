@@ -36,7 +36,8 @@ const BUY_IN: ElementFormat = { key: "AMRAP", settings: { incrementPerRound: 0, 
 describe("PRE-9 C.1 — registre des Formats (02/11/2026)", () => {
   it("quatre Formats spécialisés ; Tabata et cinq départs rapides sont des préconfigurations sans identité de Format (FMT-01, FMT-02)", () => {
     expect(ELEMENT_FORMAT_KEYS).toEqual(["EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"]);
-    expect(PRECONFIGURATION_KEYS).toEqual(["TABATA", "INTERVALS_30_30", "STRENGTH", "SUPERSET", "PROGRESSION", "UNTIL_FAILURE"]);
+    // D-608 (26/11/2026) : HIIT, préconfiguration sur le modèle du 30/30.
+    expect(PRECONFIGURATION_KEYS).toEqual(["TABATA", "INTERVALS_30_30", "HIIT", "STRENGTH", "SUPERSET", "PROGRESSION", "UNTIL_FAILURE"]);
   });
 
   it("valeurs initiales de chaque rôle : AMRAP 12 min, incrément 0 ; Circuit AMRAP bloc 12 min, repos 2 min ; EMOM et Death by intervalle 1 min ; Death by incrément 1 ; For time sans limite", () => {

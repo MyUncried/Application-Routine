@@ -564,6 +564,7 @@ export const fr = {
       titles: {
         TABATA: "Configurer un Tabata",
         INTERVALS_30_30: "Configurer un 30/30",
+        HIIT: "Configurer un HIIT",
         EMOM: "Configurer un EMOM",
         AMRAP: "Configurer un AMRAP",
         FOR_TIME: "Configurer un For time",
@@ -769,6 +770,8 @@ export const fr = {
       taglines: {
         TABATA: "Quatre minutes, huit sprints de vingt secondes.\nLe souffle et l’explosivité, à fond jusqu’au bout.",
         INTERVALS_30_30: "30 secondes d’effort, 30 secondes de récupération.\nUn pour un, plus long que le Tabata.",
+        // D-608 (Figma « HIIT — Récapitulatif », accroche).
+        HIIT: "40’’ d’effort, 20’’ de récupération.\nLe format intense, entièrement réglable.",
         EMOM: "Une minute, un effort, le repos est ce qu’il en reste.\nChaque minute relance un tour, quoi qu’il arrive.",
         AMRAP: "Douze minutes, autant de tours que vous pouvez.\nAucun repos prescrit, on compte les tours.",
         FOR_TIME: "Le travail est fixé, c’est le temps qui compte.\nOn enchaîne sans repos prescrit.",
@@ -786,21 +789,27 @@ export const fr = {
       // Complément du 5 novembre 2026 (§4) : modale de création « Créer un exercice », section « Formats d'entraînement ».
       creationTitle: "Créer un exercice",
       // D-606 (Hermann, 25/11/2026 ; Figma `13245:25982`) : « un mouvement, à régler ». [« un mouvement, puis ses paramètres » (05/11/2026) — remplacé.]
-      freeExercise: { title: "Exercice libre", subtitle: "un mouvement, à régler" },
+      // D-608 (D-573 de la branche de documentation, point 4, Hermann, 26/11/2026 ; Formats § 9.10) : sous-titres de bénéfice. [« un mouvement, à régler » et
+      // sous-titres techniques des cartes (« capacité anaérobie », « VO2 max et VMA »…) — remplacés.]
+      freeExercise: { title: "Exercice libre", subtitle: "Construire son propre exercice" },
       title: "Formats d’entraînement",
       closeAccessibilityLabel: "Fermer",
       cards: {
-        TABATA: { title: "Tabata", subtitle: "capacité anaérobie" },
-        INTERVALS_30_30: { title: "30/30", subtitle: "VO2 max et VMA" },
-        EMOM: { title: "EMOM", subtitle: "tenir un rythme" },
-        AMRAP: { title: "AMRAP", subtitle: "volume maximal" },
-        FOR_TIME: { title: "For time", subtitle: "vitesse d’exécution" },
-        DEATH_BY: { title: "Death by", subtitle: "à l’échec" },
-        STRENGTH: { title: "Renforcement", subtitle: "force musculaire" },
-        SUPERSET: { title: "Superset", subtitle: "intensité sans repos" },
-        PROGRESSION: { title: "Progression", subtitle: "montée en charge" },
-        UNTIL_FAILURE: { title: "À l’échec", subtitle: "recrutement maximal" },
+        TABATA: { title: "Tabata", subtitle: "Améliorer son explosivité en quatre minutes" },
+        INTERVALS_30_30: { title: "30/30", subtitle: "Améliorer son souffle et sa résistance" },
+        HIIT: { title: "HIIT", subtitle: "Booster sa dépense énergétique" },
+        EMOM: { title: "EMOM", subtitle: "Mieux récupérer entre les efforts" },
+        AMRAP: { title: "AMRAP", subtitle: "Développer son endurance globale" },
+        FOR_TIME: { title: "For time", subtitle: "Gagner en vitesse sous la fatigue" },
+        DEATH_BY: { title: "Death by", subtitle: "Repousser son seuil de fatigue" },
+        STRENGTH: { title: "Renforcement", subtitle: "Construire et tonifier ses muscles" },
+        SUPERSET: { title: "Superset", subtitle: "Intensifier le travail musculaire" },
+        PROGRESSION: { title: "Progression", subtitle: "Développer sa force maximale" },
+        UNTIL_FAILURE: { title: "À l’échec", subtitle: "Stimuler le muscle et tester ses limites" },
       },
+      // D-607 (D-572 de la branche de documentation, point 8, Hermann, 25/11/2026 ; Formats § 9.9) : nom du Superset selon le nombre de
+      // mouvements — 2 : Superset ; 3 : Tri-set ; 4 et plus : Giant set.
+      supersetNames: { three: "Tri-set", more: "Giant set" },
     },
     composition: {
       // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
