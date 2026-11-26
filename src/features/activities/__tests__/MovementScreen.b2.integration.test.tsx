@@ -1115,28 +1115,56 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     }
   });
 
-  it("cr2-phases : aucune barre du clavier (« ← Précédent », « Suivant → », « Fermer ») pendant la saisie d'un libellé ou d'une durée", async () => {
+  // [Remplacé le 26/11/2026 — recette iPhone (après-midi), Hermann : « Nous avions défini une barre d'option au-dessus du clavier,
+  // elle n'est plus affichée » : test « cr2-phases : aucune barre du clavier » du 31/10 remplacé par la barre rétablie.]
+  it("recette du 26/11 : barre du clavier rétablie pendant la saisie d'une durée — « Suivant → » ligne suivante, « ← Précédent » libellé de la ligne, « Fermer » ferme le clavier ; aucune barre sur un libellé", async () => {
     await movements().create(
       movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
-    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-    });
-    showExecutionSheetKeyboard();
-    await settle();
-    expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
-      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
-    });
-    await settle();
-    expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
-    expect(screen.queryByTestId("movement-keyboard-bar-host", anyNode)).toBeNull();
-    await act(async () => {
-      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
-    });
-    hideExecutionSheetKeyboard();
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    const focus = spyFocus();
+    try {
+      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+      });
+      showExecutionSheetKeyboard();
+      await settle();
+      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
+      });
+      await settle();
+      expect(screen.getByTestId("movement-keyboard-bar-host", anyNode)).toBeTruthy();
+      expect(screen.getByTestId("execution-sheet-keyboard-bar", anyNode)).toBeTruthy();
+      // Aucun « À l'échec » : emplacement réservé vide.
+      expect(screen.queryByTestId("execution-sheet-keyboard-failure", anyNode)).toBeNull();
+      focus.clear();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-next", anyNode));
+      });
+      expect(focus.focused()).toEqual(["movement-phases-label-2"]);
+      focus.clear();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-previous", anyNode));
+      });
+      expect(focus.focused()).toEqual(["movement-phases-label-1"]);
+      expect(dismiss).not.toHaveBeenCalled();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-close", anyNode));
+      });
+      expect(dismiss).toHaveBeenCalled();
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+      });
+      await settle(5);
+      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+      hideExecutionSheetKeyboard();
+    } finally {
+      focus.restore();
+      dismiss.mockRestore();
+    }
   });
 
   it("a2b-creer : règles des cellules de durée (D-434) — « MM:SS » en saisie, secondes > 59 reportées, au-delà de 58:55 ramenée à 3 8′55″, 0 ramené à 1″", async () => {
