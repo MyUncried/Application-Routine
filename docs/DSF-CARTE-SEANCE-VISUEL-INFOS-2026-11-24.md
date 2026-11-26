@@ -57,4 +57,6 @@ Dans les modales de sélection de séances, la carte est la variante `État=Sél
 
 Il n'y a plus de synthèse dépliée dans la liste : **toucher la carte (hors Démarrer) ouvre la composition de la séance** (écran « Composition séance en modification ») **présentée en modale iOS**. Le visuel garde le même comportement. Démarrer exécute la séance, comme avant. Le contenu de la modale (titres, boutons Enregistrer et Démarrer) est décrit dans un lot distinct.
 
+[Recette iPhone du 26/11/2026 (soir), décision de Hermann du 27/11/2026 (D-602) : la modale est **plein écran** — « Toujours une modale iOS qui monte du bas, fermée par la croix, mais sur tout l'écran : sans bord arrondi, sans l'écran visible derrière, et sans le geste de la feuille. » Elle se ferme par ses propres boutons. Raison : dans la feuille, le recadrage d'un circuit ou d'un cycle et le réordonnancement des exercices revenaient à leur position (cahier, d607-compo-hauteur). Implémentée jusque-là en feuille native iOS — remplacée.]
+
 La variante `État=Déployée` du composant est conservée (usage futur possible) ; aucun écran du catalogue ne l'ouvre.

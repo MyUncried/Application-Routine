@@ -1847,10 +1847,12 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     expect(screen.queryByTestId("composition-start-action")).toBeNull();
   });
 
-  it("modale : en-tête sans réserve de barre d'état ; Démarrer (brouillon inchangé) lance l'exécution sans enregistrer", () => {
+  // Décision de Hermann du 27/11/2026 (D-602, modale plein écran) : l'en-tête garde la réserve de la barre d'état (47 ici).
+  // [Recette 25/11 : feuille native, `paddingTop: 0` — remplacé.]
+  it("modale plein écran : en-tête avec réserve de barre d'état ; Démarrer (brouillon inchangé) lance l'exécution sans enregistrer", () => {
     const draft = savedDraft();
     const { value } = renderWithEditStatus("ready", { draft, hydratedBaseline: draft }, "s-edit", true);
-    expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style)).toMatchObject({ paddingTop: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId("screen-header").props.style)).toMatchObject({ paddingTop: 47 });
     const start = screen.getByTestId("composition-start-action");
     expect(start.props.accessibilityLabel).toBe("Démarrer la séance");
     expect(screen.getByTestId("composition-start-icon")).toBeTruthy();
