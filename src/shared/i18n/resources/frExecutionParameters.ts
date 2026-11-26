@@ -41,6 +41,8 @@ export const executionParameters = {
     freeTitle: "Exercice libre",
     freeTagline: "Réglez librement chaque paramètre de l’exercice.",
     freeSection: "Paramètres d’exécution",
+    // D-608 (D-573 point 5, Figma « Exercice libre — Modale de type format » `13269:26160`) : ligne « Mouvement » du cadre du mouvement.
+    freeMovement: "Mouvement",
     validateAccessibilityLabel: "Valider les paramètres",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",
@@ -169,6 +171,8 @@ export const executionParameters = {
     phaseMoveDown: "Descendre la phase {n}",
     phaseMoveHandle: "Déplacer la phase {n}",
     removePhase: "Supprimer la phase {n}",
+    // D-608 (D-573 point 6, Hermann, 26/11/2026) : son de chaque phase désactivable.
+    phaseSound: "Son de la phase {n}",
     phaseRemoved: "Phase supprimée",
     // Décision de Hermann du 09/11/2026 (recette PRE-10, constat d) : durée de série et phases du mouvement.
     phaseCycleBelow: "La durée de la série est inférieure à la durée des phases du mouvement ({cycle}).",

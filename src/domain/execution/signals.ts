@@ -28,7 +28,15 @@ export type SignalKind = "TRANSITION" | "COUNTDOWN" | "CADENCE" | "MINUTE" | "PH
  * Motif de phases de l'exercice en cours (D-446) : durées des phases en ms et limite du guidage (durée nominale :
  * cible en Durée, répétitions × motif en Répétitions ; `null` sans limite connue, À l'échec).
  */
-export type PhasePattern = { readonly durationsMs: readonly Ms[]; readonly limitMs: Ms | null };
+export type PhasePattern = {
+  readonly durationsMs: readonly Ms[];
+  readonly limitMs: Ms | null;
+  /**
+   * D-608 (D-573 point 6, Hermann, 26/11/2026) : rangs des phases dont le son est désactivé (`WorkPhase.soundOff`) — aucun signal
+   * `PHASE` (bip et annonce) à leur début. Absent : toutes les phases sonnent.
+   */
+  readonly silent?: readonly boolean[];
+};
 /**
  * `phaseChange` : un changement de phase tombe au même instant qu'un bip des dernières secondes, qui l'emporte ; le
  * nom de la phase est tout de même annoncé (recette du 13/11/2026, Hermann : « Annoncer les changements de phase
@@ -95,11 +103,13 @@ export function stepSignalsBetween(state: EngineState, fromMs: Ms, toMs: Ms, pha
         starts.push(offset);
         offset += duration;
       }
+      const silent = phases.silent ?? [];
       for (let base = Math.floor(elapsedFrom / cycle) * cycle; ; base += cycle) {
         if (wallAt(base) > toMs) break;
-        for (const start of starts) {
+        for (const [rank, start] of starts.entries()) {
           const active = base + start;
           if (active <= 0 || (phases.limitMs !== null && active >= phases.limitMs)) continue;
+          if (silent[rank] === true) continue;
           push("PHASE", wallAt(active));
         }
       }

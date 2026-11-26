@@ -1022,7 +1022,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-9 A.2 (ARB-22a, ARB-07) : Mouvements remis par la création ou la sélection, devenus
   // Exercices du brouillon au retour au premier plan. Demande de Hermann du 29/10/2026 : aucune
   // feuille à l'insertion ; la carte « Paramètres à compléter » ouvre la feuille de paramètres.
-  const { sheet: movementExerciseSheet, openParameters: openExerciseParameters } = useMovementExerciseIntake();
+  const { sheet: movementExerciseSheet, openParameters: openExerciseParameters } = useMovementExerciseIntake(levelPositions);
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`

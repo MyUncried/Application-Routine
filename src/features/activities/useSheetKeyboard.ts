@@ -180,6 +180,18 @@ export function revealDelta(rowTop: number, rowBottom: number, bodyTop: number, 
 }
 
 /**
+ * D-607 (D-572 point 1, Hermann, 25/11/2026 : « Le clavier ne doit jamais masquer le champ saisi (Charge notamment) : la feuille se
+ * remonte ou défile au-dessus du clavier ») — réserve à ajouter sous le contenu de la feuille pendant une saisie : la part du corps
+ * défilant (bas à `bodyBottom`, coordonnées de la fenêtre) recouverte par le clavier (haut à `keyboardTop`) ; 0 clavier fermé ou
+ * sans recouvrement. Ajoutée au contenu, elle fait grandir une feuille courte (ancrée en bas) d'autant : ses lignes passent au-dessus
+ * du clavier ; à la hauteur maximale, elle donne la course de défilement que `revealDelta` utilise.
+ */
+export function keyboardBodyReserve(bodyBottom: number, keyboardTop: number | null): number {
+  if (keyboardTop === null || keyboardTop <= 0) return 0;
+  return Math.max(0, Math.ceil(bodyBottom - keyboardTop));
+}
+
+/**
  * Sortie d'un champ de charge (AD-19, §9-10) : texte illisible ou négatif → Brouillon
  * inchangé (valeur précédente) ; vide → 0 ; sinon la valeur, arrondie par la transition.
  * Si la charge du champ ne change pas, le Brouillon est rendu tel quel (aucune transition,
