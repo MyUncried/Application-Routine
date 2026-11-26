@@ -305,3 +305,10 @@
 - Document : CONCEPTION-EXECUTION-MEDIA § 8 (contenu du cadre flottant).
 - Figma : « Côté droit · Contracter » sur « Média plein écran » ; icône de rétrécissement recentrée dans son cercle (correction de conformité, rien à documenter).
 - Tests : non applicables.
+
+## Complément 26/11/2026 (suite 18) — Média : bouton d'extension et flèches en plein écran (D-576 point 4, classe B)
+- Décisions explicites de Hermann : le média reste à la taille du demi-écran tant que le bouton d'extension n'est pas actionné ; flèches de changement de média présentes en plein écran.
+- Documents : registre ch07 D-576 (point 4) et D-203 annoté ; CONCEPTION-EXECUTION-MEDIA § 7.
+- Figma : flèches précédent/suivant ajoutées sur « Média plein écran ».
+- Vérification sur iPhone à faire : appui sur le média sans effet (seul le bouton d'extension ouvre le plein écran).
+- Tests : non applicables.

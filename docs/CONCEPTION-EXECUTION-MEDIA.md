@@ -74,7 +74,7 @@ Cet état est transitoire et ne constitue pas une préférence utilisateur persi
 
 ## 7. Plein écran média
 
-Un appui simple sur le média ouvre le mode plein écran.
+Le média reste affiché à la taille du demi-écran tant que l’utilisateur n’appuie pas sur le bouton d’extension (coin bas droit du média) ; ce bouton ouvre le mode plein écran. [Remplace le 26/11/2026 : « Un appui simple sur le média ouvre le mode plein écran. »]
 
 Règles :
 - images et vidéos peuvent être affichées en plein écran ;
@@ -83,6 +83,7 @@ Règles :
 - la rotation n’est pas forcée ;
 - fermer le plein écran revient à la face Média sur le même média ;
 - pour une vidéo, les contrôles plein écran sont limités à **Lecture/Pause**, **barre de progression** et **Fermer** ;
+- les flèches gauche/droite de changement de média sont présentes en plein écran, avec les mêmes règles qu’en demi-écran (un média par appui, ordre de la galerie, non circulaire, flèche inactive à la borne) ;
 - l’Exécution continue pendant le plein écran.
 
 ## 8. Cadre flottant d’Exécution en plein écran
