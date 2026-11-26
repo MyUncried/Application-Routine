@@ -292,3 +292,11 @@
 - Non traité : boutons ⇄ sur les autres écrans d'exécution (déploiement après validation de « Démarrée »).
 - Vérification sur iPhone à faire : seuil du glissé, absence de conflit avec le défilement.
 - Tests : non applicables.
+
+## Complément 26/11/2026 (suite 16) — Retrait des boutons ⇄ sur tous les écrans d'exécution (D-576, classe B)
+- Décision explicite de Hermann : plus aucun symbole ⇄ ; la permutation des vues se fait uniquement par glissé ; les flèches ‹ › de changement de média sont conservées.
+- Documents : registre ch07 D-576 point 2 reformulé ; CONCEPTION-EXECUTION-MEDIA § « bouton de changement de face » annoté.
+- Figma : 76 boutons ⇄ retirés (variantes du composant « Zone d'exécution — retournements » et écrans) ; vérifié sur 4968:8188 et 4997:6113.
+- Note technique non arbitrée : alternative d'accessibilité (VoiceOver) pour la permutation sans bouton, à définir.
+- Vérification sur iPhone à faire : découvrabilité du glissé.
+- Tests : non applicables.

@@ -29,7 +29,7 @@ Ces frames matérialisent les états visuels. Les règles fonctionnelles ci-dess
 
 ## 3. Bascule Information / Média
 
-- Le bouton de changement de face est placé en haut à droite de la carte concernée.
+- Le bouton de changement de face est placé en haut à droite de la carte concernée. [Remplacé le 26/11/2026, D-576 : plus de bouton de changement de face ; la permutation se fait par glissé horizontal.]
 - Son icône représente un **changement de face**.
 - Le bouton n’est affiché que si l’Exercice possède au moins un média.
 - L’appui déclenche un **retournement 3D horizontal**.
