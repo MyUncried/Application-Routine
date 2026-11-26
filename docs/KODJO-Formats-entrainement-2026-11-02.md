@@ -622,7 +622,7 @@ Figma : modales de « 30/30 — Modale exercice », EMOM (standard, en alternanc
 
 **Titre de la modale.** Nom du mouvement, « … » s'il est trop long (Figma : composant d'en-tête de modale et toutes les modales de paramètres).
 
-**HIIT.** Format préconfiguré modifiable, sur le modèle du 30/30 : Mode Durée ; 6 séries identiques ; objectif 40 s ; pause 20 s ; Durée de l'exercice 6 min ; Récupération 0 s. Vert lime, logo de deux éclairs, sous-titre « Booster sa dépense énergétique ». Écrans Figma : « HIIT — Récapitulatif » (2 mouvements, 12 min) et « HIIT — Modale exercice » ; les autres écrans (choix des mouvements, exécution) sont ceux du 30/30. Les modales HIIT, 30/30 et Tabata (standard et en alternance) portent les réglages de D-572 : Cadence, Objectif de répétitions facultatif, Charge, De chaque côté.
+**HIIT.** Format préconfiguré modifiable, sur le modèle du 30/30 : Mode Durée ; 6 séries identiques ; objectif 40 s ; pause 20 s ; Durée de l'exercice 6 min ; Récupération 0 s. Vert lime, logo de deux éclairs, sous-titre « Booster sa dépense énergétique ». Écrans Figma : « HIIT — Récapitulatif » (2 mouvements, 12 min) et « HIIT — Modale exercice » ; les autres écrans (choix des mouvements, exécution) sont ceux du 30/30. Les modales HIIT, 30/30 et Tabata (standard et en alternance) portent les réglages de D-572 en deux cadres : « Objectif de répétitions (facultatif) » et « Charge », puis « De chaque côté » et « Cadence » (Cadence toujours en dernier, comme sur les écrans de paramètres).
 
 **Écran « Créer un exercice ».**
 
