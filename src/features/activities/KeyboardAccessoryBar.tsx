@@ -356,7 +356,17 @@ export function KeyboardAccessoryBar({
                 style={[styles.unitButton, styles.button]}
                 testID="keyboard-sign"
               >
-                <Text style={[styles.label, styles.signLabel]}>{labels.sign}</Text>
+                {/* Recette iPhone du 26/11/2026 (soir, Hermann : « bouton clavier +/- : quand + est activé, le - est bleu clair, et
+                    inversement quand - est activé le + est clair ») : « + » au-dessus du « − », le signe inactif en bleu clair (atténué).
+                    [Glyphe « ± » unique, signe actif non montré — remplacé.] */}
+                <View style={styles.signStack} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                  <Text style={[styles.label, styles.signPart, shownNegative ? styles.signPartOff : null]} testID="keyboard-sign-plus">
+                    +
+                  </Text>
+                  <Text style={[styles.label, styles.signPart, shownNegative ? null : styles.signPartOff]} testID="keyboard-sign-minus">
+                    −
+                  </Text>
+                </View>
               </Pressable>
             </Animated.View>
             {option !== null && !hasUnits && !hasSign ? (
@@ -488,12 +498,21 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  // Hermann, 04/11/2026 : « Faire le signe +/− beaucoup plus gros dans son cadre ».
-  signLabel: {
+  // Hermann, 04/11/2026 : « Faire le signe +/− beaucoup plus gros dans son cadre ». [Glyphe « ± » en 26 — remplacé le 26/11/2026 (soir) :]
+  // « + » et « − » empilés (comme « ± »), chacun dans sa ligne ; le bouton garde 36 de haut.
+  signStack: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signPart: {
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 22,
+    lineHeight: 17,
+  },
+  // Signe inactif : bleu clair (texte de la barre atténué).
+  signPartOff: {
+    opacity: BAR_DISABLED_OPACITY,
   },
   label: {
     fontFamily: "Inter_400Regular",

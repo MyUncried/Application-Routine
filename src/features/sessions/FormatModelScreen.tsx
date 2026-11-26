@@ -34,6 +34,8 @@ import { scheduleOnRN } from "react-native-worklets";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
+import { incrementCycleRounding } from "@/domain/activities/phaseCycleFit";
+import { workPhasesCycleSeconds } from "@/domain/activities/phaseGuidance";
 import type { Movement } from "@/domain/activities/Movement";
 import {
   answerBounds,
@@ -260,6 +262,8 @@ function pileLeafEntering(): LayoutAnimation {
 }
 /** Barre Précédent / Suivant / Fermer des tableaux : hauteur avant mesure ; marge de révélation d'une cellule. */
 const KEYBOARD_BAR_HEIGHT = 52;
+/** Borne haute de l'incrément du Death by en Durée (celle de la modale, `scalarEntryOf("formatIncrement")`). */
+const DEATH_BY_INCREMENT_MAX_SECONDS = 3600;
 const CELL_REVEAL_MARGIN = 12;
 /** Tableau de la Progression : zone protégée des noms, colonne d'une série, hauteurs des lignes (une ou deux cellules). */
 
@@ -2558,7 +2562,9 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               rows={rows}
               // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Death by : la charge est sous la valeur de la colonne « Départ ».
               // Plus de colonne Charge. La dernière colonne (Incrément) est alignée à droite. ») [Départ | Incrément | Charge — remplacé.]
-              heads={[tt.start, tt.increment]}
+              // Recette iPhone du 26/11/2026 (soir, Hermann : « remplacer le titre de colonne "incrément" par "+/- /tour" ») : « ± / tour ».
+              // [« Incrément » — remplacé ; reste le nom lu par VoiceOver des cases.]
+              heads={[tt.start, tt.incrementHead]}
               lastAlignRight
               onAdd={add("LOOP")}
               addText={addText("LOOP")}
@@ -2574,6 +2580,30 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                 // réglage commun (Format rouvert, passage de deux mouvements à un), Départ et Incrément du mouvement.
                 const start = single ? (answers.startRepetitions ?? values.start ?? null) : (values.start ?? null);
                 const increment = single ? (answers.increment ?? values.startIncrement ?? null) : (values.startIncrement ?? null);
+                const setIncrement = (value: number | null) =>
+                  single ? (value === null ? undefined : setAnswers((current) => withAnswer(current, "increment", value))) : updateValues(index, { ...values, startIncrement: value });
+                // Recette iPhone du 26/11/2026 (soir, Hermann : « l'incrément doit être un multiple de la somme des phases (message
+                // d'information avec proposition inférieure, supérieure, ou annuler). Ce n'est pas une obligation. ») : en Durée, mouvement
+                // à phases, même alerte que la modale (`incrementCycleRounding`) ; Annuler garde la saisie.
+                const onIncrement = (value: number | null) => {
+                  setIncrement(value);
+                  if (value === null || value === increment || shownMode(item) !== "DURATION") return;
+                  const cycle = workPhasesCycleSeconds(item.exercise.executionParameters.series.workPhases);
+                  const rounding = incrementCycleRounding(value, cycle, DEATH_BY_INCREMENT_MAX_SECONDS);
+                  if (rounding === null || cycle === null) return;
+                  const ft = strings.executionParameters.format;
+                  Alert.alert(
+                    ft.incrementCycleTitle,
+                    ft.incrementCycleMessage.replace("{increment}", formatPhraseDuration(value)).replace("{cycle}", formatPhraseDuration(cycle)),
+                    [
+                      ...[rounding.lowerSeconds, rounding.upperSeconds]
+                        .filter((seconds): seconds is number => seconds !== null)
+                        .map((seconds) => ({ text: ft.incrementCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: () => setIncrement(seconds) })),
+                      { text: ft.incrementCycleKeep, style: "cancel" as const },
+                    ],
+                    { cancelable: false },
+                  );
+                };
                 return [
                   numberCell(
                     row,
@@ -2588,7 +2618,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                   numberCell(
                     row,
                     increment,
-                    (value) => (single ? (value === null ? undefined : setAnswers((current) => withAnswer(current, "increment", value))) : updateValues(index, { ...values, startIncrement: value })),
+                    onIncrement,
                     single ? answerFieldKey("increment") : cellKey("sinc", index),
                     tt.increment,
                     `format-death-by-increment-${index}`,

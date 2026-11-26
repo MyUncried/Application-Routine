@@ -396,6 +396,8 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
       perSeries: "± / set",
       start: "Start",
       increment: "Increment",
+      // Recette iPhone du 26/11/2026 (soir) : titre de la colonne du Death by (« ± / tour »).
+      incrementHead: "± / round",
       unit: "Unit",
       durationUnit: "duration",
       toFill: "to fill in",

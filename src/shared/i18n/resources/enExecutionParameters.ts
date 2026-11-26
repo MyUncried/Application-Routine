@@ -314,6 +314,11 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     blockLossMessageMany: "The other {role} exercises also go to {kept} sets: {count} values will be removed.",
     roleLossCancel: "Cancel",
     roleLossConfirm: "Continue",
+    // Recette iPhone du 26/11/2026 (soir) : Death by, incrément non multiple de la durée des phases (information, non bloquante).
+    incrementCycleTitle: "Round the increment?",
+    incrementCycleMessage: "The increment ({increment}) isn’t a multiple of the movement phases duration ({cycle}).",
+    incrementCycleRoundTo: "Round to {duration}",
+    incrementCycleKeep: "Cancel",
   },
   media: {
     section: "Media",

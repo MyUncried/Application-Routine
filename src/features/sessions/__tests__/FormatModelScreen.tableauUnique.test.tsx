@@ -226,7 +226,8 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     ["HIIT", "format-movements", [t.table.interval, t.table.pause]],
     ["STRENGTH", "format-movements", [t.table.seriesHead, t.table.objective, t.table.pause]],
     ["UNTIL_FAILURE", "format-movements", [t.table.objective, t.table.pause, t.table.load]],
-    ["DEATH_BY", "format-movements", [t.table.start, t.table.increment]],
+    // Recette iPhone du 26/11/2026 (soir, Hermann : « remplacer le titre de colonne "incrément" par "+/- /tour" ») : « ± / tour ».
+    ["DEATH_BY", "format-movements", [t.table.start, t.table.incrementHead]],
     ["AMRAP", "format-loop", [t.table.objective, t.table.perRoundHead, t.table.max]],
     ["EMOM", "format-movements", ["S1", "S2", "S3", "S4", "S5", "S6"]],
     ["PROGRESSION", "format-movements", ["S1", "S2", "S3"]],
@@ -408,6 +409,7 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     expect(heads("format-buy-in")).toEqual([t.table.objective]);
     expect(heads("format-loop")).toEqual([t.table.objective, t.table.perRoundHead, t.table.max]);
     expect(t.table.perRoundHead).toBe("± / tour");
+    expect(t.table.incrementHead).toBe("± / tour");
     expect(parametersLine(0)).toHaveTextContent(t.table.parametersToComplete);
     // Objectifs saisis dans la modale avec l'unité (buy-in 50, boucle 10).
     await chooseUnit(0, "REPETITIONS", 50);

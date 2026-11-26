@@ -82,7 +82,7 @@ import {
   totalDurationRoundings,
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration, spokenDurations } from "@/domain/activities/durationFormat";
-import { phaseCycleIssues, type PhaseCycleIssues } from "@/domain/activities/phaseCycleFit";
+import { incrementCycleRounding, phaseCycleIssues, type PhaseCycleIssues } from "@/domain/activities/phaseCycleFit";
 import { formatLoadKg, loadToFill } from "@/domain/activities/exerciseLoad";
 import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
 import { AnchoredPanel } from "@/features/activities/AnchoredPanel";
@@ -905,6 +905,31 @@ export function ExecutionParametersSheet({
       t.phaseCycleRoundTitle,
       message,
       choices.map((seconds) => ({ text: t.phaseCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: roundTo(seconds) })),
+      { cancelable: false },
+    );
+  }
+
+  /**
+   * Recette iPhone du 26/11/2026 (soir, Hermann : « Death by : Incrément par tour d'un exercice qui a un mouvement avec des phases :
+   * l'incrément doit être un multiple de la somme des phases (message d'information avec proposition inférieure, supérieure, ou
+   * annuler). Ce n'est pas une obligation. ») — même alerte native que l'arrondi de la durée de série, avec « Annuler » (valeur saisie
+   * gardée). Le signe (toujours + pour le Death by) n'est pas touché.
+   */
+  function askIncrementRounding(incrementSeconds: number, cycleSeconds: number | null, max: number) {
+    const rounding = incrementCycleRounding(incrementSeconds, cycleSeconds, max);
+    if (rounding === null || cycleSeconds === null) return;
+    const ft = strings.executionParameters.format;
+    const choices = [rounding.lowerSeconds, rounding.upperSeconds].filter((seconds): seconds is number => seconds !== null);
+    Alert.alert(
+      ft.incrementCycleTitle,
+      ft.incrementCycleMessage.replace("{increment}", formatPhraseDuration(incrementSeconds)).replace("{cycle}", formatPhraseDuration(cycleSeconds)),
+      [
+        ...choices.map((seconds) => ({
+          text: ft.incrementCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)),
+          onPress: () => setFormatSetting("incrementPerRound", seconds),
+        })),
+        { text: ft.incrementCycleKeep, style: "cancel" as const },
+      ],
       { cancelable: false },
     );
   }
@@ -1844,7 +1869,12 @@ export function ExecutionParametersSheet({
   const formatIncrementInDuration = (validation.ok ? validation.value.mode : draft.mode) === "DURATION";
   // AMRAP : grisé pour un buy-in (ou buy-out) ou à l'échec ; valeur conservée sans effet (CE-FMT-04).
   const formatIncrementLocked =
-    !formatDeathBy && (formatValue?.role === "BUY_IN" || formatValue?.role === "BUY_OUT" || (validation.ok && stopConditionOf(validation.value) === "FAILURE"));
+    !formatDeathBy &&
+    (formatValue?.role === "BUY_IN" ||
+      formatValue?.role === "BUY_OUT" ||
+      // Recette iPhone du 26/11/2026 (soir) : À l'échec lu aussi sur le brouillon (`stopCondition`), pas seulement sur un brouillon valide —
+      // un autre réglage incomplet ne doit pas rendre l'Incrément saisissable. [Seulement si `validation.ok` — étendu.]
+      (validation.ok ? stopConditionOf(validation.value) : stopCondition) === "FAILURE");
   // Recette du 16/11/2026 (mp-charge, Hermann : « Incrément : il ne faut pas de valeur par défaut dans la modale ») : Incrément à renseigner.
   const formatIncrementMissing =
     formatShown("increment") &&
@@ -2025,8 +2055,13 @@ export function ExecutionParametersSheet({
         return;
       }
       if (value === null) return;
-      if (field === "formatIncrement") setFormatSetting("incrementPerRound", formatIncrement < 0 ? -value : value);
-      else if (field === "formatInterval" && emomIntervals !== null) {
+      if (field === "formatIncrement") {
+        const changed = value !== scalarValueOf("formatIncrement", draft);
+        setFormatSetting("incrementPerRound", formatIncrement < 0 ? -value : value);
+        // Recette iPhone du 26/11/2026 (soir, Hermann) : Death by en Durée, mouvement à phases — incrément non multiple de la durée des
+        // phases : message d'information (arrondi inférieur, supérieur, ou Annuler qui garde la saisie ; pas d'obligation).
+        if (changed && formatDeathBy && formatIncrementInDuration) askIncrementRounding(value, phaseIssues.cycleSeconds, bounds.max);
+      } else if (field === "formatInterval" && emomIntervals !== null) {
         // D-607 : la ligne Intervalle règle toutes les séries (ou tous les tours, partagés).
         setFormatValue((current) =>
           current === null || format === undefined ? current : withEmomSheetIntervals(format, current, emomIntervals.map(() => value)),
@@ -2237,7 +2272,15 @@ export function ExecutionParametersSheet({
       {formatShown("increment") ? (
         <>
           {seriesLeadRows ? <Separator /> : null}
-          <Row label={formatDeathBy ? formatT.incrementPerInterval : formatT.incrementPerRound} testID="execution-sheet-format-increment-row">
+          <Row
+            label={formatDeathBy ? formatT.incrementPerInterval : formatT.incrementPerRound}
+            // Recette iPhone du 26/11/2026 (soir, Hermann, AMRAP : « Sélection "à l'échec" dans le tableau : "incrément par tour" dans la
+            // modale doit être grisé ») : ligne non pertinente — titre grisé comme sa valeur « — » (`formatLockedLabel`, D-607 / D-608).
+            {...(formatIncrementLocked
+              ? { labelNode: <Text style={[styles.label, styles.formatLockedLabel]} testID="execution-sheet-format-increment-label">{formatT.incrementPerRound}</Text> }
+              : {})}
+            testID="execution-sheet-format-increment-row"
+          >
             {formatIncrementLocked ? (
               <View style={[styles.stepperFrame, { width: STEPPER_WIDTH }]}>
                 <Text style={[styles.valuePillText, styles.formatLockedValue]} testID="execution-sheet-format-increment">

@@ -734,6 +734,9 @@ export const fr = {
         perSeries: "± / série",
         start: "Départ",
         increment: "Incrément",
+        // Recette iPhone du 26/11/2026 (soir, Hermann : « Death by : le nom de colonne "incrément" est trop long, remplacer par le "+/- /tour" ») :
+        // titre de la colonne du Death by, écrit comme celui de l'AMRAP (« ± / tour »). « Incrément » reste le nom lu par VoiceOver.
+        incrementHead: "± / tour",
         unit: "Unité",
         durationUnit: "durée",
         toFill: "à renseigner",

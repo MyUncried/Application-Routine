@@ -45,7 +45,8 @@ import {
 } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { formatPhraseDuration, spokenDuration } from "@/domain/activities/durationFormat";
-import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
+import { isFormatModelKey, plannedWorkOfParameters } from "@/domain/sessions/formatModels";
+import { formatModelColors } from "@/features/sessions/FormatsWindow";
 import {
   adjustEnvelopeSpan,
   applyLayoutNatureChange,
@@ -9548,6 +9549,14 @@ function LayoutCircuitBlock({
   // Réponse 2 de Hermann du 07/11/2026 (EMOM) : un membre en dépassement d'intervalle teinte aussi le Circuit replié.
   const hasEmomOverflow = circuit.exercises.some((member) => context.emomOverflowIds.has(member.id));
   const tone = isCollapsed ? collapsedCircuitTone(circuit.exercises, hasEmomOverflow) : null;
+  // Recette iPhone du 26/11/2026 (soir, remarque a, Hermann : « composition de séance : colorer le cadre du circuit de la couleur du
+  // format ») : aplat du Circuit issu d'un format (ou porteur d'un format) à la couleur du format — celle de sa zone de contexte et de
+  // l'en-tête de la modale de ses exercices (`formatModelColors(…).background`, même règle que `formatTintModelOf`). Les tonalités
+  // « à compléter » / « à vérifier » du Circuit replié restent prioritaires. [Aplat gris `CIRCUIT_SURFACE_COLOR` pour tout Circuit —
+  // remplacé pour les Circuits issus d'un format.]
+  const formatKey = circuit.originModel ?? circuit.format?.key ?? null;
+  const formatFill = isFormatModelKey(formatKey) ? formatModelColors(formatKey).background : undefined;
+  const surfaceFill = collapsedToneFill(tone) ?? formatFill;
   const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
   const inPlacement = context.stops.placement !== null;
   /**
@@ -9665,7 +9674,12 @@ function LayoutCircuitBlock({
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, layered ? null : styles.layoutCircuitSurface, layered ? null : collapsedToneSurface(tone)]}
+        style={[
+          StyleSheet.absoluteFill,
+          layered ? null : styles.layoutCircuitSurface,
+          layered || formatFill === undefined ? null : { backgroundColor: formatFill },
+          layered ? null : collapsedToneSurface(tone),
+        ]}
         testID={`${testID}-surface`}
       >
         {layered ? (
@@ -9674,7 +9688,7 @@ function LayoutCircuitBlock({
             bottom={motion.bottom}
             dragHeight={blockHeight}
             extendsOnSpread
-            color={collapsedToneFill(tone)}
+            color={surfaceFill}
             testID={`${testID}-surface-layers`}
           />
         ) : null}
@@ -9715,7 +9729,7 @@ function LayoutCircuitBlock({
       <StickyHeaderFrame
         range={circuitStickyRange}
         enabled={!ghost}
-        color={collapsedToneFill(tone) ?? CIRCUIT_SURFACE_COLOR}
+        color={surfaceFill ?? CIRCUIT_SURFACE_COLOR}
         outsetLeft={horizontalInset}
         outsetRight={horizontalInset}
         insetTop={CIRCUIT_PADDING_VERTICAL}
