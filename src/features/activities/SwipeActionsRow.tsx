@@ -13,7 +13,7 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
-import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe, TOUCH_SLOP } from "@/features/sessions/compositionGesture";
+import { clampSwipeTranslateX, shouldFollowSwipe, shouldRevealAfterSwipe, TOUCH_SLOP } from "@/features/sessions/compositionGesture";
 import { useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { colors, fixedRadii, type } from "@/shared/ui/tokens";
@@ -103,6 +103,7 @@ export function SwipeActionsRow({
   actionsRightMargin = 0,
   slideActions = false,
   nativeGesture = false,
+  lockSwipeDirection = false,
   children,
   testID,
 }: {
@@ -152,6 +153,12 @@ export function SwipeActionsRow({
    * Native (rendu et comportement inchangés pour les autres écrans).
    */
   readonly nativeGesture?: boolean;
+  /**
+   * Remarque c de Hermann du 26/11/2026 (Composition : « le glisser-gauche fait un rebond et revient à sa position initiale si
+   * le doigt se déplace aussi à la verticale ») : un glissement engagé suit le doigt quelle que soit sa composante verticale
+   * (`shouldFollowSwipe`). Absent : inchangé (Catalogue, Agenda, Journal).
+   */
+  readonly lockSwipeDirection?: boolean;
   readonly children: ReactNode;
   readonly testID: string;
 }) {
@@ -266,7 +273,7 @@ export function SwipeActionsRow({
         if (native) return;
         // Reçu même quand une action révélée détient le responder (balayage droit de fermeture).
         const { dx, dy } = delta(event);
-        if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return;
+        if (offset === 0 || !shouldFollowSwipe(dx, dy, lockSwipeDirection && isSwipingRef.current)) return;
         follow(dx);
       }}
       onTouchEnd={native ? undefined : end}
@@ -280,13 +287,13 @@ export function SwipeActionsRow({
       onMoveShouldSetResponderCapture={(event) => {
         if (native) return false;
         const { dx, dy } = delta(event);
-        if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return false;
+        if (offset === 0 || !shouldFollowSwipe(dx, dy, lockSwipeDirection && isSwipingRef.current)) return false;
         follow(dx);
         return true;
       }}
       onResponderMove={(event) => {
         const { dx, dy } = delta(event);
-        if (Math.abs(dx) > Math.abs(dy)) follow(dx);
+        if ((lockSwipeDirection && isSwipingRef.current) || Math.abs(dx) > Math.abs(dy)) follow(dx);
       }}
       onResponderRelease={end}
       onResponderTerminationRequest={() => !isSwipingRef.current}

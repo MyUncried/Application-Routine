@@ -246,10 +246,12 @@ export function CreateMenu({
   const downward = upwardTop < insets.top + MENU_TOP_MARGIN;
   const firstTop = downward ? centerY + FLOATING_BUTTON_SIZE / 2 + LAST_ROW_TO_BUTTON : upwardTop;
   const rowTop = (index: number) => firstTop + index * (ROW_HEIGHT + ROW_GAP);
-  // Axe : du centre du bouton à la rangée la plus éloignée.
+  // Axe : du bord de la croix à la rangée la plus éloignée. [Du centre du bouton — remplacé le 26/11/2026, remarque a de
+  // Hermann : la croix étant un rond de verre, l'axe la traversait en transparence ; il s'arrête à sa bordure.]
   const farRowCenter = (downward ? rowTop(options.length - 1) : rowTop(0)) + ROW_HEIGHT / 2;
-  const axisTop = Math.min(centerY, farRowCenter);
-  const axisHeight = Math.abs(centerY - farRowCenter);
+  const buttonEdgeY = downward ? centerY + FLOATING_BUTTON_SIZE / 2 : centerY - FLOATING_BUTTON_SIZE / 2;
+  const axisTop = Math.min(buttonEdgeY, farRowCenter);
+  const axisHeight = Math.abs(buttonEdgeY - farRowCenter);
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
 
   return (

@@ -57,13 +57,14 @@ describe("CreateMenu — ouverture depuis le bouton flottant (UI-FAB-01)", () =>
     expect(style("opt-exercise")).toMatchObject({ left: 46 - 16, flexDirection: "row-reverse" });
   });
 
-  it("l'axe bleu relie la croix (centre du bouton) à la première icône", () => {
+  it("l'axe bleu relie la croix à la première icône et s'arrête à la bordure de la croix (remarque a du 26/11/2026)", () => {
     renderMenu();
     const axis = style("composition-add-activity-tree-axis");
     expect(axis.backgroundColor).toBe("#1414F5");
     expect(axis.left).toBe(356 - 1);
     expect(axis.top).toBe(546 + 16);
-    expect(axis.top + axis.height).toBe(748);
+    // Haut de la croix (rond de verre de 60 centré à 748) : 718 — l'axe ne la traverse plus.
+    expect(axis.top + axis.height).toBe(718);
   });
 
   it("la croix est le bouton flottant transformé : rond de verre de 60 à sa place, variante Fermer ; elle et le voile ferment sans action", () => {
@@ -89,7 +90,8 @@ describe("CreateMenu — ouverture depuis le bouton flottant (UI-FAB-01)", () =>
     expect(style("opt-circuit").top).toBe(206);
     expect(style("opt-stop").top).toBe(290);
     const axis = style("composition-add-activity-tree-axis");
-    expect(axis.top).toBe(120);
+    // Remarque a : l'axe part du bas de la croix (120 + 30), pas de son centre.
+    expect(axis.top).toBe(150);
     expect(axis.top + axis.height).toBe(290 + 16);
   });
 

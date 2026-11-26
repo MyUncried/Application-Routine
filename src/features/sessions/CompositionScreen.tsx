@@ -231,7 +231,6 @@ import { isExerciseParametersIncomplete } from "@/features/sessions/movementExer
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
-  isTap,
   LONG_PRESS_DELAY_MS,
   NO_DRAG_SHIFTS,
   resolveDragShifts,
@@ -239,6 +238,7 @@ import {
   resolveDropTarget,
   resolveInsertionPoses,
   resolveRemovalShifts,
+  shouldFollowSwipe,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
@@ -1354,6 +1354,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       placement !== null ||
       envelope !== null ||
       (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline)));
+  // Remarque b de Hermann (26/11/2026) : en Modifier une séance, l'action principale est « Fermer » tant que le
+  // brouillon est égal à la Séance réhydratée (aucune suppression animée en attente d'écriture).
+  const isUnmodifiedEdit =
+    hydratedBaseline !== null && hydratedBaseline !== undefined && deletion === null && sessionDraftsEqual(draft, hydratedBaseline);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
@@ -5622,9 +5626,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {composition.emomOverflow}
           </Text>
         ) : null}
-        {placement === null && (saveState === "error" || saveState === "nameTaken" || (saveState === "sessionNameTaken" && sessionNameTaken)) ? (
+        {/* [Message « Ce nom est déjà utilisé… » aussi affiché ici, au bas de l'écran — retiré le 26/11/2026, remarque f de
+            Hermann : il n'apparaît qu'une fois, sous le nom, dans la zone de contexte (`nameError`).] */}
+        {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
-            {saveState === "nameTaken" ? composition.nameTakenError : saveState === "sessionNameTaken" ? composition.sessionNameTaken : composition.saveError}
+            {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
           </Text>
         ) : null}
         {readOnly ? (
@@ -5632,13 +5638,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {composition.consultation.notice}
           </Text>
         ) : null}
+        {/* Remarques b et g de Hermann (26/11/2026) : « Enregistrer » (ex-« Continuer ») ; en Modifier une séance,
+            « Fermer » tant que rien n'a été modifié — il referme comme le X, sans enregistrer. */}
         {placement === null && envelope === null && !readOnly ? (
-          <PrimaryActionButton
-            label={composition.saveAction}
-            onPress={handleSave}
-            disabled={!isCompositionValid || saveState === "saving"}
-            testID="composition-save-action"
-          />
+          isUnmodifiedEdit ? (
+            <PrimaryActionButton
+              label={composition.closeAction}
+              onPress={() => router.back()}
+              testID="composition-close-action"
+            />
+          ) : (
+            <PrimaryActionButton
+              label={composition.saveAction}
+              onPress={handleSave}
+              disabled={!isCompositionValid || saveState === "saving"}
+              testID="composition-save-action"
+            />
+          )
         ) : null}
       </PrimaryActionZone>
 
@@ -7447,7 +7463,8 @@ function CompositionActivityRow({
       if (isDraggingRef.current) {
         return true;
       }
-      if (!canSwipe || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
+      // Remarque c du 26/11/2026 : un glissement engagé garde sa direction (`shouldFollowSwipe`).
+      if (!canSwipe || !shouldFollowSwipe(dx, dy, isSwipingRef.current)) {
         return false;
       }
       applySwipeMovement(dx);
@@ -7468,7 +7485,7 @@ function CompositionActivityRow({
   const handleTouchMove = useCallback(
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
-      if (!canSwipe || isDraggingRef.current || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
+      if (!canSwipe || isDraggingRef.current || !shouldFollowSwipe(dx, dy, isSwipingRef.current)) {
         return;
       }
       applySwipeMovement(dx);
@@ -7483,7 +7500,7 @@ function CompositionActivityRow({
         applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
         return;
       }
-      if (canSwipe && Math.abs(dx) > Math.abs(dy)) {
+      if (canSwipe && (isSwipingRef.current || Math.abs(dx) > Math.abs(dy))) {
         applySwipeMovement(dx);
       }
     },
@@ -9710,6 +9727,8 @@ function LayoutCircuitBlock({
             actionsRadius={CIRCUIT_RADIUS}
             // Recette du 05/11/2026 (e-replie-glisse) : les options glissent avec le Circuit, à l'ouverture et à la fermeture.
             slideActions
+            // Remarque c du 26/11/2026 : glissement engagé verrouillé à l'horizontale, comme les cartes.
+            lockSwipeDirection
             actionsInsets={{
               top: CIRCUIT_PADDING_VERTICAL,
               bottom: blockHeight !== null && headerBottom !== null ? Math.max(0, blockHeight - headerBottom) : CIRCUIT_PADDING_VERTICAL,
