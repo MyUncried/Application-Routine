@@ -76,6 +76,18 @@ Demande de Hermann : intégrer `feat/exercice-libre-page-20261126` (`bdc6ee86`),
 - `expo start --tunnel` échoue (« The "file" argument must be of type string. Received null ») dans `C:\Dev\Application-routine` : le PC est en Windows ARM (arm64) et `@expo/ngrok-bin-win32-arm64` n'est pas installé par npm. Déjà constaté les 09/11 et 11/11 (rapports `2026-11-09_PRE10_SON_VOIX.md`, `2026-11-11_PRE10_FIN.md`) : le binaire est recopié depuis `C:\Dev\KODJO-BMAD-PRE8\node_modules\@expo\` (hors Git) ; tout `npm install` ou `npm ci` le retire.
 - Erreur de diagnostic de Claude, corrigée : la réinstallation de `@expo/ngrok` et l'installation de `@expo/ngrok-bin-win32-x64` (refusée, `EBADPLATFORM`) ne pouvaient pas résoudre l'incident.
 
+## Diagnostic en cours : suppression du compte depuis Routine BMAD (26-27/11/2026)
+
+Constat (Hermann) : « La suppression du compte n'a pas abouti. Réessayez plus tard. », sans bandeau d'avertissement visible.
+
+Preuves lues par Claude (jeton Supabase en lecture seule fourni par Hermann, projet Kodjo-dev uniquement) :
+- base : 1 compte (BMAD, Apple, adresse relais, `deletion_requested_at` vide), son jeton Apple présent (`client_id = com.ankusha.kodjo.bmad`), 2 Utilisateurs locaux rattachés (BMAD et Routine Dev, règle R3) ; `account_deletions` : seulement les 3 suppressions réussies du 25/11 ;
+- journaux : aucune requête de BMAD vers une fonction (`delete-account`, `deletion-status`) depuis son installation ; dernières requêtes de BMAD : rafraîchissements de session réussis, le dernier à 14:39 UTC le 26/11.
+- Conclusion **démontrée** : la demande ne quitte pas le téléphone. Cause **indéterminée** : le code ne renvoie « n'a pas abouti » sans appel au serveur que si le lien local est absent ou si une exception survient avant l'appel (journalisée par `console.warn`, lisible dans le terminal Metro, pas sur l'iPhone sans Metro).
+- Vérification proposée : reproduire avec Metro connecté et relever la ligne « Suppression du compte impossible. » du terminal.
+
+Constat annexe **démontré** : la tâche planifiée `apple-notifications` répond 500 toutes les 15 minutes (`missing_env:KODJO_SWEEP_TOKEN`) : le secret `KODJO_SWEEP_TOKEN` n'est pas défini dans les secrets des fonctions (prérequis P-04 du cahier : KO).
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
