@@ -203,6 +203,15 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
 
   return (
     <View style={styles.root} testID="free-exercise-choice">
+      {/* Recette iPhone du 26/11/2026 (soir), Hermann : « la liste la chevauche » (zone figée) ; recherche « ko » dès qu'il reste au
+          plus deux résultats (« Tes », « bo », « rol », « etirement du m »…). Cause : dans une feuille native (`formSheet`),
+          react-native-screens cherche une ScrollView par le chemin des PREMIERS sous-vues natives de l'écran et lui impose le cadre
+          entier de la feuille (`RNSScreen.mm`, `applyFrameCorrectionForDescendantScrollView`). Fabric monte les enfants par zIndex
+          croissant : depuis les zIndex de la zone de contexte, du fondu et de la recherche (8098288b), le premier enfant natif est la
+          liste — tirée en haut de la feuille, ses premiers résultats passent sous la zone de contexte et la recherche — ou, avec un
+          mouvement choisi, la ScrollView de la zone figée, étirée sur toute la hauteur et recouverte par la liste. Cette vue vide,
+          non aplatie, est le premier enfant natif : aucune ScrollView n'est trouvée, chaque zone garde son cadre. */}
+      <View collapsable={false} pointerEvents="none" style={styles.sheetScrollGuard} testID="free-exercise-sheet-scroll-guard" />
       <View style={[styles.context, { backgroundColor: SHEET_HEADER_NEUTRAL }]} testID="free-exercise-choice-context">
         <View style={styles.headerTop} />
         <ModalHeader
@@ -387,6 +396,8 @@ const SEARCH_PLACEHOLDER = "#B4B8C2";
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
+  // Recette du 26/11/2026 (soir) : premier enfant natif sans ScrollView (voir le rendu) ; aucune place dans la mise en page.
+  sheetScrollGuard: { height: 0 },
   // Zone de contexte, puis son fondu, puis la recherche figée, au-dessus de la liste qui défile dessous.
   context: { zIndex: 3 },
   // Place de la poignée de la feuille des paramètres : en-tête à la même hauteur que la page.
