@@ -3162,7 +3162,10 @@ export function ExecutionParametersSheet({
               }
               testID="execution-sheet-surface"
             >
-              <View style={{ backgroundColor: headerTint }} testID={freeFormat ? "execution-sheet-free-context" : "execution-sheet-header-tint"}>
+              <View
+                style={[{ backgroundColor: headerTint }, pageMode ? styles.pageContext : null]}
+                testID={freeFormat ? "execution-sheet-free-context" : "execution-sheet-header-tint"}
+              >
               {pageMode ? <View style={styles.pageHeaderTop} /> : <View style={styles.handle} />}
               {/* En-tête « Fermer et valider » partagé (Complément du 5 novembre 2026, §18–§19). Story 3.8 (AC5) : ✓ grisé
                   (Brouillon invalide) mais surface ouverte — l'appui reste reçu pour fermer la surface (`absorbSheetCommand`) ;
@@ -3213,7 +3216,7 @@ export function ExecutionParametersSheet({
 
               <SheetMotionScrollView
                 ref={scrollRef}
-                style={styles.body}
+                style={pageMode ? [styles.body, styles.pageBody] : styles.body}
                 contentContainerStyle={styles.bodyContent}
                 keyboardShouldPersistTaps="handled"
                 // PRE-5 story 2.2 (FR-24, AD-26) : course de défilement sous le clavier (prop
@@ -4729,6 +4732,14 @@ const styles = StyleSheet.create({
     flex: 1,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
+  },
+  // Recette iPhone du 26/11/2026 : en page, le contenu défilait par-dessus la zone de contexte (titre, boutons). Zone de contexte au
+  // premier plan, au-dessus de son fondu (zIndex 1) ; le corps est rogné et passe dessous, comme au choix du mouvement.
+  pageContext: {
+    zIndex: 2,
+  },
+  pageBody: {
+    overflow: "hidden",
   },
   // Place de la poignée, absente en page (la feuille native n'en a pas) : l'en-tête reste à la hauteur des écrans de format.
   pageHeaderTop: {
