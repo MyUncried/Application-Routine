@@ -24,7 +24,11 @@
 ## Preuves et tests
 
 - `npx jest src/infrastructure/database` : 547 tests réussis (après mise à jour des assertions de version).
-- Suite complète et `tsc` : voir « Résultats finaux » ci-dessous.
+- `npx tsc --noEmit` : sans erreur.
+- `npx jest` (suite complète) : 6 894 réussis, 33 ignorés, **2 échecs préexistants** — reproduits à l'identique sur `origin/recette/agenda-axe-20261124` seule (49aa5304), donc non introduits par cette fusion :
+  - `CatalogueLifecycle.e7.integration.test.tsx` › « carte → Composition en modification ; Créer → Composition » ;
+  - `pre4Story11Controls.test.ts` › « aucun jeton de src/shared/ui/tokens.ts n'est modifié ».
+  Non corrigés (hors périmètre : ils relèvent des branches sources).
 - ESLint sur les fichiers résolus : sans erreur.
 
 ## Hypothèses non démontrées
@@ -53,3 +57,8 @@ Classe D (technique : numérotation et réparation des migrations). Aucune règl
 - `src/infrastructure/database/migrations/migration040.ts` (version du marquage retenue)
 - `src/infrastructure/database/migrations/migration041.ts` (nouveau)
 - `src/infrastructure/database/__tests__/migration040.test.ts`, `migration041.test.ts`, `repairMissingTables.test.ts`, et les assertions de version courante des tests de migration.
+
+## Commit et état Git
+
+- Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
+- Commit final : celui qui contient ce rapport complété (voir l'historique de la branche).
