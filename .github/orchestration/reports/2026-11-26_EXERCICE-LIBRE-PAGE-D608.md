@@ -120,6 +120,25 @@ l'exercice.
 - Test ajouté (`FreeExerciseScreen.d608`, 15 tests) : ordre d'empilement et rognage. Suites ciblées : 2 suites, 29 tests verts ; tsc et
   ESLint OK. Le rendu se vérifie sur iPhone.
 
+## Correction de recette du 26/11/2026 — contenu de la page par-dessus la zone de contexte
+
+- Demande de Hermann : « après le choix du mouvement (le catalogue est ok), le contenu de la page chevauche la zone de contexte (titre,
+  boutons) ».
+- Même cause que le catalogue : zone de contexte sans plan d'empilement, corps défilant peint au-dessus.
+- Correction (`ExecutionParametersSheet.tsx`, **mode page seulement** : `pageContext` zIndex 2 au-dessus du fondu (1), corps rogné
+  `pageBody`) ; modales « Paramètres d'exécution » inchangées (styles appliqués sous `pageMode`).
+- Classe A, documentation : aucune. Test ajouté (`FreeExerciseScreen.d608`, 16 tests). Suites `FreeExerciseScreen.d608` et
+  `ExecutionParametersSheet*` : 13 suites, 441 tests verts ; tsc OK ; ESLint 0 erreur (1 avertissement antérieur).
+
+## Incident de recette du 26/11/2026 — base de l'iPhone en version 42
+
+- Au lancement : « Database version 42 is newer than supported version 41 ». La recette du Compte
+  (`recette/compte-integration-20261126`, Metro 8086 depuis `C:\Dev\Application-routine`) avait migré la base de l'iPhone en 42.
+- Choix de Hermann : fusionner cette recette dans `recette/agenda-axe-20261124` (sans conflit ; elle contenait déjà `1bbaea53`) →
+  `529a52b3`, poussée. Jonction `node_modules` de `C:\Dev\KODJO-SERVE` repointée de `KODJO-FORMATS` vers `Application-routine`
+  (mêmes `package.json`, paquets du Compte présents) ; tsc OK ; Metro 8085 relancé, bundle vérifié par le tunnel (correction du
+  catalogue et tables du Compte présentes). Aucun fichier de la branche de mission modifié.
+
 ## Commit final et état Git
 
 Renseignés dans le message de livraison (commit contenant ce rapport, branche poussée).

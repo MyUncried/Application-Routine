@@ -177,6 +177,16 @@ describe("D-608 — page « Exercice libre »", () => {
     takeFreeExerciseHandedToComposition();
   });
 
+  it("recette 26/11 : le contenu de la page défile sous la zone de contexte (titre, boutons), jamais par-dessus", async () => {
+    renderScreen();
+    await openPage("free-exercise-card-mv-squats");
+    const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style) as { zIndex?: number; overflow?: string };
+    const body = style("execution-sheet-body");
+    expect(body.overflow).toBe("hidden");
+    expect(style("execution-sheet-free-context").zIndex ?? 0).toBeGreaterThan(style("execution-sheet-free-fade").zIndex ?? 0);
+    expect(style("execution-sheet-free-fade").zIndex ?? 0).toBeGreaterThan(body.zIndex ?? 0);
+  });
+
   it("coque : titre « Exercice libre », accroche, Retour ; cadres dans l'ordre ; Mouvement avec « Changer » ; sans phases : aucune ligne de phases", async () => {
     renderScreen();
     await openPage("free-exercise-card-mv-squats");
