@@ -3113,12 +3113,17 @@ export function ExecutionParametersSheet({
       <View ref={scrimRef} style={styles.pageRoot} onLayout={measureContainerBottom} testID="execution-sheet-page">
         {content}
       </View>
+    ) : !hostScreenFocused ? (
+      // Recette du 26/11/2026 (après-midi) : pendant le recouvrement, la `Modal` n'est pas montée du tout — sa vue hôte, plein
+      // écran dans l'écran hôte, ne peut plus y rester sans feuille et bloquer les touchers (voir `useHostScreenFocused`).
+      // [Avant : `Modal` montée avec `visible={false}` — remplacé.]
+      null
     ) : (
     <Modal
       transparent
       // Remarque e du 26/11/2026 : retirée pendant qu'un écran poussé d'ailleurs (rappel touché) recouvre l'écran hôte,
-      // présentée de nouveau au retour — sinon affichée sans toucher actif.
-      visible={hostScreenFocused}
+      // présentée de nouveau au retour, une fois la transition terminée — sinon affichée sans toucher actif.
+      visible
       // Constat d (carte de la Composition) : voile animé ci-dessous, à la durée de la feuille.
       animationType={cardMotion ? "none" : "fade"}
       onRequestClose={handleCancel}

@@ -183,7 +183,12 @@ export default function RootLayout() {
               <Stack.Screen name="library-edit" options={{ presentation: "fullScreenModal" }} />
               <Stack.Screen name="library-mine" options={{ presentation: "fullScreenModal" }} />
               {/* PRE-10.3 (CE-EXEC-SESSION-01) : Exécution plein écran, sans geste de retour (aucun abandon silencieux du moteur). */}
-              <Stack.Screen name="execution" options={{ gestureEnabled: false, animation: "fade" }} />
+              {/* Recette du 26/11/2026 (après-midi, Hermann : « j'appuie sur Démarrer - La séance s'exécute mais pas en plein écran,
+                  mais en modale. KO (il faut en plein écran) ») : sans présentation propre, l'Exécution ouverte au-dessus d'une feuille
+                  de la pile racine (fenêtre Formats, rappel touché) héritait d'une présentation modale (feuille, `getModalRouteKeys`).
+                  Elle est désormais toujours plein écran (`fullScreenModal`), même fondu, quel que soit l'empilement. [Avant : écran
+                  de pile sans `presentation` — remplacé.] */}
+              <Stack.Screen name="execution" options={{ presentation: "fullScreenModal", gestureEnabled: false, animation: "fade" }} />
               {/* Planification (CE-UI-04/05) — recette du 17/11/2026 (f/g) : feuilles natives iOS, sans geste de fermeture
                   (abandon par ✕) ; « Catalogue des séances » posé dessus. [Modale plein écran, sélection dans le même
                   écran — remplacées.] */}

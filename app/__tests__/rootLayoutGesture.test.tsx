@@ -141,6 +141,17 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     expect(sheet("movement-sheet")).toMatchObject({ presentation: "formSheet", gestureEnabled: false });
   });
 
+  // Recette du 26/11/2026 (après-midi, Hermann : « j'appuie sur Démarrer - La séance s'exécute mais pas en plein écran, mais en
+  // modale. KO (il faut en plein écran) ») : sans présentation propre, une route posée après une feuille de la pile racine hérite
+  // d'une présentation modale (`getModalRouteKeys`). L'Exécution est donc toujours plein écran, sans geste, en fondu.
+  it("presents the Execution route full screen whatever the stack below it (fullScreenModal, no gesture, fade)", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const execution = screenCalls.find((call) => call.name === "execution");
+    expect(execution?.options).toEqual({ presentation: "fullScreenModal", gestureEnabled: false, animation: "fade" });
+  });
+
   it("presents the Catalogue filters as a native iOS form sheet, without grabber, on a white background", () => {
     screenCalls.length = 0;
     render(<RootLayout />);

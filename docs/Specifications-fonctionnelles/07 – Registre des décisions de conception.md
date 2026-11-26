@@ -3203,6 +3203,7 @@ Classe B (évolution validée). Question de Hermann, recopiée : « lorsqu'une n
 - Règle nouvelle **RM-054b** (ch10 « Notifications et rappels ») ; note technique ch12 §12.13 ; annexes Index et Matrice.
 - Choix technique (non arbitré, sans effet métier) : une Exécution déjà ouverte n'est pas quittée ; le toucher affiche seulement l'application.
 - Numéro D- non attribué ici : la numérotation du registre avance en parallèle sur d'autres branches ; à attribuer à l'intégration dans `main`.
+- [Recette iPhone du 26/11/2026 (après-midi) : rappel touché pendant qu'une feuille ou une modale de création est ouverte. Hermann, recopié : « j'appuie sur Démarrer - La séance s'exécute mais pas en plein écran, mais en modale. KO (il faut en plein écran) - Séance terminée > agenda, la solution fonctionne normalement. ok. » Règle précisée : l'écran d'Exécution ouvert par un rappel est toujours plein écran, quel que soit l'écran ou la feuille ouvert dessous ; fin de séance → Agenda inchangée. Au retour (« Retour » de l'écran de démarrage), l'écran quitté — Composition, page d'un format — et sa modale « Paramètres d'exécution » restent utilisables. Choix techniques (ch12 §12.13) : route d'Exécution présentée en `fullScreenModal` ; modale des paramètres présentée de nouveau à la fin de la transition de retour. Pas de nouveau numéro.]
 
 ## Planification — recette iPhone du 17/11/2026 (corrections du 18/11/2026)
 
