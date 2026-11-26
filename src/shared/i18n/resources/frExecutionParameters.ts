@@ -63,6 +63,8 @@ export const executionParameters = {
     series: "Séries",
     seriesSingular: "série",
     seriesPlural: "séries",
+    // Recette iPhone du 26/11/2026 (après-midi, Hermann) : modale du Renforcement — ligne « Nombre de séries » (cadre 2).
+    seriesCountRow: "Nombre de séries",
     // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44) : ligne « Type de série » (Variables à
     // gauche avec son chevron, Identiques à droite) et ligne « Condition d’arrêt » (À l’échec
     // à gauche, À l’objectif à droite ; résultat dérivé mixte en variables, FR-20). Le Régime

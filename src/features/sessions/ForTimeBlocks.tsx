@@ -491,8 +491,14 @@ export function DimensionBlock({
   addText,
   kit,
   columns,
+  lastAlignRight = false,
   testID,
 }: {
+  /**
+   * Recette iPhone du 26/11/2026 (après-midi, Hermann : « La dernière colonne du tableau est alignée à droite ») : titre de la dernière
+   * colonne calé à droite de sa colonne (Tabata, 30/30, HIIT, Renforcement, Death by) ; les cases le sont par `TableCell.alignRight`.
+   */
+  readonly lastAlignRight?: boolean;
   readonly title: string;
   readonly rows: readonly BlockRow[];
   readonly heads: readonly string[];
@@ -525,7 +531,7 @@ export function DimensionBlock({
             <View style={styles.headLine} testID={`${testID}-head`}>
               {heads.map((head, at) => (
                 <View key={at} style={styles.column}>
-                  <Text style={styles.headText} numberOfLines={1} testID={`${testID}-head-${at}`}>
+                  <Text style={[styles.headText, lastAlignRight && at === heads.length - 1 ? styles.headTextRight : null]} numberOfLines={1} testID={`${testID}-head-${at}`}>
                     {head}
                   </Text>
                 </View>
@@ -806,6 +812,8 @@ const styles = StyleSheet.create({
   dimensions: { paddingRight: BLOCK.sideInset },
   headLine: { flexDirection: "row", height: BLOCK.headerHeight, gap: TABLE_LAYOUT.columnGap },
   headText: { marginTop: 8, fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 12, lineHeight: 15, color: HEAD, textAlign: "center", width: 100, alignSelf: "center" },
+  // Titre de la dernière colonne calé à droite (recette du 26/11/2026 après-midi) : bord droit du texte au bord droit de la colonne.
+  headTextRight: { textAlign: "right", alignSelf: "flex-end" },
   column: { width: TABLE_LAYOUT.columnWidth, alignSelf: "stretch", alignItems: "center", overflow: "visible" },
   valueLine: { flexDirection: "row", height: BLOCK.rowHeight, gap: TABLE_LAYOUT.columnGap },
   cellAt: { position: "absolute", left: 0, width: TABLE_LAYOUT.columnWidth, height: TABLE_LAYOUT.cellHeight },

@@ -285,6 +285,13 @@ export type MovementValues = {
    * `seriesLoads`) — remplacés par une charge par série (`cells`), §14.]
    */
   readonly loadOn?: boolean;
+  /**
+   * Renforcement — recette iPhone du 26/11/2026 (après-midi, Hermann : « La ligne globale « Nombre de séries » est supprimée » ; « la
+   * première colonne est « Séries » (nombre de séries de chaque mouvement) ») : nombre de séries propre au mouvement ; absent : le
+   * nombre de séries du Format (`ModelAnswers.seriesCount`). Donnée additive du brouillon du Format (l'Exercice produit porte déjà
+   * son propre nombre de séries).
+   */
+  readonly seriesCount?: number;
   /** Tabata, 30/30, Renforcement, À l'échec à plusieurs mouvements : Pause propre au mouvement (§15–§17) ; absente : commune. */
   readonly pause?: number | null;
   /**
@@ -315,6 +322,15 @@ export type MovementValues = {
    */
   readonly recovery?: number;
 };
+
+/**
+ * Renforcement — nombre de séries d'un mouvement (recette iPhone du 26/11/2026, après-midi) : le sien, sinon celui du Format. En
+ * alternance (Circuit à séries alternées, dont les membres héritent du nombre de tours), le nombre reste commun : celui du Format.
+ * [Interprétation prudente, À CLARIFIER par Hermann : nombre de séries différent par mouvement en alternance.]
+ */
+export function strengthSeriesCount(answers: ModelAnswers, values: MovementValues, alternated: boolean): number {
+  return (alternated ? undefined : values.seriesCount) ?? answers.seriesCount ?? 1;
+}
 
 /** Mouvement du modèle : Exercice de base (paramètres du Profil) et valeurs du récapitulatif. */
 export type ModelMovement = {
@@ -930,7 +946,9 @@ function buildFormatElements(
       const exercises = movements.map(({ exercise, values }) => {
         const mode = values.mode ?? "REPETITIONS";
         const seriesTarget = key === "STRENGTH" ? target(rowObjective(values, answers.repetitions, "REPETITIONS")) : failureTarget();
-        const parameters = uniform(exercise.executionParameters, mode, count, seriesTarget, values.pause ?? pauseOf(answers, exercise));
+        // Renforcement (recette du 26/11/2026 après-midi) : nombre de séries propre au mouvement (commun en alternance).
+        const own = key === "STRENGTH" ? strengthSeriesCount(answers, values, execution === "ALTERNATED") : count;
+        const parameters = uniform(exercise.executionParameters, mode, own, seriesTarget, values.pause ?? pauseOf(answers, exercise));
         return withParameters(exercise, withCommonLoad(parameters, answers, values), exercise.postActivityRecoverySeconds ?? 0, null);
       });
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, undefined);

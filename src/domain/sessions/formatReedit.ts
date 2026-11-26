@@ -288,6 +288,8 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       const firstRow = rowsOf(exercise)[0];
       if (variable.has("pauseSeconds")) values = { ...values, pause: firstRow?.pauseSeconds ?? 0 };
       if (model !== "UNTIL_FAILURE" && variable.has(objectiveKey)) values = { ...values, repetitions: firstNumber(rowsOf(exercise)) };
+      // Renforcement (recette du 26/11/2026 après-midi) : nombre de séries propre au mouvement, repris dès que les mouvements diffèrent.
+      if (model === "STRENGTH" && circuit.nature !== "SERIES" && variable.has("seriesCount")) values = { ...values, seriesCount: rowsOf(exercise).length };
     }
     return {
       exercise,

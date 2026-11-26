@@ -1099,6 +1099,16 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(StyleSheet.flatten(screen.getByTestId("composition-info-group").props.style)).toMatchObject({ flex: 1, minWidth: 0 });
   });
 
+  // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Zone de contexte : la durée totale est alignée à droite, en texte noir »).
+  it("recette du 26/11/2026 — la durée de séance est alignée à droite, en texte primaire", () => {
+    renderScreen();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-session-duration").props.style)).toMatchObject({
+      marginLeft: "auto",
+      textAlign: "right",
+      color: colors.textPrimary,
+    });
+  });
+
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary; the counter on the right (story 7.8 : no Circuit duration)", () => {
     // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
     renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);

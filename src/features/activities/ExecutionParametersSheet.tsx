@@ -1082,7 +1082,9 @@ export function ExecutionParametersSheet({
    * après chaque série et la ligne Séries. » ; AMRAP, rôles Tour et Buy-in : « Lignes à retirer […] « Séries » […] « Pause après
    * chaque série » […] « Durée de l'exercice » ». Valeurs conservées dans le Brouillon, sans ligne.
    */
-  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || (quickScope && !quickSeriesTable);
+  // Recette iPhone du 26/11/2026 (après-midi, Hermann) : modale du Renforcement en trois cadres — Mode ; Nombre de répétitions, Nombre
+  // de séries, Pause, Charge ; De chaque côté, Cadence. La Pause y revient.
+  const noPauseRow = deathBySheet || emomSheet || noSeriesRow || forTimeSheet || leanFormat || (quickScope && !quickSeriesTable && !quickValueRow);
   const noCadenceDuration = deathBySheet || emomSheet || amrapMemberSheet || leanFormat || quickScope;
   // Recette du 17/11/2026 (For time) : Récupération absente, sa valeur n'est pas réappliquée au ✓ (voir `handleValidate`).
   const recoveryShown = recovery !== undefined && !(format?.rows.includes("noRecovery") ?? false) && !forTimeSheet && !leanFormat && !quickScope;
@@ -2007,6 +2009,8 @@ export function ExecutionParametersSheet({
     ...(hasWorkPhases && !structureLocked ? [scalarKeyboardField("phaseCount")] : []),
     ...(draft.inheritedSeriesCount || !deathBySeriesRow ? [] : [scalarKeyboardField("count")]),
     ...(uniformTargetEditable ? [scalarKeyboardField("uniformTarget")] : []),
+    // Renforcement (recette du 26/11/2026 après-midi) : Nombre de séries après le nombre de répétitions.
+    ...(quickValueRow && !draft.inheritedSeriesCount ? [scalarKeyboardField("count")] : []),
     ...(showVariableTable || noPauseRow || formatShown("interval") ? [] : [scalarKeyboardField("pause")]),
     ...(formatShown("increment") && !formatIncrementLocked ? [scalarKeyboardField("formatIncrement")] : []),
     ...(emomIntervalRow ? [scalarKeyboardField("formatInterval")] : []),
@@ -3317,7 +3321,8 @@ export function ExecutionParametersSheet({
                   </SheetMotionView>
                 ) : null}
                 {/* Cadre Exécution : Mode, Condition d'arrêt. D-604 : absent en départ rapide (Charge et De chaque côté seulement). */}
-                {quickScope && !quickFormatUnitOpen ? null : (
+                {/* Recette du 26/11/2026 (après-midi) : Renforcement — cadre 1 « Mode », toujours présent. */}
+                {quickScope && !quickFormatUnitOpen && !quickValueRow ? null : (
                 <SheetMotionView
                   appear={false}
                   onLayout={trackFrame("execution")}
@@ -3499,6 +3504,20 @@ export function ExecutionParametersSheet({
                             Décision du 06/11/2026 (constat c) : saisie au clavier dans la pastille
                             (roue de la Cible commune et son panneau — remplacés). */}
                         {uniformTargetField}
+                      </Row>
+                    </>
+                  ) : null}
+                  {/* Recette iPhone du 26/11/2026 (après-midi, Hermann) : Renforcement — « Nombre de séries » du mouvement, sous le
+                      nombre de répétitions (le nombre global du Format est supprimé). Imposé par le Circuit en alternance. */}
+                  {quickValueRow ? (
+                    <>
+                      <Separator />
+                      <Row label={t.seriesCountRow} selected={isOpen(scalarSurface("count"))} testID="execution-sheet-row-series-count">
+                        {scalarField("count", {
+                          display: String(draft.count),
+                          accessibilityLabel: t.seriesCountRow,
+                          testID: "execution-sheet-series-count",
+                        })}
                       </Row>
                     </>
                   ) : null}

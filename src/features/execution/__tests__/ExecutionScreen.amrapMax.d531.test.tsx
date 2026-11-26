@@ -138,6 +138,10 @@ describe("D-531 — AMRAP à un seul mouvement en Max, à l'écran", () => {
     // Compteur Tour sans valeur (libellé et « – » en gris, recette du 13/11/2026).
     expect(screen.getByTestId("execution-tour")).not.toHaveTextContent(/\d/);
     expect(screen.getByTestId("execution-amrap-score")).toHaveTextContent("0");
+    // Recette iPhone du 26/11/2026 (après-midi, Hermann) : quatrième forme d'angle, vide, en bas à gauche, symétrique de celle du bas à
+    // droite, tant qu'aucune charge n'occupe ce coin.
+    if (screen.queryByTestId("execution-load") === null) expect(screen.getByTestId("execution-corner-empty-bottom-left", { includeHiddenElements: true })).toBeTruthy();
+    else expect(screen.queryByTestId("execution-corner-empty-bottom-left", { includeHiddenElements: true })).toBeNull();
     await at(20);
     await press("execution-for-time-next");
     // Saisie de la série 1 ; le chronomètre du bloc continue derrière.
