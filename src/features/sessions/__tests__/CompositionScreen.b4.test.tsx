@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { AccessibilityInfo, Platform } from "react-native";
+import { AccessibilityInfo, Platform, ScrollView } from "react-native";
 
 import { seriesCountOf } from "@/domain/activities/ExecutionParameters";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -308,5 +308,27 @@ describe("B.4 — glisser-déposer dans une disposition générale (COMP §6, AR
     expect(shape(probe.draft)).toBe("e0 a1 ca[a2] cb[b1] e9");
     fireEvent(screen.getByTestId("composition-exercise-row-e0"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
     expect(shape(probe.draft)).toBe("a1 e0 ca[a2] cb[b1] e9");
+  });
+});
+
+/**
+ * Recette iPhone du 26/11/2026 (après-midi ; Hermann : « je ne peux plus déplacer l'exercice », « la carte se déplace un peu […] et
+ * fait un rebond pour revenir à sa position ») : la saisie coupe le défilement NATIF aussitôt (verrou unique arbitré), sans attendre
+ * le rendu de l'écran ; le relâchement le rend. Jest ne prouve pas la course avec la `UIScrollView` : recette sur iPhone.
+ */
+describe("Recette du 26/11/2026 (après-midi) — verrou natif du défilement pendant le glisser-déposer", () => {
+  it("saisie : scrollEnabled natif à faux avant tout mouvement ; relâchement : rendu", async () => {
+    await renderComposition(twoCircuitsDraft());
+    measureTwoCircuits();
+    const scroll = screen.UNSAFE_getByType(ScrollView).instance as { setNativeProps: (props: object) => void };
+    const native = jest.spyOn(scroll, "setNativeProps");
+    const container = screen.getByTestId("composition-activity-e9", hidden);
+    fireEvent(container, "touchStart", { nativeEvent: { pageX: 200, pageY: 530 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-e9"), "longPress");
+    expect(native).toHaveBeenLastCalledWith({ scrollEnabled: false });
+    fireEvent(container, "responderMove", { nativeEvent: { pageX: 200, pageY: 225.5 } });
+    release(container, 225.5);
+    expect(native).toHaveBeenLastCalledWith({ scrollEnabled: true });
+    expect(shape(probe.draft)).toBe("e0 ca[a1,e9,a2] cb[b1]");
   });
 });
