@@ -20,6 +20,7 @@ let mockRoutes: { name: string; params?: object }[] = [];
 const focusEffects: (() => void)[] = [];
 let windowProps: { onClose: () => void; onFreeExercise: () => void; onSelect: (model: string) => void } | null = null;
 let modelProps: { model?: string; stage: string; onClose?: () => void } | null = null;
+let freeProps: { onClose: () => void; onDone: () => void } | null = null;
 const mockSheetOptions: object[] = [];
 
 jest.mock("expo-router", () => ({
@@ -49,6 +50,12 @@ jest.mock("@/features/sessions/FormatModelScreen", () => ({
   useFormatSheetDetent: () => 0.9,
 }));
 jest.mock("@/features/activities/MovementScreen", () => ({ MOVEMENT_SESSION_CONTEXT: "session" }));
+jest.mock("@/features/sessions/FreeExerciseScreen", () => ({
+  FreeExerciseScreen: (props: typeof freeProps) => {
+    freeProps = props;
+    return null;
+  },
+}));
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const FormatsWindowRoute = (require("../formats-window") as { default: ComponentType }).default;
@@ -64,6 +71,7 @@ describe("modale « Créer un exercice » (règle du 06/11/2026)", () => {
     focusEffects.length = 0;
     windowProps = null;
     modelProps = null;
+    freeProps = null;
     mockSheetOptions.length = 0;
     takeMovementsHandedToComposition();
     takeFormatsWindowCloseRequest();
@@ -71,12 +79,26 @@ describe("modale « Créer un exercice » (règle du 06/11/2026)", () => {
 
   // [« un Format ouvre son questionnaire » — remplacé le 15/11/2026 : écran unique de chaque Format (décision de Hermann, registre ch07).]
   // [Le Format ouvrait son écran par-dessus (`/format-summary`, feuilles empilées) — remplacé le 25/11/2026 (D-605).]
-  it("Exercice libre : la fiche s'ouvre par-dessus la modale, sans la refermer", () => {
+  // [« Exercice libre : la fiche de création d'un mouvement s'ouvre par-dessus la modale » (`/movement?context=session`) — remplacé le
+  // 26/11/2026 (D-608, D-573 point 5, Formats § 9.10) : carte Libre → écran « Exercice libre — Choix du mouvement » → page, dans la feuille.]
+  it("D-608 — Exercice libre : choix du mouvement puis page dans la même feuille ; croix : retour à la fenêtre ; ✓ : modales retirées", () => {
     mockRoutes = FROM_CATALOGUE;
     render(<FormatsWindowRoute />);
-    windowProps!.onFreeExercise();
+    const opener = windowProps!;
+    windowProps = null;
+    act(() => opener.onFreeExercise());
+    expect(mockPush).not.toHaveBeenCalled();
     expect(mockBack).not.toHaveBeenCalled();
-    expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement", params: { context: "session" } });
+    expect(windowProps).toBeNull();
+    expect(freeProps).not.toBeNull();
+    expect(mockSheetOptions[mockSheetOptions.length - 1]).toEqual({ sheetAllowedDetents: [0.9] });
+    act(() => freeProps!.onClose());
+    expect(windowProps).not.toBeNull();
+    expect(mockSheetOptions[mockSheetOptions.length - 1]).toEqual({ sheetAllowedDetents: "fitToContents" });
+    act(() => windowProps!.onFreeExercise());
+    act(() => freeProps!.onDone());
+    expect(mockDismiss).toHaveBeenCalledWith(1);
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/composition", params: { keepDraft: "1" } });
   });
 
   /*

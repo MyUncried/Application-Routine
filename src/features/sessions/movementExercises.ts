@@ -1,9 +1,15 @@
-import { createEmptyExecutionParameters, createFreeExerciseParameters } from "@/domain/activities/ExecutionParameters";
+import { createEmptyExecutionParameters, createFreeExerciseParameters, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { repriseExecutionParameters, type Movement } from "@/domain/activities/Movement";
 import { DEFAULT_CIRCUIT_NATURE } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
-import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import {
+  createExerciseDraft,
+  withExerciseRecovery,
+  withProfileDefaultsValidated,
+  type SessionDraft,
+  type SessionDraftExercise,
+} from "@/domain/sessions/SessionDraft";
 import { circuitRoleOf } from "@/domain/sessions/formats";
 import { structureCircuits } from "@/domain/sessions/structure";
 import { insertIntoRichLayout, resolveRichLayout } from "@/features/sessions/compositionLayout";
@@ -96,6 +102,49 @@ export function takeMovementsHandedToFormat(): { readonly movements: readonly Mo
   return taken;
 }
 
+/**
+ * D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10) : page « Exercice libre » de la création — Récupération proposée par
+ * défaut (30″). Appliquée au seul exercice créé par cette page.
+ */
+export const FREE_EXERCISE_RECOVERY_SECONDS = 30;
+
+/** Exercice libre réglé sur sa page de création : mouvement, paramètres validés (✓) et Récupération. */
+export type FreeExerciseHandoff = {
+  readonly movement: Movement;
+  readonly parameters: ExecutionParameters;
+  readonly recoverySeconds: number;
+};
+
+let handedFreeExercise: FreeExerciseHandoff | null = null;
+
+/** D-608 : remet à la Composition l'exercice libre réglé sur sa page (même canal à usage unique que les Mouvements). */
+export function handFreeExerciseToComposition(handoff: FreeExerciseHandoff): void {
+  handedFreeExercise = handoff;
+}
+
+/** Reprend (une seule fois) l'exercice libre remis ; `null` : aucun. */
+export function takeFreeExerciseHandedToComposition(): FreeExerciseHandoff | null {
+  const taken = handedFreeExercise;
+  handedFreeExercise = null;
+  return taken;
+}
+
+/**
+ * D-608 : Mouvement créé par la fiche de création (nom inexistant validé sur l'écran « Exercice libre — Choix du mouvement »),
+ * rendu à cet écran, qui ouvre alors la page de l'exercice libre.
+ */
+let movementForFreeExercise: Movement | null = null;
+
+export function handMovementToFreeExercise(movement: Movement): void {
+  movementForFreeExercise = movement;
+}
+
+export function takeMovementHandedToFreeExercise(): Movement | null {
+  const taken = movementForFreeExercise;
+  movementForFreeExercise = null;
+  return taken;
+}
+
 /** Valeurs du Profil copiées dans un nouvel Exercice (P3-10 : jamais relues ensuite). */
 export type MovementExerciseDefaults = {
   readonly countdownSeconds: number;
@@ -135,6 +184,16 @@ export function exerciseOfMovement(movement: Movement, id: string, defaults: Mov
     sourceMovementId: movement.id,
     profileDefaultsPending: true,
   };
+}
+
+/**
+ * D-608 (D-573 point 5) : exercice libre réglé sur sa page de création — occurrence du Mouvement (`exerciseOfMovement`, défauts d'un
+ * exercice libre) portant les paramètres validés par ✓ et la Récupération de la page, comme le ✓ de la feuille de la Composition :
+ * défauts du Profil validés, Enchaînement des côtés repris des paramètres. Aucun second stockage : les champs standards de l'Exercice.
+ */
+export function exerciseOfFreePage(handoff: FreeExerciseHandoff, id: string, defaults: MovementExerciseDefaults): SessionDraftExercise {
+  const created = withProfileDefaultsValidated(exerciseOfMovement(handoff.movement, id, defaults, true));
+  return { ...withExerciseRecovery(created, handoff.recoverySeconds), executionParameters: handoff.parameters, sideMode: handoff.parameters.sideMode };
 }
 
 /**

@@ -21,7 +21,7 @@ import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
-import { takeFormatsWindowCloseRequest, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
+import { takeFormatsWindowCloseRequest, takeMovementHandedToFreeExercise, takeMovementsHandedToComposition } from "@/features/sessions/movementExercises";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
@@ -1294,5 +1294,28 @@ describe("A-2 (11/11/2026, Figma 12119:25304) — Mouvement importé d'une Bibli
     } finally {
       imported.importedMovementInfo = previous;
     }
+  });
+});
+
+/**
+ * D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10) : « Pas de bouton « + Créer un mouvement » : un nom inexistant validé crée le
+ * mouvement » — fiche de création ouverte par l'écran « Exercice libre — Choix du mouvement » (`context=free`, nom saisi repris). Le
+ * mouvement revient à cet écran (qui ouvre la page de l'exercice libre) ; la modale « Créer un exercice » reste en place.
+ */
+describe("D-608 — fiche de création ouverte par le choix du mouvement de l'exercice libre", () => {
+  it("nom repris ; mouvement choisi : rendu au choix du mouvement, sans retirer la modale « Créer un exercice »", async () => {
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "free", name: "Squats" });
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    await type("exercise-name-input", "Squats");
+    await press("movement-suggestion-result-squats");
+    const overlay = await screen.findByTestId("movement-chosen-overlay", anyNode);
+    await act(async () => {
+      fireEvent.press(within(overlay).getByTestId("screen-header-validate", anyNode));
+    });
+    expect(mockBack).toHaveBeenCalledTimes(1);
+    expect(takeMovementHandedToFreeExercise()?.id).toBe("squats");
+    expect(takeMovementsHandedToComposition()).toBeNull();
+    expect(takeFormatsWindowCloseRequest()).toBe(false);
   });
 });

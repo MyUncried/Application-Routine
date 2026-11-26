@@ -111,7 +111,8 @@ describe("D-608 (D-573 point 5) — modale de l'exercice libre", () => {
     expect(movementFrame.getByText("Squats sautés", hidden)).toBeTruthy();
     expect(movementFrame.getByText("Niveau 3", hidden)).toBeTruthy();
     expect(movementFrame.getByTestId("execution-sheet-row-phases", hidden)).toBeTruthy();
-    // « Changer » : aucun parcours de changement du mouvement d'un exercice existant — non rendu (À CLARIFIER).
+    // « Changer » : rendu seulement sur la page « Exercice libre » de la création (`onChangeMovement`, D-608 du 26/11/2026,
+    // FreeExerciseScreen.d608) ; sans lui, non rendu. [« aucun parcours — À CLARIFIER » — tranché le 26/11/2026.]
     expect(screen.queryByText("Changer", hidden)).toBeNull();
     // Trois dernières lignes dans le même cadre ; la Durée de l'exercice garde le sien, avant.
     const last = within(get("execution-sheet-frame-sides"));

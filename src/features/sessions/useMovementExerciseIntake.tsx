@@ -20,10 +20,12 @@ import type { MovementLevelPosition } from "@/domain/activities/movementSuggesti
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
+  exerciseOfFreePage,
   exerciseOfMovement,
   inheritsCircuitSeriesCount,
   isExerciseParametersIncomplete,
   isPersistedMovementOccurrence,
+  takeFreeExerciseHandedToComposition,
   takeMovementsHandedToComposition,
   withMovementExercises,
 } from "@/features/sessions/movementExercises";
@@ -95,8 +97,11 @@ export type MovementExerciseIntake = {
  * Récupération et l'état validé au brouillon ; ✕ ne change rien.
  */
 export function useMovementExerciseIntake(
-  /** D-608 (D-573 point 5) : rang de Niveau des mouvements (`useMovementLevelPositions`), pour la carte du mouvement de l'exercice libre. */
-  levelPositions: ReadonlyMap<string, MovementLevelPosition> = NO_LEVEL_POSITIONS,
+  /**
+   * D-608 (D-573 point 5) : rang de Niveau des mouvements (`useMovementLevelPositions`), pour la carte du mouvement de l'exercice libre.
+   * [Inutilisé depuis le 26/11/2026 : la carte de la Composition ouvre la modale commune ; paramètre conservé pour les appelants.]
+   */
+  _levelPositions: ReadonlyMap<string, MovementLevelPosition> = NO_LEVEL_POSITIONS,
 ): MovementExerciseIntake {
   const { draft, updateDraft } = useSessionDraft();
   const profileService = useContext(ProfileServiceContext);
@@ -136,11 +141,17 @@ export function useMovementExerciseIntake(
 
   useFocusEffect(
     useCallback(() => {
-      const movements = takeMovementsHandedToComposition();
-      if (movements === null) return;
+      const handed = takeMovementsHandedToComposition();
+      // D-608 (D-573 point 5) : exercice libre réglé sur sa page de création — inséré avec ses paramètres, sans feuille.
+      const free = takeFreeExerciseHandedToComposition();
+      if (handed === null && free === null) return;
+      const movements = [...(handed ?? []), ...(free !== null ? [free.movement] : [])];
       void readProfile().then((profile) => {
         if (!mountedRef.current) return;
-        const exercises = movements.map((movement) => exerciseOfMovement(movement, Crypto.randomUUID(), profile, true));
+        const exercises = [
+          ...(handed ?? []).map((movement) => exerciseOfMovement(movement, Crypto.randomUUID(), profile, true)),
+          ...(free !== null ? [exerciseOfFreePage(free, Crypto.randomUUID(), profile)] : []),
+        ];
         exercises.forEach((exercise, index) => nextPhaseIdsRef.current.set(exercise.id, movements[index]!.nextPhaseId));
         setDefaults(profile);
         updateDraft((current) => withMovementExercises(current, exercises));
@@ -226,13 +237,9 @@ export function useMovementExerciseIntake(
         {...withFormat(formatContext)}
         // D-604 (25/11/2026) : membre d'un format à départ rapide — Charge et De chaque côté seulement.
         {...quickFormatProps(quickFormat)}
-        // D-606 (25/11/2026 ; Formats § 9.8) : exercice libre — modale de type format (« Exercice libre »).
-        freeFormat={formatContext === undefined && quickFormat === undefined}
-        // D-608 (D-573 point 5) : mouvement de l'exercice libre (nom, photo, zones, Niveau), en tête de sa modale.
-        freeMovement={{
-          movement: { name: exercise.name, media: exercise.media ?? [], bodyZoneIds: exercise.bodyZoneIds },
-          levelRank: levelPositions.get(movementId)?.rank ?? null,
-        }}
+        // D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10) : « Une fois créé, l'exercice se modifie depuis la Composition par
+        // la modale « Paramètres d'exécution » allégée, comme tout exercice » — la page « Exercice libre » est celle de la création.
+        // [D-606 (25/11/2026) : la carte d'un exercice libre ouvrait la modale de type format (`freeFormat`, `freeMovement`) — remplacé.]
         // D-608 (D-573 points 2 et 7, Hermann, 26/11/2026) : titre = nom du mouvement ; en-tête à la couleur du format (gris neutre sinon).
         movementName={exercise.name}
         {...(tintModel !== undefined ? { headerTint: formatModelColors(tintModel).background } : {})}

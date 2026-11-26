@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useMemo, useState, type ReactNode } from "react";
 import { Platform } from "react-native";
 
@@ -167,38 +167,35 @@ describe("D-608 — carte : modale ; ligne « N tours » du Circuit : page du fo
     expect(actions.some((name: string) => name === "moveUp" || name === "moveDown")).toBe(true);
   });
 
-  it("exercice libre : modale de type format « Exercice libre », avec tous les champs d'un exercice libre", async () => {
+  // [D-606 puis D-608 (26/11, matin) : la carte d'un exercice libre ouvrait la modale de type format « Exercice libre » (zone de contexte,
+  // accroche, cadre Mouvement) — remplacé le 26/11/2026 (D-573 point 5, Formats § 9.10 : « Une fois créé, l'exercice se modifie depuis la
+  // Composition par la modale « Paramètres d'exécution » allégée, comme tout exercice ») ; la page « Exercice libre » est celle de la
+  // création (FreeExerciseScreen.d608).]
+  it("exercice libre créé : la carte ouvre la modale « Paramètres d'exécution » commune, pas la page « Exercice libre »", async () => {
     await renderComposition(draftOf());
     await act(async () => {
       fireEvent.press(screen.getByTestId("composition-exercise-row-e0"));
     });
     expect(mockPush).not.toHaveBeenCalled();
     expect(await screen.findByTestId("execution-sheet")).toBeTruthy();
-    // Figma `13242:26255` : titre « Exercice libre », zone de contexte, accroche, intitulé des paramètres.
-    expect(screen.getByText("Exercice libre")).toBeTruthy();
-    // D-608 (Figma `13269:26160`) : zone colorée grise. [#FBF3E4 (D-606) — remplacé.]
-    expect(screen.getByTestId("execution-sheet-free-context")).toHaveStyle({ backgroundColor: "#F1F2F5" });
-    expect(screen.getByTestId("execution-sheet-free-tagline")).toHaveTextContent("Réglez librement chaque paramètre de l’exercice.");
-    // [Intitulé « Paramètres d’exécution » (Figma `13242:26255`) — remplacé le 26/11/2026 par D-608 (D-573 point 5, Figma `13269:26160`) :
-    // cadre « Mouvement et phases » en tête ; Récupération dans le dernier cadre, avec De chaque côté et Cadence.]
-    expect(screen.queryByTestId("execution-sheet-free-section")).toBeNull();
-    expect(within(screen.getByTestId("execution-sheet-frame-movement")).getByTestId("execution-sheet-row-movement")).toBeTruthy();
-    expect(screen.queryByTestId("execution-sheet-frame-recovery")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-title")).toHaveTextContent("Exercice e0");
+    expect(screen.getByTestId("execution-sheet-header-tint")).toHaveStyle({ backgroundColor: "#F1F2F5" });
+    expect(screen.queryByTestId("execution-sheet-free-context")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-free-tagline")).toBeNull();
+    expect(screen.queryByTestId("execution-sheet-frame-movement")).toBeNull();
     for (const id of ["execution-sheet-row-mode", "execution-sheet-row-stop-condition", "execution-sheet-row-load", "execution-sheet-row-side"]) {
       expect(screen.getByTestId(id)).toBeTruthy();
     }
-    for (const id of ["execution-sheet-row-side", "execution-sheet-row-beep", "execution-sheet-row-recovery"]) {
-      expect(within(screen.getByTestId("execution-sheet-frame-sides")).getByTestId(id)).toBeTruthy();
-    }
   });
 
-  it("membre d'un Circuit composé à la main : exercice libre, même modale « Exercice libre »", async () => {
+  it("membre d'un Circuit composé à la main : exercice libre, même modale commune", async () => {
     await renderComposition(draftOf());
     await act(async () => {
       fireEvent.press(screen.getByTestId("composition-exercise-row-b1"));
     });
     expect(mockPush).not.toHaveBeenCalled();
-    expect(await screen.findByTestId("execution-sheet-free-context")).toBeTruthy();
+    expect(await screen.findByTestId("execution-sheet-header-tint")).toBeTruthy();
+    expect(screen.queryByTestId("execution-sheet-free-context")).toBeNull();
   });
 
   it("formatOriginOf : modèle d'origine du Circuit ; rien pour un exercice seul ou un Circuit composé à la main", () => {

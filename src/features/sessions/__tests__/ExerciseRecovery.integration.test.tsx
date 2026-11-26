@@ -130,24 +130,25 @@ async function settle(ms = 0) {
   });
 }
 
-/** Reprendre un Mouvement existant par « Créer un exercice » (saisie du nom, toucher de sa carte). */
-async function useExistingMovement(name: string, id: string) {
+/**
+ * Reprendre un Mouvement existant par « Créer un exercice » → Libre → choix du mouvement (sa carte, ✓) → page « Exercice libre »
+ * (Mode Durée, 45 s, Récupération laissée à sa valeur par défaut) → ✓ (D-608, 26/11/2026). [Saisie du nom dans la fiche de création,
+ * toucher de la carte de suggestion, coche de la fiche choisie ; Exercice « à compléter » — remplacé le 26/11/2026.]
+ */
+async function useExistingMovement(id: string) {
   fireEvent.press(screen.getByLabelText(strings.shared.floatingCreate.openCreateMenu));
   fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(addToSession.newActivity));
   await settle(300);
-  // Complément du 5 novembre 2026 (§1, §3) : modale de création, puis « Exercice libre ».
   fireEvent.press(screen.getByTestId("formats-window-free-exercise"));
   await settle(300);
-  fireEvent.changeText(screen.getByTestId("exercise-name-input"), name);
-  await settle();
-  const result = await screen.findByTestId(`movement-suggestion-result-${id}`);
+  fireEvent.press(await screen.findByTestId(`free-exercise-card-${id}`));
   await act(async () => {
-    fireEvent.press(result);
+    fireEvent.press(screen.getByTestId("free-exercise-choice-validate"));
   });
   await settle(300);
-  // Recette du 05/11/2026 au soir (r-creer) : la fiche du mouvement choisi s'affiche ; sa coche le remet à la Composition.
+  setDuration45();
   await act(async () => {
-    fireEvent.press(within(await screen.findByTestId("movement-chosen-overlay")).getByTestId("screen-header-validate"));
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   });
   await settle(300);
 }
@@ -164,8 +165,8 @@ async function tapCard(name: string) {
 const recoveryText = () => String(screen.getByTestId("execution-sheet-recovery-value", hidden).props.children);
 const recoveryBackground = () => StyleSheet.flatten(screen.getByTestId("execution-sheet-recovery", hidden).props.style).backgroundColor;
 
-/** Récupération à 0 dans la feuille (aucune valeur par défaut, 14/11/2026). */
-const RECOVERY_ZERO = "0″";
+/** Récupération de la page « Exercice libre » (30″ par défaut, D-608). [« 0″ » (aucune valeur par défaut, 14/11/2026) — remplacé pour l'exercice libre.] */
+const RECOVERY_PAGE = "30″";
 
 async function closeSheet(testID: "execution-sheet-validate" | "execution-sheet-cancel") {
   await act(async () => {
@@ -190,32 +191,35 @@ function setRecoveryOneMinute() {
 // jusqu'au premier ✓ — remplacé le 14/11/2026.] Correction de Hermann du 14/11/2026 : plus de Récupération par défaut reprise du Profil (« plus de valeur par défaut pour la récupération ») : le nouvel
 // Exercice naît sans Récupération, quelle que soit la valeur enregistrée au Profil ; la ligne Récupération n'est plus un défaut
 // du Profil (pas de fond orange).
-describe("Récupération de l'Exercice : aucune valeur par défaut (14/11/2026)", () => {
-  it("nouvel Exercice : aucune Récupération malgré le Profil (45″) ; feuille à 0, sans orange ; ✓ sans saisie : toujours aucune ; valeur saisie conservée ; Profil changé ensuite sans effet", async () => {
+describe("Récupération de l'Exercice : aucune reprise du Profil (14/11/2026) ; 30″ de la page « Exercice libre » (D-608)", () => {
+  // D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10) : l'exercice créé par la page « Exercice libre » a une Récupération de
+  // 30″ par défaut, propre à cette page — jamais la valeur du Profil. [« nouvel Exercice : aucune Récupération ; feuille à 0 » — remplacé
+  // le 26/11/2026 pour l'exercice libre ; la règle du 14/11 (aucune reprise du Profil) reste vérifiée.]
+  it("exercice libre créé : Récupération 30″ de la page, pas celle du Profil (45″) ; sans orange ; ✓ sans changement : conservée ; valeur saisie conservée ; Profil changé ensuite sans effet", async () => {
     await profiles().setDefault("postActivityRecoverySecondsDefault", 45);
     await movements().create(movement("abdos", "Abdos"));
     renderApp();
     await settle();
-    await useExistingMovement("Abdos", "abdos");
+    await useExistingMovement("abdos");
 
-    // La carte n'annonce aucune Récupération.
-    expect(cardLabel("Abdos")).not.toContain("récupération");
+    // La carte annonce la Récupération de la page, pas celle du Profil.
+    expect(cardLabel("Abdos")).toContain("récupération 30 secondes");
+    expect(cardLabel("Abdos")).not.toContain("45");
 
-    // Ouverture : bloc Récupération à 0, sans fond orange. ✕ : rien ne change.
+    // Ouverture de la modale commune : Récupération 30″, sans fond orange. ✕ : rien ne change.
     await tapCard("Abdos");
-    expect(recoveryText()).toBe(RECOVERY_ZERO);
+    expect(recoveryText()).toBe(RECOVERY_PAGE);
     expect(recoveryBackground()).not.toBe(ORANGE);
     await closeSheet("execution-sheet-cancel");
-    expect(cardLabel("Abdos")).not.toContain("récupération");
+    expect(cardLabel("Abdos")).toContain("récupération 30 secondes");
     await tapCard("Abdos");
     expect(recoveryBackground()).not.toBe(ORANGE);
 
-    // Premier ✓ (Cible renseignée, Récupération non touchée) : toujours aucune Récupération.
-    setDuration45();
+    // ✓ sans toucher la Récupération : conservée.
     await closeSheet("execution-sheet-validate");
-    expect(cardLabel("Abdos")).not.toContain("récupération");
+    expect(cardLabel("Abdos")).toContain("récupération 30 secondes");
     await tapCard("Abdos");
-    expect(recoveryText()).toBe(RECOVERY_ZERO);
+    expect(recoveryText()).toBe(RECOVERY_PAGE);
     expect(recoveryBackground()).not.toBe(ORANGE);
 
     // Modification par la feuille (seul accès) : la carte suit exactement la valeur.
@@ -238,8 +242,8 @@ describe("Récupération de l'Exercice : aucune valeur par défaut (14/11/2026)"
     await movements().create(movement("gainage", "Gainage"));
     renderApp();
     await settle();
-    await useExistingMovement("Abdos", "abdos");
-    await useExistingMovement("Gainage", "gainage");
+    await useExistingMovement("abdos");
+    await useExistingMovement("gainage");
     for (const name of ["Abdos", "Gainage"]) {
       await tapCard(name);
       setDuration45();
