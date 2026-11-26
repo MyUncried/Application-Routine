@@ -280,3 +280,4 @@
 - À arbitrer : « Nombre de séries » global de la page Renforcement conservé en plus du nombre par mouvement ; Superset et Progression sans modale.
 - Vérification sur iPhone à faire : lecture de la charge sous l'intervalle.
 - Tests : non applicables.
+- Complément (suite 11 bis) : première colonne « Séries » du Renforcement, ligne globale « Nombre de séries » supprimée, charge sous Départ (3 pages Death by), dernière colonne des tableaux alignée à droite (Tabata, 30/30, HIIT, Renforcement, Death by). Non traité : tableaux EMOM, AMRAP, Superset, Progression.
