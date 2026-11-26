@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useContext, useState, type ReactNode } from "react";
+import { useContext, useEffect, useState, type ReactNode } from "react";
 import { View, type ImageStyle, type StyleProp, type ViewStyle } from "react-native";
 
 import type { MediaAsset, MediaView } from "@/domain/media/MediaAsset";
@@ -83,6 +83,12 @@ export type MediaPreviewProps = {
    * dimensions viennent de la miniature, sinon du chargement. Absent : `contentFit="cover"` (rendu antérieur).
    */
   readonly crop?: { readonly box: { readonly width: number; readonly height: number }; readonly view: MediaView | null };
+  /**
+   * Recette iPhone du 26/11/2026 (mosaïque de la carte de séance) : appelé quand le média est DÉFINITIVEMENT indisponible
+   * (photo en erreur, vidéo sans affiche), pour que l'appelant le traite comme une absence de photo. Absent : rien
+   * (rendu inchangé pour les autres appelants).
+   */
+  readonly onUnavailable?: () => void;
 };
 
 /**
@@ -104,6 +110,7 @@ export function MediaPreview({
   imageTestID,
   fallbackTestID,
   crop,
+  onUnavailable,
 }: MediaPreviewProps) {
   const [loadedSize, setLoadedSize] = useState<{ readonly uri: string; readonly width: number; readonly height: number } | null>(null);
   // Échec rattaché à l'URI. Revue 5.1b : il est oublié dès que l'URI change (ajustement d'état au
@@ -115,7 +122,11 @@ export function MediaPreview({
   const photoFailed = failedUri === uri;
   const cover = useCatalogueVideoCover(isVideo ? uri : null);
   const thumbnail = usePhotoThumbnail(isVideo || photoFailed ? null : uri);
-  const fallback = <View style={fallbackStyle} testID={fallbackTestID} />;
+  const definitelyUnavailable = isVideo ? cover.status === "failed" : photoFailed;
+  useEffect(() => {
+    if (definitelyUnavailable) onUnavailable?.();
+  }, [definitelyUnavailable, onUnavailable]);
+  const fallback =<View style={fallbackStyle} testID={fallbackTestID} />;
   const missing = unavailable !== undefined ? unavailable : fallback;
   if (isVideo) {
     if (cover.status === "ready") {
