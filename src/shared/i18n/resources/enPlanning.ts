@@ -2,6 +2,11 @@
 import type { planning as frPlanning } from "./frPlanning";
 import type { Widen } from "./types";
 
+/** 24-hour clock: « 08:30 ». The 12-hour form (AM / PM) is chosen by `clockTime` from the iPhone setting. */
+function clock24(hours: number, minutes: string): string {
+  return `${String(hours).padStart(2, "0")}:${minutes}`;
+}
+
 export const planning: Widen<typeof frPlanning> = {
   track: "Track",
   months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -21,11 +26,12 @@ export const planning: Widen<typeof frPlanning> = {
     monthYear: "{month} {year}",
     range: "{start} – {end}",
   },
+  // 24-hour clock here; 12-hour clock (AM / PM) when the iPhone is set to it (Hermann, 24/11/2026, option A).
   time: {
-    compact: "{hours}:{minutes}",
-    compactHour: "{hours}:00",
-    spoken: "{hours}:{minutes}",
-    spokenHour: "{hours}:00",
+    compact: (hours: number, minutes: string) => clock24(hours, minutes),
+    compactHour: (hours: number) => clock24(hours, "00"),
+    spoken: (hours: number, minutes: string) => clock24(hours, minutes),
+    spokenHour: (hours: number) => clock24(hours, "00"),
   },
   weekUnit: { singular: "week", plural: "weeks" },
   dayUnit: { singular: "day", plural: "days" },
@@ -241,6 +247,9 @@ export const planning: Widen<typeof frPlanning> = {
     customTitle: "Custom reminder",
     hours: "hours",
     minutes: "minutes",
+    // J1.8: AM / PM column of the time wheel, iPhone set to the 12-hour clock.
+    period: "AM / PM",
+    periodValues: ["AM", "PM"],
     cancel: "Cancel",
     validate: "Done",
     deniedTitle: "Notifications off",

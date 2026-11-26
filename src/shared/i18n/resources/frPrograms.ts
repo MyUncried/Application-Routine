@@ -23,8 +23,9 @@ export const programs = {
     /** Période de la carte : « 15 sept. – 15 déc. ». */
     period: "{start} – {end}",
     /** « 14 h », « 8 h 30 » (Figma « PROG — 13 » : « tous les jours, 14 h »). */
-    hour: "{hours} h",
-    hourMinutes: "{hours} h {minutes}",
+    // Fonctions : horloge de 12 heures (AM / PM) choisie par `clockTime` selon le réglage de l’iPhone (Hermann, 24/11/2026).
+    hour: (hours: number) => `${hours} h`,
+    hourMinutes: (hours: number, minutes: string) => `${hours} h ${minutes}`,
   },
 
   catalogue: {

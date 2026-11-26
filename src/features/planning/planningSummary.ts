@@ -1,6 +1,7 @@
 import { parseLocalDate, type LocalDate, type LocalTime, type RoutineDraft, type Weekday } from "@/domain/planning/Routine";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { strings } from "@/shared/i18n";
+import { clockTime } from "@/shared/i18n/format";
 
 /**
  * Synthèse de la zone de contexte (D-521, RM-259 ; CE-UI-12, 18/11/2026) : phrase DÉRIVÉE des paramètres, jamais stockée.
@@ -22,8 +23,8 @@ export function formatLongDate(value: LocalDate): string {
 export function formatSpokenTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":").map(Number);
   return minutes === 0
-    ? fillTemplate(t.time.spokenHour, { hours: String(hours) })
-    : fillTemplate(t.time.spoken, { hours: String(hours), minutes: String(minutes).padStart(2, "0") });
+    ? clockTime(hours!, "00", t.time.spokenHour(hours!))
+    : clockTime(hours!, String(minutes).padStart(2, "0"), t.time.spoken(hours!, String(minutes).padStart(2, "0")));
 }
 
 /** « a, b et c » (« a, b and c » en anglais). */
@@ -41,8 +42,8 @@ export function formatWeekdaysPhrase(weekdays: readonly Weekday[]): string {
 export function formatCompactTime(time: LocalTime): string {
   const [hours, minutes] = time.split(":").map(Number);
   return minutes === 0
-    ? fillTemplate(t.time.compactHour, { hours: String(hours) })
-    : fillTemplate(t.time.compact, { hours: String(hours), minutes: String(minutes).padStart(2, "0") });
+    ? clockTime(hours!, "00", t.time.compactHour(hours!))
+    : clockTime(hours!, String(minutes).padStart(2, "0"), t.time.compact(hours!, String(minutes).padStart(2, "0")));
 }
 
 export type SynthesisInput = Pick<RoutineDraft, "startDate" | "time" | "repetition">;
