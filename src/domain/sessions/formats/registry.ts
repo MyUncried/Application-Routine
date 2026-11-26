@@ -146,6 +146,11 @@ const LEGACY_PASSAGE: FormatParameter = { id: "passageOnce", unit: "FLAG", min: 
  * lorsqu'elle a été renseignée ». L'incrément jamais saisi reste ABSENT des réglages (un 0 saisi reste 0) : réglage facultatif, sans
  * valeur initiale ; absent, aucun incrément n'est appliqué à l'exécution (comme 0) et la séance reste lançable ; la modale
  * « Paramètres d'exécution » l'affiche « — » sur fond rouge quand il est requis. [`initial: 0`, non facultatif — remplacé.]
+ * [« la séance reste lançable » — remplacé le 26/11/2026 (complément, réponse de Hermann : « soit il est égal à 0 et c'est voulu, soit il
+ * manque et les paramètres doivent être renseignés, l'utilisateur ne peut pas valider ») : l'AMRAP est toujours à volume croissant
+ * (interrupteur « Volume croissant » retiré) ; requis et absent (exercice de la boucle, pas À l'échec), l'exercice est « Paramètres à
+ * compléter » et la séance n'est pas lançable (`amrapIncrementMissing`, `configurationValidity`). Buy-in et À l'échec : non requis.
+ * Le réglage reste « facultatif » au sens du registre (absent sans erreur pour le buy-in et À l'échec).]
  */
 const AMRAP_INCREMENT: FormatParameter = { id: "incrementPerRound", unit: "TARGET", optional: true, sources: ["§2", "§14.1", "MAJ 04/11 §6 bis 2", "complément du 05/11 §8"] };
 /** Complément du 5 novembre 2026 (Hermann), §13 : incrément ≥ + 1 dans l'unité de l'Exercice (Répétitions ou Durée). [Répétitions seulement — remplacé.] */

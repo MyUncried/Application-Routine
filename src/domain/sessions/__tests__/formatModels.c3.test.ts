@@ -156,8 +156,30 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
     const exercises = element!.kind === "CIRCUIT" ? element!.circuit.exercises : [];
     expect(exercises.map((exercise) => exercise.format?.settings.incrementPerRound)).toEqual([0, 2, undefined]);
     expect(exercises.map((exercise) => "incrementPerRound" in (exercise.format?.settings ?? {}))).toEqual([true, true, false]);
-    // Réglage facultatif : la séance reste valide (aucun incrément appliqué à l'exécution).
-    expect(configurationValidity({ elements: [element!], stopPoints: [] }).status).toBe("valid");
+    // [« Réglage facultatif : la séance reste valide » — remplacé le 26/11/2026 (complément, Hermann : « soit il est égal à 0 et c'est
+    // voulu, soit il manque et les paramètres doivent être renseignés, l'utilisateur ne peut pas valider »).] Incrément manquant d'un
+    // exercice de la boucle : paramètres à compléter, séance non lançable ; 0 saisi : valide.
+    expect(configurationValidity({ elements: [element!], stopPoints: [] })).toEqual({
+      status: "invalid",
+      issues: [{ elementId: exercises[2]!.id, reason: "MISSING_SETTING" }],
+    });
+    const filled = movements.map((item, index) => (index === 2 ? { ...item, values: { ...item.values, increment: 0 } } : item));
+    expect(configurationValidity({ elements: build("AMRAP", changed, filled), stopPoints: [] }).status).toBe("valid");
+  });
+
+  it("recette du 26/11 (D-607, complément) : AMRAP autonome sans incrément — à compléter ; À l'échec (Max) et buy-in sans incrément — valides", () => {
+    const changed: ModelAnswers = { ...answers, increasingVolume: true };
+    const single = movementsOf("AMRAP", changed, ["a"]);
+    expect(configurationValidity({ elements: build("AMRAP", changed, single), stopPoints: [] }).status).toBe("invalid");
+    const withZero = single.map((item) => ({ ...item, values: { ...item.values, increment: 0 } }));
+    expect(configurationValidity({ elements: build("AMRAP", changed, withZero), stopPoints: [] }).status).toBe("valid");
+    const max = single.map((item) => ({ ...item, values: { ...item.values, max: true } }));
+    expect(configurationValidity({ elements: build("AMRAP", changed, max), stopPoints: [] }).status).toBe("valid");
+    const buyIn: ModelAnswers = { ...changed, buyIn: true };
+    const pair = movementsOf("AMRAP", buyIn, ["in", "a"]).map((item, index) =>
+      index === 0 ? { ...item, buyIn: true as const } : { ...item, values: { ...item.values, increment: 2 } },
+    );
+    expect(configurationValidity({ elements: build("AMRAP", buyIn, pair), stopPoints: [] }).status).toBe("valid");
   });
 
   it("un mouvement avec repos après chaque tour > 0 : Circuit d'un membre, récupération du membre = repos de boucle (A3)", () => {
@@ -169,8 +191,12 @@ describe("AMRAP (§1, §2, §2.1, §2.2)", () => {
   });
 
   it("3 blocs de 12 min, repos 2 min : 40 min ; buy-in en premier, une fois, récupération 0 s ; repos de boucle sur le dernier membre seulement", () => {
-    const changed: ModelAnswers = { ...withAnswer(answers, "blockCount", 3), buyIn: true, loopRestSeconds: 30 };
-    const movements = movementsOf("AMRAP", changed, ["in", "a", "b"]).map((item, index) => (index === 0 ? { ...item, buyIn: true as const } : item));
+    // Recette du 26/11/2026 (D-607, complément) : AMRAP toujours à volume croissant, incréments des exercices de la boucle renseignés (0) ;
+    // le buy-in n'en a pas. [Sans incrément (volume non croissant) — remplacé.]
+    const changed: ModelAnswers = { ...withAnswer(answers, "blockCount", 3), buyIn: true, loopRestSeconds: 30, increasingVolume: true };
+    const movements = movementsOf("AMRAP", changed, ["in", "a", "b"]).map((item, index) =>
+      index === 0 ? { ...item, buyIn: true as const } : { ...item, values: { ...item.values, increment: 0 } },
+    );
     const [element] = build("AMRAP", changed, movements);
     const circuit = element!.kind === "CIRCUIT" ? element!.circuit : null;
     expect(circuit).toMatchObject({ repeatCount: 3, format: { key: "AMRAP", settings: { blockSeconds: 720, restBetweenBlocksSeconds: 120 } } });
