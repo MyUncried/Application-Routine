@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View, type Insets, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text, TextInput, View, type Insets, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
 import {
   cellEntryDisplay,
@@ -42,6 +42,18 @@ import { colors } from "@/shared/ui/tokens";
  * (`useSheetKeyboard`). Actif : fond `#EAEAFF` (Figma `9292:18077`) et état « sélectionné »
  * annoncé ; valeur à renseigner : fond `#FFF1F0` (Q35). Le gabarit est fourni par l'appelant.
  */
+
+/**
+ * Recette iPhone du 26/11/2026 (après-midi), point B, Hermann : « Le champ et son cadre grossissent légèrement pendant le focus et la
+ * frappe. » — fourni par la modale « Paramètres d'exécution » (`ExecutionParametersSheet`) : une cellule active y est agrandie
+ * (`FIELD_GROW_SCALE`, transformation seule, aucune mise en page déplacée). Absent (`null`, autres écrans) : rendu inchangé.
+ * `reduceMotion` : agrandissement immédiat, sans animation (D-7).
+ */
+export const KeyboardFieldGrowContext = createContext<{ readonly reduceMotion: boolean } | null>(null);
+/** Point B du 26/11/2026 : agrandissement « léger » du champ actif et durée de son animation. */
+export const FIELD_GROW_SCALE = 1.08;
+const FIELD_GROW_MS = 160;
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 /** Longueur maximale d'un libellé de phase, en points de code (FR-6). */
 export const KEYBOARD_TEXT_MAX_CODE_POINTS = 20;
@@ -208,8 +220,24 @@ function CellEntryField({
   }, [entry]);
   const shown = focused ? cellEntryDisplay(kind, entry.text) : displayValue;
   const empty = focused && cellEntryEmpty(kind, entry.text);
+  // Point B du 26/11/2026 : champ actif agrandi dans la modale « Paramètres d'exécution » (`KeyboardFieldGrowContext`).
+  const growContext = useContext(KeyboardFieldGrowContext);
+  const growEnabled = growContext !== null;
+  const growImmediate = growContext === null || growContext.reduceMotion;
+  const grown = growEnabled && active;
+  const [scale] = useState(() => new Animated.Value(1));
+  useEffect(() => {
+    const target = grown ? FIELD_GROW_SCALE : 1;
+    if (growImmediate) {
+      scale.setValue(target);
+      return undefined;
+    }
+    const animation = Animated.timing(scale, { toValue: target, duration: FIELD_GROW_MS, easing: Easing.out(Easing.cubic), useNativeDriver: true });
+    animation.start();
+    return () => animation.stop();
+  }, [grown, growImmediate, scale]);
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={() => ownRef.current?.focus()}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
@@ -223,6 +251,7 @@ function CellEntryField({
         // avoir un fond rouge et sans liseré ») : tant que la valeur reste à renseigner (au focus : saisie vide ou nulle), le fond rouge prime.
         // [Fond actif au focus dès qu'une saisie décimale existait (« 0 » compris) — remplacé.]
         active && !(invalid && invalidWhileEmpty && (!focused || !(Number(entry.text.replace(",", ".")) > 0))) ? styles.active : invalid ? styles.invalid : toVerify ? styles.toVerify : null,
+        growEnabled ? { transform: [{ scale }] } : null,
       ]}
       testID={testID}
     >
@@ -268,7 +297,7 @@ function CellEntryField({
           testID={`${testID}-input`}
         />
       </View>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 

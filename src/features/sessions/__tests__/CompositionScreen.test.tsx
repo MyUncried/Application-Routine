@@ -44,6 +44,7 @@ import {
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+import { fireSwipeReveal, swipeRevealSteps } from "@/shared/gestures/testing/fireSwipeReveal";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
@@ -1079,7 +1080,9 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const duration = screen.getByTestId("composition-session-duration");
     // Story 7.8 (D-443) : séance vide → « 0 s ».
     expect(duration.props.children).toBe("0″");
-    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: TEXT_TERTIARY });
+    // [Durée en tertiaire (TEXT_TERTIARY) — remplacé le 26/11/2026 : recette iPhone (Hermann, confirmé) « la durée totale est
+    // alignée à droite, en texte noir ».]
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: colors.textPrimary });
     // Revue 5.1b : la bande de 32 est une boîte de 44 (cibles contenues) aux marges verticales de −6 :
     // encombrement 32 inchangé.
     const infoRow = StyleSheet.flatten(screen.getByTestId("composition-info-row").props.style);
@@ -1096,6 +1099,16 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(duration.props.numberOfLines).toBe(1);
     expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(StyleSheet.flatten(screen.getByTestId("composition-info-group").props.style)).toMatchObject({ flex: 1, minWidth: 0 });
+  });
+
+  // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Zone de contexte : la durée totale est alignée à droite, en texte noir »).
+  it("recette du 26/11/2026 — la durée de séance est alignée à droite, en texte primaire", () => {
+    renderScreen();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-session-duration").props.style)).toMatchObject({
+      marginLeft: "auto",
+      textAlign: "right",
+      color: colors.textPrimary,
+    });
   });
 
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary; the counter on the right (story 7.8 : no Circuit duration)", () => {
@@ -2411,14 +2424,9 @@ function swipeMotion() {
   });
 }
 
+/** Recette du 26/11/2026 (après-midi) : glisser porté par le `Pan` natif de la règle unique (`fireSwipeReveal`). */
 function fireSwipe(activityId: string, deltaX: number) {
-  const container = () => screen.getByTestId(`composition-activity-${activityId}`);
-  const startX = 300;
-  fireEvent(container(), "touchStart", { nativeEvent: { pageX: startX, pageY: 100 } });
-  fireEvent(container(), "touchMove", {
-    nativeEvent: { pageX: startX + deltaX, pageY: 100 },
-  });
-  fireEvent(container(), "touchEnd", { nativeEvent: { pageX: startX + deltaX, pageY: 100 } });
+  fireSwipeReveal(`composition-activity-pan-${activityId}`, deltaX);
   settleMotion();
 }
 
@@ -2856,48 +2864,32 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   });
 
   /**
-   * V2-CAT-01 (CE-T03-08, UI-CAT-R-007) — « le swipe suit le doigt, révèle
-   * progressivement les actions ». Le mouvement lui-même, PENDANT que le
-   * doigt reste posé, révèle déjà proportionnellement le groupe d'actions —
-   * ceci révise le modèle antérieur, où seule la relâche appliquait quoi que
-   * ce soit.
+   * V2-CAT-01 (CE-T03-08, UI-CAT-R-007) — « le swipe suit le doigt, révèle progressivement les actions ». Recette du 26/11/2026
+   * (après-midi) : le glisser est porté par le `Pan` natif de la règle unique (`@/shared/gestures/swipeReveal`).
    */
   it("follows the finger and reveals the actions PROPORTIONALLY while the touch is still down", () => {
     renderTwo();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
+    const x = () => StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform;
+    const pan = swipeRevealSteps("composition-activity-pan-ex-1");
+    pan.begin();
+    pan.update(-80);
     // `dx = -80` : la carte a déjà suivi le doigt, actions déjà exposées.
     expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style)
-        .transform,
-    ).toEqual([{ translateX: -80 }, { translateY: 0 }]);
-
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 120, pageY: 100 } });
-    // `dx = -180`, borné à `-SWIPE_REVEAL_OFFSET` (`-154`) : la carte ne
-    // dépasse jamais sa position pleinement ouverte.
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style)
-        .transform,
-    ).toEqual([{ translateX: -154 }, { translateY: 0 }]);
-
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 120, pageY: 100 } });
+    expect(x()).toEqual([{ translateX: -80 }, { translateY: 0 }]);
+    pan.update(-180);
+    // `dx = -180`, borné à `-SWIPE_REVEAL_OFFSET` (`-154`) : la carte ne dépasse jamais sa position pleinement ouverte.
+    expect(x()).toEqual([{ translateX: -154 }, { translateY: 0 }]);
+    pan.end(-180);
     expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
   });
 
   /** PRE-6 story 7.7 (D-443) : la carte rejoint sa position de repos sans arrêt brutal. */
   it("story 7.7 — ouverture, fermeture et retour : la carte rejoint sa position de repos en décélérant, les actions restent dessous jusqu'à la fin", () => {
     renderTwo();
-    const container = () => screen.getByTestId("composition-activity-ex-1");
     const x = () =>
       (StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform as Record<string, number>[])[0]!
         .translateX;
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 210, pageY: 100 } });
-    expect(x()).toBe(-90);
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 210, pageY: 100 } });
+    fireSwipeReveal("composition-activity-pan-ex-1", -90);
     // Ouverture : pas de saut à -154, un mouvement qui ralentit.
     expect(x()).toBe(-90);
     act(() => {
@@ -2912,11 +2904,8 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(-90 - early).toBeGreaterThan(early - later);
     settleMotion();
     expect(x()).toBe(-154);
-    // Fermeture (balayage droit en deçà du seuil d'ouverture) : les actions restent visibles
-    // derrière la carte jusqu'à la fin du retour.
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+    // Fermeture : les actions restent visibles derrière la carte jusqu'à la fin du retour.
+    fireSwipeReveal("composition-activity-pan-ex-1", 100);
     act(() => {
       jest.advanceTimersByTime(80);
     });
@@ -2936,36 +2925,79 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     await act(async () => {
       await Promise.resolve();
     });
-    const container = () => screen.getByTestId("composition-activity-ex-1");
     const x = () =>
       (StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform as Record<string, number>[])[0]!
         .translateX;
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 210, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 210, pageY: 100 } });
+    fireSwipeReveal("composition-activity-pan-ex-1", -90);
     expect(x()).toBe(-154);
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireSwipeReveal("composition-activity-pan-ex-1", 100);
     expect(x()).toBe(0);
     expect(screen.queryByTestId("composition-activity-actions-ex-1", { includeHiddenElements: true })).toBeNull();
   });
 
-  it("springs back to closed on release before crossing half of the reveal course, and ignores a vertically dominant movement (it belongs to the list)", () => {
+  /**
+   * Recette du 26/11/2026 (après-midi, Hermann : « il faut qu'un geste court vers la gauche et vers la droite ouvre et ferme les
+   * options, et qu'on n'ait jamais de rebond qui annule le geste, même si le doigt part un peu en diagonale […] Je ne dois pas
+   * avoir à accompagner le mouvement sur toute la largeur ») : règle unique `resolveSwipeRelease`.
+   */
+  it("recette du 26/11 — un geste court (30) ouvre puis ferme, loin de la moitié de la course (77)", () => {
     renderTwo();
-
-    // Horizontal mais en deçà de la moitié de la course (`SWIPE_REVEAL_OFFSET / 2 = 77`).
-    fireSwipe("ex-1", -20);
+    fireSwipeReveal("composition-activity-pan-ex-1", -30);
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+    settleMotion();
+    fireSwipeReveal("composition-activity-pan-ex-1", 30);
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style)
-        .transform,
-    ).toEqual([{ translateX: 0 }, { translateY: 0 }]);
+    // Fermer n'ouvre jamais la modification.
+    expect(mockPush).not.toHaveBeenCalled();
+  });
 
+  it("recette du 26/11 — un lancer très court ouvre ; un départ en diagonale reste un glisser", () => {
+    renderTwo();
+    fireSwipeReveal("composition-activity-pan-ex-1", -12, { velocityX: -600 });
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+    settleMotion();
+    fireSwipeReveal("composition-activity-pan-ex-1", 40, { translationY: 35 });
+    settleMotion();
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("recette du 26/11 — jamais de rebond : l'annulation des touchers de React Native (activation du Pan, défilement) ne ramène pas la carte", () => {
+    renderTwo();
     const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 140, pageY: 400 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 140, pageY: 400 } });
+    const pan = swipeRevealSteps("composition-activity-pan-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    pan.begin();
+    pan.update(-40, 20);
+    // Activation du `Pan` / défilement natif : React Native annule ses touchers.
+    fireEvent(container(), "touchCancel", {});
+    fireEvent(container(), "responderTerminate", {});
+    pan.update(-60, 30);
+    pan.end(-60, 0, 30);
+    settleMotion();
+    expect(
+      (StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform as Record<string, number>[])[0]!.translateX,
+    ).toBe(-154);
+    // La fin du toucher, livrée ensuite au `Pressable`, n'est pas un appui.
+    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-1"));
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("springs back to its starting position below the short threshold, and the responder system no longer moves the card horizontally", () => {
+    renderTwo();
+    // Horizontal mais en deçà du seuil court (24) et sans lancer.
+    fireSwipeReveal("composition-activity-pan-ex-1", -20);
+    settleMotion();
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform).toEqual([
+      { translateX: 0 },
+      { translateY: 0 },
+    ]);
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -3014,141 +3046,25 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     });
   });
 
-  /**
-   * **T02-S02 (continuation après recette visuelle)** — le balayage droit ne
-   * refermait PAS les actions sur appareil. Deux verrous ferment la cause :
-   * le responder n'est plus cédé pendant un balayage engagé, et la RELÂCHE DU
-   * RESPONDER applique le balayage au même titre que la fin de toucher.
-   */
-  it("hides the actions even when only onResponderRelease is dispatched (no onTouchEnd)", () => {
-    renderTwo();
-    fireSwipeLeft("ex-1");
-    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 280, pageY: 100 } });
-    fireEvent(container(), "responderRelease", { nativeEvent: { pageX: 280, pageY: 100 } });
-
-    settleMotion();
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
-  });
-
-  it("applies a completed swipe exactly ONCE when both onResponderRelease and onTouchEnd are dispatched", () => {
-    renderTwo();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
-    fireEvent(container(), "responderRelease", { nativeEvent: { pageX: 220, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 220, pageY: 100 } });
-
-    // Le balayage mémorisé est CONSOMMÉ par le premier des deux : le second
-    // ne rejoue rien, les actions restent simplement révélées.
-    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
-  });
-
   it("never yields the responder to the parent scroll view while a horizontal swipe is engaged", () => {
     renderTwo();
-
     const container = () => screen.getByTestId("composition-activity-ex-1");
-    // Au repos, la carte cède volontiers le responder — le défilement
-    // vertical de la liste doit rester possible.
+    // Au repos, la carte cède volontiers le responder — le défilement vertical de la liste doit rester possible.
     expect(container().props.onResponderTerminationRequest()).toBe(true);
-
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
-
-    // Balayage engagé : la carte refuse de céder, sinon `onResponderTerminate`
-    // effacerait le geste avant toute relâche — cause exacte du défaut.
+    const pan = swipeRevealSteps("composition-activity-pan-ex-1");
+    pan.begin();
+    pan.update(-80);
     expect(container().props.onResponderTerminationRequest()).toBe(false);
+    pan.end(-80);
   });
 
-  /**
-   * **T02-S02 (seconde recette visuelle, point 3)** — CAUSE RÉELLE du
-   * balayage droit inopérant.
-   *
-   * Le sens du balayage n'était mémorisé que par des gestionnaires
-   * DÉPENDANTS DU RESPONDER (`onMoveShouldSetResponderCapture`,
-   * `onResponderMove`). Or, une fois les actions révélées, le balayage droit
-   * commence SUR le groupe d'actions superposé, dont les `Pressable`
-   * revendiquent le responder dès le contact : le conteneur ne l'obtenait
-   * jamais, rien n'était mémorisé, et `onTouchEnd` n'avait rien à appliquer.
-   *
-   * `onTouchMove` est dispatché à la vue touchée ET à tous ses ancêtres,
-   * indépendamment du responder — c'est la seule voie qui reste vraie dans ce
-   * cas. Le scénario ci-dessous ne joue QUE des événements de toucher :
-   * aucun `responderMove`, aucun `responderRelease`.
-   */
-  it("hides the actions from touch events ALONE, without the container ever holding the responder", () => {
+  it("lets the user reverse an in-flight swipe: the card follows back and stays closed", () => {
     renderTwo();
-    fireSwipeLeft("ex-1");
-    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 300, pageY: 100 } });
-
-    settleMotion();
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
-  });
-
-  it("reveals the actions from touch events alone too — both directions share the same responder-independent path", () => {
-    renderTwo();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
-
-    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
-  });
-
-  /**
-   * Un responder repris par le `ScrollView` parent ne doit plus EFFACER le
-   * balayage mémorisé : le toucher, lui, n'est pas terminé, et son
-   * `onTouchEnd` doit encore pouvoir l'appliquer.
-   */
-  it("keeps a completed swipe alive when the parent steals the responder mid-gesture", () => {
-    renderTwo();
-    fireSwipeLeft("ex-1");
-    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 300, pageY: 100 } });
-    // Le responder est repris — le geste NE doit pas être perdu.
-    fireEvent(container(), "responderTerminate", {});
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 300, pageY: 100 } });
-
-    settleMotion();
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
-  });
-
-  it("drops the pending swipe when the TOUCH itself is cancelled — no ghost action on the next release", () => {
-    renderTwo();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
-    fireEvent(container(), "touchCancel", {});
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
-
-    settleMotion();
-    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
-  });
-
-  it("lets the user reverse an in-flight swipe: only the LAST direction crossed is applied on release", () => {
-    renderTwo();
-
-    const container = () => screen.getByTestId("composition-activity-ex-1");
-    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 220, pageY: 100 } });
-    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 380, pageY: 100 } });
-    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 380, pageY: 100 } });
-
-    // Le dernier sens franchi est un balayage DROIT : rien n'est révélé.
+    const pan = swipeRevealSteps("composition-activity-pan-ex-1");
+    pan.begin();
+    pan.update(-80);
+    pan.update(80);
+    pan.end(80);
     settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
@@ -3157,6 +3073,12 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     renderTwo();
 
     fireSwipeLeft("ex-1");
+    // Recette du 26/11/2026 (après-midi) : une autre carte est bloquée tant que la première est ouverte (CE-T02-02, `pointerEvents`
+    // « none ») — son `Pan` natif est désactivé, comme son appui. [Avant : le glisser joué en événements React Native passait outre.]
+    fireSwipeLeft("ex-2");
+    expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+    expect(screen.queryByTestId("composition-activity-actions-ex-2")).toBeNull();
+    fireSwipeRight("ex-1");
     fireSwipeLeft("ex-2");
 
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();

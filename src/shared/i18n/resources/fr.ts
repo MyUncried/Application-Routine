@@ -724,6 +724,10 @@ export const fr = {
         // Mise à jour consolidée du 04/11/2026 (§4.2 à §4.5, §6 quater, §6 quater bis).
         buyOutSuffix: " (buy-out)",
         objective: "Objectif",
+        // Recette iPhone du 26/11/2026 (après-midi, Hermann) : Tabata, 30/30, HIIT — « La colonne « Objectif » devient « Intervalle » » ;
+        // Renforcement — « la première colonne est « Séries » ».
+        interval: "Intervalle",
+        seriesHead: "Séries",
         objectiveKind: "objectif",
         load: "Charge",
         // Hermann, 04/11/2026 : « le titre de la colonne doit remplacer le signe + par le signe double + et − ».
@@ -791,6 +795,13 @@ export const fr = {
         SUPERSET: "Deux exercices enchaînés sans repos,\npuis une récupération après la paire.",
         PROGRESSION: "Une valeur par série, à faire évoluer.\nL’application affiche la consigne.",
         UNTIL_FAILURE: "Chaque série est menée jusqu’à l’échec.\nLa baisse d’une série à l’autre est la mesure.",
+      },
+      // Recette iPhone du 26/11/2026 (après-midi, Hermann : « A la validation du nombre de mouvements, le titre change (ok), mais le
+      // sous-titre doit changer aussi (deux, trois, quatre, ou cinq) ») : accroche du Superset selon le nombre de mouvements (2 : `taglines.SUPERSET`).
+      supersetTaglines: {
+        three: "Trois exercices enchaînés sans repos,\npuis une récupération après le tour.",
+        four: "Quatre exercices enchaînés sans repos,\npuis une récupération après le tour.",
+        five: "Cinq exercices enchaînés sans repos,\npuis une récupération après le tour.",
       },
     },
     // PRE-9 C.2 (CE-FMT-01, Figma `8598:29271`) : « Créer » — choix du modèle et du format.

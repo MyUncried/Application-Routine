@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, type ReactNode, type Ref } from "react";
-import { StyleSheet, type ScrollView, type ScrollViewProps, type StyleProp, type ViewProps, type ViewStyle } from "react-native";
+import { createContext, useContext, useState, type ComponentProps, type ReactNode, type Ref } from "react";
+import { StyleSheet, type ScrollView, type ScrollViewProps, type ViewProps } from "react-native";
 import Reanimated, {
   Easing,
   LayoutAnimationConfig,
@@ -207,7 +207,8 @@ export function SheetMotionView({
   bleed?: number;
   raised?: boolean;
   onLayout?: ViewProps["onLayout"];
-  style?: StyleProp<ViewStyle>;
+  // Recette iPhone du 26/11/2026 (après-midi), point B : style animé admis (remontée de la modale avec le clavier).
+  style?: ComponentProps<typeof Reanimated.View>["style"];
   testID?: string;
   children?: ReactNode;
 }) {

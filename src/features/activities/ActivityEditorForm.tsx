@@ -46,7 +46,9 @@ import {
   MovementLevelPanel,
   type EditorLevel,
 } from "@/features/activities/MovementLevelMenu";
-import { MovementPhasesEditor } from "@/features/activities/MovementPhasesEditor";
+import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
+import { MovementPhasesEditor, type MovementPhasesKeyboardBar } from "@/features/activities/MovementPhasesEditor";
+import { SHEET_KEYBOARD_BAR_ENABLED, type KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { isIncompleteSummary } from "@/features/sessions/compositionPresentation";
@@ -584,9 +586,23 @@ export function ActivityEditorForm({
   // [Retiré le 31/10/2026, PRE-9 — contrôle de la recette iPhone n° 2 (cr2-phases KO, Hermann :
   // « Retirer aussi la barre optionnelle avec les boutons précédent, suivant et fermer ») : barre du
   // clavier (`KeyboardAccessoryBar`) pendant la saisie d'une durée de phase.]
+  // Recette iPhone du 26/11/2026 (après-midi), Hermann : « Régression : création d'une fiche de mouvement, création de phases et
+  // entrée de la durée. Nous avions défini une barre d'option au-dessus du clavier, elle n'est plus affichée. » — barre du clavier
+  // (« ← Précédent », « Suivant → », « Fermer ») rétablie pendant la saisie d'une durée de phase au pavé numérique iOS, qui n'a pas
+  // de touche Entrée — même barre que la Feuille (`KeyboardAccessoryBar`, mécanisme RC-1 : posée au bas de son hôte, remontée
+  // au-dessus du clavier). Sa hauteur s'ajoute à la réserve du clavier. [Complété le 26/11/2026, réponse de Hermann : la barre
+  // accompagne TOUS les champs des phases — libellé, durée, invite —, `MovementPhasesEditor`.]
+  const [phasesKeyboardBar, setPhasesKeyboardBar] = useState<MovementPhasesKeyboardBar | null>(null);
+  const [movementKeyboardFrame, setMovementKeyboardFrame] = useState<KeyboardFrame | null>(null);
+  const [barHostBottom, setBarHostBottom] = useState(0);
+  const [barHeight, setBarHeight] = useState(0);
+  const barHostRef = useRef<View>(null);
+  const isPhasesBarShown = isMovement && SHEET_KEYBOARD_BAR_ENABLED && phasesKeyboardBar !== null && movementKeyboardFrame !== null;
+  const barReserve = isPhasesBarShown ? barHeight : 0;
+  const barReserveRef = useRef(0);
   function movementKeyboardInset(): number {
     const k = movementKeyboardRef.current;
-    return k.shown ? Math.max(0, k.bottom - k.top) : 0;
+    return k.shown ? Math.max(0, k.bottom - k.top) + barReserveRef.current : 0;
   }
   function adjustMovementLayer() {
     const k = movementKeyboardRef.current;
@@ -620,6 +636,11 @@ export function ActivityEditorForm({
     setMovementLiftRef.current = setMovementLift;
     revealRefs.current = { description: revealDescription, phases: revealPhases };
   });
+  // Recette iPhone du 26/11/2026 (après-midi) : la barre du clavier apparue, la ligne en saisie reste au-dessus.
+  useEffect(() => {
+    barReserveRef.current = barReserve;
+    if (barReserve > 0) adjustMovementLayerRef.current();
+  }, [barReserve]);
   useEffect(() => {
     if (!isMovement) return;
     const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
@@ -630,6 +651,8 @@ export function ActivityEditorForm({
         // Haut du clavier dans le repère des mesures de la fiche (écran, ou feuille native).
         k.top = event.endCoordinates.screenY - offset;
         setKeyboardInset(Math.max(0, k.bottom - k.top));
+        // Barre du clavier (recette du 26/11/2026) : haut du clavier dans le même repère que le bas mesuré de son hôte.
+        setMovementKeyboardFrame({ screenY: k.top, duration: event.duration });
         setIsMovementKeyboardShown(true);
         adjustMovementLayerRef.current();
       };
@@ -653,6 +676,7 @@ export function ActivityEditorForm({
       k.shown = false;
       if (event.duration > 0) k.duration = event.duration;
       setKeyboardInset(0);
+      setMovementKeyboardFrame(null);
       setIsMovementKeyboardShown(false);
       setMovementLiftRef.current(0);
     });
@@ -1073,7 +1097,7 @@ export function ActivityEditorForm({
           zone d'évitement, même désactivée, remplaçait cette réserve par 0 : le défilement passait sous
           le clavier et la fin du contenu restait inatteignable. */}
       <KeyboardAvoidingView
-        style={[styles.flex, isMovement ? { paddingBottom: keyboardInset } : null]}
+        style={[styles.flex, isMovement ? { paddingBottom: keyboardInset + barReserve } : null]}
         behavior={Platform.OS === "ios" && !isMovement ? "padding" : undefined}
         enabled={!isMovement}
         testID="editor-keyboard-reserve"
@@ -1174,6 +1198,7 @@ export function ActivityEditorForm({
                     onChange={movementPhases.onChange}
                     editable={!isBodyLocked}
                     onFocusChange={onPhasesFocusChange}
+                    onKeyboardBarChange={setPhasesKeyboardBar}
                     onActiveRowBottomChange={(bottom) => {
                       phasesActiveBottomRef.current = bottom;
                       if (isPhasesFocused) revealPhases();
@@ -1384,6 +1409,38 @@ export function ActivityEditorForm({
               placement={levelPanelPlacement}
               onDismiss={() => setLevelPanelPlacement(null)}
               testID="activity-editor-level-panel"
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* Recette iPhone du 26/11/2026 (après-midi) : barre du clavier de la durée de phase (iOS) rétablie, au bas de cet hôte qui
+          couvre l'Éditeur ; « Suivant → » passe à la ligne suivante, « ← Précédent » au libellé de la même ligne, « Fermer » ferme
+          le clavier. [Complété le 26/11/2026, réponse de Hermann : barre sur TOUS les champs des phases (libellé, durée, invite) ;
+          Précédent / Suivant parcourent libellé 1 → durée 1 → libellé 2 → …, indisponibles aux extrémités.] */}
+      {isMovement && SHEET_KEYBOARD_BAR_ENABLED ? (
+        <View
+          ref={barHostRef}
+          pointerEvents="box-none"
+          style={[styles.levelPanelHost, styles.movementOverlayHost]}
+          onLayout={() =>
+            barHostRef.current?.measureInWindow((_x, y, _width, height) => {
+              if (height > 0) setBarHostBottom(y + height);
+            })
+          }
+          testID="movement-keyboard-bar-host"
+        >
+          {isPhasesBarShown && phasesKeyboardBar !== null && movementKeyboardFrame !== null ? (
+            <KeyboardAccessoryBar
+              keyboardFrame={movementKeyboardFrame}
+              containerBottom={barHostBottom > 0 ? barHostBottom : windowSize.height}
+              reduceMotion={reduceMotion}
+              onHeight={setBarHeight}
+              canPrevious={phasesKeyboardBar.canPrevious}
+              canNext={phasesKeyboardBar.canNext}
+              onPrevious={phasesKeyboardBar.onPrevious}
+              onNext={phasesKeyboardBar.onNext}
+              onClose={() => Keyboard.dismiss()}
             />
           ) : null}
         </View>

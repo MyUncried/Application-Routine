@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 import { numberTarget, stopConditionOf, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import type { Movement } from "@/domain/activities/Movement";
@@ -117,12 +117,18 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     fireEvent.press(validate());
     expect(screen.queryByTestId("free-exercise-page")).toBeNull();
     fireEvent.press(screen.getByTestId("free-exercise-card-mv-squats"));
-    expect(isSelected("free-exercise-card-mv-squats")).toBe(true);
+    // Recette du 26/11 (après-midi) : le mouvement choisi est figé en première ligne, hors de la liste.
+    expect(isSelected("free-exercise-pinned-mv-squats")).toBe(true);
+    expect(screen.queryByTestId("free-exercise-card-mv-squats")).toBeNull();
     expect(validate().props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(screen.getByTestId("free-exercise-card-mv-gainage"));
-    expect(isSelected("free-exercise-card-mv-gainage")).toBe(true);
+    expect(isSelected("free-exercise-pinned-mv-gainage")).toBe(true);
+    expect(screen.queryByTestId("free-exercise-pinned-mv-squats")).toBeNull();
     expect(isSelected("free-exercise-card-mv-squats")).toBe(false);
-    fireEvent.press(screen.getByTestId("free-exercise-card-mv-gainage"));
+    // Toucher la carte figée la désélectionne : elle revient dans la liste.
+    fireEvent.press(screen.getByTestId("free-exercise-pinned-mv-gainage"));
+    expect(screen.queryByTestId("free-exercise-pinned")).toBeNull();
+    expect(isSelected("free-exercise-card-mv-gainage")).toBe(false);
     expect(validate().props.accessibilityState).toMatchObject({ disabled: true });
   });
 
@@ -140,6 +146,10 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     });
     expect(await screen.findByTestId("free-exercise-page")).toBeTruthy();
     expect(screen.getByText("Burpees croisés", hidden)).toBeTruthy();
+    // Recette du 26/11 (après-midi) : « Changer » retrouve le mouvement créé, choisi et figé.
+    fireEvent.press(screen.getByTestId("execution-sheet-change-movement", hidden));
+    expect(await screen.findByTestId("free-exercise-choice")).toBeTruthy();
+    expect(isSelected("free-exercise-pinned-mv-new")).toBe(true);
   });
 
   it("nom existant validé : le mouvement est choisi, sans fiche de création", async () => {
@@ -148,7 +158,48 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     fireEvent.changeText(screen.getByTestId("free-exercise-search"), "squats sautés");
     fireEvent(screen.getByTestId("free-exercise-search"), "submitEditing");
     expect(mockPush).not.toHaveBeenCalled();
-    expect(isSelected("free-exercise-card-mv-squats")).toBe(true);
+    expect(isSelected("free-exercise-pinned-mv-squats")).toBe(true);
+  });
+
+  it("recette 26/11 (après-midi) : mouvement choisi en première ligne, figé sous la recherche (patron et valeurs de la zone figée des formats, D-572), absent de la liste, gardé pendant une recherche", async () => {
+    renderScreen();
+    fireEvent.press(await screen.findByTestId("free-exercise-card-mv-gainage"));
+    const root = screen.getByTestId("free-exercise-choice");
+    const order = (testID: string) => root.props.children.flat().findIndex((child: { props?: { testID?: string } } | null) => child?.props?.testID === testID);
+    expect(order("free-exercise-search-zone")).toBeLessThan(order("free-exercise-pinned"));
+    expect(order("free-exercise-pinned")).toBeLessThan(order("free-exercise-list"));
+    const zone = StyleSheet.flatten(screen.getByTestId("free-exercise-pinned").props.style) as { backgroundColor?: string; maxHeight?: number };
+    expect(zone.backgroundColor).toBe("#FFFFFF");
+    expect(zone.maxHeight).toBeGreaterThan(0);
+    expect(StyleSheet.flatten(screen.getByTestId("free-exercise-pinned-scroll").props.contentContainerStyle)).toMatchObject({ marginHorizontal: 16, gap: 8, paddingTop: 4, paddingBottom: 8 });
+    expect(screen.queryByTestId("free-exercise-card-mv-gainage")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("free-exercise-search"), "squats");
+    expect(isSelected("free-exercise-pinned-mv-gainage")).toBe(true);
+    expect(screen.getByTestId("free-exercise-card-mv-squats")).toBeTruthy();
+  });
+
+  it("recette 26/11 (après-midi) : « Tes » trouve « Tester » ; à chaque recherche ou filtre, la liste repart de son début, sous la recherche", async () => {
+    const scrollTo = jest.spyOn(ScrollView.prototype, "scrollTo").mockImplementation(() => undefined);
+    try {
+      render(
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider
+            value={{ supportsMovementSearch: true, movementCatalogue: { listEntries: async () => [entry(SQUATS), entry(GAINAGE), entry(movement("mv-tester", "Tester"))] } } as never}
+          >
+            <FreeExerciseScreen onClose={jest.fn()} onDone={jest.fn()} />
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>,
+      );
+      await screen.findByTestId("free-exercise-card-mv-tester");
+      for (const typed of ["T", "Te", "Tes", "Test", "Tester"]) {
+        scrollTo.mockClear();
+        fireEvent.changeText(screen.getByTestId("free-exercise-search"), typed);
+        expect(screen.getByTestId("free-exercise-card-mv-tester")).toBeTruthy();
+        expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: false });
+      }
+    } finally {
+      scrollTo.mockRestore();
+    }
   });
 
   it("croix : retour à la fenêtre « Créer un exercice »", async () => {
@@ -239,7 +290,8 @@ describe("D-608 — page « Exercice libre »", () => {
     await openPage("free-exercise-card-mv-squats");
     fireEvent.press(screen.getByTestId("execution-sheet-change-movement", hidden));
     expect(await screen.findByTestId("free-exercise-choice")).toBeTruthy();
-    expect(isSelected("free-exercise-card-mv-squats")).toBe(true);
+    // Recette du 26/11 (après-midi) : le mouvement reste choisi et figé en première ligne.
+    expect(isSelected("free-exercise-pinned-mv-squats")).toBe(true);
     await openPage("free-exercise-card-mv-gainage");
     fireEvent.press(screen.getByTestId("execution-sheet-cancel", hidden));
     expect(await screen.findByTestId("free-exercise-choice")).toBeTruthy();

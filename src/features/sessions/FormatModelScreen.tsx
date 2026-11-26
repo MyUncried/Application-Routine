@@ -58,6 +58,7 @@ import {
   movementRole,
   deathByFirstRankWarning,
   supersetRecovery,
+  strengthSeriesCount,
   withAnswer,
   withMovementMode,
   withSeriesValue,
@@ -1396,8 +1397,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     return (
       <>
         {stage === "questionnaire" ? switchRow("withLoad", t().rows.withLoad) : null}
-        {stage === "summary" ? totalRow(!showExecution) : null}
-        {showExecution ? executionRow() : null}
+        {/* Recette iPhone du 26/11/2026 (après-midi, Hermann : « Progression : la Durée totale vient après la ligne Exécution »).
+            [Durée totale avant l'Exécution — remplacé.] */}
+        {showExecution ? executionRow(stage !== "summary") : null}
+        {stage === "summary" ? totalRow(true) : null}
       </>
     );
   }
@@ -1421,13 +1424,17 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       case "TABATA":
       case "INTERVALS_30_30":
       case "HIIT":
-        return withExecution([
+        // Recette iPhone du 26/11/2026 (après-midi, Hermann) : la Durée totale est la dernière ligne des paramètres — après
+        // « Récupération entre les mouvements » (Tabata à la suite), sinon après « Exécution ». [Durée totale avant l'Exécution — remplacé.]
+        return [
           stepRow("seriesCount", r.seriesCount),
           ...(byMovement ? [] : [stepRow("workSeconds", r.workSeconds), stepRow("pauseSeconds", r.pauseSeconds)]),
           ...loadSwitch,
-          totalRow(!showExecution && single.length === 0),
           ...single,
-        ]).concat(model === "TABATA" && several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds, { last: true })] : []);
+          ...(showExecution ? [executionRow(false)] : []),
+          ...(model === "TABATA" && several && sequence ? [stepRow("recoveryBetweenSeconds", r.recoveryBetweenSeconds)] : []),
+          totalRow(true),
+        ];
       case "EMOM":
         // MAJ 04/11 §4.2 : ligne « Repos · jusqu'à la cadence » retirée ; §6 quater bis : « Avec charge » avant la durée totale.
         // Constat a) de la recette du 18/11/2026 (Hermann) : « Dans chaque intervalle » et « En alternance », « Nombre de tours » ; le
@@ -1472,10 +1479,12 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           stepRow("durationSeconds", r.durationSeconds),
           stepRow("blockCount", r.blockCount),
           ...((answers.blockCount ?? 1) > 1 ? [stepRow("restBetweenBlocksSeconds", r.restBetweenBlocksSeconds)] : []),
-          stepRow("loopRestSeconds", r.loopRestSeconds),
-          switchRow("buyIn", r.buyIn),
-          switchRow("increasingVolume", r.increasingVolume),
-          switchRow("withLoad", r.withLoad),
+          // Recette du 26/11/2026 (Hermann : « il n'y a pas d'interrupteur développé, on les a tous abandonnés pour les formats et les
+          // paramètres » ; retrait demandé : « oui ») : interrupteurs Buy-in, Volume croissant et Avec charge retirés. Buy-in : présence
+          // d'un mouvement dans le bloc Buy-in (`forTimeBlockState`) ; Avec charge : charge réglée mouvement par mouvement (`withLoad`
+          // toujours vrai à l'ouverture) ; Volume croissant : toujours vrai (colonne « Par tour »). [`switchRow("buyIn")`,
+          // `switchRow("increasingVolume")`, `switchRow("withLoad")` — remplacés.]
+          stepRow("loopRestSeconds", r.loopRestSeconds, { last: true }),
         ];
       }
       case "FOR_TIME":
@@ -1502,15 +1511,18 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         ];
       case "STRENGTH":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « Il manque le champ de la Pause ») : Pause toujours affichée.
-        return withExecution([
-          stepRow("seriesCount", r.seriesCount),
+        // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Renforcement : la Durée totale vient après Exécution. La ligne globale
+        // « Nombre de séries » est supprimée ») : le nombre de séries est propre à chaque mouvement (colonne « Séries » du tableau,
+        // modale). [Ligne « Nombre de séries » en tête et Durée totale avant l'Exécution — remplacés.]
+        return [
           ...(byMovement
             ? []
             : [stepRow("repetitions", r.repetitions), stepRow("pauseSeconds", r.pauseSeconds, { fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0 })]),
           ...loadSwitch,
-          totalRow(!showExecution && single.length === 0),
           ...single,
-        ]);
+          ...(showExecution ? [executionRow(false)] : []),
+          totalRow(true),
+        ];
       case "UNTIL_FAILURE":
         // Recette n° 3 du 03/11/2026 (f3-depart, Hermann : « A l'échec : ne pas mettre le champ de la durée totale,
         // retirer la ligne »). Complément du 5 novembre 2026 (Hermann), §16 (Figma « À l'échec — Questionnaire ») : Pause et « Avec charge » ; ligne Charge en dernier.
@@ -2138,7 +2150,16 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                 testID="format-save"
               />
             </View>
-            <Text style={styles.tagline}>{t().taglines[model]}</Text>
+            {/* Recette iPhone du 26/11/2026 (après-midi, Hermann) : l'accroche du Superset suit le nombre de mouvements, comme son nom. */}
+            <Text style={styles.tagline} testID="format-tagline">
+              {model === "SUPERSET" && movements.length >= 3
+                ? movements.length === 3
+                  ? t().supersetTaglines.three
+                  : movements.length === 4
+                    ? t().supersetTaglines.four
+                    : t().supersetTaglines.five
+                : t().taglines[model]}
+            </Text>
           </View>
         </View>
         <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.bandFade} testID="format-context-fade">
@@ -2383,6 +2404,19 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       ) : (
         <DimensionText key="load" text={t().dash} testID={`format-line-${index}-load-off`} />
       );
+    // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Plus de colonne Charge. La charge s'écrit sous la valeur de l'intervalle, en
+    // plus petit et entre parenthèses (ex. « (12 kg) »). Sans charge, rien n'est affiché. ») : Tabata, 30/30, HIIT, Renforcement (sous
+    // l'Objectif) et Death by (sous le Départ) — même charge que l'AMRAP (`ChargeValue`, atteinte par Précédent / Suivant).
+    const chargeBelow = ({ item, index }: BlockRow) =>
+      item.values.loadOn === true ? (
+        <ChargeValue
+          value={item.values.loadKg ?? null}
+          onChange={(entered) => updateValues(index, { ...item.values, loadKg: entered })}
+          binding={cellBinding(cellKey("load", index))}
+          label={label(item.exercise.name, tt.load)}
+          testID={`format-line-${index}-load`}
+        />
+      ) : null;
     const numberCell = (
       { item }: BlockRow,
       value: number | null,
@@ -2391,11 +2425,15 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       column: string,
       testID: string,
       signed = false,
+      charge: React.ReactNode = null,
+      alignRight = false,
     ) => {
       const mode = shownMode(item);
       return (
         <DimensionCell
           key={key}
+          charged={charge !== null}
+          charge={charge}
           cell={
             <TableCell
               kind={mode === "DURATION" ? "duration" : "integer"}
@@ -2406,6 +2444,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
               onChange={onValue}
               {...cellBinding(key)}
               label={label(item.exercise.name, column)}
+              alignRight={alignRight}
               testID={testID}
             />
           }
@@ -2421,12 +2460,21 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       case "STRENGTH":
       case "UNTIL_FAILURE": {
         const objectiveFallback = model === "STRENGTH" ? answers.repetitions : answers.workSeconds;
+        // Recette iPhone du 26/11/2026 (après-midi, Hermann) — Tabata, 30/30, HIIT : « La colonne « Objectif » devient « Intervalle » » ;
+        // Renforcement : « la première colonne est « Séries » (nombre de séries de chaque mouvement) » ; ces quatre formats : plus de
+        // colonne Charge (charge sous la première valeur), dernière colonne alignée à droite. À l'échec : inchangé (Objectif | Pause | Charge).
+        const interval = model === "TABATA" || model === "INTERVALS_30_30" || model === "HIIT";
+        const revised = model !== "UNTIL_FAILURE";
+        const alternated = showExecution && execution === "ALTERNATED";
+        const objectiveHead = interval ? tt.interval : tt.objective;
+        const heads = model === "STRENGTH" ? [tt.seriesHead, tt.objective, tt.pause] : revised ? [objectiveHead, tt.pause] : [tt.objective, tt.pause, tt.load];
         return (
           <FormatBlocks testID="format-table-blocks">
             <DimensionBlock
               title={t().movements}
               rows={rows}
-              heads={[tt.objective, tt.pause, tt.load]}
+              heads={heads}
+              lastAlignRight={revised}
               onAdd={add("LOOP")}
               addText={addText("LOOP")}
               addLeft={movementsAddLeft}
@@ -2438,11 +2486,45 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                 const mode = values.mode ?? defaultMode;
                 const objective = values.repetitions !== undefined ? values.repetitions : mode === defaultMode ? (objectiveFallback ?? null) : null;
                 const pause = values.pause ?? answers.pauseSeconds ?? basePause(item.exercise);
-                return [
+                const series =
+                  model === "STRENGTH" ? (
+                    <DimensionCell
+                      key="series"
+                      cell={
+                        <TableCell
+                          kind="integer"
+                          value={strengthSeriesCount(answers, values, alternated)}
+                          format={String}
+                          width={TABLE_LAYOUT.columnWidth}
+                          // En alternance, le nombre reste commun (Circuit à séries alternées) : la valeur règle le Format.
+                          onChange={(value) =>
+                            value === null || value < 1
+                              ? undefined
+                              : alternated
+                                ? setAnswers((current) => withAnswer(current, "seriesCount", value))
+                                : updateValues(index, { ...values, seriesCount: value })
+                          }
+                          {...cellBinding(cellKey("ser", index))}
+                          label={label(item.exercise.name, tt.seriesHead)}
+                          testID={`format-series-${index}`}
+                        />
+                      }
+                    />
+                  ) : null;
+                const cells = [
                   model === "UNTIL_FAILURE" ? (
                     <DimensionText key="obj" strong lines={2} text={t().atFailureTwoLines} testID={`format-objective-${index}`} />
                   ) : (
-                    numberCell(row, objective, (value) => updateValues(index, { ...values, mode, repetitions: value }), cellKey("obj", index), tt.objective, `format-objective-${index}`)
+                    numberCell(
+                      row,
+                      objective,
+                      (value) => updateValues(index, { ...values, mode, repetitions: value }),
+                      cellKey("obj", index),
+                      objectiveHead,
+                      `format-objective-${index}`,
+                      false,
+                      chargeBelow(row),
+                    )
                   ),
                   <DimensionCell
                     key="pause"
@@ -2456,12 +2538,13 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                         onChange={(value) => (value === null ? undefined : updateValues(index, { ...values, pause: value }))}
                         {...cellBinding(cellKey("pause", index))}
                         label={label(item.exercise.name, tt.pause)}
+                        alignRight={revised}
                         testID={`format-pause-${index}`}
                       />
                     }
                   />,
-                  chargeColumn(row),
                 ];
+                return series !== null ? [series, ...cells] : revised ? cells : [...cells, chargeColumn(row)];
               }}
             />
           </FormatBlocks>
@@ -2473,7 +2556,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
             <DimensionBlock
               title={t().movements}
               rows={rows}
-              heads={[tt.start, tt.increment, tt.load]}
+              // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Death by : la charge est sous la valeur de la colonne « Départ ».
+              // Plus de colonne Charge. La dernière colonne (Incrément) est alignée à droite. ») [Départ | Incrément | Charge — remplacé.]
+              heads={[tt.start, tt.increment]}
+              lastAlignRight
               onAdd={add("LOOP")}
               addText={addText("LOOP")}
               addLeft={movementsAddLeft}
@@ -2496,6 +2582,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                     single ? answerFieldKey("startRepetitions") : cellKey("start", index),
                     tt.start,
                     `format-death-by-start-${index}`,
+                    false,
+                    chargeBelow(row),
                   ),
                   numberCell(
                     row,
@@ -2505,8 +2593,9 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                     tt.increment,
                     `format-death-by-increment-${index}`,
                     true,
+                    null,
+                    true,
                   ),
-                  chargeColumn(row),
                 ];
               }}
             />
@@ -2761,8 +2850,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           : null;
     const shownPause = movement.values.pause ?? answers.pauseSeconds ?? basePause(movement.exercise);
     // Nombre de séries (ou de tours, Superset) du Format ; Death by et AMRAP : une série.
+    // Renforcement (recette du 26/11/2026 après-midi) : nombre de séries propre au mouvement, sauf en alternance (commun).
+    const strengthOwnCount = model === "STRENGTH" && !(showExecution && execution === "ALTERNATED");
     const countKey: "seriesCount" | "roundCount" | null =
-      model === "SUPERSET" ? "roundCount" : model === "DEATH_BY" || model === "AMRAP" || model === "FOR_TIME" ? null : "seriesCount";
+      model === "SUPERSET" ? "roundCount" : model === "DEATH_BY" || model === "AMRAP" || model === "FOR_TIME" || strengthOwnCount ? null : "seriesCount";
 
     function commit() {
       if (applied === null) return;
@@ -2811,6 +2902,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         ...(increment !== null && model === "AMRAP" ? { increment } : {}),
         ...(increment !== null && model === "DEATH_BY" && several ? { startIncrement: increment } : {}),
         ...(emomOwn !== null ? { intervals: emomOwn } : {}),
+        ...(strengthOwnCount && unitKept ? { seriesCount: count } : {}),
       };
       setMovements((current) =>
         current.map((item, at) => {

@@ -557,8 +557,9 @@ describe("ExecutionParametersSheet — PRE-3", () => {
 
   it("P3-11/all-modes-bip — Bip présent et commun dans les deux modes ; même valeur conservée en changeant de mode", () => {
     const { onApply } = renderSheet(params());
-    tap("execution-sheet-beep-increment");
-    tap("execution-sheet-beep-increment");
+    // [Deux appuis « + » (0 → 1 → 2) — remplacés le 26/11/2026 (recette iPhone de l'après-midi, point C) : Autre s'ouvre vide (« — »),
+    // la valeur est saisie directement.]
+    enterExecutionSheetValue("execution-sheet-beep", 2);
     // [Valeur du ± ouvert — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier ;
     // le champ révélé se range à sa sortie, l'option Autre porte la valeur (B8).]
     expect(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`).props.accessibilityLabel).toBe("Autre, 2 secondes");
@@ -1596,7 +1597,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
       expect(screen.getByTestId("execution-sheet-beep", anyNode).props.accessibilityState).toMatchObject({ selected: true });
       fireEvent.press(screen.getByTestId(`${MODE_CONTROL}-DURATION`));
       expect(modeText()).toBe("Durée");
-      expect(screen.queryByTestId("execution-sheet-beep-input", anyNode)).toBeNull();
+      // [Champ retiré — remplacé le 26/11/2026 (point C) : le champ est dans l'option Autre, qui le garde (attente) ; il est rangé.]
+      expect(screen.getByTestId("execution-sheet-beep", anyNode).props.accessibilityState).toMatchObject({ selected: false });
       // Feuille tactile : un autre champ prend la saisie.
       openExecutionSheetField("execution-sheet-target");
       expect(screen.getByTestId("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
@@ -1712,7 +1714,7 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     // Décision du 06/11/2026 : Autre révèle le champ clavier de la Cadence et lui donne le focus (simulé).
     fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
-    animated("execution-sheet-beep-motion");
+    // [`animated("execution-sheet-beep-motion")` — retiré le 26/11/2026 (point C) : plus de champ révélé sous la ligne.]
     animated("execution-sheet-row-side-recovery");
     animated("execution-sheet-row-side");
     // E-20 (2026-10-18) : le tableau n'a plus de révélation propre à l'apparition — le groupe
@@ -1730,7 +1732,8 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     // N 2 → 3 : la nouvelle ligne du tableau entre (Q41 : révélée par le bas, sans fondu).
     // Le champ de la Cadence se range quand celui de N prend la saisie (T20 ; [± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]).
     tap("execution-sheet-series-increment");
-    expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
+    // Point C du 26/11/2026 : le champ de la Cadence (dans l'option Autre) n'est plus en saisie.
+    expect(screen.getByTestId("execution-sheet-beep", anyNode).props.accessibilityState).toMatchObject({ selected: false });
     expect(motionOf("execution-sheet-table-row-3-motion").entering).toBeDefined();
     // Surface, corps, cadres (PRE-5 story 2.4 : quatre cadres au lieu du groupe unique) et
     // groupe du tableau : transition de place seule (aucune entrée à l'ouverture).
@@ -1776,8 +1779,7 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     });
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     for (const testID of [
-      "execution-sheet-beep-motion",
-      "execution-sheet-beep-motion-content",
+      // [`execution-sheet-beep-motion` (et `-content`) — retirés le 26/11/2026 (point C).]
       "execution-sheet-row-side-recovery",
       "execution-sheet-row-side-recovery-content",
       "execution-sheet-table",
@@ -1804,12 +1806,10 @@ describe("ExecutionParametersSheet — PRE-4 Q39 (animations de mise en page)", 
     withPlatform("android", () => {
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 }));
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    expect(motionOf("execution-sheet-beep-motion")).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
-    expect(motionOf("execution-sheet-beep-motion-content")).toMatchObject({ entering: revealContentEntering, exiting: revealContentExiting });
-    // [Second appui sur Autre qui range le ± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : le champ se range à sa sortie.]
-    fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
-    closeExecutionSheetField("execution-sheet-beep");
+    // [Champ révélé sous la ligne (`execution-sheet-beep-motion`, entrée et sortie par le bas) — remplacé le 26/11/2026 (recette iPhone
+    // de l'après-midi, point C) : le champ est dans l'option Autre, aucune ligne n'apparaît en dessous.]
     expect(screen.queryByTestId("execution-sheet-beep-motion")).toBeNull();
+    expect(screen.getByTestId("execution-sheet-beep-input", anyNode)).toBeTruthy();
     for (const testID of ["execution-sheet-row-side-recovery"]) {
       expect(motionOf(testID)).toMatchObject({ entering: revealClipEntering, exiting: revealClipExiting });
     }
@@ -1873,7 +1873,9 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE" }));
     const checkSelected = (testID: string) => {
       const background = styleOf(`${testID}-selection`);
-      expect(background.backgroundColor).toBe(SELECTED_SURFACE);
+      // [Fond de sélection `SELECTED_SURFACE` — retiré le 26/11/2026 (recette iPhone de l'après-midi, point B, Hermann : « La ligne
+      // n'est pas colorée au focus ») : le calque reste, sans fond.]
+      expect(background.backgroundColor).toBeUndefined();
       expect(background.borderRadius).toBe(12);
       expect(background.borderWidth).toBeUndefined();
       expect(background.borderColor).toBeUndefined();
@@ -1974,41 +1976,28 @@ describe("ExecutionParametersSheet — PRE-4 Q40 (vitesse, sens, sélection)", (
     expectSelected();
   }));
 
-  // Q41 : enchaînement vérifié avec les contrôles en ligne, sur Android ; fond de sélection
-  // lu sur le calque `-selection`. PRE-5 story 2.5 : le Changement de côté n'a plus de
-  // surface ; la surface hors tableau est le ± de la Cadence (révélé par Autre).
-  it("PRE4-Q40 — sélection unique : ± de la Cadence ouvert, puis cellule du tableau → le ± se range, la ligne Cadence n'est plus surlignée, le tableau l'est ; et inversement", () =>
+  // [« sélection unique : la ligne Cadence surlignée, puis le tableau surligné pendant la saisie d'une cellule » — remplacé le 26/11/2026
+  // (recette iPhone de l'après-midi, point B, Hermann : « La ligne n'est pas colorée au focus (contraste trop faible avec le champ) ») :
+  // aucune ligne ni aucun tableau n'est surligné pendant une saisie ; une seule saisie à la fois ; le glisser sélectionne le tableau.]
+  it("PRE4-Q40, 26/11/2026 (point B) — une seule saisie : champ de la Cadence puis cellule du tableau ; aucun surlignage au focus ; glisser : tableau sélectionné", () =>
     withPlatform("android", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
     const group = () => styleOf("execution-sheet-variable-group");
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
-    // [± de la Cadence — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : champ révélé, focus simulé.]
     fireEvent(screen.getByTestId("execution-sheet-beep-input", anyNode), "focus");
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     expect(group().backgroundColor).toBeUndefined();
-    // D-434 : la cellule Pause prend le focus (clavier) ; famille ± : le ± de la Cadence se
-    // range dans le même geste (T20).
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-pause-input"), "focus");
     expect(styleOf("execution-sheet-table-row-1-pause").backgroundColor).toBe("#EAEAFF");
-    expect(screen.queryByTestId("execution-sheet-beep-input", anyNode)).toBeNull();
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
-    expect(cadenceText()).toBe("Sans");
-    expect(group().backgroundColor).toBe(SELECTED_SURFACE);
-    // Champ ± de la Cadence rouvert (la cellule perd le focus), puis prise d'un glisser dans
-    // le tableau : champ rangé, tableau sélectionné.
-    openExecutionSheetField("execution-sheet-beep");
-    fireEvent(screen.getByTestId("execution-sheet-table-row-1-pause-input"), "blur");
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    expect(screen.getByTestId("execution-sheet-beep", anyNode).props.accessibilityState).toMatchObject({ selected: false });
     expect(group().backgroundColor).toBeUndefined();
+    fireEvent(screen.getByTestId("execution-sheet-table-row-1-pause-input"), "blur");
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-handle"), "responderGrant", { nativeEvent: { pageY: 100 } });
-    expect(screen.queryByTestId("execution-sheet-beep-input", anyNode)).toBeNull();
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
     expect(group().backgroundColor).toBe(SELECTED_SURFACE);
     fireEvent(screen.getByTestId("execution-sheet-table-row-1-handle"), "responderRelease", { nativeEvent: { pageY: 100 } });
-    // Inversement : rouvrir le ± de la Cadence rend le tableau à l'état normal.
-    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    // Inversement : le champ de la Cadence rend le tableau à l'état normal.
+    openExecutionSheetField("execution-sheet-beep");
     expect(group().backgroundColor).toBeUndefined();
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
   }));
 });
 
@@ -2107,7 +2096,9 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
         expect(within(content).getByTestId(controlID)).toBeTruthy();
         expect(within(content).getByTestId(`${rowID}-selection`)).toBeTruthy();
         // Un seul fond, en calque absolu sur toute la hauteur du cadre (ligne + contrôle).
-        expect(styleOf(`${rowID}-selection`)).toMatchObject({ position: "absolute", top: 0, bottom: 0, backgroundColor: SELECTED_SURFACE });
+        // Point B du 26/11/2026 : calque sans fond (ligne non colorée au focus). [`backgroundColor: SELECTED_SURFACE` — retiré.]
+        expect(styleOf(`${rowID}-selection`)).toMatchObject({ position: "absolute", top: 0, bottom: 0 });
+        expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined();
         // Le cadre de découpe déborde de 12 de chaque côté (compensé) : le fond n'est pas rogné.
         expect(styleOf(rowID)).toMatchObject({ overflow: "hidden", marginHorizontal: -12, paddingHorizontal: 12 });
       };
@@ -2124,7 +2115,8 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       // AC3 : le champ de la Cadence, révélé par Autre, est dans le cadre de sa ligne.
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
       fireEvent(get("execution-sheet-beep-input"), "focus");
-      checkEnclosed("execution-sheet-row-beep", "execution-sheet-beep-motion");
+      // Point C du 26/11/2026 : le champ est dans l'option Autre, dans la ligne (plus de champ révélé dessous).
+      checkEnclosed("execution-sheet-row-beep", "execution-sheet-beep");
       // [Roues de la Cible commune et de la Durée de l'exercice en ligne — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : le champ clavier est
       // dans le cadre de sa ligne.]
       openExecutionSheetField("execution-sheet-target");
@@ -2142,7 +2134,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
     const cadenceBefore = snapshot("execution-sheet-row-beep");
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
     fireEvent(get("execution-sheet-beep-input"), "focus");
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : ligne non colorée au focus [SELECTED_SURFACE — remplacé].
     expect(snapshot("execution-sheet-row-beep")).toBe(cadenceBefore);
     closeExecutionSheetField("execution-sheet-beep");
     expect(snapshot("execution-sheet-row-beep")).toBe(cadenceBefore);
@@ -2154,7 +2146,7 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       const before = snapshot(rowID);
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined();
       openExecutionSheetField(fieldID);
-      expect(styleOf(`${rowID}-selection`).backgroundColor).toBe(SELECTED_SURFACE);
+      expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : ligne non colorée au focus [SELECTED_SURFACE — remplacé].
       expect(snapshot(rowID)).toBe(before);
       closeExecutionSheetField(fieldID);
       expect(snapshot(rowID)).toBe(before);
@@ -2249,10 +2241,10 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
       // [Un seul panneau de roue à la fois (T10) — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : un seul champ sélectionné, aucun panneau.]
       renderSheet(params());
       openExecutionSheetField("execution-sheet-target");
-      expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBe(SELECTED_SURFACE);
+      expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : ligne non colorée au focus [SELECTED_SURFACE — remplacé].
       openExecutionSheetField("execution-sheet-total");
       expect(styleOf("execution-sheet-row-target-selection").backgroundColor).toBeUndefined();
-      expect(styleOf("execution-sheet-row-total-selection").backgroundColor).toBe(SELECTED_SURFACE);
+      expect(styleOf("execution-sheet-row-total-selection").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : ligne non colorée au focus [SELECTED_SURFACE — remplacé].
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
     }));
 });
@@ -2589,9 +2581,10 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       renderSheet(bilateral());
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
       fireEvent(get("execution-sheet-beep-input"), "focus");
-      expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+      expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : ligne non colorée au focus.
       openExecutionSheetField("execution-sheet-target");
-      expect(query("execution-sheet-beep-input")).toBeNull();
+      // Point C du 26/11/2026 : le champ reste dans l'option Autre (attente), il n'est plus en saisie. [`toBeNull` — remplacé.]
+      expect(get("execution-sheet-beep").props.accessibilityState).toMatchObject({ selected: false });
       expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined();
       expect(get("execution-sheet-target").props.accessibilityState).toMatchObject({ selected: true });
       expect(query("execution-sheet-target-panel")).toBeNull();
@@ -2606,7 +2599,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(screen.queryByTestId(`execution-sheet-${field}-decrement`)).toBeNull();
       expect(get(`execution-sheet-${field}-input`).props.keyboardType).toBe("number-pad");
     }
-    expect(query("execution-sheet-beep-input")).toBeNull();
+    // Point C du 26/11/2026 : valeur personnalisée — le champ est porté au repos par l'option Autre. [`toBeNull` — remplacé.]
+    expect(query("execution-sheet-beep-input")).not.toBeNull();
     expect(cadenceText()).toBe("Autre");
     expect(shownValue("execution-sheet-countdown")).toBe("10″");
     // PRE-7 B.1 (D-447, B3) : pastille de 32, rayon 8, marges 12.
@@ -2619,11 +2613,11 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     fireEvent(get("execution-sheet-beep-input"), "focus");
     expect(cadenceText()).toBe("Autre");
-    expect(styleOf("execution-sheet-beep-frame")).toEqual(frame);
-    expect(styleOf("execution-sheet-beep-motion-content")).toMatchObject({ flexDirection: "row", justifyContent: "flex-end" });
+    // Point C du 26/11/2026 : champ dans l'option Autre, dans la ligne. [Cadre 137 × 44 et ligne révélée (`-beep-frame`, `-beep-motion-content`) — remplacés.]
+    expect(within(get(`${CADENCE_CONTROL}`)).getByTestId("execution-sheet-beep")).toBeTruthy();
     expect(styleOf("execution-sheet-row-beep-line").minHeight).toBe(44);
     expect(shownValue("execution-sheet-beep")).toBe("00:02");
-    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
+    expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBeUndefined(); // Point B du 26/11/2026.
   });
 
   /**
@@ -2732,6 +2726,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(valueOf("execution-sheet-pause")).toBe("0″");
     expect(cadenceText()).toBe("Sans");
     chooseMode("Répétitions");
+    // Point D du 26/11/2026 : aucune Cible par défaut en Répétitions (« — ») — saisie avant le ✓.
+    enterExecutionSheetValue("execution-sheet-target", 10, "integer");
     validate();
     expect(applied(onApply)).toMatchObject({ sideMode: "UNILATERAL", series: { pauseSeconds: 0 } });
   });
@@ -2845,7 +2841,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     for (const [field, rowID] of rows) {
       expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined();
       openExecutionSheetField(`execution-sheet-${field}`);
-      expect(styleOf(`${rowID}-selection`).backgroundColor).toBe(SELECTED_SURFACE);
+      expect(styleOf(`${rowID}-selection`).backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : ligne non colorée au focus [SELECTED_SURFACE — remplacé].
       expect(styleOf(`${rowID}-selection`).borderRadius).toBe(12);
       for (const [, other] of rows) {
         if (other !== rowID) expect(styleOf(`${other}-selection`).backgroundColor).toBeUndefined();
@@ -2896,11 +2892,12 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
       fireEvent(get("execution-sheet-beep-input"), "focus");
       openExecutionSheetField("execution-sheet-target");
-      expect(query("execution-sheet-beep-input")).toBeNull();
+      expect(get("execution-sheet-beep").props.accessibilityState).toMatchObject({ selected: false }); // Point C du 26/11/2026 [`toBeNull` — remplacé].
       expect(query("execution-sheet-target-panel")).toBeNull();
       closeExecutionSheetField("execution-sheet-target");
       expect(text("execution-sheet-target-value")).toBe("10 rép.");
-      expect(cadenceText()).toBe("Sans");
+      // Point C du 26/11/2026 : Autre reste choisi, en attente de sa valeur (« — », fond rouge). [« Sans » — remplacé.]
+      expect(cadenceText()).toBe("Autre");
     }));
 
   it("PRE4-3.3/AC6 — re-choisir « variables », tableau replié : le tableau reste replié, rien n'est modifié", () => {
@@ -3162,13 +3159,16 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
       expect(sheetValidateDisabled()).toBe(false);
     }));
 
-  it("PRE4-3.5/AC4 — Durée à « — » passée en Répétitions : Cible initiale 1 (recette PRE-9 n° 1), saisie sur « 1 »", () =>
+  // [Cible initiale 1 (recette PRE-9 n° 1), saisie sur « 1 » — remplacé le 26/11/2026 (recette iPhone de l'après-midi, point D, Hermann :
+  // « ne pas mettre par défaut "1 rép." pour le nombre de répétitions, mais un cadre fond rouge avec un trait »).]
+  it("PRE4-3.5/AC4, 26/11/2026 (point D) — Durée à « — » passée en Répétitions : Cible à renseigner (« — », fond rouge, ✓ indisponible), saisie vide", () =>
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       chooseExecutionMode("Répétitions");
-      expect(shown()).toBe("1 rép.");
+      expect(shown()).toBe("—");
+      expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
       openExecutionSheetField(TARGET);
-      expect(shown()).toBe("1");
+      expect(shown()).toBe("0");
     }));
 
   it("PRE4-3.5/AC5 — bornes : 1 et 100 atteignables ; 0 ramené à 1, 101 ramené à 100 (trois chiffres au plus)", () =>
@@ -3257,7 +3257,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     expect(cellValue(1)).toBe("12 rép.");
     expect(groupBackground()).toBeUndefined();
     openCell(1);
-    expect(groupBackground()).toBe("#F2F2FF");
+    // Point B du 26/11/2026 : pendant la saisie d'une cellule, le tableau n'est pas surligné ; il l'est après (action dans le tableau). [« #F2F2FF » — remplacé.]
+    expect(groupBackground()).toBeUndefined();
     closeCell(1);
     expect(groupBackground()).toBe("#F2F2FF");
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
@@ -3274,7 +3275,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
     fireEvent(screen.getByTestId("execution-sheet-beep-input", hidden), "focus");
     openCell(2);
-    expect(screen.queryByTestId("execution-sheet-beep-input", hidden)).toBeNull();
+    expect(screen.getByTestId("execution-sheet-beep", hidden).props.accessibilityState).toMatchObject({ selected: false }); // Point C du 26/11/2026 [`toBeNull` — remplacé].
     expect(cellBackground(targetID(2))).toBe("#EAEAFF");
     expect(screen.queryAllByTestId(/-panel$/)).toHaveLength(0);
   });
@@ -3462,7 +3463,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
     fireEvent(screen.getByTestId("execution-sheet-beep-input", hidden), "focus");
     fireEvent.press(screen.getByTestId("execution-sheet-table-row-2-remove"));
     expect(rowCount()).toBe(3);
-    expect(screen.queryByTestId("execution-sheet-beep-input", hidden)).toBeNull();
+    expect(screen.getByTestId("execution-sheet-beep", hidden).props.accessibilityState).toMatchObject({ selected: false }); // Point C du 26/11/2026 [`toBeNull` — remplacé].
     expect(screen.queryByTestId("execution-sheet-adjusted")).toBeNull();
     openCell(3);
     expect(cellBackground(targetID(3))).toBe("#EAEAFF");
@@ -3750,8 +3751,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.7", () => {
     // symbole devant la valeur, titre inchangé.
     const reps = renderSheetView(params({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 3, target: numberTarget(10), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
     expect(readOnlyText()).toBe(TOTAL_NOT_CALCULABLE);
-    tap("execution-sheet-beep-increment");
-    tap("execution-sheet-beep-increment");
+    // Point C du 26/11/2026 : Autre s'ouvre vide — 2 s saisi directement. [Deux appuis « + » — remplacés.]
+    enterExecutionSheetValue("execution-sheet-beep", 2);
     expect(totalLabelText()).toBe("Durée de l’exercice");
     expect(readOnlyText()).toBe(`≈ ${formatPhraseDuration(3 * (10 * 2 + 15))}`);
     reps.unmount();
@@ -4470,6 +4471,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // déclencheur du déroulant de l'Enchainement est la vue de taille fixe (146 × 26) elle-même.
       const inlineSegmented = [
         ":26",
+        // Point C du 26/11/2026 : valeur personnalisée de la Cadence dans l'option Autre, champ à la hauteur d'une option (26), comme la charge commune.
+        "execution-sheet-beep:26",
         "execution-sheet-cadence-control:32",
         "execution-sheet-load-control:32",
         "execution-sheet-mode-control:32",
@@ -4820,7 +4823,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     expect(query("execution-sheet-cell-panel")).toBeNull();
     expect(active(2, "target")).toBe(true);
     expect(active(1, "target")).toBe(false);
-    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : tableau non surligné pendant la saisie d'une cellule [« #F2F2FF » — remplacé].
     showExecutionSheetKeyboard();
     fireEvent.press(get("execution-sheet-keyboard-failure"));
     blurCell(2, "target");
@@ -4841,14 +4844,14 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
     focusCell(1, "pause");
     typeInExecutionSheetCell(cell(1, "pause"), "11");
     expect(valueOf(cell(1, "pause"))).toBe("00:11");
-    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : tableau non surligné pendant la saisie d'une cellule [« #F2F2FF » — remplacé].
     // Système : la Pause perd le focus, la Cible de la ligne 2 le prend.
     blurCell(1, "pause");
     focusCell(2, "target");
     expect(active(1, "pause")).toBe(false);
     expect(active(2, "target")).toBe(true);
     expect(valueOf(cell(1, "pause"))).toBe("11″");
-    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : tableau non surligné pendant la saisie d'une cellule [« #F2F2FF » — remplacé].
     // Un champ hors tableau (N, [± — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]) prend la saisie dans le même geste et désélectionne le tableau.
     openExecutionSheetField("execution-sheet-series");
     blurCell(2, "target");
@@ -5121,7 +5124,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: true });
     expect(get("execution-sheet-keyboard-next").props.accessibilityState).toMatchObject({ disabled: false });
     // Le focus d'une cellule sélectionne le tableau (Q40).
-    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBe("#F2F2FF");
+    expect(styleOf("execution-sheet-variable-group").backgroundColor).toBeUndefined(); // Point B du 26/11/2026 : tableau non surligné pendant la saisie d'une cellule [« #F2F2FF » — remplacé].
     // Ligne 1 de gauche à droite : Cible → Pause → Charge, puis Cible de la ligne 2.
     fireEvent.press(get("execution-sheet-keyboard-next"));
     expect(activeCell(pause(1))).toBe(true);
@@ -5695,10 +5698,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
       }
     };
     check();
-    // Cadence, ± révélé par Autre : rendu sous la ligne, hors de `-line` ; centrage inchangé.
+    // [Cadence, ± révélé par Autre sous la ligne — remplacé le 26/11/2026 (point C) : le champ est dans l'option Autre, dans la ligne ; centrage inchangé.]
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
-    expect(within(get("execution-sheet-row-beep-line")).queryByTestId("execution-sheet-beep-motion", hidden)).toBeNull();
-    expect(within(get("execution-sheet-row-beep")).getByTestId("execution-sheet-beep-motion", hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-row-beep-line")).getByTestId("execution-sheet-beep", hidden)).toBeTruthy();
     check();
   });
 
@@ -5771,31 +5773,34 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
     expect(StyleSheet.flatten(control.props.style)).toMatchObject({ height: 32, width: 3 * 62 + 2 * 2 + 2 * 3 });
   });
 
-  it("PRE5-2.5/AC3 — Autre : valeur inchangée, ± ouvert sous la ligne, Autre affiché ; fermeture → option de la valeur ; 1″ / Sans écrivent leur valeur et ferment le ± (RC-10) ; aucune valeur personnalisée mémorisée", () => {
+  // [« Autre : valeur inchangée, ± (puis champ) ouvert sous la ligne ; sortie sans frappe → option de la valeur » — remplacé le 26/11/2026
+  // (recette iPhone de l'après-midi, point C, Hermann : « Cadence « Autre » : même comportement que Charge. Aucun nouveau champ
+  // n'apparaît en dessous ; le focus se place sur le champ « Autre », vide, fond rouge, en attente d'une valeur au clavier »).]
+  it("PRE5-2.5/AC3, 26/11/2026 (point C) — Autre : champ dans l'option, vide (« — ») sur fond rouge ; sortie sans frappe : attente gardée ; 1″ / Sans écrivent leur valeur ; aucune valeur personnalisée mémorisée", () => {
     const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 0 }));
-    // [± révélé sous la ligne — remplacé le 06/11/2026, décision de Hermann (constat c) : saisie au clavier : champ clavier révélé et focalisé (focus simulé).]
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
+    expect(within(get(CADENCE_CONTROL)).getByTestId("execution-sheet-beep", hidden)).toBeTruthy();
+    expect(get(`${CADENCE_CONTROL}-OTHER-invalid-surface`)).toBeTruthy();
+    expect(valueOf("execution-sheet-beep")).toBe("—");
     fireEvent(get("execution-sheet-beep-input"), "focus");
     expect(cadenceText()).toBe("Autre");
-    expect(valueOf("execution-sheet-beep")).toBe("00:00");
-    expect(within(get("execution-sheet-row-beep")).getByTestId("execution-sheet-beep", hidden)).toBeTruthy();
-    // Sortie sans frappe : Sans, valeur 0.
+    // Sortie sans frappe : Autre reste en attente, ✓ sans effet.
     closeExecutionSheetField("execution-sheet-beep");
-    expect(query("execution-sheet-beep-input")).toBeNull();
-    expect(cadenceText()).toBe("Sans");
-    // 7 s saisies (Autre, « Autre, 7 s »), puis 1 s par le segmenté, qui range la saisie.
+    expect(cadenceText()).toBe("Autre");
+    expect(valueOf("execution-sheet-beep")).toBe("—");
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    // 7 s saisies (Autre, « Autre, 7 secondes »), puis 1 s par le segmenté.
     enterExecutionSheetValue("execution-sheet-beep", 7);
     expect(get(`${CADENCE_CONTROL}-OTHER`).props.accessibilityLabel).toBe("Autre, 7 secondes");
-    openExecutionSheetField("execution-sheet-beep");
     fireEvent.press(get(`${CADENCE_CONTROL}-1`));
     expect(query("execution-sheet-beep-input")).toBeNull();
     expect(cadenceText()).toBe("1″");
-    // Sans puis Autre : rien n'est restauré (7 s oublié).
+    // Sans puis Autre : rien n'est restauré (7 s oublié), champ vide.
     fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
     fireEvent.press(get(`${CADENCE_CONTROL}-OTHER`));
-    fireEvent(get("execution-sheet-beep-input"), "focus");
-    expect(valueOf("execution-sheet-beep")).toBe("00:00");
-    // 1 s pendant la saisie : écrit, saisie rangée.
+    expect(valueOf("execution-sheet-beep")).toBe("—");
+    // 1 s : écrit, attente levée.
     fireEvent.press(get(`${CADENCE_CONTROL}-1`));
     expect(query("execution-sheet-beep-input")).toBeNull();
     validate();
@@ -6877,8 +6882,13 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
     fireEvent.press(get(OTHER));
     fireEvent(get("execution-sheet-beep-input"), "focus");
     expect(valueOf("execution-sheet-beep")).toBe("00:00");
-    expect(otherLabel()).toEqual({ text: ["Autre"], spoken: "Autre" });
+    // Point C du 26/11/2026 : sortie sans frappe — Autre reste en attente (« — », fond rouge), ✓ sans effet ; Sans lève l'attente.
+    // [« Autre » affiché, valeur 0 appliquée par la sortie — remplacé.]
     closeExecutionSheetField("execution-sheet-beep");
+    expect(valueOf("execution-sheet-beep")).toBe("—");
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
     validate();
     expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(0);
   });

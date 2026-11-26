@@ -12,6 +12,7 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
+import { fireSwipeReveal } from "@/shared/gestures/testing/fireSwipeReveal";
 import { SessionDraftContext, type SessionDraftContextValue, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -177,11 +178,10 @@ describe("Circuit replié — actions glissées (MAJ 04/11 §6 quinquies, §6 se
 describe("Recette iPhone du 04/11/2026 — Circuit replié glissé", () => {
   const swipe = "composition-layout-circuit-ca-swipe";
   const wait = (ms: number) => act(async () => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  // Recette du 26/11/2026 (après-midi) : glisser porté par le `Pan` natif de la règle unique (`nativeGesture`).
   const swipeOpen = () =>
     act(async () => {
-      fireEvent(screen.getByTestId(swipe), "touchStart", { nativeEvent: { pageX: 360, pageY: 10 } });
-      fireEvent(screen.getByTestId(swipe), "touchMove", { nativeEvent: { pageX: 40, pageY: 12 } });
-      fireEvent(screen.getByTestId(swipe), "touchEnd", { nativeEvent: { pageX: 40, pageY: 12 } });
+      fireSwipeReveal(`${swipe}-pan`, -320, { translationY: 2 });
     });
   const translateX = (testID: string) => {
     const style = StyleSheet.flatten(screen.getByTestId(testID).props.style) as { transform?: { translateX?: number }[] };
@@ -213,6 +213,31 @@ describe("Recette iPhone du 04/11/2026 — Circuit replié glissé", () => {
     // Quatre actions de 70 et l'écart de 8 : le cadre et l'en-tête glissent ensemble (même valeur, suivie au doigt).
     expect(translateX(`${swipe}-card`)).toBe(-(4 * 70 + 8));
     expect(translateX("composition-layout-circuit-ca-surface-swipe")).toBe(-(4 * 70 + 8));
+  });
+
+  it("remarque c du 26/11/2026 (après-midi) : l'anneau du rail (fond blanc) reste au-dessus de l'en-tête qui glisse, immobile", async () => {
+    await renderComposition(draftOf("TABATA"));
+    fireEvent.press(screen.getByTestId("composition-layout-circuit-ca-header-collapse"));
+    await swipeOpen();
+    await wait(400);
+    const front = screen.getByTestId("composition-layout-circuit-ca-rail-ring-front", { includeHiddenElements: true });
+    const frame = screen.getByTestId("composition-layout-circuit-ca-header-frame", { includeHiddenElements: true });
+    // Dans la couche de l'en-tête, après la rangée glissée (dessinée par-dessus), hors de sa translation.
+    const sticky = screen.getByTestId("composition-layout-circuit-ca-header-sticky", { includeHiddenElements: true });
+    // Ordre de rendu (parcours en profondeur) : l'anneau suit la rangée glissée, donc il est dessiné par-dessus.
+    const order = sticky.findAll((node) => typeof node.type === "string" && typeof node.props.testID === "string").map((node) => node.props.testID as string);
+    expect(order.indexOf("composition-layout-circuit-ca-rail-ring-front")).toBeGreaterThan(order.indexOf(`${swipe}-card`));
+    expect(order.indexOf(`${swipe}-card`)).toBeGreaterThan(-1);
+    expect(front.props.pointerEvents).toBe("none");
+    expect(frame).toBeTruthy();
+    let node: typeof front | null = front;
+    while (node !== null) {
+      expect(node.props.testID).not.toBe(`${swipe}-card`);
+      node = node.parent;
+    }
+    // Anneau du rail (fond blanc) : même dessin que celui du rail.
+    const rings = front.findAll((node) => typeof node.type === "string" && StyleSheet.flatten(node.props.style)?.backgroundColor === "#FFFFFF");
+    expect(rings.length).toBeGreaterThan(0);
   });
 
   it("Dupliquer : les actions se referment, même si le doigt a glissé pendant l'appui", async () => {
