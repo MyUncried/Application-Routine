@@ -31,7 +31,7 @@ Lors d'une retenue du compte à rebours : reprendre le comportement existant (co
 
 1. Vérifier les données réellement disponibles pour chaque format et chaque étape (`durationActive`, `autoRepetitions`, `restCountdownMs`, `amrapScore`, `cornerLoad`). Ne déduire aucune donnée absente.
 2. Faire de `executionCorners.ts` la **seule autorité de placement**. `SERIES_COUNTDOWN` doit correspondre à `BOTTOM_RIGHT` dans `CORNER_OF` et dans les seules lignes de `CORNER_TABLE` qui acceptent effectivement le décompte ; retirer son exclusivité avec `LOAD` en bas à gauche.
-3. Garantir l'**exclusivité entre les informations dynamiques** du bas à droite, et l'absence de clignotement/artefact quand la source change entre deux étapes.
+3. Garantir l'**exclusivité entre les informations dynamiques** du bas à droite, et l'absence de clignotement/artefact quand la source change entre deux étapes. Adapter l'alignement du texte et la géométrie du contenu à l'angle **bas à droite** (deux lignes alignées à droite, lisibles et non rognées), sans modifier la forme Figma ; remplacer également les éventuels replis techniques résiduels vers `BOTTOM_LEFT`.
 4. Vérifier le cas **Death by** : le modèle actuel peut exposer un décompte de durée ; n'ajouter cette affectation que si la projection actuelle expose effectivement une Série en Durée active, sans inventer de mécanisme nouveau. Consigner le résultat.
 5. Vérifier le cas **Tabata / Intervalles 30/30** : conserver la logique existante des objectifs et de l'horloge. Ne pas générer de décompte de coin supplémentaire s'il n'existe pas.
 6. Préserver les règles du chrono principal, de l'anneau, des points d'arrêt, des pauses/récupérations, de la progression, des signaux, du bouton « +Tour », de l'affichage Série/Tour/Cycle et des couleurs du composant. Ne pas modifier le domaine, la base de données ni les services si la règle peut être réalisée par la seule projection/présentation.
@@ -56,7 +56,7 @@ Exécuter tests ciblés, TypeScript, lint sur les fichiers modifiés. Ne pas dé
 ## 4. Livraison et vérification indépendante
 
 - Avant édition : état Git propre, baseline réelle, fichiers autorisés, diff attendu, classification PRESERVE / CHANGE / FORBIDDEN.
-- Après édition : seconde passe indépendante de recherche des variantes « décompte Série en bas gauche », exceptions historiques, tests et contrats ; aucune contradicton active.
+- Après édition : seconde passe indépendante de recherche des variantes « décompte Série en bas gauche », exceptions historiques, tests et contrats ; aucune contradiction active.
 - Si un écart UX/Figma demeure, le signaler **À CLARIFIER**, ne pas créer de règle produit par inférence d'une capture.
 - Publier le commit et ouvrir une PR de développement **sans fusion**. Aucun fichier temporaire ni rapport de travail non demandé hors des rapports d'orchestration usuels.
 - Remettre : branche, commit, PR, diff, tests (réussis/échoués/non exécutés), risques, matrice de conformité par format, points non vérifiables sur simulateur et procédure de recette iPhone.
