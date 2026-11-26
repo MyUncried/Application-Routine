@@ -310,7 +310,9 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     // (16/11/2026) — remplacé.]
     await inSheet(0, () => {
       fireEvent.press(screen.getByTestId("execution-sheet-mode-control-REPETITIONS"));
-      expect(screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeNull();
+      // D-607 (D-572 point 5, 25/11/2026) : Superset — tableau standard par tour (identiques ou variables) de nouveau dans la modale.
+      if (model === "SUPERSET") expect(screen.getByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeTruthy();
+      else expect(screen.queryByTestId("execution-sheet-row-series-type", { includeHiddenElements: true })).toBeNull();
       fillTargets(8);
     });
     typeValue(row, "2");

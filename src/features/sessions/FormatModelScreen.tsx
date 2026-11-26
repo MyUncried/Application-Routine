@@ -1322,12 +1322,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   // « Avec charge » au questionnaire seulement, après Pause.
   function progressionTail(): React.ReactNode {
     if (model !== "PROGRESSION") return null;
+    // [Pause commune (recette n° 3 du 03/11/2026) — retirée le 25/11/2026 par D-607 (D-572 point 2, Hermann : « Progression : retirer la
+    // pause comme paramètre global ») ; la pause de chaque série reste dans le tableau.]
     return (
       <>
-        {stepRow("pauseSeconds", t().rows.pauseSeconds, {
-          fallback: movements[0] !== undefined ? basePause(movements[0].exercise) : 0,
-          last: stage === "questionnaire" && !showExecution,
-        })}
         {stage === "questionnaire" ? switchRow("withLoad", t().rows.withLoad) : null}
         {stage === "summary" ? totalRow(!showExecution) : null}
         {showExecution ? executionRow() : null}
@@ -1594,7 +1592,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       ? [answerFieldKey("startRepetitions"), answerFieldKey("increment"), ...(movements[0]!.values.loadOn === true ? [cellKey("load", 0)] : [])]
       : [];
   // Formats à tableau (15/11/2026) : lignes du cadre des paramètres (Progression : Pause comprise), puis cases du tableau.
-  const fieldOrder = [...rowFields, ...(model === "PROGRESSION" ? [answerFieldKey("pauseSeconds")] : []), ...deathBySingleFields, ...cellOrder];
+  const fieldOrder = [...rowFields, ...deathBySingleFields, ...cellOrder];
   const focusedAt = focusedCell === null ? -1 : fieldOrder.indexOf(focusedCell);
   // Recette iPhone du 16/11/2026 (Hermann, fmt-entree : « après le choix de l'unité, le focus doit aller directement sur le premier champ
   // éditable de la ligne ») : une fois la ligne rendue dans sa nouvelle unité, le clavier s'ouvre sur sa première case (Death by à un
