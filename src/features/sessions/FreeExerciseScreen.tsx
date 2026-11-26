@@ -177,7 +177,7 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
 
   return (
     <View style={styles.root} testID="free-exercise-choice">
-      <View style={{ backgroundColor: SHEET_HEADER_NEUTRAL }} testID="free-exercise-choice-context">
+      <View style={[styles.context, { backgroundColor: SHEET_HEADER_NEUTRAL }]} testID="free-exercise-choice-context">
         <View style={styles.headerTop} />
         <ModalHeader
           title={t.freeTitle}
@@ -200,6 +200,9 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
           <View key={layer.height} style={[styles.fadeLayer, { height: layer.height, opacity: layer.opacity, backgroundColor: SHEET_HEADER_NEUTRAL }]} />
         ))}
       </View>
+      {/* Recette iPhone du 26/11/2026 : le catalogue défilait par-dessus la zone de contexte. Comme au catalogue des formats, la liste
+          passe sous la zone de contexte et sous la recherche figée (fond blanc), et disparaît à leur bord. */}
+      <View style={styles.searchBand} testID="free-exercise-search-zone">
       <View style={styles.searchZone}>
         <Text style={styles.sectionLabel}>{t.freeMovement}</Text>
         <View style={styles.commands}>
@@ -271,6 +274,7 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
           </Pressable>
         </View>
       </View>
+      </View>
       <ScrollView
         style={styles.list}
         contentContainerStyle={styles.listContent}
@@ -334,14 +338,17 @@ const VALUE_COLOR = "#0508E5";
 const SEARCH_PLACEHOLDER = "#B4B8C2";
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#FFFFFF" },
+  root: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
+  // Zone de contexte, puis son fondu, puis la recherche figée, au-dessus de la liste qui défile dessous.
+  context: { zIndex: 3 },
   // Place de la poignée de la feuille des paramètres : en-tête à la même hauteur que la page.
   headerTop: { height: 12 },
   title: { fontSize: 18 },
   // Accroche des modales de type format (Mali Medium Italic 14/20, #5C636E), comme la page.
   tagline: { fontFamily: "Mali_500Medium_Italic", fontSize: 14, lineHeight: 20, color: "#5C636E", textAlign: "center", paddingHorizontal: 8, paddingBottom: 8 },
-  fade: { height: 12, marginBottom: -12, zIndex: 1 },
+  fade: { height: 12, marginBottom: -12, zIndex: 2 },
   fadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
+  searchBand: { zIndex: 1, backgroundColor: "#FFFFFF" },
   searchZone: { marginHorizontal: 16, marginTop: 12, gap: 8, marginBottom: 8 },
   sectionLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   commands: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -354,7 +361,7 @@ const styles = StyleSheet.create({
   pilesToggleOn: { borderColor: VALUE_COLOR },
   pilesGlyph: { width: 14, height: 3, borderRadius: 1.5, borderWidth: 1, borderColor: "#7A7F8C" },
   pilesGlyphOn: { borderColor: VALUE_COLOR },
-  list: { flex: 1 },
+  list: { flex: 1, overflow: "hidden" },
   listContent: { gap: 8, paddingTop: 4, paddingHorizontal: 16, paddingBottom: 24 },
   noResult: { paddingHorizontal: 4, paddingVertical: 4, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   single: { paddingLeft: 8 },
