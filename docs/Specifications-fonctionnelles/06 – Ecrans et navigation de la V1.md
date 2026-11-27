@@ -1580,7 +1580,8 @@ La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseign�
 
 Variantes partielles illustrées ci-dessous, couvertes par CE-UI-08 :
 
-- `4760:6448 — Synthèse de séance — Partielle — Évaluation initiale` ;
+- `13441:48061 — P-Synthèse de séance — Partielle — Évaluation initiale` (remplace `4760:6448`, 27/11/2026) ;
+- `13441:48253 — P-Synthèse de séance — Arrêtée — Évaluation initiale` (nouvelle, 27/11/2026) ;
 - `4760:6500 — Synthèse de séance — Partielle — Ressenti sélectionné`.
 
 #### Navigation
@@ -1619,7 +1620,17 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 ##### Synthèse de séance — Partielle — Évaluation initiale
 
-[Source Figma — `4760:6448`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4760-6448)
+[Source Figma — `13441:48061`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=13441-48061)
+
+![Synthèse de séance — Partielle — Évaluation initiale](images/figma-13441-48061.png)
+
+[Remplacé le 27/11/2026 (D-580) : présentation de l'écran de fin de séance (D-578) ; ancien identifiant `4760:6448`.]
+
+##### Synthèse de séance — Arrêtée — Évaluation initiale
+
+[Source Figma — `13441:48253`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=13441-48253)
+
+![Synthèse de séance — Arrêtée — Évaluation initiale](images/figma-13441-48253.png)
 
 
 

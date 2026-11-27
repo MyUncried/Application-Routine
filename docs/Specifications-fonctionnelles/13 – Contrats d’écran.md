@@ -4751,7 +4751,7 @@ SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, a
 
 #### 1. Identification
 
-SESSION terminée 1992:8718/8780, partielle 4760:6448/6500 ; ACTIVITY distinct CE-T03-14.
+SESSION terminée 1992:8718/8780, partielle 13441:48061 (ancien 4760:6448) / 4760:6500, arrêtée 13441:48253 (D-580) ; ACTIVITY distinct CE-T03-14.
 
 Règles applicables : RM-028, RM-076, RM-078, RM-079, RM-080, RM-081, RM-083, RM-084, RM-FMT-38, RM-235 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
