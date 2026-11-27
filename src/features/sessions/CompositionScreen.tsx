@@ -9163,12 +9163,22 @@ function LayoutDirectExercise({
 }) {
   const onLayout = useReportedBox(layoutItemKey({ kind: "EXERCISE", id: exercise.id }), frameY, context.drag?.reportBox, context.lift !== null);
   const motion = useLayoutCardMotion(exercise.id, context);
+  /*
+   * Recette iPhone du 27/11/2026 (matin), Hermann : « Créer un circuit : le premier déplacement du bord du circuit se fait en
+   * dessous des cartes qu'il survole. » Cause (code) : le cadre qui porte le trait bas est élevé (`envelopeFrameRaised`) DANS
+   * l'enveloppe de mouvement de sa carte (`CardMotionBlock`, vue native propre) ; cette élévation ne vaut qu'entre les enfants de
+   * l'enveloppe, pas devant les cartes suivantes de la liste. L'enveloppe de la carte porte désormais la même élévation.
+   */
+  const envelopeTarget = { kind: "EXERCISE", id: exercise.id } as const;
+  const edgePlacement =
+    context.envelope !== null && context.envelope.isCandidate(envelopeTarget) ? context.envelope.placementOf(envelopeTarget) : null;
+  const carriesBottomEdge = edgePlacement !== null && edgePlacement.last && edgePlacement.adjustable;
   return (
     <CardMotionBlock
       mode={motion.mode}
       gap={listGap}
       onDone={motion.onDone}
-      style={[styles.exerciseList, raised ? styles.dragElevated : null]}
+      style={[styles.exerciseList, carriesBottomEdge ? styles.envelopeFrameRaised : null, raised ? styles.dragElevated : null]}
       onLayout={onLayout}
       testID={`composition-layout-exercise-${exercise.id}`}
     >

@@ -258,3 +258,27 @@ describe("Contre-recette n° 4 (b4b-etendre) — le bord du cadre suit le trait 
     expect(screen.getByTestId("composition-envelope-exercise-c-handle-bottom")).toBeTruthy();
   });
 });
+
+/**
+ * Recette iPhone du 27/11/2026 (matin), Hermann : « Créer un circuit : le premier déplacement du bord du circuit se fait en
+ * dessous des cartes qu'il survole. » — dans une disposition générale, l'élévation du cadre qui porte le trait bas est portée
+ * par l'enveloppe de mouvement de sa carte (élément de la liste), sans quoi elle ne vaut pas devant les cartes suivantes.
+ * Jest ne prouve pas l'ordre d'affichage sur iPhone.
+ */
+describe("Recette du 27/11/2026 (matin) — le bord bas d'un périmètre passe au-dessus des cartes suivantes", () => {
+  it("disposition générale : l'enveloppe de la carte qui porte le trait bas est élevée, pas celle des cartes suivantes", async () => {
+    await renderComposition(flatDraft());
+    enter("CIRCUIT");
+    press("a");
+    await confirm();
+    expect(probe.draft!.structure).toBeDefined();
+    enter("CIRCUIT");
+    press("c");
+    expect(screen.getByTestId("composition-envelope-exercise-c-handle-bottom")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-layout-exercise-c").props.style)).toMatchObject({ zIndex: 1 });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-layout-exercise-d").props.style).zIndex).toBeUndefined();
+    // Hors mode enveloppe : aucune élévation.
+    fireEvent.press(screen.getByTestId("composition-envelope-bar-cancel"));
+    expect(StyleSheet.flatten(screen.getByTestId("composition-layout-exercise-c").props.style).zIndex).toBeUndefined();
+  });
+});
