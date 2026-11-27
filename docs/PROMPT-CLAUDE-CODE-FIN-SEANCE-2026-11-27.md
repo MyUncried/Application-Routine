@@ -15,7 +15,7 @@ Principe : un seul écran de fin de séance, trois états (terminée, partielle,
 6. **Bouton Enregistrer** : « Bouton primaire » du Design system (354 × 48), hors du cadre, en bas d'écran à sa position standard ; désactivé tant qu'aucun ressenti n'est choisi.
 7. **Accessibilité** : chaque visage est annoncé (niveau, « sélectionné », rôle) ; la couleur n'est jamais le seul indicateur (les chiffres de l'échelle sont toujours présents ; le titre dit l'état) ; l'état inactif du bouton est annoncé.
 
-**Ressenti à cinq valeurs (décidé, D-579)** : très mal, mal, neutre, bien, très bien, partout où le ressenti est saisi, enregistré ou affiché (donnée enregistrée comprise). Adapter le modèle et les lectures existantes qui supposent trois valeurs ; les ressentis déjà enregistrés restent lisibles (correspondance à choisir et à consigner dans le rapport). Aucune extension de présentation au-delà de ce que le code lit déjà.
+**Ressenti à cinq valeurs (décidé, D-579)** : très mal, mal, neutre, bien, très bien, partout où le ressenti est saisi, enregistré ou affiché (donnée enregistrée comprise). Adapter le modèle et les lectures existantes qui supposent trois valeurs ; aucune donnée à migrer (le champ n'a jamais été renseigné en production), donc aucune correspondance ancien/nouveau. Aucune extension de présentation au-delà de ce que le code lit déjà.
 
 À SIGNALER dans le rapport (À CLARIFIER, ne pas trancher) : photo (nombre, aperçu après la prise, conservation, partage) ; liste exacte des exercices et valeurs repris dans « Valeurs saisies » ; présentation des valeurs multi-tours ; écrans « Ressenti sélectionné », non redessinés.
 
