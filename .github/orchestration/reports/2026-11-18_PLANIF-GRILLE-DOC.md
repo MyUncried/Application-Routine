@@ -355,3 +355,4 @@
 - Complément (suite 22 bis, D-578) : écran de fin de séance 1992:8718 passé à trois cadres (synthèse, ressenti, douleur après + commentaires + Enregistrer en dernier) ; symbole « Séance terminée » aligné sur l'icône « Complétée » de l'Agenda. Classe B ; tests non applicables.
 - Complément (suite 22 ter, D-578) : fin de séance 1992:8718, nom de la séance retiré du cadre 1 ; intitulé de la douleur « Douleur ressentie ». Classe B ; tests non applicables.
 - Complément (suite 22 quater, D-578) : fin de séance 1992:8718 en un seul cadre vert (synthèse, ressenti, douleur, commentaire) ; Enregistrer hors cadre, taille/position standard. Classe B ; tests non applicables.
+- Complément (suite 22 quinquies, D-578) : fin de séance 1992:8718, titres « Comment s'est passée la séance ? » et « Douleur ressentie » à la taille de « Vos commentaires » (Roboto Bold 18). Classe B ; tests non applicables.
