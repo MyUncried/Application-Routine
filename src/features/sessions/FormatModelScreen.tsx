@@ -2027,7 +2027,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
         // des suggestions).
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="none"
-        automaticallyAdjustKeyboardInsets
+        // Recette iPhone du 27/11/2026 (matin), « Barre du clavier synchronisée » : modale « Paramètres d'exécution » ouverte, ses champs
+        // portent leur barre native (`InputAccessoryView`) ; React Native (`RCTScrollViewComponentView`) fait alors défiler tout
+        // défilement extérieur au champ de la hauteur du clavier — l'écran du Format, sous la modale, bougeait avec le clavier.
+        automaticallyAdjustKeyboardInsets={parametersOf === null}
         onScroll={(event) => {
           scrollY.current = event.nativeEvent.contentOffset.y;
         }}
@@ -2233,7 +2236,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
             style={styles.catalogueScroll}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="none"
-            automaticallyAdjustKeyboardInsets
+            // Recette du 27/11/2026 (matin) : immobile sous la modale « Paramètres d'exécution » (voir le défilement principal).
+            automaticallyAdjustKeyboardInsets={parametersOf === null}
             contentContainerStyle={[styles.content, { paddingBottom: actionZone.scrollReserve }]}
             testID="format-catalogue-scroll"
           >
