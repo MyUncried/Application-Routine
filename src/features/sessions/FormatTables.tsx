@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
 import { formatPrimeDuration } from "@/domain/activities/durationFormat";
 import type { ExecutionMode } from "@/domain/activities/ExecutionParameters";
@@ -16,6 +16,7 @@ import {
 import { cellDurationSeconds, composeCellEntry, formatMmss, mmssDigitsOf, type CellEntryKind, type CellEntryState } from "@/features/activities/cellEntry";
 import { strings } from "@/shared/i18n";
 import { formatDecimal } from "@/shared/i18n/format";
+import { FieldFocusFrame, fieldFocusTransform, useFieldFocusScale } from "@/shared/ui/fieldFocus";
 import { colors } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { valueFieldColors, valueFieldStyles } from "@/shared/ui/valueField";
@@ -273,7 +274,8 @@ function valueOf(kind: CellEntryKind, text: string, durationMin = DURATION_BOUND
  * Champ de valeur d'un tableau ou d'une ligne de paramètres : au repos, la valeur formatée (ou « — ») ; en saisie, la
  * composition au clavier (première frappe qui remplace, durée « MM:SS » remplie par la droite) — mêmes règles que les
  * cellules de la feuille des paramètres d'exécution (D-434, `cellEntry`). Rendu : convention unique des champs de valeur
- * (`valueField`, remarque générale e du 06/11/2026) — cadre blanc, orange ou rouge, sans liseré, valeur centrée.
+ * (`valueField`, remarque générale e du 06/11/2026) — cadre blanc, orange ou rouge, sans liseré, valeur centrée. En saisie : standard
+ * unique du focus (`fieldFocus`, recette iPhone du 27/11/2026 matin) — agrandi, liseré bleu (`${testID}-focus-frame`).
  *
  * - Dans un tableau (`width` fourni) : cadre de 44 × 24, rayon 10, marge horizontale 0, texte centré, sans fond une fois rempli ;
  *   vide : « — » rouge (`colors.danger`) sur fond rouge clair (`colors.dangerSurface`) ; charge (`load`) : texte Regular 11 sans
@@ -412,6 +414,16 @@ export function TableCell({
     alignRight ? styles.cellAlignRight : null,
   ];
   const sizerText = shown === "" ? (placeholder ?? t().dash) : shown;
+  // Recette iPhone du 27/11/2026 (matin), Hermann : « Appliquer le même principe d'affichage des champs qui ont le focus, clavier ouvert
+  // pour : - Compte à rebours - Fin de séance - les champs des tableaux des formats (la hauteur des lignes du tableau ne doit pas
+  // varier). » — standard unique du focus (`fieldFocus`) : le champ en saisie grossit (transformation seule, aucune mise en page
+  // déplacée) et porte le liseré bleu ; le fond de saisie est inchangé (jeton commun).
+  const reduceMotion = useReduceMotion();
+  const inFocus = !disabled && (active || focused);
+  const focusScale = useFieldFocusScale(inFocus, reduceMotion);
+  const focusFrame = inFocus ? (
+    <FieldFocusFrame radius={StyleSheet.flatten<TextStyle>(fieldStyle).borderRadius as number | undefined} testID={testID} />
+  ) : null;
   const input = (
     <TextInput
       ref={inputRef}
@@ -463,7 +475,10 @@ export function TableCell({
             </Text>
           </View>
         ) : null}
-        {input}
+        <Animated.View pointerEvents="box-none" style={fieldFocusTransform(focusScale)} testID={`${testID}-focus-scale`}>
+          {input}
+          {focusFrame}
+        </Animated.View>
       </View>
     );
   }
@@ -471,12 +486,13 @@ export function TableCell({
   // premier texte. La pastille d'une ligne de paramètres prend donc la largeur d'un texte invisible identique à celui affiché ; le
   // champ la recouvre exactement.
   return (
-    <View pointerEvents="box-none">
+    <Animated.View pointerEvents="box-none" style={fieldFocusTransform(focusScale)} testID={`${testID}-focus-scale`}>
       <Text style={[...fieldStyle, styles.cellSizer]} numberOfLines={1} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {sizerText}
       </Text>
       {input}
-    </View>
+      {focusFrame}
+    </Animated.View>
   );
 }
 

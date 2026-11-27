@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 
+import { fieldFocusTokens } from "@/shared/ui/fieldFocus";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors } from "@/shared/ui/tokens";
 
@@ -12,7 +13,8 @@ import { colors } from "@/shared/ui/tokens";
  * - Texte : bleu KODJO (modifiable) ; noir (non modifiable) ; gris (valeur grisée par le Format, Figma « État = Grisé »).
  * - Hauteur : celle du champ « Nombre de séries » de l'EMOM (Figma `11601:21711`, « Valeur modifiable — Tours ») : 24, soit
  *   Inter Semi Bold 13 sur une ligne de 16 et 4 de marge verticale ; rayon 10 ; marge horizontale 10.
- * - Aucun liseré, dans aucune situation.
+ * - Aucun liseré, dans aucune situation. [Recette iPhone du 27/11/2026 (matin) : sauf le liseré bleu du champ en saisie, standard
+ *   unique du focus (`fieldFocus`), décision de Hermann.]
  * - Dans les tableaux, valeur centrée dans son cadre.
  *
  * `tokens.ts` reste figé : constantes locales, comme `toVerifyColors`.
@@ -26,8 +28,11 @@ export const valueFieldColors = {
   surface: "#FFFFFF",
   toVerify: toVerifyColors.surface,
   toComplete: colors.dangerSurface,
-  /** Champ en cours de saisie (MAJ 04/11 §4.5 : la case en cours de saisie est surlignée). */
-  active: "#E8E9FF",
+  /**
+   * Champ en cours de saisie (MAJ 04/11 §4.5 : la case en cours de saisie est surlignée). Recette iPhone du 27/11/2026 (matin) :
+   * jeton du standard unique du focus (`fieldFocusTokens.surface`, #EAEAFF, celui de la modale). [#E8E9FF — remplacé.]
+   */
+  active: fieldFocusTokens.surface,
   editable: colors.primary,
   readOnly: "#141414",
   disabled: "#B4B8C2",
