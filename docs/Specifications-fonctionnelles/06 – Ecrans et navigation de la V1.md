@@ -1595,7 +1595,9 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 [Source Figma — `1992:8718`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8718)
 
-![Synthèse de séance — Terminée —  Évaluation initiale](images/ecran-10a-synthese-evaluation-initiale.png)
+![Synthèse de séance — Terminée —  Évaluation initiale](images/figma-1992-8718.png)
+
+[Remplacé le 27/11/2026 (D-578) : présentation de l'écran « Avant la séance » ; capture d'origine : `images/ecran-10a-synthese-evaluation-initiale.png`.]
 
 ##### Synthèse de séance — Terminée — Ressenti sélectionné
 
