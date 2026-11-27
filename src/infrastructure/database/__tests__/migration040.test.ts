@@ -12,8 +12,8 @@ describe("migration040 — vue retenue des photos", () => {
     await migrateDatabase(database, undefined, 39);
     await database.runAsync("INSERT INTO media_assets (id, uri, created_at, kind) VALUES ('a1', 'kodjo-media/a1.jpg', 't', 'PHOTO')");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(42);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
+    expect(DATABASE_VERSION).toBe(44);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     expect(await new SqliteMediaRepository(database).findAsset("a1")).toMatchObject({ uri: "kodjo-media/a1.jpg" });
   });
 

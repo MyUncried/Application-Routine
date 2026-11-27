@@ -152,7 +152,7 @@ async function press(testID: string) {
 async function runToEnd(advance: (seconds: number) => Promise<void>) {
   await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
   await advance(20);
-  expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+  expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
 }
 
 beforeEach(() => {
@@ -196,7 +196,8 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(await screen.findByTestId("execution-start")).toBeTruthy();
     expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
     await runToEnd(advance);
-    await press("execution-close");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toHaveLength(2);
     expect(calls[0]).toBe("release");
     expect(calls[1]).toMatch(/^dismissTo \/calendar \d{4}-\d{2}-\d{2}$/);
@@ -211,9 +212,10 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(await screen.findByTestId("execution-start")).toBeTruthy();
     // Rang 1 : sans voile, comme aujourd'hui.
     expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
-    // Recette du 19/11 au soir (s19-voile) : le premier écran présente le parcours, avec Démarrer et Retour.
-    expect((await screen.findByTestId("execution-route-1")).props.children).toEqual(["Séance 1", " · Alpha"]);
-    expect(screen.getByTestId("execution-route-2").props.children).toEqual(["Séance 2", " · Bravo"]);
+    // D-577 (27/11/2026) : première séance du parcours — écran « Avant la séance », bouton « …le parcours », avec Retour.
+    // [Recette du 19/11 au soir (s19-voile) : liste « Séance 1 · Alpha », « Séance 2 · Bravo » sur l'écran de départ — remplacé.]
+    expect(screen.getByTestId("before-session-FULL")).toBeTruthy();
+    expect(screen.getByTestId("before-session-start-label").props.children).toBe("Appuyer pour démarrer le parcours");
     expect(screen.getByTestId("execution-back")).toBeTruthy();
     await runToEnd(advance);
     // Recette du 20/11/2026 (constat F) : pas de bouton sur « Séance terminée » d'une séance intermédiaire.
@@ -230,19 +232,19 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     calls.length = 0;
     mockReplace.mockClear();
     const secondView = show(second, parseChain(second, `${first},${second}`, "2"));
-    // Voile de transition : texte exact, sur l'écran de démarrage de la séance suivante.
-    const veil = await screen.findByTestId("execution-chain-veil");
-    expect(veil.props.accessibilityLabel).toBe("Appuyer pour démarrer la 2è séance du parcours");
-    expect(screen.getByText("démarrer la 2è séance")).toBeTruthy();
-    expect(screen.getByTestId("execution-start")).toBeTruthy();
-    // Un toucher sur le voile lance la séance et fait disparaître le voile.
-    await press("execution-chain-veil");
-    expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
+    // D-577 point 4 : version « séances suivantes » (un seul cadre, sans douleur), libellé au rang calculé.
+    // [D-534 : voile de transition « Appuyer pour / démarrer la 2è séance / du parcours », toucher n'importe où — remplacé.]
+    expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
+    expect(screen.getByTestId("execution-start").props.accessibilityLabel).toBe("Appuyer pour démarrer la 2ème séance");
+    expect(screen.queryByTestId("before-session-pain-scale")).toBeNull();
+    await press("execution-start");
+    expect(screen.queryByTestId("before-session")).toBeNull();
     expect(service.current()?.plan.sessionName).toBe("Bravo");
     expect(screen.queryByTestId("execution-blocked")).toBeNull();
     await advance(20);
-    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
-    await press("execution-close");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     secondView.unmount();
@@ -254,7 +256,7 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     // Compte à rebours 3 s, exercice 5 s : la phase finale de 5 s est passée aussitôt.
     await advance(9);
-    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance terminée");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance terminée");
     expect(screen.queryByTestId("execution-close")).toBeNull();
     expect(calls).toEqual([]);
     await act(async () => {
@@ -267,12 +269,12 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
   it("dernière séance du parcours : fin habituelle, avec la « Fin de séance »", async () => {
     const { advance, show, first, second } = await setup(5);
     const view = show(second, parseChain(second, `${first},${second}`, "2"));
-    expect(await screen.findByTestId("execution-chain-veil")).toBeTruthy();
-    await press("execution-chain-veil");
+    expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
+    await press("execution-start");
     await advance(9);
-    expect(screen.queryByTestId("execution-end-status")).toBeNull();
+    expect(screen.queryByTestId("execution-end-status", { includeHiddenElements: true })).toBeNull();
     await advance(6);
-    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
     view.unmount();
   });
 
@@ -283,8 +285,9 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     await advance(4);
     await press("execution-pause");
     await press("execution-stop");
-    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
-    await press("execution-close");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance interrompue");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     view.unmount();
@@ -300,7 +303,8 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     const resumed = show(null, null);
     expect(service.current()?.plan.sessionName).toBe("Alpha");
     await advance(20);
-    await press("execution-close");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     resumed.unmount();

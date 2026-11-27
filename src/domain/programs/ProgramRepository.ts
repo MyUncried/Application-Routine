@@ -26,4 +26,13 @@ export interface ProgramRepository {
   setPainConsentAt(at: string | null): Promise<void>;
   /** Désactive le suivi de la douleur dans tous les programmes (« Retirer mon accord », D-551). */
   disablePainTrackingEverywhere(at: string): Promise<void>;
+  /**
+   * D-427 / D-577 (réponse de Hermann du 27/11/2026, « Oui il faut la stocker ») : douleur 0–10 avant la séance, rattachée à
+   * l'Exécution (`execution_pain_readings`, migration 043) ; une seule valeur par Exécution (remplacée si répétée).
+   */
+  recordPainBefore(executionId: string, value: number, at: string): Promise<void>;
+  /** Nombre de relevés de douleur enregistrés (Profil › Confidentialité, D-551). */
+  painReadingCount(): Promise<number>;
+  /** « Effacer mes relevés » (D-551) : supprime tous les relevés de douleur. */
+  erasePainReadings(): Promise<void>;
 }

@@ -7,6 +7,7 @@ import {
   type ProgramValidationIssue,
 } from "@/domain/programs/Program";
 import type { ProgramRepository } from "@/domain/programs/ProgramRepository";
+import { FEEDBACK_COMMENT_MAX, FEEDBACK_FEELINGS, type ExecutionFeedback, type ExecutionFeedbackRepository } from "@/domain/feedback/ExecutionFeedbackRepository";
 import type { PlanningService } from "@/features/planning/PlanningService";
 import type { RoutineFilterChoice } from "@/features/planning/RoutineFilterSheet";
 
@@ -67,6 +68,8 @@ export type PainTrackingState =
 
 export type ProgramServiceDeps = {
   readonly repository: ProgramRepository;
+  /** D-578 à D-581 : finalisation d'une Exécution (écran de fin de séance) ; absente dans les tests qui ne la concernent pas. */
+  readonly feedback?: ExecutionFeedbackRepository;
   readonly planning: PlanningService;
   readonly newId: () => string;
   readonly now: () => Date;
@@ -331,16 +334,58 @@ export class ProgramService {
   }
 
   /**
-   * Relevés de douleur : la saisie pendant l'exécution n'existe pas encore (hors périmètre PROG-CAT-01) ; aucun relevé n'est
-   * enregistré. « Effacer mes relevés » reste grisé tant que ce nombre est nul (Hermann, 21/11/2026, point 4).
+   * D-427 / D-577 (27/11/2026) : option douleur du lancement d'une occurrence de routine. Vraie seulement si la routine est
+   * rattachée à un Programme dont le suivi de la douleur est actif et si la date de l'occurrence (déplacée à la main, sinon d'origine)
+   * est dans la période du Programme (même règle que le rattachement de l'exécution, D-564). Un lancement hors Agenda reste standard
+   * (D-427) : l'appelant ne la demande que pour une occurrence d'origine. Lecture seule.
    */
-  painReadingCount(): Promise<number> {
-    return Promise.resolve(0);
+  async painOptionFor(routineId: string, occurrenceKey: string): Promise<boolean> {
+    const found = await this.deps.planning.getOccurrence(routineId, occurrenceKey);
+    const programId = found?.routine.programId ?? null;
+    if (found === null || programId === null) return false;
+    const program = await this.deps.repository.get(programId);
+    if (program === null || !program.painTracking) return false;
+    const date = found.occurrence.date;
+    return date >= program.startDate && date <= program.endDate;
   }
 
-  /** Effacement des relevés (confirmation développée, Hermann, 21/11/2026, point 4) : aucun stockage de relevés aujourd'hui. */
+  /**
+   * D-427 / D-577 (réponse de Hermann du 27/11/2026, « Oui il faut la stocker ») : douleur avant la séance (0–10, sans
+   * localisation), enregistrée sur l'Exécution démarrée. Parcours : appelée pour l'Exécution de chaque séance, avec la valeur
+   * saisie sur la première.
+   */
+  recordPainBefore(executionId: string, value: number): Promise<void> {
+    if (!Number.isInteger(value) || value < 0 || value > 10) return Promise.reject(new Error(`Douleur hors de 0..10 : ${value}`));
+    return this.deps.repository.recordPainBefore(executionId, value, this.stamp());
+  }
+
+  /**
+   * D-578 à D-581 / D-427 (27/11/2026) : finalisation d'une Exécution depuis l'écran de fin de séance — ressenti à cinq niveaux
+   * (obligatoire), commentaire facultatif (≤ 200 caractères, refusé au-delà, sans troncature silencieuse), douleur après la séance
+   * (0–10) si l'option du Programme la demande. Atomique et idempotente (CE-UI-08 § 15).
+   */
+  finalizeExecution(feedback: ExecutionFeedback): Promise<void> {
+    if (this.deps.feedback === undefined) return Promise.reject(new Error("Finalisation indisponible."));
+    if (!(FEEDBACK_FEELINGS as readonly string[]).includes(feedback.feeling)) return Promise.reject(new Error(`Ressenti inconnu : ${feedback.feeling}`));
+    const comment = feedback.comment === null || feedback.comment.trim() === "" ? null : feedback.comment;
+    if (comment !== null && comment.length > FEEDBACK_COMMENT_MAX) return Promise.reject(new Error("Commentaire de plus de 200 caractères."));
+    if (feedback.painAfter !== null && (!Number.isInteger(feedback.painAfter) || feedback.painAfter < 0 || feedback.painAfter > 10))
+      return Promise.reject(new Error(`Douleur hors de 0..10 : ${feedback.painAfter}`));
+    return this.deps.feedback.save({ ...feedback, comment }, this.stamp());
+  }
+
+  /**
+   * Relevés de douleur enregistrés (douleur avant la séance, migration 043). « Effacer mes relevés » reste grisé tant que ce nombre
+   * est nul (Hermann, 21/11/2026, point 4). [« La saisie pendant l'exécution n'existe pas encore […] aucun relevé n'est
+   * enregistré » (0 constant) — remplacé le 27/11/2026.]
+   */
+  painReadingCount(): Promise<number> {
+    return this.deps.repository.painReadingCount();
+  }
+
+  /** Effacement des relevés (confirmation développée, Hermann, 21/11/2026, point 4). [Sans stockage — remplacé le 27/11/2026.] */
   erasePainReadings(): Promise<void> {
-    return Promise.resolve();
+    return this.deps.repository.erasePainReadings();
   }
 
   /** Aujourd'hui en date locale, pour le statut calculé. */

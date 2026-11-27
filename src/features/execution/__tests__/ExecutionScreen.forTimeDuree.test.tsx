@@ -194,7 +194,7 @@ describe("For time — exercices en durée à l'écran (16/11/2026)", () => {
     expect(screen.getByTestId("execution-partial-held")).toHaveTextContent("Résultat00:45");
     expect(screen.getByTestId("execution-partial-cancel")).toBeTruthy();
     await press("execution-partial-validate");
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
     const results = await repository.listResults("exec-ftd");
     const element = results.find((change) => change.type === "SCOPE" && (change.result as { format?: string }).format === "FOR_TIME");
     expect(element?.result as ForTimeResult).toMatchObject({ completedActivities: 1, partialRepetitions: null, partialDurationMs: 45 * S });
@@ -214,7 +214,7 @@ describe("For time — exercices en durée à l'écran (16/11/2026)", () => {
     expect(screen.getByTestId("execution-partial-title")).toHaveTextContent("Arrêt du For Time");
     expect(screen.queryByTestId("execution-closure")).toBeNull();
     await press("execution-partial-validate");
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
     expect(service.current()?.state.finish).toMatchObject({ reason: "STOPPED", atMs: expect.any(Number) });
   });
 
@@ -229,7 +229,7 @@ describe("For time — exercices en durée à l'écran (16/11/2026)", () => {
     expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement squat");
     await press("execution-closure-validate");
     expect(screen.queryByTestId("execution-closure")).toBeNull();
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
     expect(service.current()?.state.finish).toMatchObject({ reason: "COMPLETED" });
   });
 
@@ -256,7 +256,7 @@ describe("For time — exercices en durée à l'écran (16/11/2026)", () => {
     await at(130); // la planche s'est achevée derrière la modale : écran figé
     expect(screen.getByTestId("execution-title").props.children).toBe("Mouvement planche");
     await press("execution-partial-cancel");
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
   });
 
   // Complément D-529 / CE-UI-14 validé par Hermann le 26/11/2026 : le décompte d'une Série en Durée passe en bas à droite, la charge

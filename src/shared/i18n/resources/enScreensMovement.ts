@@ -382,6 +382,8 @@ export const enScreensMovement: Pick<
       // Figma `1992:684` (documentation de main `ebe72f76`).
       sessionInitialCountdown: { label: "Workout countdown", unit: "s" },
       sessionFinalPhase: { label: "Workout end", unit: "s" },
+      // D-577 (27/11/2026).
+      showStartScreen: "Show the workout start screen",
     },
     stepper: {
       decrementAccessibilityLabel: "Decrease",

@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { Linking } from "react-native";
-import { describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, jest } from "@jest/globals";
+
+import { setStartScreenBackendForTests, startScreenStore } from "@/features/execution/startScreenStore";
 
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
 import { ProfileScreen } from "@/features/preferences/ProfileScreen";
@@ -71,6 +73,33 @@ async function renderScreen(service: ProfileService = fakeProfileService()) {
 }
 
 const t = strings.screens.profile;
+
+describe("ProfileScreen — écran de démarrage de séance (D-577)", () => {
+  afterEach(() => setStartScreenBackendForTests());
+
+  it("groupe Séance : « Afficher l'écran de démarrage de séance » en première ligne, interrupteur activé par défaut, enregistré", async () => {
+    const files = new Map<string, string>();
+    setStartScreenBackendForTests({ read: () => files.get("f") ?? null, write: (content) => void files.set("f", content) });
+    await renderScreen();
+    const group = screen.getByTestId("profile-group-session");
+    const row = screen.getByTestId("profile-preference-showStartScreen");
+    expect(row.props.accessibilityLabel).toBe("Afficher l’écran de démarrage de séance");
+    expect(row.props.accessibilityState).toEqual({ checked: true });
+    // Première ligne : avant « Compte à rebours de la séance ».
+    const ids: string[] = [];
+    const walk = (node: { props?: { testID?: string }; children?: unknown[] }) => {
+      if (typeof node !== "object" || node === null) return;
+      if (node.props?.testID !== undefined) ids.push(node.props.testID);
+      for (const child of node.children ?? []) walk(child as never);
+    };
+    walk(group as never);
+    expect(ids.indexOf("profile-preference-showStartScreen")).toBeLessThan(ids.indexOf("profile-setting-sessionInitialCountdownSecondsDefault"));
+    fireEvent.press(row);
+    expect(screen.getByTestId("profile-preference-showStartScreen").props.accessibilityState).toEqual({ checked: false });
+    expect(startScreenStore.state().showStartScreen).toBe(false);
+    expect(JSON.parse(files.get("f")!)).toEqual({ showStartScreen: false, dismissed: {} });
+  });
+});
 
 describe("ProfileScreen", () => {
   // Recette du 11/11/2026 (Hermann : « ni le contenu des préférences ou je vois encore des anciennes entrées ») :
@@ -259,9 +288,10 @@ describe("ProfileScreen", () => {
   it("renders a separator between each pair of consecutive rows, never before the first or after the last", async () => {
     await renderScreen();
 
-    // Séance : 2 lignes → 1 séparateur (Figma `1992:684`). [Exercice/Séance : 3 lignes — remplacé le 11/11/2026.]
+    // Séance : 3 lignes → 2 séparateurs (D-577, 27/11/2026 : « Afficher l'écran de démarrage de séance » en première ligne).
+    // [Séance : 2 lignes → 1 séparateur (Figma `1992:684`) — remplacé le 27/11/2026.] [Exercice/Séance : 3 lignes — remplacé le 11/11/2026.]
     const expectedDividerCountByGroup: Record<string, number> = {
-      "profile-group-session": 1,
+      "profile-group-session": 2,
     };
     for (const [groupTestID, dividerCount] of Object.entries(expectedDividerCountByGroup)) {
       expect(screen.queryByTestId(`${groupTestID}-divider-0`)).toBeNull();

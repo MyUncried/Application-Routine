@@ -39,8 +39,8 @@ describe("migration028 — guidage propre à une Séance", () => {
     );
     await migrateDatabase(database);
     // [11/11/2026 : version 29 (`migration029`) ; les colonnes de 028 restent, elles ne sont plus lues.]
-    expect(DATABASE_VERSION).toBe(42);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
+    expect(DATABASE_VERSION).toBe(44);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     expect(
       await database.getFirstAsync("SELECT guidance_sounds_enabled, guidance_voice_enabled, guidance_announce_objective FROM sessions WHERE id = 's-old'"),
     ).toEqual({ guidance_sounds_enabled: null, guidance_voice_enabled: null, guidance_announce_objective: null });

@@ -272,9 +272,9 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
     await press("execution-partial-value-7");
     await at(20); // le chrono continue derrière la modale
     await press("execution-partial-validate");
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
     // Recette du 15/11/2026 (g7) : la fin de séance partielle montre les répétitions saisies.
-    expect(screen.getByTestId("execution-end")).toHaveTextContent(/Partielle · 7 rép./);
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toHaveTextContent(/Partielle · 7 rép./);
     const results = await repository.listResults("exec-ft");
     const element = results.find((change) => change.type === "SCOPE" && (change.result as { format?: string }).format === "FOR_TIME");
     // Recette du 17/11/2026 (ft-arret-serie : « le temps enregistré doit être celui de l’instant où on a appuyé sur « Arrêt », pas
@@ -294,7 +294,7 @@ describe("PRE-11 — For time, corrections 3 et 4", () => {
     expect(screen.queryByTestId("execution-closure")).toBeNull();
     expect(screen.getByTestId("execution-partial-title")).toHaveTextContent("Arrêt du For Time");
     await press("execution-partial-validate");
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
     const results = await repository.listResults("exec-ft");
     const element = results.find((change) => change.type === "SCOPE" && (change.result as { format?: string }).format === "FOR_TIME");
     expect(element?.result as ForTimeResult).toMatchObject({ measuredMs: 50 * S, capReached: false, partialRepetitions: 5 });

@@ -1728,6 +1728,8 @@ export const fr = {
         // Figma `1992:684` (documentation de main `ebe72f76`).
         sessionInitialCountdown: { label: "Compte à rebours de la séance", unit: "s" },
         sessionFinalPhase: { label: "Fin de séance", unit: "s" },
+        // D-577 (27/11/2026) : première ligne du groupe Séance.
+        showStartScreen: "Afficher l’écran de démarrage de séance",
       },
       stepper: {
         decrementAccessibilityLabel: "Diminuer",

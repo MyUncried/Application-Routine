@@ -116,4 +116,21 @@ export class SqliteProgramRepository implements ProgramRepository {
     const owner = await this.ownerId();
     await this.database.runAsync("UPDATE programs SET pain_tracking = 0, updated_at = ? WHERE owner_id = ? AND pain_tracking = 1", [at, owner]);
   }
+
+  async recordPainBefore(executionId: string, value: number, at: string): Promise<void> {
+    await this.database.runAsync(
+      `INSERT INTO execution_pain_readings (execution_id, moment, value, recorded_at) VALUES (?, 'BEFORE', ?, ?)
+       ON CONFLICT(execution_id, moment) DO UPDATE SET value = excluded.value, recorded_at = excluded.recorded_at`,
+      [executionId, value, at],
+    );
+  }
+
+  async painReadingCount(): Promise<number> {
+    const row = await this.database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM execution_pain_readings");
+    return row?.count ?? 0;
+  }
+
+  async erasePainReadings(): Promise<void> {
+    await this.database.runAsync("DELETE FROM execution_pain_readings");
+  }
 }

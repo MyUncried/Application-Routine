@@ -13,8 +13,8 @@ describe("migration026 — catégories d'annonces", () => {
     await database.runAsync("INSERT INTO guidance_preferences (singleton_key, announce_objective_enabled, updated_at) VALUES (1, 0, 't')");
     const profileBefore = await database.getAllAsync("SELECT * FROM profiles");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(42);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
+    expect(DATABASE_VERSION).toBe(44);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     expect(await database.getAllAsync("SELECT * FROM profiles")).toEqual(profileBefore);
     const profiles = new SqliteProfileRepository(database);
     expect(await profiles.get()).toMatchObject({ announceObjectiveEnabled: false, announcePausesEnabled: true, announceSessionEnabled: true, announceSidesEnabled: true });

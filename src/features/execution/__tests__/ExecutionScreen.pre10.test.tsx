@@ -236,11 +236,12 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     // Suivant avant le terme d'une Durée : passage direct, sans confirmation (recette du 14/11/2026), Partielle.
     await press("execution-next-command");
     expect(screen.queryByTestId("execution-next-dialog")).toBeNull();
-    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance partiellement exécutée");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance partiellement exécutée");
     const stored = await database.getFirstAsync<{ status: string; business_status: string }>("SELECT status, business_status FROM executions");
     expect(stored).toEqual({ status: "FINISHED", business_status: "PARTIAL" });
     expect(service.occurrences().map((occurrence) => occurrence.status)).toEqual(["COMPLETED", "COMPLETED", "COMPLETED", "PARTIAL"]);
-    await press("execution-close");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     // Recette du 21/11/2026 : séance lancée hors Agenda — l'Agenda s'ouvre à la date de l'exécution.
     expect(mockDismissTo).toHaveBeenCalledWith(expect.objectContaining({ pathname: "/calendar" }));
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -253,7 +254,7 @@ describe("PRE-10.3 — Exécution Libre depuis l'application", () => {
     await at(10);
     await press("execution-pause");
     await press("execution-stop");
-    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance interrompue");
     expect(await database.getFirstAsync("SELECT business_status FROM executions")).toEqual({ business_status: "INTERRUPTED" });
     view.unmount();
   });
@@ -298,7 +299,7 @@ describe("fin de PRE-10 — écran maintenu actif", () => {
     await press("execution-pause");
     expect(awake).toEqual([true]);
     await press("execution-stop");
-    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
     expect(awake).toEqual([true, false]);
     view.unmount();
     expect(awake).toEqual([true, false]);

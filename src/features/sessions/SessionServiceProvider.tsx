@@ -21,6 +21,7 @@ import { PlanningServiceContext } from "@/features/planning/PlanningServiceConte
 import { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { SqliteProgramRepository } from "@/infrastructure/database/repositories/SqliteProgramRepository";
+import { SqliteExecutionFeedbackRepository } from "@/infrastructure/database/repositories/SqliteExecutionFeedbackRepository";
 import { ReminderScheduler } from "@/features/planning/ReminderScheduler";
 import { expoLocalNotifications } from "@/infrastructure/notifications/ExpoLocalNotifications";
 import { deviceScreenAwake } from "@/infrastructure/device/ScreenAwake";
@@ -190,6 +191,8 @@ function SessionServiceInitializer({
     onProgramServiceReady(
       new ProgramService({
         repository: new SqliteProgramRepository(new ExpoDatabase(nativeDatabase)),
+        // D-578 à D-581 : finalisation de l'Exécution (ressenti, commentaire, douleur après), même connexion.
+        feedback: new SqliteExecutionFeedbackRepository(new ExpoDatabase(nativeDatabase)),
         planning: planningService,
         newId: () => Crypto.randomUUID(),
         now: () => new Date(),
