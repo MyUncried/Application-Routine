@@ -3490,8 +3490,10 @@ export function ExecutionParametersSheet({
                     bouton Annuler ; les valeurs restent dans le Brouillon de la Feuille.
                     Non accessible : n'altère pas le parcours VoiceOver des lignes. */}
                 <FreeLayoutContext.Provider value={freeFormat}>
-                {/* Point B du 26/11/2026 : champ actif agrandi dans la modale (page inchangée). */}
-                <KeyboardFieldGrowContext.Provider value={pageMode ? null : keyboardFieldGrow}>
+                {/* Point B du 26/11/2026 : champ actif agrandi dans la modale. Recette iPhone du 27/11/2026 (matin), Hermann :
+                    « Exercice libre, modale paramètres d'exécution : le focus sur les champs ne respecte pas ce format » — aussi dans
+                    la page « Exercice libre » (standard unique du focus). [Page sans agrandissement ni liseré — remplacé.] */}
+                <KeyboardFieldGrowContext.Provider value={keyboardFieldGrow}>
                 <KeyboardAccessoryContext.Provider value={sheetKeyboardBar}>
                 <Pressable
                   onPress={() => dispatchSurface({ type: "outside" })}
@@ -4266,7 +4268,6 @@ function Row({
   label,
   labelNode,
   labelAccessory = null,
-  selected = false,
   longLabel = false,
   below = null,
   onLayout,
@@ -4278,6 +4279,10 @@ function Row({
   /** Recette du 01/11/2026 (m11-objectif) : rendu du titre à la place du texte simple (`CrossFadeLabel`). */
   labelNode?: ReactNode;
   labelAccessory?: ReactNode;
+  /**
+   * Ligne dont le champ est en saisie. Recette iPhone du 27/11/2026 (matin) : sans effet sur le rendu (standard unique du focus :
+   * la ligne ne change pas de couleur) ; gardée par les appelants. [Fond `colors.stepperSurface` de la ligne — retiré.]
+   */
   selected?: boolean;
   /**
    * [PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : `invalid`, ligne à compléter en rouge —
@@ -4320,8 +4325,10 @@ function Row({
         pointerEvents="none"
         // Recette iPhone du 26/11/2026 (après-midi), point B, Hermann : « La ligne n'est pas colorée au focus (contraste trop faible avec
         // le champ). » — dans la modale, la ligne d'un champ en saisie garde son fond ; le champ grossit (`KeyboardFieldGrowContext`).
-        // Page « Exercice libre » (`compact`, non citée) : inchangée. [Fond de la ligne sélectionnée dans la modale — retiré.]
-        style={[styles.selectionBackground, selected && compact ? styles.selectionBackgroundSelected : null]}
+        // [Page « Exercice libre » (`compact`, non citée) : inchangée. — remplacé :] recette iPhone du 27/11/2026 (matin), Hermann :
+        // « (la ligne change toujours de couleur, pas de liseré, pas de grossissement) » — la ligne ne change plus de couleur dans la
+        // page non plus (standard unique du focus, `fieldFocus`). [Fond de la ligne sélectionnée dans la modale, puis dans la page — retirés.]
+        style={styles.selectionBackground}
         testID={`${testID}-selection`}
       />
       {labelAccessory === null ? (
@@ -4638,9 +4645,19 @@ function SideOrderTrigger({
  * `CircuitNatureMenu`, et la largeur de « DD… → GG… » est élargie (aucun `numberOfLines` : PRE-4 story 3.8 AC7). Cause du toucher
  * perdu : hypothèse (hôte mal dimensionné, le toucher tombant sur la zone de sélection de l'option), à vérifier sur iPhone.
  */
+/*
+ * Recette iPhone du 27/11/2026 (matin), Hermann : « DD..>DG se présente toujours sur deux lignes, la deuxième est vide » ; « EMOM /
+ * For Time - Le texte Avec du changement de côté se présente dans son cadre sur une première ligne avec une deuxième vide. IL n'est
+ * plus centré verticalement. » — l'élargissement de la notation (lot 23) n'a rien changé : le texte tient dans son déclencheur ; le
+ * défaut vient de l'hôte natif dimensionné sur son contenu (`matchContents`, boucle circulaire Yoga ↔ SwiftUI), qui peut garder une
+ * taille plus haute que le déclencheur, contenu calé en haut. L'hôte prend désormais la taille FIXE de l'option (largeur de l'option,
+ * hauteur de 26) ; SwiftUI centre le libellé du menu dans ce cadre. Cause : hypothèse (Jest ne joue pas l'hôte natif), à vérifier sur
+ * iPhone. [`Host matchContents` — remplacé.]
+ */
 function NativeSideOrderMenu({ value, onChoose, testID }: { value: SideOrder | null; onChoose: (order: SideOrder) => void; testID: string }) {
+  const hostSize = { width: value === null ? INLINE_OPTION_WIDTHS.narrow : sideOrderOptionWidth(value), height: INLINE_OPTION_CONTENT_HEIGHT };
   return (
-    <Host key={value ?? "idle"} matchContents testID={`${testID}-host`}>
+    <Host key={value ?? "idle"} style={hostSize} testID={`${testID}-host`}>
       <Menu
         label={
           <RNHostView matchContents>
@@ -5148,9 +5165,8 @@ const styles = StyleSheet.create({
     right: -GROUP_PADDING,
     borderRadius: fixedRadii[12],
   },
-  selectionBackgroundSelected: {
-    backgroundColor: colors.stepperSurface,
-  },
+  // [`selectionBackgroundSelected` (fond `colors.stepperSurface` de la ligne sélectionnée) — retiré le 27/11/2026 (matin), standard
+  // unique du focus : la ligne ne change pas de couleur.]
   // [PRE-9, recette iPhone n° 2 du 31/10/2026 : `selectionBackgroundInvalid` (ligne rouge, constat a)
   // retiré le même jour (cr2-phases-rouge) ; `selectionBackgroundToVerify` (ligne orange, constat e)
   // retiré le 31/10/2026, contre-recette n° 3 (cr4-verifier) — cadre porté par le champ « n phases ».]

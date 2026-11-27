@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { Easing, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { SHEET_ROW_SHIFT_MS, SheetMotionView, useSheetMotionReduced } from "@/features/activities/SheetMotion";
+import { fieldFocusTokens } from "@/shared/ui/fieldFocus";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
@@ -62,9 +63,9 @@ const TABLE_CELL_RADIUS = 8;
 export const TABLE_CELL_GAP = 7;
 /**
  * Cellule active (relevé Figma `9292:18077` : cellule de charge en saisie, story 2.2) ;
- * partagée avec `KeyboardField`.
+ * partagée avec `KeyboardField`. Recette iPhone du 27/11/2026 (matin) : jeton du standard unique du focus (`fieldFocusTokens.surface`).
  */
-export const TABLE_CELL_ACTIVE_BACKGROUND = "#EAEAFF";
+export const TABLE_CELL_ACTIVE_BACKGROUND = fieldFocusTokens.surface;
 /**
  * Recette du 19/10 (RC-5) — ligne saisie par la poignée : opaque, fond teinté (couleur
  * existante de la Feuille, cellule active `#EAEAFF`) et légère élévation avec ombre, dès la
