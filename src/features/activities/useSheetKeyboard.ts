@@ -100,6 +100,15 @@ export const SHEET_KEYBOARD_BAR_ENABLED = Platform.OS === "ios";
 export type KeyboardFrame = { readonly screenY: number; readonly duration: number };
 
 /**
+ * Recette du 27/11/2026 (matin, DEATHBY3) — retenue du clavier pendant une alerte native : `hidden`, le clavier a disparu pendant
+ * l'alerte ; `releasing`, choix fait, retour du clavier attendu (au plus `KEYBOARD_ALERT_RETURN_MS`).
+ */
+export type AlertHold = { hidden: boolean; releasing: boolean; timer: ReturnType<typeof setTimeout> | null; readonly onEnd: () => void };
+
+/** Attente du retour du clavier après le choix dans l'alerte ; au-delà, la disparition est appliquée. */
+export const KEYBOARD_ALERT_RETURN_MS = 800;
+
+/**
  * D-434 (QD-434-2) — ordre de Précédent / Suivant : en séries variables effectives, tableau
  * déplié, chaque ligne de gauche à droite (Cible si un Mode est choisi, Pause, Charge si la
  * charge est Avec), puis la ligne suivante ; aucun champ hors du tableau. Sinon, les champs
@@ -397,6 +406,15 @@ export type SheetKeyboard = {
    * (le champ de la charge commune n'existe qu'une fois Avec appliqué au Brouillon).
    */
   focusField: (field: KeyboardFieldId) => void;
+  /**
+   * Recette iPhone du 27/11/2026 (matin, DEATHBY3, Hermann : « Il ne faut que l'écran reste tel quel pendant le message (le clavier ne
+   * disparaît pas). ») — à appeler juste avant une alerte native (`Alert.alert`) ouverte pendant une saisie qui continue (Suivant /
+   * Précédent) : l'alerte de React Native prend la fenêtre clé (`RCTAlertController`, nouvelle `UIWindow` `makeKeyAndVisible`), ce qui
+   * retire le clavier ; pendant l'alerte, cette disparition n'est pas répercutée (cadre gardé, champ non fermé). La fonction rendue,
+   * appelée au choix de l'utilisateur, rend le focus au champ voulu ; le cadre suit de nouveau le clavier à son retour (ou est retiré
+   * si le clavier ne revient pas). `onEnd` : fin de la retenue. `null` : aucune saisie qui continue (rien n'est retenu).
+   */
+  holdForAlert: (onEnd: () => void) => (() => void) | null;
   /** Défilement du corps (offset courant, pour la révélation). */
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
@@ -455,6 +473,20 @@ export function useSheetKeyboard({
   const pendingFocusRef = useRef<KeyboardFieldId | null>(null);
   const [focusRequest, setFocusRequest] = useState(0);
   const offsetRef = useRef(0);
+  // Recette du 27/11/2026 (matin, DEATHBY3) : retenue du clavier pendant une alerte native (`holdForAlert`).
+  const alertHoldRef = useRef<AlertHold | null>(null);
+  /** Recette du 27/11/2026 (matin, DEATHBY3) : fin de la retenue ; clavier non revenu → sa disparition est appliquée. */
+  const endAlertHold = () => {
+    const hold = alertHoldRef.current;
+    if (hold === null) return;
+    alertHoldRef.current = null;
+    if (hold.timer !== null) clearTimeout(hold.timer);
+    if (hold.hidden) {
+      keyboardTopRef.current = null;
+      setKeyboardFrame(null);
+    }
+    hold.onEnd();
+  };
   const reduceMotionRef = useRef(reduceMotion);
   useEffect(() => {
     reduceMotionRef.current = reduceMotion;
@@ -493,18 +525,35 @@ export function useSheetKeyboard({
     // RC-1 : cadre du clavier pour la barre — `Will` sur iOS (la barre monte avec le
     // clavier), `Did` ailleurs (Android n'émet pas les `Will`).
     const ios = Platform.OS === "ios";
-    const follow = (event: KeyboardEvent) =>
+    // Recette du 27/11/2026 (matin, DEATHBY3) : pendant une alerte native (`holdForAlert`), la disparition du clavier et ses
+    // changements de cadre ne sont pas répercutés ; après le choix, son retour l'est.
+    const held = () => alertHoldRef.current !== null && !alertHoldRef.current.releasing;
+    const follow = (event: KeyboardEvent) => {
+      if (held()) return;
       setKeyboardFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 });
+    };
     const subscriptions = [
       Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", follow),
       ...(ios ? [Keyboard.addListener("keyboardWillChangeFrame", follow)] : []),
-      Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => setKeyboardFrame(null)),
+      Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => {
+        if (alertHoldRef.current !== null) {
+          alertHoldRef.current.hidden = true;
+          return;
+        }
+        setKeyboardFrame(null);
+      }),
       // Révélation : après l'animation du clavier (course de défilement déjà ajustée).
       Keyboard.addListener("keyboardDidShow", (event) => {
+        if (held()) return;
         keyboardTopRef.current = event.endCoordinates.screenY;
+        if (alertHoldRef.current !== null) {
+          alertHoldRef.current.hidden = false;
+          endAlertHold();
+        }
         reveal();
       }),
       Keyboard.addListener("keyboardDidHide", () => {
+        if (alertHoldRef.current !== null) return;
         keyboardTopRef.current = null;
       }),
     ];
@@ -557,8 +606,9 @@ export function useSheetKeyboard({
     if (focusedRef.current !== null && sameKeyboardField(focusedRef.current, field)) focusedRef.current = null;
     const edit = editRef.current !== null && sameKeyboardField(editRef.current.field, field) ? editRef.current : null;
     if (edit !== null) editRef.current = null;
-    // Aucun passage à un autre champ (Précédent / Suivant) : c'est une fermeture.
-    const closing = wantedRef.current !== null && sameKeyboardField(wantedRef.current, field);
+    // Aucun passage à un autre champ (Précédent / Suivant) : c'est une fermeture. Recette du 27/11/2026 (matin, DEATHBY3) : sauf
+    // perte du focus causée par une alerte native (`holdForAlert`) — le champ reste voulu, son focus lui est rendu après le choix.
+    const closing = wantedRef.current !== null && sameKeyboardField(wantedRef.current, field) && alertHoldRef.current === null;
     if (closing) wantedRef.current = null;
     if (edit !== null || closing) {
       const taken = edit === null ? null : { field: edit.field, text: edit.text, initial: edit.initial };
@@ -666,6 +716,26 @@ export function useSheetKeyboard({
     inputsRef.current.get(fieldKey(focused))?.input.blur();
   }
 
+  function holdForAlert(onEnd: () => void): (() => void) | null {
+    // Aucune saisie qui continue (clavier fermé, « Fermer », appui extérieur) : la fermeture voulue suit son cours.
+    if (wantedRef.current === null || alertHoldRef.current !== null) return null;
+    const hold: AlertHold = { hidden: false, releasing: false, timer: null, onEnd };
+    alertHoldRef.current = hold;
+    return () => {
+      if (alertHoldRef.current !== hold || hold.releasing) return;
+      hold.releasing = true;
+      const wanted = wantedRef.current;
+      if (!hold.hidden || wanted === null) {
+        endAlertHold();
+        return;
+      }
+      // Focus rendu au champ voulu (le voisin choisi par Suivant / Précédent) : sans effet s'il l'a gardé (iOS le remontre alors
+      // avec la fenêtre de l'application redevenue clé).
+      inputsRef.current.get(fieldKey(wanted))?.input.focus();
+      hold.timer = setTimeout(endAlertHold, KEYBOARD_ALERT_RETURN_MS);
+    };
+  }
+
   function register(field: KeyboardFieldId, rowHeight: number) {
     const key = fieldKey(field);
     return (input: TextInput | null) => {
@@ -709,6 +779,7 @@ export function useSheetKeyboard({
       pendingFocusRef.current = field;
       setFocusRequest((request) => request + 1);
     },
+    holdForAlert,
     onScroll: (event) => {
       offsetRef.current = event.nativeEvent.contentOffset.y;
     },

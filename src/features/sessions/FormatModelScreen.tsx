@@ -93,7 +93,7 @@ import { requestFilterSheet } from "@/features/activities/filterSheetRelay";
 import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFilters, type MovementCatalogueItem } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
-import type { KeyboardFrame } from "@/features/activities/useSheetKeyboard";
+import { KEYBOARD_ALERT_RETURN_MS, type AlertHold, type KeyboardFrame } from "@/features/activities/useSheetKeyboard";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { closeCreationModals } from "@/features/sessions/creationNavigation";
 import { useFormatModelDraft } from "@/features/sessions/FormatModelDraftContext";
@@ -271,26 +271,71 @@ const CELL_REVEAL_MARGIN = 12;
  * Cadre du clavier (haut, en coordonnées de la fenêtre), `null` clavier fermé — événements `Keyboard` standards,
  * comme la feuille des paramètres d'exécution (`useSheetKeyboard`).
  */
-function useKeyboardFrame(): KeyboardFrame | null {
+function useKeyboardFrame(): {
+  readonly frame: KeyboardFrame | null;
+  /** Retenue en cours pendant une alerte native (lue par les écouteurs du clavier de l'écran). */
+  readonly alertHoldRef: React.RefObject<AlertHold | null>;
+  holdForAlert: (refocus: () => boolean) => () => void;
+} {
   const [frame, setFrame] = useState<KeyboardFrame | null>(null);
+  // Recette iPhone du 27/11/2026 (matin, DEATHBY3, Hermann : « Il ne faut que l'écran reste tel quel pendant le message (le clavier ne
+  // disparaît pas). ») : l'alerte native de React Native prend la fenêtre clé (`RCTAlertController`), ce qui retire le clavier ; pendant
+  // l'alerte, sa disparition n'est pas répercutée (cadre gardé : barre, réserve et position de l'écran inchangées). Après le choix, le
+  // focus est rendu à la case (`refocus`) et le cadre suit le retour du clavier ; s'il ne revient pas (`KEYBOARD_ALERT_RETURN_MS`), la
+  // disparition est appliquée.
+  const alertHoldRef = useRef<AlertHold | null>(null);
+  const endHold = () => {
+    const hold = alertHoldRef.current;
+    if (hold === null) return;
+    alertHoldRef.current = null;
+    if (hold.timer !== null) clearTimeout(hold.timer);
+    if (hold.hidden) setFrame(null);
+    hold.onEnd();
+  };
+  const holdForAlert = (refocus: () => boolean) => {
+    const hold: AlertHold = { hidden: false, releasing: false, timer: null, onEnd: () => undefined };
+    alertHoldRef.current = hold;
+    return () => {
+      if (alertHoldRef.current !== hold || hold.releasing) return;
+      hold.releasing = true;
+      if (!hold.hidden || !refocus()) {
+        endHold();
+        return;
+      }
+      hold.timer = setTimeout(endHold, KEYBOARD_ALERT_RETURN_MS);
+    };
+  };
   useEffect(() => {
     const ios = Platform.OS === "ios";
-    const show = Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", (event) =>
-      setFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 }),
-    );
+    const held = () => alertHoldRef.current !== null && !alertHoldRef.current.releasing;
+    const show = Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", (event) => {
+      if (held()) return;
+      setFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 });
+      if (alertHoldRef.current !== null) {
+        alertHoldRef.current.hidden = false;
+        endHold();
+      }
+    });
     const change = ios
-      ? Keyboard.addListener("keyboardWillChangeFrame", (event) =>
-          setFrame((current) => (current === null ? current : { screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 })),
-        )
+      ? Keyboard.addListener("keyboardWillChangeFrame", (event) => {
+          if (held()) return;
+          setFrame((current) => (current === null ? current : { screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 }));
+        })
       : null;
-    const hide = Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => setFrame(null));
+    const hide = Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => {
+      if (alertHoldRef.current !== null) {
+        alertHoldRef.current.hidden = true;
+        return;
+      }
+      setFrame(null);
+    });
     return () => {
       show.remove();
       change?.remove();
       hide.remove();
     };
   }, []);
-  return frame;
+  return { frame, alertHoldRef, holdForAlert };
 }
 
 
@@ -764,7 +809,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   const [searchRole, setSearchRole] = useState<"LOOP" | "BUY_IN" | "BUY_OUT" | null>(() => (firstOpening ? "LOOP" : null));
   const [query, setQuery] = useState("");
   const windowHeight = useWindowDimensions().height;
-  const keyboardFrame = useKeyboardFrame();
+  const { frame: keyboardFrame, alertHoldRef: keyboardAlertHoldRef, holdForAlert: holdKeyboardForAlert } = useKeyboardFrame();
   const reduceMotion = useReduceMotion();
   const safeBottom = initialWindowMetrics?.insets.bottom ?? 0;
   const actionZone = usePrimaryActionZone();
@@ -1186,6 +1231,11 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   const focusCell = (key: string | undefined) => {
     if (key !== undefined) cellInputs.current.get(key)?.focus();
   };
+  // Recette iPhone du 27/11/2026 (matin, DEATHBY3) : dernière case focalisée (focus rendu après une alerte native), « Fermer » demandé
+  // (aucune retenue du clavier), contrôles à faire à la sortie d'une case (alerte d'arrondi de l'incrément du Death by).
+  const lastFocusedCellRef = useRef<string | null>(null);
+  const keyboardClosingRef = useRef(false);
+  const cellBlurChecks = useRef(new Map<string, () => void>());
   const cellBinding: CellBinding = (key) => ({
     ...(cellSigns[key] !== undefined ? { sign: cellSigns[key] } : {}),
     inputRef: (input) => {
@@ -1194,10 +1244,38 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
     onFocus: () => {
       setUnitPicking(false);
       setFocusedCell(key);
+      lastFocusedCellRef.current = key;
+      keyboardClosingRef.current = false;
     },
-    onBlur: () => setFocusedCell((current) => (current === key ? null : current)),
+    onBlur: () => {
+      // Perte du focus causée par une alerte native : la case reste la case saisie (focus rendu après le choix).
+      if (keyboardAlertHoldRef.current !== null) return;
+      setFocusedCell((current) => (current === key ? null : current));
+      if (lastFocusedCellRef.current === key) lastFocusedCellRef.current = null;
+      const check = cellBlurChecks.current.get(key);
+      if (check !== undefined) {
+        cellBlurChecks.current.delete(key);
+        check();
+      }
+    },
     active: focusedCell === key,
   });
+  /**
+   * Recette iPhone du 27/11/2026 (matin, DEATHBY3, Hermann : « Il ne faut que l'écran reste tel quel pendant le message (le clavier ne
+   * disparaît pas). ») : alerte native ouverte à la sortie d'une case pendant une saisie qui continue (Suivant / Précédent) — écran
+   * gardé tel quel pendant l'alerte (`holdForAlert`), focus rendu ensuite à la case voulue. « Fermer » : la fermeture suit son cours.
+   * Rend la fonction à appeler au choix de l'utilisateur.
+   */
+  const holdScreenForAlert = (): (() => void) => {
+    if (keyboardClosingRef.current) return () => undefined;
+    return holdKeyboardForAlert(() => {
+      const key = lastFocusedCellRef.current;
+      const input = key === null ? undefined : cellInputs.current.get(key);
+      if (input === undefined || input === null) return false;
+      input.focus();
+      return true;
+    });
+  };
 
   /**
    * D-607 (D-572 point 6, Hermann, 25/11/2026) : l'Intervalle du questionnaire règle de nouveau toutes les séries de chaque mouvement
@@ -1367,7 +1445,8 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
   // revient ; il n'y a rien à restaurer. »
   useEffect(() => {
     const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", () =>
-      setMovements((current) => {
+      // Recette du 27/11/2026 (matin, DEATHBY3) : clavier retiré par une alerte native, saisie non terminée — rien n'est retiré.
+      keyboardAlertHoldRef.current !== null ? undefined : setMovements((current) => {
         let changed = false;
         const next = current.map((movement) => {
           const values = movement.values;
@@ -1381,7 +1460,7 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
       }),
     );
     return () => hide.remove();
-  }, [setMovements]);
+  }, [setMovements, keyboardAlertHoldRef]);
 
   const rows = parameterRows();
   // Complément du 5 novembre 2026 (Hermann), §12 : lignes posées au-dessus du tableau (nombre de séries, de tours, intervalle du Death by, durée de l'AMRAP),
@@ -2258,7 +2337,10 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
           canNext={focusedAt >= 0 && focusedAt < fieldOrder.length - 1}
           onPrevious={() => focusCell(fieldOrder[focusedAt - 1])}
           onNext={() => focusCell(fieldOrder[focusedAt + 1])}
-          onClose={() => Keyboard.dismiss()}
+          onClose={() => {
+            keyboardClosingRef.current = true;
+            Keyboard.dismiss();
+          }}
           animated
           units={unitsBar}
           sign={signBar}
@@ -2585,24 +2667,40 @@ export function FormatModelScreen({ stage: initialStage, model: chosenModel, onC
                 // Recette iPhone du 26/11/2026 (soir, Hermann : « l'incrément doit être un multiple de la somme des phases (message
                 // d'information avec proposition inférieure, supérieure, ou annuler). Ce n'est pas une obligation. ») : en Durée, mouvement
                 // à phases, même alerte que la modale (`incrementCycleRounding`) ; Annuler garde la saisie.
+                // Recette iPhone du 27/11/2026 (matin, DEATHBY3) : l'alerte s'ouvre à la sortie de la case (Suivant, Précédent, Fermer),
+                // sur la valeur saisie, et non plus à chaque chiffre tapé (la case transmet sa valeur à chaque frappe) ; écran et clavier
+                // gardés pendant l'alerte (`holdScreenForAlert`). [Alerte à la frappe — remplacée.]
+                const incrementKey = single ? answerFieldKey("increment") : cellKey("sinc", index);
                 const onIncrement = (value: number | null) => {
                   setIncrement(value);
-                  if (value === null || value === increment || shownMode(item) !== "DURATION") return;
-                  const cycle = workPhasesCycleSeconds(item.exercise.executionParameters.series.workPhases);
-                  const rounding = incrementCycleRounding(value, cycle, DEATH_BY_INCREMENT_MAX_SECONDS);
-                  if (rounding === null || cycle === null) return;
-                  const ft = strings.executionParameters.format;
-                  Alert.alert(
-                    ft.incrementCycleTitle,
-                    ft.incrementCycleMessage.replace("{increment}", formatPhraseDuration(value)).replace("{cycle}", formatPhraseDuration(cycle)),
-                    [
-                      ...[rounding.lowerSeconds, rounding.upperSeconds]
-                        .filter((seconds): seconds is number => seconds !== null)
-                        .map((seconds) => ({ text: ft.incrementCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: () => setIncrement(seconds) })),
-                      { text: ft.incrementCycleKeep, style: "cancel" as const },
-                    ],
-                    { cancelable: false },
-                  );
+                  if (value === increment) return;
+                  const cycle = value === null || shownMode(item) !== "DURATION" ? null : workPhasesCycleSeconds(item.exercise.executionParameters.series.workPhases);
+                  const rounding = value === null ? null : incrementCycleRounding(value, cycle, DEATH_BY_INCREMENT_MAX_SECONDS);
+                  if (value === null || rounding === null || cycle === null) {
+                    cellBlurChecks.current.delete(incrementKey);
+                    return;
+                  }
+                  cellBlurChecks.current.set(incrementKey, () => {
+                    const ft = strings.executionParameters.format;
+                    const release = holdScreenForAlert();
+                    Alert.alert(
+                      ft.incrementCycleTitle,
+                      ft.incrementCycleMessage.replace("{increment}", formatPhraseDuration(value)).replace("{cycle}", formatPhraseDuration(cycle)),
+                      [
+                        ...[rounding.lowerSeconds, rounding.upperSeconds]
+                          .filter((seconds): seconds is number => seconds !== null)
+                          .map((seconds) => ({
+                            text: ft.incrementCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)),
+                            onPress: () => {
+                              setIncrement(seconds);
+                              release();
+                            },
+                          })),
+                        { text: ft.incrementCycleKeep, style: "cancel" as const, onPress: release },
+                      ],
+                      { cancelable: false },
+                    );
+                  });
                 };
                 return [
                   numberCell(
