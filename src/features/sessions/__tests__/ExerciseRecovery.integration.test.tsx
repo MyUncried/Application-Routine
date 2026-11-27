@@ -143,7 +143,7 @@ async function useExistingMovement(id: string) {
   await settle(300);
   fireEvent.press(await screen.findByTestId(`free-exercise-card-${id}`));
   await act(async () => {
-    fireEvent.press(screen.getByTestId("free-exercise-choice-validate"));
+    fireEvent.press(screen.getByTestId("free-exercise-add"));
   });
   await settle(300);
   setDuration45();

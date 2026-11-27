@@ -82,12 +82,14 @@ function renderScreen() {
 }
 
 const validate = () => screen.getByTestId("free-exercise-choice-validate");
+// Recette iPhone du 27/11/2026 (matin) : « Ajouter ce mouvement » (zone d'action du bas) ouvre la page ; ✓ reste grisé.
+const add = () => screen.getByTestId("free-exercise-add");
 const isSelected = (testID: string) => screen.getByTestId(testID).props.accessibilityState?.selected === true;
 
 async function openPage(card: string) {
   fireEvent.press(await screen.findByTestId(card));
   await act(async () => {
-    fireEvent.press(validate());
+    fireEvent.press(add());
   });
   await screen.findByTestId("free-exercise-page");
 }
@@ -112,17 +114,26 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     expect(screen.queryByText(/Créer un mouvement/)).toBeNull();
   });
 
-  it("✓ inactif tant qu'aucun mouvement n'est choisi ; un seul mouvement à la fois", async () => {
+  it("recette 27/11 (matin) : « Ajouter ce mouvement » en bas du catalogue (zone d'action partagée), inactif sans mouvement ; ✓ toujours grisé ; un seul mouvement à la fois", async () => {
     renderScreen();
     await screen.findByTestId("free-exercise-card-mv-squats");
+    expect(screen.getByTestId("free-exercise-bottom-action")).toBeTruthy();
+    expect(add()).toHaveTextContent("Ajouter ce mouvement");
+    expect(add().props.accessibilityState).toMatchObject({ disabled: true });
     expect(validate().props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(add());
     fireEvent.press(validate());
     expect(screen.queryByTestId("free-exercise-page")).toBeNull();
     fireEvent.press(screen.getByTestId("free-exercise-card-mv-squats"));
     // Recette du 26/11 (après-midi) : le mouvement choisi est figé en première ligne, hors de la liste.
     expect(isSelected("free-exercise-pinned-mv-squats")).toBe(true);
     expect(screen.queryByTestId("free-exercise-card-mv-squats")).toBeNull();
-    expect(validate().props.accessibilityState).toMatchObject({ disabled: false });
+    // Le choix ne referme pas le catalogue : « Ajouter ce mouvement » s'active, ✓ reste grisé.
+    expect(screen.getByTestId("free-exercise-choice")).toBeTruthy();
+    expect(add().props.accessibilityState).toMatchObject({ disabled: false });
+    expect(validate().props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(validate());
+    expect(screen.queryByTestId("free-exercise-page")).toBeNull();
     fireEvent.press(screen.getByTestId("free-exercise-card-mv-gainage"));
     expect(isSelected("free-exercise-pinned-mv-gainage")).toBe(true);
     expect(screen.queryByTestId("free-exercise-pinned-mv-squats")).toBeNull();
@@ -131,7 +142,21 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     fireEvent.press(screen.getByTestId("free-exercise-pinned-mv-gainage"));
     expect(screen.queryByTestId("free-exercise-pinned")).toBeNull();
     expect(isSelected("free-exercise-card-mv-gainage")).toBe(false);
-    expect(validate().props.accessibilityState).toMatchObject({ disabled: true });
+    expect(add().props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("recette 27/11 (matin) : « Ajouter ce mouvement » valide le mouvement choisi, referme le catalogue et ouvre la page ; la liste réserve la hauteur de la zone d'action", async () => {
+    renderScreen();
+    await screen.findByTestId("free-exercise-card-mv-gainage");
+    const reserve = StyleSheet.flatten(screen.getByTestId("free-exercise-list").props.contentContainerStyle) as { paddingBottom?: number };
+    expect(reserve.paddingBottom).toBeGreaterThan(24);
+    fireEvent.press(screen.getByTestId("free-exercise-card-mv-gainage"));
+    await act(async () => {
+      fireEvent.press(add());
+    });
+    expect(await screen.findByTestId("free-exercise-page")).toBeTruthy();
+    expect(screen.queryByTestId("free-exercise-choice")).toBeNull();
+    expect(screen.getByText("Gainage lent", hidden)).toBeTruthy();
   });
 
   it("nom inexistant validé : la fiche de création s'ouvre avec ce nom ; le mouvement créé revient et ouvre la page", async () => {

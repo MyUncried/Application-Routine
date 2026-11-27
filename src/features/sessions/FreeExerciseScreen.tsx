@@ -26,6 +26,7 @@ import { strings } from "@/shared/i18n";
 import { CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { ModalHeader } from "@/shared/ui/ModalHeaderActions";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 
 /**
  * D-608 (D-573 point 5, Hermann, 26/11/2026 ; Formats § 9.10 ; registre ch07 D-571 (2) et D-573 (5) de la branche de documentation) —
@@ -106,6 +107,8 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
   );
   const listedItems = useMemo(() => (chosen === null ? items : withoutPinned(items, new Set([chosen.movement.id]))), [chosen, items]);
   const windowHeight = useWindowDimensions().height;
+  // Recette iPhone du 27/11/2026 (matin) : réserve de la zone d'action « Ajouter ce mouvement » en fin de liste.
+  const actionZone = usePrimaryActionZone();
   // Recette iPhone du 26/11/2026 (après-midi), Hermann : fiche « Tester » trouvée pour « T » et « Te », pas pour « Tes ». La
   // recherche la trouve (`rankMovements`, début de mot) ; la liste, défilée plus bas pendant « T » / « Te », gardait sa position
   // sur une liste devenue courte et les résultats restaient hors de vue. Comme au catalogue des formats (recette du 05/11/2026,
@@ -214,14 +217,15 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
       <View collapsable={false} pointerEvents="none" style={styles.sheetScrollGuard} testID="free-exercise-sheet-scroll-guard" />
       <View style={[styles.context, { backgroundColor: SHEET_HEADER_NEUTRAL }]} testID="free-exercise-choice-context">
         <View style={styles.headerTop} />
+        {/* Recette iPhone du 27/11/2026 (matin), Hermann : « Le bouton "valider" doit rester griser quand le catalogue est ouvert. » —
+            ✓ toujours inactif sur le catalogue ; le mouvement passe à la page par « Ajouter ce mouvement » (zone d'action du bas).
+            [✓ actif dès qu'un mouvement est choisi, ouvrant la page — remplacé le 27/11/2026.] */}
         <ModalHeader
           title={t.freeTitle}
           onCancel={onClose}
           cancelLabel={t.freeChooseCloseAccessibilityLabel}
-          onValidate={() => {
-            if (chosen !== null) openPage(chosen.movement, chosen.level?.rank ?? null);
-          }}
-          validateEnabled={chosen !== null}
+          onValidate={() => undefined}
+          validateEnabled={false}
           validateLabel={t.freeChooseValidateAccessibilityLabel}
           titleStyle={styles.title}
           testIDPrefix="free-exercise-choice"
@@ -334,7 +338,7 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
       <ScrollView
         ref={listRef}
         style={styles.list}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: actionZone.scrollReserve }]}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         testID="free-exercise-list"
@@ -383,6 +387,19 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
           );
         })}
       </ScrollView>
+      {/* Recette iPhone du 27/11/2026 (matin), Hermann : « Ajouter le bouton d'action en bas du catalogue "Ajouter ce mouvement". » —
+          zone d'action partagée du catalogue des formats (`format-catalogue-add`) ; inactive tant qu'aucun mouvement n'est choisi ;
+          valide le mouvement choisi et ouvre la page (le catalogue se referme). */}
+      <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="free-exercise-bottom-action">
+        <PrimaryActionButton
+          label={t.freeChooseAdd}
+          onPress={() => {
+            if (chosen !== null) openPage(chosen.movement, chosen.level?.rank ?? null);
+          }}
+          disabled={chosen === null}
+          testID="free-exercise-add"
+        />
+      </PrimaryActionZone>
     </View>
   );
 }

@@ -49,6 +49,7 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     freeBackAccessibilityLabel: "Back to movement choice",
     freeChooseCloseAccessibilityLabel: "Close free exercise",
     freeChooseValidateAccessibilityLabel: "Confirm chosen movement",
+    freeChooseAdd: "Add this movement",
     validateAccessibilityLabel: "Confirm settings",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",

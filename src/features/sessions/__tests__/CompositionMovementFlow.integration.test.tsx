@@ -168,7 +168,7 @@ async function useExistingMovement(id: string) {
   await openMenuAction(addToSession.newActivity);
   fireEvent.press(await screen.findByTestId(`free-exercise-card-${id}`));
   await act(async () => {
-    fireEvent.press(screen.getByTestId("free-exercise-choice-validate"));
+    fireEvent.press(screen.getByTestId("free-exercise-add"));
   });
   await settle(300);
   await validateFreePage();
@@ -413,7 +413,7 @@ describe("Catalogue → Créer → Exercice libre → Annuler (arbitrage du 06/1
     await settle(300);
     fireEvent.press(await screen.findByTestId("free-exercise-card-squats"));
     await act(async () => {
-      fireEvent.press(screen.getByTestId("free-exercise-choice-validate"));
+      fireEvent.press(screen.getByTestId("free-exercise-add"));
     });
     await settle(300);
     await validateFreePage();
