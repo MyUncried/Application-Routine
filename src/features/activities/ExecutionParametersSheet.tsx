@@ -879,8 +879,11 @@ export function ExecutionParametersSheet({
   const sheetMaxHeight = windowHeight - insets.top - spacing[24];
   const keyboardLiftBar = SHEET_KEYBOARD_BAR_ENABLED ? KEYBOARD_BAR_SCROLL_RESERVE : 0;
   const keyboardLiftBottomInset = insets.bottom;
+  // Recette iPhone du 27/11/2026 (matin, DEATHBY3) : hauteur du clavier gardée pendant une alerte native (`keyboard.holdForAlert`) —
+  // la feuille ne redescend pas quand l'alerte retire le clavier.
+  const keyboardHoldHeight = useSharedValue(0);
   const keyboardLiftStyle = useAnimatedStyle(() => {
-    const height = animatedKeyboard.height.get();
+    const height = Math.max(animatedKeyboard.height.get(), keyboardHoldHeight.get());
     if (height <= 0) return { transform: [{ translateY: 0 }] };
     const wanted = height - keyboardLiftBottomInset + keyboardLiftBar * Math.min(1, height / KEYBOARD_BAR_LIFT_RAMP);
     return { transform: [{ translateY: -Math.max(0, Math.min(wanted, sheetHeadroom.get())) }] };
@@ -924,15 +927,24 @@ export function ExecutionParametersSheet({
     if (rounding === null || cycleSeconds === null) return;
     const ft = strings.executionParameters.format;
     const choices = [rounding.lowerSeconds, rounding.upperSeconds].filter((seconds): seconds is number => seconds !== null);
+    // Recette iPhone du 27/11/2026 (matin, DEATHBY3, Hermann : « Il ne faut que l'écran reste tel quel pendant le message (le clavier ne
+    // disparaît pas). ») : saisie qui continue (Suivant / Précédent) — feuille et cadre du clavier gardés pendant l'alerte, focus rendu
+    // au champ voulu après le choix (`holdForAlert`).
+    const release = keyboard.holdForAlert(() => keyboardHoldHeight.set(0));
+    if (release !== null) keyboardHoldHeight.set(animatedKeyboard.height.get());
+    const done = () => release?.();
     Alert.alert(
       ft.incrementCycleTitle,
       ft.incrementCycleMessage.replace("{increment}", formatPhraseDuration(incrementSeconds)).replace("{cycle}", formatPhraseDuration(cycleSeconds)),
       [
         ...choices.map((seconds) => ({
           text: ft.incrementCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)),
-          onPress: () => setFormatSetting("incrementPerRound", seconds),
+          onPress: () => {
+            setFormatSetting("incrementPerRound", seconds);
+            done();
+          },
         })),
-        { text: ft.incrementCycleKeep, style: "cancel" as const },
+        { text: ft.incrementCycleKeep, style: "cancel" as const, onPress: done },
       ],
       { cancelable: false },
     );
