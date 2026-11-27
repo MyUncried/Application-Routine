@@ -329,3 +329,4 @@
 - Complément (suite 19 octies, D-577 point 1) : cycle libellé « 2 cycles » (et non « 2 passages · Cycle ») (Figma 8921:35275). Classe B ; tests non applicables.
 - Complément (suite 19 nonies) : espacement vertical resserré entre exercices consécutifs uniquement, autres écarts inchangés (Figma 8921:35275) ; pas de règle fonctionnelle (D).
 - Complément (suite 19 decies, D-577 point 5) : libellé « Douleur ressentie avant la séance » en gras 22 pt, comme les cycles (Figma 8921:35275). Classe B ; tests non applicables.
+- Complément (suite 19 undecies, D-577 point 5) : carte de séquence extensible vers le haut, puis défilement de la liste sous un titre (nom de la séance / du parcours) toujours visible. Le titre centré est le nom de la séance ou du parcours (et non le premier exercice) ; à confirmer. Non dessiné ; à vérifier sur iPhone. Classe B ; tests non applicables.
