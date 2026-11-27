@@ -24,7 +24,8 @@ Fond `#148061`, rayon 20, largeur 378 à x = 12, textes blancs. Toutes les polic
 
 | Élément | Style |
 |---|---|
-| Titre (nom de la séance, ou du parcours) | Roboto gras 26, centré, espace 14 au-dessus et au-dessous |
+| Titre (nom de la séance, ou du parcours) | Roboto gras 26, centré, à égale distance (23 pt) du haut du cadre et de la ligne de pointillés |
+| Séparation sous le titre | Ligne de points ronds, largeur de la liste (330 à x = 36), trait 3, blanc à 60 %, écart 8 ; 10 pt d'espace sous la ligne avant le premier élément |
 | Cycle (« 2 cycles ») | gras 22, retrait 0 |
 | Circuit / format (« 3 tours · Circuit libre », « 8 tours · TABATA ») | gras 22, retrait 18, espace avant 14 (circuit) / 18 (format) ; nom du format en majuscules ; « Circuit libre » si pas de format ; ni durée ni nature groupées/alternées |
 | Exercice | normal 22, retrait 36, puce « • » ; écart de 4 entre exercices consécutifs |
