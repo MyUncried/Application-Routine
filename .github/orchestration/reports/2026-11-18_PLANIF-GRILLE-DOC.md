@@ -321,3 +321,4 @@
 - Vérification sur iPhone à faire : défilement de la séquence sous la zone douleur ; développement existant à aligner sur D-427 (douleur obligatoire).
 - Tests : non applicables.
 - Complément (suite 19 bis, D-577 point 4) : deux versions de l'écran (première séance, séances suivantes d'un parcours) ; douleur demandée une fois, appliquée à tout le parcours. Version des séances suivantes non dessinée. Fusion avec « Exécution d'une séance — Initial — Enchaînement (proposition) » annoncée par Hermann.
+- Complément (suite 19 ter, D-577 point 5) : écran d'exécution en fond sous voile vert, contenu sur carte blanche (Figma 8921:35275).
