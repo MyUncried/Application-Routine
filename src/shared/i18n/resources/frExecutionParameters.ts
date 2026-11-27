@@ -50,6 +50,8 @@ export const executionParameters = {
     freeBackAccessibilityLabel: "Retour au choix du mouvement",
     freeChooseCloseAccessibilityLabel: "Fermer l’exercice libre",
     freeChooseValidateAccessibilityLabel: "Valider le mouvement choisi",
+    // Recette iPhone du 27/11/2026 (matin), Hermann : bouton d'action en bas du catalogue de l'exercice libre.
+    freeChooseAdd: "Ajouter ce mouvement",
     validateAccessibilityLabel: "Valider les paramètres",
     // PRE-5 story 2.4 (PR-01, FR-44) : ligne « Mode » du cadre Exécution, segmenté en ligne.
     mode: "Mode",
