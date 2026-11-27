@@ -88,6 +88,51 @@ do $$ begin
 exception when sqlstate '55000' then null; end $$;
 reset role;
 
+-- 8. CPT-35 : identités Apple et Google rattachées au même utilisateur (même e-mail) : le compte suit la connexion en cours.
+reset role;
+insert into auth.users values ('00000000-0000-0000-0000-00000000000e', 'm@example.com');
+insert into auth.identities (user_id, provider, provider_id, created_at) values
+  ('00000000-0000-0000-0000-00000000000e', 'google', 'google-sub-m', now() - interval '1 day'),
+  ('00000000-0000-0000-0000-00000000000e', 'apple', 'apple-sub-m', now());
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000e';
+do $$ declare r jsonb; begin
+  r := public.link_account('usr_phoneM', null, null, 'apple');
+  perform pg_temp.assert(r->>'provider' = 'apple' and r->>'provider_subject' = 'apple-sub-m', 'connexion Apple : compte Apple malgré une identité Google plus ancienne');
+  r := public.link_account('usr_phoneM', null, null, 'google');
+  perform pg_temp.assert(r->>'provider' = 'google' and r->>'provider_subject' = 'google-sub-m', 'connexion Google : le compte suit la dernière connexion');
+  begin
+    perform public.link_account('usr_phoneM', null, null, 'twitter');
+    raise exception 'ÉCHEC : fournisseur inconnu accepté';
+  exception when invalid_parameter_value then null; end;
+end $$;
+
+-- 9. Connexion refusée par l'app : l'utilisateur Auth sans compte est supprimé ; avec compte, rien.
+reset role;
+insert into auth.users values ('00000000-0000-0000-0000-00000000000f', 'orphan@example.com');
+insert into auth.identities (user_id, provider, provider_id) values ('00000000-0000-0000-0000-00000000000f', 'google', 'google-sub-o');
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000f';
+do $$ begin
+  perform pg_temp.assert(public.discard_unlinked_auth_user(), 'utilisateur sans compte supprimé');
+end $$;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000e';
+do $$ begin
+  perform pg_temp.assert(not public.discard_unlinked_auth_user(), 'utilisateur avec compte conservé');
+end $$;
+reset role;
+do $$ begin
+  perform pg_temp.assert(not exists (select 1 from auth.users where id = '00000000-0000-0000-0000-00000000000f'), 'orphelin effacé');
+  perform pg_temp.assert(not exists (select 1 from auth.identities where user_id = '00000000-0000-0000-0000-00000000000f'), 'identité effacée en cascade');
+  perform pg_temp.assert(exists (select 1 from auth.users where id = '00000000-0000-0000-0000-00000000000e'), 'compte conservé');
+end $$;
+set role anon;
+do $$ begin
+  perform public.discard_unlinked_auth_user();
+  raise exception 'ÉCHEC : anonyme a pu appeler discard_unlinked_auth_user';
+exception when insufficient_privilege then null; end $$;
+reset role;
+
 -- 7. Purge : registres > 90 jours supprimés, récents conservés.
 insert into public.account_deletions (auth_user_id, auth_deleted_at) values
   ('00000000-0000-0000-0000-0000000000d1', now() - interval '91 days'),

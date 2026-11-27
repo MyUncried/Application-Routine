@@ -27,6 +27,8 @@ export type DeletionRecord = {
 export type AccountSnapshot = {
   provider: "apple" | "google";
   appleTokensInvalidatedAt: string | null;
+  /** CPT-35 : identité Apple rattachée à l'utilisateur, même si le compte indique Google (dernière connexion). */
+  hasAppleIdentity: boolean;
 };
 
 /** Le service Auth n'a pas répondu : aucune conclusion ne doit être tirée. */
@@ -120,7 +122,7 @@ async function revokeIfNeeded(authUserId: string, ports: DeletionPorts): Promise
     return failure(ports, "account", error);
   }
   try {
-    if (!account || account.provider === "google") {
+    if (!account || (account.provider === "google" && !account.hasAppleIdentity)) {
       await ports.setAppleRevocation(authUserId, "not_applicable");
       return { result: "ok" };
     }

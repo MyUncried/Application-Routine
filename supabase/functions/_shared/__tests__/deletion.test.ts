@@ -17,7 +17,7 @@ const UID = "00000000-0000-0000-0000-0000000000aa";
 
 type FakeState = {
   record: DeletionRecord | null;
-  account: { provider: "apple" | "google"; appleTokensInvalidatedAt: string | null } | null;
+  account: { provider: "apple" | "google"; appleTokensInvalidatedAt: string | null; hasAppleIdentity: boolean } | null;
   localUsers: string[];
   token: { clientId: string; refreshToken: string } | null;
   authExists: boolean;
@@ -28,7 +28,7 @@ type FakeState = {
 function fake(overrides: Partial<FakeState> = {}): { state: FakeState; ports: DeletionPorts } {
   const state: FakeState = {
     record: null,
-    account: { provider: "apple", appleTokensInvalidatedAt: null },
+    account: { provider: "apple", appleTokensInvalidatedAt: null, hasAppleIdentity: true },
     localUsers: ["usr_1", "usr_2"],
     token: { clientId: "com.ankusha.kodjo", refreshToken: "rt" },
     authExists: true,
@@ -120,14 +120,26 @@ describe("runDeletion — ordre et reprise", () => {
   });
 
   it("Google : not_applicable, aucun appel de révocation", async () => {
-    const { state, ports } = fake({ account: { provider: "google", appleTokensInvalidatedAt: null }, token: null });
+    const { state, ports } = fake({ account: { provider: "google", appleTokensInvalidatedAt: null, hasAppleIdentity: false }, token: null });
     expect(await runDeletion(UID, "r", ports)).toEqual({ result: "deleted" });
     expect(state.calls).not.toContain("revoke");
     expect(state.record!.appleRevocation).toBe("not_applicable");
   });
 
+  it("CPT-35 : compte indiqué Google mais identité Apple rattachée (même e-mail) : jeton révoqué", async () => {
+    const { state, ports } = fake({ account: { provider: "google", appleTokensInvalidatedAt: null, hasAppleIdentity: true } });
+    expect(await runDeletion(UID, "r", ports)).toEqual({ result: "deleted" });
+    expect(state.calls).toContain("revoke");
+    expect(state.record!.appleRevocation).toBe("done");
+  });
+
+  it("CPT-35 : compte Google avec identité Apple sans jeton : aucune suppression sans révocation", async () => {
+    const { ports } = fake({ account: { provider: "google", appleTokensInvalidatedAt: null, hasAppleIdentity: true }, token: null });
+    expect(await runDeletion(UID, "r", ports)).toEqual({ result: "retryable_error", reason: "apple_token_missing" });
+  });
+
   it("consent-revoked sans nouvelle autorisation : not_required, purge sans révocation", async () => {
-    const { state, ports } = fake({ token: null, account: { provider: "apple", appleTokensInvalidatedAt: "t" } });
+    const { state, ports } = fake({ token: null, account: { provider: "apple", appleTokensInvalidatedAt: "t", hasAppleIdentity: true } });
     expect(await runDeletion(UID, "r", ports)).toEqual({ result: "deleted" });
     expect(state.calls).not.toContain("revoke");
     expect(state.record!.appleRevocation).toBe("not_required");
@@ -135,7 +147,7 @@ describe("runDeletion — ordre et reprise", () => {
 
   it("consent-revoked puis nouvelle autorisation : le nouveau jeton présent est révoqué", async () => {
     // Le nouveau jeton remet le marqueur à vide (store_apple_token) ; même s'il restait renseigné, un jeton présent est révoqué.
-    const { state, ports } = fake({ account: { provider: "apple", appleTokensInvalidatedAt: "ancien" }, token: { clientId: "com.ankusha.kodjo.signin", refreshToken: "nouveau" } });
+    const { state, ports } = fake({ account: { provider: "apple", appleTokensInvalidatedAt: "ancien", hasAppleIdentity: true }, token: { clientId: "com.ankusha.kodjo.signin", refreshToken: "nouveau" } });
     expect(await runDeletion(UID, "r", ports)).toEqual({ result: "deleted" });
     expect(state.calls).toContain("revoke");
     expect(state.record!.appleRevocation).toBe("done");

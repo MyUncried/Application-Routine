@@ -3,7 +3,8 @@
  *
  * Décisions : CPT-02 (compte obligatoire, hors ligne après la première connexion), CPT-03 et CPT-12 (Apple, Google),
  * CPT-08 à CPT-10 (suppression, données locales conservées), CPT-13 (fournisseur, nom, e-mail), CPT-14 (refus d'un autre
- * compte), CPT-32 (après suppression, seul le même identifiant Apple ou Google retrouve les données).
+ * compte), CPT-32 (après suppression, seul le même identifiant Apple ou Google retrouve les données), CPT-35 (identités
+ * Apple et Google de même e-mail rattachées à un seul compte : l'une ou l'autre est acceptée).
  *
  * Le service ne dépend ni de Supabase ni de SQLite : il reçoit des ports. Il n'écrit jamais dans les données métier et ne
  * réécrit jamais `users.id`.
@@ -39,7 +40,10 @@ export interface AccountStore {
   setState(state: "REAUTH_REQUIRED" | "LINKED"): Promise<void>;
   /** `DELETION_PENDING` avec le reçu ; le lien est conservé. */
   beginDeletion(receipt: string): Promise<void>;
-  /** Efface le lien et le reçu, conserve l'empreinte de l'identifiant, passe à `DELETED_ON_THIS_DEVICE`. */
+  /**
+   * Efface le lien et le reçu, conserve les empreintes des identifiants du compte supprimé (une ou plusieurs, séparées
+   * par des virgules, CPT-35), passe à `DELETED_ON_THIS_DEVICE`.
+   */
   completeDeletion(deletedProviderSubjectHash: string): Promise<void>;
   /** Vrai si le téléphone contient des données métier (installation existante). */
   hasBusinessData(): Promise<boolean>;
@@ -67,6 +71,8 @@ export type LinkResponse = {
   catalogueId: string | null;
 };
 
+export type AccountIdentity = { provider: AccountProvider; subject: string };
+
 export type DeleteResult = "deleted" | "retryable_error" | "not_authenticated" | "network";
 export type DeletionStatus = "deleted" | "in_progress" | "active" | "unknown" | "indeterminate" | "network";
 export type RefreshResult = "ok" | "transient" | "refused";
@@ -76,7 +82,12 @@ export interface AccountGateway {
   signIn(provider: AccountProvider): Promise<ProviderSession | "cancelled">;
   /** Ferme la session sur ce téléphone seulement (aucun appel réseau requis). */
   signOutLocal(): Promise<void>;
-  linkAccount(localUserId: string, givenName: string | null, familyName: string | null): Promise<LinkResponse>;
+  /** `provider` : fournisseur de la connexion en cours ; le compte retient cette identité (CPT-35). */
+  linkAccount(localUserId: string, givenName: string | null, familyName: string | null, provider: AccountProvider): Promise<LinkResponse>;
+  /** Connexion refusée par l'app : supprime l'utilisateur Auth s'il n'a pas de compte KODJO (CPT-35). */
+  discardUnlinkedUser(): Promise<void>;
+  /** Identités Apple et Google de l'utilisateur connecté (rattachées par Supabase quand l'e-mail est le même, CPT-35). */
+  currentIdentities(): Promise<AccountIdentity[]>;
   storeAppleToken(token: NonNullable<ProviderSession["appleToken"]>): Promise<void>;
   deleteAccount(receipt: string): Promise<DeleteResult>;
   deletionStatus(input: { authUserId: string; receipt?: string; localUserId?: string }): Promise<DeletionStatus>;
@@ -141,12 +152,15 @@ export class AccountService {
       // CPT-32 : même identifiant Apple ou Google, nouveau compte (l'ancien a été supprimé) : rattachement accepté.
       const sameHolder = session.provider === link.provider && session.providerSubject === link.providerSubject;
       if (!sameAccount && !sameHolder) {
+        await this.safeDiscard();
         await this.safeSignOut();
         return { kind: "refused_other_account", provider: link.provider, email: link.email };
       }
     } else if (lifecycle.state === "DELETED_ON_THIS_DEVICE" && lifecycle.deletedProviderSubjectHash) {
+      // CPT-32, CPT-35 : un des identifiants (Apple ou Google) du compte supprimé.
       const fingerprint = await subjectFingerprint(this.hasher, session.provider, session.providerSubject);
-      if (fingerprint !== lifecycle.deletedProviderSubjectHash) {
+      if (!lifecycle.deletedProviderSubjectHash.split(",").includes(fingerprint)) {
+        await this.safeDiscard();
         await this.safeSignOut();
         return { kind: "refused_deleted_account" };
       }
@@ -154,7 +168,7 @@ export class AccountService {
 
     try {
       const localUserId = await this.store.getLocalUserId();
-      const response = await this.gateway.linkAccount(localUserId, session.givenName, session.familyName);
+      const response = await this.gateway.linkAccount(localUserId, session.givenName, session.familyName, session.provider);
       if (session.appleToken) {
         try {
           await this.gateway.storeAppleToken(session.appleToken);
@@ -167,6 +181,7 @@ export class AccountService {
       return { kind: "linked" };
     } catch (error) {
       this.warn("Rattachement impossible.", error);
+      await this.safeDiscard();
       await this.safeSignOut();
       return { kind: "error" };
     }
@@ -225,9 +240,11 @@ export class AccountService {
   }
 
   private async runPursueDeletion(link: AccountLink, receipt: string): Promise<DeleteOutcome> {
+    // CPT-35 : identités du compte relevées avant la suppression, pour accepter ensuite l'une ou l'autre.
+    const identities = await this.safeIdentities();
     const result = await this.gateway.deleteAccount(receipt);
     if (result === "deleted") {
-      await this.finalizeDeletion(link);
+      await this.finalizeDeletion(link, identities);
       return "deleted";
     }
     if (result === "network") return "offline";
@@ -235,7 +252,7 @@ export class AccountService {
       // Session inutilisable (cas b1, b2) : preuve par le reçu.
       const status = await this.gateway.deletionStatus({ authUserId: link.authUserId, receipt });
       if (status === "deleted") {
-        await this.finalizeDeletion(link);
+        await this.finalizeDeletion(link, identities);
         return "deleted";
       }
       return status === "network" ? "offline" : "error";
@@ -243,10 +260,28 @@ export class AccountService {
     return "error";
   }
 
-  private async finalizeDeletion(link: AccountLink): Promise<void> {
-    const fingerprint = await subjectFingerprint(this.hasher, link.provider, link.providerSubject);
-    await this.store.completeDeletion(fingerprint);
+  private async finalizeDeletion(link: AccountLink, identities: AccountIdentity[] = []): Promise<void> {
+    const subjects = [{ provider: link.provider, subject: link.providerSubject }, ...identities];
+    const fingerprints = await Promise.all(subjects.map((identity) => subjectFingerprint(this.hasher, identity.provider, identity.subject)));
+    await this.store.completeDeletion([...new Set(fingerprints)].join(","));
     await this.safeSignOut();
+  }
+
+  private async safeIdentities(): Promise<AccountIdentity[]> {
+    try {
+      return await this.gateway.currentIdentities();
+    } catch (error) {
+      this.warn("Identités du compte illisibles.", error);
+      return [];
+    }
+  }
+
+  private async safeDiscard(): Promise<void> {
+    try {
+      await this.gateway.discardUnlinkedUser();
+    } catch (error) {
+      this.warn("Utilisateur sans compte non supprimé.", error);
+    }
   }
 
   private async safeSignOut(): Promise<void> {

@@ -7,6 +7,7 @@ import { Platform } from "react-native";
 
 import type {
   AccountGateway,
+  AccountIdentity,
   AccountProvider,
   DeleteResult,
   DeletionStatus,
@@ -20,6 +21,7 @@ import {
   classifyRefreshError,
   classifyStatusResponse,
   parseAuthCallback,
+  toIdentities,
   toLinkResponse,
   toProviderSession,
 } from "./accountMapping";
@@ -129,14 +131,26 @@ export class SupabaseAccountGateway implements AccountGateway {
     await supabaseClient().auth.signOut({ scope: "local" });
   }
 
-  async linkAccount(localUserId: string, givenName: string | null, familyName: string | null): Promise<LinkResponse> {
+  async linkAccount(localUserId: string, givenName: string | null, familyName: string | null, provider: AccountProvider): Promise<LinkResponse> {
     const { data, error } = await supabaseClient().rpc("link_account", {
       p_local_user_id: localUserId,
       p_given_name: givenName,
       p_family_name: familyName,
+      p_provider: provider,
     });
     if (error) throw error;
     return toLinkResponse(data as Record<string, unknown>);
+  }
+
+  async discardUnlinkedUser(): Promise<void> {
+    const { error } = await supabaseClient().rpc("discard_unlinked_auth_user");
+    if (error) throw error;
+  }
+
+  async currentIdentities(): Promise<AccountIdentity[]> {
+    const { data, error } = await supabaseClient().auth.getUser();
+    if (error) throw error;
+    return toIdentities(data.user);
   }
 
   async storeAppleToken(token: NonNullable<ProviderSession["appleToken"]>): Promise<void> {

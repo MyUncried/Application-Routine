@@ -4,6 +4,7 @@ import {
   AccountService,
   subjectFingerprint,
   type AccountGateway,
+  type AccountIdentity,
   type AccountLifecycle,
   type AccountLink,
   type AccountStore,
@@ -65,7 +66,9 @@ class MemoryStore implements AccountStore {
 class FakeGateway implements AccountGateway {
   nextSession: ProviderSession | "cancelled" | Error = session();
   signedOut = 0;
-  linked: { localUserId: string; givenName: string | null }[] = [];
+  linked: { localUserId: string; givenName: string | null; provider?: string }[] = [];
+  discarded = 0;
+  identities: AccountIdentity[] = [];
   storedTokens: unknown[] = [];
   deleteResults: DeleteResult[] = [];
   statusResults: DeletionStatus[] = [];
@@ -80,9 +83,15 @@ class FakeGateway implements AccountGateway {
   async signOutLocal() {
     this.signedOut += 1;
   }
-  async linkAccount(localUserId: string, givenName: string | null): Promise<LinkResponse> {
+  async discardUnlinkedUser() {
+    this.discarded += 1;
+  }
+  async currentIdentities() {
+    return this.identities;
+  }
+  async linkAccount(localUserId: string, givenName: string | null, _familyName: string | null, provider?: string): Promise<LinkResponse> {
     if (this.linkFails) throw new Error("network");
-    this.linked.push({ localUserId, givenName });
+    this.linked.push({ localUserId, givenName, provider });
     const current = this.nextSession as ProviderSession;
     return {
       authUserId: current.authUserId,
@@ -144,7 +153,7 @@ describe("porte d'entrée", () => {
 describe("rattachement R1 à R6", () => {
   it("R1 compte neuf : rattachement de l'Utilisateur local, nom et jeton Apple enregistrés", async () => {
     expect(await service.signIn("apple")).toEqual({ kind: "linked" });
-    expect(gateway.linked).toEqual([{ localUserId: "usr_phone1", givenName: "Hermann" }]);
+    expect(gateway.linked).toEqual([{ localUserId: "usr_phone1", givenName: "Hermann", provider: "apple" }]);
     expect(gateway.storedTokens).toHaveLength(1);
     expect(store.link).toMatchObject({ authUserId: "auth-x", provider: "apple", givenName: "Hermann", linkedAt: "2026-11-25T10:00:00.000Z" });
   });
@@ -171,6 +180,7 @@ describe("rattachement R1 à R6", () => {
     expect(gateway.linked).toEqual([]);
     expect(store.link?.authUserId).toBe("auth-x");
     expect(gateway.signedOut).toBe(1);
+    expect(gateway.discarded).toBe(1);
   });
 
   it("R5 : après suppression, même identifiant (compte neuf) : rattaché ; autre identifiant, neuf ou existant : refus É4-R5", async () => {
@@ -186,6 +196,36 @@ describe("rattachement R1 à R6", () => {
     gateway.nextSession = session({ authUserId: "auth-x2", providerSubject: "sub-x" });
     expect(await service.signIn("apple")).toEqual({ kind: "linked" });
     expect((await store.getLink())?.authUserId).toBe("auth-x2");
+  });
+
+  it("CPT-35 : connexion transmise au rattachement avec son fournisseur", async () => {
+    gateway.nextSession = session({ provider: "google", providerSubject: "sub-g" });
+    await service.signIn("google");
+    expect(gateway.linked.at(-1)?.provider).toBe("google");
+  });
+
+  it("CPT-35 : compte supprimé avec identités Apple et Google (même e-mail) : l'une ou l'autre est acceptée ensuite", async () => {
+    await service.signIn("apple");
+    gateway.identities = [{ provider: "apple", subject: "sub-x" }, { provider: "google", subject: "sub-g" }];
+    gateway.deleteResults = ["deleted"];
+    expect(await service.deleteAccount()).toBe("deleted");
+    expect(store.lifecycle.deletedProviderSubjectHash?.split(",")).toHaveLength(2);
+    gateway.nextSession = session({ authUserId: "auth-g", provider: "google", providerSubject: "sub-g" });
+    expect(await service.signIn("google")).toEqual({ kind: "linked" });
+  });
+
+  it("CPT-35 : identités illisibles à la suppression : l'identifiant du lien reste accepté, un autre est refusé", async () => {
+    await service.signIn("apple");
+    gateway.currentIdentities = async () => {
+      throw new Error("network");
+    };
+    gateway.deleteResults = ["deleted"];
+    expect(await service.deleteAccount()).toBe("deleted");
+    gateway.nextSession = session({ authUserId: "auth-g", provider: "google", providerSubject: "sub-g" });
+    expect(await service.signIn("google")).toEqual({ kind: "refused_deleted_account" });
+    expect(gateway.discarded).toBe(1);
+    gateway.nextSession = session({ authUserId: "auth-x3", providerSubject: "sub-x" });
+    expect(await service.signIn("apple")).toEqual({ kind: "linked" });
   });
 
   it("CPT-32 : lien présent, même titulaire avec un nouvel auth_user_id (ancien compte supprimé) : accepté", async () => {

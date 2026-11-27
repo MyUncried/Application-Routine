@@ -144,6 +144,13 @@ Incident de configuration résolu : « Supabase is not configured » au premier 
 - **Hors périmètre, à traiter à l'intégration** : renumérotation lors de la consolidation de T1 et #458 sur `main` (précédent : D-530 renuméroté à la consolidation du 24/11), et cas symétrique d'une base passée en 40 par T1, à laquelle manqueraient les colonnes `view_*` de #458.
 - Classe de synchronisation : D (technique).
 
+**Défaut des identités fusionnées — décision CPT-35 (27/11/2026)**
+- Cause **démontrée** (journaux et base Supabase ; analyse détaillée : rapport `2026-11-26_RECETTE-COMPTE-INTEGRATION.md`) : Supabase rattache automatiquement les identités Apple et Google de même e-mail vérifiée ; `link_account` retenait la plus ancienne (Google), d'où compte « Google », jeton Apple refusé (409), suppression sans révocation Apple, puis refus CPT-32 de l'identifiant Apple. L'utilisateur Auth laissé par une connexion refusée (test D-02) a rendu la fusion possible.
+- Introduction : T1 (hypothèse d'une identité par utilisateur Auth ; pas de nettoyage après refus). Détection : recette BMAD du 27/11.
+- Décision de Hermann : « A » — un seul compte KODJO par adresse e-mail (CPT-35, classe B : registre ch07, ch12).
+- Correction : migration `20261127000001_t1_merged_identities.sql` (`link_account` avec `p_provider`, `store_apple_token` sur identité Apple, `discard_unlinked_auth_user`) ; `deletion.ts` (révocation dès qu'une identité Apple existe) ; app : fournisseur transmis au rattachement, utilisateur sans compte supprimé après un refus, empreintes de toutes les identités conservées à la suppression. Tests SQL et Jest ajoutés.
+- Limite : si les identités ne peuvent pas être lues au moment de la suppression (réseau), seule l'identité du lien local est retenue.
+
 ### 5.2 Reste à faire
 
 Cahier de recette de suivi : `_bmad-output/compte/recette-T1.md` (identifiants A-01 à G-01, statuts et preuves).
