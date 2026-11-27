@@ -328,3 +328,4 @@
 - Complément (suite 19 septies, D-577 point 1) : libellés « Circuit libre » et chiffre en premier (« 2 passages · Cycle », « 3 tours · Circuit libre », « 8 tours · Tabata »), à l'essai (Figma 8921:35275). Classe B ; tests non applicables.
 - Complément (suite 19 octies, D-577 point 1) : cycle libellé « 2 cycles » (et non « 2 passages · Cycle ») (Figma 8921:35275). Classe B ; tests non applicables.
 - Complément (suite 19 nonies) : espacement vertical resserré entre exercices consécutifs uniquement, autres écarts inchangés (Figma 8921:35275) ; pas de règle fonctionnelle (D).
+- Complément (suite 19 decies, D-577 point 5) : libellé « Douleur ressentie avant la séance » en gras 22 pt, comme les cycles (Figma 8921:35275). Classe B ; tests non applicables.
