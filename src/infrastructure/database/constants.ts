@@ -216,7 +216,11 @@ export const DATABASE_NAME = "kodjo.db";
  * **Relevés de douleur (version 43, `migration043`)** : table additive `execution_pain_readings` (douleur avant la séance, D-427 /
  * D-577, réponse de Hermann du 27/11/2026). 001..042 inchangées. [Risque de collision de numéro avec une autre branche.]
  */
-export const DATABASE_VERSION = 43;
+/**
+ * **Fin de séance (version 44, `migration044`)** : table `execution_feedback` (ressenti à cinq niveaux, commentaire ; D-578 à D-581)
+ * et moment `AFTER` admis par `execution_pain_readings` (reconstruite). 001..043 inchangées.
+ */
+export const DATABASE_VERSION = 44;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

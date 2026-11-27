@@ -7,6 +7,7 @@ import {
   type ProgramValidationIssue,
 } from "@/domain/programs/Program";
 import type { ProgramRepository } from "@/domain/programs/ProgramRepository";
+import { FEEDBACK_COMMENT_MAX, FEEDBACK_FEELINGS, type ExecutionFeedback, type ExecutionFeedbackRepository } from "@/domain/feedback/ExecutionFeedbackRepository";
 import type { PlanningService } from "@/features/planning/PlanningService";
 import type { RoutineFilterChoice } from "@/features/planning/RoutineFilterSheet";
 
@@ -67,6 +68,8 @@ export type PainTrackingState =
 
 export type ProgramServiceDeps = {
   readonly repository: ProgramRepository;
+  /** D-578 à D-581 : finalisation d'une Exécution (écran de fin de séance) ; absente dans les tests qui ne la concernent pas. */
+  readonly feedback?: ExecutionFeedbackRepository;
   readonly planning: PlanningService;
   readonly newId: () => string;
   readonly now: () => Date;
@@ -354,6 +357,21 @@ export class ProgramService {
   recordPainBefore(executionId: string, value: number): Promise<void> {
     if (!Number.isInteger(value) || value < 0 || value > 10) return Promise.reject(new Error(`Douleur hors de 0..10 : ${value}`));
     return this.deps.repository.recordPainBefore(executionId, value, this.stamp());
+  }
+
+  /**
+   * D-578 à D-581 / D-427 (27/11/2026) : finalisation d'une Exécution depuis l'écran de fin de séance — ressenti à cinq niveaux
+   * (obligatoire), commentaire facultatif (≤ 200 caractères, refusé au-delà, sans troncature silencieuse), douleur après la séance
+   * (0–10) si l'option du Programme la demande. Atomique et idempotente (CE-UI-08 § 15).
+   */
+  finalizeExecution(feedback: ExecutionFeedback): Promise<void> {
+    if (this.deps.feedback === undefined) return Promise.reject(new Error("Finalisation indisponible."));
+    if (!(FEEDBACK_FEELINGS as readonly string[]).includes(feedback.feeling)) return Promise.reject(new Error(`Ressenti inconnu : ${feedback.feeling}`));
+    const comment = feedback.comment === null || feedback.comment.trim() === "" ? null : feedback.comment;
+    if (comment !== null && comment.length > FEEDBACK_COMMENT_MAX) return Promise.reject(new Error("Commentaire de plus de 200 caractères."));
+    if (feedback.painAfter !== null && (!Number.isInteger(feedback.painAfter) || feedback.painAfter < 0 || feedback.painAfter > 10))
+      return Promise.reject(new Error(`Douleur hors de 0..10 : ${feedback.painAfter}`));
+    return this.deps.feedback.save({ ...feedback, comment }, this.stamp());
   }
 
   /**

@@ -165,8 +165,8 @@ describe("PRE-11 T2 — EMOM à l'écran", () => {
     expect(screen.getByTestId("execution-title")).toHaveTextContent("Mouvement B");
     expect(service.project()?.format).toBeNull();
     await at(400); // fin de la séance : synthèse, une ligne par Série de l'EMOM
-    expect(screen.getByTestId("execution-end")).toBeTruthy();
-    expect(screen.getAllByText(/^Série [0-9]/).map((node) => node.props.children)).toEqual([
+    expect(screen.getByTestId("execution-end", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getAllByText(/^Série [0-9]/, { includeHiddenElements: true }).map((node) => node.props.children)).toEqual([
       "Série 1 · Terminée · 10 / 10 rép.",
       "Série 2 · Non terminée · 4 / 10 rép.",
       "Série 3 · Terminée · 10 / 10 rép.",

@@ -20,6 +20,7 @@ import type { ProgramService } from "@/features/programs/ProgramService";
 import { ProgramServiceContext } from "@/features/programs/ProgramServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { colors } from "@/shared/ui/tokens";
 
 import { compositionFingerprint, painColor, parsePain, sessionOutline, startScreenMode } from "../beforeSession";
 import { BeforeSessionScreen } from "../BeforeSessionScreen";
@@ -159,13 +160,16 @@ describe("BeforeSessionScreen (D-577, D-427)", () => {
     const onStart = renderScreen({ painOption: true });
     const button = screen.getByTestId("execution-start");
     expect(button.props.accessibilityState).toEqual(expect.objectContaining({ disabled: true }));
-    expect(button.props.accessibilityHint).toBe("Choisissez d’abord la douleur ressentie");
+    expect(button.props.accessibilityLabel).toBe("Appuyer pour démarrer la séance. Choisissez d’abord la douleur ressentie");
     for (let value = 0; value <= 10; value += 1) expect(screen.getByTestId(`before-session-pain-${value}`).props.accessibilityState).toEqual(expect.objectContaining({ selected: false }));
     fireEvent.press(button);
     expect(onStart).not.toHaveBeenCalled();
     expect(screen.queryByTestId("before-session-dismiss")).toBeNull();
-    // État sans choix : bouton gris, texte gris clair (DSF § 4).
-    expect(StyleSheet.flatten(button.props.style).backgroundColor).toBe("#CCD4D1");
+    // Correction du 27/11/2026 (DSF § 4-5) : un seul cadre (liste, trait fin, douleur) ; Bouton primaire du Design system, état Désactivé.
+    // [Bouton à relief 354 × 96, gris #CCD4D1 inactif — remplacé.]
+    expect(StyleSheet.flatten(button.props.style).backgroundColor).toBe(colors.disabled);
+    expect(screen.getByTestId("before-session-pain-separator")).toBeTruthy();
+    expect(screen.getAllByTestId("before-session-list-card")).toHaveLength(1);
     fireEvent.press(screen.getByTestId("before-session-pain-3"));
     expect(screen.getByTestId("before-session-pain-3").props.accessibilityState).toEqual(expect.objectContaining({ selected: true }));
     expect(StyleSheet.flatten(screen.getByTestId("before-session-pain-3").props.style)).toEqual(expect.objectContaining({ width: 40, height: 58 }));
@@ -187,6 +191,8 @@ describe("BeforeSessionScreen (D-577, D-427)", () => {
     const onStart = renderScreen();
     expect(screen.queryByTestId("before-session-pain-scale")).toBeNull();
     expect(screen.getByTestId("execution-start").props.accessibilityState).toEqual(expect.objectContaining({ disabled: false }));
+    // Correction du 27/11/2026 (DSF § 6) : case dans le second cadre accroché sous le cadre principal (#0D6950).
+    expect(StyleSheet.flatten(screen.getByTestId("before-session-attached").props.style).backgroundColor).toBe("#0D6950");
     fireEvent.press(screen.getByTestId("before-session-dismiss"));
     expect(screen.getByTestId("before-session-dismiss").props.accessibilityState).toEqual({ checked: true });
     fireEvent.press(screen.getByTestId("execution-start"));
@@ -209,16 +215,21 @@ describe("BeforeSessionScreen (D-577, D-427)", () => {
     const onStart = renderScreen({ mode: "NEXT", painOption: true, startLabel: "Appuyer pour démarrer la 2ème séance" });
     expect(screen.getAllByTestId("before-session-list-card")).toHaveLength(1);
     expect(screen.queryByTestId("before-session-start-card")).toBeNull();
+    expect(screen.queryByTestId("before-session-attached")).toBeNull();
     expect(screen.queryByTestId("before-session-pain-scale")).toBeNull();
     expect(screen.getByTestId("before-session-start-label").props.children).toBe("Appuyer pour démarrer la 2ème séance");
     fireEvent.press(screen.getByTestId("execution-start"));
     expect(onStart).toHaveBeenCalledWith(null, false);
   });
 
-  it("douleur seule : uniquement le cadre de la douleur et du départ", () => {
+  it("douleur seule : le cadre vert ne porte que la zone douleur ; bouton hors du cadre", () => {
     renderScreen({ mode: "PAIN_ONLY", painOption: true });
-    expect(screen.queryByTestId("before-session-list-card")).toBeNull();
+    expect(screen.queryByTestId("before-session-title")).toBeNull();
+    expect(screen.queryByTestId("before-session-list")).toBeNull();
+    expect(screen.queryByTestId("before-session-pain-separator")).toBeNull();
     expect(screen.getByTestId("before-session-pain-scale")).toBeTruthy();
+    const inCard = (node: { parent: unknown; props: { testID?: string } } | null): boolean => (node === null ? false : node.props.testID === "before-session-list-card" || inCard(node.parent as never));
+    expect(inCard(screen.getByTestId("execution-start") as never)).toBe(false);
   });
 
   it("voiles : blanc 50 % puis vert #1F9E7A à 35 %", () => {
@@ -277,7 +288,8 @@ async function setup() {
   const value = { service, signals: new ExecutionSignalAdapter(), screenAwake: { keepAwake: () => undefined } };
   const painOptionFor = jest.fn(async () => false);
   const recordPainBefore = jest.fn(async (_executionId: string, _value: number) => undefined);
-  const programService = { painOptionFor, recordPainBefore } as unknown as ProgramService;
+  const finalizeExecution = jest.fn(async (_feedback: unknown) => undefined);
+  const programService = { painOptionFor, recordPainBefore, finalizeExecution } as unknown as ProgramService;
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -312,7 +324,7 @@ async function setup() {
 
   const show = (sessionId: string, chain: ExecutionChain | null = null, origin: ExecutionOrigin | null = null, chainPain: number | null = null) =>
     render(<ExecutionScreen key={`${sessionId}|${chain?.rank ?? 0}`} sessionId={sessionId} chain={chain} origin={origin} chainPain={chainPain} />, { wrapper: Wrapper });
-  return { service, advance, show, first, second, sessionService, painOptionFor, recordPainBefore };
+  return { service, advance, show, first, second, sessionService, painOptionFor, recordPainBefore, finalizeExecution };
 }
 
 async function press(testID: string) {
@@ -481,6 +493,40 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     expect(screen.getByTestId("before-session-dismiss").props.accessibilityState).toEqual({ checked: false });
     await press("execution-start");
     expect(ctx.recordPainBefore).not.toHaveBeenCalled();
+    view.unmount();
+  });
+  it("D-578 : fin de séance — écran « Séance terminée » ; Enregistrer finalise l’Exécution (ressenti, commentaire, douleur après) puis quitte", async () => {
+    const ctx = await setup();
+    ctx.painOptionFor.mockResolvedValue(true);
+    const origin = { routineId: "r1", occurrenceKey: "2026-11-27T08:00" };
+    const view = ctx.show(ctx.first, null, origin);
+    await screen.findByTestId("before-session-FULL");
+    await press("before-session-pain-2");
+    await press("execution-start");
+    await ctx.advance(20);
+    expect(screen.getByTestId("end-session-COMPLETED")).toBeTruthy();
+    expect(screen.getByTestId("end-session-title").props.children).toBe("Séance terminée");
+    expect(screen.getByTestId("end-session-exercises").props.children).toBe("1 / 1");
+    expect(screen.getByTestId("end-session-pain-scale")).toBeTruthy();
+    await press("end-session-feeling-GOOD");
+    await press("end-session-pain-1");
+    await press("end-session-save");
+    expect(ctx.finalizeExecution).toHaveBeenCalledWith({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 1 });
+    expect(ctx.service.current()).toBeNull();
+    view.unmount();
+  });
+
+  it("D-580 : arrêt volontaire — écran « Séance arrêtée » (rouge)", async () => {
+    const ctx = await setup();
+    const view = ctx.show(ctx.first);
+    await screen.findByTestId("before-session-FULL");
+    await press("execution-start");
+    await ctx.advance(4);
+    await press("execution-pause");
+    await press("execution-stop");
+    expect(screen.getByTestId("end-session-STOPPED")).toBeTruthy();
+    expect(screen.getByTestId("end-session-title").props.children).toBe("Séance arrêtée");
+    expect(screen.queryByTestId("end-session-pain-scale")).toBeNull();
     view.unmount();
   });
 });

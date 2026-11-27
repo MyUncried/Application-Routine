@@ -68,8 +68,8 @@ describe("D-608 — migration 041 (HIIT admis par le stockage)", () => {
     const countsBefore = await counts();
 
     await migrateDatabase(database, () => T);
-    expect(DATABASE_VERSION).toBe(43);
-    expect(await version(database)).toBe(43);
+    expect(DATABASE_VERSION).toBe(44);
+    expect(await version(database)).toBe(44);
     expect(await counts()).toEqual(countsBefore);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
     expect(await database.getFirstAsync("SELECT origin FROM sessions WHERE id = ?", [before.id])).toEqual({ origin: "SUPERSET" });
@@ -88,7 +88,7 @@ describe("D-608 — migration 041 (HIIT admis par le stockage)", () => {
 
     // Second démarrage : sans effet.
     await migrateDatabase(database, () => T);
-    expect(await version(database)).toBe(43);
+    expect(await version(database)).toBe(44);
     expect(await database.getFirstAsync("SELECT origin FROM sessions WHERE id = ?", [created.id])).toEqual({ origin: "HIIT" });
   });
 

@@ -152,7 +152,7 @@ async function press(testID: string) {
 async function runToEnd(advance: (seconds: number) => Promise<void>) {
   await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
   await advance(20);
-  expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+  expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
 }
 
 beforeEach(() => {
@@ -196,7 +196,8 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(await screen.findByTestId("execution-start")).toBeTruthy();
     expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
     await runToEnd(advance);
-    await press("execution-close");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toHaveLength(2);
     expect(calls[0]).toBe("release");
     expect(calls[1]).toMatch(/^dismissTo \/calendar \d{4}-\d{2}-\d{2}$/);
@@ -241,8 +242,9 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(service.current()?.plan.sessionName).toBe("Bravo");
     expect(screen.queryByTestId("execution-blocked")).toBeNull();
     await advance(20);
-    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
-    await press("execution-close");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     secondView.unmount();
@@ -254,7 +256,7 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     // Compte à rebours 3 s, exercice 5 s : la phase finale de 5 s est passée aussitôt.
     await advance(9);
-    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance terminée");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance terminée");
     expect(screen.queryByTestId("execution-close")).toBeNull();
     expect(calls).toEqual([]);
     await act(async () => {
@@ -270,9 +272,9 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
     await press("execution-start");
     await advance(9);
-    expect(screen.queryByTestId("execution-end-status")).toBeNull();
+    expect(screen.queryByTestId("execution-end-status", { includeHiddenElements: true })).toBeNull();
     await advance(6);
-    expect(screen.getByTestId("execution-end-status")).toBeTruthy();
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true })).toBeTruthy();
     view.unmount();
   });
 
@@ -283,8 +285,9 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     await advance(4);
     await press("execution-pause");
     await press("execution-stop");
-    expect(screen.getByTestId("execution-end-status").props.children).toBe("Séance interrompue");
-    await press("execution-close");
+    expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance interrompue");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     view.unmount();
@@ -300,7 +303,8 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     const resumed = show(null, null);
     expect(service.current()?.plan.sessionName).toBe("Alpha");
     await advance(20);
-    await press("execution-close");
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     expect(calls).toEqual(["release", "back"]);
     expect(mockReplace).not.toHaveBeenCalled();
     resumed.unmount();

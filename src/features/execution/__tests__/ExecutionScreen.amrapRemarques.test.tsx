@@ -145,7 +145,7 @@ const textOf = (testID: string) => {
     if (Array.isArray(node)) return void node.forEach(walk);
     walk((node as { children?: unknown }).children);
   };
-  walk(screen.getByTestId(testID));
+  walk(screen.getByTestId(testID, { includeHiddenElements: true }));
   return parts.join("");
 };
 
@@ -176,7 +176,7 @@ describe("amrap-1 — AMRAP : Série grisée et synthèse par tour", () => {
     await press("execution-closure-value-6");
     await press("execution-closure-validate");
     await at(200);
-    const block = screen.getAllByTestId(/^execution-end-amrap-/)[0]!;
+    const block = screen.getAllByTestId(/^execution-end-amrap-/, { includeHiddenElements: true })[0]!;
     const text = textOf(block.props.testID as string);
     expect(text.match(/Mouvement E/g)).toHaveLength(1);
     expect(text).toContain("Tour 1 · 10 rép. · 00:30");
@@ -196,7 +196,7 @@ describe("amrap-1 — AMRAP : Série grisée et synthèse par tour", () => {
     await press("execution-closure-value-4");
     await press("execution-closure-validate");
     await at(130);
-    const block = screen.getAllByTestId(/^execution-end-tour-/);
+    const block = screen.getAllByTestId(/^execution-end-tour-/, { includeHiddenElements: true });
     expect(block).toHaveLength(2);
     const tour1 = textOf(block[0]!.props.testID as string);
     expect(tour1).toContain("Tour 1");

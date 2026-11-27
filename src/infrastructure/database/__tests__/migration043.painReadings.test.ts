@@ -22,8 +22,8 @@ describe("migration043 — relevés de douleur", () => {
   it("base neuve : version 43, table vide", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(43);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 43 });
+    expect(DATABASE_VERSION).toBe(44);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     expect(await new SqliteProgramRepository(database).painReadingCount()).toBe(0);
   });
 
@@ -32,7 +32,7 @@ describe("migration043 — relevés de douleur", () => {
     await migrateDatabase(database, undefined, 42);
     await seedExecution(database, "exec-1");
     await migrateDatabase(database);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 43 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM executions")).toEqual({ count: 1 });
     const repository = new SqliteProgramRepository(database);
     await repository.recordPainBefore("exec-1", 4, "2026-11-27T08:00:00.000Z");

@@ -67,6 +67,9 @@ import { strings } from "@/shared/i18n";
 import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
 import { compositionFingerprint, sessionOutline, startScreenMode } from "./beforeSession";
 import { BeforeSessionScreen } from "./BeforeSessionScreen";
+import { capturedValues, endStateOf, exerciseTally, plannedExerciseCount } from "./endSession";
+import { EndSessionScreen } from "./EndSessionScreen";
+import { SESSION_CAMERA_IN_BUILD, takeSessionPhoto } from "@/infrastructure/media/SessionPhotoCamera";
 import { startScreenStore } from "./startScreenStore";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { formatClock } from "./executionStrings";
@@ -246,14 +249,15 @@ export function ExecutionScreen({
   }, [active, service, sessionId]);
 
   // —————————————————————————————— écran « Avant la séance » (D-577, D-427, 27/11/2026)
-  // Option douleur : lancement depuis une occurrence de routine rattachée à un Programme dont le suivi est actif (D-427) ; jamais
-  // pour les séances suivantes d'un parcours (douleur demandée une seule fois). `null` : en cours de lecture.
+  // Option douleur : lancement depuis une occurrence de routine rattachée à un Programme dont le suivi est actif (D-427). Avant la
+  // séance, elle n'est demandée que sur la première séance d'un parcours (`startScreenMode`) ; à la fin de la séance (D-578), à
+  // chaque séance concernée. `null` : en cours de lecture.
   const programService = useOptionalProgramService();
   const chainRankOrOne = chain?.rank ?? 1;
   const [painLookup, setPainLookup] = useState<boolean | null>(null);
   const originRoutineId = origin?.routineId ?? null;
   const originOccurrenceKey = origin?.occurrenceKey ?? null;
-  const painLookupNeeded = chainRankOrOne < 2 && originRoutineId !== null && originOccurrenceKey !== null && programService !== null;
+  const painLookupNeeded = originRoutineId !== null && originOccurrenceKey !== null && programService !== null;
   useEffect(() => {
     if (!painLookupNeeded || originRoutineId === null || originOccurrenceKey === null || programService === null) return;
     let cancelled = false;
@@ -763,7 +767,7 @@ export function ExecutionScreen({
         </View>
       );
     };
-    return (
+    const endView = (
       <View style={[styles.screen, paddings]} testID="execution-end">
         <Text style={styles.sessionName}>{active.plan.sessionName}</Text>
         <Text
@@ -837,6 +841,36 @@ export function ExecutionScreen({
             <Text style={styles.startLabel}>{t.close}</Text>
           </Pressable>
         )}
+      </View>
+    );
+    // D-578 à D-581 (27/11/2026) : écran de fin de séance posé au-dessus de l'écran de la séance (rendu en fond, inerte). Une séance
+    // intermédiaire d'un parcours terminée normalement garde sa transition automatique (D-534, recette du 20/11/2026) : pas d'écran de
+    // fin. [À CLARIFIER : ressenti des séances intermédiaires d'un parcours.]
+    if (intermediate && endedNormally) return endView;
+    const values = capturedValues(active.plan, occurrences, partials, (key) => planLeafOf(active.plan, key));
+    const tally = exerciseTally(occurrences, plannedExerciseCount(prepared?.status === "ready" ? prepared.snapshot : null));
+    const executionId = active.executionId;
+    return (
+      <View style={styles.beforeSessionHost} testID="execution-end-host">
+        <View style={styles.beforeSessionHost} pointerEvents="none">
+          {endView}
+        </View>
+        <EndSessionScreen
+          state={endStateOf(active.businessStatus)}
+          startedAt={new Date(active.state.startedAtMs ?? service.now())}
+          now={new Date(service.now())}
+          durationMs={projection?.sessionElapsedMs ?? 0}
+          done={tally.done}
+          total={tally.total}
+          values={values}
+          painOption={painOption === true}
+          cameraAvailable={SESSION_CAMERA_IN_BUILD}
+          onTakePhoto={takeSessionPhoto}
+          onSave={async (input) => {
+            if (programService !== null) await programService.finalizeExecution({ executionId, ...input });
+            close();
+          }}
+        />
       </View>
     );
   }

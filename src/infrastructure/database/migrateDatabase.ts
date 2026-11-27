@@ -44,6 +44,7 @@ import { applyMigration040, MIGRATION_040_MEDIA_VIEW } from "./migrations/migrat
 import { applyMigration041 } from "./migrations/migration041";
 import { applyMigration042, MIGRATION_042_ACCOUNT } from "./migrations/migration042";
 import { applyMigration043, MIGRATION_043_PAIN_READINGS } from "./migrations/migration043";
+import { applyMigration044, MIGRATION_044_FEEDBACK } from "./migrations/migration044";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -431,6 +432,13 @@ export async function migrateDatabase(
       version = 43;
     }
 
+    // D-578 à D-581 / D-427 (27/11/2026) : fin de séance — ressenti à cinq niveaux et commentaire, douleur après la séance.
+    // Un échec laisse `user_version` à 43.
+    if (pending(43)) {
+      await applyMigration044(transaction);
+      version = 44;
+    }
+
     if (version !== targetVersion) {
       throw new Error(`Database migration stopped at version ${version} instead of ${targetVersion}.`);
     }
@@ -483,6 +491,8 @@ async function repairMissingTables(database: Database, version: number): Promise
   if (version >= 40 && (missing("account_link") || missing("account_lifecycle"))) statements.push(MIGRATION_042_ACCOUNT);
   // Version 43 prise par une autre branche (collision de numéro) : table des relevés de douleur créée telle que 043 la crée.
   if (version >= 43 && missing("execution_pain_readings")) statements.push(MIGRATION_043_PAIN_READINGS);
+  // Version 44 prise par une autre branche : table du ressenti créée telle que 044 la crée.
+  if (version >= 44 && missing("execution_feedback")) statements.push(MIGRATION_044_FEEDBACK);
   // Cas symétrique (intégration du 26/11/2026) : base passée en version 40 par `compte/lot-1` (tables du compte), sans les
   // colonnes de la vue retenue d'une photo (040 du marquage). Colonnes absentes : ajoutées telles que 040 les ajoute.
   if (version >= 40 && !missing("media_assets")) {

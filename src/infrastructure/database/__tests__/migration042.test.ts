@@ -23,8 +23,8 @@ describe("migration042 — compte (T1)", () => {
   it("base neuve : version 42, état NEVER_LINKED, aucun lien", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(43);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 43 });
+    expect(DATABASE_VERSION).toBe(44);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     const accounts = new SqliteAccountRepository(database);
     expect(await accounts.getLink()).toBeNull();
     expect(await accounts.getLifecycle()).toEqual({ state: "NEVER_LINKED", deletionReceipt: null, deletedProviderSubjectHash: null });
@@ -45,7 +45,7 @@ describe("migration042 — compte (T1)", () => {
 
     await migrateDatabase(database);
 
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 43 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
     for (const table of tables) {
       expect((await database.getFirstAsync<CountRow>(`SELECT COUNT(*) AS count FROM ${table}`))!.count).toBe(before[table]);
     }
