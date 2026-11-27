@@ -107,8 +107,8 @@ Classe **B** (constats explicites de Hermann) :
 
 ## Résultat Jest
 
-(complété après exécution)
+`npx jest -w 1 --workerIdleMemoryLimit=800MB src/features/activities/__tests__/useSheetKeyboard src/features/activities/__tests__/ExecutionParametersSheet src/features/sessions/__tests__/FreeExerciseScreen src/features/sessions/__tests__/FormatModelScreen` : **27 suites vertes sur 27, 623 tests verts, 33 ignorés (déjà ignorés), 0 échec**, dont le nouveau `useSheetKeyboard.glide2711` (10 tests). Passe complète non lancée (consigne du brief).
 
 ## Commit final et état Git
 
-Renseignés dans le message de livraison (commit de ce rapport sur `fix/recette-28-clavier2`, poussé sur `origin`).
+- Commit de code et de documentation : `190cbb8f8` ; ce rapport complété dans le commit documentaire suivant sur `fix/recette-28-clavier2`, poussé sur `origin`. État final : arbre propre.
