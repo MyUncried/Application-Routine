@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type Dispatch, type RefObject } from "react";
 import {
+  Dimensions,
   Keyboard,
   Platform,
   type KeyboardEvent,
@@ -201,6 +202,35 @@ export function keyboardBodyReserve(bodyBottom: number, keyboardTop: number | nu
 }
 
 /**
+ * Recette iPhone du 27/11/2026 (matin), « Barre du clavier synchronisée », Hermann : « L'apparition du clavier n'est plus synchronisée
+ * avec le défilement de l'écran (c'est variable d'un format à l'autre) » ; « L'écran se déplace vers le haut en un mouvement saccadé » ;
+ * « composition de séance : l'écran saute vers le bas à la fermeture du clavier au lieu de glisser de manière synchronisée. » —
+ * défilement du corps porté par la course du clavier : avancement (0 → 1) d'un défilement commencé quand le clavier était à
+ * `startHeight` et qui finit avec lui à `endHeight` (hauteurs `useAnimatedKeyboard`, fil UI). Fonction worklet.
+ */
+export function keyboardGlideProgress(height: number, startHeight: number, endHeight: number): number {
+  "worklet";
+  const span = endHeight - startHeight;
+  if (Math.abs(span) < 1) return 1;
+  return Math.min(1, Math.max(0, (height - startHeight) / span));
+}
+
+/**
+ * Recette du 27/11/2026 (matin) : défilement du corps fourni par la Feuille, synchronisé sur le clavier natif (iOS).
+ * - `bodyTopAt` : haut du corps défilant (fenêtre) une fois le clavier arrivé (haut à `keyboardTop`), connaissant le haut mesuré
+ *   maintenant (`measuredBodyTop`, modale en cours de remontée : la Feuille le déduit de sa mise en page, sans la translation) ;
+ * - `restingOffset` : défilement maximal sans la marge du clavier (fermeture) ;
+ * - `start` : défilement de `from` à `to`, porté par la course restante du clavier jusqu'à la hauteur `endHeight` ;
+ * - `stop` : fin du suivi (clavier arrivé).
+ */
+export type SheetKeyboardGlide = {
+  readonly bodyTopAt: (keyboardTop: number, measuredBodyTop: number) => number;
+  readonly restingOffset: (offset: number) => number;
+  readonly start: (from: number, to: number, endHeight: number) => void;
+  readonly stop: () => void;
+};
+
+/**
  * Sortie d'un champ de charge (AD-19, §9-10) : texte illisible ou négatif → Brouillon
  * inchangé (valeur précédente) ; vide → 0 ; sinon la valeur, arrondie par la transition.
  * Si la charge du champ ne change pas, le Brouillon est rendu tel quel (aucune transition,
@@ -370,6 +400,11 @@ export type SheetKeyboard = {
   readonly activeField: KeyboardFieldId | null;
   /** Clavier affiché (cadre suivi par les événements `Keyboard`), ou `null`. */
   readonly keyboardFrame: KeyboardFrame | null;
+  /**
+   * Recette du 27/11/2026 (matin) : cadre du clavier gardé jusqu'à sa disparition complète (`keyboardDidHide`) — marge de défilement
+   * du corps retirée seulement une fois le défilement de fermeture terminé, sans saut.
+   */
+  readonly insetFrame: KeyboardFrame | null;
   /** RC-1 : barre Précédent / Suivant / « Fermer » à rendre (clavier affiché pour un champ numérique, iOS). */
   readonly accessoryVisible: boolean;
   /** D-434 : « À l'échec » rendu dans la barre (cellule Cible d'une ligne). */
@@ -428,6 +463,7 @@ export function useSheetKeyboard({
   scrollRef,
   reduceMotion,
   scalars = NO_SCALARS,
+  glide,
 }: {
   draft: ExecutionSheetDraft;
   surface: SheetSurfaceState;
@@ -439,6 +475,8 @@ export function useSheetKeyboard({
   reduceMotion: boolean;
   /** Décision du 06/11/2026 : valeurs hors tableau saisies au clavier (fournies par la Feuille). */
   scalars?: ScalarKeyboardFields;
+  /** Recette du 27/11/2026 (matin) : défilement du corps synchronisé sur le clavier (iOS), fourni par la Feuille. */
+  glide?: SheetKeyboardGlide;
 }): SheetKeyboard {
   /**
    * Décision du 06/11/2026 : sortie d'une valeur hors Brouillon (`external`) — appelée une fois, hors
@@ -465,6 +503,13 @@ export function useSheetKeyboard({
   // genre n'est pas effacé à la sortie : un passage direct d'un champ de charge à l'autre
   // (sortie puis prise de focus) ne fait ni disparaître ni réapparaître la barre.
   const [keyboardFrame, setKeyboardFrame] = useState<KeyboardFrame | null>(null);
+  const [insetFrame, setInsetFrame] = useState<KeyboardFrame | null>(null);
+  // Recette du 27/11/2026 (matin) : clavier affiché ou en cours d'apparition (entre `keyboardWillShow` et `keyboardWillHide`).
+  const shownRef = useRef(false);
+  const glideRef = useRef(glide);
+  useEffect(() => {
+    glideRef.current = glide;
+  });
   const [focusedKind, setFocusedKind] = useState<KeyboardFieldId["kind"] | null>(null);
   // D-434 : frappe reçue depuis la prise du champ (état de « À l'échec ») ; génération de la saisie.
   const [typed, setTyped] = useState(false);
@@ -521,6 +566,40 @@ export function useSheetKeyboard({
     });
   }
 
+  /**
+   * Recette du 27/11/2026 (matin) : à l'apparition du clavier, la ligne du champ voulu est ramenée au-dessus du clavier PENDANT son
+   * animation, du même mouvement que la remontée de la modale (`glide.start`), et non plus après (`keyboardDidShow`, second mouvement).
+   * Les deux mesures sont demandées ensemble : leur différence (ligne dans le corps) ne dépend pas de la translation en cours.
+   */
+  function planGlide(keyboardTop: number, keyboardHeight: number) {
+    const current = glideRef.current;
+    const wanted = wantedRef.current;
+    const scroll = scrollRef.current;
+    const entry = wanted === null ? undefined : inputsRef.current.get(fieldKey(wanted));
+    if (current === undefined || entry === undefined || scroll === null) return;
+    const body = typeof scroll.getNativeScrollRef === "function" ? scroll.getNativeScrollRef() : null;
+    if (body == null || typeof body.measureInWindow !== "function" || typeof entry.input.measureInWindow !== "function") return;
+    let row: { readonly top: number; readonly bottom: number } | null = null;
+    let bodyTop: number | null = null;
+    const plan = () => {
+      if (row === null || bodyTop === null) return;
+      const top = current.bodyTopAt(keyboardTop, bodyTop);
+      const delta = revealDelta(row.top - bodyTop, row.bottom - bodyTop, 0, keyboardTop - top);
+      if (delta <= 0) return;
+      const from = offsetRef.current;
+      current.start(from, from + delta, keyboardHeight);
+    };
+    entry.input.measureInWindow((_x, y, _width, height) => {
+      const center = y + height / 2;
+      row = { top: center - entry.rowHeight / 2, bottom: center + entry.rowHeight / 2 };
+      plan();
+    });
+    body.measureInWindow((_bx, measuredTop) => {
+      bodyTop = measuredTop;
+      plan();
+    });
+  }
+
   useEffect(() => {
     // RC-1 : cadre du clavier pour la barre — `Will` sur iOS (la barre monte avec le
     // clavier), `Did` ailleurs (Android n'émet pas les `Will`).
@@ -530,11 +609,34 @@ export function useSheetKeyboard({
     const held = () => alertHoldRef.current !== null && !alertHoldRef.current.releasing;
     const follow = (event: KeyboardEvent) => {
       if (held()) return;
-      setKeyboardFrame({ screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 });
+      const frame = { screenY: event.endCoordinates.screenY, duration: event.duration ?? 0 };
+      setKeyboardFrame(frame);
+      // Recette du 27/11/2026 (matin) : un cadre de fermeture (`keyboardWillChangeFrame`, clavier sous l'écran) ne retire pas la marge.
+      if (event.endCoordinates.screenY < Dimensions.get("screen").height - 1) setInsetFrame(frame);
     };
     const subscriptions = [
       Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", follow),
-      ...(ios ? [Keyboard.addListener("keyboardWillChangeFrame", follow)] : []),
+      ...(ios
+        ? [
+            Keyboard.addListener("keyboardWillChangeFrame", follow),
+            // Recette du 27/11/2026 (matin) : défilement synchronisé à l'apparition (clavier fermé avant) et à la fermeture.
+            Keyboard.addListener("keyboardWillShow", (event) => {
+              if (held() || shownRef.current) return;
+              shownRef.current = true;
+              planGlide(event.endCoordinates.screenY, event.endCoordinates.height);
+            }),
+            Keyboard.addListener("keyboardWillHide", () => {
+              // Intégration DEATHBY3 × CLAVIER2 : pendant une alerte, la modale garde sa place (aucune redescente).
+              if (alertHoldRef.current !== null) return;
+              shownRef.current = false;
+              const current = glideRef.current;
+              if (current === undefined) return;
+              const from = offsetRef.current;
+              const to = current.restingOffset(from);
+              if (to < from) current.start(from, to, 0);
+            }),
+          ]
+        : []),
       Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => {
         if (alertHoldRef.current !== null) {
           alertHoldRef.current.hidden = true;
@@ -542,9 +644,11 @@ export function useSheetKeyboard({
         }
         setKeyboardFrame(null);
       }),
-      // Révélation : après l'animation du clavier (course de défilement déjà ajustée).
+      // Révélation : après l'animation du clavier (course de défilement déjà ajustée). Recette du 27/11/2026 (matin) : filet de
+      // sécurité — la ligne a déjà été ramenée pendant l'animation (`planGlide`) ; rien ne bouge si elle est visible.
       Keyboard.addListener("keyboardDidShow", (event) => {
         if (held()) return;
+        glideRef.current?.stop();
         keyboardTopRef.current = event.endCoordinates.screenY;
         if (alertHoldRef.current !== null) {
           alertHoldRef.current.hidden = false;
@@ -554,7 +658,9 @@ export function useSheetKeyboard({
       }),
       Keyboard.addListener("keyboardDidHide", () => {
         if (alertHoldRef.current !== null) return;
+        glideRef.current?.stop();
         keyboardTopRef.current = null;
+        setInsetFrame(null);
       }),
     ];
     return () => subscriptions.forEach((subscription) => subscription.remove());
@@ -753,6 +859,7 @@ export function useSheetKeyboard({
   return {
     activeField,
     keyboardFrame,
+    insetFrame,
     accessoryVisible: SHEET_KEYBOARD_BAR_ENABLED && keyboardFrame !== null && focusedKind !== null && focusedKind !== "phaseLabel",
     failureAvailable: activeTarget !== undefined,
     failureSelected: activeTarget?.kind === "FAILURE" && !typed,

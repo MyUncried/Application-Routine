@@ -1,6 +1,6 @@
 import { Button as SwiftUIButton, Host, Image as SwiftUIImage, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { accessibilityLabel as swiftUIAccessibilityLabel, accessibilityValue as swiftUIAccessibilityValue } from "@expo/ui/swift-ui/modifiers";
-import { createContext, Fragment, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import {
   Platform,
   Alert,
@@ -20,7 +20,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import Reanimated, { FadeIn, FadeOut, ReduceMotion, useAnimatedKeyboard, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Reanimated, { FadeIn, FadeOut, ReduceMotion, scrollTo, useAnimatedKeyboard, useAnimatedReaction, useAnimatedRef, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -150,7 +150,7 @@ import {
 } from "@/features/activities/sheetTable";
 import type { Movement } from "@/domain/activities/Movement";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
-import { keyboardBodyReserve, keyboardFieldOrder, SHEET_KEYBOARD_BAR_ENABLED, useSheetKeyboard } from "@/features/activities/useSheetKeyboard";
+import { keyboardFieldOrder, keyboardGlideProgress, SHEET_KEYBOARD_BAR_ENABLED, useSheetKeyboard, type SheetKeyboardGlide } from "@/features/activities/useSheetKeyboard";
 import { PHASE_ROW_TEST_ID, WorkPhasesTable, type WorkPhaseCellKind } from "@/features/activities/WorkPhasesTable";
 import { RECOVERY_WHEEL_VALUES, WHEEL_TOTAL_DURATION_SECONDS_MAX } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -184,6 +184,9 @@ const KEYBOARD_BAR_SCROLL_RESERVE = 12;
  * s'ajoute progressivement à la remontée de la modale — aucun saut au premier instant de l'animation.
  */
 const KEYBOARD_BAR_LIFT_RAMP = 120;
+/** Recette du 27/11/2026 (matin) : défilement du corps synchronisé sur le clavier — aucun, ou demandé (départ à la prochaine image). */
+const GLIDE_IDLE = -1;
+const GLIDE_ARMED = -2;
 
 /**
  * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13, DSF Séries
@@ -888,6 +891,44 @@ export function ExecutionParametersSheet({
     const wanted = height - keyboardLiftBottomInset + keyboardLiftBar * Math.min(1, height / KEYBOARD_BAR_LIFT_RAMP);
     return { transform: [{ translateY: -Math.max(0, Math.min(wanted, sheetHeadroom.get())) }] };
   });
+  /**
+   * Recette iPhone du 27/11/2026 (matin), « Barre du clavier synchronisée », Hermann : « L'écran se déplace vers le haut en un mouvement
+   * saccadé » ; « composition de séance : l'écran saute vers le bas à la fermeture du clavier au lieu de glisser de manière
+   * synchronisée. » — le défilement du corps suit, image par image, la même position du clavier que la remontée (`useAnimatedKeyboard`,
+   * fil UI) : à l'apparition, la ligne saisie monte pendant l'animation du clavier (plus de second mouvement après) ; à la fermeture, le
+   * corps redescend avec le clavier vers son défilement de repos (plus de saut au retrait de la marge). Modale et page, tous formats.
+   */
+  const bodyAnimatedRef = useAnimatedRef<ScrollView>();
+  const glideFrom = useSharedValue(0);
+  const glideTo = useSharedValue(0);
+  const glideStart = useSharedValue(GLIDE_IDLE);
+  const glideEnd = useSharedValue(0);
+  useAnimatedReaction(
+    () => animatedKeyboard.height.get(),
+    (height) => {
+      const start = glideStart.get();
+      if (start === GLIDE_IDLE) return;
+      const end = glideEnd.get();
+      if (start === GLIDE_ARMED) {
+        // Première image après la demande : départ de la course restante, dans le sens attendu ; sinon (clavier déjà arrivé), rien.
+        glideStart.set(Math.abs(end - height) < 1 ? GLIDE_IDLE : height);
+        return;
+      }
+      const progress = keyboardGlideProgress(height, start, end);
+      const from = glideFrom.get();
+      scrollTo(bodyAnimatedRef, 0, from + (glideTo.get() - from) * progress, false);
+      if (progress >= 1) glideStart.set(GLIDE_IDLE);
+    },
+  );
+  const contentHeightRef = useRef(0);
+  // Corps : référence ordinaire (révélation, défilements existants) et référence du fil UI (`scrollTo` image par image).
+  const bodyRef = useCallback(
+    (node: ScrollView | null) => {
+      scrollRef.current = node;
+      if (node !== null && typeof bodyAnimatedRef === "function") bodyAnimatedRef(node);
+    },
+    [bodyAnimatedRef],
+  );
   // Point B du 26/11/2026 : « Le champ et son cadre grossissent légèrement pendant le focus et la frappe » (`KeyboardFieldGrowContext`).
   const keyboardFieldGrow = useMemo(() => ({ reduceMotion }), [reduceMotion]);
 
@@ -2139,6 +2180,25 @@ export function ExecutionParametersSheet({
     ...(freeFormat ? [] : durationFields),
     ...(recoveryShown && !recoveryLocked ? [scalarKeyboardField("recovery")] : []),
   ];
+  // Recette du 27/11/2026 (matin) : géométrie du défilement synchronisé. Modale : haut du corps une fois remontée, déduit de la mise en
+  // page (corps dernier enfant de la feuille ancrée en bas, remontée finale `keyboardLiftStyle`) ; page : non translatée, haut mesuré.
+  const keyboardGlide: SheetKeyboardGlide = {
+    bodyTopAt: (keyboardTop, measuredBodyTop) => {
+      if (pageMode) return measuredBodyTop;
+      const height = windowHeight - keyboardTop;
+      const wanted = height - insets.bottom + keyboardLiftBar * Math.min(1, height / KEYBOARD_BAR_LIFT_RAMP);
+      const lift = Math.max(0, Math.min(wanted, sheetMaxHeight - (sheetHeight ?? sheetMaxHeight)));
+      return (scrimBottom ?? windowHeight) - insets.bottom - viewportHeightRef.current - lift;
+    },
+    restingOffset: (offset) => Math.min(offset, Math.max(0, contentHeightRef.current - viewportHeightRef.current)),
+    start: (from, to, endHeight) => {
+      glideFrom.set(from);
+      glideTo.set(to);
+      glideEnd.set(endHeight);
+      glideStart.set(GLIDE_ARMED);
+    },
+    stop: () => glideStart.set(GLIDE_IDLE),
+  };
   // PRE-5 story 2.2 (AD-26, AD-27) : hook unique focus / surface / application de la saisie.
   const keyboard = useSheetKeyboard({
     draft,
@@ -2157,6 +2217,7 @@ export function ExecutionParametersSheet({
     ),
     scrollRef,
     reduceMotion,
+    glide: keyboardGlide,
     scalars: {
       editText: (field) => {
         const value = scalarValueOf(field, draft);
@@ -3086,18 +3147,19 @@ export function ExecutionParametersSheet({
   // point 5) : exercice libre — cadre de la Durée de l'exercice, placé avant le dernier cadre, sans la Cadence.
   // D-607 (D-572 point 1) : hauteur du clavier sous le corps de la feuille pendant une saisie (voir la réserve sous les cadres).
   // Point B du 26/11/2026 : réserve sous les cadres pour la page seulement ; la modale est remontée avec le clavier (`keyboardLiftStyle`).
-  const keyboardRoom =
-    !pageMode || keyboard.activeField === null
-      ? 0
-      : keyboardBodyReserve((scrimBottom ?? windowHeight) - insets.bottom, keyboard.keyboardFrame?.screenY ?? null);
+  // [Réserve de la page (`keyboardRoom`, ajoutée et retirée d'un coup dans la mise en page) — remplacée le 27/11/2026 (matin) par la
+  // marge de défilement ci-dessous, commune à la modale et à la page.]
   // Point B : part du clavier (et de sa barre) que la remontée ne couvre pas (feuille déjà haute) — marge de défilement du corps.
+  // Recette du 27/11/2026 (matin) : aussi pour la page (sans remontée), et gardée jusqu'à la disparition du clavier (`insetFrame`) : le
+  // corps redescend d'abord avec le clavier (`keyboardGlide`). [Retrait à `keyboardWillHide` (saut vers le bas) ; page : course ajoutée
+  // par iOS (`automaticallyAdjustKeyboardInsets`) et réserve sous les cadres (`keyboardRoom`) — remplacés.]
   const keyboardScrollInset =
-    pageMode || keyboard.keyboardFrame === null
+    keyboard.insetFrame === null
       ? 0
       : Math.max(
           0,
           (scrimBottom ?? windowHeight) -
-            keyboard.keyboardFrame.screenY -
+            keyboard.insetFrame.screenY -
             insets.bottom +
             keyboardLiftBar -
             Math.max(0, sheetMaxHeight - (sheetHeight ?? sheetMaxHeight)),
@@ -3460,7 +3522,7 @@ export function ExecutionParametersSheet({
                   le texte sous le tableau, sans le cadre gris »).] */}
 
               <SheetMotionScrollView
-                ref={scrollRef}
+                ref={bodyRef}
                 style={pageMode ? [styles.body, styles.pageBody] : styles.body}
                 // Recette iPhone du 26/11/2026 (après-midi), point A, Hermann : « La hauteur de la modale s'adapte au contenu : aucun espace
                 // superflu entre le dernier cadre et le bord de l'écran. » — modale : sous le dernier cadre, l'écart entre deux cadres
@@ -3471,14 +3533,14 @@ export function ExecutionParametersSheet({
                 // standard iOS) et offset suivi pour ramener la ligne active au-dessus du clavier.
                 // Point B du 26/11/2026 : page seulement ; la modale remonte avec le clavier et reçoit le reste en marge de défilement
                 // (`keyboardScrollInset`), sans second mouvement ni rebond (`bounces`, point A : aucun glissé vers le bas).
-                automaticallyAdjustKeyboardInsets={pageMode}
-                {...(pageMode
-                  ? {}
-                  : {
-                      bounces: false,
-                      contentInset: { bottom: keyboardScrollInset },
-                      scrollIndicatorInsets: { bottom: keyboardScrollInset },
-                    })}
+                // Recette du 27/11/2026 (matin) : page comme modale — marge de défilement et défilement synchronisé sur le clavier
+                // (`keyboardGlide`), sans la course ajoutée par iOS, qui défilait selon sa propre règle puis laissait la révélation
+                // finir après le clavier. `scrollToOverflowEnabled` : le défilement synchronisé n'est pas borné avant l'arrivée de la marge.
+                automaticallyAdjustKeyboardInsets={false}
+                contentInset={{ bottom: keyboardScrollInset }}
+                scrollIndicatorInsets={{ bottom: keyboardScrollInset }}
+                scrollToOverflowEnabled
+                {...(pageMode ? {} : { bounces: false })}
                 onScroll={keyboard.onScroll}
                 scrollEventThrottle={16}
                 scrollEnabled={!isDraggingRow}
@@ -3486,6 +3548,7 @@ export function ExecutionParametersSheet({
                   viewportHeightRef.current = event.nativeEvent.layout.height;
                 }}
                 onContentSizeChange={(_width, height) => {
+                  contentHeightRef.current = height;
                   // Q41 : feuille à sa hauteur maximale et réserve ajoutée sous le groupe :
                   // le corps défile jusqu'au bas pour montrer le panneau en entier.
                   if (contentRoom > 0 && height > viewportHeightRef.current + 1) {
@@ -4007,8 +4070,8 @@ export function ExecutionParametersSheet({
                     remonte ses lignes au-dessus du clavier ; à sa hauteur maximale, la réserve donne la course de défilement nécessaire à la
                     révélation (`revealDelta`). [La course ajoutée par iOS (`automaticallyAdjustKeyboardInsets`) ne couvre qu'un corps
                     défilant plus haut que le clavier : une feuille courte, recouverte, ne pouvait pas montrer le champ.] */}
-                {keyboardRoom > 0 ? <View style={{ height: keyboardRoom }} testID="execution-sheet-keyboard-room" /> : null}
-                {pageMode && keyboard.accessoryVisible ? <View style={{ height: KEYBOARD_BAR_SCROLL_RESERVE }} testID="execution-sheet-keyboard-bar-room" /> : null}
+                {/* [Réserves de la page (`execution-sheet-keyboard-room`, `execution-sheet-keyboard-bar-room`) — remplacées le 27/11/2026
+                    (matin) par la marge de défilement `keyboardScrollInset`, commune à la modale et à la page.] */}
                 {contentRoom > 0 ?<View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {sideOrderDropdown}
                 </Pressable>
