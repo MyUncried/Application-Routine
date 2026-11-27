@@ -2425,6 +2425,12 @@ Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne c
 
 ![Avant la séance — Douleur](images/figma-8921-35275.png)
 
+#### Avant la séance — Séances suivantes d'un parcours (enchaînement)
+
+[Source Figma — `12716:25405`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12716-25405)
+
+![Avant la séance — Séances suivantes](images/figma-12716-25405.png)
+
 #### Synthèse de séance — Effort et douleur — Douleur renseignée
 
 [Source Figma — `8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340)
