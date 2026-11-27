@@ -14,7 +14,7 @@ Principe : un seul écran, deux versions, affiché avant l'écran d'exécution ;
 5. **Polices et relief** : Roboto partout dans l'écran ; le bouton a son relief porté par lui-même (dégradé léger, bord inférieur épais, pas d'ombre portée) ; la case choisie n'a pas de liseré.
 6. **Accessibilité** : la valeur de chaque case est annoncée (chiffre, « sélectionné », rôle de l'élément) ; la couleur n'est jamais le seul indicateur (le chiffre est toujours présent) ; l'état inactif du bouton est annoncé.
 
-À CLARIFIER (ne pas trancher, ne pas dessiner) : (a) « Ne plus afficher cet écran » (proposé uniquement hors option douleur) : l'emplacement où l'utilisateur réactive l'affichage n'est pas décidé ; **ne pas développer ce bouton ni sa préférence** et le signaler dans le rapport ; (b) un toucher ailleurs que sur le bouton ne fait rien (hypothèse, à signaler) ; (c) états non dessinés : sans option douleur, bouton inactif.
+À CLARIFIER (ne pas trancher, ne pas dessiner) : (a) « Ne plus afficher cet écran » : case à cocher, à la fin du premier cadre vert (celui de la liste), en plus petit, uniquement hors option douleur ; l'emplacement où l'utilisateur réactive l'affichage n'est pas décidé : **ne pas développer cette case ni sa préférence** et le signaler dans le rapport ; (b) un toucher ailleurs que sur le bouton ne fait rien (hypothèse, à signaler) ; (c) états non dessinés : sans option douleur, bouton inactif.
 
 Baseline gelée :
 - PRESERVE : moteur et noyau d'exécution, `ExecutionService` (API et persistance), résultats et historique, écran d'exécution lui-même (rendu en fond sans modification), orchestration de la chaîne (D-534 hors point 3), planification, bips et vocal, dialogues, tests existants hors ceux de l'ancienne règle « douleur facultative = 0 ».

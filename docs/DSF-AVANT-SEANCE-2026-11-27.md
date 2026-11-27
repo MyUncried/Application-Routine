@@ -43,4 +43,4 @@ x = 12, y = 596, 378 × 262, même vert. Libellé « Douleur ressentie avant la 
 
 ## 6. Reste à décider
 
-Emplacement où réactiver l'affichage après « Ne plus afficher cet écran » (proposé uniquement hors option douleur) : À CLARIFIER (D-577). États non dessinés : version sans option douleur avec « Ne plus afficher cet écran », bouton inactif. Vérification sur iPhone à faire : défilement de la liste sous le titre, lisibilité du texte sur le voile.
+« Ne plus afficher cet écran » : case à cocher placée à la fin du premier cadre vert (le cadre de la liste), en plus petit que la liste, proposée uniquement hors option douleur (D-577) ; taille exacte et dessin non faits. Emplacement où réactiver l'affichage : À CLARIFIER (D-577). États non dessinés : version sans option douleur avec « Ne plus afficher cet écran », bouton inactif. Vérification sur iPhone à faire : défilement de la liste sous le titre, lisibilité du texte sur le voile.
