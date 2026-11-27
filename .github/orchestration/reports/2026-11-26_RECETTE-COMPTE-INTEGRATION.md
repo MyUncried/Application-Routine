@@ -106,6 +106,12 @@ Attribution : défaut **introduit par T1** (hypothèse « une identité par util
 
 Statut : **aucune correction** ; décision nécessaire (un compte Apple et un compte Google de même e-mail sont-ils un seul compte KODJO ?) — classe C (non arbitré), arbitrage demandé à Hermann.
 
+## CPT-35 déployé et vérifié (27/11/2026)
+
+- Décision de Hermann : « A » (CPT-35). Correction sur `compte/lot-1` (`08f571f0`), fusionnée ici (`7c564182`) ; migration `20261127000001_t1_merged_identities.sql` appliquée sur Kodjo-dev et fonctions redéployées (vérifié : `link_account` à 4 paramètres, `discard_unlinked_auth_user` présente).
+- BMAD : connexion Apple refusée (empreinte Google laissée par l'ancien code), puis utilisateur Auth de la connexion refusée **supprimé** par `discard_unlinked_auth_user` (journal : 200, aucun utilisateur restant) ; connexion Google acceptée : un seul utilisateur Auth, compte `google`, catalogue créé, Utilisateur local rattaché.
+- Effet résiduel accepté par Hermann : BMAD reste lié au compte Google (pas de déconnexion, CPT-15).
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
