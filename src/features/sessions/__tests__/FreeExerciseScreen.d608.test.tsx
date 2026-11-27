@@ -114,23 +114,24 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     expect(screen.queryByText(/Créer un mouvement/)).toBeNull();
   });
 
-  it("recette 27/11 (matin) : « Ajouter ce mouvement » en bas du catalogue (zone d'action partagée), inactif sans mouvement ; ✓ toujours grisé ; un seul mouvement à la fois", async () => {
-    renderScreen();
+  it("recette 27/11 (matin) : « Ajouter ce mouvement » en bas du catalogue (zone d'action partagée), « Fermer sans sélectionner » sans mouvement (réponse du 27/11, lot 24) ; ✓ toujours grisé ; un seul mouvement à la fois", async () => {
+    const { onClose } = renderScreen();
     await screen.findByTestId("free-exercise-card-mv-squats");
     expect(screen.getByTestId("free-exercise-bottom-action")).toBeTruthy();
-    expect(add()).toHaveTextContent("Ajouter ce mouvement");
-    expect(add().props.accessibilityState).toMatchObject({ disabled: true });
+    expect(add()).toHaveTextContent("Fermer sans sélectionner");
+    expect(add().props.accessibilityState?.disabled).not.toBe(true);
     expect(validate().props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(add());
     fireEvent.press(validate());
     expect(screen.queryByTestId("free-exercise-page")).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("free-exercise-card-mv-squats"));
     // Recette du 26/11 (après-midi) : le mouvement choisi est figé en première ligne, hors de la liste.
     expect(isSelected("free-exercise-pinned-mv-squats")).toBe(true);
     expect(screen.queryByTestId("free-exercise-card-mv-squats")).toBeNull();
     // Le choix ne referme pas le catalogue : « Ajouter ce mouvement » s'active, ✓ reste grisé.
     expect(screen.getByTestId("free-exercise-choice")).toBeTruthy();
-    expect(add().props.accessibilityState).toMatchObject({ disabled: false });
+    expect(add()).toHaveTextContent("Ajouter ce mouvement");
+    expect(add().props.accessibilityState?.disabled).not.toBe(true);
     expect(validate().props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.press(validate());
     expect(screen.queryByTestId("free-exercise-page")).toBeNull();
@@ -142,7 +143,11 @@ describe("D-608 — écran « Exercice libre — Choix du mouvement »", () => {
     fireEvent.press(screen.getByTestId("free-exercise-pinned-mv-gainage"));
     expect(screen.queryByTestId("free-exercise-pinned")).toBeNull();
     expect(isSelected("free-exercise-card-mv-gainage")).toBe(false);
-    expect(add().props.accessibilityState).toMatchObject({ disabled: true });
+    // Sans choix, « Fermer sans sélectionner » ferme comme la croix.
+    expect(add()).toHaveTextContent("Fermer sans sélectionner");
+    fireEvent.press(add());
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("free-exercise-page")).toBeNull();
   });
 
   it("recette 27/11 (matin) : « Ajouter ce mouvement » valide le mouvement choisi, referme le catalogue et ouvre la page ; la liste réserve la hauteur de la zone d'action", async () => {

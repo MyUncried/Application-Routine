@@ -61,6 +61,7 @@ export const KeyboardFieldGrowContext = createContext<{ readonly reduceMotion: b
  */
 export const FIELD_GROW_SCALE = fieldFocusTokens.scale;
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 /** Longueur maximale d'un libellé de phase, en points de code (FR-6). */
 export const KEYBOARD_TEXT_MAX_CODE_POINTS = 20;
@@ -146,10 +147,16 @@ function NativeEntryField({
   const [text, setText] = useState("");
   // Recette du 26/11/2026 (soir) : barre native rattachée au clavier, si l'hôte la fournit aux champs texte (`withText`).
   const bar = useAttachedKeyboardBar(active, true);
+  // Réponse de Hermann du 27/11/2026 (lot 24, standard du focus sur les champs de texte : « libellé de phase oui ») : le libellé en
+  // saisie suit le standard unique du focus (agrandissement, liseré bleu fin, fond bleu pâle), comme les cellules de la modale. Le
+  // liseré est porté par le cadre du champ (hauteur et largeur fixes : aucune mise en page déplacée). [Fond bleu pâle seul — remplacé.]
+  const growContext = useContext(KeyboardFieldGrowContext);
+  const grown = growContext !== null && active;
+  const scale = useFieldFocusScale(grown, growContext === null || growContext.reduceMotion);
   return (
     <>
-    <TextInput
-      ref={(input) => inputRef?.(input)}
+    <AnimatedTextInput
+      ref={(input: TextInput | null) => inputRef?.(input)}
       inputAccessoryViewID={bar.id}
       value={focused ? text : displayValue}
       onFocus={() => {
@@ -175,7 +182,12 @@ function NativeEntryField({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: active }}
       hitSlop={hitSlop}
-      style={[style, active ? { backgroundColor: TABLE_CELL_ACTIVE_BACKGROUND } : null]}
+      style={[
+        style,
+        active ? { backgroundColor: TABLE_CELL_ACTIVE_BACKGROUND } : null,
+        grown ? styles.textFocusFrame : null,
+        growContext !== null ? fieldFocusTransform(scale) : null,
+      ]}
       testID={testID}
     />
     {bar.accessory}
@@ -315,6 +327,11 @@ function CellEntryField({
 const styles = StyleSheet.create({
   active: {
     backgroundColor: TABLE_CELL_ACTIVE_BACKGROUND,
+  },
+  // Libellé de phase en saisie : liseré du standard unique du focus, sur le cadre du champ (`FieldFocusFrame` ne peut pas s'y poser).
+  textFocusFrame: {
+    borderWidth: fieldFocusTokens.frameWidth,
+    borderColor: fieldFocusTokens.frameColor,
   },
   // Valeur à renseigner : fond rouge léger (Q35 ; jeton `color.dangerSurface`, #FFF1F0).
   invalid: {

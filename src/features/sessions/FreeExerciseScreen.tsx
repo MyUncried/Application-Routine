@@ -389,14 +389,17 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
       </ScrollView>
       {/* Recette iPhone du 27/11/2026 (matin), Hermann : « Ajouter le bouton d'action en bas du catalogue "Ajouter ce mouvement". » —
           zone d'action partagée du catalogue des formats (`format-catalogue-add`) ; inactive tant qu'aucun mouvement n'est choisi ;
-          valide le mouvement choisi et ouvre la page (le catalogue se referme). */}
+          valide le mouvement choisi et ouvre la page (le catalogue se referme).
+          Réponse de Hermann du 27/11/2026 (lot 24, « sans mouvement choisi, remplacer le bouton grisé par "Fermer sans sélectionner" ? » :
+          « Oui ») : sans choix, le bouton est actif, s'intitule « Fermer sans sélectionner » et ferme comme la croix (règle du catalogue
+          des formats du 06/11/2026). [Bouton inactif sans choix — remplacé.] */}
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID="free-exercise-bottom-action">
         <PrimaryActionButton
-          label={t.freeChooseAdd}
+          label={chosen === null ? tFormat.closeWithoutSelecting : t.freeChooseAdd}
           onPress={() => {
-            if (chosen !== null) openPage(chosen.movement, chosen.level?.rank ?? null);
+            if (chosen === null) onClose();
+            else openPage(chosen.movement, chosen.level?.rank ?? null);
           }}
-          disabled={chosen === null}
           testID="free-exercise-add"
         />
       </PrimaryActionZone>

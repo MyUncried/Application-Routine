@@ -949,10 +949,21 @@ export function ExecutionParametersSheet({
       setDraft((current) => (current.variable ? setRowTarget(current, entry.rank, numberTarget(seconds)) : setUniformTarget(current, numberTarget(seconds))));
     // Multiple supérieur au-delà de la borne de la cible (58′55″) : seul l'arrondi inférieur est proposé.
     const choices = [entry.lowerSeconds, entry.upperSeconds].filter((seconds): seconds is number => seconds !== null);
+    // Réponse de Hermann du 27/11/2026 (lot 24, « l'arrondi de la durée de série a sûrement le même défaut que celui du Death by. Je le
+    // corrige aussi ? » : « oui ») : même retenue que `askIncrementRounding` — feuille et cadre du clavier gardés pendant l'alerte,
+    // focus rendu au champ voulu après le choix.
+    const release = keyboard.holdForAlert(() => keyboardHoldHeight.set(0));
+    if (release !== null) keyboardHoldHeight.set(animatedKeyboard.height.get());
     Alert.alert(
       t.phaseCycleRoundTitle,
       message,
-      choices.map((seconds) => ({ text: t.phaseCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)), onPress: roundTo(seconds) })),
+      choices.map((seconds) => ({
+        text: t.phaseCycleRoundTo.replace("{duration}", formatPhraseDuration(seconds)),
+        onPress: () => {
+          roundTo(seconds)();
+          release?.();
+        },
+      })),
       { cancelable: false },
     );
   }
