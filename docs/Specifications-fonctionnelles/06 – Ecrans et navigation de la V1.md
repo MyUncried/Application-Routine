@@ -1582,7 +1582,7 @@ Variantes partielles illustrées ci-dessous, couvertes par CE-UI-08 :
 
 - `13441:48061 — P-Synthèse de séance — Partielle — Évaluation initiale` (remplace `4760:6448`, 27/11/2026) ;
 - `13441:48253 — P-Synthèse de séance — Arrêtée — Évaluation initiale` (nouvelle, 27/11/2026) ;
-- `4760:6500 — Synthèse de séance — Partielle — Ressenti sélectionné`.
+- `4760:6500 — Synthèse de séance — Partielle — Ressenti sélectionné` (supprimé le 27/11/2026, D-581).
 
 #### Navigation
 
@@ -1602,7 +1602,7 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 ##### Synthèse de séance — Terminée — Ressenti sélectionné
 
-[Source Figma — `1992:8780`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8780)
+[Écran supprimé du prototype le 27/11/2026 (D-581) : remplacé par l'écran de fin de séance de D-578 / D-580 ; ancien identifiant `1992:8780`.]
 
 
 
@@ -1636,7 +1636,7 @@ Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 ##### Synthèse de séance — Partielle — Ressenti sélectionné
 
-[Source Figma — `4760:6500`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4760-6500)
+[Écran supprimé du prototype le 27/11/2026 (D-581) : remplacé par l'écran de fin de séance de D-578 / D-580 ; ancien identifiant `4760:6500`.]
 
 
 
@@ -2452,13 +2452,13 @@ Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne c
 
 #### Synthèse de séance — Effort et douleur — Douleur renseignée
 
-[Source Figma — `8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340)
+[Écran supprimé du prototype le 27/11/2026 (D-581) : remplacé par l'écran de fin de séance de D-578 / D-580 ; ancien identifiant `8921:35340`.]
 
 ![Synthèse de séance — Effort et douleur — Douleur renseignée](images/figma-8921-35340.png)
 
 #### Synthèse de séance — Effort et douleur — Douleur repliée
 
-[Source Figma — `8925:15593`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8925-15593)
+[Écran supprimé du prototype le 27/11/2026 (D-581) : remplacé par l'écran de fin de séance de D-578 / D-580 ; ancien identifiant `8925:15593`.]
 
 
 
