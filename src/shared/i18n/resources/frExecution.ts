@@ -98,6 +98,19 @@ export const execution = {
   },
   saveError: "La progression n’a pas pu être enregistrée.",
   retry: "Réessayer",
+  // D-577 / D-427 (27/11/2026) : écran « Avant la séance » (première séance et séances suivantes d'un parcours).
+  beforeSession: {
+    cycles: (count: number) => `${count} ${count > 1 ? "cycles" : "cycle"}`,
+    tours: (count: number) => `${count} ${count > 1 ? "tours" : "tour"}`,
+    freeCircuit: "Circuit libre",
+    painLabel: "Douleur ressentie avant la séance",
+    painValue: (value: number) => `Douleur ${value} sur 10`,
+    startSession: "Appuyer pour démarrer la séance",
+    startRoute: "Appuyer pour démarrer le parcours",
+    startRank: (rank: number) => `Appuyer pour démarrer la ${rank}ème séance`,
+    startDisabledHint: "Choisissez d’abord la douleur ressentie",
+    dismiss: "Ne plus afficher cet écran",
+  },
   // D-534 (19/11/2026) : écran de transition entre deux séances d'une routine, sur trois lignes (rang calculé : 2è, 3è…).
   chain: {
     lines: (rank: number): readonly string[] => ["Appuyer pour", `démarrer la ${rank}è séance`, "du parcours"],

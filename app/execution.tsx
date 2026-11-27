@@ -1,6 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 
 import { ExecutionScreen } from "@/features/execution/ExecutionScreen";
+import { parsePain } from "@/features/execution/beforeSession";
 import { parseChain, parseOrigin } from "@/features/execution/executionChain";
 
 /**
@@ -12,17 +13,19 @@ import { parseChain, parseOrigin } from "@/features/execution/executionChain";
  * `rank` : rang courant) ; la fin d'une séance remplace l'écran par la suivante. La clé remonte l'écran à chaque séance.
  */
 export default function ExecutionRoute() {
-  const { sessionId, chain, rank, routineId, occurrence, occurrenceRank } = useLocalSearchParams<{
+  const { sessionId, chain, rank, routineId, occurrence, occurrenceRank, pain } = useLocalSearchParams<{
     sessionId?: string;
     chain?: string;
     rank?: string;
     routineId?: string;
     occurrence?: string;
     occurrenceRank?: string;
+    pain?: string;
   }>();
   const id = typeof sessionId === "string" && sessionId.length > 0 ? sessionId : null;
   const parsed = parseChain(id, chain, rank);
   // Recette du 19/11/2026 au soir : la séance lancée depuis une occurrence de routine y est rattachée (statut de l'occurrence).
   const origin = id === null ? null : parseOrigin(routineId, occurrence, occurrenceRank);
-  return <ExecutionScreen key={`${id ?? ""}|${parsed?.rank ?? 0}`} sessionId={id} chain={parsed} origin={origin} />;
+  // D-577 point 4 : douleur de la première séance, transmise aux séances suivantes du parcours.
+  return <ExecutionScreen key={`${id ?? ""}|${parsed?.rank ?? 0}`} sessionId={id} chain={parsed} origin={origin} chainPain={parsed === null ? null : parsePain(pain)} />;
 }

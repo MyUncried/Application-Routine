@@ -110,6 +110,19 @@ export const execution: Widen<typeof frExecution> = {
   },
   saveError: "Progress could not be saved.",
   retry: "Try again",
+  // D-577 / D-427 (27/11/2026) : écran « Avant la séance ».
+  beforeSession: {
+    cycles: (count: number) => `${count} ${count > 1 ? "cycles" : "cycle"}`,
+    tours: (count: number) => `${count} ${count > 1 ? "rounds" : "round"}`,
+    freeCircuit: "Free circuit",
+    painLabel: "Pain felt before the workout",
+    painValue: (value: number) => `Pain ${value} out of 10`,
+    startSession: "Tap to start the workout",
+    startRoute: "Tap to start the track",
+    startRank: (rank: number) => `Tap to start the ${rank}${ordinalSuffixEn(rank)} workout`,
+    startDisabledHint: "Choose the pain felt first",
+    dismiss: "Don’t show this screen again",
+  },
   // D-534 (19/11/2026) : écran de transition entre deux séances d'une routine, sur trois lignes.
   chain: {
     lines: (rank: number): readonly string[] => ["Tap to", `start the ${rank}${ordinalSuffixEn(rank)} workout`, "of the track"],

@@ -6,6 +6,7 @@ import type { GuidanceEvent, VoiceAnnouncement } from "@/domain/preferences/guid
 import { profileDurationBounds, profileGuidance, type Profile, type ProfileDurationSetting } from "@/domain/preferences/Profile";
 import type { ProfilePreference } from "@/domain/preferences/ProfileRepository";
 import { GuidanceSection, GuidanceSettingsForm, GuidanceSwitchRow, GuidanceValueRow } from "@/features/preferences/GuidanceSettingsForm";
+import { startScreenStore } from "@/features/execution/startScreenStore";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import {
   getNotificationPermissionStatus,
@@ -60,6 +61,7 @@ export function ProfileScreen() {
   const profileService = useProfileService();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>("undetermined");
+  const [showStartScreen, setShowStartScreen] = useState(() => startScreenStore.state().showStartScreen);
   const t = strings.screens.profile;
 
   const reload = useCallback(() => {
@@ -176,7 +178,23 @@ export function ProfileScreen() {
             />
           </GuidanceSection>
           <GuidanceSection title={t.groups.session} variant="screen" testID="profile-group-session">
-            {withSeparators("profile-group-session", SESSION_SETTINGS.map(renderDurationRow))}
+            {/* D-577 (27/11/2026, Figma `1992:684`) : « Afficher l'écran de démarrage de séance » en première ligne du groupe Séance,
+                interrupteur activé par défaut ; désactivé, l'écran « Avant la séance » n'est affiché pour aucune séance (la douleur
+                d'un Programme reste demandée). Enregistré par `startScreenStore`, hors du Profil SQLite. */}
+            {withSeparators("profile-group-session", [
+              <GuidanceSwitchRow
+                key="showStartScreen"
+                label={t.settings.showStartScreen}
+                value={showStartScreen}
+                onChange={(value) => {
+                  setShowStartScreen(value);
+                  startScreenStore.setShowStartScreen(value);
+                }}
+                variant="screen"
+                testID="profile-preference-showStartScreen"
+              />,
+              ...SESSION_SETTINGS.map(renderDurationRow),
+            ])}
           </GuidanceSection>
           <GuidanceSettingsForm
             settings={profileGuidance(profile)}

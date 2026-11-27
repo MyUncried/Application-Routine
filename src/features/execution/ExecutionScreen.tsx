@@ -23,7 +23,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { formatLocalDate } from "@/domain/planning/Routine";
+import { formatLocalDate, routineDisplayName } from "@/domain/planning/Routine";
 import type { Frame } from "@/domain/execution/kernel";
 import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
 import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/deathBy";
@@ -65,6 +65,10 @@ import { useExecution } from "./ExecutionServiceContext";
 import { strings } from "@/shared/i18n";
 
 import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
+import { compositionFingerprint, sessionOutline, startScreenMode } from "./beforeSession";
+import { BeforeSessionScreen } from "./BeforeSessionScreen";
+import { startScreenStore } from "./startScreenStore";
+import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { formatClock } from "./executionStrings";
 
 const t = strings.execution;
@@ -104,8 +108,11 @@ export function ExecutionScreen({
   sessionId,
   chain = null,
   origin = null,
+  chainPain = null,
 }: {
   readonly sessionId: string | null;
+  /** D-577 point 4 : douleur choisie avant la première séance du parcours, appliquée aux séances suivantes (route, sans persistance). */
+  readonly chainPain?: number | null;
   /** D-534 : séance d'une routine à plusieurs séances (orchestration au-dessus du moteur, `executionChain`). */
   readonly chain?: ExecutionChain | null;
   /** Occurrence de routine d'où la séance est lancée : l'Exécution y est rattachée (recette du 19/11/2026 au soir). */
@@ -237,6 +244,48 @@ export function ExecutionScreen({
       cancelled = true;
     };
   }, [active, service, sessionId]);
+
+  // —————————————————————————————— écran « Avant la séance » (D-577, D-427, 27/11/2026)
+  // Option douleur : lancement depuis une occurrence de routine rattachée à un Programme dont le suivi est actif (D-427) ; jamais
+  // pour les séances suivantes d'un parcours (douleur demandée une seule fois). `null` : en cours de lecture.
+  const programService = useOptionalProgramService();
+  const chainRankOrOne = chain?.rank ?? 1;
+  const [painLookup, setPainLookup] = useState<boolean | null>(null);
+  const originRoutineId = origin?.routineId ?? null;
+  const originOccurrenceKey = origin?.occurrenceKey ?? null;
+  const painLookupNeeded = chainRankOrOne < 2 && originRoutineId !== null && originOccurrenceKey !== null && programService !== null;
+  useEffect(() => {
+    if (!painLookupNeeded || originRoutineId === null || originOccurrenceKey === null || programService === null) return;
+    let cancelled = false;
+    programService.painOptionFor(originRoutineId, originOccurrenceKey).then(
+      (value) => {
+        if (!cancelled) setPainLookup(value);
+      },
+      () => {
+        if (!cancelled) setPainLookup(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [painLookupNeeded, originRoutineId, originOccurrenceKey, programService]);
+  const painOption = painLookupNeeded ? painLookup : false;
+  const fingerprint = useMemo(() => (prepared?.status === "ready" ? compositionFingerprint(prepared.snapshot) : null), [prepared]);
+  const outline = useMemo(() => (prepared?.status === "ready" ? sessionOutline(prepared.snapshot) : []), [prepared]);
+  const beforeMode = useMemo(() => {
+    if (fingerprint === null || painOption === null || prepared?.status !== "ready") return null;
+    return startScreenMode({
+      showSetting: startScreenStore.state().showStartScreen,
+      dismissedFingerprint: startScreenStore.dismissedFingerprint(prepared.snapshot.sessionId),
+      fingerprint,
+      painOption,
+      rank: chainRankOrOne,
+    });
+  }, [fingerprint, painOption, prepared, chainRankOrOne]);
+  // Douleur du parcours : choisie sur la première séance, reçue par la route pour les suivantes ; transmise à la séance suivante.
+  const chosenPain = useRef<number | null>(chainPain);
+  const showBefore = active === null && !blocked && prepared?.status === "ready" && beforeMode !== null && beforeMode !== "NONE";
+  const preview = showBefore && prepared?.status === "ready" ? prepared.projection : null;
 
   // Rafraîchissement d'affichage et signaux récents ; retour au premier plan : réconciliation (RM-067).
   const running = active !== null && active.state.status !== "FINISHED";
@@ -389,7 +438,9 @@ export function ExecutionScreen({
   // aussitôt sautée.
   const capFrozen = !frozen && capView !== null && live !== null && live.status !== "FINISHED" && (live.phase === "CLOSURE" || live.phase === "SESSION_END");
   const still = frozen || capFrozen;
-  const projection = frozen ? frozenView : capFrozen ? capView : live;
+  // D-577 : avant le départ, l'écran d'exécution est rendu en fond sous l'écran « Avant la séance », avec la projection de la séance
+  // préparée (état initial du moteur, sans démarrage).
+  const projection = frozen ? frozenView : capFrozen ? capView : (live ?? preview);
   const liveTarget = typeof live?.target === "string" ? live.target : null;
   const skipSessionEnd = capFrozen && live?.status === "RUNNING" && live.phase === "SESSION_END" && liveTarget !== null;
   useEffect(() => {
@@ -436,6 +487,29 @@ export function ExecutionScreen({
   }, [prepared, service, origin, chain, planning]);
 
   /**
+   * D-577 : départ depuis l'écran « Avant la séance ». La douleur (option du Programme, D-427) est retenue pour la chaîne ; la case
+   * « Ne plus afficher cet écran » enregistre l'empreinte de la composition de cette séance (seule persistance avec le réglage).
+   * [À CLARIFIER : aucun stockage de la douleur d'une séance n'existe (`ProgramService.painReadingCount`) — la valeur n'est pas
+   * enregistrée ; aucune persistance nouvelle n'est autorisée par D-577.]
+   */
+  const startFromBefore = useCallback(
+    (pain: number | null, dismiss: boolean) => {
+      if (pain !== null) chosenPain.current = pain;
+      if (dismiss && prepared?.status === "ready" && fingerprint !== null) startScreenStore.dismiss(prepared.snapshot.sessionId, fingerprint);
+      void start();
+    },
+    [prepared, fingerprint, start],
+  );
+
+  // D-577 : écran désactivé (réglage, ou case pour cette séance) sans option douleur : la séance démarre aussitôt.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (beforeMode !== "NONE" || active !== null || blocked || autoStarted.current) return;
+    autoStarted.current = true;
+    void start();
+  }, [beforeMode, active, blocked, start]);
+
+  /**
    * D-534 : une séance d'une routine terminée normalement ouvre la suivante (même route, rang + 1, sans empiler) ;
    * l'Exécution est libérée AVANT la navigation (sinon `ExecutionBlockedError` au démarrage de la suivante). Après la
    * dernière, ou après un arrêt volontaire, retour au calendrier comme pour une séance isolée.
@@ -445,7 +519,8 @@ export function ExecutionScreen({
   const close = useCallback(() => {
     const finishedNormally = service.current()?.state.finish?.reason === "COMPLETED";
     const startedAtMs = service.current()?.state.startedAtMs ?? null;
-    const next = chain !== null && finishedNormally ? nextInChain(chain, origin) : null;
+    // D-577 point 4 : la douleur de la première séance suit la chaîne (paramètre de route, aucune persistance).
+    const next = chain !== null && finishedNormally ? nextInChain(chain, origin, chosenPain.current) : null;
     service.release();
     if (next !== null) router.replace({ pathname: "/execution", params: next });
     // Recette du 21/11/2026 (Hermann : « Après l'exécution d'une séance lancée depuis le catalogue, l'application ouvre
@@ -484,6 +559,24 @@ export function ExecutionScreen({
       cancelled = true;
     };
   }, [chainRank, chainIds, service]);
+  // D-577 : titre du cadre — nom du parcours (routine d'origine) pour la première séance d'un parcours, sinon nom de la séance.
+  const [parcoursName, setParcoursName] = useState<string | null>(null);
+  useEffect(() => {
+    if (chainRank !== 1 || originRoutineId === null || planning === null || routeNames === null) return;
+    let cancelled = false;
+    const ids = chainIds.split(",");
+    planning.getRoutine(originRoutineId).then(
+      (routine) => {
+        if (cancelled || routine === null) return;
+        const name = routineDisplayName(routine, (id) => routeNames[ids.indexOf(id)] ?? undefined).trim();
+        setParcoursName(name === "" ? null : name);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [chainRank, chainIds, originRoutineId, planning, routeNames]);
 
   const phase = projection?.phase ?? null;
   // Étape courante à confirmer (et non la Cible d’une série) : nommée hors du motif de la garde PRE4-1.1.
@@ -556,7 +649,8 @@ export function ExecutionScreen({
   );
 
   // —————————————————————————————— avant le démarrage
-  if (active === null) {
+  // D-577 : avec l'écran « Avant la séance », l'écran d'exécution est rendu en fond (plus bas) ; sinon, attente ou séance non lançable.
+  if (active === null && preview === null) {
     const name = prepared?.status === "ready" ? prepared.plan.sessionName : "";
     return (
       <View style={[styles.screen, paddings]} testID="execution-screen">
@@ -588,17 +682,8 @@ export function ExecutionScreen({
               {t.blocked}
             </Text>
           ) : null}
-          {prepared?.status === "ready" && !blocked ? (
-            <Pressable
-              onPress={start}
-              accessibilityRole="button"
-              accessibilityLabel={t.start}
-              style={styles.startButton}
-              testID="execution-start"
-            >
-              <Text style={styles.startLabel}>{t.start}</Text>
-            </Pressable>
-          ) : null}
+          {/* D-577 (27/11/2026) : le départ se fait depuis l'écran « Avant la séance » (ou aussitôt, écran désactivé sans option
+              douleur). [Bouton Démarrer de cet écran — remplacé.] */}
           {prepared?.status === "ready" ? (
             <Text style={styles.estimate}>
               {estimateLabel(prepared.projection)}
@@ -618,15 +703,14 @@ export function ExecutionScreen({
             </View>
           ) : null}
         </View>
-        {chain !== null && chain.rank >= 2 && prepared?.status === "ready" && !blocked ? (
-          <ChainVeil rank={chain.rank} onPress={start} />
-        ) : null}
+        {/* D-577 : l'écran de transition entre séances (D-534, voile et encadré verts) est remplacé par la version « séances
+            suivantes » de l'écran « Avant la séance ». [ChainVeil — remplacé.] */}
       </View>
     );
   }
 
   // —————————————————————————————— fin minimale
-  if (projection === null || projection.status === "FINISHED") {
+  if (active !== null && (projection === null || projection.status === "FINISHED")) {
     const status = active.businessStatus ?? "INTERRUPTED";
     const occurrences = service.occurrences();
     const partials = service.partialRepetitions();
@@ -762,6 +846,7 @@ export function ExecutionScreen({
   }
 
   // —————————————————————————————— en cours
+  if (projection === null) return null;
   const phaseLabel =
     projection.phase === null ? "" : t.phases[projection.phase];
   // Recette du 13/11/2026 (Hermann : « Lors d’une pause ou une pause entre les côtés, retirer le sous-titre, et n’écrire
@@ -1171,7 +1256,7 @@ export function ExecutionScreen({
   const shownSegment = ahead !== null ? (ahead.segment ?? null) : (forTimeCommand?.segment ?? null);
   const nextView = waiting !== null ? waiting.after : projection.next;
   const next = nextView === null ? null : nextParts(nextView);
-  return (
+  const body = (
     <View style={[styles.runningScreen, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom - 16, spacing[8]) }]} testID="execution-running">
       <ScrollView style={styles.top} contentContainerStyle={styles.content} bounces={false}>
         {/*
@@ -1435,7 +1520,7 @@ export function ExecutionScreen({
           />
         ) : null}
         </View>
-        {active.saveError ? (
+        {active?.saveError ? (
           <Pressable
             onPress={() => void service.retry()}
             accessibilityRole="button"
@@ -1778,6 +1863,25 @@ export function ExecutionScreen({
       <ExecutionDialog
         visible={dialogView !== null}
         {...(dialogView ?? viewOf(lastShown))}
+      />
+    </View>
+  );
+  if (preview === null || beforeMode === null || beforeMode === "NONE" || prepared?.status !== "ready") return body;
+  // D-577 : écran « Avant la séance » au-dessus de l'écran d'exécution (fond inerte, masqué aux lecteurs d'écran).
+  const rank = chain?.rank ?? 1;
+  return (
+    <View style={styles.beforeSessionHost} testID="execution-screen">
+      <View style={styles.beforeSessionHost} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        {body}
+      </View>
+      <BeforeSessionScreen
+        mode={beforeMode}
+        title={chain !== null && rank === 1 && parcoursName !== null ? parcoursName : prepared.plan.sessionName}
+        lines={outline}
+        painOption={painOption === true}
+        startLabel={rank >= 2 ? t.beforeSession.startRank(rank) : chain !== null ? t.beforeSession.startRoute : t.beforeSession.startSession}
+        onBack={() => router.back()}
+        onStart={startFromBefore}
       />
     </View>
   );
@@ -2305,46 +2409,15 @@ const executionType = {
   metric: { fontFamily: "RobotoCondensed_700Bold", fontWeight: "700", fontSize: 30 },
 } as const;
 
-/**
- * D-534 — écran de transition entre deux séances d'une routine (DSF Agenda § 7 ; Figma « Exécution d'une séance —
- * Initial — Enchaînement (proposition) ») : l'écran de démarrage de la séance suivante, sous un voile vert translucide
- * (≈ 35 %, vert des étiquettes « Terminée »), avec au centre un encadré vert plein plus foncé (rayon 16, marge 20) :
- * « Appuyer pour / démarrer la 2è séance / du parcours », blanc, Inter semi-gras 32. Un toucher n'importe où sur le
- * voile lance la séance, comme « Démarrer », et fait disparaître le voile.
- * [Hypothèse à confirmer (prompt D-534) : l'appui lance directement la séance, sans second appui sur « Démarrer ».]
+/*
+ * [D-534 — écran de transition entre deux séances (`ChainVeil` : voile vert 35 % et encadré vert plein « Appuyer pour / démarrer
+ * la 2è séance / du parcours ») — remplacé le 27/11/2026 par la version « séances suivantes » de l'écran « Avant la séance »
+ * (D-577, `BeforeSessionScreen`).]
  */
-function ChainVeil({ rank, onPress }: { readonly rank: number; readonly onPress: () => void }) {
-  const lines = t.chain.lines(rank);
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={lines.join(" ")}
-      style={styles.chainVeil}
-      testID="execution-chain-veil"
-    >
-      <View style={styles.chainBox} testID="execution-chain-box">
-        {lines.map((line) => (
-          <Text key={line} style={styles.chainText} maxFontSizeMultiplier={1.2}>
-            {line}
-          </Text>
-        ))}
-      </View>
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
-  // D-534 : voile vert à 35 % (vert des étiquettes « Terminée », #1A995C) et encadré plein plus foncé.
-  chainVeil: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(26, 153, 92, 0.35)",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: layout.screenGutter,
-  },
-  chainBox: { backgroundColor: "#12784A", borderRadius: 16, padding: 20, alignItems: "center" },
-  chainText: { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 32, lineHeight: 40, color: colors.background, textAlign: "center" },
+  // D-577 : hôte de l'écran « Avant la séance » et de l'écran d'exécution rendu en fond.
+  beforeSessionHost: { flex: 1 },
   screen: {
     flex: 1,
     backgroundColor: colors.background,

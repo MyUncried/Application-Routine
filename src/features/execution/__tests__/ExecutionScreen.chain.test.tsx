@@ -211,9 +211,10 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(await screen.findByTestId("execution-start")).toBeTruthy();
     // Rang 1 : sans voile, comme aujourd'hui.
     expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
-    // Recette du 19/11 au soir (s19-voile) : le premier écran présente le parcours, avec Démarrer et Retour.
-    expect((await screen.findByTestId("execution-route-1")).props.children).toEqual(["Séance 1", " · Alpha"]);
-    expect(screen.getByTestId("execution-route-2").props.children).toEqual(["Séance 2", " · Bravo"]);
+    // D-577 (27/11/2026) : première séance du parcours — écran « Avant la séance », bouton « …le parcours », avec Retour.
+    // [Recette du 19/11 au soir (s19-voile) : liste « Séance 1 · Alpha », « Séance 2 · Bravo » sur l'écran de départ — remplacé.]
+    expect(screen.getByTestId("before-session-FULL")).toBeTruthy();
+    expect(screen.getByTestId("before-session-start-label").props.children).toBe("Appuyer pour démarrer le parcours");
     expect(screen.getByTestId("execution-back")).toBeTruthy();
     await runToEnd(advance);
     // Recette du 20/11/2026 (constat F) : pas de bouton sur « Séance terminée » d'une séance intermédiaire.
@@ -230,14 +231,13 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     calls.length = 0;
     mockReplace.mockClear();
     const secondView = show(second, parseChain(second, `${first},${second}`, "2"));
-    // Voile de transition : texte exact, sur l'écran de démarrage de la séance suivante.
-    const veil = await screen.findByTestId("execution-chain-veil");
-    expect(veil.props.accessibilityLabel).toBe("Appuyer pour démarrer la 2è séance du parcours");
-    expect(screen.getByText("démarrer la 2è séance")).toBeTruthy();
-    expect(screen.getByTestId("execution-start")).toBeTruthy();
-    // Un toucher sur le voile lance la séance et fait disparaître le voile.
-    await press("execution-chain-veil");
-    expect(screen.queryByTestId("execution-chain-veil")).toBeNull();
+    // D-577 point 4 : version « séances suivantes » (un seul cadre, sans douleur), libellé au rang calculé.
+    // [D-534 : voile de transition « Appuyer pour / démarrer la 2è séance / du parcours », toucher n'importe où — remplacé.]
+    expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
+    expect(screen.getByTestId("execution-start").props.accessibilityLabel).toBe("Appuyer pour démarrer la 2ème séance");
+    expect(screen.queryByTestId("before-session-pain-scale")).toBeNull();
+    await press("execution-start");
+    expect(screen.queryByTestId("before-session")).toBeNull();
     expect(service.current()?.plan.sessionName).toBe("Bravo");
     expect(screen.queryByTestId("execution-blocked")).toBeNull();
     await advance(20);
@@ -267,8 +267,8 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
   it("dernière séance du parcours : fin habituelle, avec la « Fin de séance »", async () => {
     const { advance, show, first, second } = await setup(5);
     const view = show(second, parseChain(second, `${first},${second}`, "2"));
-    expect(await screen.findByTestId("execution-chain-veil")).toBeTruthy();
-    await press("execution-chain-veil");
+    expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
+    await press("execution-start");
     await advance(9);
     expect(screen.queryByTestId("execution-end-status")).toBeNull();
     await advance(6);

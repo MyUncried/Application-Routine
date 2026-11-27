@@ -24,6 +24,11 @@ export type ExecutionRouteParams = {
   readonly occurrence?: string;
   /** D-553 : rang de la Séance dans l'occurrence, pour « Rattraper » une Séance seule d'un parcours commencé. */
   readonly occurrenceRank?: string;
+  /**
+   * D-577 point 4 (27/11/2026) : douleur 0–10 choisie avant la première séance du parcours, appliquée à toute la chaîne. Elle voyage
+   * avec la route (aucune persistance) ; absente : aucune réponse (jamais 0 par défaut, D-427).
+   */
+  readonly pain?: string;
 };
 
 /**
@@ -62,8 +67,9 @@ export function parseChain(sessionId: string | null, chain: unknown, rank: unkno
   return { sessionIds, rank: index };
 }
 
-/** Séance suivante de la chaîne, ou `null` après la dernière. */
-export function nextInChain(chain: ExecutionChain, origin?: ExecutionOrigin | null): ExecutionRouteParams | null {
+/** Séance suivante de la chaîne, ou `null` après la dernière. D-577 : la douleur de la première séance suit la chaîne. */
+export function nextInChain(chain: ExecutionChain, origin?: ExecutionOrigin | null, pain?: number | null): ExecutionRouteParams | null {
   if (chain.rank >= chain.sessionIds.length) return null;
-  return executionParams(chain.sessionIds, chain.rank + 1, origin ?? undefined);
+  const params = executionParams(chain.sessionIds, chain.rank + 1, origin ?? undefined);
+  return pain === undefined || pain === null ? params : { ...params, pain: String(pain) };
 }

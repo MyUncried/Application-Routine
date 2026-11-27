@@ -331,6 +331,22 @@ export class ProgramService {
   }
 
   /**
+   * D-427 / D-577 (27/11/2026) : option douleur du lancement d'une occurrence de routine. Vraie seulement si la routine est
+   * rattachée à un Programme dont le suivi de la douleur est actif et si la date de l'occurrence (déplacée à la main, sinon d'origine)
+   * est dans la période du Programme (même règle que le rattachement de l'exécution, D-564). Un lancement hors Agenda reste standard
+   * (D-427) : l'appelant ne la demande que pour une occurrence d'origine. Lecture seule.
+   */
+  async painOptionFor(routineId: string, occurrenceKey: string): Promise<boolean> {
+    const found = await this.deps.planning.getOccurrence(routineId, occurrenceKey);
+    const programId = found?.routine.programId ?? null;
+    if (found === null || programId === null) return false;
+    const program = await this.deps.repository.get(programId);
+    if (program === null || !program.painTracking) return false;
+    const date = found.occurrence.date;
+    return date >= program.startDate && date <= program.endDate;
+  }
+
+  /**
    * Relevés de douleur : la saisie pendant l'exécution n'existe pas encore (hors périmètre PROG-CAT-01) ; aucun relevé n'est
    * enregistré. « Effacer mes relevés » reste grisé tant que ce nombre est nul (Hermann, 21/11/2026, point 4).
    */
