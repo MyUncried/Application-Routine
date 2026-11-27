@@ -67,7 +67,7 @@ import { strings } from "@/shared/i18n";
 import { nextInChain, type ExecutionChain, type ExecutionOrigin } from "./executionChain";
 import { compositionFingerprint, sessionOutline, startScreenMode } from "./beforeSession";
 import { BeforeSessionScreen } from "./BeforeSessionScreen";
-import { capturedValues, endStateOf, exerciseTally, plannedExerciseCount } from "./endSession";
+import { capturedValues, endStateOf, exerciseTally, plannedExerciseCount, seriesRepetitionWrites } from "./endSession";
 import { EndSessionScreen } from "./EndSessionScreen";
 import { SESSION_CAMERA_IN_BUILD, takeSessionPhoto } from "@/infrastructure/media/SessionPhotoCamera";
 import { deleteSessionPhoto, storeSessionPhoto } from "@/infrastructure/media/SessionPhotoStore";
@@ -885,12 +885,12 @@ export function ExecutionScreen({
           onDiscardPhoto={deleteSessionPhoto}
           recipients={photoRecipients}
           onSave={async ({ photoUri, repetitions, ...input }) => {
-            // Répétitions corrigées par série (décisions de Hermann du 27/11/2026) : la valeur corrigée remplace celle de la série
-            // concernée, enregistrée avec le reste ; ni statut, ni durées, ni exercices terminés ne changent ; aucun report d'écart.
-            const repetitionCorrections = Object.entries(repetitions).map(([seriesKey, value]) => ({ seriesKey, repetitions: value }));
+            // Arbitrage de Hermann du 28/11/2026 (option A ajustée) : répétitions faites de toutes les séries affichées (cible par défaut,
+            // ou valeur corrigée), écrites dans le résultat de chaque série, avec le reste ; statut, durées et exercices terminés inchangés.
+            const seriesRepetitions = seriesRepetitionWrites(values, repetitions);
             // Photo (point 4) : copie privée compressée, rattachée à l'enregistrement de la séance ; le fichier pris est ensuite effacé.
             const photoPath = photoUri === null ? null : await storeSessionPhoto(photoUri, executionId);
-            if (programService !== null) await programService.finalizeExecution({ executionId, ...input, photoPath, repetitionCorrections });
+            if (programService !== null) await programService.finalizeExecution({ executionId, ...input, photoPath, seriesRepetitions });
             if (photoUri !== null && photoUri !== photoPath) deleteSessionPhoto(photoUri);
             // Point 3 : dans un parcours, la douleur « avant » de la séance suivante est la douleur ressentie saisie ici.
             if (input.painAfter !== null) chosenPain.current = input.painAfter;

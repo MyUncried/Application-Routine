@@ -79,7 +79,19 @@ export type SeriesLine = {
   readonly done: number | null;
   /** Objectif chiffré (répétitions, ou durée en ms) ; `null` sans objectif chiffré (À l'échec). */
   readonly target: number | null;
+  /** Clé de la première étape de la série : porte `repetitionsDone` (arbitrage de Hermann du 28/11/2026, option A ajustée). */
+  readonly stepKey: string;
+  /** Série interrompue d'un format dont les répétitions sont déjà enregistrées par le format (`partialRepetitions`, `maxSeries`). */
+  readonly partialKey: string | null;
 };
+
+/**
+ * Répétitions faites enregistrées par l'écran de fin (`StepResult.repetitionsDone`, arbitrage de Hermann du 28/11/2026) ; `undefined` :
+ * séance antérieure ou série non enregistrée — le calcul d'origine s'applique.
+ */
+function storedRepetitions(steps: readonly StepResult[]): number | undefined {
+  return steps.find((step) => typeof step.repetitionsDone === "number")?.repetitionsDone;
+}
 
 /**
  * Recette du 18/11/2026 (Hermann, amrap-1 : « Synthèse d'exercice, ne pas répéter le nom de l'exercice si c'est le même : Un exercice :
@@ -97,7 +109,8 @@ export function roundMovementOf(
     const leaf = leafOf(step.key);
     if (leaf?.mode === "DURATION") continue;
     const target = leaf?.target?.kind === "NUMBER" && typeof leaf.target.value === "number" ? leaf.target.value : null;
-    const done = partials.has(step.key) ? partials.get(step.key)! : step.completion === "COMPLETED" ? target : null;
+    // Arbitrage de Hermann du 28/11/2026 : les répétitions faites enregistrées priment ; à défaut, calcul d'origine (séances antérieures).
+    const done = typeof step.repetitionsDone === "number" ? step.repetitionsDone : partials.has(step.key) ? partials.get(step.key)! : step.completion === "COMPLETED" ? target : null;
     if (done !== null) repetitions = (repetitions ?? 0) + done;
   }
   return { repetitions, activeMs: occurrence.activeMs };
@@ -122,13 +135,20 @@ export function seriesLines(
       const target = value === null ? null : mode === "DURATION" ? value * 1000 : value;
       const terminated = steps.every((step) => step.completion === "COMPLETED");
       const interrupted = steps.find((step) => step.completion !== "COMPLETED");
-      const done = terminated
-        ? target
-        : mode === "DURATION"
-          ? (interrupted?.cumulativeActiveMs ?? null)
-          : interrupted !== undefined && partials.has(interrupted.key)
-            ? partials.get(interrupted.key)!
-            : null;
-      return { series, terminated, mode, done, target };
+      const partialKey = mode === "REPETITIONS" && interrupted !== undefined && partials.has(interrupted.key) ? interrupted.key : null;
+      // Arbitrage de Hermann du 28/11/2026 (option A ajustée) : d'abord les répétitions faites enregistrées sur la série, puis le calcul
+      // d'origine (séances antérieures sans ce champ).
+      const stored = mode === "REPETITIONS" ? storedRepetitions(steps) : undefined;
+      const done =
+        stored !== undefined
+          ? stored
+          : terminated
+            ? target
+            : mode === "DURATION"
+              ? (interrupted?.cumulativeActiveMs ?? null)
+              : partialKey !== null
+                ? partials.get(partialKey)!
+                : null;
+      return { series, terminated, mode, done, target, stepKey: steps[0]!.key, partialKey };
     });
 }

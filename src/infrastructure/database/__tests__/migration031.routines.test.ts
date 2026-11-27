@@ -46,7 +46,6 @@ describe("migration031 — Routines", () => {
       "account_link",
       "execution_feedback",
       "execution_pain_readings",
-      "execution_repetition_corrections",
       "occurrence_executions",
       "programs",
       "routine_entries",

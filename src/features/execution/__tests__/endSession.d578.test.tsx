@@ -7,7 +7,7 @@ import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
 
-import { capturedValues, endStateOf, END_STATE_STYLE, exerciseTally, formatRealDuration, plannedExerciseCount, SESSION_FEELINGS, type EndState } from "../endSession";
+import { capturedValues, endStateOf, END_STATE_STYLE, exerciseTally, formatRealDuration, plannedExerciseCount, SESSION_FEELINGS, seriesRepetitionWrites, type EndState } from "../endSession";
 import { EndSessionScreen } from "../EndSessionScreen";
 
 /**
@@ -67,15 +67,33 @@ describe("logique (D-578 à D-581)", () => {
     const plan = { exercises: { squat: { name: "Squats assistés" }, gainage: { name: "Gainage" }, pont: { name: "Pont fessier" } } } as never;
     const leafOf = (key: string) => leaves[key] as never;
     expect(capturedValues(plan, occurrences, new Map([["p1", 18]]), leafOf)).toEqual([
-      { exerciseId: "squat", name: "Squats assistés", cells: [{ seriesKey: "o1#1", mode: "REPETITIONS", value: 12 }, { seriesKey: "o1#2", mode: "REPETITIONS", value: 12 }] },
-      { exerciseId: "gainage", name: "Gainage", cells: [{ seriesKey: "o2#1", mode: "DURATION", value: 45_000 }] },
-      { exerciseId: "pont", name: "Pont fessier", cells: [{ seriesKey: "o3#1", mode: "REPETITIONS", value: 18 }] },
+      {
+        exerciseId: "squat",
+        name: "Squats assistés",
+        cells: [
+          { seriesKey: "o1#1", mode: "REPETITIONS", value: 12, stepKey: "s1", partialKey: null },
+          { seriesKey: "o1#2", mode: "REPETITIONS", value: 12, stepKey: "s2", partialKey: null },
+        ],
+      },
+      { exerciseId: "gainage", name: "Gainage", cells: [{ seriesKey: "o2#1", mode: "DURATION", value: 45_000, stepKey: "g1", partialKey: null }] },
+      { exerciseId: "pont", name: "Pont fessier", cells: [{ seriesKey: "o3#1", mode: "REPETITIONS", value: 18, stepKey: "p1", partialKey: "p1" }] },
     ]);
-    // Décision de Hermann du 27/11/2026 : la valeur corrigée remplace celle de la série concernée seulement ; aucun report d'écart.
-    const corrected = capturedValues(plan, occurrences, new Map([["p1", 18]]), leafOf, new Map([["o1#1", 10]]));
-    expect(corrected[0]!.cells.map((cell) => cell.value)).toEqual([10, 12]);
+    // Arbitrage de Hermann du 28/11/2026 : les répétitions faites enregistrées dans le résultat de la série priment.
+    const saved = occurrences.map((occurrence, index) => (index === 0 ? { ...occurrence, series: [{ ...occurrence.series[0]!, repetitionsDone: 10 }, occurrence.series[1]!] } : occurrence));
+    expect(capturedValues(plan, saved, new Map([["p1", 18]]), leafOf)[0]!.cells.map((cell) => cell.value)).toEqual([10, 12]);
     // Série interrompue sans saisie : case vide (valeur nulle), non modifiable.
-    expect(capturedValues(plan, occurrences, new Map(), leafOf)[2]!.cells).toEqual([{ seriesKey: "o3#1", mode: "REPETITIONS", value: null }]);
+    expect(capturedValues(plan, occurrences, new Map(), leafOf)[2]!.cells).toEqual([{ seriesKey: "o3#1", mode: "REPETITIONS", value: null, stepKey: "p1", partialKey: null }]);
+    // Écritures à Enregistrer : toutes les séries de répétitions affichées (cible par défaut, valeur corrigée) ; ni durée ni case vide.
+    const values = capturedValues(plan, occurrences, new Map([["p1", 18]]), leafOf);
+    expect(seriesRepetitionWrites(values, { "o1#2": 10 })).toEqual([
+      { stepKey: "s1", partialKey: null, repetitions: 12 },
+      { stepKey: "s2", partialKey: null, repetitions: 10 },
+      { stepKey: "p1", partialKey: "p1", repetitions: 18 },
+    ]);
+    expect(seriesRepetitionWrites(capturedValues(plan, occurrences, new Map(), leafOf), {})).toEqual([
+      { stepKey: "s1", partialKey: null, repetitions: 12 },
+      { stepKey: "s2", partialKey: null, repetitions: 12 },
+    ]);
   });
 });
 
@@ -84,14 +102,14 @@ const VALUES = [
     exerciseId: "squat",
     name: "Squats assistés",
     cells: [
-      { seriesKey: "o1#1", mode: "REPETITIONS" as const, value: 10 },
-      { seriesKey: "o1#2", mode: "REPETITIONS" as const, value: 8 },
-      { seriesKey: "o1#3", mode: "REPETITIONS" as const, value: 8 },
-      { seriesKey: "o1#4", mode: "REPETITIONS" as const, value: 8 },
+      { seriesKey: "o1#1", mode: "REPETITIONS" as const, value: 10, stepKey: "o1/s1", partialKey: null },
+      { seriesKey: "o1#2", mode: "REPETITIONS" as const, value: 8, stepKey: "o1/s2", partialKey: null },
+      { seriesKey: "o1#3", mode: "REPETITIONS" as const, value: 8, stepKey: "o1/s3", partialKey: null },
+      { seriesKey: "o1#4", mode: "REPETITIONS" as const, value: 8, stepKey: "o1/s4", partialKey: null },
     ],
   },
-  { exerciseId: "gainage", name: "Gainage", cells: [{ seriesKey: "o2#1", mode: "DURATION" as const, value: 45_000 }] },
-  { exerciseId: "pont", name: "Pont fessier unijambiste", cells: [{ seriesKey: "o3#1", mode: "REPETITIONS" as const, value: null }] },
+  { exerciseId: "gainage", name: "Gainage", cells: [{ seriesKey: "o2#1", mode: "DURATION" as const, value: 45_000, stepKey: "o2/s1", partialKey: null }] },
+  { exerciseId: "pont", name: "Pont fessier unijambiste", cells: [{ seriesKey: "o3#1", mode: "REPETITIONS" as const, value: null, stepKey: "o3/s1", partialKey: null }] },
 ];
 
 function renderEnd(props: Partial<Parameters<typeof EndSessionScreen>[0]> = {}) {

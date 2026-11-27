@@ -523,7 +523,7 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     await press("end-session-feeling-GOOD");
     await press("end-session-pain-1");
     await press("end-session-save");
-    expect(ctx.finalizeExecution).toHaveBeenCalledWith({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 1, photoPath: null, repetitionCorrections: [] });
+    expect(ctx.finalizeExecution).toHaveBeenCalledWith({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 1, photoPath: null, seriesRepetitions: [] });
     expect(ctx.service.current()).toBeNull();
     view.unmount();
   });

@@ -12,7 +12,7 @@
 import type { ExecutablePlan, LeafSpec } from "@/domain/execution/plan";
 import { seriesLines, type BusinessStatus, type OccurrenceResult } from "@/domain/execution/results";
 import type { SessionSnapshot } from "@/domain/sessions/sessionSnapshot";
-import { FEEDBACK_FEELINGS, type FeedbackFeeling } from "@/domain/feedback/ExecutionFeedbackRepository";
+import { FEEDBACK_FEELINGS, type FeedbackFeeling, type SeriesRepetitionsWrite } from "@/domain/feedback/ExecutionFeedbackRepository";
 import { strings } from "@/shared/i18n";
 
 /** Ressenti à cinq niveaux (D-579), du plus négatif au plus positif : le modèle enregistré (`FeedbackFeeling`). */
@@ -71,7 +71,23 @@ export type CapturedCell = {
   readonly seriesKey: string;
   readonly mode: "REPETITIONS" | "DURATION";
   readonly value: number | null;
+  /** Résultat de la série où écrire les répétitions faites (`SeriesLine.stepKey`, `SeriesLine.partialKey`). */
+  readonly stepKey: string;
+  readonly partialKey: string | null;
 };
+
+/**
+ * Écritures des répétitions faites à l'appui sur Enregistrer (arbitrage de Hermann du 28/11/2026, option A ajustée) : **toutes** les
+ * séries de répétitions affichées, avec la valeur affichée (cible ou valeur d'origine par défaut, valeur corrigée sinon), pour figer
+ * l'historique. Séries en durée : rien (non modifiables). Séries sans valeur (case vide) : rien.
+ */
+export function seriesRepetitionWrites(values: readonly CapturedValue[], edited: Readonly<Record<string, number>>): readonly SeriesRepetitionsWrite[] {
+  return values.flatMap((value) =>
+    value.cells.flatMap((cell) =>
+      cell.mode !== "REPETITIONS" || cell.value === null ? [] : [{ stepKey: cell.stepKey, partialKey: cell.partialKey, repetitions: edited[cell.seriesKey] ?? cell.value }],
+    ),
+  );
+}
 
 export type CapturedValue = {
   readonly exerciseId: string;
@@ -88,23 +104,20 @@ export function seriesKeyOf(occurrenceKey: string, series: number): string {
  * « Valeurs saisies » (prompt révisé, point 4 ; Figma « Valeurs par série » `13461:27870` ; décision de Hermann du 27/11/2026) :
  * une ligne par exercice (ordre de première exécution), **une colonne par série**, sans total par exercice. Valeur d'une série :
  * répétitions réalisées (cible atteinte, ou nombre saisi pour une série interrompue) ou durée réalisée (cible, ou durée tenue).
- * `corrections` : répétitions corrigées enregistrées, par série — elles remplacent la valeur d'origine de cette série seulement.
- * [Valeurs additionnées par exercice — remplacé le 27/11/2026.]
+ * Les répétitions faites enregistrées (`StepResult.repetitionsDone`, arbitrage de Hermann du 28/11/2026) sont lues par `seriesLines`.
+ * [Valeurs additionnées par exercice — remplacé le 27/11/2026.] [Corrections lues dans une table séparée — remplacé le 28/11/2026.]
  */
 export function capturedValues(
   plan: ExecutablePlan,
   occurrences: readonly OccurrenceResult[],
   partials: ReadonlyMap<string, number>,
   leafOf: (key: string) => LeafSpec | undefined,
-  corrections: ReadonlyMap<string, number> = new Map(),
 ): readonly CapturedValue[] {
   const byExercise = new Map<string, CapturedCell[]>();
   for (const occurrence of occurrences) {
     const cells = byExercise.get(occurrence.exerciseId) ?? [];
     for (const line of seriesLines(occurrence, leafOf, partials)) {
-      const seriesKey = seriesKeyOf(occurrence.occurrenceKey, line.series);
-      const corrected = line.mode === "REPETITIONS" ? corrections.get(seriesKey) : undefined;
-      cells.push({ seriesKey, mode: line.mode, value: corrected ?? line.done });
+      cells.push({ seriesKey: seriesKeyOf(occurrence.occurrenceKey, line.series), mode: line.mode, value: line.done, stepKey: line.stepKey, partialKey: line.partialKey });
     }
     byExercise.set(occurrence.exerciseId, cells);
   }

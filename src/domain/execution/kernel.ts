@@ -126,6 +126,14 @@ export type StepResult = {
   readonly completion: StepCompletion;
   readonly endedAtMs: Ms;
   readonly context: LeafSpec["context"] | null;
+  /**
+   * Répétitions faites de la série (arbitrage de Hermann du 28/11/2026, option A ajustée : « Ajouter au résultat de chaque série un
+   * champ « répétitions faites », écrit à l'appui sur Enregistrer pour TOUTES les séries affichées […] ») : valeur affichée sur l'écran
+   * de fin (cible par défaut, ou valeur corrigée), figée pour cette séance. **Jamais écrit par le moteur** : seulement par Enregistrer
+   * (`SqliteExecutionFeedbackRepository`), sur la première étape de la série. Absent : séance antérieure ou série non enregistrée
+   * (lecture : calcul d'origine, `results.ts`).
+   */
+  readonly repetitionsDone?: number;
 };
 
 export type ResultChange =
