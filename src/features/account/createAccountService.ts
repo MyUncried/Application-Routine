@@ -21,7 +21,9 @@ function lazyGateway(): AccountGateway {
   return {
     signIn: (provider) => resolve().signIn(provider),
     signOutLocal: () => resolve().signOutLocal(),
-    linkAccount: (localUserId, givenName, familyName) => resolve().linkAccount(localUserId, givenName, familyName),
+    linkAccount: (localUserId, givenName, familyName, provider) => resolve().linkAccount(localUserId, givenName, familyName, provider),
+    discardUnlinkedUser: () => resolve().discardUnlinkedUser(),
+    currentIdentities: () => resolve().currentIdentities(),
     storeAppleToken: (token) => resolve().storeAppleToken(token),
     deleteAccount: (receipt) => resolve().deleteAccount(receipt),
     deletionStatus: (input) => resolve().deletionStatus(input),

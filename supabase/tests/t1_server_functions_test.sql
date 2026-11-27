@@ -4,6 +4,8 @@ create or replace function pg_temp.assert(condition boolean, message text) retur
 begin if condition is distinct from true then raise exception 'ÉCHEC : %', message; end if; end $$;
 
 insert into auth.users values ('00000000-0000-0000-0000-0000000000a1', 'a@example.com'), ('00000000-0000-0000-0000-0000000000a2', 'b@example.com');
+insert into auth.identities (user_id, provider, provider_id) values
+  ('00000000-0000-0000-0000-0000000000a1', 'apple', 'sub-1'), ('00000000-0000-0000-0000-0000000000a2', 'apple', 'sub-2');
 insert into public.accounts (auth_user_id, provider, provider_subject) values
   ('00000000-0000-0000-0000-0000000000a1', 'apple', 'sub-1'),
   ('00000000-0000-0000-0000-0000000000a2', 'apple', 'sub-2');
@@ -88,6 +90,24 @@ select public.revoke_user_sessions('00000000-0000-0000-0000-0000000000a1');
 do $$ begin
   perform pg_temp.assert((select count(*) from auth.sessions where user_id = '00000000-0000-0000-0000-0000000000a1') = 0, 'sessions du compte fermées');
   perform pg_temp.assert((select count(*) from auth.sessions) = 1, 'sessions des autres comptes intactes');
+end $$;
+
+-- CPT-35 : utilisateur fusionné (Google ancien + Apple) dont le compte est « Google » : jeton Apple accepté ;
+-- utilisateur sans identité Apple : refusé ; utilisateur sans compte : refusé.
+insert into auth.users values ('00000000-0000-0000-0000-0000000000a5', 'm@example.com'), ('00000000-0000-0000-0000-0000000000a6', 'g@example.com');
+insert into auth.identities (user_id, provider, provider_id, created_at) values
+  ('00000000-0000-0000-0000-0000000000a5', 'google', 'g-sub-m', now() - interval '1 day'),
+  ('00000000-0000-0000-0000-0000000000a5', 'apple', 'a-sub-m', now()),
+  ('00000000-0000-0000-0000-0000000000a6', 'google', 'g-sub-g', now());
+insert into public.accounts (auth_user_id, provider, provider_subject) values
+  ('00000000-0000-0000-0000-0000000000a5', 'google', 'g-sub-m'), ('00000000-0000-0000-0000-0000000000a6', 'google', 'g-sub-g');
+do $$ begin
+  perform public.store_apple_token('00000000-0000-0000-0000-0000000000a5', 'com.ankusha.kodjo', 'merged');
+  perform pg_temp.assert(exists (select 1 from public.apple_tokens where refresh_token_ciphertext = 'merged'), 'jeton Apple d''un compte fusionné enregistré');
+  begin
+    perform public.store_apple_token('00000000-0000-0000-0000-0000000000a6', 'com.ankusha.kodjo', 'x');
+    raise exception 'ÉCHEC : jeton Apple accepté sans identité Apple';
+  exception when invalid_parameter_value then null; end;
 end $$;
 
 -- Droits directs du rôle serveur sur chaque table (recette 25/11/2026 : absents sur le projet).

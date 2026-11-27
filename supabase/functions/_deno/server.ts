@@ -102,7 +102,12 @@ export function deletionPorts(admin: SupabaseClient): DeletionPorts {
       const { data, error } = await admin.from("accounts").select("provider, apple_tokens_invalidated_at")
         .eq("auth_user_id", authUserId).maybeSingle();
       if (error) throw error;
-      return data ? { provider: data.provider, appleTokensInvalidatedAt: data.apple_tokens_invalidated_at } : null;
+      if (!data) return null;
+      // CPT-35 : identités rattachées par Supabase (même e-mail) ; une identité Apple impose la révocation.
+      const { data: auth, error: authError } = await admin.auth.admin.getUserById(authUserId);
+      if (authError && (authError as { status?: number }).status !== 404) throw authError;
+      const hasAppleIdentity = data.provider === "apple" || (auth?.user?.identities ?? []).some((identity) => identity.provider === "apple");
+      return { provider: data.provider, appleTokensInvalidatedAt: data.apple_tokens_invalidated_at, hasAppleIdentity };
     },
     async listLocalUserIds(authUserId) {
       const { data, error } = await admin.from("account_local_users").select("local_user_id").eq("auth_user_id", authUserId);

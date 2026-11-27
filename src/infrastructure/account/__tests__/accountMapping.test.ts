@@ -5,6 +5,7 @@ import {
   classifyRefreshError,
   classifyStatusResponse,
   parseAuthCallback,
+  toIdentities,
   toLinkResponse,
   toProviderSession,
 } from "@/infrastructure/account/accountMapping";
@@ -37,6 +38,15 @@ describe("toProviderSession", () => {
 
   it("sujet introuvable : erreur explicite", () => {
     expect(() => toProviderSession({ id: "a", identities: [] }, "apple", { givenName: null, familyName: null }, null)).toThrow();
+  });
+});
+
+describe("toIdentities (CPT-35)", () => {
+  it("identités Apple et Google d'un utilisateur rattaché par e-mail ; autres fournisseurs ignorés", () => {
+    expect(
+      toIdentities({ id: "u", identities: [{ provider: "google", id: "g-sub" }, { provider: "apple", id: "a-sub" }, { provider: "email", id: "e" }] }),
+    ).toEqual([{ provider: "google", subject: "g-sub" }, { provider: "apple", subject: "a-sub" }]);
+    expect(toIdentities(null)).toEqual([]);
   });
 });
 

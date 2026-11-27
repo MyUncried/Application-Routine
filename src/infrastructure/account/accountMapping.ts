@@ -1,4 +1,4 @@
-import type { AccountProvider, DeleteResult, DeletionStatus, LinkResponse, ProviderSession, RefreshResult } from "@/domain/account/AccountService";
+import type { AccountIdentity, AccountProvider, DeleteResult, DeletionStatus, LinkResponse, ProviderSession, RefreshResult } from "@/domain/account/AccountService";
 
 /**
  * T1 Compte — conversions pures entre Supabase et le domaine (testées sans réseau).
@@ -33,6 +33,17 @@ export function toProviderSession(
   const givenName = names.givenName ?? text(metadata.given_name) ?? (names.familyName ? null : text(metadata.full_name) ?? text(metadata.name));
   const familyName = names.familyName ?? text(metadata.family_name);
   return { authUserId: user.id, provider, providerSubject: subject, email: text(user.email), givenName, familyName, appleToken };
+}
+
+/** CPT-35 : identités Apple et Google de l'utilisateur (Supabase rattache celles de même e-mail). */
+export function toIdentities(user: UserLike | null | undefined): AccountIdentity[] {
+  const result: AccountIdentity[] = [];
+  for (const identity of user?.identities ?? []) {
+    if (identity.provider !== "apple" && identity.provider !== "google") continue;
+    const subject = text(identity.id) ?? text(identity.identity_data?.sub);
+    if (subject) result.push({ provider: identity.provider, subject });
+  }
+  return result;
 }
 
 export function toLinkResponse(row: Record<string, unknown>): LinkResponse {
