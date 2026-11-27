@@ -520,7 +520,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 
 | Frame Figma | Capture principale | Contrat de référence | Réserve |
 |---|---|---|---|
-| [Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) et [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) | Profil — Préférences | `CE-UI-07` | Guidage sonore ; [27/11/2026, D-577] groupe Séance : réglage « Afficher l’écran de démarrage de séance » (interrupteur, activé par défaut ; désactivé par la case « Ne plus afficher cet écran ») |
+| [Profil — Préférences](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684) et [Profil — Préférences (suite)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12093-25010) | Profil — Préférences | `CE-UI-07` | Guidage sonore ; [27/11/2026, D-577] groupe Séance : réglage « Afficher l’écran de démarrage de séance » (interrupteur, activé par défaut : écran affiché pour toute séance ; désactivé : pour aucune ; la case « Ne plus afficher cet écran » ne vaut que pour la séance, jusqu'à un changement de ses exercices ; la capture de la douleur n'est pas concernée) |
 | [`1992:469`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-469) | Splash — Kodjo | `CE-UI-06` | — |
 | [`1992:778`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-778) | Profil — Modifier le profil — MVP | `CE-UI-01` | — |
 | [`1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101) | Calendrier — Semaine | `CE-UI-03` | — |
