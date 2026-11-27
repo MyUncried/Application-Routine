@@ -432,7 +432,7 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     view.unmount();
   });
 
-  it("parcours : la douleur saisie en première séance est transmise à la séance suivante ; la suivante n'a pas d'échelle", async () => {
+  it("parcours : écran de fin à chaque séance ; la douleur ressentie en fin de séance 1 devient la douleur « avant » de la séance 2", async () => {
     const ctx = await setup();
     ctx.painOptionFor.mockResolvedValue(true);
     const origin = { routineId: "r1", occurrenceKey: "2026-11-27T08:00" };
@@ -449,18 +449,30 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));
     });
+    // Décision de Hermann du 27/11/2026 (points 2 et 3) : écran de fin complet après la séance 1 (ressenti, douleur ressentie) ;
+    // la douleur « avant » de la séance 2 est la douleur ressentie saisie à la fin de la séance 1. [Douleur de la séance 1 recopiée
+    // sur toutes les séances — remplacé.]
+    expect(calls).toEqual([]);
+    expect(screen.getByTestId("end-session-pain-scale")).toBeTruthy();
+    await press("end-session-feeling-BAD");
+    await press("end-session-pain-4");
+    await press("end-session-save");
+    expect(ctx.finalizeExecution).toHaveBeenCalledWith(expect.objectContaining({ executionId: "exec-1", feeling: "BAD", painAfter: 4 }));
     expect(calls).toEqual([
-      `replace ${JSON.stringify({ pathname: "/execution", params: { sessionId: ctx.second, chain: `${ctx.first},${ctx.second}`, rank: "2", routineId: "r1", occurrence: "2026-11-27T08:00", pain: "6" } })}`,
+      `replace ${JSON.stringify({ pathname: "/execution", params: { sessionId: ctx.second, chain: `${ctx.first},${ctx.second}`, rank: "2", routineId: "r1", occurrence: "2026-11-27T08:00", pain: "4" } })}`,
     ]);
     view.unmount();
 
-    const next = ctx.show(ctx.second, parseChain(ctx.second, `${ctx.first},${ctx.second}`, "2"), origin, 6);
+    const next = ctx.show(ctx.second, parseChain(ctx.second, `${ctx.first},${ctx.second}`, "2"), origin, 4);
     expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
     expect(screen.queryByTestId("before-session-pain-scale")).toBeNull();
     await press("execution-start");
-    // La douleur saisie une fois est enregistrée aussi sur l'Exécution de la séance suivante.
-    expect(ctx.recordPainBefore).toHaveBeenLastCalledWith("exec-2", 6);
+    expect(ctx.recordPainBefore).toHaveBeenLastCalledWith("exec-2", 4);
     expect(ctx.recordPainBefore).toHaveBeenCalledTimes(2);
+    // Fin de la séance 2 : écran de fin complet, douleur ressentie de nouveau demandée (option du Programme).
+    await ctx.advance(20);
+    expect(screen.getByTestId("end-session-COMPLETED")).toBeTruthy();
+    expect(screen.getByTestId("end-session-pain-scale")).toBeTruthy();
     next.unmount();
   });
 
@@ -511,7 +523,7 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     await press("end-session-feeling-GOOD");
     await press("end-session-pain-1");
     await press("end-session-save");
-    expect(ctx.finalizeExecution).toHaveBeenCalledWith({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 1 });
+    expect(ctx.finalizeExecution).toHaveBeenCalledWith({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 1, photoPath: null, repetitionCorrections: [] });
     expect(ctx.service.current()).toBeNull();
     view.unmount();
   });

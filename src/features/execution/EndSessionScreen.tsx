@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Image } from "expo-image";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +10,7 @@ import { PrimaryActionButton } from "@/shared/ui/PrimaryActionZone";
 
 import { END_STATE_STYLE, formatRealDuration, SESSION_FEELINGS, type CapturedValue, type EndState, type SessionFeeling } from "./endSession";
 import { FeelingFace } from "./FeelingFace";
+import { EXEC_FONT } from "./executionFonts";
 import { PainScale } from "./PainScale";
 
 /**
@@ -24,9 +26,16 @@ import { PainScale } from "./PainScale";
  * Bouton primaire du Design system, hors du cadre, en bas d'écran, désactivé sans ressenti (et sans douleur quand elle est demandée,
  * D-427). Nom de la séance et liste détaillée des exercices retirés (D-578).
  *
- * [À CLARIFIER (non tranché) : liste exacte des valeurs saisies ; présentation multi-tours (une ligne par exercice, somme) ; nombre,
- * aperçu, conservation et partage de la photo ; écrans « Ressenti sélectionné » non redessinés (sélection : fond blanc plein et
- * contour épais, interprétation) ; enregistrement des répétitions corrigées (aucune API de résultat modifiable : non enregistrées).]
+ * Décisions de Hermann du 27/11/2026 : valeurs saisies conformes à Figma, une ligne par exercice, valeurs additionnées (« 5. Oui ») ;
+ * photo (point 4) : une seule photo par séance, aperçu après la prise, « Reprendre » et « Supprimer » tant que la séance n'est pas
+ * enregistrée ; copie privée à l'enregistrement (`SessionPhotoStore`) ; ligne « Sera partagée avec … » sous la photo seulement si
+ * une relation la partage (`sessionPhotoRecipients`, vide tant que le module de relation n'existe pas) ; aucun bouton de partage.
+ * Polices : Roboto Condensed (`EXEC_FONT`).
+ * [À CLARIFIER : écrans « Ressenti sélectionné » non redessinés (sélection : fond blanc plein et contour épais, interprétation) ;
+ * série sans valeur capturée : case vide non modifiable (lecture prudente).]
+ * Valeurs par série (Figma « Valeurs par série » `13461:27870`, décision de Hermann du 27/11/2026) : une colonne par série (S1, S2,
+ * S3 visibles, défilement horizontal au-delà), champs 68 × 34, texte 14 ; la valeur corrigée d'une série remplace sa valeur d'origine,
+ * enregistrée par Enregistrer ; quitter sans enregistrer ne change rien ; aucun total, aucun report d'écart.
  */
 const t = strings.execution.endSession;
 const WHITE_VEIL = "rgba(255, 255, 255, 0.5)";
@@ -37,6 +46,13 @@ export type EndSessionInput = {
   readonly feeling: SessionFeeling;
   readonly comment: string | null;
   readonly painAfter: number | null;
+  /** Photo prise (adresse temporaire de l'appareil photo) ; `null` : aucune. */
+  readonly photoUri: string | null;
+  /**
+   * Répétitions corrigées (décisions de Hermann du 27/11/2026) : nouvelle valeur **par série** (`<occurrence>#<série>`), seulement pour
+   * les séries modifiées. Un champ vidé garde la valeur d'origine.
+   */
+  readonly repetitions: Readonly<Record<string, number>>;
 };
 
 export function EndSessionScreen({
@@ -50,6 +66,8 @@ export function EndSessionScreen({
   painOption,
   cameraAvailable,
   onTakePhoto,
+  onDiscardPhoto = () => undefined,
+  recipients = [],
   onSave,
 }: {
   readonly state: EndState;
@@ -64,6 +82,10 @@ export function EndSessionScreen({
   /** Appareil photo natif disponible dans ce build (`SESSION_CAMERA_IN_BUILD`). */
   readonly cameraAvailable: boolean;
   readonly onTakePhoto: () => Promise<string | null>;
+  /** Photo remplacée (« Reprendre ») ou retirée (« Supprimer ») avant l'enregistrement : le fichier pris est effacé. */
+  readonly onDiscardPhoto?: (uri: string) => void;
+  /** Destinataires du partage automatique de la photo (règle de relation) ; vide : ligne « Sera partagée avec … » masquée. */
+  readonly recipients?: readonly string[];
   /** Enregistrement ; une erreur garde l'écran, le choix et le commentaire (CE-UI-08 § 17). */
   readonly onSave: (input: EndSessionInput) => Promise<void>;
 }) {
@@ -72,9 +94,11 @@ export function EndSessionScreen({
   const [feeling, setFeeling] = useState<SessionFeeling | null>(null);
   const [pain, setPain] = useState<number | null>(null);
   const [comment, setComment] = useState("");
+  // Brouillon des répétitions, par série ; rien n'est écrit avant Enregistrer (décision de Hermann du 27/11/2026).
   const [repetitions, setRepetitions] = useState<Readonly<Record<string, string>>>(() =>
-    Object.fromEntries(values.filter((value) => value.repetitions !== null).map((value) => [value.exerciseId, String(value.repetitions)])),
+    Object.fromEntries(values.flatMap((value) => value.cells.flatMap((cell) => (cell.mode === "REPETITIONS" && cell.value !== null ? [[cell.seriesKey, String(cell.value)] as const] : [])))),
   );
+  const columnCount = Math.max(0, ...values.map((value) => value.cells.length));
   const [photo, setPhoto] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -85,11 +109,40 @@ export function EndSessionScreen({
   const day = sameDay ? t.today : startedAt.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   const when = `${day} · ${t.time(startedAt.getHours(), startedAt.getMinutes())}`;
 
+  // Une seule photo par séance : une nouvelle prise remplace la précédente, dont le fichier est effacé.
+  const capture = () => {
+    if (!cameraAvailable || saving) return;
+    void onTakePhoto().then((uri) => {
+      if (uri === null) return;
+      setPhoto((previous) => {
+        if (previous !== null && previous !== uri) onDiscardPhoto(previous);
+        return uri;
+      });
+    });
+  };
+  const discardPhoto = () => {
+    if (photo === null || saving) return;
+    onDiscardPhoto(photo);
+    setPhoto(null);
+  };
+
+  const editedRepetitions = (): Readonly<Record<string, number>> =>
+    Object.fromEntries(
+      values.flatMap((value) =>
+        value.cells.flatMap((cell) => {
+          const text = repetitions[cell.seriesKey] ?? "";
+          if (cell.mode !== "REPETITIONS" || cell.value === null || text === "") return [];
+          const next = Number(text);
+          return Number.isInteger(next) && next !== cell.value ? [[cell.seriesKey, next] as const] : [];
+        }),
+      ),
+    );
+
   const save = () => {
     if (!ready || feeling === null) return;
     setSaving(true);
     setFailed(false);
-    onSave({ feeling, comment: comment.trim() === "" ? null : comment, painAfter: painOption ? pain : null }).then(
+    onSave({ feeling, comment: comment.trim() === "" ? null : comment, painAfter: painOption ? pain : null, photoUri: photo, repetitions: editedRepetitions() }).then(
       () => setSaving(false),
       () => {
         setSaving(false);
@@ -139,39 +192,62 @@ export function EndSessionScreen({
             {/* Valeurs saisies */}
             {values.length > 0 ? (
               <>
-                <Text style={styles.heading}>{t.values}</Text>
-                {values.map((value) => (
-                  <View key={value.exerciseId} style={styles.valueRow} testID={`end-session-value-${value.exerciseId}`}>
-                    <Text style={styles.valueName} numberOfLines={1}>
-                      {value.name}
-                    </Text>
-                    <View style={styles.valueBoxes}>
-                      {value.repetitions !== null ? (
-                        <View style={[styles.valueBox, styles.valueEditable]}>
-                          <TextInput
-                            value={repetitions[value.exerciseId] ?? ""}
-                            onChangeText={(text) => setRepetitions((current) => ({ ...current, [value.exerciseId]: text.replace(/[^0-9]/g, "") }))}
-                            keyboardType="number-pad"
-                            accessibilityLabel={t.repetitionsOf(value.name)}
-                            style={styles.valueInput}
-                            testID={`end-session-reps-${value.exerciseId}`}
-                          />
-                          <Text style={styles.valueUnit}>{` ${t.repetitionsUnit}`}</Text>
-                        </View>
-                      ) : null}
-                      {value.durationMs !== null ? (
-                        <View
-                          style={[styles.valueBox, styles.valueFixed]}
-                          accessible
-                          accessibilityLabel={t.durationOf(value.name, formatRealDuration(value.durationMs))}
-                          testID={`end-session-duration-${value.exerciseId}`}
-                        >
-                          <Text style={styles.valueFixedText}>{formatRealDuration(value.durationMs)}</Text>
-                        </View>
-                      ) : null}
+                {/* Valeurs par série (Figma `13461:27870`) : noms à gauche ; colonnes S1, S2, S3… et leurs libellés dans un seul défilement
+                    horizontal natif (trois colonnes visibles). */}
+                <View style={styles.valuesGrid} testID="end-session-values">
+                  <View style={styles.valuesNames}>
+                    <View style={styles.valuesHeader}>
+                      <Text style={[styles.heading, styles.valuesHeading]}>{t.values}</Text>
                     </View>
+                    {values.map((value) => (
+                      <View key={value.exerciseId} style={styles.valueRow} testID={`end-session-value-${value.exerciseId}`}>
+                        <Text style={styles.valueName} numberOfLines={2} ellipsizeMode="tail">
+                          {value.name}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
+                  <ScrollView horizontal style={styles.valuesScroll} showsHorizontalScrollIndicator={false} bounces={false} testID="end-session-values-scroll">
+                    <View>
+                      <View style={[styles.valuesHeader, styles.valuesColumns]}>
+                        {Array.from({ length: columnCount }, (_, column) => (
+                          <Text key={column} style={styles.columnLabel} testID={`end-session-column-${column + 1}`}>
+                            {t.seriesColumn(column + 1)}
+                          </Text>
+                        ))}
+                      </View>
+                      {values.map((value) => (
+                        <View key={value.exerciseId} style={[styles.valueRow, styles.valuesColumns]}>
+                          {value.cells.map((cell, column) =>
+                            cell.value === null ? (
+                              <View key={cell.seriesKey} style={styles.valueCell} testID={`end-session-cell-empty-${cell.seriesKey}`} />
+                            ) : cell.mode === "REPETITIONS" ? (
+                              <TextInput
+                                key={cell.seriesKey}
+                                value={repetitions[cell.seriesKey] ?? ""}
+                                onChangeText={(text) => setRepetitions((current) => ({ ...current, [cell.seriesKey]: text.replace(/[^0-9]/g, "") }))}
+                                keyboardType="number-pad"
+                                accessibilityLabel={t.repetitionsOf(value.name, column + 1)}
+                                style={[styles.valueCell, styles.valueEditable, styles.valueInput]}
+                                testID={`end-session-reps-${cell.seriesKey}`}
+                              />
+                            ) : (
+                              <View
+                                key={cell.seriesKey}
+                                style={[styles.valueCell, styles.valueFixed]}
+                                accessible
+                                accessibilityLabel={t.durationOf(value.name, column + 1, formatRealDuration(cell.value))}
+                                testID={`end-session-duration-${cell.seriesKey}`}
+                              >
+                                <Text style={styles.valueFixedText}>{formatRealDuration(cell.value)}</Text>
+                              </View>
+                            ),
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
                 <View style={styles.separator} />
               </>
             ) : null}
@@ -214,12 +290,7 @@ export function EndSessionScreen({
                 testID="end-session-comment"
               />
               <Pressable
-                onPress={() => {
-                  if (!cameraAvailable) return;
-                  void onTakePhoto().then((uri) => {
-                    if (uri !== null) setPhoto(uri);
-                  });
-                }}
+                onPress={capture}
                 disabled={!cameraAvailable}
                 accessibilityRole="button"
                 accessibilityLabel={t.photo}
@@ -232,9 +303,22 @@ export function EndSessionScreen({
               </Pressable>
             </View>
             {photo !== null ? (
-              <Text style={styles.note} testID="end-session-photo-taken">
-                {t.photoTaken}
-              </Text>
+              <View style={styles.photoBlock} testID="end-session-photo">
+                <Image source={{ uri: photo }} style={styles.photo} contentFit="cover" accessibilityLabel={t.photoTaken} testID="end-session-photo-preview" />
+                <View style={styles.photoActions}>
+                  <Pressable onPress={capture} accessibilityRole="button" accessibilityLabel={t.photoRetake} style={styles.photoAction} testID="end-session-photo-retake">
+                    <Text style={styles.photoActionText}>{t.photoRetake}</Text>
+                  </Pressable>
+                  <Pressable onPress={discardPhoto} accessibilityRole="button" accessibilityLabel={t.photoDelete} style={styles.photoAction} testID="end-session-photo-delete">
+                    <Text style={styles.photoActionText}>{t.photoDelete}</Text>
+                  </Pressable>
+                </View>
+                {recipients.length > 0 ? (
+                  <Text style={styles.note} testID="end-session-photo-recipients">
+                    {t.photoSharedWith(recipients.join(", "))}
+                  </Text>
+                ) : null}
+              </View>
             ) : null}
             {tooLong ? (
               <Text style={styles.note} accessibilityLiveRegion="polite" testID="end-session-comment-too-long">
@@ -276,31 +360,41 @@ const styles = StyleSheet.create({
   card: { borderRadius: 20, paddingHorizontal: 12, paddingTop: 34, paddingBottom: 16 },
   symbol: { position: "absolute", top: -22, alignSelf: "center", width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   symbolScale: { transform: [{ scale: 44 / 28 }] },
-  title: { fontSize: 26, lineHeight: 32, fontWeight: "700", color: "#FFFFFF", textAlign: "center" },
-  when: { fontSize: 15, color: "rgba(255, 255, 255, 0.85)", textAlign: "center", marginTop: 2 },
+  title: { fontSize: 26, lineHeight: 32, ...EXEC_FONT.bold, color: "#FFFFFF", textAlign: "center" },
+  when: { ...EXEC_FONT.regular, fontSize: 15, color: "rgba(255, 255, 255, 0.85)", textAlign: "center", marginTop: 2 },
   columns: { flexDirection: "row", marginTop: 18, alignItems: "stretch" },
   column: { flex: 1, alignItems: "center" },
   columnSeparator: { width: 1, backgroundColor: SEPARATOR },
-  metric: { fontSize: 26, lineHeight: 32, fontWeight: "700", color: "#FFFFFF", fontVariant: ["tabular-nums"] },
-  metricLabel: { fontSize: 11, letterSpacing: 0.3, color: "rgba(255, 255, 255, 0.85)", marginTop: 2 },
+  metric: { fontSize: 26, lineHeight: 32, ...EXEC_FONT.bold, color: "#FFFFFF", fontVariant: ["tabular-nums"] },
+  metricLabel: { ...EXEC_FONT.regular, fontSize: 11, letterSpacing: 0.3, color: "rgba(255, 255, 255, 0.85)", marginTop: 2 },
   separator: { height: 1, backgroundColor: SEPARATOR, marginHorizontal: 12, marginVertical: 16 },
-  heading: { fontSize: 18, lineHeight: 22, fontWeight: "700", color: "#FFFFFF", marginTop: 8, marginBottom: 14 },
-  valueRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  valueName: { flex: 1, fontSize: 16, color: "#FFFFFF", marginRight: 12 },
-  valueBoxes: { flexDirection: "row", gap: 8 },
-  valueBox: { width: 96, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", flexDirection: "row" },
+  heading: { fontSize: 18, lineHeight: 22, ...EXEC_FONT.bold, color: "#FFFFFF", marginTop: 8, marginBottom: 14 },
+  valuesGrid: { flexDirection: "row" },
+  valuesNames: { flex: 1, marginRight: 8 },
+  valuesHeader: { height: 30, justifyContent: "center" },
+  valuesHeading: { marginTop: 0, marginBottom: 0 },
+  valuesScroll: { width: 3 * 68 + 2 * 6, flexGrow: 0 },
+  valuesColumns: { flexDirection: "row", gap: 6, alignItems: "center" },
+  columnLabel: { ...EXEC_FONT.regular, width: 68, fontSize: 13, color: "rgba(255, 255, 255, 0.85)", textAlign: "center" },
+  valueCell: { width: 68, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  valueRow: { height: 44, justifyContent: "center" },
+  valueName: { ...EXEC_FONT.regular, fontSize: 16, lineHeight: 19, color: "#FFFFFF" },
   valueEditable: { backgroundColor: "#FFFFFF" },
-  valueInput: { minWidth: 28, padding: 0, fontSize: 16, fontWeight: "700", color: "#1C1C1E", textAlign: "right" },
-  valueUnit: { fontSize: 16, fontWeight: "700", color: "#1C1C1E" },
+  valueInput: { padding: 0, fontSize: 14, ...EXEC_FONT.bold, color: "#1C1C1E", textAlign: "center" },
   valueFixed: { borderWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(255, 255, 255, 0.85)" },
-  valueFixedText: { fontSize: 16, fontWeight: "700", color: "#FFFFFF", fontVariant: ["tabular-nums"] },
+  valueFixedText: { fontSize: 14, ...EXEC_FONT.bold, color: "#FFFFFF", fontVariant: ["tabular-nums"] },
   faces: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
   face: { width: 62, height: 46, borderRadius: 12, backgroundColor: "rgba(255, 255, 255, 0.92)", alignItems: "center", justifyContent: "center", borderWidth: 3, borderColor: "transparent" },
   faceSelected: { backgroundColor: "#FFFFFF", transform: [{ scale: 1.08 }], boxShadow: "0px 3px 6px rgba(0, 0, 0, 0.35)" },
   commentField: { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255, 255, 255, 0.94)", borderRadius: 12, minHeight: 56, paddingLeft: 14, paddingRight: 8 },
-  commentInput: { flex: 1, fontSize: 16, color: "#1C1C1E", paddingVertical: 10 },
+  commentInput: { ...EXEC_FONT.regular, flex: 1, fontSize: 16, color: "#1C1C1E", paddingVertical: 10 },
   camera: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", marginLeft: 8 },
   cameraUnavailable: { opacity: 0.45 },
-  note: { fontSize: 14, color: "#FFFFFF", marginTop: 8 },
+  photoBlock: { marginTop: 12 },
+  photo: { width: "100%", aspectRatio: 4 / 3, borderRadius: 12 },
+  photoActions: { flexDirection: "row", gap: 12, marginTop: 10 },
+  photoAction: { flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
+  photoActionText: { ...EXEC_FONT.bold, fontSize: 16, color: "#FFFFFF" },
+  note: { ...EXEC_FONT.regular, fontSize: 14, color: "#FFFFFF", marginTop: 8 },
   button: { position: "absolute", left: 24, right: 24 },
 });

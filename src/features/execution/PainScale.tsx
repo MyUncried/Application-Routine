@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { strings } from "@/shared/i18n";
 
 import { painColor, painDigitColor } from "./beforeSession";
+import { EXEC_FONT } from "./executionFonts";
 
 /**
  * Échelle de douleur 0–10 (D-427 ; DSF Avant la séance § 4 ; D-578 / D-580 pour la fin de séance) : onze cases 30 × 44 colorées du
@@ -55,6 +56,6 @@ const styles = StyleSheet.create({
   cell: { width: 30, height: 44, borderRadius: 6, alignItems: "center", justifyContent: "center" },
   outlined: { borderWidth: 0.75, borderColor: "#FFFFFF" },
   cellSelected: { width: 40, height: 58, marginHorizontal: -5, borderRadius: 8, borderWidth: 0, boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.45)", zIndex: 1 },
-  digit: { fontSize: 14, fontWeight: "700" },
+  digit: { fontSize: 14, ...EXEC_FONT.bold },
   digitSelected: { fontSize: 22 },
 });

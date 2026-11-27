@@ -16,9 +16,23 @@ export type ExecutionFeedback = {
   readonly comment: string | null;
   /** Douleur après la séance (D-427, option du Programme) ; `null` : non demandée. Jamais 0 par défaut. */
   readonly painAfter: number | null;
+  /**
+   * Photo de fin de séance (décision de Hermann du 27/11/2026, point 4) : adresse de la copie privée dans l’espace de l’application ;
+   * `null` : aucune photo. Une seule photo par séance. Facultatif à l’écriture (absent = aucune photo).
+   */
+  readonly photoPath?: string | null;
+  /**
+   * Répétitions corrigées sur l'écran de fin (décision de Hermann du 27/11/2026, « Répétitions corrigées : A ») : par série
+   * (`<occurrence>#<série>`), la valeur corrigée remplace la valeur d'origine. Enregistrées avec Enregistrer seulement.
+   */
+  readonly repetitionCorrections?: readonly RepetitionCorrection[];
 };
+
+export type RepetitionCorrection = { readonly seriesKey: string; readonly repetitions: number };
 
 export interface ExecutionFeedbackRepository {
   save(feedback: ExecutionFeedback, at: string): Promise<void>;
   get(executionId: string): Promise<ExecutionFeedback | null>;
+  /** Répétitions corrigées enregistrées de l'Exécution, par série ; vide sans correction. */
+  repetitionCorrections(executionId: string): Promise<ReadonlyMap<string, number>>;
 }

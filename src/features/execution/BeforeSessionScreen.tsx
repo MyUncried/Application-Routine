@@ -7,6 +7,7 @@ import { CloseCircleAction } from "@/shared/ui/HeaderCircleAction";
 import { PrimaryActionButton } from "@/shared/ui/PrimaryActionZone";
 
 import type { OutlineLine } from "./beforeSession";
+import { EXEC_FONT } from "./executionFonts";
 import { PainScale } from "./PainScale";
 
 /**
@@ -25,7 +26,8 @@ import { PainScale } from "./PainScale";
  * `NEXT` (séances suivantes : titre et liste, centré, sans douleur).
  *
  * [Hypothèse validée par Hermann le 27/11/2026 (« 2. Ok ») : un toucher ailleurs que sur le bouton ne fait rien.]
- * [Police : Roboto non embarquée (seul Roboto Condensed l'est) ; police du système — SCOPE_EXPANSION_REQUIRED, voir le rapport.]
+ * Police : Roboto Condensed (`EXEC_FONT`, police des écrans d'exécution ; décision technique du 27/11/2026 après la remarque de
+ * Hermann). [Police du système, Roboto non embarquée (SCOPE_EXPANSION_REQUIRED) — remplacé.]
  */
 export type BeforeSessionMode = "FULL" | "PAIN_ONLY" | "NEXT";
 
@@ -172,26 +174,26 @@ const styles = StyleSheet.create({
   cardColumn: { flexShrink: 1 },
   card: { backgroundColor: BEFORE_SESSION.card, borderRadius: 20, flexShrink: 1, paddingBottom: 20, zIndex: 1 },
   cardAttached: {},
-  title: { fontSize: 26, lineHeight: 32, fontWeight: "700", color: "#FFFFFF", textAlign: "center", paddingTop: 23, paddingHorizontal: 24 },
+  title: { fontSize: 26, lineHeight: 32, ...EXEC_FONT.bold, color: "#FFFFFF", textAlign: "center", paddingTop: 23, paddingHorizontal: 24 },
   dots: { flexDirection: "row", justifyContent: "space-between", marginTop: 23, marginHorizontal: 24 },
   dot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: "rgba(255, 255, 255, 0.6)" },
   listScroll: { flexGrow: 0, flexShrink: 1 },
   listContent: { paddingTop: 10, paddingHorizontal: 24 },
   line: { flexDirection: "row" },
-  lineText: { fontSize: 22, lineHeight: 28, color: "#FFFFFF" },
+  lineText: { ...EXEC_FONT.regular, fontSize: 22, lineHeight: 28, color: "#FFFFFF" },
   bullet: { width: 18 },
-  group: { fontWeight: "700", flexShrink: 1 },
-  exercise: { fontWeight: "400", flexShrink: 1 },
+  group: { ...EXEC_FONT.bold, flexShrink: 1 },
+  exercise: { ...EXEC_FONT.regular, flexShrink: 1 },
   painZone: { paddingHorizontal: 12 },
   separator: { height: 1, marginHorizontal: 12, marginTop: 16, backgroundColor: BEFORE_SESSION.separator },
-  painLabel: { fontSize: 22, lineHeight: 26, fontWeight: "700", color: "#FFFFFF", marginTop: 17 },
+  painLabel: { fontSize: 22, lineHeight: 26, ...EXEC_FONT.bold, color: "#FFFFFF", marginTop: 17 },
   scaleArea: { marginTop: 29 },
   // Second cadre accroché (DSF § 6) : même largeur et mêmes coins, visible sur 52 pt sous le cadre principal (20 pt recouverts).
   attached: { backgroundColor: BEFORE_SESSION.attached, borderBottomLeftRadius: 20, borderBottomRightRadius: 20, marginTop: -20, paddingTop: 20, height: 72, justifyContent: "center", paddingHorizontal: 24 },
   dismissRow: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start" },
   dismissBox: { width: 18, height: 18, borderRadius: 4, borderWidth: 1.5, borderColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
   dismissBoxChecked: { backgroundColor: "#FFFFFF" },
-  dismissMark: { fontSize: 12, lineHeight: 14, fontWeight: "700", color: BEFORE_SESSION.attached },
-  dismissLabel: { marginLeft: 10, fontSize: 16, color: "#FFFFFF" },
+  dismissMark: { fontSize: 12, lineHeight: 14, ...EXEC_FONT.bold, color: BEFORE_SESSION.attached },
+  dismissLabel: { ...EXEC_FONT.regular, marginLeft: 10, fontSize: 16, color: "#FFFFFF" },
   button: { position: "absolute", left: 24, right: 24 },
 });

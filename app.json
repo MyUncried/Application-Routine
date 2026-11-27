@@ -60,7 +60,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Routine accède à vos photos et vidéos pour choisir la photo de votre profil et ajouter des médias à vos exercices.",
-          "cameraPermission": false,
+          "cameraPermission": "Routine utilise l’appareil photo pour la photo de fin de séance.",
           "microphonePermission": false
         }
       ],

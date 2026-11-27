@@ -8,7 +8,7 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
 /** Migration 037 — créneau ajouté hors de la répétition (D-554, RM-273, 21/11/2026). 035 et 036 sont prises. */
 describe("migration 037 — routine_occurrences.added", () => {
   it("version 37 ; occurrences existantes issues de la répétition (0) ; données conservées ; idempotente", async () => {
-    expect(DATABASE_VERSION).toBe(44); // version courante (Programmes en 038, intégration du 23/11/2026)
+    expect(DATABASE_VERSION).toBe(45); // version courante (Programmes en 038, intégration du 23/11/2026)
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database, () => "2026-11-21T00:00:00.000Z", 36);
     await database.runAsync(
@@ -20,7 +20,7 @@ describe("migration 037 — routine_occurrences.added", () => {
       "INSERT INTO routine_occurrences (routine_id, occurrence_key, occurrence_index, occurrence_date, occurrence_time, reminder_overridden) VALUES ('r', '2026-11-16T08:00', 1, '2026-11-17', '09:00', 0)",
     );
     await migrateDatabase(database);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 45 });
     const routine = await new SqliteRoutineRepository(database).get("r");
     expect(routine?.overrides).toEqual([
       { key: "2026-11-16T08:00", index: 1, date: "2026-11-17", time: "09:00", sessions: null, reminderOverridden: false, reminderMinutes: null, startedAt: null },

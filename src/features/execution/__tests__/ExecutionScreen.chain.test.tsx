@@ -218,11 +218,16 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     expect(screen.getByTestId("before-session-start-label").props.children).toBe("Appuyer pour démarrer le parcours");
     expect(screen.getByTestId("execution-back")).toBeTruthy();
     await runToEnd(advance);
-    // Recette du 20/11/2026 (constat F) : pas de bouton sur « Séance terminée » d'une séance intermédiaire.
-    expect(screen.queryByTestId("execution-close")).toBeNull();
+    // Décision de Hermann du 27/11/2026 (point 2) : l'écran de fin complet s'affiche aussi après une séance intermédiaire ;
+    // « Enregistrer » ouvre la séance suivante. [Recette du 20/11/2026 (constat F) : ouverture automatique après CHAIN_AUTO_NEXT_MS —
+    // remplacé.]
+    expect(screen.getByTestId("end-session-COMPLETED")).toBeTruthy();
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));
     });
+    expect(calls).toEqual([]);
+    await press("end-session-feeling-GOOD");
+    await press("end-session-save");
     // release() précède la navigation : la séance suivante peut démarrer (pas d'ExecutionBlockedError).
     expect(calls).toEqual(["release", `replace ${JSON.stringify({ pathname: "/execution", params: { sessionId: second, chain: `${first},${second}`, rank: "2" } })}`]);
     expect(mockBack).not.toHaveBeenCalled();
@@ -250,18 +255,20 @@ describe("Exécution — enchaînement des séances d'une routine (D-534)", () =
     secondView.unmount();
   });
 
-  it("séance intermédiaire : pas de « Fin de séance », « Séance terminée » puis la suivante s'ouvre seule (recette du 19/11 au soir, constat F)", async () => {
+  it("séance intermédiaire : pas de « Fin de séance », écran de fin complet, la suivante s'ouvre par Enregistrer (décision de Hermann du 27/11/2026)", async () => {
     const { advance, show, first, second } = await setup(5);
     const view = show(first, parseChain(first, `${first},${second}`, "1"));
     await press(((await screen.findByTestId("execution-start")) && "execution-start") as string);
     // Compte à rebours 3 s, exercice 5 s : la phase finale de 5 s est passée aussitôt.
     await advance(9);
     expect(screen.getByTestId("execution-end-status", { includeHiddenElements: true }).props.children).toBe("Séance terminée");
-    expect(screen.queryByTestId("execution-close")).toBeNull();
     expect(calls).toEqual([]);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));
     });
+    expect(calls).toEqual([]);
+    await press("end-session-feeling-NEUTRAL");
+    await press("end-session-save");
     expect(calls).toEqual(["release", `replace ${JSON.stringify({ pathname: "/execution", params: { sessionId: second, chain: `${first},${second}`, rank: "2" } })}`]);
     view.unmount();
   });

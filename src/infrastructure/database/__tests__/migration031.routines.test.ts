@@ -37,8 +37,8 @@ describe("migration031 — Routines", () => {
     await migrateDatabase(database, undefined, 30);
     const before = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(44);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
+    expect(DATABASE_VERSION).toBe(45);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 45 });
     const after = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
     // Jusqu'à la version courante : la 033 ajoute le lien occurrence ↔ Exécution, la 034 les occurrences enregistrées.
     expect(after.map((row) => row.name).filter((name) => !before.some((row) => row.name === name))).toEqual([
@@ -46,6 +46,7 @@ describe("migration031 — Routines", () => {
       "account_link",
       "execution_feedback",
       "execution_pain_readings",
+      "execution_repetition_corrections",
       "occurrence_executions",
       "programs",
       "routine_entries",

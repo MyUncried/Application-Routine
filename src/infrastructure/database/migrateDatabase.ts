@@ -45,6 +45,7 @@ import { applyMigration041 } from "./migrations/migration041";
 import { applyMigration042, MIGRATION_042_ACCOUNT } from "./migrations/migration042";
 import { applyMigration043, MIGRATION_043_PAIN_READINGS } from "./migrations/migration043";
 import { applyMigration044, MIGRATION_044_FEEDBACK } from "./migrations/migration044";
+import { applyMigration045 } from "./migrations/migration045";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -437,6 +438,12 @@ export async function migrateDatabase(
     if (pending(43)) {
       await applyMigration044(transaction);
       version = 44;
+    }
+
+    // Photo de fin de séance (décision de Hermann du 27/11/2026, point 4) : adresse de la copie privée. Un échec laisse `user_version` à 44.
+    if (pending(44)) {
+      await applyMigration045(transaction);
+      version = 45;
     }
 
     if (version !== targetVersion) {

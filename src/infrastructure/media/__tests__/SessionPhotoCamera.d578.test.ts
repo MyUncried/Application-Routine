@@ -13,13 +13,13 @@ jest.mock("expo-image-picker", () => ({
 describe("SessionPhotoCamera (D-578)", () => {
   it("appareil photo natif : autorisation puis prise de vue ; refus → null", async () => {
     expect(await takeSessionPhoto()).toBe("file:///photo.jpg");
-    expect(mockLaunch).toHaveBeenCalledWith({ mediaTypes: "images" });
+    expect(mockLaunch).toHaveBeenCalledWith({ mediaTypes: "images", quality: 0.6 });
     mockRequest.mockResolvedValueOnce({ granted: false });
     expect(await takeSessionPhoto()).toBeNull();
     expect(mockLaunch).toHaveBeenCalledTimes(1);
   });
 
-  it("indisponible tant que le build n'a pas le texte d'autorisation de l'appareil photo", () => {
-    expect(SESSION_CAMERA_IN_BUILD).toBe(false);
+  it("disponible à partir du build portant le texte d’autorisation de l’appareil photo (décision de Hermann du 27/11/2026)", () => {
+    expect(SESSION_CAMERA_IN_BUILD).toBe(true);
   });
 });

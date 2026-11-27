@@ -70,6 +70,8 @@ import { BeforeSessionScreen } from "./BeforeSessionScreen";
 import { capturedValues, endStateOf, exerciseTally, plannedExerciseCount } from "./endSession";
 import { EndSessionScreen } from "./EndSessionScreen";
 import { SESSION_CAMERA_IN_BUILD, takeSessionPhoto } from "@/infrastructure/media/SessionPhotoCamera";
+import { deleteSessionPhoto, storeSessionPhoto } from "@/infrastructure/media/SessionPhotoStore";
+import { sessionPhotoRecipients } from "./sessionPhotoSharing";
 import { startScreenStore } from "./startScreenStore";
 import { useOptionalProgramService } from "@/features/programs/ProgramServiceContext";
 import { formatClock } from "./executionStrings";
@@ -587,11 +589,26 @@ export function ExecutionScreen({
   }, [intermediate, phase, status, stepTarget, service]);
 
   const endedNormally = active !== null && active.state.status === "FINISHED" && active.state.finish?.reason === "COMPLETED";
+  // Décision de Hermann du 27/11/2026 (point 2 : « Le même écran de fin, complet, s'affiche à chaque fin de séance », « y compris dans un
+  // parcours enchaîné ») : la séance intermédiaire terminée passe par l'écran de fin ; « Enregistrer » ouvre la séance suivante.
+  // [Ouverture automatique de la séance suivante après CHAIN_AUTO_NEXT_MS (recette du 20/11/2026, constat F) — remplacé.]
+
+  // Photo de fin de séance (point 4) : destinataires du partage automatique (point d'accroche du module de relation, vide aujourd'hui).
+  const [photoRecipients, setPhotoRecipients] = useState<readonly string[]>([]);
+  const recipientsSessionId = prepared?.status === "ready" ? prepared.snapshot.sessionId : null;
   useEffect(() => {
-    if (!intermediate || !endedNormally) return;
-    const timer = setTimeout(close, CHAIN_AUTO_NEXT_MS);
-    return () => clearTimeout(timer);
-  }, [intermediate, endedNormally, close]);
+    if (recipientsSessionId === null) return;
+    let cancelled = false;
+    sessionPhotoRecipients({ sessionId: recipientsSessionId, routineId: originRoutineId, programId: null }).then(
+      (names) => {
+        if (!cancelled) setPhotoRecipients(names);
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [recipientsSessionId, originRoutineId]);
 
   /** Ouvre une confirmation : l'Exécution est suspendue pendant l'affichage de la modale (ch13, Réinitialiser et Suivant). */
   const openDialog = useCallback(
@@ -843,10 +860,9 @@ export function ExecutionScreen({
         )}
       </View>
     );
-    // D-578 à D-581 (27/11/2026) : écran de fin de séance posé au-dessus de l'écran de la séance (rendu en fond, inerte). Une séance
-    // intermédiaire d'un parcours terminée normalement garde sa transition automatique (D-534, recette du 20/11/2026) : pas d'écran de
-    // fin. [À CLARIFIER : ressenti des séances intermédiaires d'un parcours.]
-    if (intermediate && endedNormally) return endView;
+    // D-578 à D-581 (27/11/2026) : écran de fin de séance posé au-dessus de l'écran de la séance (rendu en fond, inerte), à la fin de
+    // chaque séance, parcours enchaîné compris (décision de Hermann du 27/11/2026, point 2). [Séance intermédiaire sans écran de fin,
+    // transition automatique — remplacé.]
     const values = capturedValues(active.plan, occurrences, partials, (key) => planLeafOf(active.plan, key));
     const tally = exerciseTally(occurrences, plannedExerciseCount(prepared?.status === "ready" ? prepared.snapshot : null));
     const executionId = active.executionId;
@@ -866,8 +882,18 @@ export function ExecutionScreen({
           painOption={painOption === true}
           cameraAvailable={SESSION_CAMERA_IN_BUILD}
           onTakePhoto={takeSessionPhoto}
-          onSave={async (input) => {
-            if (programService !== null) await programService.finalizeExecution({ executionId, ...input });
+          onDiscardPhoto={deleteSessionPhoto}
+          recipients={photoRecipients}
+          onSave={async ({ photoUri, repetitions, ...input }) => {
+            // Répétitions corrigées par série (décisions de Hermann du 27/11/2026) : la valeur corrigée remplace celle de la série
+            // concernée, enregistrée avec le reste ; ni statut, ni durées, ni exercices terminés ne changent ; aucun report d'écart.
+            const repetitionCorrections = Object.entries(repetitions).map(([seriesKey, value]) => ({ seriesKey, repetitions: value }));
+            // Photo (point 4) : copie privée compressée, rattachée à l'enregistrement de la séance ; le fichier pris est ensuite effacé.
+            const photoPath = photoUri === null ? null : await storeSessionPhoto(photoUri, executionId);
+            if (programService !== null) await programService.finalizeExecution({ executionId, ...input, photoPath, repetitionCorrections });
+            if (photoUri !== null && photoUri !== photoPath) deleteSessionPhoto(photoUri);
+            // Point 3 : dans un parcours, la douleur « avant » de la séance suivante est la douleur ressentie saisie ici.
+            if (input.painAfter !== null) chosenPain.current = input.painAfter;
             close();
           }}
         />

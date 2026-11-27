@@ -51,7 +51,7 @@ describe("logique (D-578 à D-581)", () => {
     expect(exerciseTally([occurrence("COMPLETED"), occurrence("COMPLETED")], null)).toEqual({ done: 2, total: 2 });
   });
 
-  it("valeurs saisies : une ligne par exercice, répétitions et durées réalisées (somme des séries)", () => {
+  it("valeurs saisies : une ligne par exercice, une colonne par série (Figma « Valeurs par série »), corrections par série", () => {
     const step = (key: string, series: number, completion: "COMPLETED" | "INTERRUPTED", activeMs = 0) => ({ key, series, completion, cumulativeActiveMs: activeMs });
     const occurrences = [
       { exerciseId: "squat", occurrenceKey: "o1", status: "COMPLETED", series: [step("s1", 1, "COMPLETED"), step("s2", 2, "COMPLETED")] },
@@ -65,17 +65,33 @@ describe("logique (D-578 à D-581)", () => {
       p1: { mode: "REPETITIONS", target: { kind: "NUMBER", value: 20 } },
     };
     const plan = { exercises: { squat: { name: "Squats assistés" }, gainage: { name: "Gainage" }, pont: { name: "Pont fessier" } } } as never;
-    expect(capturedValues(plan, occurrences, new Map([["p1", 18]]), (key) => leaves[key] as never)).toEqual([
-      { exerciseId: "squat", name: "Squats assistés", repetitions: 24, durationMs: null },
-      { exerciseId: "gainage", name: "Gainage", repetitions: null, durationMs: 45_000 },
-      { exerciseId: "pont", name: "Pont fessier", repetitions: 18, durationMs: null },
+    const leafOf = (key: string) => leaves[key] as never;
+    expect(capturedValues(plan, occurrences, new Map([["p1", 18]]), leafOf)).toEqual([
+      { exerciseId: "squat", name: "Squats assistés", cells: [{ seriesKey: "o1#1", mode: "REPETITIONS", value: 12 }, { seriesKey: "o1#2", mode: "REPETITIONS", value: 12 }] },
+      { exerciseId: "gainage", name: "Gainage", cells: [{ seriesKey: "o2#1", mode: "DURATION", value: 45_000 }] },
+      { exerciseId: "pont", name: "Pont fessier", cells: [{ seriesKey: "o3#1", mode: "REPETITIONS", value: 18 }] },
     ]);
+    // Décision de Hermann du 27/11/2026 : la valeur corrigée remplace celle de la série concernée seulement ; aucun report d'écart.
+    const corrected = capturedValues(plan, occurrences, new Map([["p1", 18]]), leafOf, new Map([["o1#1", 10]]));
+    expect(corrected[0]!.cells.map((cell) => cell.value)).toEqual([10, 12]);
+    // Série interrompue sans saisie : case vide (valeur nulle), non modifiable.
+    expect(capturedValues(plan, occurrences, new Map(), leafOf)[2]!.cells).toEqual([{ seriesKey: "o3#1", mode: "REPETITIONS", value: null }]);
   });
 });
 
 const VALUES = [
-  { exerciseId: "squat", name: "Squats assistés", repetitions: 24, durationMs: null },
-  { exerciseId: "gainage", name: "Gainage", repetitions: null, durationMs: 45_000 },
+  {
+    exerciseId: "squat",
+    name: "Squats assistés",
+    cells: [
+      { seriesKey: "o1#1", mode: "REPETITIONS" as const, value: 10 },
+      { seriesKey: "o1#2", mode: "REPETITIONS" as const, value: 8 },
+      { seriesKey: "o1#3", mode: "REPETITIONS" as const, value: 8 },
+      { seriesKey: "o1#4", mode: "REPETITIONS" as const, value: 8 },
+    ],
+  },
+  { exerciseId: "gainage", name: "Gainage", cells: [{ seriesKey: "o2#1", mode: "DURATION" as const, value: 45_000 }] },
+  { exerciseId: "pont", name: "Pont fessier unijambiste", cells: [{ seriesKey: "o3#1", mode: "REPETITIONS" as const, value: null }] },
 ];
 
 function renderEnd(props: Partial<Parameters<typeof EndSessionScreen>[0]> = {}) {
@@ -127,17 +143,34 @@ describe("EndSessionScreen (D-578 à D-581)", () => {
     expect(screen.queryByText(/genou/i)).toBeNull();
   });
 
-  it("répétitions modifiables (champ natif) ; durées non modifiables (cadre en pointillés, sans champ)", () => {
+  it("une colonne par série : répétitions modifiables (champ natif 68 × 34, texte 14), durées non modifiables (pointillés), série sans valeur vide", () => {
     renderEnd();
-    const reps = screen.getByTestId("end-session-reps-squat");
+    const reps = screen.getByTestId("end-session-reps-o1#1");
     expect(reps.type).toBe("TextInput");
-    expect(reps.props.value).toBe("24");
-    fireEvent.changeText(reps, "26");
-    expect(screen.getByTestId("end-session-reps-squat").props.value).toBe("26");
-    const duration = screen.getByTestId("end-session-duration-gainage");
+    expect(reps.props.value).toBe("10");
+    expect(StyleSheet.flatten(reps.props.style)).toEqual(expect.objectContaining({ width: 68, height: 34, fontSize: 14 }));
+    expect(reps.props.accessibilityLabel).toBe("Répétitions de Squats assistés, série 1");
+    fireEvent.changeText(reps, "9");
+    expect(screen.getByTestId("end-session-reps-o1#1").props.value).toBe("9");
+    expect(screen.getByTestId("end-session-cell-empty-o3#1")).toBeTruthy();
+    expect(screen.queryByTestId("end-session-reps-o3#1")).toBeNull();
+    const duration = screen.getByTestId("end-session-duration-o2#1");
     expect(StyleSheet.flatten(duration.props.style)).toEqual(expect.objectContaining({ borderStyle: "dashed" }));
     expect(screen.getByText("00’45’’")).toBeTruthy();
-    expect(screen.queryByTestId("end-session-reps-gainage")).toBeNull();
+    expect(screen.queryByTestId("end-session-reps-o2#1")).toBeNull();
+  });
+
+  it("au-delà de trois séries : colonnes et libellés S1, S2… dans un seul défilement horizontal natif, trois colonnes visibles", () => {
+    renderEnd();
+    const scroll = screen.getByTestId("end-session-values-scroll");
+    expect(scroll.type).toBe("RCTScrollView");
+    expect(scroll.props.horizontal).toBe(true);
+    expect(StyleSheet.flatten(scroll.props.style).width).toBe(3 * 68 + 2 * 6);
+    expect(["end-session-column-1", "end-session-column-2", "end-session-column-3", "end-session-column-4"].map((id) => screen.getByTestId(id).props.children)).toEqual(["S1", "S2", "S3", "S4"]);
+    const inScroll = (node: { parent: unknown; props: { testID?: string } } | null): boolean => (node === null ? false : node.props.testID === "end-session-values-scroll" || inScroll(node.parent as never));
+    expect(inScroll(screen.getByTestId("end-session-column-4") as never)).toBe(true);
+    expect(inScroll(screen.getByTestId("end-session-reps-o1#4") as never)).toBe(true);
+    expect(inScroll(screen.getByTestId("end-session-value-squat") as never)).toBe(false);
   });
 
   it("ressenti : cinq visages dans l'ordre, un seul sélectionné ; Enregistrer désactivé sans ressenti, actif après", async () => {
@@ -158,7 +191,7 @@ describe("EndSessionScreen (D-578 à D-581)", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("end-session-save"));
     });
-    expect(onSave).toHaveBeenCalledWith({ feeling: "VERY_GOOD", comment: "Genou un peu raide", painAfter: null });
+    expect(onSave).toHaveBeenCalledWith({ feeling: "VERY_GOOD", comment: "Genou un peu raide", painAfter: null, photoUri: null, repetitions: {} });
   });
 
   it("douleur : absente sans l'option ; avec l'option, obligatoire et sans valeur par défaut ; contour blanc sur l'écran arrêté", async () => {
@@ -174,7 +207,7 @@ describe("EndSessionScreen (D-578 à D-581)", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("end-session-save"));
     });
-    expect(onSave).toHaveBeenCalledWith({ feeling: "NEUTRAL", comment: null, painAfter: 0 });
+    expect(onSave).toHaveBeenCalledWith({ feeling: "NEUTRAL", comment: null, painAfter: 0, photoUri: null, repetitions: {} });
   });
 
   it("commentaire de plus de 200 caractères : signalé, Enregistrer désactivé (pas de troncature)", () => {
@@ -186,13 +219,60 @@ describe("EndSessionScreen (D-578 à D-581)", () => {
     expect(screen.getByTestId("end-session-save").props.accessibilityState).toEqual({ disabled: true });
   });
 
+  it("correction par série : seule la série modifiée est transmise à Enregistrer", async () => {
+    const { onSave } = renderEnd();
+    fireEvent.changeText(screen.getByTestId("end-session-reps-o1#2"), "6");
+    // Le nombre d’exercices terminés ne change pas (décision de Hermann du 27/11/2026).
+    expect(screen.getByTestId("end-session-exercises").props.children).toBe("12 / 12");
+    fireEvent.press(screen.getByTestId("end-session-feeling-GOOD"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("end-session-save"));
+    });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ repetitions: { "o1#2": 6 } }));
+  });
+
+  it("photo : une seule, aperçu, « Reprendre » remplace (ancien fichier effacé), « Supprimer » retire ; ligne de partage seulement avec des destinataires", async () => {
+    const onDiscardPhoto = jest.fn();
+    let shot = 0;
+    const onTakePhoto = jest.fn(async () => `file:///photo-${++shot}.jpg`);
+    const { onSave } = renderEnd({ cameraAvailable: true, onTakePhoto, onDiscardPhoto });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("end-session-camera"));
+    });
+    expect(screen.getByTestId("end-session-photo-preview").props.source).toEqual([expect.objectContaining({ uri: "file:///photo-1.jpg" })]);
+    expect(screen.queryByTestId("end-session-photo-recipients")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("end-session-photo-retake"));
+    });
+    expect(onDiscardPhoto).toHaveBeenCalledWith("file:///photo-1.jpg");
+    fireEvent.press(screen.getByTestId("end-session-feeling-GOOD"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("end-session-save"));
+    });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ photoUri: "file:///photo-2.jpg" }));
+    screen.unmount();
+    const second = renderEnd({ cameraAvailable: true, onTakePhoto, onDiscardPhoto, recipients: ["Coach Lina"] });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("end-session-camera"));
+    });
+    expect(screen.getByTestId("end-session-photo-recipients").props.children).toBe("Sera partagée avec Coach Lina");
+    fireEvent.press(screen.getByTestId("end-session-photo-delete"));
+    expect(screen.queryByTestId("end-session-photo")).toBeNull();
+    fireEvent.press(screen.getByTestId("end-session-feeling-BAD"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("end-session-save"));
+    });
+    expect(second.onSave).toHaveBeenCalledWith(expect.objectContaining({ photoUri: null }));
+    screen.unmount();
+  });
+
   it("appareil photo natif appelé depuis le champ quand le build le permet ; sinon bouton indisponible et annoncé", async () => {
     const first = renderEnd({ cameraAvailable: true });
     await act(async () => {
       fireEvent.press(screen.getByTestId("end-session-camera"));
     });
     expect(first.onTakePhoto).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("end-session-photo-taken")).toBeTruthy();
+    expect(screen.getByTestId("end-session-photo-preview")).toBeTruthy();
     screen.unmount();
     const second = renderEnd({ cameraAvailable: false });
     const camera = screen.getByTestId("end-session-camera");

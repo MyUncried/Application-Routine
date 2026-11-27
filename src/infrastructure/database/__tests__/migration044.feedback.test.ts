@@ -28,8 +28,8 @@ describe("migration044 — fin de séance", () => {
     await new SqliteProgramRepository(database).recordPainBefore("exec-1", 3, "a");
     await expect(database.runAsync(AFTER_INSERT)).rejects.toThrow();
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(44);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 44 });
+    expect(DATABASE_VERSION).toBe(45);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 45 });
     expect(await database.getAllAsync("SELECT execution_id, moment, value FROM execution_pain_readings")).toEqual([{ execution_id: "exec-1", moment: "BEFORE", value: 3 }]);
     await database.runAsync(AFTER_INSERT);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
@@ -42,10 +42,10 @@ describe("migration044 — fin de séance", () => {
     const repository = new SqliteExecutionFeedbackRepository(database);
     await repository.save({ executionId: "exec-1", feeling: "VERY_BAD", comment: "genou", painAfter: 0 }, "a");
     await repository.save({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 4 }, "b");
-    expect(await repository.get("exec-1")).toEqual({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 4 });
+    expect(await repository.get("exec-1")).toEqual({ executionId: "exec-1", feeling: "GOOD", comment: null, painAfter: 4, photoPath: null });
     expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM execution_feedback")).toEqual({ count: 1 });
     await repository.save({ executionId: "exec-1", feeling: "NEUTRAL", comment: null, painAfter: null }, "c");
-    expect(await repository.get("exec-1")).toEqual({ executionId: "exec-1", feeling: "NEUTRAL", comment: null, painAfter: null });
+    expect(await repository.get("exec-1")).toEqual({ executionId: "exec-1", feeling: "NEUTRAL", comment: null, painAfter: null, photoPath: null });
     await database.runAsync("DELETE FROM executions WHERE id = 'exec-1'");
     expect(await repository.get("exec-1")).toBeNull();
   });

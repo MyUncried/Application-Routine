@@ -371,7 +371,14 @@ export class ProgramService {
     if (comment !== null && comment.length > FEEDBACK_COMMENT_MAX) return Promise.reject(new Error("Commentaire de plus de 200 caractères."));
     if (feedback.painAfter !== null && (!Number.isInteger(feedback.painAfter) || feedback.painAfter < 0 || feedback.painAfter > 10))
       return Promise.reject(new Error(`Douleur hors de 0..10 : ${feedback.painAfter}`));
+    if ((feedback.repetitionCorrections ?? []).some((correction) => !Number.isInteger(correction.repetitions) || correction.repetitions < 0))
+      return Promise.reject(new Error("Répétitions corrigées négatives ou non entières."));
     return this.deps.feedback.save({ ...feedback, comment }, this.stamp());
+  }
+
+  /** Répétitions corrigées enregistrées d'une Exécution (décision de Hermann du 27/11/2026, « Répétitions corrigées : A »). */
+  repetitionCorrections(executionId: string): Promise<ReadonlyMap<string, number>> {
+    return this.deps.feedback === undefined ? Promise.resolve(new Map()) : this.deps.feedback.repetitionCorrections(executionId);
   }
 
   /**
