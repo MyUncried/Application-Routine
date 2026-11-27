@@ -24,7 +24,7 @@ Fond `#148061`, rayon 20, largeur 378 à x = 12, textes blancs. Toutes les polic
 
 | Élément | Style |
 |---|---|
-| Titre (nom de la séance, ou du parcours) | Roboto gras 26, centré, à égale distance (23 pt) du haut du cadre et de la ligne de pointillés |
+| Titre (nom de la séance, ou du parcours) | Roboto gras 26, centré, à égale distance (23 pt) du haut du cadre et de la ligne de pointillés ; sur deux lignes si le titre est trop long (le cadre s'étend alors vers le haut) |
 | Séparation sous le titre | Ligne de points ronds, largeur de la liste (330 à x = 36), trait 3, blanc à 60 %, écart 8 ; 10 pt d'espace sous la ligne avant le premier élément |
 | Cycle (« 2 cycles ») | gras 22, retrait 0 |
 | Circuit / format (« 3 tours · Circuit libre », « 8 tours · TABATA ») | gras 22, retrait 18, espace avant 14 (circuit) / 18 (format) ; nom du format en majuscules ; « Circuit libre » si pas de format ; ni durée ni nature groupées/alternées |
@@ -43,4 +43,4 @@ x = 12, y = 596, 378 × 262, même vert. Libellé « Douleur ressentie avant la 
 
 ## 6. Reste à décider
 
-« Ne plus afficher cet écran » : case à cocher placée à la fin du premier cadre vert (le cadre de la liste), en plus petit que la liste, proposée uniquement hors option douleur (D-577) ; dessinée sur `8921:35275` à titre d'illustration (case 18 × 18, rayon 4, contour blanc 2 ; libellé Roboto normal 16, blanc à 90 %, à 10 de la case ; bas du cadre élargi de 12 pt) ; dans l'écran avec option douleur, elle n'apparaît pas. Emplacement où réactiver l'affichage : À CLARIFIER (D-577). États non dessinés : version sans option douleur avec « Ne plus afficher cet écran », bouton inactif. Vérification sur iPhone à faire : défilement de la liste sous le titre, lisibilité du texte sur le voile.
+« Ne plus afficher cet écran » : case à cocher placée hors du cadre vert, entre le cadre de la liste et le cadre de la douleur, en plus petit que la liste, proposée uniquement hors option douleur (D-577) ; dessinée sur `8921:35275` à titre d'illustration (case 18 × 18, rayon 4, contour et libellé vert foncé `#0D5F47` sur le fond voilé ; libellé Roboto normal 16, à 10 de la case ; marge basse du cadre de la liste 16 pt, 43 pt entre les deux cadres) ; dans l'écran avec option douleur, elle n'apparaît pas. Emplacement où réactiver l'affichage : À CLARIFIER (D-577). États non dessinés : version sans option douleur avec « Ne plus afficher cet écran », bouton inactif. Vérification sur iPhone à faire : défilement de la liste sous le titre, lisibilité du texte sur le voile.
