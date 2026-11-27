@@ -48,6 +48,7 @@ export function BeforeSessionScreen({
   lines,
   painOption,
   startLabel,
+  initialDismiss = false,
   onBack,
   onStart,
 }: {
@@ -58,13 +59,15 @@ export function BeforeSessionScreen({
   /** Option douleur du Programme active (D-427) : échelle obligatoire, sans présélection. */
   readonly painOption: boolean;
   readonly startLabel: string;
+  /** Réponse de Hermann du 27/11/2026 (point 4) : écran revenu après exclusion (composition changée) — case cochée par défaut. */
+  readonly initialDismiss?: boolean;
   readonly onBack: () => void;
   /** Départ : douleur choisie (`null` sans option douleur) et case « Ne plus afficher cet écran ». */
   readonly onStart: (pain: number | null, dismiss: boolean) => void;
 }) {
   const insets = useSafeAreaInsets();
   const [pain, setPain] = useState<number | null>(null);
-  const [dismiss, setDismiss] = useState(false);
+  const [dismiss, setDismiss] = useState(initialDismiss);
   const withPain = painOption && mode !== "NEXT";
   const ready = !withPain || pain !== null;
   // Figma : rond Retour de 38 à y = 51 (zone de 48 à y = 46) sur un iPhone de 62 pt de marge haute ; cadre de la liste 12 sous le rond.

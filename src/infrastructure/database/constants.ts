@@ -212,7 +212,11 @@ export const DATABASE_NAME = "kodjo.db";
  * développée comme version 40 sur `compte/lot-1`, renumérotée 41 puis 42 sur la branche de recette d'intégration du
  * 26/11/2026, après le marquage des photos (040) et HIIT (041)). 001..041 inchangées.
  */
-export const DATABASE_VERSION = 42;
+/**
+ * **Relevés de douleur (version 43, `migration043`)** : table additive `execution_pain_readings` (douleur avant la séance, D-427 /
+ * D-577, réponse de Hermann du 27/11/2026). 001..042 inchangées. [Risque de collision de numéro avec une autre branche.]
+ */
+export const DATABASE_VERSION = 43;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -36,8 +36,8 @@ describe("migration029 — guidage sonore par événement", () => {
       "INSERT INTO sessions (id, owner_id, name, status, initial_countdown_seconds, final_phase_seconds, created_at, updated_at) SELECT 's-old', id, 'Ancienne', 'ACTIVE', 10, 5, 't', 't' FROM users LIMIT 1",
     );
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(42);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
+    expect(DATABASE_VERSION).toBe(43);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 43 });
     expect(await database.getFirstAsync("SELECT guidance_settings FROM sessions WHERE id = 's-old'")).toEqual({ guidance_settings: null });
     const profile = await new SqliteProfileRepository(database).get();
     expect(profile.guidanceEvents).toEqual(DEFAULT_GUIDANCE_EVENTS);

@@ -43,6 +43,7 @@ import { applyMigration039 } from "./migrations/migration039";
 import { applyMigration040, MIGRATION_040_MEDIA_VIEW } from "./migrations/migration040";
 import { applyMigration041 } from "./migrations/migration041";
 import { applyMigration042, MIGRATION_042_ACCOUNT } from "./migrations/migration042";
+import { applyMigration043, MIGRATION_043_PAIN_READINGS } from "./migrations/migration043";
 import { repairOrphanRows, SESSION_TREE_TABLES } from "./repairOrphanRows";
 
 type UserVersionRow = { user_version: number };
@@ -423,6 +424,13 @@ export async function migrateDatabase(
       version = 42;
     }
 
+    // D-427 / D-577 (réponse de Hermann du 27/11/2026, « Oui il faut la stocker ») : relevés de douleur avant la séance, table
+    // additive. Un échec laisse `user_version` à 42.
+    if (pending(42)) {
+      await applyMigration043(transaction);
+      version = 43;
+    }
+
     if (version !== targetVersion) {
       throw new Error(`Database migration stopped at version ${version} instead of ${targetVersion}.`);
     }
@@ -473,6 +481,8 @@ async function repairMissingTables(database: Database, version: number): Promise
   // version 40 a aussi été prise par la branche du marquage des photos (PR #458, colonnes `view_*` de `media_assets`).
   // Tables du compte absentes d'une base en version 40 ou plus : créées telles que 040 les crée (création idempotente).
   if (version >= 40 && (missing("account_link") || missing("account_lifecycle"))) statements.push(MIGRATION_042_ACCOUNT);
+  // Version 43 prise par une autre branche (collision de numéro) : table des relevés de douleur créée telle que 043 la crée.
+  if (version >= 43 && missing("execution_pain_readings")) statements.push(MIGRATION_043_PAIN_READINGS);
   // Cas symétrique (intégration du 26/11/2026) : base passée en version 40 par `compte/lot-1` (tables du compte), sans les
   // colonnes de la vue retenue d'une photo (040 du marquage). Colonnes absentes : ajoutées telles que 040 les ajoute.
   if (version >= 40 && !missing("media_assets")) {

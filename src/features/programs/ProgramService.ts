@@ -347,16 +347,27 @@ export class ProgramService {
   }
 
   /**
-   * Relevés de douleur : la saisie pendant l'exécution n'existe pas encore (hors périmètre PROG-CAT-01) ; aucun relevé n'est
-   * enregistré. « Effacer mes relevés » reste grisé tant que ce nombre est nul (Hermann, 21/11/2026, point 4).
+   * D-427 / D-577 (réponse de Hermann du 27/11/2026, « Oui il faut la stocker ») : douleur avant la séance (0–10, sans
+   * localisation), enregistrée sur l'Exécution démarrée. Parcours : appelée pour l'Exécution de chaque séance, avec la valeur
+   * saisie sur la première.
    */
-  painReadingCount(): Promise<number> {
-    return Promise.resolve(0);
+  recordPainBefore(executionId: string, value: number): Promise<void> {
+    if (!Number.isInteger(value) || value < 0 || value > 10) return Promise.reject(new Error(`Douleur hors de 0..10 : ${value}`));
+    return this.deps.repository.recordPainBefore(executionId, value, this.stamp());
   }
 
-  /** Effacement des relevés (confirmation développée, Hermann, 21/11/2026, point 4) : aucun stockage de relevés aujourd'hui. */
+  /**
+   * Relevés de douleur enregistrés (douleur avant la séance, migration 043). « Effacer mes relevés » reste grisé tant que ce nombre
+   * est nul (Hermann, 21/11/2026, point 4). [« La saisie pendant l'exécution n'existe pas encore […] aucun relevé n'est
+   * enregistré » (0 constant) — remplacé le 27/11/2026.]
+   */
+  painReadingCount(): Promise<number> {
+    return this.deps.repository.painReadingCount();
+  }
+
+  /** Effacement des relevés (confirmation développée, Hermann, 21/11/2026, point 4). [Sans stockage — remplacé le 27/11/2026.] */
   erasePainReadings(): Promise<void> {
-    return Promise.resolve();
+    return this.deps.repository.erasePainReadings();
   }
 
   /** Aujourd'hui en date locale, pour le statut calculé. */

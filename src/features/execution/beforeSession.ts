@@ -75,24 +75,22 @@ export function sessionOutline(snapshot: SessionSnapshot): readonly OutlineLine[
 }
 
 /**
- * Empreinte de l'ordre et du contenu de la séance : genre, niveau et texte de chaque ligne de la liste (nom des exercices, compte et
- * format des circuits, compte des cycles), et mouvement d'origine de chaque exercice. Les paramètres d'exécution (durées,
- * répétitions, charges, récupérations, réglages des formats) n'y entrent pas. [Interprétation technique : le compte des tours et des
- * cycles, affiché dans la liste, est compté comme contenu — À CLARIFIER dans le rapport.]
+ * Empreinte de l'ordre et du contenu de la séance : structure (cycles, circuits et leur format, exercices dans l'ordre), nom et
+ * mouvement d'origine de chaque exercice. N'y entrent pas : les paramètres d'exécution (durées, répétitions, charges,
+ * récupérations, réglages des formats) ni les nombres de tours et de cycles (réponse de Hermann du 27/11/2026, point 4 : « changer
+ * le nombre de cycle ou de tour ne fait pas revenir l'écran »). [Comptes des tours et des cycles inclus — remplacé.]
  */
 export function compositionFingerprint(snapshot: SessionSnapshot): string {
-  const movements: string[] = [];
-  const collect = (exercise: SessionSnapshotExercise) => movements.push(exercise.exercise?.sourceMovementId ?? exercise.id);
-  for (const element of snapshot.structure.elements) {
-    if (element.kind === "EXERCISE") collect(element.exercise);
-    else if (element.kind === "CIRCUIT") element.circuit.exercises.forEach(collect);
-    else
-      for (const member of element.cycle.members) {
-        if (member.kind === "EXERCISE") collect(member.exercise);
-        else member.circuit.exercises.forEach(collect);
-      }
-  }
-  return JSON.stringify({ lines: sessionOutline(snapshot).map((line) => [line.kind, line.depth, line.text]), movements });
+  const exercise = (item: SessionSnapshotExercise) => ["E", item.exercise?.sourceMovementId ?? item.id, item.exercise?.name ?? ""];
+  const circuit = (item: StructureCircuit<SessionSnapshotExercise>) => ["C", item.format?.key ?? item.originModel ?? null, item.exercises.map(exercise)];
+  const shape = snapshot.structure.elements.map((element) =>
+    element.kind === "EXERCISE"
+      ? exercise(element.exercise)
+      : element.kind === "CIRCUIT"
+        ? circuit(element.circuit)
+        : ["Y", element.cycle.members.map((member) => (member.kind === "EXERCISE" ? exercise(member.exercise) : circuit(member.circuit)))],
+  );
+  return JSON.stringify(shape);
 }
 
 /**

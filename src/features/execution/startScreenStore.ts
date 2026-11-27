@@ -87,6 +87,13 @@ export const startScreenStore = {
   dismiss(sessionId: string, fingerprint: string): void {
     save({ ...load(), dismissed: { ...load().dismissed, [sessionId]: fingerprint } });
   },
+  /** Case décochée au départ : l'exclusion de cette séance est retirée. */
+  undismiss(sessionId: string): void {
+    const dismissed = { ...load().dismissed };
+    if (!(sessionId in dismissed)) return;
+    delete dismissed[sessionId];
+    save({ ...load(), dismissed });
+  },
   dismissedFingerprint(sessionId: string): string | null {
     return load().dismissed[sessionId] ?? null;
   },

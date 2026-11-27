@@ -99,10 +99,12 @@ describe("liste de la séance (D-577)", () => {
     expect(lines.some((line) => /alternées|groupées|\d+\s*(min|s)\b/.test(line.text))).toBe(false);
   });
 
-  it("empreinte : inchangée si seuls les paramètres d'exécution changent ; changée si l'ordre ou le contenu change", () => {
+  it("empreinte : inchangée si seuls les paramètres d'exécution ou le nombre de tours/cycles changent ; changée si l'ordre ou le contenu change", () => {
     const base = compositionFingerprint(knee());
     expect(compositionFingerprint(knee(25))).toBe(base);
-    expect(compositionFingerprint(knee(10, 6))).not.toBe(base);
+    // Réponse de Hermann du 27/11/2026 (point 4) : « changer le nombre de cycle ou de tour ne fait pas revenir l'écran ».
+    expect(compositionFingerprint(knee(10, 6))).toBe(base);
+    expect(compositionFingerprint(snapshot((knee().structure.elements as unknown[]).slice(0, 1)))).not.toBe(base);
     const reordered = snapshot([{ kind: "EXERCISE", exercise: exercise({ id: "f", name: "Étirement du quadriceps" }) }, ...((knee().structure.elements as unknown[]).slice(0, 1))]);
     expect(compositionFingerprint(reordered)).not.toBe(base);
   });
@@ -274,7 +276,8 @@ async function setup() {
   const profileService = new ProfileService(new SqliteProfileRepository(database));
   const value = { service, signals: new ExecutionSignalAdapter(), screenAwake: { keepAwake: () => undefined } };
   const painOptionFor = jest.fn(async () => false);
-  const programService = { painOptionFor } as unknown as ProgramService;
+  const recordPainBefore = jest.fn(async (_executionId: string, _value: number) => undefined);
+  const programService = { painOptionFor, recordPainBefore } as unknown as ProgramService;
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -309,7 +312,7 @@ async function setup() {
 
   const show = (sessionId: string, chain: ExecutionChain | null = null, origin: ExecutionOrigin | null = null, chainPain: number | null = null) =>
     render(<ExecutionScreen key={`${sessionId}|${chain?.rank ?? 0}`} sessionId={sessionId} chain={chain} origin={origin} chainPain={chainPain} />, { wrapper: Wrapper });
-  return { service, advance, show, first, second, sessionService, painOptionFor };
+  return { service, advance, show, first, second, sessionService, painOptionFor, recordPainBefore };
 }
 
 async function press(testID: string) {
@@ -398,9 +401,12 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     expect(ctx.painOptionFor).toHaveBeenCalledWith("r1", "2026-11-27T08:00");
     await press("execution-start");
     expect(ctx.service.current()).toBeNull();
+    expect(ctx.recordPainBefore).not.toHaveBeenCalled();
     await press("before-session-pain-0");
     await press("execution-start");
     expect(ctx.service.current()?.plan.sessionName).toBe("Alpha");
+    // Réponse de Hermann du 27/11/2026 (« Oui il faut la stocker ») : 0 choisi explicitement est enregistré sur l'Exécution.
+    expect(ctx.recordPainBefore).toHaveBeenCalledWith(ctx.service.current()?.executionId, 0);
     view.unmount();
   });
 
@@ -422,8 +428,11 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     const view = ctx.show(ctx.first, chain, origin);
     expect(await screen.findByTestId("before-session-pain-scale")).toBeTruthy();
     expect(screen.getByTestId("before-session-start-label").props.children).toBe("Appuyer pour démarrer le parcours");
+    // Réponse de Hermann du 27/11/2026 (point 3) : titre = nom de la séance, même pour la première séance d'un parcours.
+    expect(screen.getByTestId("before-session-title").props.children).toBe("Alpha");
     await press("before-session-pain-6");
     await press("execution-start");
+    expect(ctx.recordPainBefore).toHaveBeenCalledWith("exec-1", 6);
     await ctx.advance(20);
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, CHAIN_AUTO_NEXT_MS + 100));
@@ -436,6 +445,42 @@ describe("ExecutionScreen — écran « Avant la séance » (D-577)", () => {
     const next = ctx.show(ctx.second, parseChain(ctx.second, `${ctx.first},${ctx.second}`, "2"), origin, 6);
     expect(await screen.findByTestId("before-session-NEXT")).toBeTruthy();
     expect(screen.queryByTestId("before-session-pain-scale")).toBeNull();
+    await press("execution-start");
+    // La douleur saisie une fois est enregistrée aussi sur l'Exécution de la séance suivante.
+    expect(ctx.recordPainBefore).toHaveBeenLastCalledWith("exec-2", 6);
+    expect(ctx.recordPainBefore).toHaveBeenCalledTimes(2);
     next.unmount();
+  });
+
+  it("écran revenu après exclusion (composition changée) : case « Ne plus afficher » cochée par défaut ; décochée au départ, l'exclusion est retirée", async () => {
+    const ctx = await setup();
+    startScreenStore.dismiss(ctx.first, "EMPREINTE-ANCIENNE");
+    let view = ctx.show(ctx.first);
+    expect(await screen.findByTestId("before-session-FULL")).toBeTruthy();
+    expect(screen.getByTestId("before-session-dismiss").props.accessibilityState).toEqual({ checked: true });
+    await press("execution-start");
+    // Cochée au départ : nouvelle empreinte enregistrée.
+    expect(startScreenStore.dismissedFingerprint(ctx.first)).not.toBe("EMPREINTE-ANCIENNE");
+    view.unmount();
+    await ctx.advance(20);
+    ctx.service.release();
+
+    startScreenStore.dismiss(ctx.first, "EMPREINTE-ANCIENNE");
+    view = ctx.show(ctx.first);
+    await screen.findByTestId("before-session-FULL");
+    await press("before-session-dismiss");
+    await press("execution-start");
+    expect(startScreenStore.dismissedFingerprint(ctx.first)).toBeNull();
+    view.unmount();
+  });
+
+  it("aucune douleur sans option : rien n'est enregistré", async () => {
+    const ctx = await setup();
+    const view = ctx.show(ctx.first);
+    await screen.findByTestId("before-session-FULL");
+    expect(screen.getByTestId("before-session-dismiss").props.accessibilityState).toEqual({ checked: false });
+    await press("execution-start");
+    expect(ctx.recordPainBefore).not.toHaveBeenCalled();
+    view.unmount();
   });
 });

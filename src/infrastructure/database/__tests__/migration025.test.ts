@@ -13,8 +13,8 @@ describe("migration025 — annonce de l'objectif", () => {
     const profileBefore = await database.getAllAsync("SELECT * FROM profiles");
     await migrateDatabase(database);
     expect(await database.getAllAsync("SELECT * FROM profiles")).toEqual(profileBefore);
-    expect(DATABASE_VERSION).toBe(42);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 42 });
+    expect(DATABASE_VERSION).toBe(43);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 43 });
     const profiles = new SqliteProfileRepository(database);
     expect((await profiles.get()).announceObjectiveEnabled).toBe(true);
     expect((await profiles.updatePreference("announceObjectiveEnabled", false)).announceObjectiveEnabled).toBe(false);

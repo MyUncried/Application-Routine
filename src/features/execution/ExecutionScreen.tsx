@@ -23,7 +23,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { formatLocalDate, routineDisplayName } from "@/domain/planning/Routine";
+import { formatLocalDate } from "@/domain/planning/Routine";
 import type { Frame } from "@/domain/execution/kernel";
 import { AMRAP_PILOT, type AmrapLocal } from "@/domain/execution/policies/amrap";
 import { DEATH_BY_PILOT, type DeathByLocal } from "@/domain/execution/policies/deathBy";
@@ -284,6 +284,9 @@ export function ExecutionScreen({
   }, [fingerprint, painOption, prepared, chainRankOrOne]);
   // Douleur du parcours : choisie sur la première séance, reçue par la route pour les suivantes ; transmise à la séance suivante.
   const chosenPain = useRef<number | null>(chainPain);
+  // Réponse de Hermann du 27/11/2026 (point 4) : l'écran revenu alors que la séance avait été exclue (composition changée) a la case
+  // « Ne plus afficher cet écran » cochée par défaut.
+  const dismissedBefore = useMemo(() => prepared?.status === "ready" && startScreenStore.dismissedFingerprint(prepared.snapshot.sessionId) !== null, [prepared]);
   const showBefore = active === null && !blocked && prepared?.status === "ready" && beforeMode !== null && beforeMode !== "NONE";
   const preview = showBefore && prepared?.status === "ready" ? prepared.projection : null;
 
@@ -479,26 +482,35 @@ export function ExecutionScreen({
             ? await planning.autoAttachment(prepared.snapshot.sessionId, new Date(service.now())).catch(() => null)
             : null;
       await service.start(prepared, link ?? undefined);
+      // D-427 / D-577 (réponse de Hermann du 27/11/2026, « Oui il faut la stocker ») : douleur avant la séance enregistrée sur
+      // l'Exécution démarrée ; dans un parcours, la valeur saisie sur la première séance l'est sur l'Exécution de chaque séance.
+      const pain = chosenPain.current;
+      const executionId = service.current()?.executionId ?? null;
+      if (pain !== null && executionId !== null && programService !== null)
+        await programService.recordPainBefore(executionId, pain).catch((error: unknown) => console.error("La douleur n'a pas pu être enregistrée.", error));
     } catch (error) {
       if (error instanceof ExecutionBlockedError) setBlocked(true);
     } finally {
       starting.current = false;
     }
-  }, [prepared, service, origin, chain, planning]);
+  }, [prepared, service, origin, chain, planning, programService]);
 
   /**
-   * D-577 : départ depuis l'écran « Avant la séance ». La douleur (option du Programme, D-427) est retenue pour la chaîne ; la case
-   * « Ne plus afficher cet écran » enregistre l'empreinte de la composition de cette séance (seule persistance avec le réglage).
-   * [À CLARIFIER : aucun stockage de la douleur d'une séance n'existe (`ProgramService.painReadingCount`) — la valeur n'est pas
-   * enregistrée ; aucune persistance nouvelle n'est autorisée par D-577.]
+   * D-577 : départ depuis l'écran « Avant la séance ». La douleur (option du Programme, D-427) est retenue pour la chaîne et
+   * enregistrée au démarrage (`start`) ; la case « Ne plus afficher cet écran » enregistre l'empreinte de la composition de cette
+   * séance, décochée elle retire l'exclusion. [À CLARIFIER « douleur non enregistrée » — levé par la réponse de Hermann du
+   * 27/11/2026 : « Oui il faut la stocker ».]
    */
   const startFromBefore = useCallback(
     (pain: number | null, dismiss: boolean) => {
       if (pain !== null) chosenPain.current = pain;
-      if (dismiss && prepared?.status === "ready" && fingerprint !== null) startScreenStore.dismiss(prepared.snapshot.sessionId, fingerprint);
+      if (prepared?.status === "ready" && fingerprint !== null) {
+        if (dismiss) startScreenStore.dismiss(prepared.snapshot.sessionId, fingerprint);
+        else if (beforeMode === "FULL" && painOption === false) startScreenStore.undismiss(prepared.snapshot.sessionId);
+      }
       void start();
     },
-    [prepared, fingerprint, start],
+    [prepared, fingerprint, start, beforeMode, painOption],
   );
 
   // D-577 : écran désactivé (réglage, ou case pour cette séance) sans option douleur : la séance démarre aussitôt.
@@ -559,24 +571,8 @@ export function ExecutionScreen({
       cancelled = true;
     };
   }, [chainRank, chainIds, service]);
-  // D-577 : titre du cadre — nom du parcours (routine d'origine) pour la première séance d'un parcours, sinon nom de la séance.
-  const [parcoursName, setParcoursName] = useState<string | null>(null);
-  useEffect(() => {
-    if (chainRank !== 1 || originRoutineId === null || planning === null || routeNames === null) return;
-    let cancelled = false;
-    const ids = chainIds.split(",");
-    planning.getRoutine(originRoutineId).then(
-      (routine) => {
-        if (cancelled || routine === null) return;
-        const name = routineDisplayName(routine, (id) => routeNames[ids.indexOf(id)] ?? undefined).trim();
-        setParcoursName(name === "" ? null : name);
-      },
-      () => undefined,
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [chainRank, chainIds, originRoutineId, planning, routeNames]);
+  // D-577, réponse de Hermann du 27/11/2026 (« de la séance ») : le titre du cadre est toujours le nom de la séance, y compris pour
+  // la première séance d'un parcours. [Nom du parcours (routine d'origine) pour la première séance d'un parcours — remplacé.]
 
   const phase = projection?.phase ?? null;
   // Étape courante à confirmer (et non la Cible d’une série) : nommée hors du motif de la garde PRE4-1.1.
@@ -1876,7 +1872,8 @@ export function ExecutionScreen({
       </View>
       <BeforeSessionScreen
         mode={beforeMode}
-        title={chain !== null && rank === 1 && parcoursName !== null ? parcoursName : prepared.plan.sessionName}
+        title={prepared.plan.sessionName}
+        initialDismiss={dismissedBefore}
         lines={outline}
         painOption={painOption === true}
         startLabel={rank >= 2 ? t.beforeSession.startRank(rank) : chain !== null ? t.beforeSession.startRoute : t.beforeSession.startSession}

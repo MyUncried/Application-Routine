@@ -81,13 +81,13 @@ Fichier `Documents/kodjo-start-screen.json` : `{ showStartScreen, dismissed: { <
 
 ## Hypothèses non démontrées / À CLARIFIER
 
-1. **À CLARIFIER — douleur non enregistrée** : aucune persistance de la douleur n'existe et D-577 n'en autorise pas de nouvelle. La valeur est obligatoire, transmise à la chaîne (route), puis perdue. Lecture la plus prudente retenue : ne rien stocker.
-2. **Hypothèse à signaler (cahier des charges)** : un toucher ailleurs que sur le bouton ne fait rien (la zone retient les touchers).
+1. [Résolu le 27/11/2026, voir « Réponses de Hermann » : douleur stockée.] **À CLARIFIER — douleur non enregistrée** : aucune persistance de la douleur n'existe et D-577 n'en autorise pas de nouvelle. La valeur est obligatoire, transmise à la chaîne (route), puis perdue. Lecture la plus prudente retenue : ne rien stocker.
+2. [Validé par Hermann le 27/11/2026, « 2. Ok ».] **Hypothèse à signaler (cahier des charges)** : un toucher ailleurs que sur le bouton ne fait rien (la zone retient les touchers).
 3. **Fond** : l'écran d'exécution est rendu avec la projection de l'état initial du moteur (`READY`, non démarré) : titre vide et commandes inactives, alors que le Figma montre le nom du premier exercice. Le montrer exigerait de modifier l'écran d'exécution (PRESERVE) → non fait ; à confirmer sur iPhone.
-4. **Titre** : première séance d'un parcours = nom de la routine (`routineDisplayName`), sinon nom de la séance ; séances suivantes = nom de la séance (le Figma `12716:25405` montre le même titre, ambigu). À confirmer.
-5. **Empreinte** : les comptes de tours et de cycles (affichés dans la liste) comptent comme contenu ; un exercice formaté seul (format sur l'exercice, hors circuit) est listé sans ligne de format ; la nature (Tours/Séries) n'est jamais affichée (« 3 tours » même pour un circuit en séries).
+4. [Remplacé le 27/11/2026, « 3. de la séance » : toujours le nom de la séance.] **Titre** : première séance d'un parcours = nom de la routine (`routineDisplayName`), sinon nom de la séance ; séances suivantes = nom de la séance (le Figma `12716:25405` montre le même titre, ambigu). À confirmer.
+5. [Remplacé le 27/11/2026 pour les comptes, « 4. Oui, changer le nombre de cycle ou de tour ne fait pas revenir l'écran… ».] **Empreinte** : les comptes de tours et de cycles (affichés dans la liste) comptent comme contenu ; un exercice formaté seul (format sur l'exercice, hors circuit) est listé sans ligne de format ; la nature (Tours/Séries) n'est jamais affichée (« 3 tours » même pour un circuit en séries).
 6. **Option douleur** : seulement pour un lancement depuis une occurrence d'Agenda (origine explicite) ; un lancement hors Agenda rattaché automatiquement (D-553) reste standard (D-427 « lancement indépendant »).
-7. **Rang ≥ 2** : pas de case « Ne plus afficher » (non dessinée) ; si l'affichage est désactivé, la séance suivante démarre seule après la transition automatique. Le bouton Retour de la version rang ≥ 2 revient à l'écran précédent (fin du parcours).
+7. [Validé par Hermann le 27/11/2026, « 5. Oui ».] **Rang ≥ 2** : pas de case « Ne plus afficher » (non dessinée) ; si l'affichage est désactivé, la séance suivante démarre seule après la transition automatique. Le bouton Retour de la version rang ≥ 2 revient à l'écran précédent (fin du parcours).
 8. **Affichage désactivé sans douleur** : la séance démarre aussitôt (compte à rebours), l'ancien bouton « Démarrer » étant remplacé.
 9. **Libellé** : « Appuyer pour démarrer la 2ème séance » (cahier des charges, DSF § 5, D-577 point 4), alors que D-577 point 6 écrit « …la Xème séance du parcours » — lecture retenue : sans « du parcours » (point 4 explicite).
 10. **Positions** : rond Retour à `insets.top − 11` (y = 51 sur un iPhone à 62 pt de marge), cadre de départ à 16 pt du bas de l'écran comme le Figma (zone de l'indicateur d'accueil).
@@ -123,3 +123,58 @@ Classe **A** (conformité à D-577 et D-427 déjà écrites). Documents mis à j
 ## Commit final et état Git
 
 Voir le message de livraison (commit unique contenant code, tests et ce rapport ; poussé sur `origin/feat/avant-seance-d577`, sans fusion).
+
+---
+
+## Réponses de Hermann du 27/11/2026 et second commit
+
+Premier commit de livraison : `19fe31e4c`. Réponses transmises par le coordinateur, citations exactes : « 1. Oui il faut la stocker / 2. Ok / 3. de la séance / 4. Oui, changer le nombre de cycle ou de tour ne fait pas revenir l'écran. Quand l'écran revient alors qu'il avait été exclu, la coche "ne plus afficher cet écran" doit être cochée par défaut. / 5. Oui ».
+
+**Correspondance des numéros** : Hermann a répondu aux points 1 à 5 de la liste « À CLARIFIER » du message de livraison : 1 douleur non enregistrée, 2 toucher ailleurs que sur le bouton, 3 titre, 4 contenu de la liste et de l'empreinte, 5 rang ≥ 2 (pas de case, Retour arrête le parcours). Le coordinateur a présenté le point 2 comme la validation du libellé « …la 2ème séance ». Or ce libellé était le point 6 de ce message, et Hermann n'y a pas répondu explicitement. Il reste inchangé dans le code et n'est pas consigné comme décision dans le patch documentaire. **À CLARIFIER** : faire confirmer explicitement ce libellé.
+
+| Point | Traitement | Fichier |
+|---|---|---|
+| 1. Douleur stockée (classe B) | Fait. Nouvelle table `execution_pain_readings` (migration **043**, `DATABASE_VERSION = 43`). Chaque relevé contient l'Exécution, le moment `BEFORE`, la valeur (0..10, contrôlée en base) et la date. Il est supprimé avec l'Exécution. L'enregistrement a lieu après `service.start`, via `ProgramService.recordPainBefore`, sans toucher `ExecutionService` ni le moteur. **Parcours** : la douleur saisie une fois sur la séance 1 est enregistrée sur l'Exécution de **chaque** séance du parcours (valeur reçue par la route). Aucune localisation. Conséquence directe : Profil › Confidentialité compte désormais les relevés réels (`painReadingCount`), et « Effacer mes relevés » les supprime (`erasePainReadings`). Auparavant, ces deux fonctions renvoyaient respectivement 0 et rien. | `migration043.ts`, `SqliteProgramRepository.ts`, `ProgramService.ts`, `ExecutionScreen.tsx` (`start`) |
+| 2. Toucher ailleurs sans effet | Validé, inchangé | `BeforeSessionScreen.tsx` |
+| 3. Titre = nom de la séance | Fait. La lecture du nom de la routine est supprimée. | `ExecutionScreen.tsx` |
+| 4. Tours et cycles hors de l'empreinte ; case cochée par défaut au retour de l'écran | Fait. L'empreinte retient la structure, le format des circuits, les exercices (mouvement, nom) et leur ordre, sans aucun compte. Si l'écran réapparaît pour une séance exclue, la case est cochée par défaut. Interprétation technique : si on la décoche puis démarre, l'exclusion est retirée. | `beforeSession.ts` (`compositionFingerprint`), `BeforeSessionScreen.tsx` (`initialDismiss`), `startScreenStore.ts` (`undismiss`) |
+| 5. Rang ≥ 2 | Validé, inchangé | — |
+
+**Risque de collision de version** : le numéro de base 43 n'est pris sur aucune autre branche distante au 27/11/2026, mais une branche parallèle pourrait le prendre (précédents : versions 40 et 41). Parade ajoutée : `repairMissingTables` recrée `execution_pain_readings` (création idempotente) sur une base en version 43 ou plus qui ne l'a pas. Les assertions `DATABASE_VERSION === 42` et `user_version: 42` de 30 fichiers de tests de migration sont passées à 43, comme lors des montées de version précédentes. C'est une modification mécanique, pas une réécriture de tests.
+
+**PRESERVE après ce commit** : `src/domain/execution`, `ExecutionService.ts`, la planification et le moteur restent inchangés. `src/infrastructure` est modifié uniquement par l'ajout de la migration 043, de son raccordement et des trois méthodes du dépôt des programmes. C'est la persistance que Hermann a autorisée.
+
+**Synchronisation documentaire : classe B.** La D-577 « Écran Avant la séance » n'existe que sur `docs/planification-grille-creneaux`. Sur cette branche, l'identifiant D-577 désigne une autre décision (« Période d'un programme »). J'ai donc appliqué la règle « source normative absente de la branche » : patch **préparé, non appliqué**, `_bmad-output/avant-seance-d577/integration-documentaire-D-577-D-427.patch` (chapitre 07 de la branche de documentation). Il ajoute un complément daté « [Réponses de Hermann du 27/11/2026 : …] » à D-577 et D-427, avec les citations exactes, sans nouveau numéro et sans supprimer l'ancien texte. Vérification : `git apply --cached --check` sur un index temporaire lu depuis `origin/docs/planification-grille-creneaux` → OK.
+
+### Vérifications iPhone modifiées ou ajoutées
+
+- **Point 7 (modifié)** : la première séance d'un parcours a pour titre le **nom de la séance**, et non plus celui de la routine.
+- **Point 5 (modifié)** : changer le nombre de tours ou de cycles ne fait **pas** revenir l'écran. Ajouter, retirer ou déplacer un exercice le fait revenir, et la case « Ne plus afficher cet écran » est alors **déjà cochée**.
+- **Point 9 (ajouté)** :
+  1. Avant tout relevé, ouvrir Profil › Confidentialité : « Effacer mes relevés » est grisé (aucun relevé enregistré).
+  2. Lancer depuis l’Agenda une séance d’un Programme dont le suivi de la douleur est actif, choisir 3 puis démarrer.
+  3. Revenir dans Profil › Confidentialité : « Effacer mes relevés » est devenu actif, ce qui prouve que la douleur a été enregistrée. L’écran n’affiche pas de nombre de relevés.
+  4. Effacer et confirmer : la ligne redevient grisée.
+- **Point 10 (ajouté)** : migration de la base existante de l'iPhone vers la version 43 au lancement, sans perte de séances, de routines ni d'historique.
+
+### Preuves et tests du second commit
+
+- J'ai régénéré le patch documentaire et contrôlé qu'il s'applique sur `origin/docs/planification-grille-creneaux` à `e0ae161f7`, la tête relue après `git fetch` : `git apply --cached --check` → OK.
+- `npx tsc --noEmit` : OK. `npx eslint` sur les fichiers modifiés : 0 problème.
+- Jest, en ciblant `-w 1 --workerIdleMemoryLimit=800MB` :
+  - `src/infrastructure/database`, `src/features/execution` et `ProfileScreen.test.tsx` : 87 suites, 724 tests. Premier passage : 3 échecs, dus à des attentes de migration non mises à jour pour la version 43 (table `execution_pain_readings` absente des listes attendues des tests 031 et 033, version relue dans le test 041). Après correction, ces trois suites passent : 9 tests, 0 échec.
+  - `src/features/programs` avec les nouveaux tests : 9 suites, 100 tests, verts.
+- Nouveaux tests :
+  - `migration043.painReadings.test.ts` : base neuve, mise à niveau depuis la version 42, bornes, remplacement, suppression en cascade, effacement.
+  - Ajouts dans `beforeSession.d577.test.tsx` :
+    - le 0 choisi est enregistré ;
+    - un parcours enregistre la douleur sur `exec-1` puis sur `exec-2` ;
+    - le titre est le nom de la séance ;
+    - la case est cochée par défaut au retour de l'écran ;
+    - décocher la case retire l'exclusion ;
+    - rien n'est enregistré sans l'option douleur ;
+    - l'empreinte ignore le nombre de tours et de cycles.
+
+### Correction ultérieure (même jour)
+
+La mission « Fin de séance » (rapport `2026-11-27_FIN-SEANCE-D578.md`) corrige la présentation de cet écran selon le cahier des charges révisé : un seul cadre vert, le Bouton primaire hors du cadre, et la case « Ne plus afficher » dans un cadre accroché sous le cadre principal.
