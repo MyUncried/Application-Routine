@@ -161,7 +161,9 @@ describe("D-604 — modale d'un exercice d'un format à départ rapide, ouverte 
     const table = model === "SUPERSET";
     if (cadence) expect(within(screen.getByTestId("execution-sheet-frame-sides", hidden)).getByTestId("execution-sheet-row-beep", hidden)).toBeTruthy();
     else expect(screen.queryByTestId("execution-sheet-row-beep", hidden)).toBeNull();
-    if (goal) expect(screen.getByTestId("execution-sheet-repetitions-goal", hidden)).toHaveTextContent("—");
+    // Recette du 26/11/2026 (soir) : la barre native du clavier (`InputAccessoryView`) est rendue dans le champ sous Jest
+    // (sur iPhone, au-dessus du clavier) — seule la valeur affichée est comparée. [`toHaveTextContent("—")` exact — remplacé.]
+    if (goal) expect(screen.getByTestId("execution-sheet-repetitions-goal", hidden)).toHaveTextContent(/^—/);
     else expect(screen.queryByTestId("execution-sheet-row-repetitions-goal", hidden)).toBeNull();
     // Recette iPhone du 26/11/2026 (après-midi, Hermann) : Renforcement en trois cadres — Mode ; Nombre de répétitions, Nombre de
     // séries, Pause, Charge ; De chaque côté, Cadence.
@@ -169,7 +171,7 @@ describe("D-604 — modale d'un exercice d'un format à départ rapide, ouverte 
     if (strength) {
       const series = within(screen.getByTestId("execution-sheet-frame-series", hidden));
       expect(series.getByTestId("execution-sheet-row-series-count", hidden)).toBeTruthy();
-      expect(series.getByTestId("execution-sheet-series-count", hidden)).toHaveTextContent("3");
+      expect(series.getByTestId("execution-sheet-series-count", hidden)).toHaveTextContent(/^3(?!\d)/); // barre native du clavier rendue dans le champ sous Jest (voir plus haut)
       expect(within(screen.getByTestId("execution-sheet-frame-execution", hidden)).getByTestId("execution-sheet-row-mode", hidden)).toBeTruthy();
     } else expect(screen.queryByTestId("execution-sheet-row-series-count", hidden)).toBeNull();
     const expected = new Set([
