@@ -90,6 +90,22 @@ Preuves lues par Claude (jeton Supabase en lecture seule fourni par Hermann, pro
 
 Constat annexe **démontré** : la tâche planifiée `apple-notifications` répond 500 toutes les 15 minutes (`missing_env:KODJO_SWEEP_TOKEN`) : le secret `KODJO_SWEEP_TOKEN` n'est pas défini dans les secrets des fonctions (prérequis P-04 du cahier : KO).
 
+## Défaut : fusion automatique des identités Apple et Google par Supabase (27/11/2026)
+
+Constat (Hermann, BMAD) : reconnexion avec Apple refusée par le message CPT-32 (« Ce téléphone contient les données d'un compte supprimé… ») alors qu'il utilise le même identifiant Apple.
+
+Chronologie **démontrée** (journaux et base Supabase, heures UTC) :
+1. 25/11 19:47 : connexion Google refusée par l'app dans Routine Dev (test D-02) ; l'app ferme sa session locale, mais l'utilisateur Auth Google (`4430e395…`, e-mail Gmail réel) reste sur le serveur, sans compte KODJO.
+2. 27/11 00:00 : suppression du compte Apple de BMAD (`b08b78f0…`, adresse relais) : complète (`apple_revocation = done`).
+3. 00:02:25 : reconnexion Apple dans BMAD, en partageant cette fois l'**adresse réelle**. Supabase **rattache automatiquement** l'identité Apple à l'utilisateur Google existant de même e-mail (`4430e395…`). Le contrôle CPT-32 de l'app compare l'identité Apple : accepté.
+4. `link_account` retient la **plus ancienne** identité de l'utilisateur (`order by created_at limit 1`) : Google. Le compte est créé `provider = google` ; `apple-token` → 409 (`store_apple_token` : `not_an_apple_account`) : jeton Apple non enregistré.
+5. 00:08:57 : suppression de ce compte : `apple_revocation = not_applicable` (**accès Apple non révoqué**) ; empreinte locale = identité **Google**.
+6. 00:09:47 et suivantes : connexions Apple refusées par CPT-32 (empreinte Google ≠ Apple) ; un nouvel utilisateur Auth Apple orphelin (`13b71fb0…`) reste sur le serveur.
+
+Attribution : défaut **introduit par T1** (hypothèse « une identité par utilisateur Auth » dans `link_account`, et absence de nettoyage de l'utilisateur Auth créé lors d'une connexion refusée), **détecté** par cette recette. Comportement de Supabase en cause : rattachement automatique des identités de même e-mail vérifié.
+
+Statut : **aucune correction** ; décision nécessaire (un compte Apple et un compte Google de même e-mail sont-ils un seul compte KODJO ?) — classe C (non arbitré), arbitrage demandé à Hermann.
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
