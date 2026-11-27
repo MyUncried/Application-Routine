@@ -529,6 +529,9 @@ export function useSheetKeyboard({
     if (hold.hidden) {
       keyboardTopRef.current = null;
       setKeyboardFrame(null);
+      // Intégration DEATHBY3 × CLAVIER2 : la marge (`insetFrame`) n'est retirée qu'à la fermeture complète, retenue pendant l'alerte.
+      setInsetFrame(null);
+      shownRef.current = false;
     }
     hold.onEnd();
   };
