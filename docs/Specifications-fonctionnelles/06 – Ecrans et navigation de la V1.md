@@ -2425,6 +2425,12 @@ Ces captures documentent les frames présentes dans `Prototype MVP` ; elles ne c
 
 ![Avant la séance — Douleur](images/figma-8921-35275.png)
 
+#### Avant la séance — Douleur — Bouton inactif (aucun choix)
+
+[Source Figma — `13419:1329`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=13419-1329)
+
+![Avant la séance — Bouton inactif](images/figma-13419-1329.png)
+
 #### Avant la séance — Séances suivantes d'un parcours (enchaînement)
 
 [Source Figma — `12716:25405`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12716-25405)
