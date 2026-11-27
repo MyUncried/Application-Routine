@@ -326,3 +326,4 @@
 - Complément (suite 19 quinquies) : marge basse de la carte de séquence augmentée sous le dernier exercice (Figma 8921:35275) ; pas de règle fonctionnelle (D).
 - Complément (suite 19 sexies, D-577 point 1) : liste sans la mention « alternées » ; cycle libellé « Cycle · N passages » (Figma 8921:35275). Classe B ; tests non applicables.
 - Complément (suite 19 septies, D-577 point 1) : libellés « Circuit libre » et chiffre en premier (« 2 passages · Cycle », « 3 tours · Circuit libre », « 8 tours · Tabata »), à l'essai (Figma 8921:35275). Classe B ; tests non applicables.
+- Complément (suite 19 octies, D-577 point 1) : cycle libellé « 2 cycles » (et non « 2 passages · Cycle ») (Figma 8921:35275). Classe B ; tests non applicables.
