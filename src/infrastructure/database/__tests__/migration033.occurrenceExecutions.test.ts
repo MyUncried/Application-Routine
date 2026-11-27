@@ -11,10 +11,10 @@ describe("migration 033 — occurrence_executions", () => {
     await migrateDatabase(database, undefined, 32);
     const before = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'");
     await migrateDatabase(database);
-    expect(DATABASE_VERSION).toBe(39);
-    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 39 });
+    expect(DATABASE_VERSION).toBe(40);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 40 });
     const after = await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name");
-    expect(after.map((row) => row.name).filter((name) => !before.some((row) => row.name === name))).toEqual(["occurrence_executions", "programs", "routine_occurrences", "user_privacy"]);
+    expect(after.map((row) => row.name).filter((name) => !before.some((row) => row.name === name))).toEqual(["account_lifecycle", "account_link", "occurrence_executions", "programs", "routine_occurrences", "user_privacy"]);
     await migrateDatabase(database);
     database.close();
   });

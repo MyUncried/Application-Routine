@@ -9,6 +9,7 @@ import {
   pickAndCopyProfilePhoto,
   profilePhotoFileExists,
 } from "@/features/preferences/profilePhoto";
+import { AccountSection } from "@/features/account/AccountSection";
 import { ProfileLibrariesSection } from "@/features/catalogue/ProfileLibrariesSection";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { strings } from "@/shared/i18n";
@@ -364,21 +365,10 @@ export function ProfileEditScreen() {
             </View>
           ) : null}
 
-          {/* PROG-CAT-01 (CE-PRF-01, mission §5) : ce qui dépend de la gestion des comptes (pseudo public, accès au compte et
-              connexion) est affiché grisé et inactif. [Mention « Disponible avec la gestion des comptes » — retirée (recette du
-              23/11/2026, p6-compte, Hermann : « Supprime le texte »).] Nom, photo,
-              silhouette et bibliothèques fonctionnent en local et restent actifs. [Aucune maquette de ces lignes : présentation
-              reprise des cartes du Profil — interprétation listée au rapport.] */}
-          <View style={styles.accountCard} accessibilityState={{ disabled: true }} testID="profile-edit-account">
-            {ACCOUNT_ROWS.map((label, index) => (
-              <View key={label}>
-                {index > 0 ? <View style={styles.accountSeparator} /> : null}
-                <View style={styles.accountRow}>
-                  <Text style={styles.accountLabel}>{label}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
+          {/* T1 Compte (25/11/2026, CPT-13, CPT-16, É2) : section Compte active — fournisseur, nom, e-mail, « Supprimer mon
+              compte » ; « Pseudo public » reste grisé (T2). [Avant : carte grisée « Pseudo public » et « Accès au compte et
+              connexion » (PROG-CAT-01, CE-PRF-01, mission §5) — remplacée par la section Compte.] */}
+          <AccountSection />
 
           {/* A1 (A-4 du 11/11/2026, Figma 12119:25611) : Bibliothèques du premier lot. */}
           <ProfileLibrariesSection />
@@ -390,21 +380,8 @@ export function ProfileEditScreen() {
   );
 }
 
-/** PROG-CAT-01 (mission §5) : éléments du Compte qui dépendent de la gestion des comptes. */
-const ACCOUNT_ROWS = [strings.screens.profileEdit.accountRows.publicName, strings.screens.profileEdit.accountRows.access] as const;
 
 const styles = StyleSheet.create({
-  accountCard: {
-    backgroundColor: colors.surfaceSubtle,
-    borderWidth: 1,
-    borderColor: colors.background,
-    borderRadius: 12,
-    opacity: 0.45,
-    marginTop: spacing[16],
-  },
-  accountRow: { minHeight: 52, justifyContent: "center", paddingHorizontal: spacing[16] },
-  accountLabel: { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 15, color: colors.textPrimary },
-  accountSeparator: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing[16] },
   body: {
     flex: 1,
     // Recette c1 : le corps remonte sous la part fondue de la zone de contexte et défile derrière elle.

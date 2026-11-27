@@ -34,6 +34,23 @@ describe("réparation des tables additives manquantes", () => {
     expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM routines")).toEqual({ count: 1 });
   });
 
+  it("base en version 40 migrée par une autre branche (sans tables du compte) : tables du compte créées, singleton présent", async () => {
+    const reference = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(reference);
+    const complete = await tables(reference);
+    const database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+    await database.execAsync("DROP TABLE account_link; DROP TABLE account_lifecycle;");
+    const users = await database.getAllAsync("SELECT * FROM users");
+
+    await migrateDatabase(database);
+
+    expect(await tables(database)).toEqual(complete);
+    expect(await database.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: DATABASE_VERSION });
+    expect(await database.getFirstAsync("SELECT state FROM account_lifecycle")).toEqual({ state: "NEVER_LINKED" });
+    expect(await database.getAllAsync("SELECT * FROM users")).toEqual(users);
+  });
+
   it("base complète : aucune écriture", async () => {
     const database = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(database);

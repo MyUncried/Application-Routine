@@ -21,6 +21,11 @@ jest.mock("expo-router/stack", () => {
   return { Stack };
 });
 
+// T1 Compte : la porte d'entrée du compte est testée à part (`src/features/account/__tests__`) ; ici, compte rattaché.
+jest.mock("@/features/account/AccountGate", () => ({
+  AccountGate: ({ children }: { children: unknown }) => children,
+}));
+
 jest.mock("expo-splash-screen", () => ({
   preventAutoHideAsync: jest.fn(() => Promise.resolve()),
   hideAsync: jest.fn(() => Promise.resolve()),

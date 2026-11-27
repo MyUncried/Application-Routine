@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
 import { movementRouteOptions } from "@/features/activities/movementRoutePresentation";
+import { AccountGate } from "@/features/account/AccountGate";
 import { ExecutionRecoveryGate } from "@/features/execution/ExecutionRecoveryGate";
 import { MigrationNoticeGate } from "@/features/migration/MigrationNoticeGate";
 import { ReminderOpenGate } from "@/features/planning/ReminderOpenGate";
@@ -153,6 +154,8 @@ export default function RootLayout() {
         <View style={styles.root}>
           {fontsSettled && databaseReady ? (
             // Règle de Hermann du 06/11/2026 (registre ch07) : brouillons de séance et de Format au niveau de l'application.
+            // T1 Compte (CPT-02) : porte d'entrée É1 tant qu'aucun compte n'est rattaché.
+            <AccountGate>
             <CreationDraftProviders>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
@@ -206,12 +209,14 @@ export default function RootLayout() {
                   du formulaire (D-519). « Rappel personnalisé » en feuille (Figma 1992:7187) — remplacé le 17/11/2026.] */}
             </Stack>
             </CreationDraftProviders>
+            {/* PRE-10.2 (ch12 §12.33) : Exécution interrompue détectée au démarrage → Reprendre / Arrêter la séance.
+                T1 Compte : montés derrière la porte d'entrée, une fois un compte rattaché. */}
+            {!showAppSplash ? <ExecutionRecoveryGate /> : null}
+            {/* RM-054b : toucher un rappel ouvre l'écran d'Exécution de la première Séance de son occurrence. */}
+            {!showAppSplash ? <ReminderOpenGate /> : null}
+            </AccountGate>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}
-          {/* PRE-10.2 (ch12 §12.33) : Exécution interrompue détectée au démarrage → Reprendre / Arrêter la séance. */}
-          {fontsSettled && databaseReady && !showAppSplash ? <ExecutionRecoveryGate /> : null}
-          {/* RM-054b : toucher un rappel ouvre l'écran d'Exécution de la première Séance de son occurrence. */}
-          {fontsSettled && databaseReady && !showAppSplash ? <ReminderOpenGate /> : null}
           {showAppSplash ? (
             <KodjoSplash opacity={splashOpacity} onLayout={handleSplashLayout} />
           ) : null}

@@ -305,7 +305,7 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
 
   // PROG-CAT-01 (CE-PRF-01, D-552) : Compte · Préférences · Confidentialité. [Avant : Profil · Préférences · Communauté
   // (désactivée) — remplacé.]
-  it("shows the three tabs: Compte selected, Préférences returns to the Profil screen; account-dependent rows greyed", async () => {
+  it("shows the three tabs: Compte selected, Préférences returns to the Profil screen; former greyed account card removed", async () => {
     const router = await renderScreen();
 
     expect(screen.queryByTestId("screen-header-back")).toBeNull();
@@ -315,7 +315,9 @@ describe("ProfileEditScreen — alignement Figma 12119:25611", () => {
     expect(screen.getByTestId("profile-edit-tabs-account-shape", { includeHiddenElements: true })).toBeTruthy();
     expect(screen.getByTestId("profile-edit-tabs-privacy").props.accessibilityLabel).toBe("Confidentialité");
     expect(screen.queryByTestId("profile-edit-tabs-community")).toBeNull();
-    expect(screen.getByTestId("profile-edit-account").props.accessibilityState).toEqual({ disabled: true });
+    // T1 Compte (25/11/2026, CE-CPT-02) : la carte grisée est remplacée par la section Compte, testée dans
+    // `src/features/account/__tests__`. [Avant : carte « profile-edit-account » grisée — remplacée.]
+    expect(screen.queryByTestId("profile-edit-account")).toBeNull();
     // Recette du 23/11/2026 (p6-compte, Hermann : « Supprime le texte "Disponible avec la gestion des comptes" »).
     expect(screen.queryByText("Disponible avec la gestion des comptes")).toBeNull();
 
