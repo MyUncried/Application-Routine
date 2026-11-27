@@ -69,7 +69,10 @@ Démonstration : le diff ne touche ni `tokens.ts`, ni `CompositionScreen.tsx`, n
 - `npx jest -w 1 --workerIdleMemoryLimit=800MB src/features/activities/__tests__/fieldFocus.recette2711matin.test.tsx` : 6/6 réussis.
 - Suites existantes : voir ci-dessous (complété après exécution).
 
-TESTS_EXISTANTS
+- Feuille : `ExecutionParametersSheet*` (15 suites) et `KeyboardField.test.tsx` : 16 suites réussies, 447 tests réussis, 0 échec.
+- Formats et Composition : `FormatModelScreen*` (9 suites), `CarrierDurationSheet.keyboard0611`, `FreeExerciseScreen.d608`, `CompositionScreen.d608`, `CompositionScreen.forTimeRepetitions`, `SegmentedControl`, `pre4Story11Controls` : 14 suites réussies ; 204 tests réussis, 33 ignorés (préexistants) ; **1 échec préexistant** : `pre4Story11Controls` « aucun jeton de tokens.ts n'est modifié » (empreinte attendue `814fde0b…`, reçue `de4ca174…`) — `tokens.ts` n'est pas touché par ce paquet (`git diff 900502584 -- src/shared/ui/tokens.ts` vide), échec signalé comme préexistant par le brief.
+- Pas de passe complète (contrainte mémoire, faite par l'intégrateur).
+- Avertissements `act(...)` nouveaux dans les tests de `TableCell` (lecture asynchrone de « Réduire les animations » par `useReduceMotion`) : sans échec.
 
 Une suite Jest verte ne prouve pas le rendu iPhone (agrandissement, liseré, menu natif, hôte SwiftUI).
 
@@ -113,4 +116,5 @@ Classe D : fond `#E8E9FF` → `#EAEAFF` (unification technique, écart impercept
 
 ## Commit final et état Git
 
-Voir le message de livraison (commit unique sur `fix/recette-28-focus`, poussé sur `origin`).
+- Commit de code et de documentation : `08edd6b7d` ; commit documentaire final (résultats des tests de ce rapport) rattaché à `08edd6b7d`, sur `fix/recette-28-focus`, poussé sur `origin`.
+- État Git après push : arbre propre (hors `node_modules`, jonction ignorée).
