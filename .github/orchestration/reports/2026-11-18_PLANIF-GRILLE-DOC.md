@@ -323,3 +323,4 @@
 - Complément (suite 19 bis, D-577 point 4) : deux versions de l'écran (première séance, séances suivantes d'un parcours) ; douleur demandée une fois, appliquée à tout le parcours. Version des séances suivantes non dessinée. Fusion avec « Exécution d'une séance — Initial — Enchaînement (proposition) » annoncée par Hermann.
 - Complément (suite 19 ter, D-577 point 5) : écran d'exécution en fond sous voile vert, contenu sur carte blanche (Figma 8921:35275).
 - Complément (suite 19 quater, D-577 point 5) : textes de la liste agrandis (22 pt), titre non agrandi (26 pt), espace supplémentaire avant chaque bloc circuit / format (Figma 8921:35275). Classe B ; tests non applicables.
+- Complément (suite 19 quinquies) : marge basse de la carte de séquence augmentée sous le dernier exercice (Figma 8921:35275) ; pas de règle fonctionnelle (D).
