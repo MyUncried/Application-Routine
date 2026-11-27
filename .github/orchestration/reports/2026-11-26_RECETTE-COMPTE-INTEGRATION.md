@@ -112,6 +112,12 @@ Statut : **aucune correction** ; décision nécessaire (un compte Apple et un co
 - BMAD : connexion Apple refusée (empreinte Google laissée par l'ancien code), puis utilisateur Auth de la connexion refusée **supprimé** par `discard_unlinked_auth_user` (journal : 200, aucun utilisateur restant) ; connexion Google acceptée : un seul utilisateur Auth, compte `google`, catalogue créé, Utilisateur local rattaché.
 - Effet résiduel accepté par Hermann : BMAD reste lié au compte Google (pas de déconnexion, CPT-15).
 
+## Ajout du 27/11/2026 : recette composition (lot 23)
+
+Demande de Hermann (tester la composition du port 8085 avec la gestion de compte) : `origin/recette/agenda-axe-20261124` (`90050258`, 59 commits : corrections de la recette du 26/11 soir — clavier, modale, formats, exercice libre, feuille, agenda) fusionnée sans conflit ; ni migration ni module natif (`DATABASE_VERSION` reste 42). Mise en garde transmise : ouvrir BMAD (base en version 42) sur le Metro 8085 (branche source, version 41) l'empêcherait de démarrer (« newer than supported »).
+
+`tsc` sans erreur. Tests `database`, `account`, `sessions`, `planning` : 2 745 réussis, 5 échecs **identiques sur la branche source seule** (comparés nom par nom) : `CompositionScreen` (modale plein écran : en-tête…), trois `ExerciseScreen` (feuille des paramètres MFN), `CatalogueLifecycle.e7`. Préexistants, non corrigés (branche source).
+
 ## Commit et état Git
 
 - Commit de fusion : `e75e139f` ; branche `recette/compte-integration-20261126` poussée sur `origin`.
