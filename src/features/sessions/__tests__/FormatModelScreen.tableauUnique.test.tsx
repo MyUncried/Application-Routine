@@ -167,7 +167,9 @@ function fillTargets(value: number) {
     enterExecutionSheetValue(`execution-sheet-table-row-${n}-target`, value, "integer");
   // Recette du 16/11/2026 (mp-charge) : Incrément sans valeur par défaut (« — ») — renseigné aussi.
   const increment = screen.queryByTestId("execution-sheet-format-increment", hidden);
-  if (increment !== null && within(increment).queryByText("—") !== null) enterExecutionSheetValue("execution-sheet-format-increment", 1, "integer");
+  // Recette du 26/11/2026 (D-607) : un Incrément grisé (buy-in, Max) non renseigné affiche aussi « — », sans champ : rien à saisir.
+  const editable = screen.queryByTestId("execution-sheet-format-increment-input", hidden) !== null;
+  if (increment !== null && editable && within(increment).queryByText("—") !== null) enterExecutionSheetValue("execution-sheet-format-increment", 1, "integer");
 }
 
 /** Unité choisie dans la modale (Répétitions ou Durée), objectifs renseignés. */
@@ -217,11 +219,15 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
   });
 
   it.each([
-    ["TABATA", "format-movements", [t.table.objective, t.table.pause, t.table.load]],
-    ["INTERVALS_30_30", "format-movements", [t.table.objective, t.table.pause, t.table.load]],
-    ["STRENGTH", "format-movements", [t.table.objective, t.table.pause, t.table.load]],
+    // Recette iPhone du 26/11/2026 (après-midi, Hermann) : Tabata, 30/30, HIIT — Intervalle | Pause ; Renforcement — Séries |
+    // Objectif | Pause ; Death by — Départ | Incrément ; plus de colonne Charge. À l'échec inchangé.
+    ["TABATA", "format-movements", [t.table.interval, t.table.pause]],
+    ["INTERVALS_30_30", "format-movements", [t.table.interval, t.table.pause]],
+    ["HIIT", "format-movements", [t.table.interval, t.table.pause]],
+    ["STRENGTH", "format-movements", [t.table.seriesHead, t.table.objective, t.table.pause]],
     ["UNTIL_FAILURE", "format-movements", [t.table.objective, t.table.pause, t.table.load]],
-    ["DEATH_BY", "format-movements", [t.table.start, t.table.increment, t.table.load]],
+    // Recette iPhone du 26/11/2026 (soir, Hermann : « remplacer le titre de colonne "incrément" par "+/- /tour" ») : « ± / tour ».
+    ["DEATH_BY", "format-movements", [t.table.start, t.table.incrementHead]],
     ["AMRAP", "format-loop", [t.table.objective, t.table.perRoundHead, t.table.max]],
     ["EMOM", "format-movements", ["S1", "S2", "S3", "S4", "S5", "S6"]],
     ["PROGRESSION", "format-movements", ["S1", "S2", "S3"]],
@@ -238,12 +244,17 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     expect(screen.queryByTestId("format-movement-card-0-level")).toBeNull();
   });
 
-  it.each(["TABATA", "DEATH_BY"] as const)("%s : colonne Charge — tiret grisé sans charge, valeur active avec charge ; activation et retrait dans la modale seulement (16/11/2026)", async (model) => {
+  // Recette iPhone du 26/11/2026 (après-midi, Hermann : « Plus de colonne Charge. La charge s'écrit sous la valeur de l'intervalle, en
+  // plus petit et entre parenthèses (ex. « (12 kg) »). Sans charge, rien n'est affiché. » ; Death by : sous « Départ » ; « La dernière
+  // colonne du tableau est alignée à droite »). [Colonne Charge — tiret grisé sans charge, valeur active avec charge (16/11/2026) — remplacé.]
+  it.each(["TABATA", "DEATH_BY"] as const)("%s : charge « (8 kg) » sous la première colonne, rien sans charge ; dernière colonne à droite ; activation et retrait dans la modale (26/11/2026)", async (model) => {
     await open(model);
     await pick("Squ", "mv-squats");
-    const off = screen.getByTestId("format-line-0-load-off");
-    expect(off).toHaveTextContent(t.dash);
-    expect(StyleSheet.flatten(off.props.style).color).toBe(valueFieldColors.disabled);
+    expect(screen.queryByTestId("format-line-0-load-off")).toBeNull();
+    expect(screen.queryByTestId("format-line-0-load")).toBeNull();
+    const last = model === "TABATA" ? "format-pause-0" : "format-death-by-increment-0";
+    expect(StyleSheet.flatten(screen.getByTestId(last).props.style)).toMatchObject({ textAlign: "right" });
+    expect(StyleSheet.flatten(screen.getByTestId("format-movements-head-1").props.style)).toMatchObject({ textAlign: "right" });
     // Mission du 16/11/2026, règle 5 : plus de « (+ kg) » / « (− kg) » sous le nom ; rien sur la charge dans la ligne des paramètres.
     expect(screen.queryByTestId("format-line-0-charge")).toBeNull();
     expect(parametersLine(0)).not.toHaveTextContent(/kg/);
@@ -261,22 +272,13 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
       expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
       enterExecutionSheetValue("execution-sheet-load-input", 8, "integer");
     });
-    expect(screen.queryByTestId("format-line-0-load-off")).toBeNull();
     expect(parametersLine(0)).not.toHaveTextContent(/kg/);
-    expect(shown("line-0-load")).toBe("8 kg");
-    // Charge active : case touchable (plus seulement par Précédent / Suivant).
-    expect(screen.getByTestId("format-line-0-load").props.pointerEvents).toBeUndefined();
-    // Recette du 16/11/2026 (fmt-entree, r16-charge-orange) : vidée, la case est orange (à vérifier), y compris en saisie.
-    typeValue("line-0-load", "");
-    expect(StyleSheet.flatten(screen.getByTestId("format-line-0-load").props.style).backgroundColor).toBe(valueFieldColors.toVerify);
-    fireEvent(screen.getByTestId("format-line-0-load"), "focus");
-    expect(StyleSheet.flatten(screen.getByTestId("format-line-0-load").props.style).backgroundColor).toBe(valueFieldColors.toVerify);
-    typeValue("line-0-load", "12");
-    expect(shown("line-0-load")).toBe("12 kg");
-    expect(StyleSheet.flatten(screen.getByTestId("format-line-0-load").props.style).backgroundColor).not.toBe(valueFieldColors.toVerify);
-    expect(StyleSheet.flatten(screen.getByTestId("format-line-0-load").props.style)).toMatchObject({ fontSize: 13 });
+    // Charge sous la première colonne, entre parenthèses, en plus petit ; atteinte par Précédent / Suivant.
+    expect(shown("line-0-load")).toBe("(8 kg)");
+    expect(StyleSheet.flatten(screen.getByTestId("format-line-0-load").props.style)).toMatchObject({ fontSize: 11 });
     await inSheet(0, () => fireEvent.press(screen.getByTestId("execution-sheet-load-control-WITHOUT")));
-    expect(screen.getByTestId("format-line-0-load-off")).toHaveTextContent(t.dash);
+    expect(screen.queryByTestId("format-line-0-load")).toBeNull();
+    expect(screen.queryByTestId("format-line-0-load-off")).toBeNull();
   });
 
   it.each([
@@ -407,6 +409,7 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     expect(heads("format-buy-in")).toEqual([t.table.objective]);
     expect(heads("format-loop")).toEqual([t.table.objective, t.table.perRoundHead, t.table.max]);
     expect(t.table.perRoundHead).toBe("± / tour");
+    expect(t.table.incrementHead).toBe("± / tour");
     expect(parametersLine(0)).toHaveTextContent(t.table.parametersToComplete);
     // Objectifs saisis dans la modale avec l'unité (buy-in 50, boucle 10).
     await chooseUnit(0, "REPETITIONS", 50);
@@ -556,5 +559,55 @@ describe("Formats à tableau — écran unique, sans questionnaire (décision de
     fireEvent.press(screen.getByTestId("format-execution-ALTERNATED"));
     expect(screen.queryByTestId("format-row-recoveryBetweenSeconds")).toBeNull();
     expect(heads("format-movements")).toEqual(before);
+  });
+
+  // Recette iPhone du 26/11/2026 (après-midi, Hermann) : la Durée totale est la dernière ligne des paramètres.
+  const rowOrder = () => screen.getAllByTestId(/^format-row-/).map((row) => String(row.props.testID));
+  it("Tabata à la suite : … Exécution, Récupération entre les mouvements, Durée totale ; en alternance : … Exécution, Durée totale", async () => {
+    await open("TABATA");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(rowOrder().slice(-3)).toEqual(["format-row-execution", "format-row-recoveryBetweenSeconds", "format-row-total"]);
+    fireEvent.press(screen.getByTestId("format-execution-ALTERNATED"));
+    expect(rowOrder().slice(-2)).toEqual(["format-row-execution", "format-row-total"]);
+  });
+
+  it.each(["INTERVALS_30_30", "HIIT", "PROGRESSION"] as const)("%s : Durée totale après Exécution", async (model) => {
+    await open(model);
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(rowOrder().slice(-2)).toEqual(["format-row-execution", "format-row-total"]);
+  });
+
+  it("Renforcement : plus de ligne « Nombre de séries » ; colonne Séries propre à chaque mouvement, durée totale recalculée ; Durée totale après Exécution", async () => {
+    const draftRef = await open("STRENGTH");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(screen.queryByTestId("format-row-seriesCount")).toBeNull();
+    expect(rowOrder().slice(-2)).toEqual(["format-row-execution", "format-row-total"]);
+    expect(shown("series-0")).toBe("3");
+    expect(shown("series-1")).toBe("3");
+    // Pause connue : la durée totale (minimum estimé en Répétitions) dépend du nombre de pauses, donc du nombre de séries.
+    typeValue("pause-0", "30");
+    const before = screen.getByTestId("format-total").props.children as string;
+    typeValue("series-0", "5");
+    expect(shown("series-0")).toBe("5");
+    expect(shown("series-1")).toBe("3");
+    expect(screen.getByTestId("format-total").props.children).not.toBe(before);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("format-save"));
+    });
+    const counts = draftRef.current.exercises.map((exercise) => {
+      const series = exercise.executionParameters.series;
+      return series.kind === "UNIFORM" ? series.count : series.rows.length;
+    });
+    expect(counts).toEqual([5, 3]);
+  });
+
+  it("Superset : l'accroche suit le nombre de mouvements (deux, trois…)", async () => {
+    await open("SUPERSET");
+    await pick("Squ", "mv-squats");
+    await pick("Fen", "mv-fentes");
+    expect(screen.getByTestId("format-tagline")).toHaveTextContent(/^Deux exercices/);
   });
 });

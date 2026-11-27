@@ -1,5 +1,7 @@
 # Claude Code — quatre coins du chronomètre (18/11/2026)
 
+> **PROMPT HISTORIQUE — CONSERVÉ POUR TRAÇABILITÉ.** Le complément D-529 du 26/11/2026 remplace la position initiale du compte à rebours de Série en Durée : **bas droite**, charge **bas gauche**. Pour développer la règle à jour, utiliser exclusivement [le prompt du 26/11/2026](PROMPT-CLAUDE-CODE-COINS-DYNAMIQUES-2026-11-26.md) et CE-UI-14 actualisé ; ne pas appliquer les anciennes indications de coin contradictoires.
+
 Mission : appliquer la décision D-529 et le contrat CE-UI-14 (`docs/Specifications-fonctionnelles/07` et `13`, branche `docs/planification-grille-creneaux`, à lire sans la fusionner) à l'écran d'exécution. Lis aussi `docs/AGENTS.md` (Expo v57) et `CLAUDE.md`. Branche dédiée, pas de fusion.
 
 Règle : une information a un coin fixe, identique dans tous les formats ; un coin vide reste vide. Aucune information ne change de coin d'un format à l'autre.

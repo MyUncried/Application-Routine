@@ -5,6 +5,7 @@ import { State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 
 import { SwipeActionsRow } from "@/features/activities/SwipeActionsRow";
+import { swipeRevealSteps } from "@/shared/gestures/testing/fireSwipeReveal";
 
 /**
  * Contre-recette du 23/11/2026 (r3) — rangée glissée dans une feuille native : `nativeGesture` confie le glissement au Pan
@@ -107,6 +108,21 @@ describe("SwipeActionsRow — nativeGesture : un glissé n'est jamais un appui (
     // iOS livre ensuite la fin du toucher au Pressable (onPressOut → onPress).
     fireEvent.press(screen.getByTestId("row-card"));
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it("recette du 26/11/2026 (après-midi) : glisser engagé — la rangée prend le toucher de React Native (aucun bouton du contenu ne reçoit la fin du glissé)", () => {
+    render(pressableRow(() => undefined));
+    const capture = () => screen.getByTestId("row").props.onMoveShouldSetResponderCapture({ nativeEvent: { pageX: 150, pageY: 20 } }) as boolean;
+    // Avant l'activation du Pan : le contenu garde le toucher (appui, défilement).
+    expect(capture()).toBe(false);
+    const steps = swipeRevealSteps("row-pan");
+    steps.begin();
+    steps.update(-30, 10);
+    expect(capture()).toBe(true);
+    // La fin du toucher de React Native ne décide rien : le Pan seul décide au relâchement.
+    expect(screen.getByTestId("row").props.onResponderRelease).toBeUndefined();
+    steps.end(-30, 0, 10);
+    expect(capture()).toBe(false);
   });
 
   it("toucher simple, y compris juste après un glissé : onPress est appelé", () => {

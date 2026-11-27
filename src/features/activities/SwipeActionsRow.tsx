@@ -10,10 +10,12 @@ import {
   type AccessibilityState,
   type GestureResponderEvent,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
-import { clampSwipeTranslateX, shouldFollowSwipe, shouldRevealAfterSwipe, TOUCH_SLOP } from "@/features/sessions/compositionGesture";
+import { clampSwipeTranslateX, shouldFollowSwipe, shouldRevealAfterSwipe } from "@/features/sessions/compositionGesture";
+import { resolveSwipeRelease } from "@/shared/gestures/swipeReveal";
+import { useSwipeRevealPan } from "@/shared/gestures/useSwipeRevealPan";
 import { useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 import { colors, fixedRadii, type } from "@/shared/ui/tokens";
@@ -151,6 +153,14 @@ export function SwipeActionsRow({
    * doigt quelle que soit sa direction), qui empêche celui de la feuille — même correctif que le questionnaire des Formats et la
    * feuille Planifier (ch12). L'appelant fournit la `GestureHandlerRootView` de la feuille. Absent : système de touchers de React
    * Native (rendu et comportement inchangés pour les autres écrans).
+   *
+   * Recette iPhone du 26/11/2026 (après-midi, Hermann : « Défini une règle une bonne fois pour toute pour ce geste ») : le `Pan`
+   * natif applique la règle unique du glisser-pour-options (`@/shared/gestures/swipeReveal`) — actif dès 10 à l'horizontale avant
+   * 24 à la verticale (départ en diagonale accepté) ; au relâchement, un geste court (24) ou un lancer suffit à ouvrir ou fermer.
+   * [Avant : actif dès 8 avant 8 à la verticale, ouverture au-delà de la moitié de la course — remplacé.] Composition (en-têtes
+   * de Circuit) et feuille du programme ; même jour (« réutilise-la ») : toutes les autres listes à actions glissées — Catalogue
+   * des mouvements, Catalogue des séances, Agenda, Journal, catalogue des Programmes, blocs For time (lignes des formats).
+   * [Responder system de React Native pour ces listes (capture si |dx| > |dy| au-delà de 8, décision à mi-course) — remplacé.]
    */
   readonly nativeGesture?: boolean;
   /**
@@ -242,6 +252,18 @@ export function SwipeActionsRow({
     else if (!open && revealed) onHide();
   };
 
+  /** Règle unique du 26/11/2026 (`resolveSwipeRelease`) : fin d'un glisser porté par le `Pan` natif. */
+  const endNative = (translationX: number, velocityX: number) => {
+    originRef.current = null;
+    scrollLock.release();
+    if (!isSwipingRef.current) return;
+    isSwipingRef.current = false;
+    const open = resolveSwipeRelease({ wasOpen: baseRef.current < 0, translationX, velocityX });
+    moveTo(open ? -offset : 0);
+    if (open && !revealed) onReveal();
+    else if (!open && revealed) onHide();
+  };
+
   // r3 (23/11/2026) : en feuille native, le geste natif porte seul le glissement ; les touchers de React Native ne servent plus
   // qu'à l'appui (annulés à l'activation du geste natif, sans effet sur la position).
   const native = nativeGesture && offset > 0;
@@ -250,6 +272,16 @@ export function SwipeActionsRow({
   // arrivait au `Pressable` comme un appui, après `onFinalize` (qui remet `isSwipingRef` à faux) et avant que `revealed` ne
   // change. Un toucher dont le Pan s'est activé n'est donc jamais un appui ; le marqueur est remis à zéro au toucher suivant.
   const pannedRef = useRef(false);
+  const pan = useSwipeRevealPan({
+    enabled: native,
+    testID: `${testID}-pan`,
+    onBegin: () => {
+      pannedRef.current = true;
+      baseRef.current = revealed ? -offset : 0;
+    },
+    onUpdate: follow,
+    onRelease: endNative,
+  });
 
   const showActions = translateX < 0 || isSettling;
   const actionsSlide = useMemo(
@@ -285,17 +317,22 @@ export function SwipeActionsRow({
         moveTo(revealed ? -offset : 0);
       }}
       onMoveShouldSetResponderCapture={(event) => {
-        if (native) return false;
+        // Recette du 26/11/2026 (après-midi, branchement de toutes les listes sur la règle unique) : glisser natif engagé — la
+        // rangée prend le toucher de React Native (sans suivre : le `Pan` porte la position), pour qu'aucun bouton du contenu
+        // (ouvrir, démarrer, photo…) ni aucune action révélée ne reçoive la fin du glissé comme un appui, lorsque l'activation du
+        // `Pan` n'a pas annulé les touchers de React Native (feuille native).
+        if (native) return isSwipingRef.current;
         const { dx, dy } = delta(event);
         if (offset === 0 || !shouldFollowSwipe(dx, dy, lockSwipeDirection && isSwipingRef.current)) return false;
         follow(dx);
         return true;
       }}
       onResponderMove={(event) => {
+        if (native) return;
         const { dx, dy } = delta(event);
         if ((lockSwipeDirection && isSwipingRef.current) || Math.abs(dx) > Math.abs(dy)) follow(dx);
       }}
-      onResponderRelease={end}
+      onResponderRelease={native ? undefined : end}
       onResponderTerminationRequest={() => !isSwipingRef.current}
       style={styles.container}
       testID={testID}
@@ -403,50 +440,17 @@ export function SwipeActionsRow({
       </AnimatedPressable>
     </View>
   );
+  // r3 (23/11/2026) : `Pan` natif du glissement en feuille native — règle unique du 26/11/2026 (`useSwipeRevealPan`).
+  // Recette du 26/11/2026 (après-midi) : `GestureDetector` exige un ancêtre `GestureHandlerRootView` (erreur en développement
+  // sinon ; nécessaire sur Android) — les listes branchées sur la règle unique (Catalogues, Agenda, Journal, Programmes) n'en ont
+  // pas. Racine posée autour de la rangée, sans style de mise en page (vue neutre ; sur iOS, simple vue).
   return nativeGesture ? (
-    <NativeSwipe
-      enabled={native}
-      testID={`${testID}-pan`}
-      onStart={() => {
-        pannedRef.current = true;
-        baseRef.current = revealed ? -offset : 0;
-      }}
-      onUpdate={follow}
-      onFinalize={end}
-    >
-      {row}
-    </NativeSwipe>
+    <GestureHandlerRootView style={styles.gestureRoot}>
+      <GestureDetector gesture={pan}>{row}</GestureDetector>
+    </GestureHandlerRootView>
   ) : (
     row
   );
-}
-
-/** r3 : `Pan` natif du glissement en feuille native (actif dès `TOUCH_SLOP` à l'horizontale, avant `TOUCH_SLOP` à la verticale). */
-function NativeSwipe({
-  enabled,
-  testID,
-  onStart,
-  onUpdate,
-  onFinalize,
-  children,
-}: {
-  readonly enabled: boolean;
-  readonly testID: string;
-  readonly onStart: () => void;
-  readonly onUpdate: (translationX: number) => void;
-  readonly onFinalize: () => void;
-  readonly children: ReactNode;
-}) {
-  const pan = Gesture.Pan()
-    .enabled(enabled)
-    .withTestId(testID)
-    .runOnJS(true)
-    .activeOffsetX([-TOUCH_SLOP, TOUCH_SLOP])
-    .failOffsetY([-TOUCH_SLOP, TOUCH_SLOP])
-    .onStart(() => onStart())
-    .onUpdate((event) => onUpdate(event.translationX))
-    .onFinalize(() => onFinalize());
-  return <GestureDetector gesture={pan}>{children}</GestureDetector>;
 }
 
 const JOIN_EASIER = require("../../../assets/icons/catalogue-raccord-plus-facile.svg");
@@ -456,6 +460,8 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
   },
+  // Racine des gestes de la rangée : aucun style propre (pas le `flex: 1` par défaut de `GestureHandlerRootView`).
+  gestureRoot: {},
   actions: {
     position: "absolute",
     top: 0,

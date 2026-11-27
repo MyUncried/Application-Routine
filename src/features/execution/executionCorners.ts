@@ -19,10 +19,10 @@ export type CornerSlot = "TOP_LEFT" | "TOP_RIGHT" | "BOTTOM_LEFT" | "BOTTOM_RIGH
  * - `MOVEMENT_COUNT` : nombre de mouvements faits d'après le guidage des phases.
  * - `REST_COUNTDOWN` : compte à rebours du repos (EMOM en répétitions uniquement).
  * - `SCORE` : score cumulé (AMRAP à un seul mouvement en Max, D-531 / RM-272 : somme des séries saisies).
- * - `SERIES_COUNTDOWN` : compte à rebours d'un exercice en durée d'un Format (For time, AMRAP, EMOM en durée). Absent du tableau de
- *   CE-UI-14 : il garde le coin du bas à gauche où Hermann l'a placé (17/11/2026, ft-borne ; 18/11/2026, emom-6 et emom-e1) et y
- *   déclare son exclusivité avec la charge (D-529 : « Toute information nouvelle déclare son exclusivité avec une autre »). À
- *   confirmer par Hermann (rapport 2026-11-19_COINS-CHRONO-D529).
+ * - `SERIES_COUNTDOWN` : compte à rebours d'une Série en Durée active d'un Format (For time, AMRAP, EMOM en durée, Death by quand la
+ *   projection l'expose). Complément D-529 / CE-UI-14 validé par Hermann le 26/11/2026 : information dynamique **en bas à droite**,
+ *   exclusive des autres informations dynamiques de ce coin ; la charge reste en bas à gauche. [Bas à gauche, exclusif de la charge
+ *   (17/11/2026, ft-borne ; 18/11/2026, emom-6 et emom-e1 ; rapport 2026-11-19_COINS-CHRONO-D529) — remplacé le 26/11/2026.]
  */
 export type CornerItem = "OBJECTIVE" | "TIME_LIMIT" | "LOAD" | "MOVEMENT_COUNT" | "REST_COUNTDOWN" | "SCORE" | "SERIES_COUNTDOWN";
 
@@ -44,7 +44,7 @@ export const CORNER_OF: Readonly<Record<CornerItem, CornerSlot>> = {
   OBJECTIVE: "TOP_LEFT",
   TIME_LIMIT: "TOP_RIGHT",
   LOAD: "BOTTOM_LEFT",
-  SERIES_COUNTDOWN: "BOTTOM_LEFT",
+  SERIES_COUNTDOWN: "BOTTOM_RIGHT",
   MOVEMENT_COUNT: "BOTTOM_RIGHT",
   REST_COUNTDOWN: "BOTTOM_RIGHT",
   SCORE: "BOTTOM_RIGHT",
@@ -56,6 +56,7 @@ type Row = Readonly<Record<CornerSlot, readonly CornerItem[]>>;
  * Tableau de CE-UI-14 §2 : scénario → coin → information(s), dans l'ordre de priorité quand deux informations exclusives partagent
  * un coin. Le nombre de mouvements reste au bas à droite quand il existe et que le coin est libre (D-529 : « Bas droite : nombre de
  * mouvements pendant l'effort ») ; il n'existe aujourd'hui que pour une Série en répétitions guidée par des phases.
+ * Bas à droite (complément D-529 du 26/11/2026) : une seule information dynamique, celle de l'étape active, dans l'ordre de la liste.
  */
 export const CORNER_TABLE: Readonly<Record<CornerScenario, Row>> = {
   // Exercice en répétitions : objectif répétitions | — | charge | —
@@ -64,18 +65,20 @@ export const CORNER_TABLE: Readonly<Record<CornerScenario, Row>> = {
   EXERCISE_PHASES: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: [], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["MOVEMENT_COUNT"] },
   // Pause ou récupération : durée de la pause | — | charge de la série suivante | —
   PAUSE: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: [], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: [] },
-  // For time : objectif du tour | temps max | charge | —
-  FOR_TIME: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["SERIES_COUNTDOWN", "LOAD"], BOTTOM_RIGHT: ["MOVEMENT_COUNT"] },
-  // AMRAP : objectif du mouvement | temps limite du bloc | charge | —
-  AMRAP: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["SERIES_COUNTDOWN", "LOAD"], BOTTOM_RIGHT: ["MOVEMENT_COUNT"] },
+  // For time : objectif du tour | temps max si défini | charge | décompte de Série en Durée actif ; sinon compteur guidé ; sinon —
+  FOR_TIME: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["SERIES_COUNTDOWN", "MOVEMENT_COUNT"] },
+  // AMRAP : objectif du mouvement | temps limite du bloc | charge | décompte de Série en Durée actif ; sinon compteur guidé ; sinon —
+  AMRAP: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["SERIES_COUNTDOWN", "MOVEMENT_COUNT"] },
   // AMRAP à un seul mouvement en Max : — | temps limite du bloc | charge | score cumulé
   AMRAP_MAX: { TOP_LEFT: [], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["SCORE"] },
   // EMOM en répétitions : objectif répétitions | intervalle | charge | compte à rebours du repos
   EMOM_REPETITIONS: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["REST_COUNTDOWN", "MOVEMENT_COUNT"] },
-  // EMOM en durée : objectif durée | intervalle | charge | nombre de mouvements (effort) ; repos en secondaire au centre (D-528)
-  EMOM_DURATION: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["SERIES_COUNTDOWN", "LOAD"], BOTTOM_RIGHT: ["MOVEMENT_COUNT"] },
-  // Death by : objectif du rang | intervalle | charge | —
-  DEATH_BY: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["MOVEMENT_COUNT"] },
+  // EMOM en durée : objectif durée | intervalle | charge | décompte de Série en Durée actif ; sinon — (repos en secondaire au centre,
+  // D-528). Aucun compteur « mouv. » n'est produit pour une Série en Durée (`autoRepetitionsOf`) ; le repli `MOVEMENT_COUNT` ne sert
+  // qu'à une Série en Répétitions guidée par phases jouée dans une fenêtre qui porte aussi une Série en Durée (comportement conservé).
+  EMOM_DURATION: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["SERIES_COUNTDOWN", "MOVEMENT_COUNT"] },
+  // Death by : objectif du rang | intervalle | charge | décompte de Série en Durée (la projection l'expose) ; sinon compteur guidé ; sinon —
+  DEATH_BY: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: ["TIME_LIMIT"], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: ["SERIES_COUNTDOWN", "MOVEMENT_COUNT"] },
   // Tabata / 30-30 : durée de la phase | — | charge | —
   TABATA: { TOP_LEFT: ["OBJECTIVE"], TOP_RIGHT: [], BOTTOM_LEFT: ["LOAD"], BOTTOM_RIGHT: [] },
 };

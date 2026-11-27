@@ -180,6 +180,39 @@ describe("D-600 — mosaïque rendue", () => {
     expect(style.width).toBeCloseTo(expected.width);
     expect(style.left).toBeCloseTo(expected.left);
   });
+
+  // Recette iPhone du 26/11/2026 (Hermann, « Séance sans photo » : « L'image est un cadre gris sans symbole. »).
+  it("image illisible : ignorée comme un mouvement sans photo ; aucune image lisible : vignette Libre, pas de cadre gris", async () => {
+    render(<SessionCard projection={flat([withPhoto("Pompes"), withPhoto("Squat")])} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByTestId("session-card-s1-mosaic-2")).toBeTruthy();
+    await act(async () => {
+      fireEvent(screen.getByTestId("session-card-s1-photo-0"), "error", { nativeEvent: { error: "introuvable" } });
+    });
+    expect(screen.getByTestId("session-card-s1-mosaic-1")).toBeTruthy();
+    expect(screen.queryByTestId("session-card-s1-photo-0-fallback")).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("session-card-s1-photo-0"), "error", { nativeEvent: { error: "introuvable" } });
+    });
+    expect(screen.queryByTestId("session-card-s1-mosaic-1")).toBeNull();
+    expect(screen.getByTestId("session-card-s1-format-FREE")).toBeTruthy();
+  });
+
+  // Recette iPhone du 26/11/2026 (Hermann : « 5 exercices dont deux dans un circuit Tabata, il en compte 4 »).
+  it("les mouvements d'un circuit Tabata comptent : trois libres et deux en Tabata → trois images et « +2 »", () => {
+    const value = projection([
+      { kind: "EXERCISE", exercise: withPhoto("M1") },
+      { kind: "EXERCISE", exercise: withPhoto("M2") },
+      { kind: "EXERCISE", exercise: withPhoto("M3") },
+      { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 8, nature: "SERIES", originModel: "TABATA", exercises: [withPhoto("M4"), withPhoto("M5")] } },
+    ]);
+    expect(value.mosaic).toHaveLength(5);
+    render(<SessionCard projection={value} />);
+    expect(screen.getByTestId("session-card-s1-mosaic-5")).toBeTruthy();
+    expect(screen.getByTestId("session-card-s1-mosaic-counter")).toHaveTextContent("+2");
+  });
 });
 
 describe("D-601 — trois lignes", () => {

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useMemo, useState, type ReactNode } from "react";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import { createFreeExerciseParameters, stopConditionOf } from "@/domain/activities/ExecutionParameters";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -124,7 +124,8 @@ describe("D-608 — carte : modale ; ligne « N tours » du Circuit : page du fo
     expect(mockPush).not.toHaveBeenCalled();
     expect(await screen.findByTestId("execution-sheet")).toBeTruthy();
     expect(screen.getByTestId("execution-sheet-title")).toHaveTextContent("Exercice a1");
-    expect(screen.getByTestId("execution-sheet-title").props.numberOfLines).toBe(1);
+    // Recette iPhone du 26/11/2026 (après-midi), point A : titre sur deux lignes au plus, puis « … ». [Une ligne — remplacé.]
+    expect(screen.getByTestId("execution-sheet-title").props.numberOfLines).toBe(2);
     expect(screen.getByTestId("execution-sheet-header-tint")).toHaveStyle({ backgroundColor: "#FDECEC" });
     expect(screen.queryByTestId("execution-sheet-free-context")).toBeNull();
   });
@@ -156,6 +157,16 @@ describe("D-608 — carte : modale ; ligne « N tours » du Circuit : page du fo
       fireEvent.press(screen.getByTestId("composition-layout-circuit-cb-header-counter"));
     });
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  // Recette iPhone du 26/11/2026 (soir, remarque a, Hermann : « composition de séance : colorer le cadre du circuit de la couleur du
+  // format ») : aplat du Circuit issu d'un format à la couleur du format (celle de l'en-tête de la modale) ; Circuit composé à la main
+  // inchangé (#EBEDF5).
+  it("cadre du Circuit issu d'un format à la couleur du format ; Circuit composé à la main inchangé", async () => {
+    await renderComposition(draftOf());
+    const fill = (id: string) => StyleSheet.flatten(screen.getByTestId(`composition-layout-circuit-${id}-surface`, { includeHiddenElements: true }).props.style).backgroundColor;
+    expect(fill("ca")).toBe("#FDECEC");
+    expect(fill("cb")).toBe("#EBEDF5");
   });
 
   it("photo : fiche en lecture seule ; actions de la carte (déplacer, dupliquer, supprimer) inchangées", async () => {

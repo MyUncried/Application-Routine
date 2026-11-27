@@ -33,6 +33,27 @@ export function phaseCycleFit(targetSeconds: number, cycleSeconds: number): Phas
   return { status: "NOT_MULTIPLE", cycleSeconds, lowerSeconds, upperSeconds: upper > EXECUTION_BOUNDS.durationTarget.max ? null : upper };
 }
 
+/**
+ * Recette iPhone du 26/11/2026 (soir, Hermann : « Death by : Incrément par tour d'un exercice qui a un mouvement avec des phases :
+ * l'incrément doit être un multiple de la somme des phases (message d'information avec proposition inférieure, supérieure, ou annuler).
+ * Ce n'est pas une obligation. ») — incrément en Durée du Death by comparé à la durée du motif des phases. `null` : rien à proposer
+ * (multiple exact, pas de motif). Le multiple inférieur n'est proposé que s'il reste ≥ 1 s (l'incrément du Death by est au moins + 1,
+ * Formats « Règle » du complément du 5 novembre, §13) ; le supérieur, que s'il reste dans la borne `max` du champ.
+ */
+export function incrementCycleRounding(
+  incrementSeconds: number,
+  cycleSeconds: number | null,
+  max: number,
+): { readonly lowerSeconds: number | null; readonly upperSeconds: number | null } | null {
+  if (cycleSeconds === null || cycleSeconds <= 0 || incrementSeconds <= 0) return null;
+  const remainder = incrementSeconds % cycleSeconds;
+  if (remainder === 0) return null;
+  const lower = incrementSeconds - remainder;
+  const upper = lower + cycleSeconds;
+  const rounding = { lowerSeconds: lower >= 1 ? lower : null, upperSeconds: upper <= max ? upper : null };
+  return rounding.lowerSeconds === null && rounding.upperSeconds === null ? null : rounding;
+}
+
 /** `lowerSeconds` : `null` pour une série plus courte que le motif (aucun multiple inférieur non nul). */
 export type PhaseCycleRounding = { readonly rank: number; readonly targetSeconds: number; readonly lowerSeconds: number | null; readonly upperSeconds: number | null };
 

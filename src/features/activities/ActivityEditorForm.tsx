@@ -46,7 +46,8 @@ import {
   MovementLevelPanel,
   type EditorLevel,
 } from "@/features/activities/MovementLevelMenu";
-import { MovementPhasesEditor } from "@/features/activities/MovementPhasesEditor";
+import { KeyboardAccessoryBar, KeyboardAccessoryContext, type KeyboardAccessorySource } from "@/features/activities/KeyboardAccessoryBar";
+import { MovementPhasesEditor, type MovementPhasesKeyboardBar } from "@/features/activities/MovementPhasesEditor";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { isIncompleteSummary } from "@/features/sessions/compositionPresentation";
@@ -584,6 +585,31 @@ export function ActivityEditorForm({
   // [Retiré le 31/10/2026, PRE-9 — contrôle de la recette iPhone n° 2 (cr2-phases KO, Hermann :
   // « Retirer aussi la barre optionnelle avec les boutons précédent, suivant et fermer ») : barre du
   // clavier (`KeyboardAccessoryBar`) pendant la saisie d'une durée de phase.]
+  // Recette iPhone du 26/11/2026 (après-midi), Hermann : « Régression : création d'une fiche de mouvement, création de phases et
+  // entrée de la durée. Nous avions défini une barre d'option au-dessus du clavier, elle n'est plus affichée. » — barre du clavier
+  // (« ← Précédent », « Suivant → », « Fermer ») rétablie pendant la saisie d'une durée de phase au pavé numérique iOS, qui n'a pas
+  // de touche Entrée — même barre que la Feuille (`KeyboardAccessoryBar`, mécanisme RC-1 : posée au bas de son hôte, remontée
+  // au-dessus du clavier). Sa hauteur s'ajoute à la réserve du clavier. [Complété le 26/11/2026, réponse de Hermann : la barre
+  // accompagne TOUS les champs des phases — libellé, durée, invite —, `MovementPhasesEditor`.]
+  // Recette iPhone du 26/11/2026 (soir), Hermann : « la barre d'option du clavier n'apparaît pas » — barre RATTACHÉE au clavier
+  // natif (`InputAccessoryView` de chaque champ des phases, `KeyboardAccessoryContext`) : iOS la monte et la descend avec le clavier,
+  // dont le cadre (événements `Keyboard`) l'inclut déjà. [Barre posée au bas d'un hôte plein cadre et remontée en JS (mécanisme
+  // RC-1, `movement-keyboard-bar-host`), dont la hauteur s'ajoutait à la réserve du clavier — remplacée.]
+  const [phasesKeyboardBar, setPhasesKeyboardBar] = useState<MovementPhasesKeyboardBar | null>(null);
+  const phasesBarSource: KeyboardAccessorySource = {
+    withText: true,
+    bar: (
+      <KeyboardAccessoryBar
+        attached
+        reduceMotion={reduceMotion}
+        canPrevious={phasesKeyboardBar?.canPrevious ?? false}
+        canNext={phasesKeyboardBar?.canNext ?? false}
+        onPrevious={() => phasesKeyboardBar?.onPrevious()}
+        onNext={() => phasesKeyboardBar?.onNext()}
+        onClose={() => Keyboard.dismiss()}
+      />
+    ),
+  };
   function movementKeyboardInset(): number {
     const k = movementKeyboardRef.current;
     return k.shown ? Math.max(0, k.bottom - k.top) : 0;
@@ -620,6 +646,8 @@ export function ActivityEditorForm({
     setMovementLiftRef.current = setMovementLift;
     revealRefs.current = { description: revealDescription, phases: revealPhases };
   });
+  // [Recette iPhone du 26/11/2026 (après-midi) : réserve de la barre JS ajoutée au clavier — remplacée le 26/11 (soir) : la barre
+  // native est comprise dans le cadre du clavier.]
   useEffect(() => {
     if (!isMovement) return;
     const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
@@ -1169,16 +1197,19 @@ export function ActivityEditorForm({
                 {/* Recette A/B B.10 (b2-4) : même place réservée et même ↑ que la Description (D-351) :
                     ↑ ferme seulement le clavier, rien n'est enregistré. */}
                 <View style={styles.descriptionStepsWithSend}>
+                  <KeyboardAccessoryContext.Provider value={phasesBarSource}>
                   <MovementPhasesEditor
                     value={movementPhases.value}
                     onChange={movementPhases.onChange}
                     editable={!isBodyLocked}
                     onFocusChange={onPhasesFocusChange}
+                    onKeyboardBarChange={setPhasesKeyboardBar}
                     onActiveRowBottomChange={(bottom) => {
                       phasesActiveBottomRef.current = bottom;
                       if (isPhasesFocused) revealPhases();
                     }}
                   />
+                  </KeyboardAccessoryContext.Provider>
                 </View>
                 {isPhasesFocused ? (
                   <Pressable
@@ -1388,6 +1419,13 @@ export function ActivityEditorForm({
           ) : null}
         </View>
       ) : null}
+
+      {/* Recette iPhone du 26/11/2026 (après-midi) : barre du clavier de la durée de phase (iOS) rétablie, au bas de cet hôte qui
+          couvre l'Éditeur ; « Suivant → » passe à la ligne suivante, « ← Précédent » au libellé de la même ligne, « Fermer » ferme
+          le clavier. [Complété le 26/11/2026, réponse de Hermann : barre sur TOUS les champs des phases (libellé, durée, invite) ;
+          Précédent / Suivant parcourent libellé 1 → durée 1 → libellé 2 → …, indisponibles aux extrémités.]
+          [Hôte plein cadre `movement-keyboard-bar-host` et barre remontée en JS — remplacés le 26/11/2026 (soir) par la barre native
+          rattachée à chaque champ des phases (`phasesBarSource`).] */}
     </>
   );
 }

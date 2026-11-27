@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 
 import { validateForSave, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import type { Movement } from "@/domain/activities/Movement";
@@ -13,6 +13,8 @@ import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFil
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SelectedMovementCard } from "@/features/activities/SelectedMovementCard";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import { withoutPinned } from "@/features/sessions/formatCatalogueSelection";
+import { PINNED_ZONE_MAX_RATIO } from "@/features/sessions/FormatModelScreen";
 import {
   exerciseOfMovement,
   FREE_EXERCISE_RECOVERY_SECONDS,
@@ -66,6 +68,8 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
   }, [profileService]);
 
   const [entries, setEntries] = useState<readonly MovementCatalogueEntry[]>([]);
+  // Recette iPhone du 26/11/2026 (après-midi) : relecture du catalogue après la création d'un mouvement (il y figure au retour).
+  const [catalogueVersion, setCatalogueVersion] = useState(0);
   useEffect(() => {
     const catalogue = service.movementCatalogue ?? null;
     if (catalogue === null) return undefined;
@@ -79,7 +83,7 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
     return () => {
       cancelled = true;
     };
-  }, [service]);
+  }, [service, catalogueVersion]);
 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
@@ -92,6 +96,24 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
   const recoveryRef = useRef(FREE_EXERCISE_RECOVERY_SECONDS);
 
   const items = useMemo(() => visibleMovementItems(entries, query, filters), [entries, query, filters]);
+  // Recette iPhone du 26/11/2026 (après-midi), Hermann : « Le mouvement doit être en première ligne et figé par rapport au
+  // défilement du catalogue, comme pour les autres formats. » — patron de la zone figée du catalogue des formats en modification
+  // (D-572, `FormatModelScreen`) : le mouvement choisi est figé sous la recherche, en état sélectionné, sans recherche ni filtre ;
+  // la liste dessous ne le montre plus ; le toucher le désélectionne (il revient dans la liste).
+  const pinnedEntries = useMemo(
+    () => (chosen === null ? [] : [entries.find((entry) => entry.movement.id === chosen.movement.id) ?? chosen]),
+    [chosen, entries],
+  );
+  const listedItems = useMemo(() => (chosen === null ? items : withoutPinned(items, new Set([chosen.movement.id]))), [chosen, items]);
+  const windowHeight = useWindowDimensions().height;
+  // Recette iPhone du 26/11/2026 (après-midi), Hermann : fiche « Tester » trouvée pour « T » et « Te », pas pour « Tes ». La
+  // recherche la trouve (`rankMovements`, début de mot) ; la liste, défilée plus bas pendant « T » / « Te », gardait sa position
+  // sur une liste devenue courte et les résultats restaient hors de vue. Comme au catalogue des formats (recette du 05/11/2026,
+  // s-fond), à chaque recherche ou filtre la liste repart de son début, juste sous la zone de recherche.
+  const listRef = useRef<ScrollView>(null);
+  useEffect(() => {
+    listRef.current?.scrollTo({ y: 0, animated: false });
+  }, [query, filters]);
   const filterSummary =
     filterLabels.length === 0 ? null : filterLabels.length === 1 ? filterLabels[0]! : fillTemplate(tCatalogue.filters.activeSummary, { count: String(filterLabels.length) });
 
@@ -106,7 +128,11 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
   useFocusEffect(
     useCallback(() => {
       const created = takeMovementHandedToFreeExercise();
-      if (created !== null) openPage(created, null);
+      if (created === null) return;
+      // Recette du 26/11/2026 (après-midi) : le mouvement créé est aussi le mouvement choisi — « Changer » le retrouve figé.
+      setChosen({ movement: created, level: null, exerciseCount: 0, archived: false });
+      setCatalogueVersion((version) => version + 1);
+      openPage(created, null);
     }, [openPage]),
   );
 
@@ -177,7 +203,16 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
 
   return (
     <View style={styles.root} testID="free-exercise-choice">
-      <View style={{ backgroundColor: SHEET_HEADER_NEUTRAL }} testID="free-exercise-choice-context">
+      {/* Recette iPhone du 26/11/2026 (soir), Hermann : « la liste la chevauche » (zone figée) ; recherche « ko » dès qu'il reste au
+          plus deux résultats (« Tes », « bo », « rol », « etirement du m »…). Cause : dans une feuille native (`formSheet`),
+          react-native-screens cherche une ScrollView par le chemin des PREMIERS sous-vues natives de l'écran et lui impose le cadre
+          entier de la feuille (`RNSScreen.mm`, `applyFrameCorrectionForDescendantScrollView`). Fabric monte les enfants par zIndex
+          croissant : depuis les zIndex de la zone de contexte, du fondu et de la recherche (8098288b), le premier enfant natif est la
+          liste — tirée en haut de la feuille, ses premiers résultats passent sous la zone de contexte et la recherche — ou, avec un
+          mouvement choisi, la ScrollView de la zone figée, étirée sur toute la hauteur et recouverte par la liste. Cette vue vide,
+          non aplatie, est le premier enfant natif : aucune ScrollView n'est trouvée, chaque zone garde son cadre. */}
+      <View collapsable={false} pointerEvents="none" style={styles.sheetScrollGuard} testID="free-exercise-sheet-scroll-guard" />
+      <View style={[styles.context, { backgroundColor: SHEET_HEADER_NEUTRAL }]} testID="free-exercise-choice-context">
         <View style={styles.headerTop} />
         <ModalHeader
           title={t.freeTitle}
@@ -200,6 +235,9 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
           <View key={layer.height} style={[styles.fadeLayer, { height: layer.height, opacity: layer.opacity, backgroundColor: SHEET_HEADER_NEUTRAL }]} />
         ))}
       </View>
+      {/* Recette iPhone du 26/11/2026 : le catalogue défilait par-dessus la zone de contexte. Comme au catalogue des formats, la liste
+          passe sous la zone de contexte et sous la recherche figée (fond blanc), et disparaît à leur bord. */}
+      <View style={styles.searchBand} testID="free-exercise-search-zone">
       <View style={styles.searchZone}>
         <Text style={styles.sectionLabel}>{t.freeMovement}</Text>
         <View style={styles.commands}>
@@ -271,19 +309,42 @@ export function FreeExerciseScreen({ onClose, onDone }: { readonly onClose: () =
           </Pressable>
         </View>
       </View>
+      </View>
+      {/* Recette iPhone du 26/11/2026 (après-midi) : zone figée du mouvement choisi, sous la recherche — même patron et mêmes valeurs
+          que la zone figée du catalogue des formats en modification (D-572) : fond blanc opaque, plafonnée à environ 40 % de la
+          hauteur, mêmes retrait et écart que les cartes de la liste, marge sous la carte ; la liste défile dessous. */}
+      {pinnedEntries.length > 0 ? (
+        <View style={[styles.pinnedZone, { maxHeight: windowHeight * PINNED_ZONE_MAX_RATIO }]} testID="free-exercise-pinned">
+          <ScrollView style={styles.pinnedScroll} contentContainerStyle={styles.pinnedContent} keyboardShouldPersistTaps="handled" testID="free-exercise-pinned-scroll">
+            {pinnedEntries.map((entry) => (
+              <View key={entry.movement.id} style={styles.single}>
+                <SelectedMovementCard
+                  movement={entry.movement}
+                  levelRank={entry.level?.rank ?? null}
+                  selected
+                  onPress={() => setChosen(null)}
+                  onPhotoPress={() => router.push({ pathname: "/movement-sheet", params: { movementId: entry.movement.id } })}
+                  testID={`free-exercise-pinned-${entry.movement.id}`}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
       <ScrollView
+        ref={listRef}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         testID="free-exercise-list"
       >
-        {query.trim().length > 0 && items.length === 0 ? (
+        {query.trim().length > 0 && listedItems.length === 0 ? (
           <Text style={styles.noResult} testID="free-exercise-empty">
             {tFormat.noSearchResult}
           </Text>
         ) : null}
-        {items.map((item) => {
+        {listedItems.map((item) => {
           if (item.kind === "SINGLE") {
             return (
               <View key={item.key} style={styles.single}>
@@ -334,14 +395,19 @@ const VALUE_COLOR = "#0508E5";
 const SEARCH_PLACEHOLDER = "#B4B8C2";
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#FFFFFF" },
+  root: { flex: 1, backgroundColor: "#FFFFFF", overflow: "hidden" },
+  // Recette du 26/11/2026 (soir) : premier enfant natif sans ScrollView (voir le rendu) ; aucune place dans la mise en page.
+  sheetScrollGuard: { height: 0 },
+  // Zone de contexte, puis son fondu, puis la recherche figée, au-dessus de la liste qui défile dessous.
+  context: { zIndex: 3 },
   // Place de la poignée de la feuille des paramètres : en-tête à la même hauteur que la page.
   headerTop: { height: 12 },
   title: { fontSize: 18 },
   // Accroche des modales de type format (Mali Medium Italic 14/20, #5C636E), comme la page.
   tagline: { fontFamily: "Mali_500Medium_Italic", fontSize: 14, lineHeight: 20, color: "#5C636E", textAlign: "center", paddingHorizontal: 8, paddingBottom: 8 },
-  fade: { height: 12, marginBottom: -12, zIndex: 1 },
+  fade: { height: 12, marginBottom: -12, zIndex: 2 },
   fadeLayer: { position: "absolute", top: 0, left: 0, right: 0 },
+  searchBand: { zIndex: 1, backgroundColor: "#FFFFFF" },
   searchZone: { marginHorizontal: 16, marginTop: 12, gap: 8, marginBottom: 8 },
   sectionLabel: { fontFamily: "Inter_400Regular", fontSize: 11, color: SECTION },
   commands: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -354,7 +420,12 @@ const styles = StyleSheet.create({
   pilesToggleOn: { borderColor: VALUE_COLOR },
   pilesGlyph: { width: 14, height: 3, borderRadius: 1.5, borderWidth: 1, borderColor: "#7A7F8C" },
   pilesGlyphOn: { borderColor: VALUE_COLOR },
-  list: { flex: 1 },
+  // Recette du 26/11/2026 (après-midi) : zone figée du mouvement choisi, valeurs de `FormatModelScreen` (D-572 : `pinnedZone`,
+  // `pinnedScroll`, `pinnedContent`, marge de 8 sous la dernière carte).
+  pinnedZone: { backgroundColor: "#FFFFFF" },
+  pinnedScroll: { flexGrow: 0 },
+  pinnedContent: { marginHorizontal: 16, gap: 8, paddingTop: 4, paddingBottom: 8 },
+  list: { flex: 1, overflow: "hidden" },
   listContent: { gap: 8, paddingTop: 4, paddingHorizontal: 16, paddingBottom: 24 },
   noResult: { paddingHorizontal: 4, paddingVertical: 4, fontFamily: "Inter_400Regular", fontSize: 13, color: LABEL },
   single: { paddingLeft: 8 },

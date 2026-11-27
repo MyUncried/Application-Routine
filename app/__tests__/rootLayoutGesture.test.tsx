@@ -81,13 +81,13 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
 
     const creation = screenCalls.find((call) => call.name === "(creation)");
     expect(creation).toBeDefined();
-    // D-602 (25/11/2026) : options calculées selon la route — geste toujours désactivé, feuille native depuis une carte du
-    // catalogue des séances.
+    // D-602 (25/11/2026) : options calculées selon la route — geste toujours désactivé ; depuis une carte du catalogue des
+    // séances, modale plein écran (décision de Hermann du 27/11/2026) [feuille native `formSheet` — remplacée].
     const options = creation?.options as unknown;
     const resolve = (params: object | undefined) =>
       typeof options === "function" ? (options as (arg: { route: { params?: object } }) => object)({ route: { params } }) : options;
     expect(resolve(undefined)).toMatchObject({ gestureEnabled: false });
-    expect(resolve({ screen: "composition", params: { sessionId: "s1", presentation: "modal" } })).toMatchObject({ gestureEnabled: false, presentation: "formSheet" });
+    expect(resolve({ screen: "composition", params: { sessionId: "s1", presentation: "modal" } })).toMatchObject({ gestureEnabled: false, presentation: "fullScreenModal" });
   });
 
   it("leaves the (tabs) group's own navigation behaviour untouched — only the creation flow is concerned", () => {
@@ -150,6 +150,17 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     expect(sheet("format-questionnaire")).toBeUndefined();
     expect(sheet("format-summary")).toMatchObject({ presentation: "formSheet", sheetGrabberVisible: false, contentStyle: { backgroundColor: "#FFFFFF" }, gestureEnabled: false });
     expect(sheet("movement-sheet")).toMatchObject({ presentation: "formSheet", gestureEnabled: false });
+  });
+
+  // Recette du 26/11/2026 (après-midi, Hermann : « j'appuie sur Démarrer - La séance s'exécute mais pas en plein écran, mais en
+  // modale. KO (il faut en plein écran) ») : sans présentation propre, une route posée après une feuille de la pile racine hérite
+  // d'une présentation modale (`getModalRouteKeys`). L'Exécution est donc toujours plein écran, sans geste, en fondu.
+  it("presents the Execution route full screen whatever the stack below it (fullScreenModal, no gesture, fade)", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const execution = screenCalls.find((call) => call.name === "execution");
+    expect(execution?.options).toEqual({ presentation: "fullScreenModal", gestureEnabled: false, animation: "fade" });
   });
 
   it("presents the Catalogue filters as a native iOS form sheet, without grabber, on a white background", () => {

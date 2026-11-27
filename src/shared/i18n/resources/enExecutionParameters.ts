@@ -60,6 +60,7 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     // « — » (Mode, Changement de côté, Cible non renseignés) : jamais lue « tiret ».
     unsetSpoken: "no value",
     series: "Sets",
+    seriesCountRow: "Number of sets",
     seriesSingular: "set",
     seriesPlural: "sets",
     // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44) : ligne « Type de série » (Variables à
@@ -313,6 +314,11 @@ export const executionParameters: Widen<typeof frExecutionParameters> = {
     blockLossMessageMany: "The other {role} exercises also go to {kept} sets: {count} values will be removed.",
     roleLossCancel: "Cancel",
     roleLossConfirm: "Continue",
+    // Recette iPhone du 26/11/2026 (soir) : Death by, incrément non multiple de la durée des phases (information, non bloquante).
+    incrementCycleTitle: "Round the increment?",
+    incrementCycleMessage: "The increment ({increment}) isn’t a multiple of the movement phases duration ({cycle}).",
+    incrementCycleRoundTo: "Round to {duration}",
+    incrementCycleKeep: "Cancel",
   },
   media: {
     section: "Media",

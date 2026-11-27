@@ -22,6 +22,7 @@ import {
   type ViewProps,
   useWindowDimensions,
 } from "react-native";
+import { GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -44,7 +45,8 @@ import {
 } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { formatPhraseDuration, spokenDuration } from "@/domain/activities/durationFormat";
-import { plannedWorkOfParameters } from "@/domain/sessions/formatModels";
+import { isFormatModelKey, plannedWorkOfParameters } from "@/domain/sessions/formatModels";
+import { formatModelColors } from "@/features/sessions/FormatsWindow";
 import {
   adjustEnvelopeSpan,
   applyLayoutNatureChange,
@@ -239,8 +241,6 @@ import {
   resolveDropTarget,
   resolveInsertionPoses,
   resolveRemovalShifts,
-  shouldFollowSwipe,
-  shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
   type DragShifts,
@@ -339,6 +339,8 @@ import { SecondaryActionButton } from "@/shared/ui/SecondaryActionButton";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
+import { resolveSwipeRelease } from "@/shared/gestures/swipeReveal";
+import { useSwipeRevealPan } from "@/shared/gestures/useSwipeRevealPan";
 import { SwipeScrollLockContext, useSwipeScrollLock } from "@/shared/ui/swipeScrollLock";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -908,8 +910,9 @@ export type CompositionScreenProps = {
    */
   readonly sessionId?: string | null;
   /**
-   * D-602 (25/11/2026) : Composition ouverte depuis une carte du catalogue des séances, présentée en modale iOS (feuille
-   * native). Recette du 25/11/2026 (Hermann) : en-tête sans la réserve de la barre d'état ; Démarrer dans l'action finale.
+   * D-602 (25/11/2026) : Composition ouverte depuis une carte du catalogue des séances, présentée en modale iOS — plein écran
+   * depuis la décision de Hermann du 27/11/2026 [feuille native, en-tête sans réserve de barre d'état — remplacé]. Recette du
+   * 25/11/2026 (Hermann) : Démarrer dans l'action finale.
    */
   readonly modal?: boolean;
 };
@@ -1177,6 +1180,25 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
    * défilant (`composition-body`), commandé par `scrollTo` sans animation à chaque trame.
    */
   const bodyScrollRef = useRef<ScrollView>(null);
+  /**
+   * Recette iPhone du 26/11/2026 (après-midi ; régressions « je ne peux plus déplacer l'exercice », « l'écran bouge, pas le cadre
+   * du circuit ») : verrou NATIF unique du défilement, arbitré entre ses porteurs — glisser-pour-options (`swipe`), trait d'un
+   * périmètre (`edge`), glisser-déposer d'une carte ou d'un bloc (`drag`). Le défilement natif est coupé dès qu'un porteur le
+   * tient et rendu seulement quand plus aucun ne le tient. [Avant : chaque porteur écrivait `scrollEnabled` par `setNativeProps`
+   * sans arbitrage (un relâchement pouvait rendre le défilement pendant un autre geste), et le glisser-déposer d'une carte ne
+   * coupait le défilement que par le rendu de l'écran : si ce rendu arrivait après les premiers points de mouvement, la liste
+   * native prenait le geste et annulait le glisser (retour de la carte à sa place).] L'état de l'écran (`scrollEnabled`) suit.
+   */
+  const nativeScrollLocksRef = useRef({ swipe: false, edge: false, drag: false });
+  const setNativeScrollLock = useCallback((holder: "swipe" | "edge" | "drag", locked: boolean) => {
+    const locks = { ...nativeScrollLocksRef.current, [holder]: locked };
+    nativeScrollLocksRef.current = locks;
+    try {
+      bodyScrollRef.current?.setNativeProps({ scrollEnabled: !(locks.swipe || locks.edge || locks.drag) });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+  }, []);
   /**
    * PRE-9 B.4c (COMP §7) : décalage de défilement du corps, sur le pilote natif, partagé par les
    * en-têtes collantes (`StickyHeaderFrame`) ; dernier décalage connu côté JS (CS-D6).
@@ -1535,9 +1557,11 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       // Story 7.4 : fin du geste (dépôt, annulation) — le défilement automatique s'arrête.
       if (key === null) autoScroll.end();
       draggedKeyRef.current = key;
+      // Recette du 26/11/2026 (après-midi) : défilement natif coupé dès la saisie, sans attendre le rendu de l'écran.
+      setNativeScrollLock("drag", key !== null);
       setDraggedKey(key);
     },
-    [autoScroll, closeCircuitControls],
+    [autoScroll, closeCircuitControls, setNativeScrollLock],
   );
 
   /**
@@ -1651,22 +1675,20 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
    * suite sur la vue native, puis par l'état de l'écran (même procédé que le glisser d'un trait) ; rendu au relâchement.
    */
   const [isSwipeScrollLocked, setIsSwipeScrollLocked] = useState(false);
-  const lockSwipeScroll = useCallback((locked: boolean) => {
-    try {
-      bodyScrollRef.current?.setNativeProps({ scrollEnabled: !locked });
-    } catch {
-      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
-    }
-    setIsSwipeScrollLocked(locked);
-  }, []);
-  const lockBodyScroll = useCallback((locked: boolean) => {
-    try {
-      bodyScrollRef.current?.setNativeProps({ scrollEnabled: !locked });
-    } catch {
-      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
-    }
-    setIsEnvelopeEdgeDragging(locked);
-  }, []);
+  const lockSwipeScroll = useCallback(
+    (locked: boolean) => {
+      setNativeScrollLock("swipe", locked);
+      setIsSwipeScrollLocked(locked);
+    },
+    [setNativeScrollLock],
+  );
+  const lockBodyScroll = useCallback(
+    (locked: boolean) => {
+      setNativeScrollLock("edge", locked);
+      setIsEnvelopeEdgeDragging(locked);
+    },
+    [setNativeScrollLock],
+  );
   const beginEnvelopeEdgeDrag = useCallback(
     (span: EnvelopeSpan, edge: EnvelopeEdge, translation: Animated.Value) => {
       lockBodyScroll(true);
@@ -3304,6 +3326,8 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       });
       closeCircuitControls();
       setRevealedActionsId(null);
+      // Recette du 26/11/2026 (après-midi) : défilement natif coupé dès la saisie, sans attendre le rendu de l'écran.
+      setNativeScrollLock("drag", true);
       autoScroll.begin();
       if (source.kind === "CIRCUIT" && stopPointId === undefined) {
         // Contre-recette n° 4 (constat a) : le repli ne raccourcit pas le contenu défilant pendant le geste.
@@ -3318,7 +3342,7 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       }
       return true;
     },
-    [autoScroll, clearLayoutHover, closeCircuitControls],
+    [autoScroll, clearLayoutHover, closeCircuitControls, setNativeScrollLock],
   );
   const moveLayoutDrag = useCallback(
     (translationY: number) => {
@@ -3337,6 +3361,7 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       layoutDragRef.current = null;
       clearLayoutHover();
       autoScroll.end();
+      setNativeScrollLock("drag", false);
       if (current === null) return;
       const settle = layoutSettleFor(current, translationY);
       // `dropTarget` : emplacement de dépose (B.4), à ne pas confondre avec la Cible d'une série
@@ -3358,7 +3383,7 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       }
       runLayoutMove(() => moveLayoutItem(draftRef.current, current.source, dropTarget, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL), settle);
     },
-    [autoScroll, clearLayoutHover, layoutSettleFor, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove],
+    [autoScroll, clearLayoutHover, layoutSettleFor, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove, setNativeScrollLock],
   );
   const cancelLayoutDrag = useCallback(
     (translationY = 0) => {
@@ -3366,10 +3391,11 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
       layoutDragRef.current = null;
       clearLayoutHover();
       autoScroll.end();
+      setNativeScrollLock("drag", false);
       // Story 5.2b : geste interrompu — retour en douceur depuis la position atteinte.
       if (current !== null) layoutSettleFor(current, translationY).release();
     },
-    [autoScroll, clearLayoutHover, layoutSettleFor],
+    [autoScroll, clearLayoutHover, layoutSettleFor, setNativeScrollLock],
   );
   /** Recette n° 2 : fin du retour (ou de la mise en place) de l'élément lâché — il rejoint la chaîne du rail. */
   useEffect(() => {
@@ -4916,14 +4942,15 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
   );
 
   return (
+    // Recette du 26/11/2026 (après-midi) : racine des gestes natifs du glisser-pour-options (sans effet sur iOS, requise sur Android).
+    <GestureHandlerRootView style={styles.gestureRoot}>
     <ScreenShell>
       <FixedHeader
         // CE-T03-08 ; recette du 25/11/2026 (Hermann : « le titre doit être "Modifier une séance" et non "Composer une séance" ») :
         // une Séance existante s'ouvre en modification. [« Composer une séance » en modification — remplacé.]
         title={readOnly ? composition.consultation.title : sessionId !== null ? composition.editTitle : composition.title}
-        // Recette du 25/11/2026 (Hermann : « il y a un espace très grand entre le haut de la modale, et la première ligne ») :
-        // en modale (feuille native), pas de réserve de barre d'état — comme les autres feuilles (`NativeSheetTop`).
-        {...(modal ? { topInset: 0 } : {})}
+        // Décision de Hermann du 27/11/2026 (D-602, modale plein écran) : la modale couvre tout l'écran, l'en-tête garde la
+        // réserve de la barre d'état comme un écran plein. [Recette du 25/11/2026 : en feuille native, `topInset: 0` — remplacé.]
         // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
         // PRE-9 B.2 : de même, en mode enveloppe, le X l'annule d'abord.
         onBack={() => (placement !== null ? cancelPlacement() : envelope !== null ? cancelEnvelope() : router.back())}
@@ -5966,6 +5993,7 @@ export function CompositionScreen({ sessionId = null, modal = false }: Compositi
         />
       ) : null}
     </ScreenShell>
+    </GestureHandlerRootView>
   );
 }
 
@@ -7322,6 +7350,8 @@ function CompositionActivityRow({
   const isSwipingRef = useRef(false);
   /** Position de départ (`0` fermée / `-SWIPE_REVEAL_OFFSET` ouverte) capturée à `handleTouchStart`, à laquelle `dx` s'ajoute pendant le geste. */
   const swipeBaseRef = useRef(0);
+  /** Toucher dont le `Pan` du glisser s'est activé : jamais un appui ni un appui long (remis à zéro au toucher suivant). */
+  const pannedRef = useRef(false);
   /**
    * Décalage vertical visuel de la carte soulevée, pour qu'elle SUIVE le
    * doigt pendant le déplacement (CE-T02-02, « état transitoire avant et
@@ -7465,6 +7495,7 @@ function CompositionActivityRow({
       originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
       translationYRef.current = 0;
       isSwipingRef.current = false;
+      pannedRef.current = false;
       swipeBaseRef.current = areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0;
     },
     [areActionsRevealed],
@@ -7502,80 +7533,87 @@ function CompositionActivityRow({
   /**
    * Arbitrage du geste, en phase de CAPTURE — donc avant le `Pressable`
    * interne, dont l'appui est alors annulé (`onPress` ne se déclenche
-   * jamais) :
+   * jamais) : un déplacement déjà engagé par appui long capte tout mouvement ;
+   * tout le reste est laissé au `Pressable` (appui court/long), au `Pan` natif
+   * du glisser-pour-options (`swipePan`) et, pour un geste vertical, au
+   * `ScrollView` parent.
    *
-   * - un déplacement déjà engagé par appui long capte tout mouvement ;
-   * - un mouvement franchement horizontal, au-delà de la tolérance d'appui,
-   *   capte le responder et fait immédiatement SUIVRE la carte (V2-CAT-01) ;
-   * - tout le reste est laissé au `Pressable` (appui court/long) et, pour un
-   *   geste vertical, au `ScrollView` parent, qui reste seul maître du
-   *   défilement de la liste.
+   * [V2-CAT-01 / remarque c du 26/11/2026 (matin) : un mouvement horizontal captait ici le responder et faisait suivre la
+   * carte (`shouldFollowSwipe`) — remplacé par la recette du 26/11/2026 (après-midi) : le glisser est porté par le `Pan`
+   * natif de la règle unique (`@/shared/gestures/swipeReveal`) ; le défilement de la liste ne peut plus annuler le toucher.]
    */
   const handleMoveShouldSetResponderCapture = useCallback(
     (event: GestureResponderEvent) => {
-      const { dx, dy } = trackMovement(event);
-      if (isDraggingRef.current) {
-        return true;
-      }
-      // Remarque c du 26/11/2026 : un glissement engagé garde sa direction (`shouldFollowSwipe`).
-      if (!canSwipe || !shouldFollowSwipe(dx, dy, isSwipingRef.current)) {
-        return false;
-      }
-      applySwipeMovement(dx);
-      return true;
+      trackMovement(event);
+      return isDraggingRef.current;
     },
-    [applySwipeMovement, canSwipe, trackMovement],
+    [trackMovement],
   );
 
-  /**
-   * Suivi du balayage INDÉPENDANT du responder (V2-CAT-01, hérité de
-   * T02-S02) — `onTouchMove`, comme `onTouchStart`/`onTouchEnd`, est
-   * dispatché à la vue touchée ET à tous ses ancêtres, que le responder soit
-   * ou non détenu par cette carte. C'est la seule voie qui reste vraie une
-   * fois les actions révélées : le balayage droit de fermeture commence
-   * alors SUR le groupe d'actions superposé, dont les `Pressable`
-   * (`Dupliquer`/`Supprimer`) revendiquent le responder dès le contact.
-   */
+  /** Suivi du doigt indépendant du responder (origine du glisser après appui long, story 7.4). */
   const handleTouchMove = useCallback(
     (event: GestureResponderEvent) => {
-      const { dx, dy } = trackMovement(event);
-      if (!canSwipe || isDraggingRef.current || !shouldFollowSwipe(dx, dy, isSwipingRef.current)) {
-        return;
-      }
-      applySwipeMovement(dx);
+      trackMovement(event);
     },
-    [applySwipeMovement, canSwipe, trackMovement],
+    [trackMovement],
   );
 
   const handleResponderMove = useCallback(
     (event: GestureResponderEvent) => {
-      const { dx, dy } = trackMovement(event);
+      const { dy } = trackMovement(event);
       if (isDraggingRef.current) {
         applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
-        return;
-      }
-      if (canSwipe && (isSwipingRef.current || Math.abs(dx) > Math.abs(dy))) {
-        applySwipeMovement(dx);
       }
     },
-    [applyDragTranslation, applySwipeMovement, autoScroll, canSwipe, trackMovement],
+    [applyDragTranslation, autoScroll, trackMovement],
   );
 
   /**
-   * Fin du toucher — reçue quel que soit le porteur du responder.
-   *
-   * - une dépose après appui long applique le déplacement ;
-   * - sinon, un balayage engagé s'aligne sur la position atteinte : ouverte
-   *   au-delà de la moitié de la course, fermée en deçà (V2-CAT-01,
-   *   CE-T03-08) ;
-   * - tout autre relâchement laisse le brouillon rigoureusement inchangé
-   *   (CE-T02-02 : « l'entrée dans cet état ne persiste rien »).
+   * Recette du 26/11/2026 (après-midi) — fin d'un glisser-pour-options porté par le `Pan` natif : règle unique
+   * `resolveSwipeRelease` (un geste court ou un lancer suffit ; jamais la moitié de la course). La carte rejoint seule la
+   * position décidée (story 7.7, décélération partagée).
+   */
+  const finishSwipe = useCallback(
+    (translationX: number, velocityX: number) => {
+      swipeScrollLock.release();
+      if (!isSwipingRef.current) return;
+      isSwipingRef.current = false;
+      const shouldReveal = resolveSwipeRelease({ wasOpen: swipeBaseRef.current < 0, translationX, velocityX });
+      settleSwipe(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
+      if (shouldReveal && !areActionsRevealed) {
+        onRevealActions();
+      } else if (!shouldReveal && areActionsRevealed) {
+        onHideActions();
+      }
+    },
+    [areActionsRevealed, onHideActions, onRevealActions, settleSwipe, swipeScrollLock],
+  );
+  const swipePan = useSwipeRevealPan({
+    enabled: placement === null && canDrag && canSwipe && !isRaised && !isDragged && !fadeLeaving && !isBlockedByOtherReveal,
+    testID: `composition-activity-pan-${activity.id}`,
+    onBegin: () => {
+      if (isDraggingRef.current) return;
+      pannedRef.current = true;
+      swipeBaseRef.current = areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0;
+    },
+    onUpdate: (translationX) => {
+      if (isDraggingRef.current || !pannedRef.current) return;
+      applySwipeMovement(translationX);
+    },
+    onRelease: finishSwipe,
+  });
+
+  /**
+   * Fin du toucher — reçue quel que soit le porteur du responder : une dépose
+   * après appui long applique le déplacement ; tout autre relâchement laisse
+   * le brouillon rigoureusement inchangé (CE-T02-02 : « l'entrée dans cet état
+   * ne persiste rien »). Le glisser-pour-options se termine par son `Pan`
+   * (`finishSwipe`).
    */
   const handleTouchEnd = useCallback((event?: GestureResponderEvent) => {
     // Revue 6.2 : le geste ne se termine qu'au dernier doigt levé.
     if ((event?.nativeEvent.touches?.length ?? 0) > 0) return;
     originRef.current = null;
-    swipeScrollLock.release();
     setDragTranslationY(0);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
@@ -7584,21 +7622,8 @@ function CompositionActivityRow({
       // elle disparaît ») : voir `releaseDragY`.
       releaseDragY();
       onDragEnd(translationYRef.current);
-      return;
     }
-    if (!isSwipingRef.current) {
-      return;
-    }
-    isSwipingRef.current = false;
-    const shouldReveal = shouldRevealAfterSwipe(swipeTranslateX, SWIPE_REVEAL_OFFSET);
-    // Story 7.7 : la carte rejoint sa position de repos en douceur.
-    settleSwipe(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
-    if (shouldReveal && !areActionsRevealed) {
-      onRevealActions();
-    } else if (!shouldReveal && areActionsRevealed) {
-      onHideActions();
-    }
-  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, releaseDragY, settleSwipe, swipeTranslateX, swipeScrollLock]);
+  }, [onDragEnd, releaseDragY]);
 
   /**
    * **Hérité de T02-S02** — le balayage engagé ne doit pas être perdu si le
@@ -7645,18 +7670,17 @@ function CompositionActivityRow({
   }, [onDragCancel, releaseDragY]);
 
   /**
-   * Le TOUCHER lui-même est annulé (appel entrant, geste système…) : là, plus
-   * aucun `onTouchEnd` ne suivra — tout est remis à zéro, balayage compris,
-   * et la carte revient à sa position de repos courante (aucun balayage
-   * n'est appliqué par une annulation).
+   * Le TOUCHER lui-même est annulé (appel entrant, geste système, activation
+   * du `Pan` du glisser…) : plus aucun `onTouchEnd` ne suivra — un glisser-déposer
+   * engagé est interrompu. [« balayage compris, la carte revient à sa position
+   * de repos » — remplacé le 26/11/2026 : le glisser-pour-options appartient au `Pan`.]
    */
+  // Recette du 26/11/2026 (après-midi) : l'activation du `Pan` du glisser annule aussi les touchers de React Native — le
+  // glisser-pour-options, porté par ce `Pan`, n'est plus réinitialisé ici (c'était le « rebond » : retour à la position de repos).
   const handleTouchCancel = useCallback(() => {
     originRef.current = null;
-    isSwipingRef.current = false;
-    swipeScrollLock.release();
-    settleSwipe(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
     handleResponderTerminate();
-  }, [areActionsRevealed, handleResponderTerminate, settleSwipe, swipeScrollLock]);
+  }, [handleResponderTerminate]);
 
   /**
    * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
@@ -7667,7 +7691,8 @@ function CompositionActivityRow({
    * long n'ouvre donc structurellement jamais la modification (AC-02).
    */
   const handlePress = useCallback(() => {
-    if (areActionsRevealed) {
+    // Recette du 26/11/2026 (après-midi) : un toucher dont le glisser s'est activé n'est jamais un appui.
+    if (areActionsRevealed || pannedRef.current) {
       return;
     }
     onEdit();
@@ -7701,7 +7726,7 @@ function CompositionActivityRow({
    * (aucun état soulevé) si un autre élément est déjà soulevé ou si la géométrie est incomplète.
    */
   const handleLongPress = useCallback(() => {
-    if (!onDragStart()) return;
+    if (pannedRef.current || !onDragStart()) return;
     isDraggingRef.current = true;
     // Story 7.4 : la carte suit le défilement automatique, même sans mouvement du doigt — et un doigt
     // déjà immobile dans une bande de bord au soulèvement fait défiler (revue 7.4).
@@ -7832,6 +7857,9 @@ function CompositionActivityRow({
   );
 
   return (
+    // Recette du 26/11/2026 (après-midi) : glisser-pour-options par le `Pan` natif de la règle unique (`swipePan`), sur la rangée
+    // entière (carte et actions révélées : la fermeture peut partir d'une action).
+    <GestureDetector gesture={swipePan}>
     <Animated.View
       style={[
         styles.activityRowContainer,
@@ -8155,6 +8183,7 @@ function CompositionActivityRow({
       ) : null}
 
     </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -9520,6 +9549,14 @@ function LayoutCircuitBlock({
   // Réponse 2 de Hermann du 07/11/2026 (EMOM) : un membre en dépassement d'intervalle teinte aussi le Circuit replié.
   const hasEmomOverflow = circuit.exercises.some((member) => context.emomOverflowIds.has(member.id));
   const tone = isCollapsed ? collapsedCircuitTone(circuit.exercises, hasEmomOverflow) : null;
+  // Recette iPhone du 26/11/2026 (soir, remarque a, Hermann : « composition de séance : colorer le cadre du circuit de la couleur du
+  // format ») : aplat du Circuit issu d'un format (ou porteur d'un format) à la couleur du format — celle de sa zone de contexte et de
+  // l'en-tête de la modale de ses exercices (`formatModelColors(…).background`, même règle que `formatTintModelOf`). Les tonalités
+  // « à compléter » / « à vérifier » du Circuit replié restent prioritaires. [Aplat gris `CIRCUIT_SURFACE_COLOR` pour tout Circuit —
+  // remplacé pour les Circuits issus d'un format.]
+  const formatKey = circuit.originModel ?? circuit.format?.key ?? null;
+  const formatFill = isFormatModelKey(formatKey) ? formatModelColors(formatKey).background : undefined;
+  const surfaceFill = collapsedToneFill(tone) ?? formatFill;
   const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
   const inPlacement = context.stops.placement !== null;
   /**
@@ -9637,7 +9674,12 @@ function LayoutCircuitBlock({
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, layered ? null : styles.layoutCircuitSurface, layered ? null : collapsedToneSurface(tone)]}
+        style={[
+          StyleSheet.absoluteFill,
+          layered ? null : styles.layoutCircuitSurface,
+          layered || formatFill === undefined ? null : { backgroundColor: formatFill },
+          layered ? null : collapsedToneSurface(tone),
+        ]}
         testID={`${testID}-surface`}
       >
         {layered ? (
@@ -9646,7 +9688,7 @@ function LayoutCircuitBlock({
             bottom={motion.bottom}
             dragHeight={blockHeight}
             extendsOnSpread
-            color={collapsedToneFill(tone)}
+            color={surfaceFill}
             testID={`${testID}-surface-layers`}
           />
         ) : null}
@@ -9687,7 +9729,7 @@ function LayoutCircuitBlock({
       <StickyHeaderFrame
         range={circuitStickyRange}
         enabled={!ghost}
-        color={collapsedToneFill(tone) ?? CIRCUIT_SURFACE_COLOR}
+        color={surfaceFill ?? CIRCUIT_SURFACE_COLOR}
         outsetLeft={horizontalInset}
         outsetRight={horizontalInset}
         insetTop={CIRCUIT_PADDING_VERTICAL}
@@ -9760,7 +9802,8 @@ function LayoutCircuitBlock({
         // rangée glissée reste montée dans tous les états (inerte hors repli) — l'envelopper au seul repli remontait
         // l'en-tête à chaque repli et déploiement, et relançait ses mesures et la ligne des noms
         // (`CollapsedNamesLine`), dont l'animation garantit le repli sans à-coup (contre-recettes n° 4 et n° 5).
-        const swipeEnabled = isCollapsed && !ghost && !inPlacement && !isRenaming;
+        // Recette du 26/11/2026 (après-midi) : pas de glisser natif pendant que le Circuit est saisi (il annulerait son déplacement).
+        const swipeEnabled = isCollapsed && !ghost && !inPlacement && !isRenaming && !isDragged;
         const actions = context.circuitActions;
         const fromModel = (circuit.originModel ?? null) !== null;
         const tc = strings.screens.composition.circuitActions;
@@ -9781,8 +9824,9 @@ function LayoutCircuitBlock({
             actionsRadius={CIRCUIT_RADIUS}
             // Recette du 05/11/2026 (e-replie-glisse) : les options glissent avec le Circuit, à l'ouverture et à la fermeture.
             slideActions
-            // Remarque c du 26/11/2026 : glissement engagé verrouillé à l'horizontale, comme les cartes.
-            lockSwipeDirection
+            // [Remarque c du 26/11/2026 (matin) : glissement engagé verrouillé à l'horizontale (`lockSwipeDirection`) — remplacé :]
+            // recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options, portée par le `Pan` natif (comme les cartes).
+            nativeGesture
             actionsInsets={{
               top: CIRCUIT_PADDING_VERTICAL,
               bottom: blockHeight !== null && headerBottom !== null ? Math.max(0, blockHeight - headerBottom) : CIRCUIT_PADDING_VERTICAL,
@@ -9804,6 +9848,15 @@ function LayoutCircuitBlock({
           </SwipeActionsRow>
         );
       })()}
+      {/* Remarque c de Hermann (recette du 26/11/2026, après-midi : « le fond blanc du cercle du rail doit rester visible
+          lorsqu'on fait glisser le circuit vers la gauche ») : Circuit replié (seul glissable) — l'anneau du rail est redessiné
+          au-dessus de l'en-tête qui glisse, à la place exacte de celui du rail (repère de l'en-tête : marge du Circuit déduite),
+          immobile ; l'en-tête passe dessous. */}
+      {isCollapsed && !ghost ? (
+        <Reanimated.View entering={entering} pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail-ring-front`}>
+          <RailRing centerX={railX - horizontalInset} centerY={rowHeight / 2} />
+        </Reanimated.View>
+      ) : null}
       </StickyHeaderFrame>
       </Animated.View>
       {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}
@@ -10806,6 +10859,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  // Recette du 26/11/2026 (après-midi) : racine des gestes natifs (glisser-pour-options).
+  gestureRoot: {
+    flex: 1,
   },
   // PRE-9 C.4 (référence Formats §5) : « Buy-in » / « Buy-out » sur la troisième ligne de la carte, à droite.
   // T01-S10 : corps des états de réhydratation en modification.

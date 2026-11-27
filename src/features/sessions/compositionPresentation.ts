@@ -22,7 +22,9 @@ import {
 import { computeActivityDurationResult, computeStructuredSessionDuration } from "@/domain/sessions/calculations";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
 import { groupActivitiesByZone, occurrenceDisplayName } from "@/domain/sessions/composition";
+import { amrapIncrementMissing } from "@/domain/sessions/configurationValidity";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
+import { circuitRoleOf } from "@/domain/sessions/formats";
 import type { ElementFormat } from "@/domain/sessions/formats/elementFormat";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -438,6 +440,11 @@ export function formatOccurrenceSummary(
   facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify"> & { readonly format?: ElementFormat | null },
   context: { readonly carrierIntervalSeconds?: number } = {},
 ): string {
+  // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607, complément) : « soit il est égal à 0 et c'est voulu, soit il
+  // manque et les paramètres doivent être renseignés » — AMRAP, exercice de la boucle (hors À l'échec) sans incrément : à compléter.
+  // Rôle explicite (`circuitRole`, Tour par défaut, Exercice autonome compris) ; rang non nul : un ancien « Passage une fois » n'est
+  // jamais lu comme un Tour.
+  if (facts.format != null && amrapIncrementMissing(facts, circuitRoleOf(facts.format, 1))) return strings.executionParameters.card.incomplete;
   return withParametersToVerify(deathBySummary(occurrenceSummaryOf(facts), facts, context.carrierIntervalSeconds), facts);
 }
 

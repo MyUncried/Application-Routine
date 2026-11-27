@@ -206,7 +206,8 @@ describe("Rôle dans le circuit (MAJ 04/11 §6 bis 2)", () => {
     const movements = [row("AMRAP", answers, "in", { max: true }, { buyIn: true }), row("AMRAP", answers, "a", { repetitions: 10, increment: 2 })];
     const circuit = circuitOf(buildModelElements("AMRAP", answers, movements, newId));
     expect(circuit!.exercises.map((exercise) => [circuitRoleOf(exercise.format), seriesRowsOf(exercise.executionParameters)[0]!.target.kind, exercise.format?.settings.incrementPerRound])).toEqual([
-      ["BUY_IN", "FAILURE", 0],
+      // Recette du 26/11/2026 (D-607) : incrément inactif = absent. [`0` — remplacé.]
+      ["BUY_IN", "FAILURE", undefined],
       ["TOUR", "NUMBER", 2],
     ]);
     expect(summaryIssues("AMRAP", answers, movements)).toEqual([]);

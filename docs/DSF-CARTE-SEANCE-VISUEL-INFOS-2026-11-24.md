@@ -24,7 +24,7 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 - **Vue retenue** (règle de Hermann du 24/11/2026) : la plupart des illustrations du catalogue sont composées de plusieurs vues côte à côte (environ 54 sur les 60 de `catalogue/illustrations/20261117`, branche `assets/illustrations-60-20261117`, gabarit 1206 × 987). On retient la vue **la plus à droite** ; quand il y en a **trois**, la **plus large**. Une image simple est retenue entière. Les mises en page à trois vues peuvent aussi être « deux vues en haut, une vue large en bas » (par exemple `FIT-STR-003`, `FIT-PIL-006`, `REED-005`, `REED-007`) : la vue retenue est alors la plus grande, soit la vue du bas.
 - **Recadrage dans la case** : la vue retenue est utilisée **entière** ; si la forme de la case ne le permet pas, ses bords sont réduits autour du **centre** (point focal au centre) : gauche et droite pour une case plus horizontale que la vue, haut et bas pour une case plus verticale. Aucune déformation. Les photos d'utilisateur suivent le même recadrage sur l'image entière.
 - **Production du rectangle de la vue** : à la publication du catalogue officiel, une étape de l'interface web de gestion des fiches détecte les bandes de séparation entre les vues, applique la règle de choix et propose le rectangle ; la personne qui publie vérifie et corrige. Le rectangle (x, y, largeur, hauteur, en pourcentage de l'image) est stocké avec l'image ; l'application ne détecte ni ne calcule rien à l'affichage.
-- **Aucune image** : on retombe sur la fin de l'ancienne cascade (vignette du format de la séance, sinon vignette du format Libre).
+- **Aucune image** : on retombe sur la fin de l'ancienne cascade (vignette du format de la séance, sinon vignette du format Libre). [Recette iPhone du 26/11/2026 (après-midi) — Hermann, ligne « Séance sans photo » : « L'image est un cadre gris sans symbole. » Application : une image qui ne peut pas être affichée (fichier absent ou illisible, vidéo sans affiche) compte comme une absence de photo — ignorée de la mosaïque ; sans aucune image affichable, vignette du format Libre, jamais un cadre gris vide. Interprétation de l'implémentation, à confirmer.]
 - Toucher le visuel garde son comportement actuel (ouvre la composition en modification).
 - Variantes horizontales (2 images empilées ; une horizontale et deux carrés) dessinées sur la planche et **écartées**.
 
@@ -35,7 +35,7 @@ Le carré de 64 pt à gauche devient une **mosaïque des images des mouvements d
 La carte repliée fait **72 pt de haut et trois lignes** ; elle n'a plus de chevron.
 
 - Ligne 1 : **nom** de la séance.
-- Ligne 2 : chronomètre, **durée** (règles de durée inchangées, y compris « ≥ »), point médian, **noms des formats** séparés par des virgules, en semi-gras. Sans format, le texte « Libre » est affiché.
+- Ligne 2 : chronomètre, **durée** (règles de durée inchangées, y compris « ≥ »), point médian, **noms des formats** séparés par des virgules, en semi-gras. Sans format, le texte « Libre » est affiché. [Recette iPhone du 26/11/2026 (après-midi) — Hermann : « Il faut que les traits du chronomètre soient aussi fins que les traits de l'haltère. » Le chronomètre de la ligne 2 a des traits de même épaisseur que ceux de l'haltère de la ligne 3.]
 - Ligne 3 : pictogramme haltère puis **noms des mouvements** distincts, dans l'ordre de la composition, séparés par des virgules, sur une seule ligne ; ce qui ne tient pas est remplacé par « +N ».
 - Bouton **Démarrer** : icône ronde de 28 pt à droite, centrée sur la hauteur de la carte, relief au repos et état appuyé (D-566) ; l'ombre est de la couleur du fond de la zone de contexte de la composition (`color/catalogue/seances/context`). Il remplace la pastille textuelle « Démarrer ».
 - **Retirés de la carte repliée** : catégories, zones corporelles, nombre d'exercices, nombre de circuits, volume d'une séance à un seul exercice, chevron.
@@ -56,5 +56,7 @@ Dans les modales de sélection de séances, la carte est la variante `État=Sél
 ## 4. Toucher la carte (D-567)
 
 Il n'y a plus de synthèse dépliée dans la liste : **toucher la carte (hors Démarrer) ouvre la composition de la séance** (écran « Composition séance en modification ») **présentée en modale iOS**. Le visuel garde le même comportement. Démarrer exécute la séance, comme avant. Le contenu de la modale (titres, boutons Enregistrer et Démarrer) est décrit dans un lot distinct.
+
+[Recette iPhone du 26/11/2026 (soir), décision de Hermann du 27/11/2026 (D-602) : la modale est **plein écran** — « Toujours une modale iOS qui monte du bas, fermée par la croix, mais sur tout l'écran : sans bord arrondi, sans l'écran visible derrière, et sans le geste de la feuille. » Elle se ferme par ses propres boutons. Raison : dans la feuille, le recadrage d'un circuit ou d'un cycle et le réordonnancement des exercices revenaient à leur position (cahier, d607-compo-hauteur). Implémentée jusque-là en feuille native iOS — remplacée.]
 
 La variante `État=Déployée` du composant est conservée (usage futur possible) ; aucun écran du catalogue ne l'ouvre.

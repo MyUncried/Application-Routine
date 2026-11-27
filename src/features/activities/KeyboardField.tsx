@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View, type Insets, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text, TextInput, View, type Insets, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
 import {
   cellEntryDisplay,
@@ -8,6 +8,7 @@ import {
   type CellEntryKind,
   type CellEntryState,
 } from "@/features/activities/cellEntry";
+import { useAttachedKeyboardBar } from "@/features/activities/KeyboardAccessoryBar";
 import { TABLE_CELL_ACTIVE_BACKGROUND } from "@/features/activities/sheetTable";
 import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors } from "@/shared/ui/tokens";
@@ -42,6 +43,22 @@ import { colors } from "@/shared/ui/tokens";
  * (`useSheetKeyboard`). Actif : fond `#EAEAFF` (Figma `9292:18077`) et état « sélectionné »
  * annoncé ; valeur à renseigner : fond `#FFF1F0` (Q35). Le gabarit est fourni par l'appelant.
  */
+
+/**
+ * Recette iPhone du 26/11/2026 (après-midi), point B, Hermann : « Le champ et son cadre grossissent légèrement pendant le focus et la
+ * frappe. » — fourni par la modale « Paramètres d'exécution » (`ExecutionParametersSheet`) : une cellule active y est agrandie
+ * (`FIELD_GROW_SCALE`, transformation seule, aucune mise en page déplacée). Absent (`null`, autres écrans) : rendu inchangé.
+ * `reduceMotion` : agrandissement immédiat, sans animation (D-7).
+ */
+export const KeyboardFieldGrowContext = createContext<{ readonly reduceMotion: boolean } | null>(null);
+/**
+ * Point B du 26/11/2026 : agrandissement du champ actif et durée de son animation. Recette iPhone du 26/11/2026 (soir), Hermann :
+ * « Augmenter encore la taille et mettre un liseré bleu au champ du focus » — 1,15 et liseré `colors.primary` (`styles.grownFrame`).
+ * [1,08 (« légèrement », 26/11/2026 après-midi) — remplacé.]
+ */
+export const FIELD_GROW_SCALE = 1.15;
+const FIELD_GROW_MS = 160;
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 /** Longueur maximale d'un libellé de phase, en points de code (FR-6). */
 export const KEYBOARD_TEXT_MAX_CODE_POINTS = 20;
@@ -125,9 +142,13 @@ function NativeEntryField({
 }: NativeProps) {
   const [focused, setFocused] = useState(false);
   const [text, setText] = useState("");
+  // Recette du 26/11/2026 (soir) : barre native rattachée au clavier, si l'hôte la fournit aux champs texte (`withText`).
+  const bar = useAttachedKeyboardBar(active, true);
   return (
+    <>
     <TextInput
       ref={(input) => inputRef?.(input)}
+      inputAccessoryViewID={bar.id}
       value={focused ? text : displayValue}
       onFocus={() => {
         setText(editText);
@@ -155,6 +176,8 @@ function NativeEntryField({
       style={[style, active ? { backgroundColor: TABLE_CELL_ACTIVE_BACKGROUND } : null]}
       testID={testID}
     />
+    {bar.accessory}
+    </>
   );
 }
 
@@ -206,10 +229,28 @@ function CellEntryField({
   useEffect(() => {
     entryRef.current = entry;
   }, [entry]);
+  // Recette du 26/11/2026 (soir) : barre native rattachée au clavier, si l'hôte la fournit (`KeyboardAccessoryContext`).
+  const bar = useAttachedKeyboardBar(active);
   const shown = focused ? cellEntryDisplay(kind, entry.text) : displayValue;
   const empty = focused && cellEntryEmpty(kind, entry.text);
+  // Point B du 26/11/2026 : champ actif agrandi dans la modale « Paramètres d'exécution » (`KeyboardFieldGrowContext`).
+  const growContext = useContext(KeyboardFieldGrowContext);
+  const growEnabled = growContext !== null;
+  const growImmediate = growContext === null || growContext.reduceMotion;
+  const grown = growEnabled && active;
+  const [scale] = useState(() => new Animated.Value(1));
+  useEffect(() => {
+    const target = grown ? FIELD_GROW_SCALE : 1;
+    if (growImmediate) {
+      scale.setValue(target);
+      return undefined;
+    }
+    const animation = Animated.timing(scale, { toValue: target, duration: FIELD_GROW_MS, easing: Easing.out(Easing.cubic), useNativeDriver: true });
+    animation.start();
+    return () => animation.stop();
+  }, [grown, growImmediate, scale]);
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={() => ownRef.current?.focus()}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
@@ -223,9 +264,19 @@ function CellEntryField({
         // avoir un fond rouge et sans liseré ») : tant que la valeur reste à renseigner (au focus : saisie vide ou nulle), le fond rouge prime.
         // [Fond actif au focus dès qu'une saisie décimale existait (« 0 » compris) — remplacé.]
         active && !(invalid && invalidWhileEmpty && (!focused || !(Number(entry.text.replace(",", ".")) > 0))) ? styles.active : invalid ? styles.invalid : toVerify ? styles.toVerify : null,
+        growEnabled ? { transform: [{ scale }] } : null,
       ]}
       testID={testID}
     >
+      {/* Recette iPhone du 26/11/2026 (soir) : liseré bleu du champ en saisie (modale seulement, `KeyboardFieldGrowContext`) — calque
+          superposé au gabarit, de son rayon, pour ne déplacer aucune mise en page. */}
+      {grown ? (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, styles.grownFrame, { borderRadius: StyleSheet.flatten(style)?.borderRadius }]}
+          testID={`${testID}-focus-frame`}
+        />
+      ) : null}
       <Text style={[valueStyle, empty ? styles.emptyValue : null]} testID={`${testID}-value`}>
         {shown}
       </Text>
@@ -237,6 +288,7 @@ function CellEntryField({
             ownRef.current = input;
             inputRef?.(input);
           }}
+          inputAccessoryViewID={bar.id}
           // Revue D-434 : l'entrée native porte le texte brut de la saisie (chiffres seuls, sans
           // zéros de remplissage ni « : ») ; la composition compare le texte natif reçu à ce
           // texte brut, jamais à l'affichage formaté.
@@ -268,7 +320,9 @@ function CellEntryField({
           testID={`${testID}-input`}
         />
       </View>
-    </Pressable>
+      {/* Barre rattachée : après l'entrée (rattachement à son entrée dans la fenêtre), hors du conteneur sans touchers. */}
+      {bar.accessory}
+    </AnimatedPressable>
   );
 }
 
@@ -283,6 +337,12 @@ const styles = StyleSheet.create({
   // PRE-9, recette iPhone n° 2 (constat e) : valeur « à vérifier », fond orange pâle (rendu choisi).
   toVerify: {
     backgroundColor: toVerifyColors.surface,
+  },
+  // Recette iPhone du 26/11/2026 (soir), Hermann : « mettre un liseré bleu au champ du focus » — trait de 1 en couleur primaire,
+  // calque posé sur le gabarit de la cellule (aucune mise en page déplacée ; le rayon est celui du gabarit).
+  grownFrame: {
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   // « 00:00 » ou « 0 » d'une saisie vide (Cible à l'échec ou à renseigner, cellule vidée).
   emptyValue: {

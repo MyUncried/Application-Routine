@@ -388,12 +388,16 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
       // Mise à jour consolidée du 04/11/2026 (§4.2 à §4.5, §6 quater, §6 quater bis).
       buyOutSuffix: " (buy-out)",
       objective: "Target",
+      interval: "Interval",
+      seriesHead: "Sets",
       objectiveKind: "target",
       load: "Weight",
       // Hermann, 04/11/2026 : « le titre de la colonne doit remplacer le signe + par le signe double + et − ».
       perSeries: "± / set",
       start: "Start",
       increment: "Increment",
+      // Recette iPhone du 26/11/2026 (soir) : titre de la colonne du Death by (« ± / tour »).
+      incrementHead: "± / round",
       unit: "Unit",
       durationUnit: "duration",
       toFill: "to fill in",
@@ -454,6 +458,11 @@ export const enScreensActivities: Pick<FrResource["screens"], "activities" | "fo
       SUPERSET: "Two exercises back to back without rest,\nthen recovery after the pair.",
       PROGRESSION: "One value per set, to progress.\nThe app shows the instruction.",
       UNTIL_FAILURE: "Each set is taken to failure.\nThe drop from set to set is the measure.",
+    },
+    supersetTaglines: {
+      three: "Three exercises back to back without rest,\nthen recovery after the round.",
+      four: "Four exercises back to back without rest,\nthen recovery after the round.",
+      five: "Five exercises back to back without rest,\nthen recovery after the round.",
     },
   },
   // PRE-9 C.2 (CE-FMT-01, Figma `8598:29271`) : « Créer » — choix du modèle et du format.

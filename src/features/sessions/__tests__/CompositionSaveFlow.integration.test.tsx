@@ -122,7 +122,9 @@ async function fillNewExercise(name: string, mode: "Durée" | "Répétitions", z
     // [Roue de la Cible commune (minutes, secondes, ✓) — remplacée le 06/11/2026, décision de Hermann (constat c) : saisie au clavier]
     enterExecutionSheetValue("execution-sheet-target", 30);
   }
-  // Répétitions : première sélection uniforme → cible initiale 1 (v13 §6).
+  // [Répétitions : première sélection uniforme → cible initiale 1 (v13 §6) — remplacé le 26/11/2026 (recette iPhone de l'après-midi,
+  // point D) : aucune cible par défaut, 1 saisi.]
+  else enterExecutionSheetValue("execution-sheet-target", 1, "integer");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
 }
 

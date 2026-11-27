@@ -74,7 +74,8 @@ function valuesOf(model: FormatModelKey, exercise: SessionDraftExercise): Moveme
         mode,
         repetitions: firstNumber(rows),
         max: failure,
-        increment: typeof settings.incrementPerRound === "number" ? settings.incrementPerRound : 0,
+        // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : un incrément absent (jamais saisi) se relit absent, pas 0.
+        ...(typeof settings.incrementPerRound === "number" ? { increment: settings.incrementPerRound } : {}),
         loadKg: loadOf(loads[0]),
         ...loadOn,
       };
@@ -247,7 +248,10 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       }
       answers.loopRestSeconds = tours.at(-1)?.postActivityRecoverySeconds ?? 0;
       answers.buyIn = roles.includes("BUY_IN");
-      answers.increasingVolume = tours.some((exercise) => (exercise.format?.settings.incrementPerRound ?? 0) !== 0);
+      // Recette du 26/11/2026 (D-607, complément ; Hermann : « il n'y a pas d'interrupteur développé, on les a tous abandonnés pour les
+      // formats et les paramètres ») : l'AMRAP est toujours à volume croissant, réouverture comprise (colonne « Par tour »).
+      // [Déduit des incréments non nuls — remplacé : un AMRAP rouvert dont les incréments valent 0 repassait « non croissant ».]
+      answers.increasingVolume = true;
       answers.withLoad = exercises.some((exercise) => exercise.executionParameters.loadEnabled);
       break;
     case "FOR_TIME":
@@ -288,6 +292,8 @@ export function modelStateOfCircuit(model: FormatModelKey, circuit: StructureCir
       const firstRow = rowsOf(exercise)[0];
       if (variable.has("pauseSeconds")) values = { ...values, pause: firstRow?.pauseSeconds ?? 0 };
       if (model !== "UNTIL_FAILURE" && variable.has(objectiveKey)) values = { ...values, repetitions: firstNumber(rowsOf(exercise)) };
+      // Renforcement (recette du 26/11/2026 après-midi) : nombre de séries propre au mouvement, repris dès que les mouvements diffèrent.
+      if (model === "STRENGTH" && circuit.nature !== "SERIES" && variable.has("seriesCount")) values = { ...values, seriesCount: rowsOf(exercise).length };
     }
     return {
       exercise,

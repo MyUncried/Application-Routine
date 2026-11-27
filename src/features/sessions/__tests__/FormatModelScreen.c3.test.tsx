@@ -13,6 +13,7 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import { FormatModelDraftProvider } from "@/features/sessions/FormatModelDraftContext";
 import { FormatModelScreen } from "@/features/sessions/FormatModelScreen";
 import { SessionDraftContext, type SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
+import { expectSwipeRevealRule } from "@/shared/gestures/testing/fireSwipeReveal";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { enterExecutionSheetValue } from "@/features/activities/testing/executionSheetActions";
@@ -733,6 +734,16 @@ describe("FormatModelScreen", () => {
     fireEvent(screen.getByTestId("format-movement-0-card"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
     expect(within(screen.getByTestId("format-buy-in")).getAllByText(named)).toHaveLength(1);
     expect(within(screen.getByTestId("format-buy-in")).getByText(in1)).toBeTruthy();
+  });
+
+  it("recette du 26/11/2026 (après-midi) : lignes du For time — règle unique du glisser-pour-options (geste court, lancer, diagonale, sans rebond)", async () => {
+    mockModel = "FOR_TIME";
+    render(<Harness draftRef={{ current: createEmptyDraft() }} />);
+    await openedFormat();
+    await pick("Squ", "mv-squats", "format-loop");
+    expectSwipeRevealRule("format-movement-0");
+    // Le glisser ne déplace pas la ligne (le déplacement reste à l'appui long) et ne la retire pas.
+    expect(screen.getByTestId("format-for-time-0-name-title").props.children).toBe("Squats sautés");
   });
 
   it("recette du 16/11/2026 (Déroulé, légende) : la pastille d'un buy-in ou d'un buy-out a la couleur de ses cadres ; celle d'un tour garde sa nuance", async () => {

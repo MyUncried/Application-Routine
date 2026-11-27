@@ -12,7 +12,8 @@
  *     et buy-out compris, §3, §11, §12). [Buy-in / buy-out et membres For time en Répétitions — remplacé le
  *     04/11/2026 : Répétitions ou Durée ; buy-in AMRAP à l'échec admis.] Tabata et 30/30 n'imposent rien (FMT-10,
  *     FMT-19, CE-FMT-04 : « aucun refus fondé sur d'anciennes constantes Tabata/30/30 ») ;
- *   - `MISSING_SETTING` : un réglage obligatoire du rôle non renseigné ;
+ *   - `MISSING_SETTING` : un réglage obligatoire du rôle non renseigné [26/11/2026, D-607 : y compris l'Incrément par tour d'un
+ *     exercice de la boucle d'un AMRAP, hors À l'échec — `amrapIncrementMissing`] ;
  *   - `INCOMPATIBLE_CIRCUIT` : un Exercice formaté autonome est membre d'un Circuit standard dont
  *     l'organisation est refusée (§6.1 : AMRAP, For time et Death by alternés) ;
  *   - `EMPTY_LOOP` : Circuit porteur AMRAP ou For time sans membre de Rôle Tour (§6.1, R09 ; MAJ 04/11 §6 bis 2) ;
@@ -105,6 +106,23 @@ function breaksImposedValues(exercise: ValidityExercise, format: ElementFormat, 
   return targetOnly && seriesRowsOf(parameters).some((row) => row.target.kind === "FAILURE");
 }
 
+/**
+ * Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607, complément) : « soit il est égal à 0 et c'est voulu, soit il manque
+ * et les paramètres doivent être renseignés, l'utilisateur ne peut pas valider ». L'AMRAP est toujours à volume croissant (interrupteur
+ * retiré, « il n'y a pas d'interrupteur développé ») : Incrément par tour requis et absent pour un exercice de la boucle (Tour), pas À
+ * l'échec. Buy-in et À l'échec : jamais requis.
+ */
+export function amrapIncrementMissing(
+  exercise: Pick<ValidityExercise, "executionParameters"> & { readonly format?: ElementFormat | null },
+  role: ReturnType<typeof circuitRoleOf>,
+): boolean {
+  const format = exercise.format ?? null;
+  if (format === null || format.key !== "AMRAP" || role !== "TOUR") return false;
+  const rows = seriesRowsOf(exercise.executionParameters);
+  if (rows.length > 0 && rows.every((row) => row.target.kind === "FAILURE")) return false;
+  return typeof format.settings.incrementPerRound !== "number";
+}
+
 function missingSetting(format: ElementFormat, role: FormatRole): boolean {
   return (formatParametersOf(format.key, role) ?? []).some(
     (parameter) => parameter.optional !== true && format.settings[parameter.id] === undefined,
@@ -186,6 +204,9 @@ export function configurationValidity<E extends ValidityExercise>(
         add(exercise.id, format === null ? "MISSING_SETTING" : "INVALID_STRUCTURE");
       } else {
         if (missingSetting(format, role)) add(exercise.id, "MISSING_SETTING");
+        // Recette du 26/11/2026 (D-607, complément) : incrément AMRAP requis et absent.
+        const position = circuit!.exercises.findIndex((member) => member.id === exercise.id);
+        if (amrapIncrementMissing(exercise, circuitRoleOf(format, position))) add(exercise.id, "MISSING_SETTING");
         if (breaksImposedValues(exercise, format, role)) add(exercise.id, "LOCKED_CONSTANT_CHANGED");
       }
     } else if (format !== null) {
@@ -193,6 +214,8 @@ export function configurationValidity<E extends ValidityExercise>(
         add(exercise.id, "INVALID_STRUCTURE");
       } else {
         if (missingSetting(format, role)) add(exercise.id, "MISSING_SETTING");
+        // Recette du 26/11/2026 (D-607, complément) : AMRAP autonome, incrément requis et absent.
+        if (amrapIncrementMissing(exercise, "TOUR")) add(exercise.id, "MISSING_SETTING");
         if (breaksImposedValues(exercise, format, role)) add(exercise.id, "LOCKED_CONSTANT_CHANGED");
         // EMOM (simple, en alternance, À la suite) : travail prévu ≥ son Intervalle.
         const interval = format.settings.intervalSeconds;

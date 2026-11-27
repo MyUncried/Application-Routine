@@ -93,3 +93,15 @@ describe("PRE-7 R-8 — recherche par début de mot (D-448 point 1)", () => {
     expect(findMovementNameConflict("Squ", [{ id: "squats", name: "Squats" }], null)).toBeNull();
   });
 });
+
+describe("Recette iPhone du 26/11/2026 (après-midi) — « Tester » introuvable pour « Tes »", () => {
+  // Fiche « Tester » trouvée pour « T » et « Te », pas pour « Tes » : la recherche (début de mot) la trouve à chaque frappe ;
+  // la cause est l’affichage de la liste (position de défilement gardée), corrigée dans `FreeExerciseScreen`.
+  it("« Tester » est trouvé à chaque frappe, en début de mot", () => {
+    const library = [...LIBRARY, candidate("tester", "Tester")];
+    for (const typed of ["T", "Te", "Tes", "Test", "Teste", "Tester", "tes", "TES "]) {
+      expect(ids(typed, library)).toContain("tester");
+      expect(rankMovements(typed, library).find((result) => result.id === "tester")?.wordPrefix).toBe(true);
+    }
+  });
+});

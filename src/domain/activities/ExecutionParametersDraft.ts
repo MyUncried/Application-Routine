@@ -642,8 +642,10 @@ export function setMode(draft: ExecutionSheetDraft, mode: ExecutionMode): Execut
     rows.map((row, index) => ({ ...row, target: targetFor(ids[index]!, row.target) }));
   // Recette PRE-9 n° 1 (29/10) : la création présélectionne Durée ; une Durée encore à renseigner
   // compte comme une création, pour garder la cible initiale 1 en Répétitions.
-  const isCreation = draft.mode === null || (draft.mode === "DURATION" && draft.uniform.target.kind === "UNSET");
-  const initialUniform = isCreation && mode === "REPETITIONS" && !draft.variable ? numberTarget(1) : unsetTarget();
+  // [Cible initiale 1 en Répétitions — remplacée le 26/11/2026, recette iPhone (après-midi), point D, Hermann : « A la sélection du
+  // mode dans la modale des paramètres d'exécution, ne pas mettre par défaut "1 rép." pour le nombre de répétitions, mais un cadre fond
+  // rouge avec un trait. » : la Cible reste à renseigner (« — » sur fond rouge, ✓ indisponible), comme en Durée.]
+  const initialUniform = unsetTarget();
   const uniformTarget =
     draft.uniform.target.kind === "FAILURE" || targetsById[draft.uniformId]?.[mode] !== undefined
       ? targetFor(draft.uniformId, draft.uniform.target)

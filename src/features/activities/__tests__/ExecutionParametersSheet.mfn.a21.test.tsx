@@ -126,12 +126,15 @@ function unfoldPhases() {
 
 // [Croix à deux phases (2 → Sans), « Phase supprimée — Annuler », phase unique sans croix — remplacés le 26/11/2026 par D-608 (D-573 point 6 : phases définies dans la fiche du mouvement, nombre fixé, plus d'option Avec / Sans).]
 describe("ExecutionParametersSheet — D-608 (D-573 point 6) : nombre de phases fixé, sans croix", () => {
-  it("[A 6″, B 3″] : aucune croix ; l'interrupteur du son occupe sa place ; deux phases conservées", () => {
+  // [« aucune croix ; l'interrupteur du son occupe sa place » — remplacé le 27/11/2026 : recette iPhone du 26/11 (soir), ligne
+  // d607-phases, Hermann : « Remettre les symboles de croix inactifs à chaque ligne, ils ont été remplacés par des symboles paramétrage ».]
+  it("[A 6″, B 3″] : croix inactive à chaque ligne, aucun interrupteur du son ; deux phases conservées", () => {
     renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
     unfoldPhases();
     for (const n of [1, 2]) {
-      expect(query(remove(n))).toBeNull();
-      expect(get(`${row(n)}-sound`)).toBeTruthy();
+      expect(get(remove(n)).props.accessibilityState).toMatchObject({ disabled: true });
+      expect(styleOf(remove(n)).opacity).toBe(UNSELECTED_OPACITY);
+      expect(query(`${row(n)}-sound`)).toBeNull();
     }
     expect(phaseRows()).toHaveLength(2);
   });
@@ -168,9 +171,9 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
     expect(stateOf(WITH)).toMatchObject({ selected: true });
     expect(query(`${STEPPER}-increment`)).toBeNull();
     expect(query(`${STEPPER}-input`)).toBeNull();
-    // Poignées indisponibles, sans action Monter / Descendre ; aucune croix.
+    // Poignées indisponibles, sans action Monter / Descendre ; croix inactive (recette iPhone du 26/11/2026 au soir) [aucune croix — remplacé].
     for (const n of [1, 2]) {
-      expect(query(remove(n))).toBeNull();
+      expect(get(remove(n)).props.accessibilityState).toMatchObject({ disabled: true });
       expect(stateOf(handle(n)).disabled).toBe(true);
       expect(get(handle(n)).props.accessibilityActions).toEqual([]);
       expect(styleOf(handle(n)).opacity).toBe(UNSELECTED_OPACITY);

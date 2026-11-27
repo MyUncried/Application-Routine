@@ -148,7 +148,8 @@ describe("AMRAP dégressif (§8)", () => {
       row("AMRAP", answers, "b", { repetitions: 8, increment: -1 }),
     ];
     const circuit = circuitOf(buildModelElements("AMRAP", answers, movements, newId))!;
-    expect(circuit.exercises.map((exercise) => exercise.format!.settings.incrementPerRound)).toEqual([0, 0, -1]);
+    // Recette du 26/11/2026 (D-607, réponse de Hermann) : aucun incrément = réglage absent. [`[0, 0, -1]` — remplacé.]
+    expect(circuit.exercises.map((exercise) => exercise.format!.settings.incrementPerRound)).toEqual([undefined, undefined, -1]);
   });
 });
 

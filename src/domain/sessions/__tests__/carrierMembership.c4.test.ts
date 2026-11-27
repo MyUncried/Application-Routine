@@ -34,9 +34,11 @@ const FOR_TIME_CIRCUIT = { nature: "SERIES" as const, repeatCount: 3, format: { 
 const DEATH_BY_ALTERNATED = { nature: "SERIES" as const, repeatCount: 1, format: { key: "DEATH_BY" as const, settings: {} } };
 
 describe("entrée dans un Circuit porteur (§6 point 1)", () => {
-  it("AMRAP : cible commune reprise par passage, séries retirées, incrément 0 ; Mode Durée conservé", () => {
+  // [Incrément 0 — remplacé le 26/11/2026, réponse de Hermann (D-607) : incrément jamais saisi absent, repris s'il a été saisi.]
+  it("AMRAP : cible commune reprise par passage, séries retirées, incrément absent (jamais saisi) ou repris (saisi, 0 compris) ; Mode Durée conservé", () => {
     const entered = enterCarrier(exercise("a"), AMRAP_CIRCUIT);
-    expect(entered.format).toEqual({ key: "AMRAP", settings: { incrementPerRound: 0 } });
+    expect(entered.format).toEqual({ key: "AMRAP", settings: {} });
+    expect(enterCarrier(exercise("z", repetitionParameters(12), { key: "AMRAP", settings: { durationSeconds: 600, incrementPerRound: 0 } }), AMRAP_CIRCUIT).format).toEqual({ key: "AMRAP", settings: { incrementPerRound: 0 } });
     expect(seriesCountOf(entered.executionParameters)).toBe(1);
     expect(seriesRowsOf(entered.executionParameters)[0]!.target).toEqual({ kind: "NUMBER", value: 12 });
     const timed = enterCarrier(exercise("d", durationParameters(30, 2)), AMRAP_CIRCUIT);
@@ -192,7 +194,8 @@ describe("EMOM — sorties et Circuits standards, décisions de Hermann du 07/11
     expect(outcome.status).toBe("APPLIED");
     if (outcome.status !== "APPLIED") return;
     const moved = outcome.draft.exercises.find((item) => item.id === "m")!;
-    expect(moved.format).toEqual({ key: "AMRAP", settings: { incrementPerRound: 0 } });
+    // Recette du 26/11/2026 (D-607) : incrément jamais saisi, absent. [`{ incrementPerRound: 0 }` — remplacé.]
+    expect(moved.format).toEqual({ key: "AMRAP", settings: {} });
     expect(seriesRowsOf(moved.executionParameters)).toHaveLength(1);
   });
 
@@ -215,7 +218,9 @@ describe("sortie d'un Circuit porteur (§13)", () => {
   const member = enterCarrier(exercise("a"), AMRAP_CIRCUIT);
 
   it("Conserver le format AMRAP : AMRAP simple, durée d'un bloc reprise, Répétitions ; Adopter un format libre : Exercice standard", () => {
-    expect(exitCarrier(member, AMRAP_CIRCUIT, "KEEP").format).toEqual({ key: "AMRAP", settings: { durationSeconds: 600, incrementPerRound: 0 } });
+    // Recette du 26/11/2026 (D-607) : incrément jamais saisi, absent ; saisi, repris. [`incrementPerRound: 0` — remplacé.]
+    expect(exitCarrier(member, AMRAP_CIRCUIT, "KEEP").format).toEqual({ key: "AMRAP", settings: { durationSeconds: 600 } });
+    expect(exitCarrier({ ...member, format: { key: "AMRAP", settings: { incrementPerRound: 0 } } }, AMRAP_CIRCUIT, "KEEP").format).toEqual({ key: "AMRAP", settings: { durationSeconds: 600, incrementPerRound: 0 } });
     const free = exitCarrier(member, AMRAP_CIRCUIT, "FREE");
     expect(free).not.toHaveProperty("format");
     // D-604 (25/11/2026) : rien n'est repris du bloc — valeurs par défaut d'un exercice libre. [Répétitions du bloc reprises — remplacé.]
@@ -286,7 +291,8 @@ describe("Composition : déplacement, duplication, compte et nature", () => {
     const outcome = moveLayoutItem(carrierDraft(), { kind: "EXERCISE", id: "x" }, { container: { kind: "CIRCUIT", id: "c" }, index: 3 }, newId);
     expect(outcome.status).toBe("APPLIED");
     if (outcome.status !== "APPLIED") return;
-    expect(outcome.draft.exercises.find((item) => item.id === "x")!.format).toEqual({ key: "AMRAP", settings: { incrementPerRound: 0 } });
+    // Recette du 26/11/2026 (D-607) : incrément jamais saisi, absent. [`{ incrementPerRound: 0 }` — remplacé.]
+    expect(outcome.draft.exercises.find((item) => item.id === "x")!.format).toEqual({ key: "AMRAP", settings: {} });
   });
 
   it("un membre qui sort demande le choix ; chaque résolution est complète ; le buy-in sort libre sans choix", () => {

@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
@@ -56,7 +56,9 @@ export type SessionCardProps = {
   readonly timeLabel?: string;
 };
 
-const CHRONOMETER_ICON = require("../../../assets/icons/icon-agenda-chronometre.svg");
+// Recette iPhone du 26/11/2026 (Hermann : « Il faut que les traits du chronomètre soient aussi fins que les traits de
+// l'haltère ») : même tracé que le chronomètre de l'Agenda, trait de 0,6 au lieu de 1,5 ; la carte de routine garde le sien.
+const CHRONOMETER_ICON = require("../../../assets/icons/icon-carte-seance-chronometre.svg");
 const MOVEMENTS_ICON = require("../../../assets/icons/icon-carte-seance-haltere.svg");
 
 const t = strings.screens.sessions.catalogueCard;
@@ -186,7 +188,16 @@ export function SessionCard({ projection, expanded = false, onOpen, onStart, con
 function CardVisual({ projection }: { readonly projection: SessionCatalogueProjection }) {
   const resolveUri = useMediaUriResolver();
   const id = projection.id;
-  if (projection.mosaic.length === 0) {
+  // Recette iPhone du 26/11/2026 (Hermann, ligne « Séance sans photo » : « L'image est un cadre gris sans symbole ») : une
+  // image définitivement illisible (fichier absent, photo en erreur, vidéo sans affiche) est traitée comme un mouvement sans
+  // photo — ignorée de la mosaïque (D-600) ; sans aucune image lisible, vignette du format Libre, jamais un cadre gris vide.
+  const [unavailable, setUnavailable] = useState<ReadonlySet<string>>(() => new Set());
+  const imageId = (image: SessionCatalogueProjection["mosaic"][number]) => `${image.key}|${image.uri}`;
+  const markUnavailable = useCallback((imageKey: string) => {
+    setUnavailable((current) => (current.has(imageKey) ? current : new Set([...current, imageKey])));
+  }, []);
+  const images = projection.mosaic.filter((image) => !unavailable.has(imageId(image)));
+  if (images.length === 0) {
     const format = projection.visual.kind === "FORMAT" ? projection.visual.format : FREE_SESSION_FORMAT;
     return (
       <View style={styles.visual}>
@@ -194,11 +205,11 @@ function CardVisual({ projection }: { readonly projection: SessionCatalogueProje
       </View>
     );
   }
-  const layout = mosaicLayout(projection.mosaic.length);
+  const layout = mosaicLayout(images.length);
   return (
-    <View style={styles.visual} testID={`session-card-${id}-mosaic-${Math.min(projection.mosaic.length, 5)}`}>
+    <View style={styles.visual} testID={`session-card-${id}-mosaic-${Math.min(images.length, 5)}`}>
       {layout.cells.map((cell, index) => {
-        const image = projection.mosaic[index]!;
+        const image = images[index]!;
         const box = { width: cell.width, height: cell.height };
         return (
           <View key={image.key} style={[styles.cell, cell]} testID={`session-card-${id}-mosaic-cell-${index}`}>
@@ -208,6 +219,7 @@ function CardVisual({ projection }: { readonly projection: SessionCatalogueProje
               imageStyle={box}
               fallbackStyle={[box, styles.visualFallback]}
               crop={{ box, view: image.view }}
+              onUnavailable={() => markUnavailable(imageId(image))}
               imageTestID={`session-card-${id}-photo-${index}`}
               fallbackTestID={`session-card-${id}-photo-${index}-fallback`}
             />

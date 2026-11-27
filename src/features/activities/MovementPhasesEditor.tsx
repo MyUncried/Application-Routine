@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
+import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent, type TextInputProps } from "react-native";
 
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import { WORK_PATTERN_DURATION_BOUNDS, WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
@@ -13,6 +13,7 @@ import {
   type MovementPhaseList,
 } from "@/domain/activities/movementPhaseList";
 import { cellDurationSeconds, mmssDigitsOf } from "@/features/activities/cellEntry";
+import { useAttachedKeyboardBar } from "@/features/activities/KeyboardAccessoryBar";
 import { KeyboardField } from "@/features/activities/KeyboardField";
 import { codePointLength } from "@/domain/sessions/validation";
 import { strings } from "@/shared/i18n";
@@ -68,6 +69,21 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * ligne suivante sont retirés. Lecture appliquée : Entrée sur le libellé place toujours le curseur
  * sur la durée de la MÊME ligne (demande du 31/10 non retirée ; ce n'est pas l'« étape suivante ») ;
  * depuis la durée, l'utilisateur touche lui-même le libellé de la phase suivante ou l'invite.]
+ *
+ * [Recette iPhone du 26/11/2026 (après-midi), Hermann : « Régression : création d'une fiche de mouvement, création de phases et
+ * entrée de la durée. Nous avions défini une barre d'option au-dessus du clavier, elle n'est plus affichée. » — la barre du
+ * clavier de la durée (« ← Précédent » : libellé de la même ligne ; « Suivant → » : ligne suivante ; « Fermer ») est rétablie
+ * telle qu'elle existait avant son retrait du 31/10 (`onKeyboardBarChange`). La touche Entrée du libellé garde son libellé par
+ * défaut et la durée ne passe toujours pas d'elle-même à la ligne suivante (cr2-phases) : seul un toucher de la barre le fait.]
+ *
+ * [Complété le 26/11/2026 (recette iPhone, après-midi, réponse de Hermann : « précédent, suivant, fermer. Précédent et Suivant
+ * permettent bien de passer d'un champ à l'autre (phase n > durée n > phase n+1 > durée n+1) ») : la barre (« ← Précédent »,
+ * « Suivant → », « Fermer ») est affichée sur TOUS les champs du bloc — libellé de phase, durée et invite d'ajout — et non plus
+ * sur la seule durée. Précédent / Suivant parcourent les champs dans l'ordre affiché : libellé 1 → durée 1 → libellé 2 → durée 2
+ * → … ; l'invite d'ajout prend sa place affichée (en fin de liste, ou juste sous la phase après laquelle elle s'ouvre). Précédent
+ * est indisponible sur le premier champ, Suivant sur le dernier (l'invite, toujours affichée pendant la saisie) : depuis la
+ * dernière durée, Suivant mène donc à l'invite, comme avant. « Fermer » ferme le clavier. Entrée du libellé (durée de la même
+ * ligne) et absence de passage automatique depuis la durée : inchangées.]
  */
 
 const t = strings.screens.movement.phases;
@@ -90,6 +106,53 @@ const DURATION_HIT_SLOP = {
   bottom: (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2,
 };
 
+/**
+ * Recette iPhone du 26/11/2026 (après-midi) : actions de la barre du clavier pendant la saisie d'un champ du bloc (libellé,
+ * durée ou invite) : « ← Précédent » / « Suivant → » vers le champ voisin dans l'ordre libellé 1 → durée 1 → libellé 2 → …,
+ * indisponibles aux extrémités (sans boucle).
+ */
+export type MovementPhasesKeyboardBar = {
+  readonly canPrevious: boolean;
+  readonly canNext: boolean;
+  readonly onPrevious: () => void;
+  readonly onNext: () => void;
+};
+
+/**
+ * Recette iPhone du 26/11/2026 (soir), Hermann : « la barre d'option du clavier n'apparaît pas » — champ texte du bloc (libellé,
+ * invite) portant la barre native rattachée au clavier (`useAttachedKeyboardBar`, `InputAccessoryView` montée juste après le champ).
+ */
+function BarTextInput({ active, inputRef, ...props }: TextInputProps & { readonly active: boolean; readonly inputRef: (node: TextInput | null) => void }) {
+  const bar = useAttachedKeyboardBar(active, true);
+  return (
+    <>
+      <TextInput ref={inputRef} {...props} inputAccessoryViewID={bar.id} />
+      {bar.accessory}
+    </>
+  );
+}
+
+/** Clé d'un champ du bloc : libellé ou durée d'une phase, ou l'invite d'ajout. */
+type PhaseFieldKey = `label:${number}` | `duration:${number}` | "invite";
+
+/**
+ * Recette iPhone du 26/11/2026 (après-midi) : ordre de parcours des champs par la barre du clavier, celui de l'affichage —
+ * libellé puis durée de chaque phase, l'invite à sa place (sous la phase `inviteIndex`, sinon en fin de liste).
+ */
+export function movementPhaseFieldOrder(
+  phaseIds: readonly number[],
+  showInvite: boolean,
+  inviteIndex: number | null,
+): PhaseFieldKey[] {
+  const order: PhaseFieldKey[] = [];
+  phaseIds.forEach((id, index) => {
+    order.push(`label:${id}`, `duration:${id}`);
+    if (showInvite && inviteIndex === index) order.push("invite");
+  });
+  if (showInvite && inviteIndex === null) order.push("invite");
+  return order;
+}
+
 /** Libellé admis (F06) : au plus `WORK_PHASE_LIMITS.labelMaxLength` points de code. */
 export function isPhaseLabelWithinLimit(label: string): boolean {
   return codePointLength(label) <= WORK_PHASE_LIMITS.labelMaxLength;
@@ -110,6 +173,11 @@ export type MovementPhasesEditorProps = {
    * changement de ligne ou de mesure (recadrage au-dessus du clavier, comme la Description).
    */
   readonly onActiveRowBottomChange?: (bottom: number) => void;
+  /**
+   * Recette iPhone du 26/11/2026 (après-midi) : durée en saisie (actions de la barre du clavier) ou `null`. L'écran affiche la
+   * barre (`KeyboardAccessoryBar`) tant qu'elle est fournie.
+   */
+  readonly onKeyboardBarChange?: (bar: MovementPhasesKeyboardBar | null) => void;
   readonly testID?: string;
 };
 
@@ -119,14 +187,17 @@ export function MovementPhasesEditor({
   editable,
   onFocusChange,
   onActiveRowBottomChange,
+  onKeyboardBarChange,
   testID = "movement-phases",
 }: MovementPhasesEditorProps) {
   const [active, setActiveState] = useState(false);
   const onFocusChangeRef = useRef(onFocusChange);
   const onActiveRowBottomRef = useRef(onActiveRowBottomChange);
+  const onKeyboardBarRef = useRef(onKeyboardBarChange);
   useEffect(() => {
     onFocusChangeRef.current = onFocusChange;
     onActiveRowBottomRef.current = onActiveRowBottomChange;
+    onKeyboardBarRef.current = onKeyboardBarChange;
   });
   // Ligne en saisie et cadres des lignes (dans la liste), pour le recadrage au-dessus du clavier.
   const focusedKey = useRef<number | "invite" | null>(null);
@@ -176,6 +247,31 @@ export function MovementPhasesEditor({
   // PRE-9, recette iPhone n° 2 : champs de durée (focus programmé) et durée en saisie.
   const durationInputs = useRef(new Map<number, TextInput>());
   const [activeDuration, setActiveDuration] = useState<number | null>(null);
+  // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann : champ du bloc en saisie (libellé, durée ou invite), qui porte
+  // la barre du clavier. Sa perte de focus est différée comme celle du bloc (`setActive`) et annulée par le focus du champ
+  // suivant : passer d'un champ à l'autre ne retire pas la barre (pas de nouvelle montée).
+  const [barField, setBarField] = useState<PhaseFieldKey | null>(null);
+  const pendingBarBlur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (pendingBarBlur.current !== null) clearTimeout(pendingBarBlur.current);
+    },
+    [],
+  );
+  function focusBarField(key: PhaseFieldKey) {
+    if (pendingBarBlur.current !== null) {
+      clearTimeout(pendingBarBlur.current);
+      pendingBarBlur.current = null;
+    }
+    setBarField(key);
+  }
+  function blurBarField(key: PhaseFieldKey) {
+    if (pendingBarBlur.current !== null) clearTimeout(pendingBarBlur.current);
+    pendingBarBlur.current = setTimeout(() => {
+      pendingBarBlur.current = null;
+      setBarField((current) => (current === key ? null : current));
+    }, 0);
+  }
   useEffect(() => {
     if (pendingFocus.current === null) return;
     inputs.current.get(pendingFocus.current)?.focus();
@@ -185,6 +281,55 @@ export function MovementPhasesEditor({
   const showInvite = editable && (phases.length === 0 || active);
   // Place de l'invite : sous la phase `inviteAfter` si elle existe encore, sinon en fin de liste.
   const inviteIndex = inviteAfter !== null && inviteAfter < phases.length - 1 ? inviteAfter : null;
+
+  // Recette iPhone du 26/11/2026 (après-midi) : ordre de parcours de la barre (ordre affiché) et champ courant, relus par ses
+  // actions au moment du toucher. Le focus passe d'un champ à l'autre sans fermer le clavier.
+  const fieldOrder = movementPhaseFieldOrder(
+    phases.map((phase) => phase.id),
+    showInvite,
+    inviteIndex,
+  );
+  const fieldOrderKey = fieldOrder.join(",");
+  const barNavigation = useRef({ order: fieldOrder, field: barField });
+  useEffect(() => {
+    barNavigation.current = { order: fieldOrder, field: barField };
+  });
+  function focusField(key: PhaseFieldKey) {
+    if (key === "invite") {
+      const invite = inputs.current.get("invite");
+      if (invite) invite.focus();
+      else pendingFocus.current = "invite";
+      return;
+    }
+    const [kind, id] = key.split(":");
+    if (kind === "label") inputs.current.get(Number(id))?.focus();
+    else durationInputs.current.get(Number(id))?.focus();
+  }
+  function moveField(step: -1 | 1) {
+    const { order, field } = barNavigation.current;
+    if (field === null) return;
+    const target = order[order.indexOf(field) + step];
+    if (order.indexOf(field) >= 0 && target !== undefined) focusField(target);
+  }
+  const moveFieldRef = useRef(moveField);
+  useEffect(() => {
+    moveFieldRef.current = moveField;
+  });
+  useEffect(() => {
+    if (barField === null) {
+      onKeyboardBarRef.current?.(null);
+      return;
+    }
+    const order = fieldOrderKey.split(",");
+    const index = order.indexOf(barField);
+    onKeyboardBarRef.current?.({
+      canPrevious: index > 0,
+      canNext: index >= 0 && index < order.length - 1,
+      onPrevious: () => moveFieldRef.current(-1),
+      onNext: () => moveFieldRef.current(1),
+    });
+  }, [barField, fieldOrderKey]);
+  useEffect(() => () => onKeyboardBarRef.current?.(null), []);
 
   function removeAt(index: number) {
     const phase = phases[index];
@@ -227,8 +372,9 @@ export function MovementPhasesEditor({
                 {`${shownRank}.`}
               </Text>
               {editable ? (
-                <TextInput
-                  ref={(node) => {
+                <BarTextInput
+                  active={barField === `label:${phase.id}`}
+                  inputRef={(node) => {
                     if (node) inputs.current.set(phase.id, node);
                     else inputs.current.delete(phase.id);
                   }}
@@ -252,9 +398,13 @@ export function MovementPhasesEditor({
                   onFocus={() => {
                     focusedKey.current = phase.id;
                     setActive(true);
+                    focusBarField(`label:${phase.id}`);
                     reportActive(phase.id);
                   }}
-                  onBlur={() => setActive(false)}
+                  onBlur={() => {
+                    blurBarField(`label:${phase.id}`);
+                    setActive(false);
+                  }}
                   style={styles.text}
                   accessibilityLabel={t.labelAccessibility.replace("{rank}", rank)}
                   accessibilityActions={actions}
@@ -314,10 +464,12 @@ export function MovementPhasesEditor({
           focusedKey.current = phaseId;
           setActive(true);
           setActiveDuration(phaseId);
+          focusBarField(`duration:${phaseId}`);
           reportActive(phaseId);
         }}
         onBlur={() => {
           setActiveDuration((current) => (current === phaseId ? null : current));
+          blurBarField(`duration:${phaseId}`);
           setActive(false);
         }}
         onChangeText={(text) =>
@@ -348,8 +500,9 @@ export function MovementPhasesEditor({
             <Text style={[styles.number, styles.promptNumber]} accessible={false} importantForAccessibility="no-hide-descendants">
               {`${position + 1}.`}
             </Text>
-            <TextInput
-              ref={(node) => {
+            <BarTextInput
+              active={barField === "invite"}
+              inputRef={(node) => {
                 if (node) inputs.current.set("invite", node);
                 else inputs.current.delete("invite");
               }}
@@ -375,9 +528,13 @@ export function MovementPhasesEditor({
               onFocus={() => {
                 focusedKey.current = "invite";
                 setActive(true);
+                focusBarField("invite");
                 reportActive("invite");
               }}
-              onBlur={() => setActive(false)}
+              onBlur={() => {
+                blurBarField("invite");
+                setActive(false);
+              }}
               style={styles.text}
               accessibilityLabel={phases.length === 0 ? t.firstPlaceholder : t.nextPlaceholder}
               testID={`${testID}-invite`}

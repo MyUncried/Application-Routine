@@ -285,6 +285,13 @@ export type MovementValues = {
    * `seriesLoads`) — remplacés par une charge par série (`cells`), §14.]
    */
   readonly loadOn?: boolean;
+  /**
+   * Renforcement — recette iPhone du 26/11/2026 (après-midi, Hermann : « La ligne globale « Nombre de séries » est supprimée » ; « la
+   * première colonne est « Séries » (nombre de séries de chaque mouvement) ») : nombre de séries propre au mouvement ; absent : le
+   * nombre de séries du Format (`ModelAnswers.seriesCount`). Donnée additive du brouillon du Format (l'Exercice produit porte déjà
+   * son propre nombre de séries).
+   */
+  readonly seriesCount?: number;
   /** Tabata, 30/30, Renforcement, À l'échec à plusieurs mouvements : Pause propre au mouvement (§15–§17) ; absente : commune. */
   readonly pause?: number | null;
   /**
@@ -315,6 +322,15 @@ export type MovementValues = {
    */
   readonly recovery?: number;
 };
+
+/**
+ * Renforcement — nombre de séries d'un mouvement (recette iPhone du 26/11/2026, après-midi) : le sien, sinon celui du Format. En
+ * alternance (Circuit à séries alternées, dont les membres héritent du nombre de tours), le nombre reste commun : celui du Format.
+ * [Interprétation prudente, À CLARIFIER par Hermann : nombre de séries différent par mouvement en alternance.]
+ */
+export function strengthSeriesCount(answers: ModelAnswers, values: MovementValues, alternated: boolean): number {
+  return (alternated ? undefined : values.seriesCount) ?? answers.seriesCount ?? 1;
+}
 
 /** Mouvement du modèle : Exercice de base (paramètres du Profil) et valeurs du récapitulatif. */
 export type ModelMovement = {
@@ -930,7 +946,9 @@ function buildFormatElements(
       const exercises = movements.map(({ exercise, values }) => {
         const mode = values.mode ?? "REPETITIONS";
         const seriesTarget = key === "STRENGTH" ? target(rowObjective(values, answers.repetitions, "REPETITIONS")) : failureTarget();
-        const parameters = uniform(exercise.executionParameters, mode, count, seriesTarget, values.pause ?? pauseOf(answers, exercise));
+        // Renforcement (recette du 26/11/2026 après-midi) : nombre de séries propre au mouvement (commun en alternance).
+        const own = key === "STRENGTH" ? strengthSeriesCount(answers, values, execution === "ALTERNATED") : count;
+        const parameters = uniform(exercise.executionParameters, mode, own, seriesTarget, values.pause ?? pauseOf(answers, exercise));
         return withParameters(exercise, withCommonLoad(parameters, answers, values), exercise.postActivityRecoverySeconds ?? 0, null);
       });
       return execution === "ALTERNATED" ? [standardCircuit(key, newId(), "SERIES", count, exercises)] : inSequence(key, newId, exercises, undefined);
@@ -1017,7 +1035,11 @@ function buildFormatElements(
         return withCommonLoad(base, answers, values);
       };
       // Complément du 5 novembre 2026 (Hermann), §8 : incrément signé ; aucun incrément pour le buy-in ni pour Max (À l'échec).
-      const incrementOf = (values: MovementValues, role: CircuitRole) => (role !== "TOUR" || !increasing || values.max === true ? 0 : (values.increment ?? 0));
+      // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : « fond rouge lorsque la donnée n'est pas renseignée, +0 rép.
+      // lorsqu'elle a été renseignée » — un incrément non saisi reste absent des réglages (jamais 0) ; un 0 saisi reste 0. [0 écrit pour le
+      // buy-in, Max, un volume non croissant ou une case vide — remplacé.]
+      const incrementOf = (values: MovementValues, role: CircuitRole): Record<string, number> =>
+        role !== "TOUR" || !increasing || values.max === true || values.increment == null ? {} : { incrementPerRound: values.increment };
       // §1, §2.2 : Exercice autonome seulement pour un mouvement, un bloc, sans buy-in ni repos de boucle.
       if (!several && blocks === 1 && loopRest === 0) {
         const [{ exercise, values }] = movements as [ModelMovement];
@@ -1026,7 +1048,7 @@ function buildFormatElements(
             kind: "EXERCISE",
             exercise: withParameters(exercise, params(exercise, values), 0, {
               key: "AMRAP",
-              settings: { durationSeconds: duration, incrementPerRound: incrementOf(values, "TOUR") },
+              settings: { durationSeconds: duration, ...incrementOf(values, "TOUR") },
             }),
           },
         ];
@@ -1037,7 +1059,7 @@ function buildFormatElements(
       const members = ordered.map((movement, index) => {
         const role = answers.buyIn === true && movement.buyIn === true ? "BUY_IN" : "TOUR";
         // §2.2 : le repos de boucle initialise la récupération du dernier membre ; les autres, et le buy-in, à 0 s.
-        const format = withCircuitRole({ key: "AMRAP", settings: { incrementPerRound: incrementOf(movement.values, role) } }, role);
+        const format = withCircuitRole({ key: "AMRAP", settings: { ...incrementOf(movement.values, role) } }, role);
         return withParameters(movement.exercise, params(movement.exercise, movement.values), index === lastTour && role === "TOUR" ? loopRest : 0, format);
       });
       return [

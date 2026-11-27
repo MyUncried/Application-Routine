@@ -50,6 +50,18 @@ describe("formatOccurrencePrescription — carte d'exercice de la Composition (0
     expect(prescription(uniform("DURATION", 1, numberTarget(30)), { key: "AMRAP", settings: { incrementPerRound: 5 } })).toBe("30″ +5″/tour");
   });
 
+  // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607, complément) : « soit il est égal à 0 et c'est voulu, soit il manque
+  // et les paramètres doivent être renseignés, l'utilisateur ne peut pas valider ».
+  it("recette du 26/11 (D-607) — AMRAP sans incrément : « Paramètres à compléter. » (Tour, autonome compris) ; buy-in et à l'échec : non", () => {
+    const parameters = uniform("REPETITIONS", 1, numberTarget(10));
+    const incomplete = strings.executionParameters.card.incomplete;
+    expect(prescription(parameters, { key: "AMRAP", settings: {} })).toBe(incomplete);
+    expect(prescription(parameters, { key: "AMRAP", settings: { durationSeconds: 720 } })).toBe(incomplete);
+    expect(prescription(parameters, { key: "AMRAP", settings: { incrementPerRound: 0 } })).toBe("10 rép.");
+    expect(prescription(parameters, { key: "AMRAP", settings: { circuitRole: 1 } })).toBe("10 rép.");
+    expect(prescription(uniform("REPETITIONS", 1, failureTarget()), { key: "AMRAP", settings: {} })).toBe("à l’échec");
+  });
+
   it("Death by : « 1 rép. +1/min » (intervalle de l'Exercice ou du Circuit porteur, une minute par défaut)", () => {
     const parameters = uniform("REPETITIONS", 1, numberTarget(1));
     expect(prescription(parameters, { key: "DEATH_BY", settings: { incrementPerRound: 1, intervalSeconds: 60 } })).toBe("1 rép. +1/min");

@@ -12,6 +12,7 @@ import { ActivityDefinitionServiceContext } from "@/features/activities/Activity
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
+import { fireSwipeReveal } from "@/shared/gestures/testing/fireSwipeReveal";
 import { SessionDraftContext, type SessionDraftContextValue, type SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
@@ -133,10 +134,8 @@ function shape(draft: SessionDraft | null): string {
 
 /** Balayage gauche au-delà de la moitié de la course : révèle Dupliquer / Supprimer. */
 function swipeLeft(id: string) {
-  const container = () => screen.getByTestId(`composition-activity-${id}`, hidden);
-  fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
-  fireEvent(container(), "touchMove", { nativeEvent: { pageX: 220, pageY: 100 } });
-  fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 220, pageY: 100, touches: [] } });
+  // Recette du 26/11/2026 (après-midi) : glisser porté par le `Pan` natif de la règle unique.
+  fireSwipeReveal(`composition-activity-pan-${id}`, -80);
 }
 
 /** Rappels des animations simulées (microtâches). */

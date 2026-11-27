@@ -14,6 +14,9 @@ jest.mock("react-native-reanimated/mock", () => {
   return {
     ...reanimated,
     LayoutAnimationConfig: ({ children }) => children,
+    // Recette iPhone du 26/11/2026 (après-midi), point B : la modale « Paramètres d'exécution » suit le clavier (`useAnimatedKeyboard`) ;
+    // le simulacre livré rend des nombres, la feuille lit des valeurs partagées (`get`) — clavier fermé.
+    useAnimatedKeyboard: () => ({ height: { value: 0, get: () => 0 }, state: { value: 0, get: () => 0 } }),
   };
 });
 jest.mock("react-native-reanimated", () => require("react-native-reanimated/mock"));

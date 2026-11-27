@@ -75,6 +75,9 @@ const ownSetting = (exercise: SessionDraftExercise, id: string): number | undefi
   return typeof value === "number" ? value : undefined;
 };
 
+/** Recette iPhone du 26/11/2026 (après-midi), D-607 : incrément AMRAP écrit seulement s'il a été saisi. */
+const incrementSetting = (value: number | undefined): Record<string, number> => (value === undefined ? {} : { incrementPerRound: value });
+
 /** Exercice entré dans le Circuit porteur `circuit` (voir l'en-tête) ; inchangé s'il en est déjà membre. */
 export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCircuit): SessionDraftExercise {
   const carried = circuit.format ?? null;
@@ -94,7 +97,10 @@ export function enterCarrier(exercise: SessionDraftExercise, circuit: CarrierCir
     case "AMRAP": {
       // Mode Répétitions ou Durée ; cible par passage, ou À l'échec ; Passage À chaque tour, incrément 0 sauf repris.
       const kept = target;
-      const settings = { incrementPerRound: parameters.mode === "REPETITIONS" ? (keepIncrement(0) ?? 0) : 0 };
+      // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : incrément repris s'il a été saisi, sinon absent (à
+      // renseigner, « — » sur fond rouge dans la modale) ; jamais 0 écrit par défaut. [`?? 0`, et 0 en Durée — remplacé.]
+      const keptIncrement = parameters.mode === "REPETITIONS" ? keepIncrement(0) : undefined;
+      const settings = incrementSetting(keptIncrement);
       return withFormat(exercise, { key: "AMRAP", settings }, uniform(parameters, parameters.mode, 1, kept, 0));
     }
     case "FOR_TIME": {
@@ -219,7 +225,8 @@ export function exitCarrier(exercise: SessionDraftExercise, circuit: CarrierCirc
       const kept = parameters.mode === "REPETITIONS" ? target : target.kind === "FAILURE" ? failureTarget() : unsetTarget();
       return withFormat(
         exercise,
-        { key: "AMRAP", settings: { durationSeconds: setting("blockSeconds") ?? 720, incrementPerRound: ownSetting(exercise, "incrementPerRound") ?? 0 } },
+        // Recette iPhone du 26/11/2026 (après-midi), réponse de Hermann (D-607) : incrément absent s'il n'a jamais été saisi. [`?? 0` — remplacé.]
+        { key: "AMRAP", settings: { durationSeconds: setting("blockSeconds") ?? 720, ...incrementSetting(ownSetting(exercise, "incrementPerRound")) } },
         uniform(parameters, "REPETITIONS", 1, kept, 0),
       );
     }

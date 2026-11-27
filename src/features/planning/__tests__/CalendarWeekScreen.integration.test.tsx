@@ -21,6 +21,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteRoutineRepository } from "@/infrastructure/database/repositories/SqliteRoutineRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { expectSwipeRevealRule } from "@/shared/gestures/testing/fireSwipeReveal";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { initialDraft } from "@/features/planning/planningDraft";
 import { strings } from "@/shared/i18n";
@@ -651,6 +652,71 @@ describe("Calendrier Semaine", () => {
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { routineId: routine.id, occurrenceKey: `${MONDAY}T08:00` } });
     fireEvent(swipeCard(routine.id, MONDAY), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
     expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
+  });
+
+  // Recette iPhone du 26/11/2026 (soir), remarque d — « Agenda, glissé gauche : doit aussi être actif pour les planifications de
+  // l'agenda » ; arbitrage de Hermann du 27/11/2026 (option B) : ligne Ⓟ glissée, « Dupliquer » et « Supprimer » (tout le créneau).
+  it("ligne Ⓟ d'un parcours : règle unique du glisser ; Dupliquer la routine ; Supprimer tout le créneau, trace par Séance (27/11/2026)", async () => {
+    const first = await sessions.createStructured(input("Alpha"));
+    const second = await sessions.createStructured(input("Bravo"));
+    const routine = await plan({
+      name: "Genou",
+      entries: [entry(first.id), entry(second.id)],
+      repetition: { unit: "WEEK", every: 1, weekdays: [1, 4], end: { kind: "UNTIL", date: addDays(MONDAY, 30) } },
+    });
+    await renderCalendar();
+    const group = `${routine.id}|${MONDAY}T08:00`;
+    const row = `calendar-parcours-${group}-swipe`;
+    expectSwipeRevealRule(row);
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent(screen.getByTestId(`${row}-card`), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
+    fireEvent(screen.getByTestId(`${row}-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.getByText("Supprimer ce créneau")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByText("Confirmer"));
+    });
+    await flush();
+    // D-568 : les deux Séances restent à leur heure, « Supprimées » ; le jeudi est intact.
+    expect(screen.getByTestId(`calendar-item-${group}|s0-card-status-DELETED`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${group}|s1-card-status-DELETED`)).toBeTruthy();
+    expect(screen.getByTestId(`calendar-item-${routine.id}|${THURSDAY}T08:00|1-card-start-slot`)).toBeTruthy();
+    // Plus rien à supprimer : la ligne Ⓟ ne propose plus que « Dupliquer ».
+    fireEvent(screen.getByTestId(`${row}-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.queryByText("Supprimer ce créneau")).toBeNull();
+  });
+
+  it("ligne Ⓟ d'un parcours commencé : « Supprimer » absent, « Dupliquer » présent (D-537, 27/11/2026)", async () => {
+    const first = await sessions.createStructured(input("Échauffement"));
+    const second = await sessions.createStructured(input("Étirement"));
+    const routine = await plan({ name: "Mobilité du matin", time: "14:00", entries: [entry(first.id), entry(second.id)] });
+    const started = new Date(2030, 7, 5, 14, 7).toISOString();
+    linked = [{ executionId: "x1", routineId: routine.id, occurrenceKey: `${MONDAY}T14:00`, rank: 1, sessionId: first.id, startedAt: started, businessStatus: "COMPLETED" }];
+    everything = [
+      {
+        executionId: "x1",
+        sessionId: first.id,
+        sessionName: "Échauffement",
+        startedAt: started,
+        endedAt: new Date(2030, 7, 5, 14, 13, 10).toISOString(),
+        businessStatus: "COMPLETED",
+        link: { routineId: routine.id, occurrenceKey: `${MONDAY}T14:00`, rank: 1 },
+      },
+    ];
+    await renderCalendar();
+    const row = `calendar-parcours-${routine.id}|${MONDAY}T14:00-swipe`;
+    fireEvent(screen.getByTestId(`${row}-card`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(screen.queryByText("Supprimer ce créneau")).toBeNull();
+    fireEvent(screen.getByTestId(`${row}-card`), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/planning", params: { duplicateOf: routine.id } });
+  });
+
+  it("recette du 26/11/2026 (après-midi) : règle unique du glisser-pour-options — geste court, lancer, diagonale, sans rebond", async () => {
+    const created = await sessions.createStructured(input("Gainage"));
+    const routine = await plan({ entries: [entry(created.id)] });
+    await renderCalendar();
+    expectSwipeRevealRule(swipeCard(routine.id, MONDAY).props.testID.replace(/-card$/, ""));
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it("supprimer depuis l'Agenda : seule l'occurrence est retirée, la routine reste (recette du 20/11/2026, constat D)", async () => {
