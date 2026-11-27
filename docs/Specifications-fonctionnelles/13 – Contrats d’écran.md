@@ -592,7 +592,7 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | Écran Figma | Zone ou champ représenté | Ce que Figma montre | Ce qui reste À CLARIFIER |
 |---|---|---|---|
 | `8921:35275` | Douleur avant séance | Choix 0 à 10, texte « Facultatif. Sans réponse, la douleur est notée 0 », action Commencer | Valeur métier effective en l’absence de réponse ; instantané, conservation, affichage ultérieur, possibilité de modifier |
-| `8921:35340` | Effort perçu en Synthèse | Valeurs 1 à 10, une valeur visuellement sélectionnée | Relation, cumul ou remplacement du Ressenti triétat obligatoire (RM-078/RM-080), validation, persistance et exploitation |
+| `8921:35340` | Effort perçu en Synthèse | Valeurs 1 à 10, une valeur visuellement sélectionnée | Relation, cumul ou remplacement du Ressenti obligatoire (RM-078/RM-080), validation, persistance et exploitation |
 | `8921:35340` | Douleur et localisation en Synthèse | Douleur 0 à 10 et choix « Genou droit / Genou gauche / Autre » | Caractère facultatif ou obligatoire, cardinalité des localisations, effet sur Enregistrer, stockage et utilisation |
 | `8928:15098` | Résultats de répétitions partielles | Trois libellés d’exercices, sélections numériques, bouton « Terminer l’exercice » | D-428 : déclenchement, bornes, validation et fermeture arbitrés |
 | `8937:35362` | Résultat d’une série | Feuille « Vos résultats », cible de série, sélection numérique et action Valider | D-429 : valeur initiale, bornes, validation et annulation arbitrées ; affichage dans les rapports non détaillé |
@@ -2937,7 +2937,7 @@ Changement de côté Avec dans chacun des deux enchaînements, donnée historiqu
 *Texte identique à celui de la section [« CE-T03-09 — Lancement direct et préparation fixe 5 s »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-09--lancement-direct-et-préparation-fixe-5-s) ; il n’est pas recopié ici.*
 
 ### Contrats PRE-5 — D-427 à D-429
-**P-Avant la séance — Douleur** (8921:35275) et **P-Synthèse de séance — Effort et douleur — Douleur renseignée** (8921:35340) : Par défaut, aucune évaluation avant exécution ; après, Ressenti obligatoire à trois choix. Parcours enrichi uniquement lorsque le lancement intervient dans le contexte d'un Programme dont l'option est active ; un lancement indépendant reste standard, même pour un contenu appartenant au Programme. Enrichi avant : douleur 0–10 obligatoire, choix explicite, aucune localisation, Commencer bloqué sans réponse. Enrichi après : douleur 0–10 obligatoire et sans présélection (indépendante de la valeur avant) et effort perçu 1–10 obligatoire, en remplacement du Ressenti ; Enregistrer bloqué tant que les valeurs requises manquent. Si douleur finale supérieure à zéro : au moins une localisation choisie parmi les zones corporelles KODJO avec latéralité si pertinente, sélection multiple admise ; aucune localisation imposée à zéro. Zéro n'est jamais déduit d'une absence de réponse. Configuration précise de l'option Programme : À CLARIFIER. [27/11/2026 (D-581) : les écrans `8921:35340` et `8925:15593` sont supprimés ; l'écran de fin de séance (D-578) présente la douleur, sans effort perçu ni localisation (la localisation n'est plus une zone normée, au mieux un commentaire, décision du 27/11/2026) — À CLARIFIER : devenir de l'effort perçu 1–10.]
+**P-Avant la séance — Douleur** (8921:35275) et **P-Synthèse de séance — Effort et douleur — Douleur renseignée** (8921:35340) : Par défaut, aucune évaluation avant exécution ; après, Ressenti obligatoire à cinq niveaux [27/11/2026, D-579 : remplace « trois choix »]. Parcours enrichi uniquement lorsque le lancement intervient dans le contexte d'un Programme dont l'option est active ; un lancement indépendant reste standard, même pour un contenu appartenant au Programme. Enrichi avant : douleur 0–10 obligatoire, choix explicite, aucune localisation, Commencer bloqué sans réponse. Enrichi après : douleur 0–10 obligatoire et sans présélection (indépendante de la valeur avant) et effort perçu 1–10 obligatoire, en remplacement du Ressenti ; Enregistrer bloqué tant que les valeurs requises manquent. Si douleur finale supérieure à zéro : au moins une localisation choisie parmi les zones corporelles KODJO avec latéralité si pertinente, sélection multiple admise ; aucune localisation imposée à zéro. Zéro n'est jamais déduit d'une absence de réponse. Configuration précise de l'option Programme : À CLARIFIER. [27/11/2026 (D-581) : les écrans `8921:35340` et `8925:15593` sont supprimés ; l'écran de fin de séance (D-578) présente la douleur, sans effort perçu ni localisation (la localisation n'est plus une zone normée, au mieux un commentaire, décision du 27/11/2026) — À CLARIFIER : devenir de l'effort perçu 1–10.]
 
 Modale « P-Modale — Répétitions partielles » (Figma 8928:15098). Formats imposés : interruption ou série achevée sous la cible. Valeur initiale proposée 0, minimum 0, dépassement de la cible autorisé. Zéro proposé n'est pas une mesure avant validation. Valider enregistre le résultat réel et poursuit automatiquement le plan (récupération, série suivante ou fin) ; fermer sans valider n'enregistre aucun résultat et revient à l'étape courante sans progression.
 
@@ -4783,7 +4783,7 @@ Nom/date/nombres dynamiques ; labels Enregistrer/Commentaire statiques ; 12/12 e
 
 #### 7. Structure de l’écran
 
-Nom/statut → durée et bilan → question de Ressenti et trois choix → Commentaire → Enregistrer.
+Nom/statut → durée et bilan → question de Ressenti et cinq niveaux [27/11/2026, D-579 : remplace « trois choix »] → Commentaire → Enregistrer.
 
 #### 8. Éléments obligatoires
 
@@ -4791,7 +4791,7 @@ Ressenti obligatoire, Commentaire facultatif≤200, Enregistrer désactivé sans
 
 #### 9. Layout déterministe
 
-Shell Summary ; trois choix Ressenti égaux, séparations 16 ; question selon type.cardTitle ; noms et chiffres depuis données ; Enregistrer est le CTA des captures courantes.
+Shell Summary ; cinq niveaux Ressenti égaux [27/11/2026, D-579 : remplace « trois choix »], séparations 16 ; question selon type.cardTitle ; noms et chiffres depuis données ; Enregistrer est le CTA des captures courantes.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
