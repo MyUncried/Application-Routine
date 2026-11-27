@@ -57,3 +57,16 @@
 ## Commit final et état Git
 
 Renseignés dans le message de livraison ; aucune fusion dans main (accord de Hermann requis).
+
+## Complément du 28/11/2026 — fin de séance complète (lot 26)
+
+- Avance rapide de `integration/recette-29` sur `origin/feat/avant-seance-d577` @ `283507bb0` (commits `ca4b8f63c`… `f7f205b72`,
+  `d9f654d51`, `283507bb0` ; rapport `2026-11-27_FIN-SEANCE-D578-V2.md`).
+- Contrôle de l'arbitrage A ajusté de Hermann : `execution_repetition_corrections` absente de la migration 045 (mention en commentaire
+  seulement) ; `ExecutionService.ts` inchangé depuis `38e4e63a0` ; diff du moteur depuis `d9f654d51` limité à `kernel.ts` (type
+  `StepResult.repetitionsDone?`) et `results.ts` (lecture).
+- `npx tsc --noEmit` : OK. Jest ciblé (`-w 1`) : `src/features/execution`, `src/infrastructure/database`, `src/domain/execution`,
+  `src/features/programs`, `src/features/profile`, FreeExerciseScreen*, ExecutionParametersSheet.recette29 : 117 suites, 972 tests, 0 échec.
+- Build iOS `development-bmad` (autorisation de l'appareil photo, `app.json`) : `8294473e-815e-4a8a-b62b-6eb66d4e2af0`, terminé le
+  28/11/2026, à partir de `f7f205b72` (seul `app.json` compte côté natif ; inchangé depuis).
+- Base de données : version 45 au premier lancement. La branche Compte (dernière migration 042) devra renuméroter toute nouvelle migration.
