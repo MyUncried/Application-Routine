@@ -26,7 +26,7 @@
  * minimal choisi, cohérent avec le cadre désigné (même bleu), à juger en recette (ARB-19).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Animated, StyleSheet, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 
 import {
@@ -329,6 +329,8 @@ export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, o
   /** Déplacement du doigt depuis l'appui (le défilement automatique s'y ajoute). */
   const fingerDyRef = useRef(0);
   const draggingRef = useRef(false);
+  /** Recette du 27/11/2026 (matin) : translation à remettre à 0 au rendu qui suit le relâchement (voir `finish`). */
+  const resetAfterRenderRef = useRef(false);
   /**
    * Recette iPhone n° 2 du 31/10/2026 (b4b-etendre, Hermann : « Le trait doit rester sous le doigt
    * lorsqu'il se déplace, l'écran doit rester figé et se déplacer avec le défilement du train
@@ -343,9 +345,20 @@ export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, o
     draggingRef.current = false;
     const scrolled = pageY === undefined ? 0 : autoScroll.track(pageY);
     autoScroll.end();
-    translation.setValue(0);
+    // Recette iPhone du 27/11/2026 (matin), Hermann : « Lorsqu'on relâche le bord du circuit, il se déplace à sa position
+    // initiale et revient à la position finale. Pareil pour le cycle. » Cause : la translation était remise à 0 ICI, avant le
+    // rendu du périmètre calé — le trait et le bord du cadre qui la suit (`EnvelopeMovingSegment`) revenaient aussitôt à leur
+    // place de départ, puis le périmètre calé apparaissait au rendu suivant. La remise à 0 attend désormais ce rendu (effet de
+    // mise en page ci-dessous ; un trait démonté par ce rendu n'a rien à remettre). [`translation.setValue(0)` avant
+    // `onDragEnd` — remplacé.]
+    resetAfterRenderRef.current = true;
     onDragEnd(pageY === undefined ? undefined : pageY + scrolled);
   };
+  useLayoutEffect(() => {
+    if (!resetAfterRenderRef.current || draggingRef.current) return;
+    resetAfterRenderRef.current = false;
+    translation.setValue(0);
+  });
   // Trait démonté pendant son glisser (sortie du mode, Annuler d'un autre doigt) : défilement arrêté,
   // liste rendue, aucun changement.
   const unmountRef = useRef({ autoScroll, onDragEnd });
@@ -388,6 +401,11 @@ export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, o
         originRef.current = event.nativeEvent.pageY;
         fingerDyRef.current = 0;
         draggingRef.current = true;
+        // Recette du 27/11/2026 (matin) : remise à 0 du glisser précédent encore en attente de rendu — faite avant le nouveau.
+        if (resetAfterRenderRef.current) {
+          resetAfterRenderRef.current = false;
+          translation.setValue(0);
+        }
         onDragStart(translation);
         autoScroll.begin();
         // Story 7.4 : le trait suit le défilement automatique, même sans mouvement du doigt.

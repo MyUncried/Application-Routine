@@ -327,8 +327,16 @@ export function FloatingCreateButton({
     [bounds, layer, position, bottom],
   );
 
-  const x = useSharedValue(0);
-  const y = useSharedValue(0);
+  /*
+   * Recette iPhone du 27/11/2026 (matin), Hermann : « Quand la composition monte du bas, le bouton Créer de la composition
+   * apparaît en haut à gauche de l'écran, puis disparait pour réapparaître à la place ou était le bouton de Créer une séance. »
+   * Cause (code) : valeurs animées créées à 0 — le premier rendu, et le style que Reanimated transmet ensuite à React à chaque
+   * rendu (style initial figé au premier rendu, `PropsFilter`), placent le bouton en (0, 0), en haut à gauche ; sa place n'était
+   * posée que par l'effet ci-dessous, après l'affichage. Les valeurs partent désormais de la place de repos connue au montage.
+   * [Valeurs animées initiales à 0 — remplacé.]
+   */
+  const x = useSharedValue(rest?.left ?? 0);
+  const y = useSharedValue(rest?.top ?? 0);
   // Dernière destination donnée aux valeurs animées : le retour de l'enregistrement ne coupe pas une pose en cours.
   const destinationRef = useRef({ left: Number.NaN, top: Number.NaN });
   useEffect(() => {

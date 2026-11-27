@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, ScrollView, StyleSheet, Text } from "react-native";
+import { AccessibilityInfo, Dimensions, ScrollView, StyleSheet, Text } from "react-native";
 import { State } from "react-native-gesture-handler";
 import { fireGestureHandler, getByGestureTestId } from "react-native-gesture-handler/jest-utils";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
@@ -149,6 +149,21 @@ beforeEach(() => {
 });
 afterEach(() => {
   resetFloatingPositionForTests();
+});
+
+describe("Recette iPhone du 27/11/2026 (matin) — jamais en haut à gauche à l'apparition", () => {
+  it("dès le premier rendu, avant toute mesure ni tout effet, le bouton est à sa place de repos, pas en (0, 0)", () => {
+    const window = Dimensions.get("window");
+    render(
+      <SafeAreaInsetsContext.Provider value={INSETS}>
+        <FloatingCreateButton variant="plus" accessibilityLabel="Créer" onPress={jest.fn()} bottom={BOTTOM} />
+      </SafeAreaInsetsContext.Provider>,
+    );
+    // Aucun rendu supplémentaire : style du premier rendu (celui que Reanimated transmet ensuite à React).
+    const transform = StyleSheet.flatten(screen.getByTestId("floating-create-position").props.style).transform as { translateX?: number; translateY?: number }[];
+    expect(transform[0]!.translateX).toBe(window.width - 16 - 60);
+    expect(transform[1]!.translateY).toBe(window.height - BOTTOM - 60);
+  });
 });
 
 describe("FloatingCreateButton — rendu et toucher", () => {
