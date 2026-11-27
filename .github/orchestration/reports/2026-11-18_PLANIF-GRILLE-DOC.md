@@ -362,3 +362,4 @@
 - Complément (suite 22 nonies, D-578) : fin de séance 1992:8718, symbole à cheval sur le bord haut du cadre, trois zones (statut / données enregistrées / feedback) séparées par un trait fin. Classe B ; tests non applicables.
 - Complément (suite 22 decies, D-578) : fin de séance 1992:8718, durée au format 16’30’’, plus d'espace entre questions et réponses, pointillés remplacés par un trait vertical entre durée et exercices. Classe B ; tests non applicables.
 - Complément (suite 22 undecies, D-578) : fin de séance 1992:8718, « Valeurs saisies » en colonnes par tour/série pour un exercice à plusieurs tours ou séries (maquette : Squats assistés en 3 séries, Gainage en valeur unique). Classe B ; tests non applicables.
+- Complément (suite 22 duodecies, D-578) : fin de séance 1992:8718, durée du gainage au format 00’45’’ (règle : toutes les durées en minutes’secondes’’). Classe B ; tests non applicables.
