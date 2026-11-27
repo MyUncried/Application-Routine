@@ -316,7 +316,7 @@
 ## Complément 27/11/2026 (suite 19) — Écran « Avant la séance » (D-577, classe B)
 - Décisions explicites de Hermann : contenu (nom, suite des circuits et cycles avec formats, Commencer, Retour, échelle de douleur, « Ne plus afficher ») ; « Ne plus afficher » seulement si l'option douleur n'est pas active.
 - Documents : registre ch07 D-577 ; ch13 table des écrans et contradiction D-427 résolue.
-- Figma : trois écrans créés (Aperçu, Douleur obligatoire, Douleur valeur choisie) ; ancienne version 8921:35275 renommée, conservée.
+- Figma : travail fait directement sur « P-Avant la séance — Douleur » (8921:35275) : retour, séquence, échelle obligatoire, Commencer inactif. Les écrans créés en doublon puis supprimés ne subsistent pas. États à dessiner : sans option douleur (avec « Ne plus afficher »), douleur choisie.
 - À CLARIFIER : emplacement de réactivation de l'affichage ; affichage éventuel par-dessus l'écran du compte à rebours (non retenu pour l'instant).
 - Vérification sur iPhone à faire : défilement de la séquence sous la zone douleur ; développement existant à aligner sur D-427 (douleur obligatoire).
 - Tests : non applicables.
