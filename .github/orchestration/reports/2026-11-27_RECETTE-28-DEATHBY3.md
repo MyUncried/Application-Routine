@@ -98,8 +98,8 @@ ouverte alors qu'une saisie continue (`wantedRef` non nul) ; sans alerte, aucun 
   - `ExecutionParametersSheet.recette2611soir.test.tsx` : 7/7 PASS (inchangé).
   - `FormatModelScreen.tableauUnique.test.tsx`, `ExecutionParametersSheet.keyboard0611.test.tsx`, `useSheetKeyboard.test.ts`,
     `ExecutionParametersSheet.modale2.recette2611soir.test.tsx` : 87/87 PASS.
-  - `ExecutionParametersSheet.test.tsx`, `FormatModelScreen.d603.test.tsx`, `FormatModelScreen.c3.test.tsx` : voir résultat consigné
-    ci-dessous.
+  - `ExecutionParametersSheet.test.tsx`, `FormatModelScreen.d603.test.tsx`, `FormatModelScreen.c3.test.tsx` : 322 PASS, 33 ignorés
+    (`skip` existants), 0 échec.
 - Non couvert par Jest : la page Death by (alerte à la sortie de la case, retenue) — aucun test de page avec un mouvement à phases en
   Durée n'existe ; le scénario demande la composition d'un mouvement à phases dans le tableau (non ajouté, coût). Passe complète non
   lancée (consigne : faite par l'intégrateur).
@@ -146,4 +146,5 @@ ouverte alors qu'une saisie continue (`wantedRef` non nul) ; sans alerte, aucun 
 
 ## Commit final et état Git
 
-Voir le message de livraison (hash du commit de livraison, branche poussée `origin/fix/recette-28-deathby3`).
+Commit de livraison (code + doc + rapport) : `bf2a3ad0c` ; ce complément de résultats de tests : commit documentaire suivant, rattaché à
+`bf2a3ad0c`. Branche poussée `origin/fix/recette-28-deathby3`, arbre propre après push.
