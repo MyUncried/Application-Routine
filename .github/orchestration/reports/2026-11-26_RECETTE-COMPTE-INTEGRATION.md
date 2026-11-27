@@ -85,6 +85,8 @@ Preuves lues par Claude (jeton Supabase en lecture seule fourni par Hermann, pro
 - journaux : aucune requête de BMAD vers une fonction (`delete-account`, `deletion-status`) depuis son installation ; dernières requêtes de BMAD : rafraîchissements de session réussis, le dernier à 14:39 UTC le 26/11.
 - Conclusion **démontrée** : la demande ne quitte pas le téléphone. Cause **indéterminée** : le code ne renvoie « n'a pas abouti » sans appel au serveur que si le lien local est absent ou si une exception survient avant l'appel (journalisée par `console.warn`, lisible dans le terminal Metro, pas sur l'iPhone sans Metro).
 - Vérification proposée : reproduire avec Metro connecté et relever la ligne « Suppression du compte impossible. » du terminal.
+- **Suite (27/11, 01:00 Paris)** : BMAD rechargée depuis Metro en réseau local ; au lancement, la suppression restée en suspens a été reprise (`resumePendingDeletion`) : rafraîchissement de session, `delete-account` → 200, révocation Apple `done`, données purgées, utilisateur Auth supprimé, retour à É1 ; `logout` local → 403 « user_not_found » (attendu, compte déjà supprimé, erreur ignorée par l'app). Notification Apple `consent-revoked` reçue et traitée (`done`) 10 s plus tard : l'adresse des notifications serveur à serveur est bien configurée (prérequis P-05).
+- La cause de l'échec initial (demande jamais émise pendant que le tunnel était arrêté) reste **indéterminée** ; à retester (C-06, C-09) avec Metro connecté.
 
 Constat annexe **démontré** : la tâche planifiée `apple-notifications` répond 500 toutes les 15 minutes (`missing_env:KODJO_SWEEP_TOKEN`) : le secret `KODJO_SWEEP_TOKEN` n'est pas défini dans les secrets des fonctions (prérequis P-04 du cahier : KO).
 
