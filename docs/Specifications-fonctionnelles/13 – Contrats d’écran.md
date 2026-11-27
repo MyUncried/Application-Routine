@@ -575,7 +575,10 @@ L’inventaire ci-dessous suit les frames `P-` de la page Figma `Prototype MVP` 
 | [`8624:30306`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30306) | Composition séance — Modèles — Tabata (récapitulatif) | `CE-FMT-02` | — |
 | [`8624:30672`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) | For time — Récapitulatif (En alternance) | `CE-FMT-02` | Champ « Exécution » ajouté le 14/11/2026 |
 | [`12340:26219`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=12340-26219) | For time — Récapitulatif, à la suite | `CE-FMT-02` | Champ « Exécution » ajouté le 14/11/2026 |
-| [`8921:35275`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35275) | Avant la séance — Douleur | `CE-EXEC-SESSION-01` | À CLARIFIER — douleur initiale |
+| [`8921:35275`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35275) | Avant la séance — Douleur — ancienne version (facultative) | `CE-EXEC-SESSION-01` | Remplacée le 27/11/2026 par les trois écrans D-577 |
+| [`13369:27887`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=13369-27887) | Avant la séance — Aperçu | `CE-EXEC-SESSION-01` | D-577 — lancement sans option douleur |
+| [`13369:28069`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=13369-28069) | Avant la séance — Douleur (obligatoire) | `CE-EXEC-SESSION-01` | D-577, D-427 — Commencer inactif |
+| [`13369:28260`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=13369-28260) | Avant la séance — Douleur (valeur choisie) | `CE-EXEC-SESSION-01` | D-577, D-427 — Commencer actif |
 | [`8921:35340`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8921-35340) | Synthèse de séance — Effort et douleur — Douleur renseignée | `CE-UI-08` | D-427 — parcours enrichi validé |
 | [`8928:15098`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8928-15098) | Modale — Répétitions partielles | `CE-T03-11` | D-428 — règles de saisie validées |
 | [`8937:35362`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8937-35362) | Modale — Résultat de série | `CE-EXEC-SESSION-01` | D-429 — règles de saisie validées |
@@ -2941,7 +2944,7 @@ Modale « P-Modale — Répétitions partielles » (Figma 8928:15098). Formats i
 
 Modale « P-Modale — Résultat de série » (Figma 8937:35362). Valeur initiale proposée 0, minimum 0, dépassement de cible autorisé. Valider enregistre le résultat réel indépendamment de la cible et poursuit automatiquement le plan ; fermer sans validation n'enregistre rien, conserve l'état et revient à l'étape courante sans progression. Le déclencheur exact non encore arbitré reste À CLARIFIER.
 
-**Contradiction Figma identifiée :** la mention « Facultatif. Sans réponse, la douleur est notée 0 » sur l'écran avant l'exécution contredit D-427.
+**Contradiction Figma identifiée :** la mention « Facultatif. Sans réponse, la douleur est notée 0 » sur l'écran avant l'exécution contredit D-427. [Résolue le 27/11/2026, D-577 : nouvelles versions de l'écran conformes à D-427.]
 
 ## Exécution
 
